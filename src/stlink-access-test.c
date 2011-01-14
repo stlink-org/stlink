@@ -202,6 +202,18 @@ struct stlink {
 	stm32_addr_t flash_base;
 	size_t flash_size;
 	size_t flash_pgsz;
+
+	/* in flash system memory */
+#define STM32_SYSTEM_BASE 0x1ffff000
+#define STM32_SYSTEM_SIZE (2 * 1024)
+	stm32_addr_t sys_base;
+	size_t sys_size;
+
+	/* sram settings */
+#define STM32_SRAM_BASE 0x20000000
+#define STM32_SRAM_SIZE (8 * 1024)
+	stm32_addr_t sram_base;
+	size_t sram_size;
 };
 
 static void D(struct stlink *sl, char *txt) {
@@ -305,10 +317,18 @@ static struct stlink* stlink_open(const char *dev_name, const int verbose) {
 	sl->q_addr = 0;
 	clear_buf(sl);
 
-	/* initialize the memory map */
+	/* flash memory settings */
 	sl->flash_base = STM32_FLASH_BASE;
 	sl->flash_size = STM32_FLASH_SIZE;
 	sl->flash_pgsz = STM32_FLASH_PGSZ;
+
+	/* system memory */
+	sl->sys_base = STM32_SYSTEM_BASE;
+	sl->sys_size = STM32_SYSTEM_SIZE;
+
+	/* sram memory settings */
+	sl->sram_base = STM32_SRAM_BASE;
+	sl->sram_size = STM32_SRAM_SIZE;
 
 	return sl;
 }
@@ -838,6 +858,17 @@ void stlink_run(struct stlink *sl) {
 	stlink_stat(sl, "run core");
 }
 
+// same as above with entrypoint.
+static unsigned int is_core_halted(struct stlink*);
+void stlink_run_at(struct stlink *sl, stm32_addr_t addr) {
+	stlink_write_reg(sl, addr, 15); /* pc register */
+
+	stlink_run(sl);
+
+	while (is_core_halted(sl) == 0)
+	  usleep(3000000);
+}
+
 // Step the arm-core.
 void stlink_step(struct stlink *sl) {
 	D(sl, "\n*** stlink_step ***\n");
@@ -1281,13 +1312,10 @@ static int write_loader_to_sram
     0x00, 0x20, 0x02, 0x40,	/* STM32_FLASH_BASE: .word 0x40022000 */
   };
 
-#define LOADER_SRAM_ADDR 0x20000000
-#define LOADER_SRAM_SIZE sizeof(loader_code)
+  memcpy(sl->q_buf, loader_code, sizeof(loader_code));
+  stlink_write_mem32(sl, sl->sram_base, sizeof(loader_code));
 
-  memcpy(sl->q_buf, loader_code, LOADER_SRAM_SIZE);
-  stlink_write_mem32(sl, LOADER_SRAM_ADDR, LOADER_SRAM_SIZE);
-
-  *addr = LOADER_SRAM_ADDR;
+  *addr = sl->sram_base;
   *size = sizeof(loader_code);
 
   /* success */
@@ -1448,7 +1476,7 @@ static int check_file
   return 0;
 }
 
-static int stlink_check_flash
+static int stlink_fcheck_flash
 (struct stlink* sl, const char* path, stm32_addr_t addr)
 {
   /* check the contents of path are at addr */
@@ -1466,10 +1494,10 @@ static int stlink_check_flash
   return res;
 }
 
-static int stlink_write_flash
+static int stlink_fwrite_flash
 (struct stlink* sl, const char* path, stm32_addr_t addr)
 {
-  /* write the binary file in flash at addr */
+  /* write the file in flash at addr */
 
   int error = -1;
   size_t off;
@@ -1553,6 +1581,119 @@ static int stlink_write_flash
   return error;
 }
 
+static int stlink_fwrite_sram
+(struct stlink* sl, const char* path, stm32_addr_t addr)
+{
+  /* write the file in sram at addr */
+
+  int error = -1;
+  size_t off;
+  mapped_file_t mf = MAPPED_FILE_INITIALIZER;
+
+  if (map_file(&mf, path) == -1)
+  {
+    fprintf(stderr, "map_file() == -1\n");
+    return -1;
+  }
+
+  /* check addr range is inside the sram */
+  if (addr < sl->sram_base)
+  {
+    fprintf(stderr, "addr too low\n");
+    goto on_error;
+  }
+  else if ((addr + mf.len) < addr)
+  {
+    fprintf(stderr, "addr overruns\n");
+    goto on_error;
+  }
+  else if ((addr + mf.len) > (sl->sram_base + sl->sram_size))
+  {
+    fprintf(stderr, "addr too high\n");
+    goto on_error;
+  }
+  else if ((addr & 3) || (mf.len & 3))
+  {
+    /* todo */
+    fprintf(stderr, "unaligned addr or size\n");
+    goto on_error;
+  }
+
+  /* do the copy by 1k blocks */
+  for (off = 0; off < mf.len; off += 1024)
+  {
+    size_t size = 1024;
+    if ((off + size) > mf.len)
+      size = mf.len - off;
+
+    memcpy(sl->q_buf, mf.base + off, size);
+
+    /* round size if needed */
+    if (size & 3)
+      size += 2;
+
+    stlink_write_mem32(sl, addr + off, size);
+  }
+
+  /* check the file ha been written */
+  if (check_file(sl, &mf, addr) == -1)
+  {
+    fprintf(stderr, "check_file() == -1\n");
+    goto on_error;
+  }
+
+  /* success */
+  error = 0;
+
+ on_error:
+  unmap_file(&mf);
+  return error;
+}
+
+
+static int stlink_fread
+(struct stlink* sl, const char* path, stm32_addr_t addr, size_t size)
+{
+  /* read size bytes from addr to file */
+
+  int error = -1;
+  size_t off;
+
+  const int fd = open(path, O_RDWR | O_TRUNC | O_CREAT, 00700);
+  if (fd == -1)
+  {
+    fprintf(stderr, "open(%s) == -1\n", path);
+    return -1;
+  }
+
+  /* do the copy by 1k blocks */
+  for (off = 0; off < size; off += 1024)
+  {
+    size_t read_size = 1024;
+    if ((off + read_size) > size)
+      read_size = off + read_size;
+
+    /* round size if needed */
+    if (read_size & 3)
+      read_size = (read_size + 4) & ~(3);
+
+    stlink_read_mem32(sl, addr + off, read_size);
+
+    if (write(fd, sl->q_buf, read_size) != (ssize_t)read_size)
+    {
+      fprintf(stderr, "write() != read_size\n");
+      goto on_error;
+    }
+  }
+
+  /* success */
+  error = 0;
+
+ on_error:
+  close(fd);
+
+  return error;
+}
 
 // 1) open a sg device, switch the stlink from dfu to mass mode
 // 2) wait 5s until the kernel driver stops reseting the broken device
@@ -1697,8 +1838,8 @@ int main(int argc, char *argv[]) {
 	for (int i = 0; i < 100; i++) {
 		write_uint32(sl->q_buf, LED_BLUE | LED_GREEN);
 		stlink_write_mem32(sl, GPIOC_ODR, 4);
-		//stlink_read_mem32(sl, 0x4001100c, 4);
-		//fprintf(stderr, "GPIOC_ODR = 0x%08x", read_uint32(sl->q_buf, 0));
+		/* stlink_read_mem32(sl, 0x4001100c, 4); */
+		/* fprintf(stderr, "GPIOC_ODR = 0x%08x", read_uint32(sl->q_buf, 0)); */
 		delay(100);
 
 		clear_buf(sl);
@@ -1783,27 +1924,30 @@ int main(int argc, char *argv[]) {
 	stlink_force_debug(sl);
 	stlink_status(sl);
 #endif
-#if 0 /* read the system bootloader */
-# define SYSMEM_ADDR 0x1ffff000
-# define SYSMEM_SIZE (2 * 1024)
+#if 1 /* read the system bootloader */
 	fputs("\n++++++++++ reading bootloader ++++++++++++++++\n\n", stderr);
-	stlink_read_mem32(sl, SYSMEM_ADDR, SYSMEM_SIZE);
+	stlink_fread(sl, "/tmp/barfoo", sl->sys_base, sl->sys_size);
 #endif
 #if 0 /* read the flash memory */
 	fputs("\n+++++++ read flash memory\n\n", stderr);
 	/* mark_buf(sl); */
 	stlink_read_mem32(sl, 0x08000000, 4);
 #endif
-#if 1 /* flash programming */
+#if 0 /* flash programming */
 	fputs("\n+++++++ program flash memory\n\n", stderr);
-	stlink_write_flash(sl, "/tmp/foobar", 0x08000000);
+	stlink_fwrite_flash(sl, "/tmp/foobar", 0x08000000);
 #endif
 #if 0 /* check file contents */
 	fputs("\n+++++++ check flash memory\n\n", stderr);
 	{
-	  const int res = stlink_check_flash(sl, "/tmp/foobar", 0x08000000);
-	  printf("_____ stlink_check_flash() == %d\n", res);
+	  const int res = stlink_fcheck_flash(sl, "/tmp/foobar", 0x08000000);
+	  printf("_____ stlink_fcheck_flash() == %d\n", res);
 	}
+#endif
+#if 0
+	fputs("\n+++++++ sram write and execute\n\n", stderr);
+	stlink_fwrite_sram(sl, "/tmp/foobar", sl->sram_base);
+	stlink_run_at(sl, sl->sram_base);
 #endif
 
 	stlink_run(sl);
