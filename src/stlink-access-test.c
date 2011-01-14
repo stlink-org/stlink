@@ -1284,15 +1284,9 @@ static int write_loader_to_sram
 #define LOADER_SRAM_ADDR 0x20000000
 #define LOADER_SRAM_SIZE sizeof(loader_code)
 
-  static unsigned int is_written = 0;
-
-  if (is_written == 1) goto already_written;
-  is_written = 1;
-
   memcpy(sl->q_buf, loader_code, LOADER_SRAM_SIZE);
   stlink_write_mem32(sl, LOADER_SRAM_ADDR, LOADER_SRAM_SIZE);
 
- already_written:
   *addr = LOADER_SRAM_ADDR;
   *size = sizeof(loader_code);
 
@@ -1311,7 +1305,7 @@ static int write_buffer_to_sram
 {
   /* write the buffer right after the loader */
   memcpy(sl->q_buf, buf, size);
-  stlink_write_mem32(sl, fl->buf_addr, size);
+  stlink_write_mem8(sl, fl->buf_addr, size);
   return 0;
 }
 
@@ -1348,7 +1342,7 @@ static int run_flash_loader
   stlink_write_reg(sl, fl->buf_addr, 0); /* source */
   stlink_write_reg(sl, target, 1); /* target */
   stlink_write_reg(sl, count, 2); /* count (16 bits half words) */
-  stlink_write_reg(sl, 0, 3); /* flash bank 0 (input). result (output) */
+  stlink_write_reg(sl, 0, 3); /* flash bank 0 (input) */
   stlink_write_reg(sl, fl->loader_addr, 15); /* pc register */
 
   /* unlock and set programming mode */
@@ -1365,7 +1359,7 @@ static int run_flash_loader
 
   /* not all bytes have been written */
   stlink_read_reg(sl, 2);
-  if (sl->reg.r[2] != 1)
+  if (sl->reg.r[2] != 0)
   {
     fprintf(stderr, "write error, count == %u\n", sl->reg.r[2]);
     return -1;
@@ -1430,24 +1424,46 @@ static void unmap_file(mapped_file_t* mf)
 static int check_file
 (struct stlink* sl, mapped_file_t* mf, stm32_addr_t addr)
 {
-  /* check mf contents are at addr */
-
   size_t off;
 
   for (off = 0; off < mf->len; off += sl->flash_pgsz)
   {
+    size_t aligned_size;
+
     /* adjust last page size */
     size_t cmp_size = sl->flash_pgsz;
     if ((off + sl->flash_pgsz) > mf->len)
       cmp_size = mf->len - off;
 
-    stlink_read_mem32(sl, addr + off, sl->flash_pgsz);
+    aligned_size = cmp_size;
+    if (aligned_size & (4 - 1))
+      aligned_size = (cmp_size + 4) & ~(4 - 1);
+
+    stlink_read_mem32(sl, addr + off, aligned_size);
 
     if (memcmp(sl->q_buf, mf->base + off, cmp_size))
       return -1;
   }
 
   return 0;
+}
+
+static int stlink_check_flash
+(struct stlink* sl, const char* path, stm32_addr_t addr)
+{
+  /* check the contents of path are at addr */
+
+  int res;
+  mapped_file_t mf = MAPPED_FILE_INITIALIZER;
+
+  if (map_file(&mf, path) == -1)
+    return -1;
+
+  res = check_file(sl, &mf, addr);
+
+  unmap_file(&mf);
+
+  return res;
 }
 
 static int stlink_write_flash
@@ -1781,6 +1797,13 @@ int main(int argc, char *argv[]) {
 #if 1 /* flash programming */
 	fputs("\n+++++++ program flash memory\n\n", stderr);
 	stlink_write_flash(sl, "/tmp/foobar", 0x08000000);
+#endif
+#if 0 /* check file contents */
+	fputs("\n+++++++ check flash memory\n\n", stderr);
+	{
+	  const int res = stlink_check_flash(sl, "/tmp/foobar", 0x08000000);
+	  printf("_____ stlink_check_flash() == %d\n", res);
+	}
 #endif
 
 	stlink_run(sl);
