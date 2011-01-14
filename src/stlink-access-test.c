@@ -74,6 +74,10 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <fcntl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/mman.h>
 
 // sgutils2 (apt-get install libsgutils2-dev)
 #include <scsi/sg_lib.h>
@@ -161,6 +165,8 @@ typedef struct {
 	uint32_t rw2;
 } reg;
 
+typedef uint32_t stm32_addr_t;
+
 struct stlink {
 	int sg_fd;
 	int do_scsi_pt_err;
@@ -188,6 +194,14 @@ struct stlink {
 
 	reg reg;
 	int core_stat;
+
+	/* medium density stm32 flash settings */
+#define STM32_FLASH_BASE 0x08000000
+#define STM32_FLASH_SIZE (128 * 1024)
+#define STM32_FLASH_PGSZ 1024
+	stm32_addr_t flash_base;
+	size_t flash_size;
+	size_t flash_pgsz;
 };
 
 static void D(struct stlink *sl, char *txt) {
@@ -290,6 +304,12 @@ static struct stlink* stlink_open(const char *dev_name, const int verbose) {
 	sl->core_id = 0;
 	sl->q_addr = 0;
 	clear_buf(sl);
+
+	/* initialize the memory map */
+	sl->flash_base = STM32_FLASH_BASE;
+	sl->flash_size = STM32_FLASH_SIZE;
+	sl->flash_pgsz = STM32_FLASH_PGSZ;
+
 	return sl;
 }
 
@@ -421,7 +441,6 @@ static void stlink_q(struct stlink* sl) {
 }
 
 static void stlink_print_data(struct stlink *sl) {
-#if 1 /* ascii mode */
 	if (sl->q_len <= 0 || sl->verbose < 2)
 		return;
 	if (sl->verbose > 2)
@@ -437,11 +456,6 @@ static void stlink_print_data(struct stlink *sl) {
 		fprintf(stdout, " %02x", (unsigned int) sl->q_buf[i]);
 	}
 	fputs("\n\n", stdout);
-#else /* binary mode */
-	for (uint32_t i = 0; i < sl->q_len; i++) {
-	  write(1, (unsigned char*)&sl->q_buf[i], 1);
-	}
-#endif
 }
 
 // TODO thinking, cleanup
@@ -452,7 +466,7 @@ static void stlink_parse_version(struct stlink *sl) {
 		fprintf(stderr, "Error: could not parse the stlink version");
 		return;
 	}
-	/* stlink_print_data(sl); */
+	stlink_print_data(sl);
 	uint32_t b0 = sl->q_buf[0]; //lsb
 	uint32_t b1 = sl->q_buf[1];
 	uint32_t b2 = sl->q_buf[2];
@@ -493,7 +507,7 @@ static int stlink_mode(struct stlink *sl) {
 	if (sl->q_len <= 0)
 		return STLINK_DEV_UNKNOWN_MODE;
 
-	/* stlink_print_data(sl); */
+	stlink_print_data(sl);
 
 	switch (sl->q_buf[0]) {
 	case STLINK_DEV_DFU_MODE:
@@ -513,7 +527,7 @@ static void stlink_stat(struct stlink *sl, char *txt) {
 	if (sl->q_len <= 0)
 		return;
 
-	/* stlink_print_data(sl); */
+	stlink_print_data(sl);
 
 	switch (sl->q_buf[0]) {
 	case STLINK_OK:
@@ -531,7 +545,7 @@ static void stlink_core_stat(struct stlink *sl) {
 	if (sl->q_len <= 0)
 		return;
 
-	/* stlink_print_data(sl); */
+	stlink_print_data(sl);
 
 	switch (sl->q_buf[0]) {
 	case STLINK_CORE_RUNNINIG:
@@ -664,7 +678,7 @@ static void stlink_core_id(struct stlink *sl) {
 	sl->core_id = read_uint32(sl->q_buf, 0);
 	if (sl->verbose < 2)
 		return;
-	/* stlink_print_data(sl); */
+	stlink_print_data(sl);
 	fprintf(stderr, "core_id = 0x%08x\n", sl->core_id);
 }
 
@@ -709,7 +723,7 @@ void stlink_read_all_regs(struct stlink *sl) {
 	sl->q_len = 84;
 	sl->q_addr = 0;
 	stlink_q(sl);
-	/* stlink_print_data(sl); */
+	stlink_print_data(sl);
 
 	// 0-3 | 4-7 | ... | 60-63 | 64-67 | 68-71   | 72-75      | 76-79 | 80-83
 	// r0  | r1  | ... | r15   | xpsr  | main_sp | process_sp | rw    | rw2
@@ -753,7 +767,7 @@ void stlink_read_reg(struct stlink *sl, int r_idx) {
 	//  0  |  1  | ... |  15   |  16   |   17    |   18       |  19   |  20
 	// 0-3 | 4-7 | ... | 60-63 | 64-67 | 68-71   | 72-75      | 76-79 | 80-83
 	// r0  | r1  | ... | r15   | xpsr  | main_sp | process_sp | rw    | rw2
-	/* stlink_print_data(sl); */
+	stlink_print_data(sl);
 
 	uint32_t r = read_uint32(sl->q_buf, 0);
 	fprintf(stderr, "r_idx (%2d) = 0x%08x\n", r_idx, r);
@@ -893,12 +907,6 @@ void stlink_read_mem32(struct stlink *sl, uint32_t addr, uint16_t len) {
 	stlink_print_data(sl);
 }
 
-void stlink_read_mem16(struct stlink *sl, uint32_t addr, uint16_t len) {
-  /* todo */
-  if (len % 4) len = (len + 4) & ~(0x4 - 1);
-  stlink_read_mem32(sl, addr, len);
-}
-
 // Write a "len" bytes from the sl->q_buf to the memory, max 64 Bytes.
 void stlink_write_mem8(struct stlink *sl, uint32_t addr, uint16_t len) {
 	D(sl, "\n*** stlink_write_mem8 ***\n");
@@ -914,7 +922,7 @@ void stlink_write_mem8(struct stlink *sl, uint32_t addr, uint16_t len) {
 	sl->q_addr = addr;
 	sl->q_data_dir = Q_DATA_OUT;
 	stlink_q(sl);
-	/* stlink_print_data(sl); */
+	stlink_print_data(sl);
 }
 
 void stlink_write_mem32(struct stlink *sl, uint32_t addr, uint16_t len);
@@ -944,7 +952,7 @@ void stlink_write_mem32(struct stlink *sl, uint32_t addr, uint16_t len) {
 	sl->q_addr = addr;
 	sl->q_data_dir = Q_DATA_OUT;
 	stlink_q(sl);
-	/* stlink_print_data(sl); */
+	stlink_print_data(sl);
 }
 
 /* FPEC flash controller interface, pm0063 manual
@@ -974,15 +982,10 @@ void stlink_write_mem32(struct stlink *sl, uint32_t addr, uint16_t len) {
 #define FLASH_CR_STRT 6
 #define FLASH_CR_LOCK 7
 
-static uint32_t read_flash_rdp(struct stlink* sl)
+static uint32_t __attribute__((unused)) read_flash_rdp(struct stlink* sl)
 {
   stlink_read_mem32(sl, FLASH_WRPR, sizeof(uint32_t));
   return (*(uint32_t*)sl->q_buf) & 0xff;
-}
-
-static void disable_flash_wrpr(struct stlink* sl)
-{
-  /* todo */
 }
 
 static inline uint32_t read_flash_wrpr(struct stlink* sl)
@@ -1055,7 +1058,7 @@ static void set_flash_cr_pg(struct stlink* sl)
   stlink_write_mem32(sl, FLASH_CR, sizeof(uint32_t));
 }
 
-static void clear_flash_cr_pg(struct stlink* sl)
+static void __attribute__((unused)) clear_flash_cr_pg(struct stlink* sl)
 {
   const uint32_t n = read_flash_cr(sl) & ~(1 << FLASH_CR_PG);
   write_uint32(sl->q_buf, n);
@@ -1069,7 +1072,7 @@ static void set_flash_cr_per(struct stlink* sl)
   stlink_write_mem32(sl, FLASH_CR, sizeof(uint32_t));
 }
 
-static void clear_flash_cr_per(struct stlink* sl)
+static void __attribute__((unused)) clear_flash_cr_per(struct stlink* sl)
 {
   const uint32_t n = read_flash_cr(sl) & ~(1 << FLASH_CR_PER);
   write_uint32(sl->q_buf, n);
@@ -1083,7 +1086,7 @@ static void set_flash_cr_mer(struct stlink* sl)
   stlink_write_mem32(sl, FLASH_CR, sizeof(uint32_t));
 }
 
-static void clear_flash_cr_mer(struct stlink* sl)
+static void __attribute__((unused)) clear_flash_cr_mer(struct stlink* sl)
 {
   const uint32_t n = read_flash_cr(sl) & ~(1 << FLASH_CR_MER);
   write_uint32(sl->q_buf, n);
@@ -1127,14 +1130,14 @@ static inline unsigned int is_flash_eop(struct stlink* sl)
   return read_flash_sr(sl) & (1 << FLASH_SR_EOP);  
 }
 
-static void clear_flash_sr_eop(struct stlink* sl)
+static void __attribute__((unused)) clear_flash_sr_eop(struct stlink* sl)
 {
   const uint32_t n = read_flash_sr(sl) & ~(1 << FLASH_SR_EOP);
   write_uint32(sl->q_buf, n);
   stlink_write_mem32(sl, FLASH_SR, sizeof(uint32_t));
 }
 
-static void wait_flash_eop(struct stlink* sl)
+static void __attribute__((unused)) wait_flash_eop(struct stlink* sl)
 {
   /* todo: add some delays here */
   while (is_flash_eop(sl) == 0)
@@ -1147,26 +1150,18 @@ static inline void write_flash_ar(struct stlink* sl, uint32_t n)
   stlink_write_mem32(sl, FLASH_AR, sizeof(uint32_t));
 }
 
-#if 0 /* 16 bits wide by default */
-static void enable_ahb_half_mode(struct stlink* sl)
-{
-  /* enable half word accesses */
-}
-
-static void disable_ahb_half_mode(struct stlink* sl)
-{
-  /* disable half word accesses */
-}
-#endif
-
+#if 0 /* todo */
 static void disable_flash_read_protection(struct stlink* sl)
 {
   /* erase the option byte area */
   /* rdp = 0x00a5; */
   /* reset */
 }
+#endif /* todo */
 
-static int write_flash_mem16(struct stlink* sl, uint32_t addr, uint16_t val)
+#if 0 /* not working */
+static int write_flash_mem16
+(struct stlink* sl, uint32_t addr, uint16_t val)
 {
   /* half word writes */
   if (addr % 2) return -1;
@@ -1196,8 +1191,9 @@ static int write_flash_mem16(struct stlink* sl, uint32_t addr, uint16_t val)
   /* success */
   return 0;
 }
+#endif /* not working */
 
-static int erase_flash_page(struct stlink* sl, uint32_t page)
+static int erase_flash_page(struct stlink* sl, stm32_addr_t page)
 {
   /* page an addr in the page to erase */
 
@@ -1227,7 +1223,7 @@ static int erase_flash_page(struct stlink* sl, uint32_t page)
   return 0;
 }
 
-static int erase_flash_mass(struct stlink* sl)
+static int __attribute__((unused)) erase_flash_mass(struct stlink* sl)
 {
   /* wait for ongoing op to finish */
   wait_flash_busy(sl);
@@ -1259,31 +1255,32 @@ static unsigned int is_core_halted(struct stlink* sl)
   return sl->q_buf[0] == STLINK_CORE_HALTED;
 }
 
-/* from openocd, contrib/loaders/flash/stm32.s */
-static const uint8_t loader_code[] =
+static int write_loader_to_sram
+(struct stlink* sl, stm32_addr_t* addr, size_t* size)
 {
-  0x08, 0x4c,			/* ldr	r4, STM32_FLASH_BASE */
-  0x1c, 0x44,			/* add	r4, r3 */
-  /* write_half_word: */
-  0x01, 0x23,			/* movs	r3, #0x01 */
-  0x23, 0x61,			/* str	r3, [r4, #STM32_FLASH_CR_OFFSET] */
-  0x30, 0xf8, 0x02, 0x3b,	/* ldrh	r3, [r0], #0x02 */
-  0x21, 0xf8, 0x02, 0x3b,	/* strh	r3, [r1], #0x02 */
-  /* busy: */
-  0xe3, 0x68,			/* ldr	r3, [r4, #STM32_FLASH_SR_OFFSET] */
-  0x13, 0xf0, 0x01, 0x0f,	/* tst	r3, #0x01 */
-  0xfb, 0xd0,			/* beq	busy */
-  0x13, 0xf0, 0x14, 0x0f,	/* tst	r3, #0x14 */
-  0x01, 0xd1,			/* bne	exit */
-  0x01, 0x3a,			/* subs	r2, r2, #0x01 */
-  0xf0, 0xd1,			/* bne	write_half_word */
-  /* exit: */
-  0x00, 0xbe,			/* bkpt	#0x00 */
-  0x00, 0x20, 0x02, 0x40,	/* STM32_FLASH_BASE: .word 0x40022000 */
-};
+  /* from openocd, contrib/loaders/flash/stm32.s */
+  static const uint8_t loader_code[] =
+  {
+    0x08, 0x4c,			/* ldr	r4, STM32_FLASH_BASE */
+    0x1c, 0x44,			/* add	r4, r3 */
+    /* write_half_word: */
+    0x01, 0x23,			/* movs	r3, #0x01 */
+    0x23, 0x61,			/* str	r3, [r4, #STM32_FLASH_CR_OFFSET] */
+    0x30, 0xf8, 0x02, 0x3b,	/* ldrh	r3, [r0], #0x02 */
+    0x21, 0xf8, 0x02, 0x3b,	/* strh	r3, [r1], #0x02 */
+    /* busy: */
+    0xe3, 0x68,			/* ldr	r3, [r4, #STM32_FLASH_SR_OFFSET] */
+    0x13, 0xf0, 0x01, 0x0f,	/* tst	r3, #0x01 */
+    0xfb, 0xd0,			/* beq	busy */
+    0x13, 0xf0, 0x14, 0x0f,	/* tst	r3, #0x14 */
+    0x01, 0xd1,			/* bne	exit */
+    0x01, 0x3a,			/* subs	r2, r2, #0x01 */
+    0xf0, 0xd1,			/* bne	write_half_word */
+    /* exit: */
+    0x00, 0xbe,			/* bkpt	#0x00 */
+    0x00, 0x20, 0x02, 0x40,	/* STM32_FLASH_BASE: .word 0x40022000 */
+  };
 
-static uint32_t write_loader_to_sram(struct stlink* sl)
-{
 #define LOADER_SRAM_ADDR 0x20000000
 #define LOADER_SRAM_SIZE sizeof(loader_code)
 
@@ -1296,39 +1293,63 @@ static uint32_t write_loader_to_sram(struct stlink* sl)
   stlink_write_mem32(sl, LOADER_SRAM_ADDR, LOADER_SRAM_SIZE);
 
  already_written:
-  return LOADER_SRAM_ADDR;
+  *addr = LOADER_SRAM_ADDR;
+  *size = sizeof(loader_code);
+
+  /* success */
+  return 0;
 }
 
-static uint32_t write_buffer_to_sram
-(struct stlink* sl, const uint8_t* buf, size_t size)
+typedef struct flash_loader
+{
+  stm32_addr_t loader_addr; /* loader sram adddr */
+  stm32_addr_t buf_addr; /* buffer sram address */
+} flash_loader_t;
+
+static int write_buffer_to_sram
+(struct stlink* sl, flash_loader_t* fl, const uint8_t* buf, size_t size)
 {
   /* write the buffer right after the loader */
-#define BUFFER_SRAM_ADDR (LOADER_SRAM_ADDR + LOADER_SRAM_SIZE)
   memcpy(sl->q_buf, buf, size);
-  stlink_write_mem32(sl, BUFFER_SRAM_ADDR, size);
-  return BUFFER_SRAM_ADDR;
+  stlink_write_mem32(sl, fl->buf_addr, size);
+  return 0;
 }
 
-static void run_flash_loader
-(struct stlink* sl, uint32_t target, const uint8_t* buf, size_t size)
+static int init_flash_loader
+(struct stlink* sl, flash_loader_t* fl)
 {
-  const uint32_t count = size / sizeof(uint16_t);
-
-  uint32_t loader;
-  uint32_t source;
+  size_t size;
 
   /* allocate the loader in sram */
-  loader = write_loader_to_sram(sl);
+  if (write_loader_to_sram(sl, &fl->loader_addr, &size) == -1)
+  {
+    fprintf(stderr, "write_loader_to_sram() == -1\n");
+    return -1;
+  }
 
-  /* allocate the buffer in sram */
-  source = write_buffer_to_sram(sl, buf, size);
+  /* allocate a one page buffer in sram right after loader */
+  fl->buf_addr = fl->loader_addr + size;
+
+  return 0;
+}
+
+static int run_flash_loader
+(struct stlink* sl, flash_loader_t* fl, stm32_addr_t target, const uint8_t* buf, size_t size)
+{
+  const size_t count = size / sizeof(uint16_t);
+
+  if (write_buffer_to_sram(sl, fl, buf, size) == -1)
+  {
+    fprintf(stderr, "write_buffer_to_sram() == -1\n");
+    return -1;
+  }
 
   /* setup core */
-  stlink_write_reg(sl, source, 0); /* source */
+  stlink_write_reg(sl, fl->buf_addr, 0); /* source */
   stlink_write_reg(sl, target, 1); /* target */
   stlink_write_reg(sl, count, 2); /* count (16 bits half words) */
   stlink_write_reg(sl, 0, 3); /* flash bank 0 (input). result (output) */
-  stlink_write_reg(sl, loader, 15); /* pc register */
+  stlink_write_reg(sl, fl->loader_addr, 15); /* pc register */
 
   /* unlock and set programming mode */
   unlock_flash_if(sl);
@@ -1345,7 +1366,175 @@ static void run_flash_loader
   /* not all bytes have been written */
   stlink_read_reg(sl, 2);
   if (sl->reg.r[2] != 1)
-    fprintf(stderr, "write error: %u\n", sl->reg.r[2]);
+  {
+    fprintf(stderr, "write error, count == %u\n", sl->reg.r[2]);
+    return -1;
+  }
+
+  return 0;
+}
+
+/* memory mapped file */
+
+typedef struct mapped_file
+{
+  uint8_t* base;
+  size_t len;
+} mapped_file_t;
+
+#define MAPPED_FILE_INITIALIZER { NULL, 0 }
+
+static int map_file(mapped_file_t* mf, const char* path)
+{
+  int error = -1;
+  struct stat st;
+
+  const int fd = open(path, O_RDONLY);
+  if (fd == -1)
+  {
+    fprintf(stderr, "open(%s) == -1\n", path);
+    return -1;
+  }
+
+  if (fstat(fd, &st) == -1)
+  {
+    fprintf(stderr, "fstat() == -1\n");
+    goto on_error;
+  }
+
+  mf->base = (uint8_t*)mmap(NULL, st.st_size, PROT_READ, MAP_SHARED, fd, 0);
+  if (mf->base == MAP_FAILED)
+  {
+    fprintf(stderr, "mmap() == MAP_FAILED\n");
+    goto on_error;
+  }
+
+  mf->len = st.st_size;
+
+  /* success */
+  error = 0;
+
+ on_error:
+  close(fd);
+
+  return error;
+}
+
+static void unmap_file(mapped_file_t* mf)
+{
+  munmap((void*)mf->base, mf->len);
+  mf->base = (unsigned char*)MAP_FAILED;
+  mf->len = 0;
+}
+
+static int check_file
+(struct stlink* sl, mapped_file_t* mf, stm32_addr_t addr)
+{
+  /* check mf contents are at addr */
+
+  size_t off;
+
+  for (off = 0; off < mf->len; off += sl->flash_pgsz)
+  {
+    /* adjust last page size */
+    size_t cmp_size = sl->flash_pgsz;
+    if ((off + sl->flash_pgsz) > mf->len)
+      cmp_size = mf->len - off;
+
+    stlink_read_mem32(sl, addr + off, sl->flash_pgsz);
+
+    if (memcmp(sl->q_buf, mf->base + off, cmp_size))
+      return -1;
+  }
+
+  return 0;
+}
+
+static int stlink_write_flash
+(struct stlink* sl, const char* path, stm32_addr_t addr)
+{
+  /* write the binary file in flash at addr */
+
+  int error = -1;
+  size_t off;
+  mapped_file_t mf = MAPPED_FILE_INITIALIZER;
+  flash_loader_t fl;
+
+  if (map_file(&mf, path) == -1)
+  {
+    fprintf(stderr, "map_file() == -1\n");
+    return -1;
+  }
+
+  /* check addr range is inside the flash */
+  if (addr < sl->flash_base)
+  {
+    fprintf(stderr, "addr too low\n");
+    goto on_error;
+  }
+  else if ((addr + mf.len) < addr)
+  {
+    fprintf(stderr, "addr overruns\n");
+    goto on_error;
+  }
+  else if ((addr + mf.len) > (sl->flash_base + sl->flash_size))
+  {
+    fprintf(stderr, "addr too high\n");
+    goto on_error;
+  }
+  else if ((addr & 1) || (mf.len & 1))
+  {
+    /* todo */
+    fprintf(stderr, "unaligned addr or size\n");
+    goto on_error;
+  }
+
+  /* erase each page. todo: mass erase faster? */
+  for (off = 0; off < mf.len; off += sl->flash_pgsz)
+  {
+    /* addr must be an addr inside the page */
+    if (erase_flash_page(sl, addr + off) == -1)
+    {
+      fprintf(stderr, "erase_flash_page(0x%x) == -1\n", addr + off);
+      goto on_error;
+    }
+  }
+
+  /* flash loader initialization */
+  if (init_flash_loader(sl, &fl) == -1)
+  {
+    fprintf(stderr, "init_flash_loader() == -1\n");
+    goto on_error;
+  }
+
+  /* write each page */
+  for (off = 0; off < mf.len; off += sl->flash_pgsz)
+  {
+    /* adjust last page size */
+    size_t size = sl->flash_pgsz;
+    if ((off + sl->flash_pgsz) > mf.len)
+      size = mf.len - off;
+
+    if (run_flash_loader(sl, &fl, addr + off, mf.base + off, size) == -1)
+    {
+      fprintf(stderr, "run_flash_loader(0x%x) == -1\n", addr + off);
+      goto on_error;
+    }
+  }
+
+  /* check the file ha been written */
+  if (check_file(sl, &mf, addr) == -1)
+  {
+    fprintf(stderr, "check_file() == -1\n");
+    goto on_error;
+  }
+
+  /* success */
+  error = 0;
+
+ on_error:
+  unmap_file(&mf);
+  return error;
 }
 
 
@@ -1399,7 +1588,7 @@ struct stlink* stlink_force_open(const char *dev_name, const int verbose) {
 	return sl;
 }
 
-static void mark_buf(struct stlink *sl) {
+static void __attribute__((unused)) mark_buf(struct stlink *sl) {
 	clear_buf(sl);
 	sl->q_buf[0] = 0x12;
 	sl->q_buf[1] = 0x34;
@@ -1591,17 +1780,7 @@ int main(int argc, char *argv[]) {
 #endif
 #if 1 /* flash programming */
 	fputs("\n+++++++ program flash memory\n\n", stderr);
-
-	/* erase the containing page */
-#define FLASH_ADDR 0x08000000
-	erase_flash_page(sl, FLASH_ADDR);
-
-	/* write a half word at FLASH_ADDR */
-	const uint8_t buf[] = { '*', '*', '*', '*' };
-	run_flash_loader(sl, FLASH_ADDR, buf, sizeof(buf));
-
-	stlink_read_mem32(sl, FLASH_ADDR, 4);
-
+	stlink_write_flash(sl, "/tmp/foobar", 0x08000000);
 #endif
 
 	stlink_run(sl);
