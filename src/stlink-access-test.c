@@ -1551,12 +1551,13 @@ static int stlink_fwrite_flash
     goto on_error;
   }
 
-  /* write each page */
-  for (off = 0; off < mf.len; off += sl->flash_pgsz)
+  /* write each page. above WRITE_BLOCK_SIZE fails? */
+#define WRITE_BLOCK_SIZE 0x40
+  for (off = 0; off < mf.len; off += WRITE_BLOCK_SIZE)
   {
-    /* adjust last page size */
-    size_t size = sl->flash_pgsz;
-    if ((off + sl->flash_pgsz) > mf.len)
+    /* adjust last write size */
+    size_t size = WRITE_BLOCK_SIZE;
+    if ((off + WRITE_BLOCK_SIZE) > mf.len)
       size = mf.len - off;
 
     if (run_flash_loader(sl, &fl, addr + off, mf.base + off, size) == -1)
