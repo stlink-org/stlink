@@ -3,6 +3,6 @@
 
 int gdb_send_packet(int fd, char* data);
 int gdb_recv_packet(int fd, char** buffer);
-int gdb_wait_for_interrupt(int fd);
+int gdb_check_for_interrupt(int fd);
 
 #endif

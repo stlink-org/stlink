@@ -271,15 +271,27 @@ int serve(struct stlink* sl, int port) {
 		case 'c':
 			stlink_run(sl);
 
-			printf("Core running, waiting for interrupt.\n");
+			printf("Core running, waiting for interrupt (either in chip or GDB).\n");
 
-			int status = gdb_wait_for_interrupt(client);
-			if(status < 0) {
-				fprintf(stderr, "cannot wait for int: %d\n", status);
-				return 1;
+			while(1) {
+				int status = gdb_check_for_interrupt(client);
+				if(status < 0) {
+					fprintf(stderr, "cannot check for int: %d\n", status);
+					return 1;
+				}
+
+				if(status == 1) {
+					stlink_force_debug(sl);
+					break;
+				}
+
+				stlink_status(sl);
+				if(sl->core_stat == STLINK_CORE_HALTED) {
+					break;
+				}
+
+				usleep(200000);
 			}
-
-			stlink_force_debug(sl);
 
 			reply = strdup("S05"); // TRAP
 			break;

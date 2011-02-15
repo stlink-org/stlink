@@ -31,10 +31,6 @@ then it would be written to the memory.
 Caveats
 =======
 
-`continue' GDB command does not work: target does not step at
-all or steps with a turtle speed. Looks like there's something
-wrong with SCSI requests.
-
 GDB sends requests for a multi-sectioned ELF files (most ones;
 having both .text and .rodata is enough) in a quite strange way which
 absolutely does not conform to flash page boundaries. Which is even more
@@ -42,4 +38,8 @@ weird when you think about FlashErase requests which it sends correctly.
 And I couldn't think of a way which will resolve this correctly now.
 
 Hardware breakpoints are not supported yet. You can still run your code from
-RAM, and then GDB will insert bkpt opcodes automagically.
+RAM, and then GDB will insert `bkpt' opcodes automagically.
+
+Sometimes when you will try to use GDB `next' command to skip a loop,
+it will use a rather inefficient single-stepping way of doing that.
+Set up a breakpoint manually in that case and do `continue'.

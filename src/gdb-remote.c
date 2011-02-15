@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdint.h>
+#include <sys/poll.h>
 
 static const char hex[] = "0123456789abcdef";
 
@@ -132,14 +133,24 @@ start:
 	return packet_size;
 }
 
-int gdb_wait_for_interrupt(int fd) {
-	char c;
-	while(1) {
+// Here we skip any characters which are not \x03, GDB interrupt.
+// As we use the mode with ACK, in a (very unlikely) situation of a packet
+// lost because of this skipping, it will be resent anyway.
+int gdb_check_for_interrupt(int fd) {
+	struct pollfd pfd;
+	pfd.fd = fd;
+	pfd.events = POLLIN;
+
+	if(poll(&pfd, 1, 0) != 0) {
+		char c;
+
 		if(read(fd, &c, 1) != 1)
 			return -2;
 
 		if(c == '\x03') // ^C
-			return 0;
+			return 1;
 	}
+
+	return 0;
 }
 
