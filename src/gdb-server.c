@@ -184,6 +184,56 @@ int serve(struct stlink* sl, int port) {
 			break;
 		}
 
+		case 'v': {
+			char *separator = strstr(packet, ":"), *params = "";
+			if(separator == NULL) {
+				separator = packet + strlen(packet);
+			} else {
+				params = separator + 1;
+			}
+
+			unsigned cmdNameLength = (separator - &packet[1]);
+			char* cmdName = calloc(cmdNameLength + 1, 1);
+			strncpy(cmdName, &packet[1], cmdNameLength);
+
+			if(!strcmp(cmdName, "FlashErase")) {
+				char *s_addr, *s_length;
+				char *tok = params;
+
+				s_addr   = strsep(&tok, ",");
+				s_length = tok;
+
+				unsigned addr = strtoul(s_addr, NULL, 16),
+				       length = strtoul(s_length, NULL, 16);
+
+				#ifdef DEBUG
+				printf("FlashErase: addr:%08x,len:%04x\n",
+					addr, length);
+				#endif
+
+				for(stm32_addr_t cur = addr;
+						cur < addr + length; cur += 0x400) {
+					#ifdef DEBUG
+					printf("do_erase: %08x\n", cur);
+					#endif
+
+					stlink_erase_flash_page(sl, cur);
+				}
+
+				reply = strdup("OK");
+			} else if(!strcmp(cmdName, "FlashWrite")) {
+			} else if(!strcmp(cmdName, "FlashDone")) {
+				reply = strdup("OK");
+			}
+
+			if(reply == NULL)
+				reply = strdup("");
+
+			free(cmdName);
+
+			break;
+		}
+
 		case 'c':
 			stlink_run(sl);
 

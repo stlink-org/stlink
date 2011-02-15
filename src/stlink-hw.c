@@ -1108,7 +1108,7 @@ static int write_flash_mem16
 }
 #endif /* not working */
 
-static int erase_flash_page(struct stlink* sl, stm32_addr_t page)
+int stlink_erase_flash_page(struct stlink* sl, stm32_addr_t page)
 {
   /* page an addr in the page to erase */
 
@@ -1138,7 +1138,7 @@ static int erase_flash_page(struct stlink* sl, stm32_addr_t page)
   return 0;
 }
 
-static int __attribute__((unused)) erase_flash_mass(struct stlink* sl)
+int stlink_erase_flash_mass(struct stlink* sl)
 {
   /* wait for ongoing op to finish */
   wait_flash_busy(sl);
@@ -1421,7 +1421,7 @@ static int stlink_fwrite_flash
   for (off = 0; off < mf.len; off += sl->flash_pgsz)
   {
     /* addr must be an addr inside the page */
-    if (erase_flash_page(sl, addr + off) == -1)
+    if (stlink_erase_flash_page(sl, addr + off) == -1)
     {
       fprintf(stderr, "erase_flash_page(0x%x) == -1\n", addr + off);
       goto on_error;
