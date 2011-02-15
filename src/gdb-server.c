@@ -95,7 +95,9 @@ int serve(struct stlink* sl, int port) {
 			return 1;
 		}
 
-		//printf("recv: %s\n", packet);
+		#ifdef DEBUG
+		printf("recv: %s\n", packet);
+		#endif
 
 		char* reply = NULL;
 
@@ -246,7 +248,9 @@ int serve(struct stlink* sl, int port) {
 		}
 
 		if(reply) {
-			//printf("send: %s\n", reply);
+			#ifdef DEBUG
+			printf("send: %s\n", reply);
+			#endif
 
 			int result = gdb_send_packet(client, reply);
 			if(result != 0) {

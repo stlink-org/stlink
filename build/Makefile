@@ -1,4 +1,5 @@
 PRG := st-util
+DEBUG := #-DDEBUG
 
 all: $(PRG)
 
@@ -13,7 +14,7 @@ $(PRG): $(OBJS)
 
 %.o: ../src/%.c
 	gcc -O3 -g3 -Wall -Werror -c -std=gnu99 -MMD -MP \
-		-fno-strict-aliasing -Wno-unused \
+		-fno-strict-aliasing -Wno-unused $(DEBUG) \
 		-MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.d)"\
 		-o "$@" "$<"
 
