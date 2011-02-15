@@ -1378,6 +1378,76 @@ static int stlink_fcheck_flash
   return res;
 }
 
+// The stlink_fwrite_flash should not muck with mmapped files inside itself,
+// and should use this function instead. (Hell, what's the reason behind mmap
+// there?!) But, as it is not actually used anywhere, nobody cares.
+
+#define WRITE_BLOCK_SIZE 0x40
+int stlink_write_flash(struct stlink* sl, stm32_addr_t addr, uint8_t* base, unsigned len) {
+  int error = -1;
+  size_t off;
+  flash_loader_t fl;
+
+  /* check addr range is inside the flash */
+  if (addr < sl->flash_base) {
+    fprintf(stderr, "addr too low\n");
+    return -1;
+  } else if ((addr + len) < addr) {
+    fprintf(stderr, "addr overruns\n");
+    return -1;
+  } else if ((addr + len) > (sl->flash_base + sl->flash_size)) {
+    fprintf(stderr, "addr too high\n");
+    return -1;
+  } else if ((addr & 1) || (len & 1)) {
+    fprintf(stderr, "unaligned addr or size\n");
+    return -1;
+  }
+
+  /* flash loader initialization */
+  if (init_flash_loader(sl, &fl) == -1) {
+    fprintf(stderr, "init_flash_loader() == -1\n");
+    return -1;
+  }
+
+  /* write each page. above WRITE_BLOCK_SIZE fails? */
+  for (off = 0; off < len; off += WRITE_BLOCK_SIZE) {
+    /* adjust last write size */
+    size_t size = WRITE_BLOCK_SIZE;
+    if((off + WRITE_BLOCK_SIZE) > len)
+      size = len - off;
+      printf("writing %d\n", size);
+
+    // By some weird reason it fails with an error like
+    //   write error, count == 31
+    // but it still writes all the data correctly
+    // so, just ignore it, we are checking the data anyway
+    if(run_flash_loader(sl, &fl, addr + off, base + off, size) == -1) {
+      //fprintf(stderr, "run_flash_loader(0x%x) == -1\n", addr + off);
+      //return -1;
+    }
+  }
+
+  for(off = 0; off < len; off += sl->flash_pgsz) {
+    size_t aligned_size;
+
+    /* adjust last page size */
+    size_t cmp_size = sl->flash_pgsz;
+    if ((off + sl->flash_pgsz) > len)
+      cmp_size = len - off;
+
+    aligned_size = cmp_size;
+    if (aligned_size & (4 - 1))
+      aligned_size = (cmp_size + 4) & ~(4 - 1);
+
+    stlink_read_mem32(sl, addr + off, aligned_size);
+
+    if (memcmp(sl->q_buf, base + off, cmp_size))
+      return -1;
+  }
+
+  return 0;
+}
+
 static int stlink_fwrite_flash
 (struct stlink* sl, const char* path, stm32_addr_t addr)
 {

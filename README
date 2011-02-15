@@ -10,9 +10,36 @@ Then, in gdb:
 
 Have fun!
 
+Running programs from SRAM
+==========================
+
+You can run your firmware directly from SRAM if you want to.
+Just link it at 0x20000000 and do
+(gdb) load firmware.elf
+
+It will be loaded, and pc will be adjusted to point to start of the
+code, if it is linked correctly (i.e. ELF has correct entry point).
+
+Writing to flash
+================
+
+The GDB stub ships with a correct memory map, including the flash area.
+If you would link your executable to 0x08000000 and then do
+(gdb) load firmware.elf
+then it would be written to the memory.
+
 Caveats
 =======
 
 `continue' GDB command does not work: target does not step at
 all or steps with a turtle speed. Looks like there's something
 wrong with SCSI requests.
+
+GDB sends requests for a multi-sectioned ELF files (most ones;
+having both .text and .rodata is enough) in a quite strange way which
+absolutely does not conform to flash page boundaries. Which is even more
+weird when you think about FlashErase requests which it sends correctly.
+And I couldn't think of a way which will resolve this correctly now.
+
+Hardware breakpoints are not supported yet. You can still run your code from
+RAM, and then GDB will insert bkpt opcodes automagically.

@@ -157,5 +157,6 @@ void stlink_close(struct stlink *sl);
 
 int stlink_erase_flash_page(struct stlink* sl, stm32_addr_t page);
 int stlink_erase_flash_mass(struct stlink* sl);
+int stlink_write_flash(struct stlink* sl, stm32_addr_t address, uint8_t* data, unsigned length);
 
 #endif

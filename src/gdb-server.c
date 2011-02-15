@@ -222,7 +222,41 @@ int serve(struct stlink* sl, int port) {
 
 				reply = strdup("OK");
 			} else if(!strcmp(cmdName, "FlashWrite")) {
+				char *s_addr, *data;
+				char *tok = params;
+
+				s_addr = strsep(&tok, ":");
+				data   = tok;
+
+				unsigned addr = strtoul(s_addr, NULL, 16);
+				unsigned data_length = status - (data - packet);
+
+				// length of decoded data cannot be more than
+				// encoded, as escapes are removed
+				uint8_t *decoded = calloc(data_length, 1);
+				unsigned dec_index = 0;
+				for(int i = 0; i < data_length; i++) {
+					if(data[i] == 0x7d) {
+						i++;
+						decoded[dec_index++] = data[i] ^ 0x20;
+					} else {
+						decoded[dec_index++] = data[i];
+					}
+				}
+
+				#ifdef DEBUG
+				printf("binary packet %d -> %d\n", data_length, dec_index);
+				#endif
+
+				if(!stlink_write_flash(sl, addr, decoded, dec_index) < 0) {
+					fprintf(stderr, "Flash write or verification failed.\n");
+					reply = strdup("E00");
+				} else {
+					reply = strdup("OK");
+				}
 			} else if(!strcmp(cmdName, "FlashDone")) {
+				stlink_reset(sl);
+
 				reply = strdup("OK");
 			}
 
