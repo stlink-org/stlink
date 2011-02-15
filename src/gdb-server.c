@@ -19,6 +19,19 @@
 
 static const char hex[] = "0123456789abcdef";
 
+// configured for STM32F100RB
+static const char* const c_memory_map =
+  "<?xml version=\"1.0\"?>"
+  "<!DOCTYPE memory-map PUBLIC \"+//IDN gnu.org//DTD GDB Memory Map V1.0//EN\""
+  "     \"http://sourceware.org/gdb/gdb-memory-map.dtd\">"
+  "<memory-map>"
+  "  <memory type=\"rom\" start=\"0x00000000\" length=\"0x100000\"/>" // code
+  "  <memory type=\"ram\" start=\"0x20000000\" length=\"0x100000\"/>" // sram
+  "  <memory type=\"flash\" start=\"0x08000000\" length=\"0x20000\">" // flash 128k
+  "    <property name=\"blocksize\">0x400</property>"                 // 1k pages
+  "  </memory>"
+  "</memory-map>";
+
 int serve(struct stlink* sl, int port);
 
 int main(int argc, char** argv) {
@@ -102,6 +115,75 @@ int serve(struct stlink* sl, int port) {
 		char* reply = NULL;
 
 		switch(packet[0]) {
+		case 'q': {
+			if(packet[1] == 'P' || packet[1] == 'C' || packet[1] == 'L') {
+				reply = strdup("");
+				break;
+			}
+
+			char *separator = strstr(packet, ":"), *params = "";
+			if(separator == NULL) {
+				separator = packet + strlen(packet);
+			} else {
+				params = separator + 1;
+			}
+
+			unsigned queryNameLength = (separator - &packet[1]);
+			char* queryName = calloc(queryNameLength + 1, 1);
+			strncpy(queryName, &packet[1], queryNameLength);
+
+			#ifdef DEBUG
+			printf("query: %s;%s\n", queryName, params);
+			#endif
+
+			if(!strcmp(queryName, "Supported")) {
+				reply = strdup("PacketSize=3fff;qXfer:memory-map:read+");
+			} else if(!strcmp(queryName, "Xfer")) {
+				char *type, *op, *annex, *s_addr, *s_length;
+				char *tok = params;
+
+				type     = strsep(&tok, ":");
+				op       = strsep(&tok, ":");
+				annex    = strsep(&tok, ":");
+				s_addr   = strsep(&tok, ",");
+				s_length = tok;
+
+				unsigned addr = strtoul(s_addr, NULL, 16),
+				       length = strtoul(s_length, NULL, 16);
+
+				#ifdef DEBUG
+				printf("Xfer: type:%s;op:%s;annex:%s;addr:%d;length:%d\n",
+					type, op, annex, addr, length);
+				#endif
+
+				const char* data = NULL;
+
+				if(!strcmp(type, "memory-map") && !strcmp(op, "read"))
+					data = c_memory_map;
+
+				if(data) {
+					unsigned data_length = strlen(data);
+					if(addr + length > data_length)
+						length = data_length - addr;
+
+					if(length == 0) {
+						reply = strdup("l");
+					} else {
+						reply = calloc(length + 2, 1);
+						reply[0] = 'm';
+						strncpy(&reply[1], data, length);
+					}
+				}
+			}
+
+			if(reply == NULL)
+				reply = strdup("");
+
+			free(queryName);
+
+			break;
+		}
+
 		case 'c':
 			stlink_run(sl);
 
