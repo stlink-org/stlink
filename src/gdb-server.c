@@ -231,9 +231,10 @@ int serve(struct stlink* sl, int port) {
 				unsigned addr = strtoul(s_addr, NULL, 16);
 				unsigned data_length = status - (data - packet);
 
-				// length of decoded data cannot be more than
-				// encoded, as escapes are removed
-				uint8_t *decoded = calloc(data_length, 1);
+				// Length of decoded data cannot be more than
+				// encoded, as escapes are removed.
+				// Additional byte is reserved for alignment fix.
+				uint8_t *decoded = calloc(data_length + 1, 1);
 				unsigned dec_index = 0;
 				for(int i = 0; i < data_length; i++) {
 					if(data[i] == 0x7d) {
@@ -243,6 +244,10 @@ int serve(struct stlink* sl, int port) {
 						decoded[dec_index++] = data[i];
 					}
 				}
+
+				// Fix alignment
+				if(dec_index % 2 != 0)
+					dec_index++;
 
 				#ifdef DEBUG
 				printf("binary packet %d -> %d\n", data_length, dec_index);
