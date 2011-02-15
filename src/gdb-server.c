@@ -18,23 +18,41 @@
 
 static const char hex[] = "0123456789abcdef";
 
-int main(int argc, char** argv) {
-	struct sockaddr_in serv_addr;
+int serve(struct stlink* sl, int port);
 
+int main(int argc, char** argv) {
 	if(argc != 3) {
 		fprintf(stderr, "Usage: %s <port> /dev/sgX\n", argv[0]);
 		return 1;
 	}
 
+	struct stlink *sl = stlink_quirk_open(argv[2], 0);
+	if (sl == NULL)
+		return 1;
+
+	if(stlink_current_mode(sl) != STLINK_DEV_DEBUG_MODE)
+		stlink_enter_swd_mode(sl);
+
+	stlink_core_id(sl);
+	printf("Debugging ARM core %08x.\n", sl->core_id);
+
 	int port = atoi(argv[1]);
 
+	while(serve(sl, port) == 0);
+
+	stlink_close(sl);
+
+	return 0;
+}
+
+int serve(struct stlink* sl, int port) {
 	int sock = socket(AF_INET, SOCK_STREAM, 0);
 	if(sock < 0) {
 		perror("socket");
 		return 1;
 	}
 
-	memset((char *) &serv_addr, 0, sizeof(serv_addr));
+	struct sockaddr_in serv_addr = {0};
 	serv_addr.sin_family = AF_INET;
 	serv_addr.sin_addr.s_addr = INADDR_ANY;
 	serv_addr.sin_port = htons(port);
@@ -48,16 +66,6 @@ int main(int argc, char** argv) {
 		perror("listen");
 		return 1;
 	}
-
-	struct stlink *sl = stlink_quirk_open(argv[2], 0);
-	if (sl == NULL)
-		return 1;
-
-	if(stlink_current_mode(sl) != STLINK_DEV_DEBUG_MODE)
-		stlink_enter_swd_mode(sl);
-
-	stlink_core_id(sl);
-	printf("Debugging ARM core %08x.\n", sl->core_id);
 
 	stlink_force_debug(sl);
 	stlink_reset(sl);
@@ -219,6 +227,14 @@ int main(int argc, char** argv) {
 			reply = strdup("OK");
 
 			break;
+		}
+
+		case 'k': {
+			// After this function will be entered afterwards, the
+			// chip will be reset anyway. So this is a no-op.
+
+			close(client);
+			return 0;
 		}
 
 		default:
