@@ -1,5 +1,18 @@
-cd build
-make
+HOWTO
+=====
 
-edit Makefile
-make run
+To run the gdb server, do (you do not need sudo if you have
+set up permissions correctly):
+$ make -C build && sudo ./build/st-util 1234 /dev/sg1
+
+Then, in gdb:
+(gdb) target remote :1234
+
+Have fun!
+
+Caveats
+=======
+
+`continue' GDB command does not work: target does not step at
+all or steps with a turtle speed. Looks like there's something
+wrong with SCSI requests.

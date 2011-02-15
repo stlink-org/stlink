@@ -1,5 +1,4 @@
-PRG := stlink-access-test
-DEV := /dev/sg2
+PRG := st-util
 
 all: $(PRG)
 
@@ -7,21 +6,16 @@ LIBS := \
 	-lsgutils2
 
 OBJS += \
-	stlink-access-test.o 
+	stlink-hw.o gdb-remote.o gdb-server.o
 
 $(PRG): $(OBJS)
-	@echo 'Invoking: GCC C Linker'
-	gcc  -o$(PRG) $(OBJS) $(LIBS)
+	gcc -o $(PRG) $(OBJS) $(LIBS)
 
 %.o: ../src/%.c
-	@echo 'Building file: $<'
-	gcc -O0 -g3 -Wall -c -fmessage-length=0 -std=gnu99 -MMD -MP \
+	gcc -O3 -g3 -Wall -Werror -c -std=gnu99 -MMD -MP \
+		-fno-strict-aliasing -Wno-unused \
 		-MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.d)"\
-		-o"$@" "$<"
+		-o "$@" "$<"
 
 clean:
 	@rm -vf *.d *.o $(PRG)
-
-run: all
-	cp $(PRG) /tmp/
-	sudo /tmp/$(PRG) $(DEV)

@@ -12,10 +12,6 @@
  The stlink related constants kindly provided by Oliver Spencer (OpenOCD)
  for use in a GPL compatible license.
 
- Notes:
- gcc -O0 -g3 -Wall -c -std=gnu99 -o stlink-access-test.o stlink-access-test.c
- gcc  -o stlink-access-test stlink-access-test.o -lsgutils2
-
  Code format ~ TAB = 8, K&R, linux kernel source, golang oriented
  Tested compatibility: linux, gcc >= 4.3.3
 
@@ -72,6 +68,7 @@
 #define __USE_GNU
 #include <stdio.h>
 #include <string.h>
+#include <stdarg.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -83,148 +80,26 @@
 #include <scsi/sg_lib.h>
 #include <scsi/sg_pt.h>
 
-// device access
-#define RDWR		0
-#define RO		1
-#define SG_TIMEOUT_SEC	1 // actually 1 is about 2 sec
-// Each CDB can be a total of 6, 10, 12, or 16 bytes, later version
-// of the SCSI standard also allow for variable-length CDBs (min. CDB is 6).
-// the stlink needs max. 10 bytes.
-#define CDB_6		6
-#define CDB_10		10
-#define CDB_12		12
-#define CDB_16		16
-
-#define CDB_SL		10
-
-// Query data flow direction.
-#define Q_DATA_OUT	0
-#define Q_DATA_IN	1
-
-// The SCSI Request Sense command is used to obtain sense data
-// (error information) from a target device.
-// http://en.wikipedia.org/wiki/SCSI_Request_Sense_Command
-#define SENSE_BUF_LEN		32
-
-// Max data transfer size.
-// 6kB = max mem32_read block, 8kB sram
-//#define Q_BUF_LEN	96
-#define Q_BUF_LEN	1024 * 100
-
-// st-link vendor cmd's
-#define USB_ST_VID			0x0483
-#define USB_STLINK_PID			0x3744
-
-// STLINK_DEBUG_RESETSYS, etc:
-#define STLINK_OK			0x80
-#define STLINK_FALSE			0x81
-#define STLINK_CORE_RUNNINIG		0x80
-#define STLINK_CORE_HALTED		0x81
-#define STLINK_CORE_STAT_UNKNOWN	-1
-
-#define STLINK_GET_VERSION		0xf1
-#define STLINK_GET_CURRENT_MODE	0xf5
-
-#define STLINK_DEBUG_COMMAND		0xF2
-#define STLINK_DFU_COMMAND		0xF3
-#define STLINK_DFU_EXIT		0x07
-
-// STLINK_GET_CURRENT_MODE
-#define STLINK_DEV_DFU_MODE		0x00
-#define STLINK_DEV_MASS_MODE		0x01
-#define STLINK_DEV_DEBUG_MODE		0x02
-#define STLINK_DEV_UNKNOWN_MODE	-1
-
-// jtag mode cmds
-#define STLINK_DEBUG_ENTER		0x20
-#define STLINK_DEBUG_EXIT		0x21
-#define STLINK_DEBUG_READCOREID	0x22
-#define STLINK_DEBUG_GETSTATUS		0x01
-#define STLINK_DEBUG_FORCEDEBUG	0x02
-#define STLINK_DEBUG_RESETSYS		0x03
-#define STLINK_DEBUG_READALLREGS	0x04
-#define STLINK_DEBUG_READREG		0x05
-#define STLINK_DEBUG_WRITEREG		0x06
-#define STLINK_DEBUG_READMEM_32BIT	0x07
-#define STLINK_DEBUG_WRITEMEM_32BIT	0x08
-#define STLINK_DEBUG_RUNCORE		0x09
-#define STLINK_DEBUG_STEPCORE		0x0a
-#define STLINK_DEBUG_SETFP		0x0b
-#define STLINK_DEBUG_WRITEMEM_8BIT	0x0d
-#define STLINK_DEBUG_CLEARFP		0x0e
-#define STLINK_DEBUG_WRITEDEBUGREG	0x0f
-#define STLINK_DEBUG_ENTER_SWD		0xa3
-#define STLINK_DEBUG_ENTER_JTAG	0x00
-
-typedef struct {
-	uint32_t r[16];
-	uint32_t xpsr;
-	uint32_t main_sp;
-	uint32_t process_sp;
-	uint32_t rw;
-	uint32_t rw2;
-} reg;
-
-typedef uint32_t stm32_addr_t;
-
-struct stlink {
-	int sg_fd;
-	int do_scsi_pt_err;
-	// sg layer verboseness: 0 for no debug info, 10 for lots
-	int verbose;
-
-	unsigned char cdb_cmd_blk[CDB_SL];
-
-	// Data transferred from or to device
-	unsigned char q_buf[Q_BUF_LEN];
-	int q_len;
-	int q_data_dir; // Q_DATA_IN, Q_DATA_OUT
-	// the start of the query data in the device memory space
-	uint32_t q_addr;
-
-	// Sense (error information) data
-	unsigned char sense_buf[SENSE_BUF_LEN];
-
-	uint32_t st_vid;
-	uint32_t stlink_pid;
-	uint32_t stlink_v;
-	uint32_t jtag_v;
-	uint32_t swim_v;
-	uint32_t core_id;
-
-	reg reg;
-	int core_stat;
-
-	/* medium density stm32 flash settings */
-#define STM32_FLASH_BASE 0x08000000
-#define STM32_FLASH_SIZE (128 * 1024)
-#define STM32_FLASH_PGSZ 1024
-	stm32_addr_t flash_base;
-	size_t flash_size;
-	size_t flash_pgsz;
-
-	/* in flash system memory */
-#define STM32_SYSTEM_BASE 0x1ffff000
-#define STM32_SYSTEM_SIZE (2 * 1024)
-	stm32_addr_t sys_base;
-	size_t sys_size;
-
-	/* sram settings */
-#define STM32_SRAM_BASE 0x20000000
-#define STM32_SRAM_SIZE (8 * 1024)
-	stm32_addr_t sram_base;
-	size_t sram_size;
-};
+#include "stlink-hw.h"
 
 static void D(struct stlink *sl, char *txt) {
 	if (sl->verbose > 1)
 		fputs(txt, stderr);
 }
 
+static void DD(struct stlink *sl, char *format, ...) {
+	if (sl->verbose > 0) {
+		va_list list;
+		va_start(list, format);
+		vfprintf(stderr, format, list);
+		va_end(list);
+	}
+}
+
 // Suspends execution of the calling process for
 // (at least) ms milliseconds.
 static void delay(int ms) {
-	fprintf(stderr, "*** wait %d ms\n", ms);
+	//fprintf(stderr, "*** wait %d ms\n", ms);
 	usleep(1000 * ms);
 }
 
@@ -279,6 +154,20 @@ static uint32_t read_uint32(const unsigned char *c, const int pt) {
 	return ui;
 }
 
+static uint16_t read_uint16(const unsigned char *c, const int pt) {
+	uint32_t ui;
+	char *p = (char *) &ui;
+
+	if (!is_bigendian()) { // le -> le (don't swap)
+		p[0] = c[pt];
+		p[1] = c[pt + 1];
+	} else {
+		p[0] = c[pt + 1];
+		p[1] = c[pt];
+	}
+	return ui;
+}
+
 static void clear_cdb(struct stlink *sl) {
 	for (int i = 0; i < sizeof(sl->cdb_cmd_blk); i++)
 		sl->cdb_cmd_blk[i] = 0;
@@ -289,7 +178,7 @@ static void clear_cdb(struct stlink *sl) {
 
 // E.g. make the valgrind happy.
 static void clear_buf(struct stlink *sl) {
-	fprintf(stderr, "*** clear_buf ***\n");
+	DD(sl, "*** clear_buf ***\n");
 	for (int i = 0; i < sizeof(sl->q_buf); i++)
 		sl->q_buf[i] = 0;
 
@@ -358,7 +247,7 @@ static void stlink_confirm_inq(struct stlink *sl, struct sg_pt_base *ptvp) {
 	}
 	const int duration = get_scsi_pt_duration_ms(ptvp);
 	if ((sl->verbose > 1) && (duration >= 0))
-		fprintf(stderr, "      duration=%d ms\n", duration);
+		DD(sl, "      duration=%d ms\n", duration);
 
 	// XXX stlink fw sends broken residue, so ignore it and use the known q_len
 	// "usb-storage quirks=483:3744:r"
@@ -375,7 +264,7 @@ static void stlink_confirm_inq(struct stlink *sl, struct sg_pt_base *ptvp) {
 	switch (cat) {
 	case SCSI_PT_RESULT_GOOD:
 		if (sl->verbose && (resid > 0))
-			fprintf(stderr, "      notice: requested %d bytes but "
+			DD(sl, "      notice: requested %d bytes but "
 				"got %d bytes, ignore [broken] residue = %d\n",
 				sl->q_len, dsize, resid);
 		break;
@@ -384,7 +273,7 @@ static void stlink_confirm_inq(struct stlink *sl, struct sg_pt_base *ptvp) {
 			sg_get_scsi_status_str(
 				get_scsi_pt_status_response(ptvp), sizeof(buf),
 				buf);
-			fprintf(stderr, "  scsi status: %s\n", buf);
+			DD(sl, "  scsi status: %s\n", buf);
 		}
 		return;
 	case SCSI_PT_RESULT_SENSE:
@@ -392,11 +281,11 @@ static void stlink_confirm_inq(struct stlink *sl, struct sg_pt_base *ptvp) {
 		if (sl->verbose) {
 			sg_get_sense_str("", sl->sense_buf, slen, (sl->verbose
 				> 1), sizeof(buf), buf);
-			fprintf(stderr, "%s", buf);
+			DD(sl, "%s", buf);
 		}
 		if (sl->verbose && (resid > 0)) {
 			if ((sl->verbose) || (sl->q_len > 0))
-				fprintf(stderr, "    requested %d bytes but "
+				DD(sl, "    requested %d bytes but "
 					"got %d bytes\n", sl->q_len, dsize);
 		}
 		return;
@@ -409,13 +298,13 @@ static void stlink_confirm_inq(struct stlink *sl, struct sg_pt_base *ptvp) {
 			// The 'host_status' field has the following values:
 			//	[0x07] Internal error detected in the host adapter.
 			// This may not be fatal (and the command may have succeeded).
-			fprintf(stderr, "  transport: %s", buf);
+			DD(sl, "  transport: %s", buf);
 		}
 		return;
 	case SCSI_PT_RESULT_OS_ERR:
 		if (sl->verbose) {
 			get_scsi_pt_os_err_str(ptvp, sizeof(buf), buf);
-			fprintf(stderr, "  os: %s", buf);
+			DD(sl, "  os: %s", buf);
 		}
 		return;
 	default:
@@ -425,10 +314,10 @@ static void stlink_confirm_inq(struct stlink *sl, struct sg_pt_base *ptvp) {
 }
 
 static void stlink_q(struct stlink* sl) {
-	fputs("CDB[", stderr);
+	DD(sl, "CDB[");
 	for (int i = 0; i < CDB_SL; i++)
-		fprintf(stderr, " 0x%02x", (unsigned int) sl->cdb_cmd_blk[i]);
-	fputs("]\n", stderr);
+		DD(sl, " 0x%02x", (unsigned int) sl->cdb_cmd_blk[i]);
+	DD(sl, "]\n");
 
 	// Get control command descriptor of scsi structure,
 	// (one object per command!!)
@@ -507,18 +396,18 @@ static void stlink_parse_version(struct stlink *sl) {
 	if (sl->verbose < 2)
 		return;
 
-	fprintf(stderr, "st vid         = 0x%04x (expect 0x%04x)\n",
+	DD(sl, "st vid         = 0x%04x (expect 0x%04x)\n",
 		sl->st_vid, USB_ST_VID);
-	fprintf(stderr, "stlink pid     = 0x%04x (expect 0x%04x)\n",
+	DD(sl, "stlink pid     = 0x%04x (expect 0x%04x)\n",
 		sl->stlink_pid, USB_STLINK_PID);
-	fprintf(stderr, "stlink version = 0x%x\n", sl->stlink_v);
-	fprintf(stderr, "jtag version   = 0x%x\n", sl->jtag_v);
-	fprintf(stderr, "swim version   = 0x%x\n", sl->swim_v);
+	DD(sl, "stlink version = 0x%x\n", sl->stlink_v);
+	DD(sl, "jtag version   = 0x%x\n", sl->jtag_v);
+	DD(sl, "swim version   = 0x%x\n", sl->swim_v);
 	if (sl->jtag_v == 0)
-		fprintf(stderr,
+		DD(sl,
 			"    notice: the firmware doesn't support a jtag/swd interface\n");
 	if (sl->swim_v == 0)
-		fprintf(stderr,
+		DD(sl,
 			"    notice: the firmware doesn't support a swim interface\n");
 
 }
@@ -531,13 +420,13 @@ static int stlink_mode(struct stlink *sl) {
 
 	switch (sl->q_buf[0]) {
 	case STLINK_DEV_DFU_MODE:
-		fprintf(stderr, "stlink mode: dfu\n");
+		DD(sl, "stlink mode: dfu\n");
 		return STLINK_DEV_DFU_MODE;
 	case STLINK_DEV_DEBUG_MODE:
-		fprintf(stderr, "stlink mode: debug (jtag or swd)\n");
+		DD(sl, "stlink mode: debug (jtag or swd)\n");
 		return STLINK_DEV_DEBUG_MODE;
 	case STLINK_DEV_MASS_MODE:
-		fprintf(stderr, "stlink mode: mass\n");
+		DD(sl, "stlink mode: mass\n");
 		return STLINK_DEV_MASS_MODE;
 	}
 	return STLINK_DEV_UNKNOWN_MODE;
@@ -551,13 +440,13 @@ static void stlink_stat(struct stlink *sl, char *txt) {
 
 	switch (sl->q_buf[0]) {
 	case STLINK_OK:
-		fprintf(stderr, "  %s: ok\n", txt);
+		DD(sl, "  %s: ok\n", txt);
 		return;
 	case STLINK_FALSE:
-		fprintf(stderr, "  %s: false\n", txt);
+		DD(sl, "  %s: false\n", txt);
 		return;
 	default:
-		fprintf(stderr, "  %s: unknown\n", txt);
+		DD(sl, "  %s: unknown\n", txt);
 	}
 }
 
@@ -568,13 +457,13 @@ static void stlink_core_stat(struct stlink *sl) {
 	stlink_print_data(sl);
 
 	switch (sl->q_buf[0]) {
-	case STLINK_CORE_RUNNINIG:
-		sl->core_stat = STLINK_CORE_RUNNINIG;
-		fprintf(stderr, "  core status: running\n");
+	case STLINK_CORE_RUNNING:
+		sl->core_stat = STLINK_CORE_RUNNING;
+		DD(sl, "  core status: running\n");
 		return;
 	case STLINK_CORE_HALTED:
 		sl->core_stat = STLINK_CORE_HALTED;
-		fprintf(stderr, "  core status: halted\n");
+		DD(sl, "  core status: halted\n");
 		return;
 	default:
 		sl->core_stat = STLINK_CORE_STAT_UNKNOWN;
@@ -688,7 +577,7 @@ static void stlink_exit_dfu_mode(struct stlink *sl) {
 	 */
 }
 
-static void stlink_core_id(struct stlink *sl) {
+void stlink_core_id(struct stlink *sl) {
 	D(sl, "\n*** stlink_core_id ***\n");
 	clear_cdb(sl);
 	sl->cdb_cmd_blk[1] = STLINK_DEBUG_READCOREID;
@@ -699,7 +588,7 @@ static void stlink_core_id(struct stlink *sl) {
 	if (sl->verbose < 2)
 		return;
 	stlink_print_data(sl);
-	fprintf(stderr, "core_id = 0x%08x\n", sl->core_id);
+	DD(sl, "core_id = 0x%08x\n", sl->core_id);
 }
 
 // Arm-core reset -> halted state.
@@ -750,7 +639,7 @@ void stlink_read_all_regs(struct stlink *sl) {
 	for (int i = 0; i < 16; i++) {
 		sl->reg.r[i] = read_uint32(sl->q_buf, 4 * i);
 		if (sl->verbose > 1)
-			fprintf(stderr, "r%2d = 0x%08x\n", i, sl->reg.r[i]);
+			DD(sl, "r%2d = 0x%08x\n", i, sl->reg.r[i]);
 	}
 	sl->reg.xpsr = read_uint32(sl->q_buf, 64);
 	sl->reg.main_sp = read_uint32(sl->q_buf, 68);
@@ -760,11 +649,11 @@ void stlink_read_all_regs(struct stlink *sl) {
 	if (sl->verbose < 2)
 		return;
 
-	fprintf(stderr, "xpsr       = 0x%08x\n", sl->reg.xpsr);
-	fprintf(stderr, "main_sp    = 0x%08x\n", sl->reg.main_sp);
-	fprintf(stderr, "process_sp = 0x%08x\n", sl->reg.process_sp);
-	fprintf(stderr, "rw         = 0x%08x\n", sl->reg.rw);
-	fprintf(stderr, "rw2        = 0x%08x\n", sl->reg.rw2);
+	DD(sl, "xpsr       = 0x%08x\n", sl->reg.xpsr);
+	DD(sl, "main_sp    = 0x%08x\n", sl->reg.main_sp);
+	DD(sl, "process_sp = 0x%08x\n", sl->reg.process_sp);
+	DD(sl, "rw         = 0x%08x\n", sl->reg.rw);
+	DD(sl, "rw2        = 0x%08x\n", sl->reg.rw2);
 }
 
 // Read an arm-core register, the index must be in the range 0..20.
@@ -772,7 +661,7 @@ void stlink_read_all_regs(struct stlink *sl) {
 // r0  | r1  | ... | r15   | xpsr  | main_sp | process_sp | rw    | rw2
 void stlink_read_reg(struct stlink *sl, int r_idx) {
 	D(sl, "\n*** stlink_read_reg");
-	fprintf(stderr, " (%d) ***\n", r_idx);
+	DD(sl, " (%d) ***\n", r_idx);
 
 	if (r_idx > 20 || r_idx < 0) {
 		fprintf(stderr, "Error: register index must be in [0..20]\n");
@@ -790,7 +679,7 @@ void stlink_read_reg(struct stlink *sl, int r_idx) {
 	stlink_print_data(sl);
 
 	uint32_t r = read_uint32(sl->q_buf, 0);
-	fprintf(stderr, "r_idx (%2d) = 0x%08x\n", r_idx, r);
+	DD(sl, "r_idx (%2d) = 0x%08x\n", r_idx, r);
 
 	switch (r_idx) {
 	case 16:
@@ -954,11 +843,6 @@ void stlink_write_mem8(struct stlink *sl, uint32_t addr, uint16_t len) {
 	sl->q_data_dir = Q_DATA_OUT;
 	stlink_q(sl);
 	stlink_print_data(sl);
-}
-
-void stlink_write_mem32(struct stlink *sl, uint32_t addr, uint16_t len);
-void stlink_write_mem16(struct stlink *sl, uint32_t addr, uint16_t len) {
-  stlink_write_mem32(sl, addr, 4);
 }
 
 // Write a "len" bytes from the sl->q_buf to the memory, max Q_BUF_LEN bytes.
@@ -1158,7 +1042,7 @@ static void wait_flash_busy(struct stlink* sl)
 
 static inline unsigned int is_flash_eop(struct stlink* sl)
 {
-  return read_flash_sr(sl) & (1 << FLASH_SR_EOP);  
+  return read_flash_sr(sl) & (1 << FLASH_SR_EOP);
 }
 
 static void __attribute__((unused)) clear_flash_sr_eop(struct stlink* sl)
@@ -1379,7 +1263,7 @@ static int run_flash_loader
 
   /* run loader */
   stlink_run(sl);
-  
+
   while (is_core_halted(sl) == 0)
     ;
 
@@ -1701,7 +1585,7 @@ static int stlink_fread
 // 3) reopen the device
 // 4) the device driver is now ready for a switch to jtag/swd mode
 // TODO thinking, better error handling, wait until the kernel driver stops reseting the plugged-in device
-struct stlink* stlink_force_open(const char *dev_name, const int verbose) {
+struct stlink* stlink_quirk_open(const char *dev_name, const int verbose) {
 	struct stlink *sl = stlink_open(dev_name, verbose);
 	if (sl == NULL) {
 		fputs("Error: could not open stlink device\n", stderr);
@@ -1728,10 +1612,10 @@ struct stlink* stlink_force_open(const char *dev_name, const int verbose) {
 		// TODO go to mass?
 		return sl;
 	}
-	fprintf(stderr, "\n*** switch the stlink to mass mode ***\n");
+	DD(sl, "\n*** switch the stlink to mass mode ***\n");
 	stlink_exit_dfu_mode(sl);
 	// exit the dfu mode -> the device is gone
-	fprintf(stderr, "\n*** reopen the stlink device ***\n");
+	DD(sl, "\n*** reopen the stlink device ***\n");
 	delay(1000);
 	stlink_close(sl);
 	delay(5000);
@@ -1761,6 +1645,7 @@ static void __attribute__((unused)) mark_buf(struct stlink *sl) {
 	sl->q_buf[1024 * 8 - 1] = 0x42; //8kB
 }
 
+#if 0
 int main(int argc, char *argv[]) {
 	// set scpi lib debug level: 0 for no debug info, 10 for lots
 	const int scsi_verbose = 2;
@@ -1787,7 +1672,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	fputs("*** stlink access test ***\n", stderr);
-	fprintf(stderr, "Using sg_lib %s : scsi_pt %s\n", sg_lib_version(),
+	DD(sl, "Using sg_lib %s : scsi_pt %s\n", sg_lib_version(),
 		scsi_pt_version());
 
 	struct stlink *sl = stlink_force_open(dev_name, scsi_verbose);
@@ -1807,16 +1692,16 @@ int main(int argc, char *argv[]) {
 #if 0
 	// core system control block
 	stlink_read_mem32(sl, 0xe000ed00, 4);
-	fprintf(stderr, "cpu id base register: SCB_CPUID = got 0x%08x expect 0x411fc231", read_uint32(sl->q_buf, 0));
+	DD(sl, "cpu id base register: SCB_CPUID = got 0x%08x expect 0x411fc231", read_uint32(sl->q_buf, 0));
 	// no MPU
 	stlink_read_mem32(sl, 0xe000ed90, 4);
-	fprintf(stderr, "mpu type register: MPU_TYPER = got 0x%08x expect 0x0", read_uint32(sl->q_buf, 0));
+	DD(sl, "mpu type register: MPU_TYPER = got 0x%08x expect 0x0", read_uint32(sl->q_buf, 0));
 
 	stlink_read_mem32(sl, 0xe000edf0, 4);
-	fprintf(stderr, "DHCSR = 0x%08x", read_uint32(sl->q_buf, 0));
+	DD(sl, "DHCSR = 0x%08x", read_uint32(sl->q_buf, 0));
 
 	stlink_read_mem32(sl, 0x4001100c, 4);
-	fprintf(stderr, "GPIOC_ODR = 0x%08x", read_uint32(sl->q_buf, 0));
+	DD(sl, "GPIOC_ODR = 0x%08x", read_uint32(sl->q_buf, 0));
 #endif
 #if 0
 	// happy new year 2011: let blink all the leds
@@ -1829,7 +1714,7 @@ int main(int argc, char *argv[]) {
 #define LED_GREEN	(1<<9) // pin 9
 	stlink_read_mem32(sl, GPIOC_CRH, 4);
 	uint32_t io_conf = read_uint32(sl->q_buf, 0);
-	fprintf(stderr, "GPIOC_CRH = 0x%08x", io_conf);
+	DD(sl, "GPIOC_CRH = 0x%08x", io_conf);
 
 	// set: general purpose output push-pull, output mode, max speed 10 MHz.
 	write_uint32(sl->q_buf, 0x44444411);
@@ -1840,7 +1725,7 @@ int main(int argc, char *argv[]) {
 		write_uint32(sl->q_buf, LED_BLUE | LED_GREEN);
 		stlink_write_mem32(sl, GPIOC_ODR, 4);
 		/* stlink_read_mem32(sl, 0x4001100c, 4); */
-		/* fprintf(stderr, "GPIOC_ODR = 0x%08x", read_uint32(sl->q_buf, 0)); */
+		/* DD(sl, "GPIOC_ODR = 0x%08x", read_uint32(sl->q_buf, 0)); */
 		delay(100);
 
 		clear_buf(sl);
@@ -1962,3 +1847,4 @@ int main(int argc, char *argv[]) {
 	//fflush(stderr); fflush(stdout);
 	return EXIT_SUCCESS;
 }
+#endif
