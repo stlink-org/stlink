@@ -52,6 +52,9 @@ int serve(struct stlink* sl, int port) {
 		return 1;
 	}
 
+	unsigned int val = 1;
+	setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &val, sizeof(val));
+
 	struct sockaddr_in serv_addr = {0};
 	serv_addr.sin_family = AF_INET;
 	serv_addr.sin_addr.s_addr = INADDR_ANY;
