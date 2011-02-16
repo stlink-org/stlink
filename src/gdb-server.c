@@ -61,6 +61,87 @@ int main(int argc, char** argv) {
 	return 0;
 }
 
+#define CODE_BREAK_NUM	6
+
+#define CODE_BREAK_LOW	0x01
+#define CODE_BREAK_HIGH	0x02
+
+struct code_hw_breakpoint {
+	stm32_addr_t addr;
+	int          type;
+};
+
+struct code_hw_breakpoint code_breaks[CODE_BREAK_NUM];
+
+static void init_code_breakpoints(struct stlink* sl) {
+	memset(sl->q_buf, 0, 4);
+	sl->q_buf[0] = 0x03; // KEY | ENABLE
+	stlink_write_mem32(sl, 0xe0002000, 4);
+
+	memset(sl->q_buf, 0, 4);
+	for(int i = 0; i < CODE_BREAK_NUM; i++) {
+		code_breaks[i].type = 0;
+		stlink_write_mem32(sl, 0xe0002008 + i * 4, 4);
+	}
+}
+
+static int update_code_breakpoint(struct stlink* sl, stm32_addr_t addr, int set) {
+	stm32_addr_t fpb_addr = addr & ~0x3;
+	int type = addr & 0x2 ? CODE_BREAK_HIGH : CODE_BREAK_LOW;
+
+	if(addr & 1) {
+		fprintf(stderr, "update_code_breakpoint: unaligned address %08x\n", addr);
+		return -1;
+	}
+
+	int id = -1;
+	for(int i = 0; i < CODE_BREAK_NUM; i++) {
+		if(fpb_addr == code_breaks[i].addr ||
+			(set && code_breaks[i].type == 0)) {
+			id = i;
+			break;
+		}
+	}
+
+	if(id == -1) {
+		if(set) return -1; // Free slot not found
+		else	return 0;  // Breakpoint is already removed
+	}
+
+	struct code_hw_breakpoint* brk = &code_breaks[id];
+
+	brk->addr = fpb_addr;
+
+	if(set) brk->type |= type;
+	else	brk->type &= ~type;
+
+	memset(sl->q_buf, 0, 4);
+
+	if(brk->type == 0) {
+		#ifdef DEBUG
+		printf("clearing hw break %d\n", id);
+		#endif
+
+		stlink_write_mem32(sl, 0xe0002008 + id * 4, 4);
+	} else {
+		sl->q_buf[0] = ( brk->addr        & 0xff) | 1;
+		sl->q_buf[1] = ((brk->addr >> 8)  & 0xff);
+		sl->q_buf[2] = ((brk->addr >> 16) & 0xff);
+		sl->q_buf[3] = ((brk->addr >> 24) & 0xff) | (brk->type << 6);
+
+		#ifdef DEBUG
+		printf("setting hw break %d at %08x (%d)\n",
+			id, brk->addr, brk->type);
+		printf("reg %02x %02x %02x %02x\n",
+			sl->q_buf[3], sl->q_buf[2], sl->q_buf[1], sl->q_buf[0]);
+		#endif
+
+		stlink_write_mem32(sl, 0xe0002008 + id * 4, 4);
+	}
+
+	return 0;
+}
+
 int serve(struct stlink* sl, int port) {
 	int sock = socket(AF_INET, SOCK_STREAM, 0);
 	if(sock < 0) {
@@ -88,6 +169,7 @@ int serve(struct stlink* sl, int port) {
 
 	stlink_force_debug(sl);
 	stlink_reset(sl);
+	init_code_breakpoints(sl);
 
 	printf("Listening at *:%d...\n", port);
 
@@ -416,6 +498,34 @@ int serve(struct stlink* sl, int port) {
 			}
 
 			reply = strdup("OK");
+
+			break;
+		}
+
+		case 'Z': {
+			if(packet[1] == '1') {
+				stm32_addr_t addr = strtoul(&packet[3], NULL, 16);
+				if(update_code_breakpoint(sl, addr, 1) < 0) {
+					reply = strdup("E00");
+				} else {
+					reply = strdup("OK");
+				}
+			} else {
+				reply = strdup("");
+			}
+
+			break;
+		}
+
+		case 'z': {
+			if(packet[1] == '1') {
+				stm32_addr_t addr = strtoul(&packet[3], NULL, 16);
+				update_code_breakpoint(sl, addr, 0);
+
+				reply = strdup("OK");
+			} else {
+				reply = strdup("");
+			}
 
 			break;
 		}
