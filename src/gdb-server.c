@@ -223,6 +223,9 @@ static int flash_populate(stm32_addr_t addr, uint8_t* data, unsigned length) {
 static int flash_go(struct stlink* sl) {
 	int error = -1;
 
+	// Some kinds of clock settings do not allow writing to flash.
+	stlink_reset(sl);
+
 	for(struct flash_block* fb = flash_root; fb; fb = fb->next) {
 		#ifdef DEBUG
 		printf("flash_do: block %08x -> %04x\n", fb->addr, fb->length);
@@ -235,6 +238,8 @@ static int flash_go(struct stlink* sl) {
 			goto error;
 		}
 	}
+
+	stlink_reset(sl);
 
 	error = 0;
 
@@ -451,8 +456,6 @@ int serve(struct stlink* sl, int port) {
 				} else {
 					reply = strdup("OK");
 				}
-
-				stlink_reset(sl);
 			}
 
 			if(reply == NULL)
