@@ -25,11 +25,13 @@ static const char* const c_memory_map =
   "<!DOCTYPE memory-map PUBLIC \"+//IDN gnu.org//DTD GDB Memory Map V1.0//EN\""
   "     \"http://sourceware.org/gdb/gdb-memory-map.dtd\">"
   "<memory-map>"
-  "  <memory type=\"rom\" start=\"0x00000000\" length=\"0x100000\"/>" // code
-  "  <memory type=\"ram\" start=\"0x20000000\" length=\"0x100000\"/>" // sram
-  "  <memory type=\"flash\" start=\"0x08000000\" length=\"0x20000\">" // flash 128k
-  "    <property name=\"blocksize\">0x400</property>"                 // 1k pages
+  "  <memory type=\"rom\" start=\"0x00000000\" length=\"0x20000\"/>"    // code = sram or flash
+  "  <memory type=\"ram\" start=\"0x20000000\" length=\"0x2000\"/>"     // sram 8k
+  "  <memory type=\"flash\" start=\"0x08000000\" length=\"0x20000\">"   // flash 128k
+  "    <property name=\"blocksize\">0x400</property>"                   // 1k pages
   "  </memory>"
+  "  <memory type=\"ram\" start=\"0x40000000\" length=\"0x1fffffff\"/>" // peripheral regs
+  "  <memory type=\"ram\" start=\"0xe0000000\" length=\"0x1fffffff\"/>" // cortex regs
   "</memory-map>";
 
 int serve(struct stlink* sl, int port);
