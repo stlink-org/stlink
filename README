@@ -1,8 +1,8 @@
 HOWTO
 =====
 
-To run the gdb server, do (you do not need sudo if you have
-set up permissions correctly):
+To run the gdb server, do (you do not need sudo if you have set up
+permissions correctly):
 $ make -C build && sudo ./build/st-util 1234 /dev/sg1
 
 Then, in gdb:
@@ -13,8 +13,8 @@ Have fun!
 Running programs from SRAM
 ==========================
 
-You can run your firmware directly from SRAM if you want to.
-Just link it at 0x20000000 and do
+You can run your firmware directly from SRAM if you want to. Just link
+it at 0x20000000 and do
 (gdb) load firmware.elf
 
 It will be loaded, and pc will be adjusted to point to start of the
@@ -28,18 +28,20 @@ If you would link your executable to 0x08000000 and then do
 (gdb) load firmware.elf
 then it would be written to the memory.
 
-Caveats
-=======
+FAQ
+===
 
-GDB sends requests for a multi-sectioned ELF files (most ones;
-having both .text and .rodata is enough) in a quite strange way which
-absolutely does not conform to flash page boundaries. Which is even more
-weird when you think about FlashErase requests which it sends correctly.
-And I couldn't think of a way which will resolve this correctly now.
+Q: My breakpoints do not work at all or only work once.
 
-Hardware breakpoints are not supported yet. You can still run your code from
-RAM, and then GDB will insert `bkpt' opcodes automagically.
+A: Optimizations can cause severe instruction reordering. For example,
+if you are doing something like `REG = 0x100;' in a loop, the code may
+be split into two parts: loading 0x100 into some intermediate register
+and moving that value to REG. When you set up a breakpoint, GDB will
+hook to the first instruction, which may be called only once if there are
+enough unused registers. In my experience, -O3 causes that frequently.
 
-Sometimes when you will try to use GDB `next' command to skip a loop,
+Q: At some point I use GDB command `next', and it hangs.
+
+A: Sometimes when you will try to use GDB `next' command to skip a loop,
 it will use a rather inefficient single-stepping way of doing that.
 Set up a breakpoint manually in that case and do `continue'.
