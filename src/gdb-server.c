@@ -485,7 +485,7 @@ int serve(struct stlink* sl, int port) {
 					break;
 				}
 
-				usleep(200000);
+				usleep(100000);
 			}
 
 			reply = strdup("S05"); // TRAP
