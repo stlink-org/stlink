@@ -142,6 +142,114 @@ static int update_code_breakpoint(struct stlink* sl, stm32_addr_t addr, int set)
 	return 0;
 }
 
+#define FLASH_BASE 0x08000000
+#define FLASH_PAGE 0x400
+#define FLASH_PAGE_MASK (~((1 << 10) - 1))
+#define FLASH_SIZE (FLASH_PAGE * 128)
+
+struct flash_block {
+	stm32_addr_t addr;
+	unsigned     length;
+	uint8_t*     data;
+
+	struct flash_block* next;
+};
+
+static struct flash_block* flash_root;
+
+static int flash_add_block(stm32_addr_t addr, unsigned length) {
+	if(addr < FLASH_BASE || addr + length > FLASH_BASE + FLASH_SIZE) {
+		fprintf(stderr, "flash_add_block: incorrect bounds\n");
+		return -1;
+	}
+
+	if(addr % FLASH_PAGE != 0 || length % FLASH_PAGE != 0) {
+		fprintf(stderr, "flash_add_block: unaligned block\n");
+		return -1;
+	}
+
+	struct flash_block* new = malloc(sizeof(struct flash_block));
+	new->next = flash_root;
+
+	new->addr   = addr;
+	new->length = length;
+	new->data   = calloc(length, 1);
+
+	flash_root = new;
+
+	return 0;
+}
+
+static int flash_populate(stm32_addr_t addr, uint8_t* data, unsigned length) {
+	int fit_blocks = 0, fit_length = 0;
+
+	for(struct flash_block* fb = flash_root; fb; fb = fb->next) {
+		/* Block: ------X------Y--------
+		 * Data:            a-----b
+		 *                a--b
+		 *            a-----------b
+		 * Block intersects with data, if:
+		 *  a < Y && b > x
+		 */
+
+		unsigned X = fb->addr, Y = fb->addr + fb->length;
+		unsigned a = addr, b = addr + length;
+		if(a < Y && b > X) {
+			// from start of the block
+			unsigned start = (a > X ? a : X) - X;
+			unsigned end   = (b > Y ? Y : b) - X;
+
+			memcpy(fb->data + start, data, end - start);
+
+			fit_blocks++;
+			fit_length += end - start;
+		}
+	}
+
+	if(fit_blocks == 0) {
+		fprintf(stderr, "Unfit data block %08x -> %04x\n", addr, length);
+		return -1;
+	}
+
+	if(fit_length != length) {
+		fprintf(stderr, "warning: data block %08x -> %04x truncated to %04x\n",
+			addr, length, fit_length);
+		fprintf(stderr, "(this is not an error, just a GDB glitch)\n");
+	}
+
+	return 0;
+}
+
+static int flash_go(struct stlink* sl) {
+	int error = -1;
+
+	for(struct flash_block* fb = flash_root; fb; fb = fb->next) {
+		#ifdef DEBUG
+		printf("flash_do: block %08x -> %04x\n", fb->addr, fb->length);
+		#endif
+
+		stlink_erase_flash_page(sl, fb->addr);
+
+		if(!stlink_write_flash(sl, fb->addr, fb->data, fb->length) < 0) {
+			fprintf(stderr, "Flash writing failed.\n");
+			goto error;
+		}
+	}
+
+	error = 0;
+
+error:
+	for(struct flash_block* fb = flash_root, *next; fb; fb = next) {
+		next = fb->next;
+		free(fb->data);
+		free(fb);
+	}
+
+	flash_root = NULL;
+
+	return error;
+}
+
 int serve(struct stlink* sl, int port) {
 	int sock = socket(AF_INET, SOCK_STREAM, 0);
 	if(sock < 0) {
@@ -295,16 +403,11 @@ int serve(struct stlink* sl, int port) {
 					addr, length);
 				#endif
 
-				for(stm32_addr_t cur = addr;
-						cur < addr + length; cur += 0x400) {
-					#ifdef DEBUG
-					printf("do_erase: %08x\n", cur);
-					#endif
-
-					stlink_erase_flash_page(sl, cur);
+				if(flash_add_block(addr, length) < 0) {
+					reply = strdup("E00");
+				} else {
+					reply = strdup("OK");
 				}
-
-				reply = strdup("OK");
 			} else if(!strcmp(cmdName, "FlashWrite")) {
 				char *s_addr, *data;
 				char *tok = params;
@@ -337,16 +440,19 @@ int serve(struct stlink* sl, int port) {
 				printf("binary packet %d -> %d\n", data_length, dec_index);
 				#endif
 
-				if(!stlink_write_flash(sl, addr, decoded, dec_index) < 0) {
-					fprintf(stderr, "Flash write or verification failed.\n");
+				if(flash_populate(addr, decoded, dec_index) < 0) {
 					reply = strdup("E00");
 				} else {
 					reply = strdup("OK");
 				}
 			} else if(!strcmp(cmdName, "FlashDone")) {
-				stlink_reset(sl);
+				if(flash_go(sl) < 0) {
+					reply = strdup("E00");
+				} else {
+					reply = strdup("OK");
+				}
 
-				reply = strdup("OK");
+				stlink_reset(sl);
 			}
 
 			if(reply == NULL)

@@ -1415,15 +1415,10 @@ int stlink_write_flash(struct stlink* sl, stm32_addr_t addr, uint8_t* base, unsi
     size_t size = WRITE_BLOCK_SIZE;
     if((off + WRITE_BLOCK_SIZE) > len)
       size = len - off;
-      printf("writing %d\n", size);
 
-    // By some weird reason it fails with an error like
-    //   write error, count == 31
-    // but it still writes all the data correctly
-    // so, just ignore it, we are checking the data anyway
     if(run_flash_loader(sl, &fl, addr + off, base + off, size) == -1) {
-      //fprintf(stderr, "run_flash_loader(0x%x) == -1\n", addr + off);
-      //return -1;
+      fprintf(stderr, "run_flash_loader(0x%x) == -1\n", addr + off);
+      return -1;
     }
   }
 
