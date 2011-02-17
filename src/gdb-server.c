@@ -476,8 +476,6 @@ int serve(struct stlink* sl, int port) {
 		case 'c':
 			stlink_run(sl);
 
-			printf("Core running, waiting for interrupt (either in chip or GDB).\n");
-
 			while(1) {
 				int status = gdb_check_for_interrupt(client);
 				if(status < 0) {
