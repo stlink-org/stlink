@@ -231,12 +231,19 @@ static int flash_go(struct stlink* sl) {
 		printf("flash_do: block %08x -> %04x\n", fb->addr, fb->length);
 		#endif
 
-		stlink_erase_flash_page(sl, fb->addr);
+		unsigned length = fb->length;
+		for(stm32_addr_t page = fb->addr; page < fb->addr + fb->length; page += 0x400) {
+			#ifdef DEBUG
+			printf("flash_do: page %08x\n", page);
+			#endif
 
-		if(!stlink_write_flash(sl, fb->addr, fb->data, fb->length) < 0) {
-			fprintf(stderr, "Flash writing failed.\n");
-			goto error;
+			stlink_erase_flash_page(sl, page);
+
+			if(stlink_write_flash(sl, page, fb->data + (page - fb->addr),
+					length > 0x400 ? 0x400 : length) < 0)
+				goto error;
 		}
+
 	}
 
 	stlink_reset(sl);
