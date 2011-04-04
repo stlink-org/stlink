@@ -1,6 +1,9 @@
 HOWTO
 =====
 
+First, load the sg kernel module.
+# modprobe sg
+
 To run the gdb server, do (you do not need sudo if you have set up
 permissions correctly):
 $ make -C build && sudo ./build/st-util 1234 /dev/sg1
@@ -25,6 +28,17 @@ Starting program: /home/whitequark/ST/apps/bally/firmware.elf
 
 Remember that you can shorten the commands. `tar ext :1111' is good enough
 for GDB.
+
+Setting up udev rules
+=====================
+
+For convenience, you may install udev rules file, 10-stlink.rules, located
+in the root of repository. You will need to copy it to /etc/udev/rules.d,
+and then either reboot or execute
+$ udevadm control --reload-rules
+
+Udev will now create a /dev/stlink file, which will point at appropriate
+/dev/sgX device. Good to not accidentally start debugging your flash drive.
 
 Running programs from SRAM
 ==========================
