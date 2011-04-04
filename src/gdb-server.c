@@ -19,22 +19,44 @@
 
 static const char hex[] = "0123456789abcdef";
 
-// configured for STM32F100RB
-static const char* const c_memory_map =
-  "<?xml version=\"1.0\"?>"
-  "<!DOCTYPE memory-map PUBLIC \"+//IDN gnu.org//DTD GDB Memory Map V1.0//EN\""
-  "     \"http://sourceware.org/gdb/gdb-memory-map.dtd\">"
-  "<memory-map>"
-  "  <memory type=\"rom\" start=\"0x00000000\" length=\"0x20000\"/>"    // code = sram or flash
-  "  <memory type=\"ram\" start=\"0x20000000\" length=\"0x2000\"/>"     // sram 8k
-  "  <memory type=\"flash\" start=\"0x08000000\" length=\"0x20000\">"   // flash 128k
-  "    <property name=\"blocksize\">0x400</property>"                   // 1k pages
-  "  </memory>"
-  "  <memory type=\"ram\" start=\"0x40000000\" length=\"0x1fffffff\"/>" // peripheral regs
-  "  <memory type=\"ram\" start=\"0xe0000000\" length=\"0x1fffffff\"/>" // cortex regs
-  "</memory-map>";
+static const char* current_memory_map = NULL;
+
+struct chip_params {
+	uint32_t chip_id;
+	char* description;
+	uint32_t flash_base, flash_size, flash_pagesize;
+	uint32_t bootrom_base, bootrom_size;
+	uint32_t sram_base, sram_size;
+} const devices[] = {
+	{ 0x10016420, "STM32F100 on Discovery",
+	  0x08000000, 128  * 1024, 1024,
+	  0x1ffff000, 2    * 1024,
+	  0x20000000, 8    * 1024},
+	{ 0x10016412, "Low-density device",
+	  0x08000000, 32   * 1024, 1024,
+	  0x1ffff000, 2    * 1024,
+	  0x20000000, 4    * 1024},
+	{ 0x10016410, "Medium-density device",
+	  0x08000000, 128  * 1024, 1024,
+	  0x1ffff000, 2    * 1024,
+	  0x20000000, 8    * 1024},
+	{ 0x10016414, "High-density device",
+	  0x08000000, 512  * 1024, 1024,
+	  0x1ffff000, 2    * 1024,
+	  0x20000000, 8    * 1024},
+	{ 0x10016430, "XL-density device",
+	  0x08000000, 1024 * 1024, 2048,
+	  0x1fffe000, 6    * 1024,
+	  0x20000000, 8    * 1024},
+	{ 0x10016418, "Connectivity line device",
+	  0x08000000, 256  * 1024, 2048,
+	  0x1fffb000, 18   * 1024,
+	  0x20000000, 8    * 1024},
+	{ 0, }
+};
 
 int serve(struct stlink* sl, int port);
+char* make_memory_map(const struct chip_params *params);
 
 int main(int argc, char** argv) {
 	if(argc != 3) {
@@ -49,8 +71,35 @@ int main(int argc, char** argv) {
 	if(stlink_current_mode(sl) != STLINK_DEV_DEBUG_MODE)
 		stlink_enter_swd_mode(sl);
 
-	stlink_core_id(sl);
-	printf("Debugging ARM core %08x.\n", sl->core_id);
+	uint32_t chip_id;
+
+	stlink_read_mem32(sl, 0xE0042000, 4);
+	chip_id = sl->q_buf[0] | (sl->q_buf[1] << 8) | (sl->q_buf[2] << 16) |
+		(sl->q_buf[3] << 24);
+
+	printf("Chip ID is %08x.\n", chip_id);
+
+	const struct chip_params* params = NULL;
+
+	for(int i = 0; i < sizeof(devices) / sizeof(devices[0]); i++) {
+		if(devices[i].chip_id == chip_id) {
+			params = &devices[i];
+			break;
+		}
+	}
+
+	if(params == NULL) {
+		fprintf(stderr, "Cannot recognize the connected device!\n");
+		return 0;
+	}
+
+	printf("Device connected: %s\n", params->description);
+	printf("Device parameters: SRAM @%08x: %x, Flash @%08x: %x (pages of %x bytes), Boot ROM: @%08x, %x\n",
+		params->sram_base, params->sram_size,
+		params->flash_base, params->flash_size, params->flash_pagesize,
+		params->bootrom_base, params->bootrom_size);
+
+	current_memory_map = make_memory_map(params);
 
 	int port = atoi(argv[1]);
 
@@ -59,6 +108,35 @@ int main(int argc, char** argv) {
 	stlink_close(sl);
 
 	return 0;
+}
+
+static const char* const memory_map_template =
+  "<?xml version=\"1.0\"?>"
+  "<!DOCTYPE memory-map PUBLIC \"+//IDN gnu.org//DTD GDB Memory Map V1.0//EN\""
+  "     \"http://sourceware.org/gdb/gdb-memory-map.dtd\">"
+  "<memory-map>"
+  "  <memory type=\"rom\" start=\"0x00000000\" length=\"0x%x\"/>" // code = sram, bootrom or flash; flash is bigger
+  "  <memory type=\"ram\" start=\"0x%08x\" length=\"0x%x\"/>"     // sram 8k
+  "  <memory type=\"flash\" start=\"0x%08x\" length=\"0x%x\">"
+  "    <property name=\"blocksize\">0x%x</property>"
+  "  </memory>"
+  "  <memory type=\"ram\" start=\"0x40000000\" length=\"0x1fffffff\"/>" // peripheral regs
+  "  <memory type=\"ram\" start=\"0xe0000000\" length=\"0x1fffffff\"/>" // cortex regs
+  "  <memory type=\"rom\" start=\"0x%08x\" length=\"0x%x\"/>"           // bootrom
+  "</memory-map>";
+
+char* make_memory_map(const struct chip_params *params) {
+	/* This will be freed in serve() */
+	char* map = malloc(4096);
+	map[0] = '\0';
+
+	snprintf(map, 4096, memory_map_template,
+	                    params->flash_size,
+	                    params->sram_base, params->sram_size,
+	                    params->flash_base, params->flash_size, params->flash_pagesize,
+	                    params->bootrom_base, params->bootrom_size);
+
+	return map;
 }
 
 #define CODE_BREAK_NUM	6
@@ -369,7 +447,7 @@ int serve(struct stlink* sl, int port) {
 				const char* data = NULL;
 
 				if(!strcmp(type, "memory-map") && !strcmp(op, "read"))
-					data = c_memory_map;
+					data = current_memory_map;
 
 				if(data) {
 					unsigned data_length = strlen(data);
