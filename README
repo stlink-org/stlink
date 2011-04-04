@@ -10,6 +10,22 @@ Then, in gdb:
 
 Have fun!
 
+Resetting the chip from GDB
+===========================
+
+You may reset the chip using GDB if you want. You'll need to use `target
+extended-remote' command like in this session:
+(gdb) target extended-remote localhost:1111
+Remote debugging using localhost:1111
+0x080007a8 in _startup ()
+(gdb) kill
+Kill the program being debugged? (y or n) y
+(gdb) run
+Starting program: /home/whitequark/ST/apps/bally/firmware.elf 
+
+Remember that you can shorten the commands. `tar ext :1111' is good enough
+for GDB.
+
 Running programs from SRAM
 ==========================
 

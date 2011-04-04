@@ -303,6 +303,12 @@ int serve(struct stlink* sl, int port) {
 
 	printf("GDB connected.\n");
 
+	/*
+	 * To allow resetting the chip from GDB it is required to
+	 * emulate attaching and detaching to target.
+	 */
+	unsigned int attached = 1;
+
 	while(1) {
 		char* packet;
 
@@ -389,16 +395,10 @@ int serve(struct stlink* sl, int port) {
 		}
 
 		case 'v': {
-			char *separator = strstr(packet, ":"), *params = "";
-			if(separator == NULL) {
-				separator = packet + strlen(packet);
-			} else {
-				params = separator + 1;
-			}
+			char *params = NULL;
+			char *cmdName = strtok_r(packet, ":;", &params);
 
-			unsigned cmdNameLength = (separator - &packet[1]);
-			char* cmdName = calloc(cmdNameLength + 1, 1);
-			strncpy(cmdName, &packet[1], cmdNameLength);
+			cmdName++; // vCommand -> Command
 
 			if(!strcmp(cmdName, "FlashErase")) {
 				char *s_addr, *s_length;
@@ -463,12 +463,14 @@ int serve(struct stlink* sl, int port) {
 				} else {
 					reply = strdup("OK");
 				}
+			} else if(!strcmp(cmdName, "Kill")) {
+				attached = 0;
+
+				reply = strdup("OK");
 			}
 
 			if(reply == NULL)
 				reply = strdup("");
-
-			free(cmdName);
 
 			break;
 		}
@@ -506,7 +508,12 @@ int serve(struct stlink* sl, int port) {
 			break;
 
 		case '?':
-			reply = strdup("S05"); // TRAP
+			if(attached) {
+				reply = strdup("S05"); // TRAP
+			} else {
+				/* Stub shall reply OK if not attached. */
+				reply = strdup("OK");
+			}
 			break;
 
 		case 'g':
@@ -644,12 +651,28 @@ int serve(struct stlink* sl, int port) {
 			break;
 		}
 
-		case 'k': {
-			// After this function will be entered afterwards, the
-			// chip will be reset anyway. So this is a no-op.
+		case '!': {
+			/*
+			 * Enter extended mode which allows restarting.
+			 * We do support that always.
+			 */
 
-			close(client);
-			return 0;
+			reply = strdup("OK");
+
+			break;
+		}
+
+		case 'R': {
+			/* Reset the core. */
+
+			stlink_reset(sl);
+			init_code_breakpoints(sl);
+
+			attached = 1;
+
+			reply = strdup("OK");
+
+			break;
 		}
 
 		default:
