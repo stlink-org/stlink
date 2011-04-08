@@ -24,7 +24,7 @@ static const char* current_memory_map = NULL;
 struct chip_params {
 	uint32_t chip_id;
 	char* description;
-	uint32_t flash_size, flash_pagesize;
+	uint32_t max_flash_size, flash_pagesize;
 	uint32_t sram_size;
 	uint32_t bootrom_base, bootrom_size;
 } const devices[] = {
@@ -46,7 +46,7 @@ struct chip_params {
 };
 
 int serve(struct stlink* sl, int port);
-char* make_memory_map(const struct chip_params *params);
+char* make_memory_map(const struct chip_params *params, uint16_t flash_size);
 
 int main(int argc, char** argv) {
 	if(argc != 3) {
@@ -84,10 +84,17 @@ int main(int argc, char** argv) {
 	}
 
 	printf("Device connected: %s\n", params->description);
-	printf("Device parameters: SRAM: 0x%x bytes, Flash: 0x%x bytes in pages of %x bytes\n",
-		params->sram_size, params->flash_size, params->flash_pagesize);
+	printf("Device parameters: SRAM: 0x%x bytes, Flash: up to 0x%x bytes in pages of 0x%x bytes\n",
+		params->sram_size, params->max_flash_size, params->flash_pagesize);
 
-	current_memory_map = make_memory_map(params);
+	uint16_t flash_size;
+
+	stlink_read_mem32(sl, 0x1FFFF7E0, 4);
+	flash_size = sl->q_buf[0] | (sl->q_buf[1] << 8);
+
+	printf("Flash size is %d KiB.\n", flash_size);
+
+	current_memory_map = make_memory_map(params, flash_size * 0x400);
 
 	int port = atoi(argv[1]);
 
@@ -114,15 +121,15 @@ static const char* const memory_map_template =
   "  <memory type=\"rom\" start=\"0x1ffff800\" length=\"0x8\"/>"        // option byte area
   "</memory-map>";
 
-char* make_memory_map(const struct chip_params *params) {
+char* make_memory_map(const struct chip_params *params, uint16_t flash_size) {
 	/* This will be freed in serve() */
 	char* map = malloc(4096);
 	map[0] = '\0';
 
 	snprintf(map, 4096, memory_map_template,
-			params->flash_size,
+			flash_size,
 			params->sram_size,
-			params->flash_size, params->flash_pagesize,
+			flash_size, params->flash_pagesize,
 			params->bootrom_base, params->bootrom_size);
 
 	return map;
