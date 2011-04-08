@@ -72,7 +72,7 @@ int main(int argc, char** argv) {
 	const struct chip_params* params = NULL;
 
 	for(int i = 0; i < sizeof(devices) / sizeof(devices[0]); i++) {
-		if(devices[i].chip_id == chip_id) {
+		if(devices[i].chip_id == (chip_id & 0xFFF)) {
 			params = &devices[i];
 			break;
 		}
