@@ -24,35 +24,25 @@ static const char* current_memory_map = NULL;
 struct chip_params {
 	uint32_t chip_id;
 	char* description;
-	uint32_t flash_base, flash_size, flash_pagesize;
+	uint32_t flash_size, flash_pagesize;
+	uint32_t sram_size;
 	uint32_t bootrom_base, bootrom_size;
-	uint32_t sram_base, sram_size;
 } const devices[] = {
-	{ 0x10016420, "STM32F100 on Discovery",
-	  0x08000000, 128  * 1024, 1024,
-	  0x1ffff000, 2    * 1024,
-	  0x20000000, 8    * 1024},
-	{ 0x10016412, "Low-density device",
-	  0x08000000, 32   * 1024, 1024,
-	  0x1ffff000, 2    * 1024,
-	  0x20000000, 4    * 1024},
-	{ 0x10016410, "Medium-density device",
-	  0x08000000, 128  * 1024, 1024,
-	  0x1ffff000, 2    * 1024,
-	  0x20000000, 8    * 1024},
-	{ 0x10016414, "High-density device",
-	  0x08000000, 512  * 1024, 1024,
-	  0x1ffff000, 2    * 1024,
-	  0x20000000, 8    * 1024},
-	{ 0x10016430, "XL-density device",
-	  0x08000000, 1024 * 1024, 2048,
-	  0x1fffe000, 6    * 1024,
-	  0x20000000, 8    * 1024},
-	{ 0x10016418, "Connectivity line device",
-	  0x08000000, 256  * 1024, 2048,
-	  0x1fffb000, 18   * 1024,
-	  0x20000000, 8    * 1024},
-	{ 0, }
+	{ 0x412, "Low-density device",
+	  0x8000,   0x400, 0x2800,  0x1ffff000, 0x800  },
+	{ 0x410, "Medium-density device",
+	  0x20000,  0x400, 0x5000,  0x1ffff000, 0x800  },
+	{ 0x414, "High-density device",
+	  0x80000,  0x800, 0x10000, 0x1ffff000, 0x800  },
+	{ 0x418, "Connectivity line device",
+	  0x40000,  0x800, 0x10000, 0x1fffb000, 0x4800 },
+	{ 0x420, "Medium-density value line device",
+	  0x20000,  0x400, 0x2000,  0x1ffff000, 0x800  },
+	{ 0x428, "High-density value line device",
+	  0x80000,  0x800, 0x8000,  0x1ffff000, 0x800  },
+	{ 0x430, "XL-density device",
+	  0x100000, 0x800, 0x18000, 0x1fffe000, 0x1800 },
+	{ 0 }
 };
 
 int serve(struct stlink* sl, int port);
@@ -94,10 +84,8 @@ int main(int argc, char** argv) {
 	}
 
 	printf("Device connected: %s\n", params->description);
-	printf("Device parameters: SRAM @%08x: %x, Flash @%08x: %x (pages of %x bytes), Boot ROM: @%08x, %x\n",
-		params->sram_base, params->sram_size,
-		params->flash_base, params->flash_size, params->flash_pagesize,
-		params->bootrom_base, params->bootrom_size);
+	printf("Device parameters: SRAM: 0x%x bytes, Flash: 0x%x bytes in pages of %x bytes\n",
+		params->sram_size, params->flash_size, params->flash_pagesize);
 
 	current_memory_map = make_memory_map(params);
 
@@ -115,14 +103,15 @@ static const char* const memory_map_template =
   "<!DOCTYPE memory-map PUBLIC \"+//IDN gnu.org//DTD GDB Memory Map V1.0//EN\""
   "     \"http://sourceware.org/gdb/gdb-memory-map.dtd\">"
   "<memory-map>"
-  "  <memory type=\"rom\" start=\"0x00000000\" length=\"0x%x\"/>" // code = sram, bootrom or flash; flash is bigger
-  "  <memory type=\"ram\" start=\"0x%08x\" length=\"0x%x\"/>"     // sram 8k
-  "  <memory type=\"flash\" start=\"0x%08x\" length=\"0x%x\">"
+  "  <memory type=\"rom\" start=\"0x00000000\" length=\"0x%x\"/>"       // code = sram, bootrom or flash; flash is bigger
+  "  <memory type=\"ram\" start=\"0x20000000\" length=\"0x%x\"/>"       // sram 8k
+  "  <memory type=\"flash\" start=\"0x08000000\" length=\"0x%x\">"
   "    <property name=\"blocksize\">0x%x</property>"
   "  </memory>"
   "  <memory type=\"ram\" start=\"0x40000000\" length=\"0x1fffffff\"/>" // peripheral regs
   "  <memory type=\"ram\" start=\"0xe0000000\" length=\"0x1fffffff\"/>" // cortex regs
   "  <memory type=\"rom\" start=\"0x%08x\" length=\"0x%x\"/>"           // bootrom
+  "  <memory type=\"rom\" start=\"0x1ffff800\" length=\"0x8\"/>"        // option byte area
   "</memory-map>";
 
 char* make_memory_map(const struct chip_params *params) {
@@ -131,10 +120,10 @@ char* make_memory_map(const struct chip_params *params) {
 	map[0] = '\0';
 
 	snprintf(map, 4096, memory_map_template,
-	                    params->flash_size,
-	                    params->sram_base, params->sram_size,
-	                    params->flash_base, params->flash_size, params->flash_pagesize,
-	                    params->bootrom_base, params->bootrom_size);
+			params->flash_size,
+			params->sram_size,
+			params->flash_size, params->flash_pagesize,
+			params->bootrom_base, params->bootrom_size);
 
 	return map;
 }
