@@ -46,7 +46,7 @@ struct chip_params {
 };
 
 int serve(struct stlink* sl, int port);
-char* make_memory_map(const struct chip_params *params, uint16_t flash_size);
+static char* make_memory_map(const struct chip_params *params, uint32_t flash_size);
 
 int main(int argc, char** argv) {
 	if(argc != 3) {
@@ -87,7 +87,7 @@ int main(int argc, char** argv) {
 	printf("Device parameters: SRAM: 0x%x bytes, Flash: up to 0x%x bytes in pages of 0x%x bytes\n",
 		params->sram_size, params->max_flash_size, params->flash_pagesize);
 
-	uint16_t flash_size;
+	uint32_t flash_size;
 
 	stlink_read_mem32(sl, 0x1FFFF7E0, 4);
 	flash_size = sl->q_buf[0] | (sl->q_buf[1] << 8);
@@ -121,7 +121,8 @@ static const char* const memory_map_template =
   "  <memory type=\"rom\" start=\"0x1ffff800\" length=\"0x8\"/>"        // option byte area
   "</memory-map>";
 
-char* make_memory_map(const struct chip_params *params, uint16_t flash_size) {
+static char*
+make_memory_map(const struct chip_params *params, uint32_t flash_size) {
 	/* This will be freed in serve() */
 	char* map = malloc(4096);
 	map[0] = '\0';

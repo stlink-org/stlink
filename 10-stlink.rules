@@ -32,7 +32,7 @@ SUBSYSTEMS=="usb", ATTR{idVendor}=="0483", ATTR{idProduct}=="3744", \
 # Other possible settings:
 # OPTIONS="last_rule", ATTRS{vendor}=="STM32"
 
-KERNEL=="sg[0-9]*", STLINK=="1", MODE="0664", GROUP:="tape", \
+KERNEL=="sg[0-9]*", MODE="0664", GROUP:="tape", \
   NAME+="stlink-sg%n", SYMLINK+="stlink", \
   ENV{UDISKS_PRESENTATION_HIDE}:="1", \
   ENV{UDISKS_PRESENTATION_NOPOLICY}:="1", \

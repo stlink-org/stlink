@@ -40,6 +40,17 @@ $ udevadm control --reload-rules
 Udev will now create a /dev/stlink file, which will point at appropriate
 /dev/sgX device. Good to not accidentally start debugging your flash drive.
 
+Setting up modprobe rules
+=========================
+
+You may install a modprobe rules file, stlink.modprobe.conf, located in
+the root of the repository.  You will need to copy it to /etc/modprobe.d
+and then 
+  $ rmmod usb-storage
+If you have usb-storage built as a module, then this will cause it to be
+loaded with a "quirks" parameter that will cause it to ignore the STLink,
+rather than causing repeated errors and resets.
+
 Running programs from SRAM
 ==========================
 

@@ -130,7 +130,7 @@ start:
 	packet_buffer[packet_idx] = 0;
 	*buffer = packet_buffer;
 
-	return packet_size;
+	return packet_idx;
 }
 
 // Here we skip any characters which are not \x03, GDB interrupt.
