@@ -4,6 +4,9 @@ HOWTO
 First, load the sg kernel module.
 # modprobe sg
 
+On Ubuntu you need to install the package libsgutils2-dev:
+# sudo apt-get install libsgutils2-dev
+
 To run the gdb server, do (you do not need sudo if you have set up
 permissions correctly):
 $ make -C build && sudo ./build/st-util 1234 /dev/sg1
