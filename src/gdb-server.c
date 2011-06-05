@@ -46,7 +46,7 @@ struct chip_params {
 };
 
 int serve(struct stlink* sl, int port);
-static char* make_memory_map(const struct chip_params *params, uint32_t flash_size);
+char* make_memory_map(const struct chip_params *params, uint32_t flash_size);
 
 int main(int argc, char** argv) {
 	if(argc != 3) {
@@ -121,8 +121,7 @@ static const char* const memory_map_template =
   "  <memory type=\"rom\" start=\"0x1ffff800\" length=\"0x8\"/>"        // option byte area
   "</memory-map>";
 
-static char*
-make_memory_map(const struct chip_params *params, uint32_t flash_size) {
+char* make_memory_map(const struct chip_params *params, uint32_t flash_size) {
 	/* This will be freed in serve() */
 	char* map = malloc(4096);
 	map[0] = '\0';
