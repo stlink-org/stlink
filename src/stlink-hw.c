@@ -1417,7 +1417,7 @@ int stlink_write_flash(struct stlink* sl, stm32_addr_t addr, uint8_t* base, unsi
       size = len - off;
 
     if(run_flash_loader(sl, &fl, addr + off, base + off, size) == -1) {
-      fprintf(stderr, "run_flash_loader(0x%x) == -1\n", addr + off);
+      fprintf(stderr, "run_flash_loader(0x%zx) == -1\n", addr + off);
       return -1;
     }
   }
@@ -1488,7 +1488,7 @@ static int stlink_fwrite_flash
     /* addr must be an addr inside the page */
     if (stlink_erase_flash_page(sl, addr + off) == -1)
     {
-      fprintf(stderr, "erase_flash_page(0x%x) == -1\n", addr + off);
+      fprintf(stderr, "erase_flash_page(0x%zx) == -1\n", addr + off);
       goto on_error;
     }
   }
@@ -1511,7 +1511,7 @@ static int stlink_fwrite_flash
 
     if (run_flash_loader(sl, &fl, addr + off, mf.base + off, size) == -1)
     {
-      fprintf(stderr, "run_flash_loader(0x%x) == -1\n", addr + off);
+      fprintf(stderr, "run_flash_loader(0x%zx) == -1\n", addr + off);
       goto on_error;
     }
   }
