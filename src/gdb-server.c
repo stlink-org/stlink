@@ -135,8 +135,139 @@ char* make_memory_map(const struct chip_params *params, uint32_t flash_size) {
 	return map;
 }
 
-#define CODE_BREAK_NUM	6
 
+/* 
+ * DWT_COMP0     0xE0001020
+ * DWT_MASK0     0xE0001024
+ * DWT_FUNCTION0 0xE0001028
+ * DWT_COMP1     0xE0001030
+ * DWT_MASK1     0xE0001034
+ * DWT_FUNCTION1 0xE0001038
+ * DWT_COMP2     0xE0001040
+ * DWT_MASK2     0xE0001044
+ * DWT_FUNCTION2 0xE0001048
+ * DWT_COMP3     0xE0001050
+ * DWT_MASK3     0xE0001054
+ * DWT_FUNCTION3 0xE0001058
+ */
+
+#define DATA_WATCH_NUM 4
+
+enum watchfun { WATCHDISABLED = 0, WATCHREAD = 5, WATCHWRITE = 6, WATCHACCESS = 7 };
+
+struct code_hw_watchpoint {
+	stm32_addr_t addr;
+	uint8_t mask;
+	enum watchfun fun;
+};
+
+struct code_hw_watchpoint data_watches[DATA_WATCH_NUM];
+
+static void init_data_watchpoints(struct stlink *sl) {
+	int i;
+
+	#ifdef DEBUG
+	printf("init watchpoints\n");
+	#endif
+
+	// set trcena in debug command to turn on dwt unit
+	stlink_read_mem32(sl, 0xE000EDFC, 4);
+	sl->q_buf[3] |= 1;
+	stlink_write_mem32(sl, 0xE000EDFC, 4);
+
+	// make sure all watchpoints are cleared
+	memset(sl->q_buf, 0, 4);
+	for(int i = 0; i < DATA_WATCH_NUM; i++) {
+		data_watches[i].fun = WATCHDISABLED;
+		stlink_write_mem32(sl, 0xe0001028 + i * 16, 4);
+	}
+}
+
+static int add_data_watchpoint(struct stlink* sl, enum watchfun wf, stm32_addr_t addr, unsigned int len)
+{
+	int i = 0;
+	uint32_t mask, temp;
+
+	// computer mask
+	// find a free watchpoint
+	// configure
+
+	mask = -1;
+	i = len;
+	while(i) {
+		i >>= 1;
+		mask++;
+	}
+
+	if((mask != -1) && (mask < 16)) {
+		for(i = 0; i < DATA_WATCH_NUM; i++) {
+			// is this an empty slot ?
+			if(data_watches[i].fun == WATCHDISABLED) {
+				#ifdef DEBUG
+				printf("insert watchpoint %d addr %x wf %u mask %u len %d\n", i, addr, wf, mask, len);
+				#endif
+
+				data_watches[i].fun = wf;
+				data_watches[i].addr = addr;
+				data_watches[i].mask = mask;
+
+				// insert comparator address
+				sl->q_buf[0] = (addr & 0xff);
+				sl->q_buf[1] = ((addr >> 8) & 0xff);
+				sl->q_buf[2] = ((addr >> 16) & 0xff);
+				sl->q_buf[3] = ((addr >> 24)  & 0xff);
+
+				stlink_write_mem32(sl, 0xE0001020 + i * 16, 4);
+
+				// insert mask
+				memset(sl->q_buf, 0, 4);
+				sl->q_buf[0] = mask;
+				stlink_write_mem32(sl, 0xE0001024 + i * 16, 4);
+
+				// insert function
+				memset(sl->q_buf, 0, 4);
+				sl->q_buf[0] = wf;
+				stlink_write_mem32(sl, 0xE0001028 + i * 16, 4);
+
+				// just to make sure the matched bit is clear !
+				stlink_read_mem32(sl,  0xE0001028 + i * 16, 4);
+				return 0;
+			}
+		}
+	}
+
+	#ifdef DEBUG
+	printf("failure: add watchpoints addr %x wf %u len %u\n", addr, wf, len);
+	#endif
+	return -1;
+}
+
+static int delete_data_watchpoint(struct stlink* sl, stm32_addr_t addr)
+{
+	int i;
+
+	for(i = 0 ; i < DATA_WATCH_NUM; i++) {
+		if((data_watches[i].addr == addr) && (data_watches[i].fun != WATCHDISABLED)) {
+			#ifdef DEBUG
+			printf("delete watchpoint %d addr %x\n", i, addr);
+			#endif
+
+			memset(sl->q_buf, 0, 4);
+			data_watches[i].fun = WATCHDISABLED;
+			stlink_write_mem32(sl, 0xe0001028 + i * 16, 4);
+
+			return 0;
+		}
+	}
+
+	#ifdef DEBUG
+	printf("failure: delete watchpoint addr %x\n", addr);
+	#endif
+
+	return -1;
+}
+
+#define CODE_BREAK_NUM	6
 #define CODE_BREAK_LOW	0x01
 #define CODE_BREAK_HIGH	0x02
 
@@ -364,6 +495,7 @@ int serve(struct stlink* sl, int port) {
 	stlink_force_debug(sl);
 	stlink_reset(sl);
 	init_code_breakpoints(sl);
+	init_data_watchpoints(sl);
 
 	printf("Listening at *:%d...\n", port);
 
@@ -698,30 +830,66 @@ int serve(struct stlink* sl, int port) {
 		}
 
 		case 'Z': {
-			if(packet[1] == '1') {
-				stm32_addr_t addr = strtoul(&packet[3], NULL, 16);
+			char *endptr;
+			stm32_addr_t addr = strtoul(&packet[3], &endptr, 16);
+			stm32_addr_t len  = strtoul(&endptr[1], NULL, 16);
+
+			switch (packet[1]) {
+				case '1':
 				if(update_code_breakpoint(sl, addr, 1) < 0) {
 					reply = strdup("E00");
 				} else {
 					reply = strdup("OK");
 				}
-			} else {
+				break;
+
+				case '2':   // insert write watchpoint
+				case '3':   // insert read  watchpoint
+				case '4':   // insert access watchpoint
+		    		{
+					enum watchfun wf;
+		 			if(packet[1] == '2') {
+						wf = WATCHWRITE;
+					} else if(packet[1] == '3') {
+						wf = WATCHREAD;
+					} else {
+						wf = WATCHACCESS;
+						if(add_data_watchpoint(sl, wf, addr, len) < 0) {
+							reply = strdup("E00");
+						} else {
+							reply = strdup("OK");
+							break;
+						}
+				}
+
+				default:
 				reply = strdup("");
 			}
-
 			break;
 		}
-
 		case 'z': {
-			if(packet[1] == '1') {
-				stm32_addr_t addr = strtoul(&packet[3], NULL, 16);
+			char *endptr;
+			stm32_addr_t addr = strtoul(&packet[3], &endptr, 16);
+			stm32_addr_t len  = strtoul(&endptr[1], NULL, 16);
+			switch (packet[1]) {
+				case '1': // remove breakpoint
 				update_code_breakpoint(sl, addr, 0);
-
 				reply = strdup("OK");
-			} else {
+				break;
+
+				case '2' : // remove write watchpoint
+				case '3' : // remove read watchpoint
+				case '4' : // remove access watchpoint
+				if(delete_data_watchpoint(sl, addr) < 0) {
+					reply = strdup("E00");
+				} else {
+					reply = strdup("OK");
+					break;
+				}
+
+				default:
 				reply = strdup("");
 			}
-
 			break;
 		}
 
@@ -741,6 +909,7 @@ int serve(struct stlink* sl, int port) {
 
 			stlink_reset(sl);
 			init_code_breakpoints(sl);
+			init_data_watchpoints(sl);
 
 			attached = 1;
 
