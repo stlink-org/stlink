@@ -17,6 +17,11 @@
 #include "gdb-remote.h"
 #include "stlink-hw.h"
 
+#define FLASH_BASE 0x08000000
+#define FLASH_PAGE (sl->flash_pgsz)
+#define FLASH_PAGE_MASK (~((1 << 10) - 1))
+#define FLASH_SIZE (FLASH_PAGE * 128)
+
 static const char hex[] = "0123456789abcdef";
 
 static const char* current_memory_map = NULL;
@@ -87,13 +92,15 @@ int main(int argc, char** argv) {
 	printf("Device parameters: SRAM: 0x%x bytes, Flash: up to 0x%x bytes in pages of 0x%x bytes\n",
 		params->sram_size, params->max_flash_size, params->flash_pagesize);
 
+	FLASH_PAGE = params->flash_pagesize;
+
 	uint32_t flash_size;
 
 	stlink_read_mem32(sl, 0x1FFFF7E0, 4);
 	flash_size = sl->q_buf[0] | (sl->q_buf[1] << 8);
 
 	printf("Flash size is %d KiB.\n", flash_size);
-
+	// memory map is in 1k blocks.
 	current_memory_map = make_memory_map(params, flash_size * 0x400);
 
 	int port = atoi(argv[1]);
@@ -347,10 +354,6 @@ static int update_code_breakpoint(struct stlink* sl, stm32_addr_t addr, int set)
 	return 0;
 }
 
-#define FLASH_BASE 0x08000000
-#define FLASH_PAGE 0x400
-#define FLASH_PAGE_MASK (~((1 << 10) - 1))
-#define FLASH_SIZE (FLASH_PAGE * 128)
 
 struct flash_block {
 	stm32_addr_t addr;
@@ -362,7 +365,8 @@ struct flash_block {
 
 static struct flash_block* flash_root;
 
-static int flash_add_block(stm32_addr_t addr, unsigned length) {
+static int flash_add_block(stm32_addr_t addr, unsigned length, 
+			   struct stlink* sl) {
 	if(addr < FLASH_BASE || addr + length > FLASH_BASE + FLASH_SIZE) {
 		fprintf(stderr, "flash_add_block: incorrect bounds\n");
 		return -1;
@@ -437,7 +441,7 @@ static int flash_go(struct stlink* sl) {
 		#endif
 
 		unsigned length = fb->length;
-		for(stm32_addr_t page = fb->addr; page < fb->addr + fb->length; page += 0x400) {
+		for(stm32_addr_t page = fb->addr; page < fb->addr + fb->length; page += FLASH_PAGE) {
 			#ifdef DEBUG
 			printf("flash_do: page %08x\n", page);
 			#endif
@@ -445,7 +449,7 @@ static int flash_go(struct stlink* sl) {
 			stlink_erase_flash_page(sl, page);
 
 			if(stlink_write_flash(sl, page, fb->data + (page - fb->addr),
-					length > 0x400 ? 0x400 : length) < 0)
+					length > FLASH_PAGE ? FLASH_PAGE : length) < 0)
 				goto error;
 		}
 
@@ -621,7 +625,7 @@ int serve(struct stlink* sl, int port) {
 					addr, length);
 				#endif
 
-				if(flash_add_block(addr, length) < 0) {
+				if(flash_add_block(addr, length, sl) < 0) {
 					reply = strdup("E00");
 				} else {
 					reply = strdup("OK");
@@ -860,6 +864,7 @@ int serve(struct stlink* sl, int port) {
 							reply = strdup("OK");
 							break;
 						}
+					}
 				}
 
 				default:
@@ -871,6 +876,7 @@ int serve(struct stlink* sl, int port) {
 			char *endptr;
 			stm32_addr_t addr = strtoul(&packet[3], &endptr, 16);
 			stm32_addr_t len  = strtoul(&endptr[1], NULL, 16);
+
 			switch (packet[1]) {
 				case '1': // remove breakpoint
 				update_code_breakpoint(sl, addr, 0);
