@@ -63,7 +63,7 @@ static int submit_wait(struct libusb_transfer* trans)
   return 0;
 }
 
-static int send_recv
+static ssize_t send_recv
 (
  struct stlink_libusb* handle,
  unsigned char* txbuf, size_t txsize,
@@ -96,7 +96,8 @@ static int send_recv
    0
   );
 
-  return submit_wait(handle->rep_trans);
+  if (submit_wait(handle->rep_trans)) return -1;
+  return handle->rep_trans->actual_length;
 }
 
 
@@ -260,8 +261,8 @@ struct stlink* stlink_quirk_open
 	goto on_libusb_error;
       }
 
-      slu->ep_req = 1 /* ep req */ | LIBUSB_ENDPOINT_OUT;
-      slu->ep_rep = 2 /* ep rep */ | LIBUSB_ENDPOINT_IN;
+      slu->ep_rep = 1 /* ep rep */ | LIBUSB_ENDPOINT_IN;
+      slu->ep_req = 2 /* ep req */ | LIBUSB_ENDPOINT_OUT;
 
       /* success */
       error = 0;
@@ -341,19 +342,23 @@ void stlink_version(struct stlink* sl)
     {
       struct stlink_libusb* const slu = &sl->transport.libusb;
 
+      ssize_t size;
       unsigned int i;
-      unsigned char buf[6];
+      unsigned char buf[64];
 
       for (i = 0; i < sizeof(buf); ++i) buf[i] = 0;
 
       buf[0] = 0xf1;
-      if (send_recv(slu, buf, sizeof(buf), buf, sizeof(buf)) == -1)
+      buf[1] = 0x80;
+
+      size = send_recv(slu, buf, sizeof(buf), buf, sizeof(buf));
+      if (size == -1)
       {
 	printf("[!] send_recv\n");
 	return ;
       }
 
-      for (i = 0; i < 6; ++i) printf("%02x", buf[i]);
+      for (i = 0; i < size; ++i) printf("%02x", buf[i]);
       printf("\n");
 
       break ;
