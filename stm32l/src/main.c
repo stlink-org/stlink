@@ -1,7 +1,77 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <stdint.h>
 #include <sys/types.h>
 #include <libusb-1.0/libusb.h>
+#include "stlink-hw.h"
+
+/* endianess related */
+static inline unsigned int is_bigendian(void)
+{
+  static volatile const unsigned int i = 1;
+  return *(volatile const char*) &i == 0;
+}
+
+static void write_uint32(unsigned char* buf, uint32_t ui)
+{
+  if (!is_bigendian()) { // le -> le (don't swap)
+    buf[0] = ((unsigned char*) &ui)[0];
+    buf[1] = ((unsigned char*) &ui)[1];
+    buf[2] = ((unsigned char*) &ui)[2];
+    buf[3] = ((unsigned char*) &ui)[3];
+  } else {
+    buf[0] = ((unsigned char*) &ui)[3];
+    buf[1] = ((unsigned char*) &ui)[2];
+    buf[2] = ((unsigned char*) &ui)[1];
+    buf[3] = ((unsigned char*) &ui)[0];
+  }
+}
+
+static void write_uint16(unsigned char* buf, uint16_t ui)
+{
+  if (!is_bigendian()) { // le -> le (don't swap)
+    buf[0] = ((unsigned char*) &ui)[0];
+    buf[1] = ((unsigned char*) &ui)[1];
+  } else {
+    buf[0] = ((unsigned char*) &ui)[1];
+    buf[1] = ((unsigned char*) &ui)[0];
+  }
+}
+
+static uint32_t read_uint32(const unsigned char *c, const int pt)
+{
+  uint32_t ui;
+  char *p = (char *) &ui;
+
+  if (!is_bigendian()) { // le -> le (don't swap)
+    p[0] = c[pt];
+    p[1] = c[pt + 1];
+    p[2] = c[pt + 2];
+    p[3] = c[pt + 3];
+  } else {
+    p[0] = c[pt + 3];
+    p[1] = c[pt + 2];
+    p[2] = c[pt + 1];
+    p[3] = c[pt];
+  }
+  return ui;
+}
+
+static uint16_t read_uint16(const unsigned char *c, const int pt)
+{
+  uint32_t ui;
+  char *p = (char *) &ui;
+
+  if (!is_bigendian()) { // le -> le (don't swap)
+    p[0] = c[pt];
+    p[1] = c[pt + 1];
+  } else {
+    p[0] = c[pt + 1];
+    p[1] = c[pt];
+  }
+  return ui;
+}
 
 /* libusb transport layer */
 
@@ -82,6 +152,8 @@ static ssize_t send_recv
    0
   );
 
+  printf("submit_wait(req)\n");
+
   if (submit_wait(handle->req_trans)) return -1;
 
   /* read the response */
@@ -96,7 +168,10 @@ static ssize_t send_recv
    0
   );
 
+  printf("submit_wait(rep)\n");
+
   if (submit_wait(handle->rep_trans)) return -1;
+
   return handle->rep_trans->actual_length;
 }
 
@@ -127,6 +202,9 @@ struct stlink
     void* libsg;
 #endif /* CONFIG_USE_LIBSG */
   } transport;
+
+  /* layer independant */
+  uint32_t core_id;
 };
 
 int stlink_initialize(enum transport_type tt)
@@ -343,12 +421,11 @@ void stlink_version(struct stlink* sl)
       struct stlink_libusb* const slu = &sl->transport.libusb;
 
       ssize_t size;
-      unsigned int i;
       unsigned char buf[64];
 
-      for (i = 0; i < sizeof(buf); ++i) buf[i] = 0;
+      memset(buf, 0, sizeof(buf));
 
-      buf[0] = 0xf1;
+      buf[0] = STLINK_GET_VERSION;
       buf[1] = 0x80;
 
       size = send_recv(slu, buf, sizeof(buf), buf, sizeof(buf));
@@ -358,8 +435,13 @@ void stlink_version(struct stlink* sl)
 	return ;
       }
 
-      for (i = 0; i < size; ++i) printf("%02x", buf[i]);
-      printf("\n");
+#if 1 /* DEBUG */
+      {
+	unsigned int i;
+	for (i = 0; i < size; ++i) printf("%02x", buf[i]);
+	printf("\n");
+      }
+#endif /* DEBUG */
 
       break ;
     }
@@ -371,7 +453,117 @@ void stlink_version(struct stlink* sl)
 
 int stlink_current_mode(struct stlink *sl)
 {
-  return -1;
+  int mode = -1;
+
+  switch (sl->tt)
+  {
+#if CONFIG_USE_LIBUSB
+  case TRANSPORT_TYPE_LIBUSB:
+    {
+      struct stlink_libusb* const slu = &sl->transport.libusb;
+
+      ssize_t size;
+      unsigned char buf[64];
+
+      memset(buf, 0, sizeof(buf));
+
+      buf[0] = STLINK_GET_CURRENT_MODE;
+
+      size = send_recv(slu, buf, sizeof(buf), buf, sizeof(buf));
+      if (size == -1)
+      {
+	printf("[!] send_recv\n");
+	return -1;
+      }
+
+      mode = (int)buf[0];
+
+#if 1 /* DEBUG */
+      printf("mode == 0x%x\n", mode);
+#endif /* DEBUG */
+
+      break ;
+    }
+#endif /* CONFIG_USE_LIBUSB */
+
+  default: break ;
+  }
+
+  return mode;
+}
+
+void stlink_core_id(struct stlink *sl)
+{
+  switch (sl->tt)
+  {
+#if CONFIG_USE_LIBUSB
+  case TRANSPORT_TYPE_LIBUSB:
+    {
+      struct stlink_libusb* const slu = &sl->transport.libusb;
+
+      ssize_t size;
+      unsigned char buf[64];
+
+      memset(buf, 0, sizeof(buf));
+
+      buf[0] = STLINK_DEBUG_READCOREID;
+
+      size = send_recv(slu, buf, sizeof(buf), buf, sizeof(buf));
+      if (size == -1)
+      {
+	printf("[!] send_recv\n");
+	return ;
+      }
+
+      sl->core_id = read_uint32(buf, 0);
+
+#if 1 /* DEBUG */
+      printf("core_id == 0x%x\n", sl->core_id);
+#endif /* DEBUG */
+
+      break ;
+    }
+#endif /* CONFIG_USE_LIBUSB */
+
+  default: break ;
+  }
+}
+
+void stlink_status(struct stlink *sl)
+{
+  switch (sl->tt)
+  {
+#if CONFIG_USE_LIBUSB
+  case TRANSPORT_TYPE_LIBUSB:
+    {
+      struct stlink_libusb* const slu = &sl->transport.libusb;
+
+      ssize_t size;
+      unsigned char buf[64];
+
+      memset(buf, 0, sizeof(buf));
+
+      buf[0] = STLINK_DEBUG_GETSTATUS;
+
+      size = send_recv(slu, buf, sizeof(buf), buf, sizeof(buf));
+      if (size == -1)
+      {
+	printf("[!] send_recv\n");
+	return ;
+      }
+
+      /* todo: stlink_core_stat */
+
+#if 1 /* DEBUG */
+      printf("status == 0x%x\n", buf[0]);
+#endif /* DEBUG */
+
+      break ;
+    }
+#endif /* CONFIG_USE_LIBUSB */
+
+  default: break ;
+  }
 }
 
 void stlink_enter_swd_mode(struct stlink *sl)
@@ -383,14 +575,6 @@ void stlink_enter_jtag_mode(struct stlink *sl)
 }
 
 void stlink_exit_debug_mode(struct stlink *sl)
-{
-}
-
-void stlink_core_id(struct stlink *sl)
-{
-}
-
-void stlink_status(struct stlink *sl)
 {
 }
 
@@ -408,6 +592,7 @@ int main(int ac, char** av)
     stlink_version(sl);
     stlink_status(sl);
     stlink_current_mode(sl);
+    stlink_core_id(sl);
     stlink_close(sl);
   }
   stlink_finalize(TRANSPORT_TYPE_LIBUSB);
