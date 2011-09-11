@@ -10,3 +10,6 @@
  . usb kernel module compiled with debugging enabled
  . usbmon
  . libusb
+
+. stm32l chip
+ . http://www.st.com/internet/mcu/product/248820.jsp

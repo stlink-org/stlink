@@ -801,7 +801,7 @@ static void stlink_print_data(struct stlink *sl)
   size_t i;
   for (i = 0; i < sl->q_len; ++i)
   {
-    if (i % 16 == 0) printf("\n");
+    if ((i % 16) == 0) printf("\n");
     printf(" %02x", sl->q_buf[i]);
   }
   printf("\n");
@@ -826,6 +826,10 @@ void stlink_read_mem32(struct stlink *sl, uint32_t addr, uint16_t len)
       buf[1] = STLINK_DEBUG_READMEM_32BIT;
       write_uint32(buf + 2, addr);
       write_uint16(buf + 6, len);
+#if 0
+      /* windows usb logs show only one byte is used for length ... */
+      buf[6] = (uint8_t)len;
+#endif
 
       size = send_recv(slu, buf, 0x10, buf, sizeof(sl->q_buf));
       if (size == -1)
@@ -873,14 +877,20 @@ int main(int ac, char** av)
     printf("-- current_mode\n");
     stlink_current_mode(sl);
 
-    printf("-- core_id\n");
-    stlink_core_id(sl);
+/*     printf("-- core_id\n"); */
+/*     stlink_core_id(sl); */
 
-    printf("-- read_mem\n");
-    stlink_read_mem32(sl, 0xe000ed00, 4);
-    stlink_read_mem32(sl, 0xe000ed90, 4);
-    stlink_read_mem32(sl, 0xe000edf0, 4);
-    stlink_read_mem32(sl, 0x4001100c, 4);
+    printf("-- read_sram\n");
+    static const uint32_t sram_base = 0x8000000;
+    uint32_t off;
+    for (off = 0; off < 16; off += 4)
+      stlink_read_mem32(sl, sram_base + off, 4);
+
+    printf("-- read_mem, cpuid\n");
+    stlink_read_mem32(sl, 0xe000e008, 4);
+/*     stlink_read_mem32(sl, 0xe000ed90, 4); */
+/*     stlink_read_mem32(sl, 0xe000edf0, 4); */
+/*     stlink_read_mem32(sl, 0x4001100c, 4); */
 
     printf("-- status\n");
     stlink_status(sl);
