@@ -237,6 +237,7 @@ struct stlink
   } transport;
 
   unsigned char q_buf[64];
+  size_t q_len;
 
   /* layer independant */
   uint32_t core_id;
@@ -795,6 +796,57 @@ void stlink_exit_debug_mode(struct stlink *sl)
   }
 }
 
+static void stlink_print_data(struct stlink *sl)
+{
+  size_t i;
+  for (i = 0; i < sl->q_len; ++i)
+  {
+    if (i % 16 == 0) printf("\n");
+    printf(" %02x", sl->q_buf[i]);
+  }
+  printf("\n");
+}
+
+
+void stlink_read_mem32(struct stlink *sl, uint32_t addr, uint16_t len)
+{
+  switch (sl->tt)
+  {
+#if CONFIG_USE_LIBUSB
+  case TRANSPORT_TYPE_LIBUSB:
+    {
+      struct stlink_libusb* const slu = &sl->transport.libusb;
+      unsigned char* const buf = sl->q_buf;
+      ssize_t size;
+
+      /* assume len < sizeof(sl->q_buf) */
+
+      memset(buf, 0, sizeof(sl->q_buf));
+      buf[0] = STLINK_DEBUG_COMMAND;
+      buf[1] = STLINK_DEBUG_READMEM_32BIT;
+      write_uint32(buf + 2, addr);
+      write_uint16(buf + 6, len);
+
+      size = send_recv(slu, buf, 0x10, buf, sizeof(sl->q_buf));
+      if (size == -1)
+      {
+	printf("[!] send_recv\n");
+	return ;
+      }
+
+      sl->q_len = (size_t)size;
+
+      stlink_print_data(sl);
+
+      break ;
+    }
+#endif /* CONFIG_USE_LIBUSB */
+
+  default: break ;
+  }
+}
+
+
 
 /* main */
 
@@ -823,6 +875,12 @@ int main(int ac, char** av)
 
     printf("-- core_id\n");
     stlink_core_id(sl);
+
+    printf("-- read_mem\n");
+    stlink_read_mem32(sl, 0xe000ed00, 4);
+    stlink_read_mem32(sl, 0xe000ed90, 4);
+    stlink_read_mem32(sl, 0xe000edf0, 4);
+    stlink_read_mem32(sl, 0x4001100c, 4);
 
     printf("-- status\n");
     stlink_status(sl);
