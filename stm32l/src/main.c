@@ -627,7 +627,7 @@ void stlink_enter_swd_mode(struct stlink *sl)
       memset(buf, 0, sizeof(sl->q_buf));
 
       buf[0] = STLINK_DEBUG_COMMAND;
-      buf[1] = 0x30; /* magic byte */
+      buf[1] = 0x30; /* needed byte */
       buf[2] = STLINK_DEBUG_ENTER_JTAG;
 
       size = send_recv(slu, buf, 16, buf, sizeof(sl->q_buf));
