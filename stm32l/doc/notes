@@ -1,0 +1,9 @@
+. reversing methodology
+ . Windows
+  . ST set tools package contains a working programmer
+  . IAR latest version contains a working debugger
+  . usblyzer to snif the corresponding usb frames
+ . Linux
+  . usb kernel module compiled with debugging enabled
+  . usbmon
+  . libusb
