@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#include <time.h>
 #include <sys/types.h>
 #include <libusb-1.0/libusb.h>
 #include "stlink-hw.h"
@@ -106,6 +107,9 @@ static void on_trans_done(struct libusb_transfer* trans)
 
 static int submit_wait(struct libusb_transfer* trans)
 {
+  struct timeval start;
+  struct timeval now;
+  struct timeval diff;
   struct trans_ctx trans_ctx;
   enum libusb_error error;
 
@@ -121,11 +125,21 @@ static int submit_wait(struct libusb_transfer* trans)
     return -1;
   }
 
+  gettimeofday(&start, NULL);
+
   while (!(trans_ctx.flags & TRANS_FLAGS_IS_DONE))
   {
     if (libusb_handle_events(NULL))
     {
       printf("libusb_handle_events()\n");
+      return -1;
+    }
+
+    gettimeofday(&now, NULL);
+    timersub(&now, &start, &diff);
+    if (diff.tv_sec >= 3)
+    {
+      printf("libusb_handle_events() timeout\n");
       return -1;
     }
   }
