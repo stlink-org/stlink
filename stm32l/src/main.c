@@ -179,6 +179,9 @@ static ssize_t send_recv
 
   if (submit_wait(handle->req_trans)) return -1;
 
+  /* send_only */
+  if (rxsize == 0) return 0;
+
   /* read the response */
 
   libusb_fill_bulk_transfer
@@ -196,6 +199,13 @@ static ssize_t send_recv
   if (submit_wait(handle->rep_trans)) return -1;
 
   return handle->rep_trans->actual_length;
+}
+
+
+static inline int send_only
+(struct stlink_libusb* handle, unsigned char* txbuf, size_t txsize)
+{
+  return send_recv(handle, txbuf, txsize, NULL, 0);
 }
 
 
@@ -513,6 +523,7 @@ int stlink_current_mode(struct stlink *sl)
 	return -1;
       }
 
+      /* mode = (int)read_uint16(buf, 0); */
       mode = (int)buf[0];
 
 #if 1 /* DEBUG */
@@ -541,10 +552,10 @@ void stlink_core_id(struct stlink *sl)
       ssize_t size;
 
       memset(buf, 0, sizeof(sl->q_buf));
+      buf[0] = STLINK_DEBUG_COMMAND;
+      buf[1] = STLINK_DEBUG_READCOREID;
 
-      buf[0] = STLINK_DEBUG_READCOREID;
-
-      size = send_recv(slu, buf, sizeof(sl->q_buf), buf, sizeof(sl->q_buf));
+      size = send_recv(slu, buf, 16, buf, sizeof(sl->q_buf));
       if (size == -1)
       {
 	printf("[!] send_recv\n");
@@ -578,9 +589,10 @@ void stlink_status(struct stlink *sl)
 
       memset(buf, 0, sizeof(sl->q_buf));
 
-      buf[0] = STLINK_DEBUG_GETSTATUS;
+      buf[0] = STLINK_DEBUG_COMMAND;
+      buf[1] = STLINK_DEBUG_GETSTATUS;
 
-      size = send_recv(slu, buf, sizeof(sl->q_buf), buf, sizeof(sl->q_buf));
+      size = send_recv(slu, buf, 16, buf, sizeof(sl->q_buf));
       if (size == -1)
       {
 	printf("[!] send_recv\n");
@@ -614,10 +626,11 @@ void stlink_enter_swd_mode(struct stlink *sl)
 
       memset(buf, 0, sizeof(sl->q_buf));
 
-      buf[0] = STLINK_DEBUG_ENTER;
-      buf[1] = STLINK_DEBUG_ENTER_SWD;
+      buf[0] = STLINK_DEBUG_COMMAND;
+      buf[1] = 0x30; /* magic byte */
+      buf[2] = STLINK_DEBUG_ENTER_JTAG;
 
-      size = send_recv(slu, buf, sizeof(sl->q_buf), buf, sizeof(sl->q_buf));
+      size = send_recv(slu, buf, 16, buf, sizeof(sl->q_buf));
       if (size == -1)
       {
 	printf("[!] send_recv\n");
@@ -644,11 +657,10 @@ void stlink_exit_dfu_mode(struct stlink *sl)
       ssize_t size;
 
       memset(buf, 0, sizeof(sl->q_buf));
-
       buf[0] = STLINK_DFU_COMMAND;
       buf[1] = STLINK_DFU_EXIT;
 
-      size = send_recv(slu, buf, sizeof(sl->q_buf), buf, sizeof(sl->q_buf));
+      size = send_only(slu, buf, 16);
       if (size == -1)
       {
 	printf("[!] send_recv\n");
@@ -675,10 +687,10 @@ void stlink_reset(struct stlink *sl)
       ssize_t size;
 
       memset(buf, 0, sizeof(sl->q_buf));
+      buf[0] = STLINK_DEBUG_COMMAND;
+      buf[1] = STLINK_DEBUG_RESETSYS;
 
-      buf[0] = STLINK_DEBUG_RESETSYS;
-
-      size = send_recv(slu, buf, 2, buf, sizeof(sl->q_buf));
+      size = send_recv(slu, buf, 16, buf, sizeof(sl->q_buf));
       if (size == -1)
       {
 	printf("[!] send_recv\n");
@@ -693,12 +705,94 @@ void stlink_reset(struct stlink *sl)
   }
 }
 
-void stlink_enter_jtag_mode(struct stlink *sl)
+void stlink_step(struct stlink *sl)
 {
+  switch (sl->tt)
+  {
+#if CONFIG_USE_LIBUSB
+  case TRANSPORT_TYPE_LIBUSB:
+    {
+      struct stlink_libusb* const slu = &sl->transport.libusb;
+      unsigned char* const buf = sl->q_buf;
+      ssize_t size;
+
+      memset(buf, 0, sizeof(sl->q_buf));
+      buf[0] = STLINK_DEBUG_COMMAND;
+      buf[1] = STLINK_DEBUG_STEPCORE;
+
+      size = send_recv(slu, buf, 16, buf, sizeof(sl->q_buf));
+      if (size == -1)
+      {
+	printf("[!] send_recv\n");
+	return ;
+      }
+
+      break ;
+    }
+#endif /* CONFIG_USE_LIBUSB */
+
+  default: break ;
+  }
+}
+
+void stlink_run(struct stlink *sl)
+{
+  switch (sl->tt)
+  {
+#if CONFIG_USE_LIBUSB
+  case TRANSPORT_TYPE_LIBUSB:
+    {
+      struct stlink_libusb* const slu = &sl->transport.libusb;
+      unsigned char* const buf = sl->q_buf;
+      ssize_t size;
+
+      memset(buf, 0, sizeof(sl->q_buf));
+      buf[0] = STLINK_DEBUG_COMMAND;
+      buf[1] = STLINK_DEBUG_RUNCORE;
+
+      size = send_recv(slu, buf, 16, buf, sizeof(sl->q_buf));
+      if (size == -1)
+      {
+	printf("[!] send_recv\n");
+	return ;
+      }
+
+      break ;
+    }
+#endif /* CONFIG_USE_LIBUSB */
+
+  default: break ;
+  }
 }
 
 void stlink_exit_debug_mode(struct stlink *sl)
 {
+  switch (sl->tt)
+  {
+#if CONFIG_USE_LIBUSB
+  case TRANSPORT_TYPE_LIBUSB:
+    {
+      struct stlink_libusb* const slu = &sl->transport.libusb;
+      unsigned char* const buf = sl->q_buf;
+      ssize_t size;
+
+      memset(buf, 0, sizeof(sl->q_buf));
+      buf[0] = STLINK_DEBUG_COMMAND;
+      buf[1] = STLINK_DEBUG_EXIT;
+
+      size = send_only(slu, buf, 16);
+      if (size == -1)
+      {
+	printf("[!] send_only\n");
+	return ;
+      }
+
+      break ;
+    }
+#endif /* CONFIG_USE_LIBUSB */
+
+  default: break ;
+  }
 }
 
 
@@ -715,8 +809,11 @@ int main(int ac, char** av)
     printf("-- version\n");
     stlink_version(sl);
 
-    printf("-- exit_dfu_mode\n");
-    stlink_exit_dfu_mode(sl);
+    if (stlink_current_mode(sl) == STLINK_DEV_DFU_MODE)
+    {
+      printf("-- exit_dfu_mode\n");
+      stlink_exit_dfu_mode(sl);
+    }
 
     printf("-- enter_swd_mode\n");
     stlink_enter_swd_mode(sl);
@@ -735,6 +832,16 @@ int main(int ac, char** av)
 
     printf("-- status\n");
     stlink_status(sl);
+
+    printf("-- step\n");
+    stlink_step(sl);
+    getchar();
+
+    printf("-- run\n");
+    stlink_run(sl);
+
+    printf("-- exit_debug_mode\n");
+    stlink_exit_debug_mode(sl);
 
     stlink_close(sl);
   }
