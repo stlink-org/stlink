@@ -78,15 +78,6 @@ static uint16_t read_uint16(const unsigned char *c, const int pt)
 
 libusb_context* libusb_ctx =  NULL;
 
-struct stlink_libusb
-{
-  libusb_device_handle* usb_handle;
-  struct libusb_transfer* req_trans;
-  struct libusb_transfer* rep_trans;
-  unsigned int ep_req;
-  unsigned int ep_rep;
-};
-
 struct trans_ctx
 {
 #define TRANS_FLAGS_IS_DONE (1 << 0)
@@ -209,40 +200,7 @@ static inline int send_only
 }
 
 
-/* stlink layer independant interface */
-
-enum transport_type
-{
-  TRANSPORT_TYPE_ZERO = 0,
-#if CONFIG_USE_LIBSG
-  TRANSPORT_TYPE_LIBSG,
-#endif /* CONFIG_USE_LIBSG */
-#if CONFIG_USE_LIBUSB
-  TRANSPORT_TYPE_LIBUSB,
-#endif /* CONFIG_USE_LIBUSB */
-  TRANSPORT_TYPE_INVALID
-};
-
-struct stlink
-{
-  enum transport_type tt;
-  union
-  {
-#if CONFIG_USE_LIBUSB
-    struct stlink_libusb libusb;
-#endif /* CONFIG_USE_LIBUSB */
-#if CONFIG_USE_LIBSG
-    void* libsg;
-#endif /* CONFIG_USE_LIBSG */
-  } transport;
-
-  unsigned char q_buf[64];
-  size_t q_len;
-
-  /* layer independant */
-  uint32_t core_id;
-};
-
+// KARL - fixme, common code! (or, one per backend)
 int stlink_initialize(enum transport_type tt)
 {
   switch (tt)
@@ -266,6 +224,7 @@ int stlink_initialize(enum transport_type tt)
   return 0;
 }
 
+// candidate for common code...
 void stlink_finalize(enum transport_type tt)
 {
   switch (tt)
@@ -302,15 +261,15 @@ static int is_stlink_device(libusb_device* dev)
 }
 #endif /* CONFIG_USE_LIBUSB */
 
-/* fwd decl */
-void stlink_close(struct stlink*);
 
 struct stlink* stlink_quirk_open
 (enum transport_type tt, const char *dev_name, const int verbose)
 {
   struct stlink* sl = NULL;
+  struct stlink_libusb* slu = NULL;
 
   sl = malloc(sizeof(struct stlink));
+  slu = malloc(sizeof(struct stlink_libusb));
   if (sl == NULL) goto on_error;
 
   sl->tt = tt;
@@ -320,7 +279,6 @@ struct stlink* stlink_quirk_open
 #if CONFIG_USE_LIBUSB
   case TRANSPORT_TYPE_LIBUSB:
     {
-      struct stlink_libusb* const slu = &sl->transport.libusb;
 
       int error = -1;
 
@@ -344,7 +302,7 @@ struct stlink* stlink_quirk_open
       }
       if (i == count) return NULL;
 
-      if (libusb_open(dev, &slu->usb_handle))
+      if (libusb_open(dev, &(slu->usb_handle)))
       {
 	printf("libusb_open()\n");
 	goto on_libusb_error;
@@ -404,6 +362,7 @@ struct stlink* stlink_quirk_open
 	stlink_close(sl);
 	return NULL;
       }
+      sl->transport.libusb = slu;
 
       break ;
     }
@@ -434,7 +393,7 @@ void stlink_close(struct stlink *sl)
 #if CONFIG_USE_LIBUSB
   case TRANSPORT_TYPE_LIBUSB:
     {
-      struct stlink_libusb* const handle = &sl->transport.libusb;
+      struct stlink_libusb* const handle = sl->transport.libusb;
 
       if (handle->req_trans != NULL)
 	libusb_free_transfer(handle->req_trans);
@@ -469,7 +428,7 @@ void stlink_version(struct stlink* sl)
 #if CONFIG_USE_LIBUSB
   case TRANSPORT_TYPE_LIBUSB:
     {
-      struct stlink_libusb* const slu = &sl->transport.libusb;
+      struct stlink_libusb* const slu = sl->transport.libusb;
       unsigned char* const buf = sl->q_buf;
       ssize_t size;
 
@@ -509,7 +468,7 @@ int stlink_current_mode(struct stlink *sl)
 #if CONFIG_USE_LIBUSB
   case TRANSPORT_TYPE_LIBUSB:
     {
-      struct stlink_libusb* const slu = &sl->transport.libusb;
+      struct stlink_libusb* const slu = sl->transport.libusb;
       unsigned char* const buf = sl->q_buf; 
       ssize_t size;
 
@@ -548,7 +507,7 @@ void stlink_core_id(struct stlink *sl)
 #if CONFIG_USE_LIBUSB
   case TRANSPORT_TYPE_LIBUSB:
     {
-      struct stlink_libusb* const slu = &sl->transport.libusb;
+      struct stlink_libusb* const slu = sl->transport.libusb;
       unsigned char* const buf = sl->q_buf; 
       ssize_t size;
 
@@ -584,7 +543,7 @@ void stlink_status(struct stlink *sl)
 #if CONFIG_USE_LIBUSB
   case TRANSPORT_TYPE_LIBUSB:
     {
-      struct stlink_libusb* const slu = &sl->transport.libusb;
+      struct stlink_libusb* const slu = sl->transport.libusb;
       unsigned char* const buf = sl->q_buf;
       ssize_t size;
 
@@ -621,7 +580,7 @@ void stlink_enter_swd_mode(struct stlink *sl)
 #if CONFIG_USE_LIBUSB
   case TRANSPORT_TYPE_LIBUSB:
     {
-      struct stlink_libusb* const slu = &sl->transport.libusb;
+      struct stlink_libusb* const slu = sl->transport.libusb;
       unsigned char* const buf = sl->q_buf;
       ssize_t size;
 
@@ -653,7 +612,7 @@ void stlink_exit_dfu_mode(struct stlink *sl)
 #if CONFIG_USE_LIBUSB
   case TRANSPORT_TYPE_LIBUSB:
     {
-      struct stlink_libusb* const slu = &sl->transport.libusb;
+      struct stlink_libusb* const slu = sl->transport.libusb;
       unsigned char* const buf = sl->q_buf;
       ssize_t size;
 
@@ -683,7 +642,7 @@ void stlink_reset(struct stlink *sl)
 #if CONFIG_USE_LIBUSB
   case TRANSPORT_TYPE_LIBUSB:
     {
-      struct stlink_libusb* const slu = &sl->transport.libusb;
+      struct stlink_libusb* const slu = sl->transport.libusb;
       unsigned char* const buf = sl->q_buf;
       ssize_t size;
 
@@ -713,7 +672,7 @@ void stlink_step(struct stlink *sl)
 #if CONFIG_USE_LIBUSB
   case TRANSPORT_TYPE_LIBUSB:
     {
-      struct stlink_libusb* const slu = &sl->transport.libusb;
+      struct stlink_libusb* const slu = sl->transport.libusb;
       unsigned char* const buf = sl->q_buf;
       ssize_t size;
 
@@ -743,7 +702,7 @@ void stlink_run(struct stlink *sl)
 #if CONFIG_USE_LIBUSB
   case TRANSPORT_TYPE_LIBUSB:
     {
-      struct stlink_libusb* const slu = &sl->transport.libusb;
+      struct stlink_libusb* const slu = sl->transport.libusb;
       unsigned char* const buf = sl->q_buf;
       ssize_t size;
 
@@ -773,7 +732,7 @@ void stlink_exit_debug_mode(struct stlink *sl)
 #if CONFIG_USE_LIBUSB
   case TRANSPORT_TYPE_LIBUSB:
     {
-      struct stlink_libusb* const slu = &sl->transport.libusb;
+      struct stlink_libusb* const slu = sl->transport.libusb;
       unsigned char* const buf = sl->q_buf;
       ssize_t size;
 
@@ -815,7 +774,7 @@ void stlink_read_mem32(struct stlink *sl, uint32_t addr, uint16_t len)
 #if CONFIG_USE_LIBUSB
   case TRANSPORT_TYPE_LIBUSB:
     {
-      struct stlink_libusb* const slu = &sl->transport.libusb;
+      struct stlink_libusb* const slu = sl->transport.libusb;
       unsigned char* const buf = sl->q_buf;
       ssize_t size;
 

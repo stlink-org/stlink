@@ -87,7 +87,28 @@ typedef struct {
 
 typedef uint32_t stm32_addr_t;
 
-struct stlink {
+enum transport_type
+{
+  TRANSPORT_TYPE_ZERO = 0,
+#if CONFIG_USE_LIBSG
+  TRANSPORT_TYPE_LIBSG,
+#endif /* CONFIG_USE_LIBSG */
+#if CONFIG_USE_LIBUSB
+  TRANSPORT_TYPE_LIBUSB,
+#endif /* CONFIG_USE_LIBUSB */
+  TRANSPORT_TYPE_INVALID
+};
+
+struct stlink_libusb
+{
+  libusb_device_handle* usb_handle;
+  struct libusb_transfer* req_trans;
+  struct libusb_transfer* rep_trans;
+  unsigned int ep_req;
+  unsigned int ep_rep;
+};
+
+struct stlink_libsg {
 	int sg_fd;
 	int do_scsi_pt_err;
 	// sg layer verboseness: 0 for no debug info, 10 for lots
@@ -136,7 +157,27 @@ struct stlink {
 	size_t sram_size;
 };
 
-struct stlink* stlink_quirk_open(const char *dev_name, const int verbose);
+struct stlink
+{
+        enum transport_type tt;
+        union {
+#if CONFIG_USE_LIBUSB
+            struct stlink_libusb *libusb;
+#endif /* CONFIG_USE_LIBUSB */
+#if CONFIG_USE_LIBSG
+            struct stlink_libsg *libsg;
+#endif /* CONFIG_USE_LIBSG */
+        } transport;
+
+        unsigned char q_buf[64];
+        size_t q_len;
+
+        /* layer independant */
+        uint32_t core_id;
+};
+
+
+struct stlink* stlink_quirk_open(enum transport_type tt, const char *dev_name, const int verbose);
 int stlink_current_mode(struct stlink *sl);
 void stlink_enter_swd_mode(struct stlink *sl);
 void stlink_enter_jtag_mode(struct stlink *sl);
