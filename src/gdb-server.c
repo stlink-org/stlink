@@ -54,14 +54,60 @@ int serve(struct stlink* sl, int port);
 char* make_memory_map(const struct chip_params *params, uint32_t flash_size);
 
 int main(int argc, char** argv) {
-	if(argc != 3) {
-		fprintf(stderr, "Usage: %s <port> /dev/sgX\n", argv[0]);
-		return 1;
-	}
 
-	struct stlink *sl = stlink_quirk_open(argv[2], 0);
-	if (sl == NULL)
-		return 1;
+	struct stlink *sl = NULL;
+
+	switch(argc) {
+
+		default: {
+			fprintf(stderr, "Usage: %s <port> [/dev/sgX] \n", argv[0]);
+			return 1;
+		}
+
+		case 3 : {
+			sl = stlink_quirk_open(argv[2], 0);
+			if(sl == NULL) return 1;
+			break;
+		}
+
+		case 2 : { // Search ST-LINK (from /dev/sg0 to /dev/sg99)
+			const int DevNumMax = 99;
+			int ExistDevCount = 0;
+
+			for(int DevNum = 0; DevNum <= DevNumMax; DevNum++)
+			{
+				if(DevNum < 10) {
+					char DevName[] = "/dev/sgX";
+					const int X_index = 7;
+					DevName[X_index] = DevNum + '0';
+					if ( !access(DevName, F_OK) ) {
+						sl = stlink_quirk_open(DevName, 0);
+						ExistDevCount++;
+					}
+				}
+				else if(DevNum < 100) {
+					char DevName[] = "/dev/sgXY";
+					const int X_index = 7;
+					const int Y_index = 8;
+					DevName[X_index] = DevNum/10 + '0';
+					DevName[Y_index] = DevNum%10 + '0';
+					if ( !access(DevName, F_OK) ) {
+						sl = stlink_quirk_open(DevName, 0);
+						ExistDevCount++;
+					}
+				}
+				if(sl != NULL) break;
+			}
+
+			if(sl == NULL) {
+				fprintf(stdout, "\nNumber of /dev/sgX devices found: %i \n",
+						ExistDevCount);
+				fprintf(stderr, "ST-LINK not found\n");
+				return 1;
+			}
+			break;
+		}
+	}
 
 	if(stlink_current_mode(sl) != STLINK_DEV_DEBUG_MODE)
 		stlink_enter_swd_mode(sl);

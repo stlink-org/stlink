@@ -20,3 +20,9 @@ $(PRG): $(OBJS)
 
 clean:
 	@rm -vf *.d *.o $(PRG)
+	
+install:
+	@cp -vf $(PRG) /usr/bin/$(PRG)
+	
+uninstall:
+	@rm -vf /usr/bin/$(PRG)
