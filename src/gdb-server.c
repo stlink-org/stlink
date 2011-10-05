@@ -57,10 +57,15 @@ int main(int argc, char** argv) {
 
 	struct stlink *sl = NULL;
 
+	const char * HelpStr =	"Usage:\n"
+								"\t st-util port [/dev/sgX]\n"
+								"\t st-util [port]\n"
+								"\t st-util --help\n";
+
 	switch(argc) {
 
 		default: {
-			fprintf(stderr, "Usage: %s <port> [/dev/sgX] \n", argv[0]);
+			fprintf(stderr, HelpStr, NULL);
 			return 1;
 		}
 
@@ -70,7 +75,14 @@ int main(int argc, char** argv) {
 			break;
 		}
 
-		case 2 : { // Search ST-LINK (from /dev/sg0 to /dev/sg99)
+		case 2 : {
+			if (strcmp(argv[1], "--help") == 0) {
+				fprintf(stdout, HelpStr, NULL);
+				return 1;
+			}
+		}
+
+		case 1 : { // Search ST-LINK (from /dev/sg0 to /dev/sg99)
 			const int DevNumMax = 99;
 			int ExistDevCount = 0;
 
@@ -149,7 +161,15 @@ int main(int argc, char** argv) {
 	// memory map is in 1k blocks.
 	current_memory_map = make_memory_map(params, flash_size * 0x400);
 
-	int port = atoi(argv[1]);
+	int port;
+
+	if(argc == 1) {
+		srand((unsigned int)&port);
+		port = rand()/65535;
+	}
+	else {
+		port = atoi(argv[1]);
+	}
 
 	while(serve(sl, port) == 0);
 
