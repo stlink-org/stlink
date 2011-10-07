@@ -4,10 +4,11 @@ VPATH=src
 SOURCES_LIB=stlink-common.c stlink-usb.c stlink-sg.c
 OBJS_LIB=$(SOURCES_LIB:.c=.o)
 
+CFLAGS+=-g
 CFLAGS+=-DCONFIG_USE_LIBUSB
 CFLAGS+=-DCONFIG_USE_LIBSG
 CFLAGS+=-DDEBUG
-CFLAGS+= -std=gnu99
+CFLAGS+=-std=gnu99
 CFLAGS+=-Wall -Wextra
 
 LDFLAGS=-lstlink -lusb-1.0 -lsgutils2 -L.
