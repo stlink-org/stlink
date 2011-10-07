@@ -175,6 +175,7 @@ extern "C" {
     uint16_t read_uint16(const unsigned char *c, const int pt);
     void stlink_core_stat(stlink_t *sl);
     void stlink_print_data(stlink_t *sl);
+    unsigned int is_bigendian(void);
 
 
 #include "stlink-sg.h"

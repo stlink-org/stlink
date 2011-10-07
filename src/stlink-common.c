@@ -108,7 +108,7 @@ void stlink_write_mem8(stlink_t *sl, uint32_t addr, uint16_t len) {
 // const int i = 1;
 // #define is_bigendian() ( (*(char*)&i) == 0 )
 
-static inline unsigned int is_bigendian(void) {
+inline unsigned int is_bigendian(void) {
     static volatile const unsigned int i = 1;
     return *(volatile const char*) &i == 0;
 }

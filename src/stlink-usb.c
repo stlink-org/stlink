@@ -8,12 +8,6 @@
 #include "stlink-common.h"
 #include "stlink-usb.h"
 
-/* endianess related */
-static inline unsigned int is_bigendian(void) {
-    static volatile const unsigned int i = 1;
-    return *(volatile const char*) &i == 0;
-}
-
 void _stlink_usb_close(stlink_t* sl) {
     struct stlink_libusb * const handle = sl->backend_data;
     // maybe we couldn't even get the usb device?
@@ -206,7 +200,7 @@ void _stlink_usb_version(stlink_t * sl) {
     if (size == -1) {
         printf("[!] send_recv\n");
         return;
-    }mkdir g
+    }
 
 #if 1 /* DEBUG */
     {
@@ -218,13 +212,14 @@ void _stlink_usb_version(stlink_t * sl) {
 }
 
 void _stlink_usb_write_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
-    D(sl, "oops! no write32 support yet ;)\n");
+    DD(sl, "oops! no write32 support yet, wanted to write %d bytes to %#x\n",
+            len, addr);
 }
 
 void _stlink_usb_write_mem8(stlink_t *sl, uint32_t addr, uint16_t len) {
-    D(sl, "oops! no write8 support yet ;)\n");
+    DD(sl, "oops! no write8 support yet, wanted to write %d bytes to %#x\n",
+            len, addr);
 }
-
 
 
 int stlink_current_mode(stlink_t * sl) {
