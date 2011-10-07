@@ -199,12 +199,7 @@ int _stlink_usb_current_mode(stlink_t * sl) {
 
     /* mode = (int)read_uint16(buf, 0); */
     mode = (int) buf[0];
-
-#if 1 /* DEBUG */
-    printf("mode == 0x%x\n", mode);
-#endif /* DEBUG */
-
-
+    DD(sl, "mode == 0x%x\n", mode);
     return mode;
 }
 
@@ -413,7 +408,8 @@ stlink_backend_t _stlink_usb_backend = {
     _stlink_usb_read_all_regs,
     _stlink_usb_read_reg,
     _stlink_usb_write_reg,
-    _stlink_usb_step
+    _stlink_usb_step,
+    _stlink_usb_current_mode
 };
 
 

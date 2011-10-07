@@ -364,7 +364,21 @@ void stlink_step(stlink_t *sl) {
 
 int stlink_current_mode(stlink_t *sl) {
     D(sl, "\n*** stlink_current_mode ***\n");
-    sl->backend->current_mode(sl);
+    int mode = sl->backend->current_mode(sl);
+    stlink_print_data(sl);
+    switch (mode) {
+        case STLINK_DEV_DFU_MODE:
+            DD(sl, "stlink mode: dfu\n");
+            return mode;
+        case STLINK_DEV_DEBUG_MODE:
+            DD(sl, "stlink mode: debug (jtag or swd)\n");
+            return mode;
+        case STLINK_DEV_MASS_MODE:
+            DD(sl, "stlink mode: mass\n");
+            return mode;
+    }
+    DD(sl, "stlink mode: unknown!\n");
+    return STLINK_DEV_UNKNOWN_MODE;
 }
 
 

@@ -291,26 +291,6 @@ void stlink_parse_version(stlink_t *stl) {
 
 }
 
-int stlink_mode(stlink_t *stl) {
-    if (stl->q_len <= 0)
-        return STLINK_DEV_UNKNOWN_MODE;
-
-    stlink_print_data(stl);
-
-    switch (stl->q_buf[0]) {
-        case STLINK_DEV_DFU_MODE:
-            DD(stl, "stlink mode: dfu\n");
-            return STLINK_DEV_DFU_MODE;
-        case STLINK_DEV_DEBUG_MODE:
-            DD(stl, "stlink mode: debug (jtag or swd)\n");
-            return STLINK_DEV_DEBUG_MODE;
-        case STLINK_DEV_MASS_MODE:
-            DD(stl, "stlink mode: mass\n");
-            return STLINK_DEV_MASS_MODE;
-    }
-    return STLINK_DEV_UNKNOWN_MODE;
-}
-
 void stlink_stat(stlink_t *stl, char *txt) {
     if (stl->q_len <= 0)
         return;
@@ -346,13 +326,12 @@ void _stlink_sg_version(stlink_t *stl) {
 
 int _stlink_sg_current_mode(stlink_t *stl) {
     struct stlink_libsg *sl = stl->backend_data;
-    D(stl, "\n*** stlink_current_mode ***\n");
     clear_cdb(sl);
     sl->cdb_cmd_blk[0] = STLINK_GET_CURRENT_MODE;
     stl->q_len = 2;
     sl->q_addr = 0;
     stlink_q(stl);
-    return stlink_mode(stl);
+    return stl->q_buf[0];
 }
 
 // Exit the mass mode and enter the swd debug mode.
@@ -788,7 +767,8 @@ stlink_backend_t _stlink_sg_backend = {
     _stlink_sg_read_all_regs,
     _stlink_sg_read_reg,
     _stlink_sg_write_reg,
-    _stlink_sg_step
+    _stlink_sg_step,
+    _stlink_sg_current_mode
 };
 
 stlink_t* stlink_open(const char *dev_name, const int verbose) {
