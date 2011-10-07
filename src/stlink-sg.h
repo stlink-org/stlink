@@ -12,6 +12,7 @@
 extern "C" {
 #endif
     
+#include <libusb-1.0/libusb.h>
 #include "stlink-common.h"
     
         // device access
@@ -66,6 +67,7 @@ extern "C" {
     struct stlink_libsg {};
 #endif
 
+    stlink_t* stlink_quirk_open(const char *dev_name, const int verbose);
 
 #ifdef	__cplusplus
 }

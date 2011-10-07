@@ -1,19 +1,20 @@
 
 VPATH=src
 
-SOURCES_LIB=stlink-common.c stlink-usb.c #stlink-sg.c
+SOURCES_LIB=stlink-common.c stlink-usb.c stlink-sg.c
 OBJS_LIB=$(SOURCES_LIB:.c=.o)
 
 CFLAGS+=-DCONFIG_USE_LIBUSB
-#CFLAGS+=-DCONFIG_USE_LIBSG
+CFLAGS+=-DCONFIG_USE_LIBSG
+CFLAGS+=-DDEBUG
 CFLAGS+= -std=gnu99
 CFLAGS+=-Wall -Wextra
 
-LDFLAGS=-lstlink -lusb-1.0 -L.
+LDFLAGS=-lstlink -lusb-1.0 -lsgutils2 -L.
 
 LIBRARY=libstlink.a
 
-all:  $(LIBRARY) test_usb #test_sg 
+all:  $(LIBRARY) test_usb test_sg 
 
 $(LIBRARY): $(OBJS_LIB)
 	@echo "objs are $(OBJS_LIB)"
@@ -23,7 +24,7 @@ $(LIBRARY): $(OBJS_LIB)
 
 test_sg: test_sg.o $(LIBRARY)
 	@echo "building test_sg"
-	$(CC) $(LDFLAGS) -o $@
+	$(CC) test_sg.o $(LDFLAGS) -o $@
 
 test_usb: test_usb.o $(LIBRARY)
 	@echo "building test_usb"

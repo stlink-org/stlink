@@ -93,50 +93,8 @@ static void delay(int ms) {
     usleep(1000 * ms);
 }
 
-static void write_uint32(unsigned char* buf, uint32_t ui) {
-    if (!is_bigendian()) { // le -> le (don't swap)
-        buf[0] = ((unsigned char*) &ui)[0];
-        buf[1] = ((unsigned char*) &ui)[1];
-        buf[2] = ((unsigned char*) &ui)[2];
-        buf[3] = ((unsigned char*) &ui)[3];
-    } else {
-        buf[0] = ((unsigned char*) &ui)[3];
-        buf[1] = ((unsigned char*) &ui)[2];
-        buf[2] = ((unsigned char*) &ui)[1];
-        buf[3] = ((unsigned char*) &ui)[0];
-    }
-}
-
-static void write_uint16(unsigned char* buf, uint16_t ui) {
-    if (!is_bigendian()) { // le -> le (don't swap)
-        buf[0] = ((unsigned char*) &ui)[0];
-        buf[1] = ((unsigned char*) &ui)[1];
-    } else {
-        buf[0] = ((unsigned char*) &ui)[1];
-        buf[1] = ((unsigned char*) &ui)[0];
-    }
-}
-
-static uint32_t read_uint32(const unsigned char *c, const int pt) {
-    uint32_t ui;
-    char *p = (char *) &ui;
-
-    if (!is_bigendian()) { // le -> le (don't swap)
-        p[0] = c[pt];
-        p[1] = c[pt + 1];
-        p[2] = c[pt + 2];
-        p[3] = c[pt + 3];
-    } else {
-        p[0] = c[pt + 3];
-        p[1] = c[pt + 2];
-        p[2] = c[pt + 1];
-        p[3] = c[pt];
-    }
-    return ui;
-}
-
 static void clear_cdb(struct stlink_libsg *sl) {
-    for (int i = 0; i < sizeof (sl->cdb_cmd_blk); i++)
+    for (size_t i = 0; i < sizeof (sl->cdb_cmd_blk); i++)
         sl->cdb_cmd_blk[i] = 0;
     // set default
     sl->cdb_cmd_blk[0] = STLINK_DEBUG_COMMAND;
@@ -147,7 +105,7 @@ static void clear_cdb(struct stlink_libsg *sl) {
 
 static void clear_buf(stlink_t *sl) {
     DD(sl, "*** clear_buf ***\n");
-    for (int i = 0; i < sizeof (sl->q_buf); i++)
+    for (size_t i = 0; i < sizeof (sl->q_buf); i++)
         sl->q_buf[i] = 0;
 
 }
@@ -163,20 +121,6 @@ void _stlink_sg_close(stlink_t *sl) {
         free(sl);
     }
 }
-
-// Exit the jtag or swd mode and enter the mass mode.
-
-void _stlink_sg_exit_debug_mode(stlink_t *stl) {
-
-    if (stl) {
-        struct stlink_libsg* sl = stl->backend_data;
-        clear_cdb(sl);
-        sl->cdb_cmd_blk[1] = STLINK_DEBUG_EXIT;
-        stl->q_len = 0; // >0 -> aboard
-        stlink_q(stl);
-    }
-}
-
 
 
 //TODO rewrite/cleanup, save the error in sl
@@ -263,12 +207,12 @@ static void stlink_confirm_inq(stlink_t *stl, struct sg_pt_base *ptvp) {
     }
 }
 
-void stlink_q(stlink_t *stl) {
-    struct stlink_libsg* sl = stl->backend_data;
-    DD(stl, "CDB[");
+void stlink_q(stlink_t *sl) {
+    struct stlink_libsg* sg = sl->backend_data;
+    DD(sl, "CDB[");
     for (int i = 0; i < CDB_SL; i++)
-        DD(stl, " 0x%02x", (unsigned int) sl->cdb_cmd_blk[i]);
-    DD(stl, "]\n");
+        DD(sl, " 0x%02x", (unsigned int) sg->cdb_cmd_blk[i]);
+    DD(sl, "]\n");
 
     // Get control command descriptor of scsi structure,
     // (one object per command!!)
@@ -278,24 +222,24 @@ void stlink_q(stlink_t *stl) {
         return;
     }
 
-    set_scsi_pt_cdb(ptvp, sl->cdb_cmd_blk, sizeof (sl->cdb_cmd_blk));
+    set_scsi_pt_cdb(ptvp, sg->cdb_cmd_blk, sizeof (sg->cdb_cmd_blk));
 
     // set buffer for sense (error information) data
-    set_scsi_pt_sense(ptvp, sl->sense_buf, sizeof (sl->sense_buf));
+    set_scsi_pt_sense(ptvp, sg->sense_buf, sizeof (sg->sense_buf));
 
     // Set a buffer to be used for data transferred from device
-    if (sl->q_data_dir == Q_DATA_IN) {
+    if (sg->q_data_dir == Q_DATA_IN) {
         //clear_buf(sl);
-        set_scsi_pt_data_in(ptvp, stl->q_buf, stl->q_len);
+        set_scsi_pt_data_in(ptvp, sl->q_buf, sl->q_len);
     } else {
-        set_scsi_pt_data_out(ptvp, stl->q_buf, stl->q_len);
+        set_scsi_pt_data_out(ptvp, sl->q_buf, sl->q_len);
     }
     // Executes SCSI command (or at least forwards it to lower layers).
-    sl->do_scsi_pt_err = do_scsi_pt(ptvp, sl->sg_fd, SG_TIMEOUT_SEC,
-            stl->verbose);
+    sg->do_scsi_pt_err = do_scsi_pt(ptvp, sg->sg_fd, SG_TIMEOUT_SEC,
+            sl->verbose);
 
     // check for scsi errors
-    stlink_confirm_inq(stl, ptvp);
+    stlink_confirm_inq(sl, ptvp);
     // TODO recycle: clear_scsi_pt_obj(struct sg_pt_base * objp);
     destruct_scsi_pt_obj(ptvp);
 }
@@ -400,7 +344,7 @@ void _stlink_sg_version(stlink_t *stl) {
 // STLINK_DEV_DFU_MODE || STLINK_DEV_MASS_MODE || STLINK_DEV_DEBUG_MODE
 // usb dfu             || usb mass             || jtag or swd
 
-int stlink_current_mode(stlink_t *stl) {
+int _stlink_sg_current_mode(stlink_t *stl) {
     struct stlink_libsg *sl = stl->backend_data;
     D(stl, "\n*** stlink_current_mode ***\n");
     clear_cdb(sl);
@@ -507,7 +451,6 @@ void _stlink_sg_core_id(stlink_t *sl) {
 
 void _stlink_sg_reset(stlink_t *sl) {
     struct stlink_libsg *sg = sl->backend_data;
-    D(sl, "\n*** stlink_reset ***\n");
     clear_cdb(sg);
     sg->cdb_cmd_blk[1] = STLINK_DEBUG_RESETSYS;
     sl->q_len = 2;
@@ -518,77 +461,76 @@ void _stlink_sg_reset(stlink_t *sl) {
 
 // Arm-core status: halted or running.
 
-void _stlink_sg_status(struct stlink_libsg *sl) {
+void _stlink_sg_status(stlink_t *sl) {
+    struct stlink_libsg *sg = sl->backend_data;
     D(sl, "\n*** stlink_status ***\n");
-    clear_cdb(sl);
-    sl->cdb_cmd_blk[1] = STLINK_DEBUG_GETSTATUS;
+    clear_cdb(sg);
+    sg->cdb_cmd_blk[1] = STLINK_DEBUG_GETSTATUS;
     sl->q_len = 2;
-    sl->q_addr = 0;
+    sg->q_addr = 0;
     stlink_q(sl);
 }
 
 // Force the core into the debug mode -> halted state.
 
-void stlink_force_debug(struct stlink_libsg *sl) {
+void stlink_force_debug(stlink_t *sl) {
+    struct stlink_libsg *sg = sl->backend_data;
     D(sl, "\n*** stlink_force_debug ***\n");
-    clear_cdb(sl);
-    sl->cdb_cmd_blk[1] = STLINK_DEBUG_FORCEDEBUG;
+    clear_cdb(sg);
+    sg->cdb_cmd_blk[1] = STLINK_DEBUG_FORCEDEBUG;
     sl->q_len = 2;
-    sl->q_addr = 0;
+    sg->q_addr = 0;
     stlink_q(sl);
     stlink_stat(sl, "force debug");
 }
 
 // Read all arm-core registers.
 
-void stlink_read_all_regs(struct stlink_libsg *sl) {
+void _stlink_sg_read_all_regs(stlink_t *sl) {
+    struct stlink_libsg *sg = sl->backend_data;
     D(sl, "\n*** stlink_read_all_regs ***\n");
-    clear_cdb(sl);
-    sl->cdb_cmd_blk[1] = STLINK_DEBUG_READALLREGS;
+    clear_cdb(sg);
+    sg->cdb_cmd_blk[1] = STLINK_DEBUG_READALLREGS;
     sl->q_len = 84;
-    sl->q_addr = 0;
+    sg->q_addr = 0;
     stlink_q(sl);
     stlink_print_data(sl);
 
+    // TODO - most of this should be re-extracted up....
+    
     // 0-3 | 4-7 | ... | 60-63 | 64-67 | 68-71   | 72-75      | 76-79 | 80-83
     // r0  | r1  | ... | r15   | xpsr  | main_sp | process_sp | rw    | rw2
     for (int i = 0; i < 16; i++) {
-        sl->reg.r[i] = read_uint32(sl->q_buf, 4 * i);
+        sg->reg.r[i] = read_uint32(sl->q_buf, 4 * i);
         if (sl->verbose > 1)
-            DD(sl, "r%2d = 0x%08x\n", i, sl->reg.r[i]);
+            DD(sl, "r%2d = 0x%08x\n", i, sg->reg.r[i]);
     }
-    sl->reg.xpsr = read_uint32(sl->q_buf, 64);
-    sl->reg.main_sp = read_uint32(sl->q_buf, 68);
-    sl->reg.process_sp = read_uint32(sl->q_buf, 72);
-    sl->reg.rw = read_uint32(sl->q_buf, 76);
-    sl->reg.rw2 = read_uint32(sl->q_buf, 80);
+    sg->reg.xpsr = read_uint32(sl->q_buf, 64);
+    sg->reg.main_sp = read_uint32(sl->q_buf, 68);
+    sg->reg.process_sp = read_uint32(sl->q_buf, 72);
+    sg->reg.rw = read_uint32(sl->q_buf, 76);
+    sg->reg.rw2 = read_uint32(sl->q_buf, 80);
     if (sl->verbose < 2)
         return;
 
-    DD(sl, "xpsr       = 0x%08x\n", sl->reg.xpsr);
-    DD(sl, "main_sp    = 0x%08x\n", sl->reg.main_sp);
-    DD(sl, "process_sp = 0x%08x\n", sl->reg.process_sp);
-    DD(sl, "rw         = 0x%08x\n", sl->reg.rw);
-    DD(sl, "rw2        = 0x%08x\n", sl->reg.rw2);
+    DD(sl, "xpsr       = 0x%08x\n", sg->reg.xpsr);
+    DD(sl, "main_sp    = 0x%08x\n", sg->reg.main_sp);
+    DD(sl, "process_sp = 0x%08x\n", sg->reg.process_sp);
+    DD(sl, "rw         = 0x%08x\n", sg->reg.rw);
+    DD(sl, "rw2        = 0x%08x\n", sg->reg.rw2);
 }
 
 // Read an arm-core register, the index must be in the range 0..20.
 //  0  |  1  | ... |  15   |  16   |   17    |   18       |  19   |  20
 // r0  | r1  | ... | r15   | xpsr  | main_sp | process_sp | rw    | rw2
 
-void stlink_read_reg(struct stlink_libsg *sl, int r_idx) {
-    D(sl, "\n*** stlink_read_reg");
-    DD(sl, " (%d) ***\n", r_idx);
-
-    if (r_idx > 20 || r_idx < 0) {
-        fprintf(stderr, "Error: register index must be in [0..20]\n");
-        return;
-    }
-    clear_cdb(sl);
-    sl->cdb_cmd_blk[1] = STLINK_DEBUG_READREG;
-    sl->cdb_cmd_blk[2] = r_idx;
+void _stlink_sg_read_reg(stlink_t *sl, int r_idx, reg *regp) {
+    struct stlink_libsg *sg = sl->backend_data;
+    clear_cdb(sg);
+    sg->cdb_cmd_blk[1] = STLINK_DEBUG_READREG;
+    sg->cdb_cmd_blk[2] = r_idx;
     sl->q_len = 4;
-    sl->q_addr = 0;
+    sg->q_addr = 0;
     stlink_q(sl);
     //  0  |  1  | ... |  15   |  16   |   17    |   18       |  19   |  20
     // 0-3 | 4-7 | ... | 60-63 | 64-67 | 68-71   | 72-75      | 76-79 | 80-83
@@ -600,22 +542,22 @@ void stlink_read_reg(struct stlink_libsg *sl, int r_idx) {
 
     switch (r_idx) {
         case 16:
-            sl->reg.xpsr = r;
+            regp->xpsr = r;
             break;
         case 17:
-            sl->reg.main_sp = r;
+            regp->main_sp = r;
             break;
         case 18:
-            sl->reg.process_sp = r;
+            regp->process_sp = r;
             break;
         case 19:
-            sl->reg.rw = r; //XXX ?(primask, basemask etc.)
+            regp->rw = r; //XXX ?(primask, basemask etc.)
             break;
         case 20:
-            sl->reg.rw2 = r; //XXX ?(primask, basemask etc.)
+            regp->rw2 = r; //XXX ?(primask, basemask etc.)
             break;
         default:
-            sl->reg.r[r_idx] = r;
+            regp->r[r_idx] = r;
     }
 }
 
@@ -623,16 +565,16 @@ void stlink_read_reg(struct stlink_libsg *sl, int r_idx) {
 //  0  |  1  | ... |  15   |  16   |   17    |   18       |  19   |  20
 // r0  | r1  | ... | r15   | xpsr  | main_sp | process_sp | rw    | rw2
 
-void stlink_write_reg(struct stlink_libsg *sl, uint32_t reg, int idx) {
-    D(sl, "\n*** stlink_write_reg ***\n");
-    clear_cdb(sl);
-    sl->cdb_cmd_blk[1] = STLINK_DEBUG_WRITEREG;
+void _stlink_sg_write_reg(stlink_t *sl, uint32_t reg, int idx) {
+    struct stlink_libsg *sg = sl->backend_data;
+    clear_cdb(sg);
+    sg->cdb_cmd_blk[1] = STLINK_DEBUG_WRITEREG;
     //   2: reg index
     // 3-6: reg content
-    sl->cdb_cmd_blk[2] = idx;
-    write_uint32(sl->cdb_cmd_blk + 3, reg);
+    sg->cdb_cmd_blk[2] = idx;
+    write_uint32(sg->cdb_cmd_blk + 3, reg);
     sl->q_len = 2;
-    sl->q_addr = 0;
+    sg->q_addr = 0;
     stlink_q(sl);
     stlink_stat(sl, "write reg");
 }
@@ -641,64 +583,54 @@ void stlink_write_reg(struct stlink_libsg *sl, uint32_t reg, int idx) {
 // XXX ?(atomic writes)
 // TODO test
 
-void stlink_write_dreg(struct stlink_libsg *sl, uint32_t reg, uint32_t addr) {
+void stlink_write_dreg(stlink_t *sl, uint32_t reg, uint32_t addr) {
+    struct stlink_libsg *sg = sl->backend_data;
     D(sl, "\n*** stlink_write_dreg ***\n");
-    clear_cdb(sl);
-    sl->cdb_cmd_blk[1] = STLINK_DEBUG_WRITEDEBUGREG;
+    clear_cdb(sg);
+    sg->cdb_cmd_blk[1] = STLINK_DEBUG_WRITEDEBUGREG;
     // 2-5: address of reg of the debug module
     // 6-9: reg content
-    write_uint32(sl->cdb_cmd_blk + 2, addr);
-    write_uint32(sl->cdb_cmd_blk + 6, reg);
+    write_uint32(sg->cdb_cmd_blk + 2, addr);
+    write_uint32(sg->cdb_cmd_blk + 6, reg);
     sl->q_len = 2;
-    sl->q_addr = addr;
+    sg->q_addr = addr;
     stlink_q(sl);
     stlink_stat(sl, "write debug reg");
 }
 
 // Force the core exit the debug mode.
 
-void _stlink_sg_run(stlink_t *stl) {
-    struct stlink_libsg sl = stl->backend_data;
-    D(stl, "\n*** stlink_run ***\n");
-    clear_cdb(sl);
-    sl->cdb_cmd_blk[1] = STLINK_DEBUG_RUNCORE;
+void _stlink_sg_run(stlink_t *sl) {
+    struct stlink_libsg *sg = sl->backend_data;
+    D(sl, "\n*** stlink_run ***\n");
+    clear_cdb(sg);
+    sg->cdb_cmd_blk[1] = STLINK_DEBUG_RUNCORE;
     sl->q_len = 2;
-    sl->q_addr = 0;
+    sg->q_addr = 0;
     stlink_q(sl);
     stlink_stat(sl, "run core");
 }
 
-// same as above with entrypoint.
-static unsigned int is_core_halted(struct stlink_libsg*);
-
-void stlink_run_at(struct stlink *sl_libsg, stm32_addr_t addr) {
-    stlink_write_reg(sl, addr, 15); /* pc register */
-
-    stlink_run(sl);
-
-    while (is_core_halted(sl) == 0)
-        usleep(3000000);
-}
-
 // Step the arm-core.
 
-void stlink_step(struct stlink_libsg *sl) {
-    D(sl, "\n*** stlink_step ***\n");
-    clear_cdb(sl);
-    sl->cdb_cmd_blk[1] = STLINK_DEBUG_STEPCORE;
+void _stlink_sg_step(stlink_t *sl) {
+    struct stlink_libsg *sg = sl->backend_data;
+    clear_cdb(sg);
+    sg->cdb_cmd_blk[1] = STLINK_DEBUG_STEPCORE;
     sl->q_len = 2;
-    sl->q_addr = 0;
+    sg->q_addr = 0;
     stlink_q(sl);
     stlink_stat(sl, "step core");
 }
 
 // TODO test
 // see Cortex-M3 Technical Reference Manual
-
-void stlink_set_hw_bp(struct stlink_libsg *sl, int fp_nr, uint32_t addr, int fp) {
+// TODO make delegate!
+void stlink_set_hw_bp(stlink_t *sl, int fp_nr, uint32_t addr, int fp) {
     D(sl, "\n*** stlink_set_hw_bp ***\n");
-    clear_cdb(sl);
-    sl->cdb_cmd_blk[1] = STLINK_DEBUG_SETFP;
+    struct stlink_libsg *sg = sl->backend_data;
+    clear_cdb(sg);
+    sg->cdb_cmd_blk[1] = STLINK_DEBUG_SETFP;
     // 2:The number of the flash patch used to set the breakpoint
     // 3-6: Address of the breakpoint (LSB)
     // 7: FP_ALL (0x02) / FP_UPPER (0x01) / FP_LOWER (0x00)
@@ -713,11 +645,13 @@ void stlink_set_hw_bp(struct stlink_libsg *sl, int fp_nr, uint32_t addr, int fp)
 
 // TODO test
 
-void stlink_clr_hw_bp(struct stlink_libsg *sl, int fp_nr) {
+// TODO make delegate!
+void stlink_clr_hw_bp(stlink_t *sl, int fp_nr) {
+    struct stlink_libsg *sg = sl->backend_data;
     D(sl, "\n*** stlink_clr_hw_bp ***\n");
-    clear_cdb(sl);
-    sl->cdb_cmd_blk[1] = STLINK_DEBUG_CLEARFP;
-    sl->cdb_cmd_blk[2] = fp_nr;
+    clear_cdb(sg);
+    sg->cdb_cmd_blk[1] = STLINK_DEBUG_CLEARFP;
+    sg->cdb_cmd_blk[2] = fp_nr;
 
     sl->q_len = 2;
     stlink_q(sl);
@@ -726,21 +660,14 @@ void stlink_clr_hw_bp(struct stlink_libsg *sl, int fp_nr) {
 
 // Read a "len" bytes to the sl->q_buf from the memory, max 6kB (6144 bytes)
 
-void stlink_read_mem32(struct stlink_libsg *sl, uint32_t addr, uint16_t len) {
-    D(sl, "\n*** stlink_read_mem32 ***\n");
-    if (len % 4 != 0) { // !!! never ever: fw gives just wrong values
-        fprintf(
-                stderr,
-                "Error: Data length doesn't have a 32 bit alignment: +%d byte.\n",
-                len % 4);
-        return;
-    }
-    clear_cdb(sl);
-    sl->cdb_cmd_blk[1] = STLINK_DEBUG_READMEM_32BIT;
+void _stlink_sg_read_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
+    struct stlink_libsg *sg = sl->backend_data;
+    clear_cdb(sg);
+    sg->cdb_cmd_blk[1] = STLINK_DEBUG_READMEM_32BIT;
     // 2-5: addr
     // 6-7: len
-    write_uint32(sl->cdb_cmd_blk + 2, addr);
-    write_uint16(sl->cdb_cmd_blk + 6, len);
+    write_uint32(sg->cdb_cmd_blk + 2, addr);
+    write_uint16(sg->cdb_cmd_blk + 6, len);
 
     // data_in 0-0x40-len
     // !!! len _and_ q_len must be max 6k,
@@ -748,227 +675,48 @@ void stlink_read_mem32(struct stlink_libsg *sl, uint32_t addr, uint16_t len) {
     // !!! if len < q_len: 64*k, 1024*n, n=1..5  -> aboard
     //     (broken residue issue)
     sl->q_len = len;
-    sl->q_addr = addr;
+    sg->q_addr = addr;
     stlink_q(sl);
     stlink_print_data(sl);
 }
 
 // Write a "len" bytes from the sl->q_buf to the memory, max 64 Bytes.
 
-void _stlink_sg_write_mem8(struct stlink_libsg *sl, uint32_t addr, uint16_t len) {
-    D(sl, "\n*** stlink_write_mem8 ***\n");
-    clear_cdb(sl);
-    sl->cdb_cmd_blk[1] = STLINK_DEBUG_WRITEMEM_8BIT;
+void _stlink_sg_write_mem8(stlink_t *sl, uint32_t addr, uint16_t len) {
+    struct stlink_libsg *sg = sl->backend_data;
+    clear_cdb(sg);
+    sg->cdb_cmd_blk[1] = STLINK_DEBUG_WRITEMEM_8BIT;
     // 2-5: addr
     // 6-7: len (>0x40 (64) -> aboard)
-    write_uint32(sl->cdb_cmd_blk + 2, addr);
-    write_uint16(sl->cdb_cmd_blk + 6, len);
+    write_uint32(sg->cdb_cmd_blk + 2, addr);
+    write_uint16(sg->cdb_cmd_blk + 6, len);
 
     // data_out 0-len
     sl->q_len = len;
-    sl->q_addr = addr;
-    sl->q_data_dir = Q_DATA_OUT;
+    sg->q_addr = addr;
+    sg->q_data_dir = Q_DATA_OUT;
     stlink_q(sl);
     stlink_print_data(sl);
 }
 
 // Write a "len" bytes from the sl->q_buf to the memory, max Q_BUF_LEN bytes.
 
-void _stlink_sg_write_mem32(struct stlink_libsg *sl, uint32_t addr, uint16_t len) {
-    clear_cdb(sl);
-    sl->cdb_cmd_blk[1] = STLINK_DEBUG_WRITEMEM_32BIT;
+void _stlink_sg_write_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
+    struct stlink_libsg *sg = sl->backend_data;
+    clear_cdb(sg);
+    sg->cdb_cmd_blk[1] = STLINK_DEBUG_WRITEMEM_32BIT;
     // 2-5: addr
     // 6-7: len "unlimited"
-    write_uint32(sl->cdb_cmd_blk + 2, addr);
-    write_uint16(sl->cdb_cmd_blk + 6, len);
+    write_uint32(sg->cdb_cmd_blk + 2, addr);
+    write_uint16(sg->cdb_cmd_blk + 6, len);
 
     // data_out 0-0x40-...-len
     sl->q_len = len;
-    sl->q_addr = addr;
-    sl->q_data_dir = Q_DATA_OUT;
+    sg->q_addr = addr;
+    sg->q_data_dir = Q_DATA_OUT;
     stlink_q(sl);
     stlink_print_data(sl);
 }
-
-/* FPEC flash controller interface, pm0063 manual
- */
-
-#define FLASH_REGS_ADDR 0x40022000
-#define FLASH_REGS_SIZE 0x28
-
-#define FLASH_ACR (FLASH_REGS_ADDR + 0x00)
-#define FLASH_KEYR (FLASH_REGS_ADDR + 0x04)
-#define FLASH_SR (FLASH_REGS_ADDR + 0x0c)
-#define FLASH_CR (FLASH_REGS_ADDR + 0x10)
-#define FLASH_AR (FLASH_REGS_ADDR + 0x14)
-#define FLASH_OBR (FLASH_REGS_ADDR + 0x1c)
-#define FLASH_WRPR (FLASH_REGS_ADDR + 0x20)
-
-#define FLASH_RDPTR_KEY 0x00a5
-#define FLASH_KEY1 0x45670123
-#define FLASH_KEY2 0xcdef89ab
-
-#define FLASH_SR_BSY 0
-#define FLASH_SR_EOP 5
-
-#define FLASH_CR_PG 0
-#define FLASH_CR_PER 1
-#define FLASH_CR_MER 2
-#define FLASH_CR_STRT 6
-#define FLASH_CR_LOCK 7
-
-static uint32_t __attribute__((unused)) read_flash_rdp(struct stlink_libsg* sl) {
-    stlink_read_mem32(sl, FLASH_WRPR, sizeof (uint32_t));
-    return (*(uint32_t*) sl->q_buf) & 0xff;
-}
-
-static inline uint32_t read_flash_wrpr(struct stlink_libsg* sl) {
-    stlink_read_mem32(sl, FLASH_WRPR, sizeof (uint32_t));
-    return *(uint32_t*) sl->q_buf;
-}
-
-static inline uint32_t read_flash_obr(struct stlink_libsg* sl) {
-    stlink_read_mem32(sl, FLASH_OBR, sizeof (uint32_t));
-    return *(uint32_t*) sl->q_buf;
-}
-
-static inline uint32_t read_flash_cr(struct stlink_libsg* sl) {
-    stlink_read_mem32(sl, FLASH_CR, sizeof (uint32_t));
-    return *(uint32_t*) sl->q_buf;
-}
-
-static inline unsigned int is_flash_locked(struct stlink_libsg* sl) {
-    /* return non zero for true */
-    return read_flash_cr(sl) & (1 << FLASH_CR_LOCK);
-}
-
-static void unlock_flash(struct stlink_libsg* sl) {
-    /* the unlock sequence consists of 2 write cycles where
-       2 key values are written to the FLASH_KEYR register.
-       an invalid sequence results in a definitive lock of
-       the FPEC block until next reset.
-     */
-
-    write_uint32(sl->q_buf, FLASH_KEY1);
-    stlink_write_mem32(sl, FLASH_KEYR, sizeof (uint32_t));
-
-    write_uint32(sl->q_buf, FLASH_KEY2);
-    stlink_write_mem32(sl, FLASH_KEYR, sizeof (uint32_t));
-}
-
-static int unlock_flash_if(struct stlink_libsg* sl) {
-    /* unlock flash if already locked */
-
-    if (is_flash_locked(sl)) {
-        unlock_flash(sl);
-        if (is_flash_locked(sl))
-            return -1;
-    }
-
-    return 0;
-}
-
-static void lock_flash(struct stlink_libsg* sl) {
-    /* write to 1 only. reset by hw at unlock sequence */
-
-    const uint32_t n = read_flash_cr(sl) | (1 << FLASH_CR_LOCK);
-
-    write_uint32(sl->q_buf, n);
-    stlink_write_mem32(sl, FLASH_CR, sizeof (uint32_t));
-}
-
-static void set_flash_cr_pg(struct stlink_libsg* sl) {
-    const uint32_t n = 1 << FLASH_CR_PG;
-    write_uint32(sl->q_buf, n);
-    stlink_write_mem32(sl, FLASH_CR, sizeof (uint32_t));
-}
-
-static void __attribute__((unused)) clear_flash_cr_pg(struct stlink_libsg* sl) {
-    const uint32_t n = read_flash_cr(sl) & ~(1 << FLASH_CR_PG);
-    write_uint32(sl->q_buf, n);
-    stlink_write_mem32(sl, FLASH_CR, sizeof (uint32_t));
-}
-
-static void set_flash_cr_per(struct stlink_libsg* sl) {
-    const uint32_t n = 1 << FLASH_CR_PER;
-    write_uint32(sl->q_buf, n);
-    stlink_write_mem32(sl, FLASH_CR, sizeof (uint32_t));
-}
-
-static void __attribute__((unused)) clear_flash_cr_per(struct stlink_libsg* sl) {
-    const uint32_t n = read_flash_cr(sl) & ~(1 << FLASH_CR_PER);
-    write_uint32(sl->q_buf, n);
-    stlink_write_mem32(sl, FLASH_CR, sizeof (uint32_t));
-}
-
-static void set_flash_cr_mer(struct stlink_libsg* sl) {
-    const uint32_t n = 1 << FLASH_CR_MER;
-    write_uint32(sl->q_buf, n);
-    stlink_write_mem32(sl, FLASH_CR, sizeof (uint32_t));
-}
-
-static void __attribute__((unused)) clear_flash_cr_mer(struct stlink_libsg* sl) {
-    const uint32_t n = read_flash_cr(sl) & ~(1 << FLASH_CR_MER);
-    write_uint32(sl->q_buf, n);
-    stlink_write_mem32(sl, FLASH_CR, sizeof (uint32_t));
-}
-
-static void set_flash_cr_strt(struct stlink_libsg* sl) {
-    /* assume come on the flash_cr_per path */
-    const uint32_t n = (1 << FLASH_CR_PER) | (1 << FLASH_CR_STRT);
-    write_uint32(sl->q_buf, n);
-    stlink_write_mem32(sl, FLASH_CR, sizeof (uint32_t));
-}
-
-static inline uint32_t read_flash_acr(struct stlink_libsg* sl) {
-    stlink_read_mem32(sl, FLASH_ACR, sizeof (uint32_t));
-    return *(uint32_t*) sl->q_buf;
-}
-
-static inline uint32_t read_flash_sr(struct stlink_libsg* sl) {
-    stlink_read_mem32(sl, FLASH_SR, sizeof (uint32_t));
-    return *(uint32_t*) sl->q_buf;
-}
-
-static inline unsigned int is_flash_busy(struct stlink_libsg* sl) {
-    return read_flash_sr(sl) & (1 << FLASH_SR_BSY);
-}
-
-static void wait_flash_busy(struct stlink_libsg* sl) {
-    /* todo: add some delays here */
-    while (is_flash_busy(sl))
-        ;
-}
-
-static inline unsigned int is_flash_eop(struct stlink_libsg* sl) {
-    return read_flash_sr(sl) & (1 << FLASH_SR_EOP);
-}
-
-static void __attribute__((unused)) clear_flash_sr_eop(struct stlink_libsg* sl) {
-    const uint32_t n = read_flash_sr(sl) & ~(1 << FLASH_SR_EOP);
-    write_uint32(sl->q_buf, n);
-    stlink_write_mem32(sl, FLASH_SR, sizeof (uint32_t));
-}
-
-static void __attribute__((unused)) wait_flash_eop(struct stlink_libsg* sl) {
-    /* todo: add some delays here */
-    while (is_flash_eop(sl) == 0)
-        ;
-}
-
-static inline void write_flash_ar(struct stlink_libsg* sl, uint32_t n) {
-    write_uint32(sl->q_buf, n);
-    stlink_write_mem32(sl, FLASH_AR, sizeof (uint32_t));
-}
-
-#if 0 /* todo */
-
-static void disable_flash_read_protection(struct stlink* sl) {
-    /* erase the option byte area */
-    /* rdp = 0x00a5; */
-    /* reset */
-}
-#endif /* todo */
 
 #if 0 /* not working */
 
@@ -1003,310 +751,19 @@ static int write_flash_mem16
 }
 #endif /* not working */
 
-int stlink_erase_flash_page(struct stlink_libsg* sl, stm32_addr_t page) {
-    /* page an addr in the page to erase */
+// Exit the jtag or swd mode and enter the mass mode.
 
-    /* wait for ongoing op to finish */
-    wait_flash_busy(sl);
+void _stlink_sg_exit_debug_mode(stlink_t *stl) {
 
-    /* unlock if locked */
-    unlock_flash_if(sl);
-
-    /* set the page erase bit */
-    set_flash_cr_per(sl);
-
-    /* select the page to erase */
-    write_flash_ar(sl, page);
-
-    /* start erase operation, reset by hw with bsy bit */
-    set_flash_cr_strt(sl);
-
-    /* wait for completion */
-    wait_flash_busy(sl);
-
-    /* relock the flash */
-    lock_flash(sl);
-
-    /* todo: verify the erased page */
-
-    return 0;
+    if (stl) {
+        struct stlink_libsg* sl = stl->backend_data;
+        clear_cdb(sl);
+        sl->cdb_cmd_blk[1] = STLINK_DEBUG_EXIT;
+        stl->q_len = 0; // >0 -> aboard
+        stlink_q(stl);
+    }
 }
 
-int stlink_erase_flash_mass(struct stlink_libsg* sl) {
-    /* wait for ongoing op to finish */
-    wait_flash_busy(sl);
-
-    /* unlock if locked */
-    unlock_flash_if(sl);
-
-    /* set the mass erase bit */
-    set_flash_cr_mer(sl);
-
-    /* start erase operation, reset by hw with bsy bit */
-    set_flash_cr_strt(sl);
-
-    /* wait for completion */
-    wait_flash_busy(sl);
-
-    /* relock the flash */
-    lock_flash(sl);
-
-    /* todo: verify the erased memory */
-
-    return 0;
-}
-
-static unsigned int is_core_halted(struct stlink_libsg* sl) {
-    /* return non zero if core is halted */
-    stlink_status(sl);
-    return sl->q_buf[0] == STLINK_CORE_HALTED;
-}
-
-static int write_loader_to_sram
-(struct stlink* sl, stm32_addr_t* addr, size_t* size) {
-    /* from openocd, contrib/loaders/flash/stm32.s */
-    static const uint8_t loader_code[] ={
-        0x08, 0x4c, /* ldr	r4, STM32_FLASH_BASE */
-        0x1c, 0x44, /* add	r4, r3 */
-        /* write_half_word: */
-        0x01, 0x23, /* movs	r3, #0x01 */
-        0x23, 0x61, /* str	r3, [r4, #STM32_FLASH_CR_OFFSET] */
-        0x30, 0xf8, 0x02, 0x3b, /* ldrh	r3, [r0], #0x02 */
-        0x21, 0xf8, 0x02, 0x3b, /* strh	r3, [r1], #0x02 */
-        /* busy: */
-        0xe3, 0x68, /* ldr	r3, [r4, #STM32_FLASH_SR_OFFSET] */
-        0x13, 0xf0, 0x01, 0x0f, /* tst	r3, #0x01 */
-        0xfb, 0xd0, /* beq	busy */
-        0x13, 0xf0, 0x14, 0x0f, /* tst	r3, #0x14 */
-        0x01, 0xd1, /* bne	exit */
-        0x01, 0x3a, /* subs	r2, r2, #0x01 */
-        0xf0, 0xd1, /* bne	write_half_word */
-        /* exit: */
-        0x00, 0xbe, /* bkpt	#0x00 */
-        0x00, 0x20, 0x02, 0x40, /* STM32_FLASH_BASE: .word 0x40022000 */
-    };
-
-    memcpy(sl->q_buf, loader_code, sizeof (loader_code));
-    stlink_write_mem32(sl, sl->sram_base, sizeof (loader_code));
-
-    *addr = sl->sram_base;
-    *size = sizeof (loader_code);
-
-    /* success */
-    return 0;
-}
-
-
-int init_flash_loader(stlink_t *stl, flash_loader_t* fl) {
-    struct stlink_libsg* sl = stl->backend_data;
-    size_t size;
-
-    /* allocate the loader in sram */
-    if (write_loader_to_sram(sl, &fl->loader_addr, &size) == -1) {
-        fprintf(stderr, "write_loader_to_sram() == -1\n");
-        return -1;
-    }
-
-    /* allocate a one page buffer in sram right after loader */
-    fl->buf_addr = fl->loader_addr + size;
-
-    return 0;
-}
-
-static int run_flash_loader
-(stlink_t *stl, flash_loader_t* fl, stm32_addr_t target, const uint8_t* buf, size_t size) {
-    struct stlink_libsg* sl = stl->backend_data;
-    const size_t count = size / sizeof (uint16_t);
-
-    if (write_buffer_to_sram(sl, fl, buf, size) == -1) {
-        fprintf(stderr, "write_buffer_to_sram() == -1\n");
-        return -1;
-    }
-
-    /* setup core */
-    stlink_write_reg(sl, fl->buf_addr, 0); /* source */
-    stlink_write_reg(sl, target, 1); /* target */
-    stlink_write_reg(sl, count, 2); /* count (16 bits half words) */
-    stlink_write_reg(sl, 0, 3); /* flash bank 0 (input) */
-    stlink_write_reg(sl, fl->loader_addr, 15); /* pc register */
-
-    /* unlock and set programming mode */
-    unlock_flash_if(sl);
-    set_flash_cr_pg(sl);
-
-    /* run loader */
-    stlink_run(sl);
-
-    while (is_core_halted(sl) == 0)
-        ;
-
-    lock_flash(sl);
-
-    /* not all bytes have been written */
-    stlink_read_reg(sl, 2);
-    if (sl->reg.r[2] != 0) {
-        fprintf(stderr, "write error, count == %u\n", sl->reg.r[2]);
-        return -1;
-    }
-
-    return 0;
-}
-
-static int stlink_fcheck_flash
-(struct stlink_libsg* sl, const char* path, stm32_addr_t addr) {
-    /* check the contents of path are at addr */
-
-    int res;
-    mapped_file_t mf = MAPPED_FILE_INITIALIZER;
-
-    if (map_file(&mf, path) == -1)
-        return -1;
-
-    res = check_file(sl, &mf, addr);
-
-    unmap_file(&mf);
-
-    return res;
-}
-
-// The stlink_fwrite_flash should not muck with mmapped files inside itself,
-// and should use this function instead. (Hell, what's the reason behind mmap
-// there?!) But, as it is not actually used anywhere, nobody cares.
-
-#define WRITE_BLOCK_SIZE 0x40
-
-int stlink_write_flash(struct stlink_libsg* sl, stm32_addr_t addr, uint8_t* base, unsigned len) {
-    int error = -1;
-    size_t off;
-    flash_loader_t fl;
-
-    /* check addr range is inside the flash */
-    if (addr < sl->flash_base) {
-        fprintf(stderr, "addr too low\n");
-        return -1;
-    } else if ((addr + len) < addr) {
-        fprintf(stderr, "addr overruns\n");
-        return -1;
-    } else if ((addr + len) > (sl->flash_base + sl->flash_size)) {
-        fprintf(stderr, "addr too high\n");
-        return -1;
-    } else if ((addr & 1) || (len & 1)) {
-        fprintf(stderr, "unaligned addr or size\n");
-        return -1;
-    }
-
-    /* flash loader initialization */
-    if (init_flash_loader(sl, &fl) == -1) {
-        fprintf(stderr, "init_flash_loader() == -1\n");
-        return -1;
-    }
-
-    /* write each page. above WRITE_BLOCK_SIZE fails? */
-    for (off = 0; off < len; off += WRITE_BLOCK_SIZE) {
-        /* adjust last write size */
-        size_t size = WRITE_BLOCK_SIZE;
-        if ((off + WRITE_BLOCK_SIZE) > len)
-            size = len - off;
-
-        if (run_flash_loader(sl, &fl, addr + off, base + off, size) == -1) {
-            fprintf(stderr, "run_flash_loader(0x%zx) == -1\n", addr + off);
-            return -1;
-        }
-    }
-
-    for (off = 0; off < len; off += sl->flash_pgsz) {
-        size_t aligned_size;
-
-        /* adjust last page size */
-        size_t cmp_size = sl->flash_pgsz;
-        if ((off + sl->flash_pgsz) > len)
-            cmp_size = len - off;
-
-        aligned_size = cmp_size;
-        if (aligned_size & (4 - 1))
-            aligned_size = (cmp_size + 4) & ~(4 - 1);
-
-        stlink_read_mem32(sl, addr + off, aligned_size);
-
-        if (memcmp(sl->q_buf, base + off, cmp_size))
-            return -1;
-    }
-
-    return 0;
-}
-
-int stlink_fwrite_flash
-(stlink_t *sl, const char* path, stm32_addr_t addr) {
-    /* write the file in flash at addr */
-
-    int error = -1;
-    size_t off;
-    mapped_file_t mf = MAPPED_FILE_INITIALIZER;
-    flash_loader_t fl;
-
-    if (map_file(&mf, path) == -1) {
-        fprintf(stderr, "map_file() == -1\n");
-        return -1;
-    }
-
-    /* check addr range is inside the flash */
-    if (addr < sl->flash_base) {
-        fprintf(stderr, "addr too low\n");
-        goto on_error;
-    } else if ((addr + mf.len) < addr) {
-        fprintf(stderr, "addr overruns\n");
-        goto on_error;
-    } else if ((addr + mf.len) > (sl->flash_base + sl->flash_size)) {
-        fprintf(stderr, "addr too high\n");
-        goto on_error;
-    } else if ((addr & 1) || (mf.len & 1)) {
-        /* todo */
-        fprintf(stderr, "unaligned addr or size\n");
-        goto on_error;
-    }
-
-    /* erase each page. todo: mass erase faster? */
-    for (off = 0; off < mf.len; off += sl->flash_pgsz) {
-        /* addr must be an addr inside the page */
-        if (stlink_erase_flash_page(sl, addr + off) == -1) {
-            fprintf(stderr, "erase_flash_page(0x%zx) == -1\n", addr + off);
-            goto on_error;
-        }
-    }
-
-    /* flash loader initialization */
-    if (init_flash_loader(sl, &fl) == -1) {
-        fprintf(stderr, "init_flash_loader() == -1\n");
-        goto on_error;
-    }
-
-    /* write each page. above WRITE_BLOCK_SIZE fails? */
-#define WRITE_BLOCK_SIZE 0x40
-    for (off = 0; off < mf.len; off += WRITE_BLOCK_SIZE) {
-        /* adjust last write size */
-        size_t size = WRITE_BLOCK_SIZE;
-        if ((off + WRITE_BLOCK_SIZE) > mf.len)
-            size = mf.len - off;
-
-        if (run_flash_loader(sl, &fl, addr + off, mf.base + off, size) == -1) {
-            fprintf(stderr, "run_flash_loader(0x%zx) == -1\n", addr + off);
-            goto on_error;
-        }
-    }
-
-    /* check the file ha been written */
-    if (check_file(sl, &mf, addr) == -1) {
-        fprintf(stderr, "check_file() == -1\n");
-        goto on_error;
-    }
-
-    /* success */
-    error = 0;
-
-on_error:
-    unmap_file(&mf);
-    return error;
-}
 
 // 1) open a sg device, switch the stlink from dfu to mass mode
 // 2) wait 5s until the kernel driver stops reseting the broken device
@@ -1325,8 +782,13 @@ stlink_backend_t _stlink_sg_backend = {
     _stlink_sg_run,
     _stlink_sg_status,
     _stlink_sg_version,
+    _stlink_sg_read_mem32,
     _stlink_sg_write_mem32,
-    _stlink_sg_write_mem8
+    _stlink_sg_write_mem8,
+    _stlink_sg_read_all_regs,
+    _stlink_sg_read_reg,
+    _stlink_sg_write_reg,
+    _stlink_sg_step
 };
 
 stlink_t* stlink_open(const char *dev_name, const int verbose) {
@@ -1433,4 +895,3 @@ static void __attribute__((unused)) mark_buf(stlink_t *sl) {
     sl->q_buf[1024 * 6 - 1] = 0x42; //6kB
     sl->q_buf[1024 * 8 - 1] = 0x42; //8kB
 }
-#endif

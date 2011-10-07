@@ -13,6 +13,7 @@ extern "C" {
 #endif
 
 #include <libusb-1.0/libusb.h>
+#include "stlink-common.h"
 
 #if defined(CONFIG_USE_LIBUSB)
     struct stlink_libusb {

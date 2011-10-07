@@ -26,48 +26,6 @@ void _stlink_usb_close(stlink_t* sl) {
     }
 }
 
-static void write_uint32(unsigned char* buf, uint32_t ui) {
-    if (!is_bigendian()) { // le -> le (don't swap)
-        buf[0] = ((unsigned char*) &ui)[0];
-        buf[1] = ((unsigned char*) &ui)[1];
-        buf[2] = ((unsigned char*) &ui)[2];
-        buf[3] = ((unsigned char*) &ui)[3];
-    } else {
-        buf[0] = ((unsigned char*) &ui)[3];
-        buf[1] = ((unsigned char*) &ui)[2];
-        buf[2] = ((unsigned char*) &ui)[1];
-        buf[3] = ((unsigned char*) &ui)[0];
-    }
-}
-
-static void write_uint16(unsigned char* buf, uint16_t ui) {
-    if (!is_bigendian()) { // le -> le (don't swap)
-        buf[0] = ((unsigned char*) &ui)[0];
-        buf[1] = ((unsigned char*) &ui)[1];
-    } else {
-        buf[0] = ((unsigned char*) &ui)[1];
-        buf[1] = ((unsigned char*) &ui)[0];
-    }
-}
-
-static uint32_t read_uint32(const unsigned char *c, const int pt) {
-    uint32_t ui;
-    char *p = (char *) &ui;
-
-    if (!is_bigendian()) { // le -> le (don't swap)
-        p[0] = c[pt];
-        p[1] = c[pt + 1];
-        p[2] = c[pt + 2];
-        p[3] = c[pt + 3];
-    } else {
-        p[0] = c[pt + 3];
-        p[1] = c[pt + 2];
-        p[2] = c[pt + 1];
-        p[3] = c[pt];
-    }
-    return ui;
-}
-
 
 struct trans_ctx {
 #define TRANS_FLAGS_IS_DONE (1 << 0)
@@ -222,7 +180,7 @@ void _stlink_usb_write_mem8(stlink_t *sl, uint32_t addr, uint16_t len) {
 }
 
 
-int stlink_current_mode(stlink_t * sl) {
+int _stlink_usb_current_mode(stlink_t * sl) {
     int mode = -1;
 
     struct stlink_libusb * const slu = sl->backend_data;
@@ -345,7 +303,7 @@ void _stlink_usb_reset(stlink_t * sl) {
 }
 
 
-void stlink_step(stlink_t* sl) {
+void _stlink_usb_step(stlink_t* sl) {
     struct stlink_libusb * const slu = sl->backend_data;
     unsigned char* const buf = sl->q_buf;
     ssize_t size;
@@ -394,7 +352,7 @@ void _stlink_usb_exit_debug_mode(stlink_t *sl) {
     }
 }
 
-void stlink_read_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
+void _stlink_usb_read_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
     struct stlink_libusb * const slu = sl->backend_data;
     unsigned char* const buf = sl->q_buf;
     ssize_t size;
@@ -422,6 +380,21 @@ void stlink_read_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
     stlink_print_data(sl);
 }
 
+void _stlink_usb_read_all_regs(stlink_t *sl) {
+    DD(sl, "oops! read_all_regs not implemented for USB!\n");
+}
+
+void _stlink_usb_read_reg(stlink_t *sl, int r_idx, reg *regp) {
+    DD(sl, "oops! read_reg not implemented for USB! Wanted to read reg %d\n",
+            r_idx);
+}
+
+void _stlink_usb_write_reg(stlink_t *sl, uint32_t reg, int idx) {
+    DD(sl, "oops! write_reg not implemented for USB! Wanted to write %#x to %d\n",
+            reg, idx);
+}
+
+
 
 stlink_backend_t _stlink_usb_backend = {
     _stlink_usb_close,
@@ -434,9 +407,15 @@ stlink_backend_t _stlink_usb_backend = {
     _stlink_usb_run,
     _stlink_usb_status,
     _stlink_usb_version,
+    _stlink_usb_read_mem32,
     _stlink_usb_write_mem32,
-    _stlink_usb_write_mem8
+    _stlink_usb_write_mem8,
+    _stlink_usb_read_all_regs,
+    _stlink_usb_read_reg,
+    _stlink_usb_write_reg,
+    _stlink_usb_step
 };
+
 
 stlink_t* stlink_open_usb(const char *dev_name, const int verbose) {
     stlink_t* sl = NULL;

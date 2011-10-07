@@ -8,7 +8,6 @@
 #include <stdlib.h>
 #include "stlink-common.h"
 
-#if 0
 int main(int argc, char *argv[]) {
 	// set scpi lib debug level: 0 for no debug info, 10 for lots
 	const int scsi_verbose = 2;
@@ -35,10 +34,10 @@ int main(int argc, char *argv[]) {
 	}
 
 	fputs("*** stlink access test ***\n", stderr);
-	DD(sl, "Using sg_lib %s : scsi_pt %s\n", sg_lib_version(),
+	fprintf(stderr, "Using sg_lib %s : scsi_pt %s\n", sg_lib_version(),
 		scsi_pt_version());
 
-	struct stlink *sl = stlink_force_open(dev_name, scsi_verbose);
+	stlink_t *sl = stlink_quirk_open(dev_name, scsi_verbose);
 	if (sl == NULL)
 		return EXIT_FAILURE;
 
@@ -210,4 +209,3 @@ int main(int argc, char *argv[]) {
 	//fflush(stderr); fflush(stdout);
 	return EXIT_SUCCESS;
 }
-#endif

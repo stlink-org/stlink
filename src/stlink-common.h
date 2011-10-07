@@ -76,6 +76,11 @@ extern "C" {
 
     typedef uint32_t stm32_addr_t;
 
+    typedef struct flash_loader {
+        stm32_addr_t loader_addr; /* loader sram adddr */
+        stm32_addr_t buf_addr; /* buffer sram address */
+    } flash_loader_t;
+
     enum transport_type {
         TRANSPORT_TYPE_ZERO = 0,
         TRANSPORT_TYPE_LIBSG,
@@ -84,20 +89,26 @@ extern "C" {
     };
 
     typedef struct _stlink stlink_t;
-    
+
     typedef struct _stlink_backend {
-        void (*close) (stlink_t* sl);
-        void (*exit_debug_mode) (stlink_t *sl);
-        void (*enter_swd_mode) (stlink_t *sl);
-        void (*enter_jtag_mode) (stlink_t *stl);
-        void (*exit_dfu_mode) (stlink_t *stl);
-        void (*core_id) (stlink_t *stl);
-        void (*reset) (stlink_t *stl);
-        void (*run) (stlink_t *stl);
-        void (*status) (stlink_t *stl);
-        void (*version) (stlink_t *stl);
+        void (*close) (stlink_t * sl);
+        void (*exit_debug_mode) (stlink_t * sl);
+        void (*enter_swd_mode) (stlink_t * sl);
+        void (*enter_jtag_mode) (stlink_t * stl);
+        void (*exit_dfu_mode) (stlink_t * stl);
+        void (*core_id) (stlink_t * stl);
+        void (*reset) (stlink_t * stl);
+        void (*run) (stlink_t * stl);
+        void (*status) (stlink_t * stl);
+        void (*version) (stlink_t * stl);
+        void (*read_mem32) (stlink_t *sl, uint32_t addr, uint16_t len);
         void (*write_mem32) (stlink_t *sl, uint32_t addr, uint16_t len);
         void (*write_mem8) (stlink_t *sl, uint32_t addr, uint16_t len);
+        void (*read_all_reg) (stlink_t * stl);
+        void (*read_reg) (stlink_t *sl, int r_idx, reg* regp);
+        void (*write_reg) (stlink_t *sl, uint32_t reg, int idx);
+        void (*step) (stlink_t * stl);
+        int (*current_mode) (stlink_t * stl);
     } stlink_backend_t;
 
     struct _stlink {
@@ -113,8 +124,8 @@ extern "C" {
         uint32_t core_id;
         int core_stat;
 
-        
-        
+
+
         /* medium density stm32 flash settings */
 #define STM32_FLASH_BASE 0x08000000
 #define STM32_FLASH_SIZE (128 * 1024)
@@ -142,7 +153,7 @@ extern "C" {
     void DD(stlink_t *sl, char *format, ...);
 
     //stlink_t* stlink_quirk_open(const char *dev_name, const int verbose);
-    
+
     // delegated functions...
     void stlink_enter_swd_mode(stlink_t *sl);
     void stlink_enter_jtag_mode(stlink_t *sl);
@@ -154,28 +165,38 @@ extern "C" {
     void stlink_run(stlink_t *sl);
     void stlink_status(stlink_t *sl);
     void stlink_version(stlink_t *sl);
+    void stlink_read_mem32(stlink_t *sl, uint32_t addr, uint16_t len);
     void stlink_write_mem32(stlink_t *sl, uint32_t addr, uint16_t len);
     void stlink_write_mem8(stlink_t *sl, uint32_t addr, uint16_t len);
-    
+    void stlink_read_all_regs(stlink_t *sl);
+    void stlink_read_reg(stlink_t *sl, int r_idx, reg *regp);
+    void stlink_write_reg(stlink_t *sl, uint32_t reg, int idx);
+    void stlink_step(stlink_t *sl);
+    int stlink_current_mode(stlink_t *sl);
+
 
     // unprocessed
-    int stlink_current_mode(stlink_t *sl);
     void stlink_force_debug(stlink_t *sl);
-    void stlink_step(stlink_t *sl);
-    void stlink_read_all_regs(stlink_t *sl);
-    void stlink_read_reg(stlink_t *sl, int r_idx);
-    void stlink_write_reg(stlink_t *sl, uint32_t reg, int idx);
-    void stlink_read_mem32(stlink_t *sl, uint32_t addr, uint16_t len);
 
-    int stlink_erase_flash_page(stlink_t* sl, stm32_addr_t page);
     int stlink_erase_flash_mass(stlink_t* sl);
     int stlink_write_flash(stlink_t* sl, stm32_addr_t address, uint8_t* data, unsigned length);
 
-    // privates....
+    // privates, publics, the rest....
+    // TODO sort what is private, and what is not
+    int stlink_erase_flash_page(stlink_t* sl, stm32_addr_t page);
     uint16_t read_uint16(const unsigned char *c, const int pt);
     void stlink_core_stat(stlink_t *sl);
     void stlink_print_data(stlink_t *sl);
     unsigned int is_bigendian(void);
+    uint32_t read_uint32(const unsigned char *c, const int pt);
+    void write_uint32(unsigned char* buf, uint32_t ui);
+    void write_uint16(unsigned char* buf, uint16_t ui);
+    unsigned int is_core_halted(stlink_t *sl);
+    int write_buffer_to_sram(stlink_t *sl, flash_loader_t* fl, const uint8_t* buf, size_t size);
+    int write_loader_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* size);
+    int stlink_fread(stlink_t* sl, const char* path, stm32_addr_t addr, size_t size);
+    int run_flash_loader(stlink_t *sl, flash_loader_t* fl, stm32_addr_t target, const uint8_t* buf, size_t size);
+
 
 
 #include "stlink-sg.h"
