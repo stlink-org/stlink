@@ -421,9 +421,6 @@ void _stlink_sg_core_id(stlink_t *sl) {
     sg->q_addr = 0;
     stlink_q(sl);
     sl->core_id = read_uint32(sl->q_buf, 0);
-    if (sl->verbose < 2)
-        return;
-    stlink_print_data(sl);
 }
 
 // Arm-core reset -> halted state.

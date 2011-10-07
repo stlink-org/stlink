@@ -280,6 +280,8 @@ void stlink_exit_dfu_mode(stlink_t *sl) {
 void stlink_core_id(stlink_t *sl) {
     D(sl, "\n*** stlink_core_id ***\n");
     sl->backend->core_id(sl);
+    if (sl->verbose > 2)
+        stlink_print_data(sl);
     DD(sl, "core_id = 0x%08x\n", sl->core_id);
 }
 
