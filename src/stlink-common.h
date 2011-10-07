@@ -104,7 +104,7 @@ extern "C" {
         void (*read_mem32) (stlink_t *sl, uint32_t addr, uint16_t len);
         void (*write_mem32) (stlink_t *sl, uint32_t addr, uint16_t len);
         void (*write_mem8) (stlink_t *sl, uint32_t addr, uint16_t len);
-        void (*read_all_reg) (stlink_t * stl);
+        void (*read_all_regs) (stlink_t *sl, reg* regp);
         void (*read_reg) (stlink_t *sl, int r_idx, reg* regp);
         void (*write_reg) (stlink_t *sl, uint32_t reg, int idx);
         void (*step) (stlink_t * stl);
@@ -168,7 +168,7 @@ extern "C" {
     void stlink_read_mem32(stlink_t *sl, uint32_t addr, uint16_t len);
     void stlink_write_mem32(stlink_t *sl, uint32_t addr, uint16_t len);
     void stlink_write_mem8(stlink_t *sl, uint32_t addr, uint16_t len);
-    void stlink_read_all_regs(stlink_t *sl);
+    void stlink_read_all_regs(stlink_t *sl, reg *regp);
     void stlink_read_reg(stlink_t *sl, int r_idx, reg *regp);
     void stlink_write_reg(stlink_t *sl, uint32_t reg, int idx);
     void stlink_step(stlink_t *sl);

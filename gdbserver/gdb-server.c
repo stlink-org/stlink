@@ -14,8 +14,10 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+
+#include <stlink-common.h>
+
 #include "gdb-remote.h"
-#include "stlink-hw.h"
 
 #define FLASH_BASE 0x08000000
 #define FLASH_PAGE (sl->flash_pgsz)
@@ -50,7 +52,7 @@ struct chip_params {
 	{ 0 }
 };
 
-int serve(struct stlink* sl, int port);
+int serve(stlink_t *sl, int port);
 char* make_memory_map(const struct chip_params *params, uint32_t flash_size);
 
 int main(int argc, char** argv) {
@@ -59,7 +61,8 @@ int main(int argc, char** argv) {
 		return 1;
 	}
 
-	struct stlink *sl = stlink_quirk_open(argv[2], 0);
+        // FIXME - hardcoded to usb....
+        stlink_t *sl =stlink_open_usb(argv[2], 10);
 	if (sl == NULL)
 		return 1;
 
@@ -170,9 +173,7 @@ struct code_hw_watchpoint {
 
 struct code_hw_watchpoint data_watches[DATA_WATCH_NUM];
 
-static void init_data_watchpoints(struct stlink *sl) {
-	int i;
-
+static void init_data_watchpoints(stlink_t *sl) {
 	#ifdef DEBUG
 	printf("init watchpoints\n");
 	#endif
@@ -190,10 +191,10 @@ static void init_data_watchpoints(struct stlink *sl) {
 	}
 }
 
-static int add_data_watchpoint(struct stlink* sl, enum watchfun wf, stm32_addr_t addr, unsigned int len)
+static int add_data_watchpoint(stlink_t *sl, enum watchfun wf, stm32_addr_t addr, unsigned int len)
 {
 	int i = 0;
-	uint32_t mask, temp;
+	uint32_t mask;
 
 	// computer mask
 	// find a free watchpoint
@@ -249,7 +250,7 @@ static int add_data_watchpoint(struct stlink* sl, enum watchfun wf, stm32_addr_t
 	return -1;
 }
 
-static int delete_data_watchpoint(struct stlink* sl, stm32_addr_t addr)
+static int delete_data_watchpoint(stlink_t *sl, stm32_addr_t addr)
 {
 	int i;
 
@@ -285,7 +286,7 @@ struct code_hw_breakpoint {
 
 struct code_hw_breakpoint code_breaks[CODE_BREAK_NUM];
 
-static void init_code_breakpoints(struct stlink* sl) {
+static void init_code_breakpoints(stlink_t *sl) {
 	memset(sl->q_buf, 0, 4);
 	sl->q_buf[0] = 0x03; // KEY | ENABLE
 	stlink_write_mem32(sl, 0xe0002000, 4);
@@ -297,7 +298,7 @@ static void init_code_breakpoints(struct stlink* sl) {
 	}
 }
 
-static int update_code_breakpoint(struct stlink* sl, stm32_addr_t addr, int set) {
+static int update_code_breakpoint(stlink_t *sl, stm32_addr_t addr, int set) {
 	stm32_addr_t fpb_addr = addr & ~0x3;
 	int type = addr & 0x2 ? CODE_BREAK_HIGH : CODE_BREAK_LOW;
 
@@ -366,7 +367,7 @@ struct flash_block {
 static struct flash_block* flash_root;
 
 static int flash_add_block(stm32_addr_t addr, unsigned length, 
-			   struct stlink* sl) {
+			   stlink_t *sl) {
 	if(addr < FLASH_BASE || addr + length > FLASH_BASE + FLASH_SIZE) {
 		fprintf(stderr, "flash_add_block: incorrect bounds\n");
 		return -1;
@@ -429,7 +430,7 @@ static int flash_populate(stm32_addr_t addr, uint8_t* data, unsigned length) {
 	return 0;
 }
 
-static int flash_go(struct stlink* sl) {
+static int flash_go(stlink_t *sl) {
 	int error = -1;
 
 	// Some kinds of clock settings do not allow writing to flash.
@@ -471,7 +472,7 @@ error:
 	return error;
 }
 
-int serve(struct stlink* sl, int port) {
+int serve(stlink_t *sl, int port) {
 	int sock = socket(AF_INET, SOCK_STREAM, 0);
 	if(sock < 0) {
 		perror("socket");
@@ -533,6 +534,7 @@ int serve(struct stlink* sl, int port) {
 		#endif
 
 		char* reply = NULL;
+                reg regp;
 
 		switch(packet[0]) {
 		case 'q': {
@@ -727,29 +729,30 @@ int serve(struct stlink* sl, int port) {
 			break;
 
 		case 'g':
-			stlink_read_all_regs(sl);
+			stlink_read_all_regs(sl, &regp);
 
 			reply = calloc(8 * 16 + 1, 1);
 			for(int i = 0; i < 16; i++)
-				sprintf(&reply[i * 8], "%08x", htonl(sl->reg.r[i]));
+				sprintf(&reply[i * 8], "%08x", htonl(regp.r[i]));
 
 			break;
 
 		case 'p': {
-			unsigned id = strtoul(&packet[1], NULL, 16), reg = 0xDEADDEAD;
+			unsigned id = strtoul(&packet[1], NULL, 16);
+                        unsigned myreg = 0xDEADDEAD;
 
 			if(id < 16) {
-				stlink_read_reg(sl, id);
-				reg = htonl(sl->reg.r[id]);
+				stlink_read_reg(sl, id, &regp);
+				myreg = htonl(regp.r[id]);
 			} else if(id == 0x19) {
-				stlink_read_reg(sl, 16);
-				reg = htonl(sl->reg.xpsr);
+				stlink_read_reg(sl, 16, &regp);
+				myreg = htonl(regp.xpsr);
 			} else {
 				reply = strdup("E00");
 			}
 
 			reply = calloc(8 + 1, 1);
-			sprintf(reply, "%08x", reg);
+			sprintf(reply, "%08x", myreg);
 
 			break;
 		}
@@ -875,7 +878,7 @@ int serve(struct stlink* sl, int port) {
 		case 'z': {
 			char *endptr;
 			stm32_addr_t addr = strtoul(&packet[3], &endptr, 16);
-			stm32_addr_t len  = strtoul(&endptr[1], NULL, 16);
+			//stm32_addr_t len  = strtoul(&endptr[1], NULL, 16);
 
 			switch (packet[1]) {
 				case '1': // remove breakpoint

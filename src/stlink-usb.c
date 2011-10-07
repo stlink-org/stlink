@@ -375,7 +375,7 @@ void _stlink_usb_read_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
     stlink_print_data(sl);
 }
 
-void _stlink_usb_read_all_regs(stlink_t *sl) {
+void _stlink_usb_read_all_regs(stlink_t *sl, reg *regp) {
     DD(sl, "oops! read_all_regs not implemented for USB!\n");
 }
 

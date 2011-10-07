@@ -465,9 +465,8 @@ void stlink_force_debug(stlink_t *sl) {
 
 // Read all arm-core registers.
 
-void _stlink_sg_read_all_regs(stlink_t *sl) {
+void _stlink_sg_read_all_regs(stlink_t *sl, reg *regp) {
     struct stlink_libsg *sg = sl->backend_data;
-    D(sl, "\n*** stlink_read_all_regs ***\n");
     clear_cdb(sg);
     sg->cdb_cmd_blk[1] = STLINK_DEBUG_READALLREGS;
     sl->q_len = 84;

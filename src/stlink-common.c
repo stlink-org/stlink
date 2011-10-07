@@ -329,9 +329,9 @@ void stlink_write_mem8(stlink_t *sl, uint32_t addr, uint16_t len) {
     sl->backend->write_mem8(sl, addr, len);
 }
 
-void stlink_read_all_reg(stlink_t *sl) {
-    D(sl, "\n*** stlink_read_all_reg ***\n");
-    sl->backend->read_all_reg(sl);
+void stlink_read_all_regs(stlink_t *sl, reg *regp) {
+    D(sl, "\n*** stlink_read_all_regs ***\n");
+    sl->backend->read_all_regs(sl, regp);
 }
 
 void stlink_write_reg(stlink_t *sl, uint32_t reg, int idx) {
