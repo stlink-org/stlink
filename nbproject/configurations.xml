@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configurationDescriptor version="79">
+  <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
+    <df name="stlink" root=".">
+      <df name="example">
+        <in>main.c</in>
+      </df>
+      <df name="gdbserver">
+        <in>gdb-remote.c</in>
+        <in>gdb-remote.h</in>
+        <in>gdb-server.c</in>
+      </df>
+      <df name="src">
+        <in>stlink-common.c</in>
+        <in>stlink-common.h</in>
+        <in>stlink-sg.c</in>
+        <in>stlink-sg.h</in>
+        <in>stlink-usb.c</in>
+        <in>stlink-usb.h</in>
+        <in>test_sg.c</in>
+        <in>test_usb.c</in>
+      </df>
+      <df name="stm32l_notes">
+      </df>
+    </df>
+    <logicalFolder name="ExternalFiles"
+                   displayName="Important Files"
+                   projectFiles="false"
+                   kind="IMPORTANT_FILES_FOLDER">
+      <itemPath>build/Makefile</itemPath>
+    </logicalFolder>
+  </logicalFolder>
+  <sourceFolderFilter>^(nbproject)$</sourceFolderFilter>
+  <sourceRootList>
+    <Elem>.</Elem>
+  </sourceRootList>
+  <projectmakefile>build/Makefile</projectmakefile>
+  <confs>
+    <conf name="library_cli" type="0">
+      <toolsSet>
+        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
+        <compilerSet>default</compilerSet>
+      </toolsSet>
+      <makefileType>
+        <makeTool>
+          <buildCommandWorkingDir></buildCommandWorkingDir>
+          <buildCommand>${MAKE} -f Makefile</buildCommand>
+          <cleanCommand>${MAKE} -f Makefile clean</cleanCommand>
+          <executablePath>test_usb</executablePath>
+          <cTool>
+            <incDir>
+              <pElem>stm32l/src</pElem>
+              <pElem>/usr/include/libusb-1.0</pElem>
+              <pElem>stm32l/build</pElem>
+              <pElem>src</pElem>
+            </incDir>
+            <preprocessorList>
+              <Elem>CONFIG_USE_LIBUSB=1</Elem>
+              <Elem>__GNUC_STDC_INLINE__=1</Elem>
+              <Elem>__OPTIMIZE__=1</Elem>
+              <Elem>__REGISTER_PREFIX__=</Elem>
+              <Elem>__STDC_VERSION__=199901L</Elem>
+              <Elem>__USER_LABEL_PREFIX__=</Elem>
+            </preprocessorList>
+          </cTool>
+        </makeTool>
+      </makefileType>
+    </conf>
+    <conf name="gdbserver" type="0">
+      <toolsSet>
+        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
+        <compilerSet>default</compilerSet>
+      </toolsSet>
+      <makefileType>
+        <makeTool>
+          <buildCommandWorkingDir>gdbserver</buildCommandWorkingDir>
+          <buildCommand>${MAKE} -f Makefile</buildCommand>
+          <cleanCommand>${MAKE} -f Makefile clean</cleanCommand>
+          <executablePath>gdbserver/st-util</executablePath>
+          <cTool>
+            <incDir>
+              <pElem>stm32l/src</pElem>
+              <pElem>/usr/include/libusb-1.0</pElem>
+              <pElem>stm32l/build</pElem>
+              <pElem>src</pElem>
+            </incDir>
+            <preprocessorList>
+              <Elem>CONFIG_USE_LIBUSB=1</Elem>
+              <Elem>__GNUC_STDC_INLINE__=1</Elem>
+              <Elem>__OPTIMIZE__=1</Elem>
+              <Elem>__REGISTER_PREFIX__=</Elem>
+              <Elem>__STDC_VERSION__=199901L</Elem>
+              <Elem>__USER_LABEL_PREFIX__=</Elem>
+            </preprocessorList>
+          </cTool>
+        </makeTool>
+      </makefileType>
+    </conf>
+  </confs>
+</configurationDescriptor>
