@@ -47,8 +47,6 @@ int main(int ac, char** av) {
 
         printf("-- step\n");
         stlink_step(sl);
-        printf("Press enter to go to run mode and exit the debugger\n");
-        getchar();
 
         printf("-- run\n");
         stlink_run(sl);
