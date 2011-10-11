@@ -136,10 +136,10 @@ static int is_stlink_device(libusb_device * dev) {
 
     printf("device: 0x%04x, 0x%04x\n", desc.idVendor, desc.idProduct);
 
-    if (desc.idVendor != 0x0483)
+    if (desc.idVendor != USB_ST_VID)
         return 0;
 
-    if (desc.idProduct != 0x3748)
+    if (desc.idProduct != USB_STLINK_32L_PID)
         return 0;
 
     return 1;
