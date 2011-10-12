@@ -289,6 +289,10 @@ void _stlink_usb_exit_dfu_mode(stlink_t* sl) {
     }
 }
 
+/**
+ * TODO - not convinced this does anything...
+ * @param sl
+ */
 void _stlink_usb_reset(stlink_t * sl) {
     struct stlink_libusb * const slu = sl->backend_data;
     unsigned char* const buf = sl->q_buf;
@@ -322,6 +326,10 @@ void _stlink_usb_step(stlink_t* sl) {
     }
 }
 
+/**
+ * This seems to do a good job of restarting things from the beginning?
+ * @param sl
+ */
 void _stlink_usb_run(stlink_t* sl) {
     struct stlink_libusb * const slu = sl->backend_data;
     unsigned char* const buf = sl->q_buf;
