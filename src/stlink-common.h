@@ -73,6 +73,8 @@ extern "C" {
 
 // cortex m3 technical reference manual
 #define CM3_REG_CPUID 0xE000ED00
+#define CM3_REG_FP_CTRL 0xE0002000
+#define CM3_REG_FP_COMP0 0xE0002008
 
     typedef struct {
         uint32_t r[16];

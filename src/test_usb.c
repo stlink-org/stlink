@@ -36,8 +36,9 @@ int main(int ac, char** av) {
         for (off = 0; off < 16; off += 4)
             stlink_read_mem32(sl, sram_base + off, 4);
 
-        printf("-- read_mem, cpuid\n");
-        stlink_read_mem32(sl, 0xe000e008, 4);  // ACTLR        
+        printf("FP_CTRL\n");
+        stlink_read_mem32(sl, CM3_REG_FP_CTRL, 4);
+        
         // no idea what reg this is..  */
         /*     stlink_read_mem32(sl, 0xe000ed90, 4);
         // no idea what register this is...

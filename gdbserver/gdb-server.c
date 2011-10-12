@@ -75,7 +75,7 @@ int main(int argc, char** argv) {
 	}
 
         // FIXME - hardcoded to usb....
-        stlink_t *sl =stlink_open_usb(argv[2], 10);
+        stlink_t *sl = stlink_open_usb(argv[2], 10);
 	if (sl == NULL)
 		return 1;
 
@@ -297,12 +297,14 @@ struct code_hw_breakpoint code_breaks[CODE_BREAK_NUM];
 static void init_code_breakpoints(stlink_t *sl) {
 	memset(sl->q_buf, 0, 4);
 	sl->q_buf[0] = 0x03; // KEY | ENABLE
-	stlink_write_mem32(sl, 0xe0002000, 4);
+	stlink_write_mem32(sl, CM3_REG_FP_CTRL, 4);
+        printf("KARL - should read back as 0x03, not 60 02 00 00\n");
+        stlink_read_mem32(sl, CM3_REG_FP_CTRL, 4);
 
 	memset(sl->q_buf, 0, 4);
 	for(int i = 0; i < CODE_BREAK_NUM; i++) {
 		code_breaks[i].type = 0;
-		stlink_write_mem32(sl, 0xe0002008 + i * 4, 4);
+		stlink_write_mem32(sl, CM3_REG_FP_COMP0 + i * 4, 4);
 	}
 }
 
