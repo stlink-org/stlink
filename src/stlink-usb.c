@@ -238,6 +238,23 @@ void _stlink_usb_status(stlink_t * sl) {
 
 }
 
+void _stlink_usb_force_debug(stlink_t *sl) {
+    struct stlink_libusb *slu = sl->backend_data;
+    unsigned char* const buf = sl->q_buf;
+    ssize_t size;
+
+    memset(buf, 0, sizeof (sl->q_buf));
+
+    buf[0] = STLINK_DEBUG_COMMAND;
+    buf[1] = STLINK_DEBUG_FORCEDEBUG;
+    size = send_recv(slu, buf, STLINK_CMD_SIZE, buf, sizeof (sl->q_buf));
+    if (size == -1) {
+        printf("[!] send_recv\n");
+        return;
+    }
+}
+
+
 void _stlink_usb_enter_swd_mode(stlink_t * sl) {
     struct stlink_libusb * const slu = sl->backend_data;
     unsigned char* const buf = sl->q_buf;
@@ -400,7 +417,8 @@ stlink_backend_t _stlink_usb_backend = {
     _stlink_usb_read_reg,
     _stlink_usb_write_reg,
     _stlink_usb_step,
-    _stlink_usb_current_mode
+    _stlink_usb_current_mode,
+    _stlink_usb_force_debug
 };
 
 

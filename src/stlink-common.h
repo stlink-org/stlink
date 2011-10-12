@@ -123,6 +123,7 @@ extern "C" {
         void (*write_reg) (stlink_t *sl, uint32_t reg, int idx);
         void (*step) (stlink_t * stl);
         int (*current_mode) (stlink_t * stl);
+        void (*force_debug) (stlink_t *sl);
     } stlink_backend_t;
 
     struct _stlink {
@@ -187,11 +188,10 @@ extern "C" {
     void stlink_write_reg(stlink_t *sl, uint32_t reg, int idx);
     void stlink_step(stlink_t *sl);
     int stlink_current_mode(stlink_t *sl);
+    void stlink_force_debug(stlink_t *sl);
 
 
     // unprocessed
-    void stlink_force_debug(stlink_t *sl);
-
     int stlink_erase_flash_mass(stlink_t* sl);
     int stlink_write_flash(stlink_t* sl, stm32_addr_t address, uint8_t* data, unsigned length);
     

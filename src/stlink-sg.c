@@ -403,7 +403,7 @@ void _stlink_sg_status(stlink_t *sl) {
 
 // Force the core into the debug mode -> halted state.
 
-void stlink_force_debug(stlink_t *sl) {
+void _stlink_sg_force_debug(stlink_t *sl) {
     struct stlink_libsg *sg = sl->backend_data;
     D(sl, "\n*** stlink_force_debug ***\n");
     clear_cdb(sg);
@@ -718,7 +718,8 @@ stlink_backend_t _stlink_sg_backend = {
     _stlink_sg_read_reg,
     _stlink_sg_write_reg,
     _stlink_sg_step,
-    _stlink_sg_current_mode
+    _stlink_sg_current_mode,
+    _stlink_sg_force_debug
 };
 
 stlink_t* stlink_open(const char *dev_name, const int verbose) {

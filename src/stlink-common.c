@@ -272,6 +272,12 @@ void stlink_enter_swd_mode(stlink_t *sl) {
     sl->backend->enter_swd_mode(sl);
 }
 
+// Force the core into the debug mode -> halted state.
+void stlink_force_debug(stlink_t *sl) {
+    D(sl, "\n*** stlink_force_debug_mode ***\n");
+    sl->backend->force_debug(sl);
+}
+
 void stlink_exit_dfu_mode(stlink_t *sl) {
     D(sl, "\n*** stlink_exit_dfu_mode ***\n");
     sl->backend->exit_dfu_mode(sl);
