@@ -37,9 +37,12 @@ int main(int ac, char** av) {
             stlink_read_mem32(sl, sram_base + off, 4);
 
         printf("-- read_mem, cpuid\n");
-        stlink_read_mem32(sl, 0xe000e008, 4);
-        /*     stlink_read_mem32(sl, 0xe000ed90, 4); */
-        /*     stlink_read_mem32(sl, 0xe000edf0, 4); */
+        stlink_read_mem32(sl, 0xe000e008, 4);  // ACTLR        
+        // no idea what reg this is..  */
+        /*     stlink_read_mem32(sl, 0xe000ed90, 4);
+        // no idea what register this is...
+        /*     stlink_read_mem32(sl, 0xe000edf0, 4);
+        // offset 0xC into TIM11 register? TIMx_DIER?
         /*     stlink_read_mem32(sl, 0x4001100c, 4); */
 
         printf("-- status\n");
