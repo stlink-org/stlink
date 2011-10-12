@@ -28,6 +28,10 @@ static const char hex[] = "0123456789abcdef";
 
 static const char* current_memory_map = NULL;
 
+/*
+ * Chip IDs are explained in the appropriate programming manual for the
+ * DBGMCU_IDCODE register (0xE0042000)
+ */
 struct chip_params {
 	uint32_t chip_id;
 	char* description;
@@ -35,23 +39,27 @@ struct chip_params {
 	uint32_t sram_size;
 	uint32_t bootrom_base, bootrom_size;
 } const devices[] = {
-	{ 0x412, "Low-density device",
-	  0x8000,   0x400, 0x2800,  0x1ffff000, 0x800  }, // table 1, pm0063
-	{ 0x410, "Medium-density device",
+	{ 0x410, "F1 Medium-density device",
 	  0x20000,  0x400, 0x5000,  0x1ffff000, 0x800  }, // table 2, pm0063
-	{ 0x414, "High-density device",
+	{ 0x411, "F2 device",
+	  0x100000,   0x20000, 0x20000, 0x1ff00000, 0x7800  }, // table 1, pm0059
+	{ 0x412, "F1 Low-density device",
+	  0x8000,   0x400, 0x2800,  0x1ffff000, 0x800  }, // table 1, pm0063
+	{ 0x413, "F4 device",
+	  0x100000,   0x20000, 0x20000,  0x1ff00000, 0x7800  }, // table 1, pm0081
+	{ 0x414, "F1 High-density device",
 	  0x80000,  0x800, 0x10000, 0x1ffff000, 0x800  },  // table 3 pm0063 
           // This ignores the EEPROM! (and uses the page erase size,
           // not the sector write protection...)
-        { 0x416, "EnergyLite device",
-          0x2000, 0x100, 0x4000, 0x1ff00000, 0x1000 },
-	{ 0x418, "Connectivity line device",
+	{ 0x416, "L1 Med-density device",  // table 1, pm0062
+          0x20000, 0x100, 0x4000, 0x1ff00000, 0x1000 },
+	{ 0x418, "F1 Connectivity line device",
 	  0x40000,  0x800, 0x10000, 0x1fffb000, 0x4800 },
-	{ 0x420, "Medium-density value line device",
+	{ 0x420, "F1 Medium-density value line device",
 	  0x20000,  0x400, 0x2000,  0x1ffff000, 0x800  },
-	{ 0x428, "High-density value line device",
+	{ 0x428, "F1 High-density value line device",
 	  0x80000,  0x800, 0x8000,  0x1ffff000, 0x800  },
-	{ 0x430, "XL-density device",   // pm0068
+	{ 0x430, "F1 XL-density device",   // pm0068
 	  0x100000, 0x800, 0x18000, 0x1fffe000, 0x1800 },
 	{ 0 }
 };
