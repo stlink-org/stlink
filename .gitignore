@@ -1,2 +1,5 @@
 /nbproject/private/
 *.o
+libstlink.a
+test_usb
+test_sg
