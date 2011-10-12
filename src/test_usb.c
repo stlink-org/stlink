@@ -23,8 +23,12 @@ int main(int ac, char** av) {
         printf("-- mode after entering swd mode: %d\n", stlink_current_mode(sl));
 
         printf("-- chip id: %#x\n", stlink_chip_id(sl));
-        printf("-- core_id\n");
-        stlink_core_id(sl);
+        printf("-- core_id: %#x\n", stlink_core_id(sl));
+
+        cortex_m3_cpuid_t cpuid;
+        stlink_cpu_id(sl, &cpuid);
+        printf("cpuid:impl_id = %0#x, variant = %#x\n", cpuid.implementer_id, cpuid.variant);
+        printf("cpuid:part = %#x, rev = %#x\n", cpuid.part, cpuid.revision);
 
         printf("-- read_sram\n");
         static const uint32_t sram_base = 0x8000000;

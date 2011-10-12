@@ -71,6 +71,9 @@ extern "C" {
 #define STLINK_SWD_ENTER 0x30
 #define STLINK_SWD_READCOREID 0x32  // TBD
 
+// cortex m3 technical reference manual
+#define CM3_REG_CPUID 0xE000ED00
+
     typedef struct {
         uint32_t r[16];
         uint32_t xpsr;
@@ -81,6 +84,13 @@ extern "C" {
     } reg;
 
     typedef uint32_t stm32_addr_t;
+    
+    typedef struct _cortex_m3_cpuid_ {
+        uint16_t implementer_id;
+        uint16_t variant;
+        uint16_t part;
+        uint8_t revision;
+    } cortex_m3_cpuid_t;
 
     typedef struct stlink_version_ {
         uint32_t stlink_v;
@@ -197,6 +207,7 @@ extern "C" {
     
     // PUBLIC
     uint16_t stlink_chip_id(stlink_t *sl);
+    void stlink_cpu_id(stlink_t *sl, cortex_m3_cpuid_t *cpuid);
 
     // privates, publics, the rest....
     // TODO sort what is private, and what is not

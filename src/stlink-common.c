@@ -258,7 +258,6 @@ static void disable_flash_read_protection(stlink_t *sl) {
 void stlink_close(stlink_t *sl) {
     D(sl, "\n*** stlink_close ***\n");
     sl->backend->close(sl);
-
     free(sl);
 }
 
@@ -299,10 +298,24 @@ uint16_t stlink_chip_id(stlink_t *sl) {
     return chip_id;
 }
 
+/**
+ * Cortex m3 tech ref manual, CPUID register description
+ * @param sl stlink context
+ * @param cpuid pointer to the result object
+ */
+void stlink_cpu_id(stlink_t *sl, cortex_m3_cpuid_t *cpuid) {
+    stlink_read_mem32(sl, CM3_REG_CPUID, 4);
+    uint32_t raw = read_uint32(sl->q_buf, 0);
+    cpuid->implementer_id = (raw >> 24) & 0x7f;
+    cpuid->variant = (raw >> 20) & 0xf;
+    cpuid->part = (raw >> 4) & 0xfff;
+    cpuid->revision = raw & 0xf;
+    return;
+}
+
 void stlink_reset(stlink_t *sl) {
     D(sl, "\n*** stlink_reset ***\n");
     sl->backend->reset(sl);
-
 }
 
 void stlink_run(stlink_t *sl) {
