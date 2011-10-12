@@ -14,6 +14,8 @@ extern "C" {
 
 #include <libusb-1.0/libusb.h>
 #include "stlink-common.h"
+    
+#define STLINK_CMD_SIZE 16
 
 #if defined(CONFIG_USE_LIBUSB)
     struct stlink_libusb {

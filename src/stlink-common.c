@@ -285,6 +285,13 @@ void stlink_core_id(stlink_t *sl) {
     DD(sl, "core_id = 0x%08x\n", sl->core_id);
 }
 
+uint16_t stlink_chip_id(stlink_t *sl) {
+    stlink_read_mem32(sl, 0xE0042000, 4);
+    uint32_t chip_id = sl->q_buf[0] | (sl->q_buf[1] << 8) | (sl->q_buf[2] << 16) |
+            (sl->q_buf[3] << 24);
+    return chip_id;
+}
+
 void stlink_reset(stlink_t *sl) {
     D(sl, "\n*** stlink_reset ***\n");
     sl->backend->reset(sl);
@@ -404,18 +411,16 @@ void stlink_step(stlink_t *sl) {
 }
 
 int stlink_current_mode(stlink_t *sl) {
-    D(sl, "\n*** stlink_current_mode ***\n");
     int mode = sl->backend->current_mode(sl);
-    stlink_print_data(sl);
     switch (mode) {
         case STLINK_DEV_DFU_MODE:
-            DD(sl, "stlink mode: dfu\n");
+            DD(sl, "stlink current mode: dfu\n");
             return mode;
         case STLINK_DEV_DEBUG_MODE:
-            DD(sl, "stlink mode: debug (jtag or swd)\n");
+            DD(sl, "stlink current mode: debug (jtag or swd)\n");
             return mode;
         case STLINK_DEV_MASS_MODE:
-            DD(sl, "stlink mode: mass\n");
+            DD(sl, "stlink current mode: mass\n");
             return mode;
     }
     DD(sl, "stlink mode: unknown!\n");

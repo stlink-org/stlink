@@ -38,6 +38,7 @@ extern "C" {
 #define STLINK_DEBUG_COMMAND		0xF2
 #define STLINK_DFU_COMMAND		0xF3
 #define STLINK_DFU_EXIT		0x07
+    // enter dfu could be 0x08?
 
     // STLINK_GET_CURRENT_MODE
 #define STLINK_DEV_DFU_MODE		0x00
@@ -65,6 +66,10 @@ extern "C" {
 #define STLINK_DEBUG_WRITEDEBUGREG	0x0f
 #define STLINK_DEBUG_ENTER_SWD		0xa3
 #define STLINK_DEBUG_ENTER_JTAG	0x00
+    
+    // TODO - possible poor names...
+#define STLINK_SWD_ENTER 0x30
+#define STLINK_SWD_READCOREID 0x32  // TBD
 
     typedef struct {
         uint32_t r[16];
@@ -109,12 +114,12 @@ extern "C" {
         void (*reset) (stlink_t * stl);
         void (*run) (stlink_t * stl);
         void (*status) (stlink_t * stl);
-        void (*version) (stlink_t * stl);
+        void (*version) (stlink_t *sl);
         void (*read_mem32) (stlink_t *sl, uint32_t addr, uint16_t len);
         void (*write_mem32) (stlink_t *sl, uint32_t addr, uint16_t len);
         void (*write_mem8) (stlink_t *sl, uint32_t addr, uint16_t len);
-        void (*read_all_regs) (stlink_t *sl, reg* regp);
-        void (*read_reg) (stlink_t *sl, int r_idx, reg* regp);
+        void (*read_all_regs) (stlink_t *sl, reg * regp);
+        void (*read_reg) (stlink_t *sl, int r_idx, reg * regp);
         void (*write_reg) (stlink_t *sl, uint32_t reg, int idx);
         void (*step) (stlink_t * stl);
         int (*current_mode) (stlink_t * stl);
@@ -189,6 +194,9 @@ extern "C" {
 
     int stlink_erase_flash_mass(stlink_t* sl);
     int stlink_write_flash(stlink_t* sl, stm32_addr_t address, uint8_t* data, unsigned length);
+    
+    // PUBLIC
+    uint16_t stlink_chip_id(stlink_t *sl);
 
     // privates, publics, the rest....
     // TODO sort what is private, and what is not

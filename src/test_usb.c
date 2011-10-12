@@ -9,6 +9,8 @@ int main(int ac, char** av) {
     if (sl != NULL) {
         printf("-- version\n");
         stlink_version(sl);
+        
+        printf("mode before doing anything: %d\n", stlink_current_mode(sl));
 
         if (stlink_current_mode(sl) == STLINK_DEV_DFU_MODE) {
             printf("-- exit_dfu_mode\n");
@@ -18,11 +20,11 @@ int main(int ac, char** av) {
         printf("-- enter_swd_mode\n");
         stlink_enter_swd_mode(sl);
 
-        printf("-- current_mode\n");
-        stlink_current_mode(sl);
+        printf("-- mode after entering swd mode: %d\n", stlink_current_mode(sl));
 
-        /*     printf("-- core_id\n"); */
-        /*     stlink_core_id(sl); */
+        printf("-- chip id: %#x\n", stlink_chip_id(sl));
+        printf("-- core_id\n");
+        stlink_core_id(sl);
 
         printf("-- read_sram\n");
         static const uint32_t sram_base = 0x8000000;
