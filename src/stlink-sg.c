@@ -246,51 +246,6 @@ void stlink_q(stlink_t *sl) {
 
 // TODO thinking, cleanup
 
-void stlink_parse_version(stlink_t *stl) {
-    struct stlink_libsg *sl = stl->backend_data;
-    sl->st_vid = 0;
-    sl->stlink_pid = 0;
-    if (stl->q_len <= 0) {
-        fprintf(stderr, "Error: could not parse the stlink version");
-        return;
-    }
-    stlink_print_data(stl);
-    uint32_t b0 = stl->q_buf[0]; //lsb
-    uint32_t b1 = stl->q_buf[1];
-    uint32_t b2 = stl->q_buf[2];
-    uint32_t b3 = stl->q_buf[3];
-    uint32_t b4 = stl->q_buf[4];
-    uint32_t b5 = stl->q_buf[5]; //msb
-
-    // b0 b1                       || b2 b3  | b4 b5
-    // 4b        | 6b     | 6b     || 2B     | 2B
-    // stlink_v  | jtag_v | swim_v || st_vid | stlink_pid
-
-    sl->stlink_v = (b0 & 0xf0) >> 4;
-    sl->jtag_v = ((b0 & 0x0f) << 2) | ((b1 & 0xc0) >> 6);
-    sl->swim_v = b1 & 0x3f;
-    sl->st_vid = (b3 << 8) | b2;
-    sl->stlink_pid = (b5 << 8) | b4;
-
-    if (stl->verbose < 2)
-        return;
-
-    DD(stl, "st vid         = 0x%04x (expect 0x%04x)\n",
-            sl->st_vid, USB_ST_VID);
-    DD(stl, "stlink pid     = 0x%04x (expect 0x%04x)\n",
-            sl->stlink_pid, USB_STLINK_PID);
-    DD(stl, "stlink version = 0x%x\n", sl->stlink_v);
-    DD(stl, "jtag version   = 0x%x\n", sl->jtag_v);
-    DD(stl, "swim version   = 0x%x\n", sl->swim_v);
-    if (sl->jtag_v == 0)
-        DD(stl,
-            "    notice: the firmware doesn't support a jtag/swd interface\n");
-    if (sl->swim_v == 0)
-        DD(stl,
-            "    notice: the firmware doesn't support a swim interface\n");
-
-}
-
 void stlink_stat(stlink_t *stl, char *txt) {
     if (stl->q_len <= 0)
         return;
@@ -317,7 +272,6 @@ void _stlink_sg_version(stlink_t *stl) {
     stl->q_len = 6;
     sl->q_addr = 0;
     stlink_q(stl);
-    stlink_parse_version(stl);
 }
 
 // Get stlink mode:

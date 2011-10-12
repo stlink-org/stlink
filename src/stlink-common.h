@@ -77,6 +77,14 @@ extern "C" {
 
     typedef uint32_t stm32_addr_t;
 
+    typedef struct stlink_version_ {
+        uint32_t stlink_v;
+        uint32_t jtag_v;
+        uint32_t swim_v;
+        uint32_t st_vid;
+        uint32_t stlink_pid;
+    } stlink_version_t;
+
     typedef struct flash_loader {
         stm32_addr_t loader_addr; /* loader sram adddr */
         stm32_addr_t buf_addr; /* buffer sram address */
