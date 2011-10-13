@@ -76,6 +76,9 @@ extern "C" {
 #define CM3_REG_FP_CTRL 0xE0002000
 #define CM3_REG_FP_COMP0 0xE0002008
 
+/* Enough space to hold both a V2 command or a V1 command packaged as generic scsi*/
+#define C_BUF_LEN 32
+
     typedef struct {
         uint32_t r[16];
         uint32_t xpsr;
@@ -142,6 +145,8 @@ extern "C" {
         struct _stlink_backend *backend;
         void *backend_data;
 
+        // Room for the command header
+        unsigned char c_buf[C_BUF_LEN];
         // Data transferred from or to device
         unsigned char q_buf[Q_BUF_LEN];
         int q_len;
