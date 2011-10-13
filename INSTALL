@@ -1,0 +1,29 @@
+INSTALL
+=======
+
+1) Load the sg kernel module:
+
+	$ modprobe sg
+
+2) On Ubuntu you need to install the package libsgutils2-dev:
+
+	$ sudo apt-get install libsgutils2-dev
+
+3) Make:
+
+	$ make -C build
+	
+4) Install or reinstall
+
+	$ sudo make install -C build
+
+5) Run:
+
+	$ st-util port [/dev/sgX]
+or
+	$ st-util [port]
+or
+	$ st-util --help
+
+6) Have fun!
+

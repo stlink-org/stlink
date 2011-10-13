@@ -69,15 +69,74 @@ int serve(stlink_t *sl, int port);
 char* make_memory_map(const struct chip_params *params, uint32_t flash_size);
 
 int main(int argc, char** argv) {
-	if(argc != 3) {
-		fprintf(stderr, "Usage: %s <port> /dev/sgX\n", argv[0]);
-		return 1;
-	}
 
-        // FIXME - hardcoded to usb....
-        stlink_t *sl = stlink_open_usb(argv[2], 10);
-	if (sl == NULL)
-		return 1;
+	stlink_t *sl = NULL;
+
+	const char * HelpStr =	"Usage:\n"
+								"\t st-util port [/dev/sgX]\n"
+								"\t st-util [port]\n"
+								"\t st-util --help\n";
+
+	switch(argc) {
+
+		default: {
+			fprintf(stderr, HelpStr, NULL);
+			return 1;
+		}
+
+		case 3 : {
+			//sl = stlink_quirk_open(argv[2], 0);
+                        // FIXME - hardcoded to usb....
+                        sl = stlink_open_usb(argv[2], 10);
+			if(sl == NULL) return 1;
+			break;
+		}
+
+		case 2 : {
+			if (strcmp(argv[1], "--help") == 0) {
+				fprintf(stdout, HelpStr, NULL);
+				return 1;
+			}
+		}
+
+		case 1 : { // Search ST-LINK (from /dev/sg0 to /dev/sg99)
+			const int DevNumMax = 99;
+			int ExistDevCount = 0;
+
+			for(int DevNum = 0; DevNum <= DevNumMax; DevNum++)
+			{
+				if(DevNum < 10) {
+					char DevName[] = "/dev/sgX";
+					const int X_index = 7;
+					DevName[X_index] = DevNum + '0';
+					if ( !access(DevName, F_OK) ) {
+						sl = stlink_quirk_open(DevName, 0);
+						ExistDevCount++;
+					}
+				}
+				else if(DevNum < 100) {
+					char DevName[] = "/dev/sgXY";
+					const int X_index = 7;
+					const int Y_index = 8;
+					DevName[X_index] = DevNum/10 + '0';
+					DevName[Y_index] = DevNum%10 + '0';
+					if ( !access(DevName, F_OK) ) {
+						sl = stlink_quirk_open(DevName, 0);
+						ExistDevCount++;
+					}
+				}
+				if(sl != NULL) break;
+			}
+
+			if(sl == NULL) {
+				fprintf(stdout, "\nNumber of /dev/sgX devices found: %i \n",
+						ExistDevCount);
+				fprintf(stderr, "ST-LINK not found\n");
+				return 1;
+			}
+			break;
+		}
+	}
 
 	if(stlink_current_mode(sl) != STLINK_DEV_DEBUG_MODE)
 		stlink_enter_swd_mode(sl);
@@ -114,7 +173,16 @@ int main(int argc, char** argv) {
 	// memory map is in 1k blocks.
 	current_memory_map = make_memory_map(params, flash_size * 0x400);
 
-	int port = atoi(argv[1]);
+	int port;
+
+	if(argc == 1) {
+                // not on 64bit?
+		//srand((unsigned int)&port);
+		port = rand()/65535;
+	}
+	else {
+		port = atoi(argv[1]);
+	}
 
 	while(serve(sl, port) == 0);
 
