@@ -186,7 +186,6 @@ void _stlink_usb_write_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
     assert(len < sizeof(sl->q_buf));  // makes a compiler warning? always true?
 #endif
     assert((len & 3) == 0); 
-    stlink_print_data(sl);
     send_only(slu, buf, len);
 
 }
@@ -206,7 +205,6 @@ void _stlink_usb_write_mem8(stlink_t *sl, uint32_t addr, uint16_t len) {
 #if Q_BUF_LEN < UINT16_MAX
     assert(len < sizeof(sl->q_buf));  // makes a compiler warning? always true?
 #endif
-    stlink_print_data(sl);
     send_only(slu, buf, len);
 }
 
