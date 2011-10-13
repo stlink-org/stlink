@@ -416,20 +416,100 @@ void _stlink_usb_read_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
 }
 
 void _stlink_usb_read_all_regs(stlink_t *sl, reg *regp) {
-    DD(sl, "oops! read_all_regs not implemented for USB!\n");
+    struct stlink_libusb * const slu = sl->backend_data;
+    unsigned char* const buf = sl->q_buf;
+    unsigned char* const cmd_buf = sl->c_buf;
+    ssize_t size;
+    int i;
+
+    memset(cmd_buf, 0, STLINK_CMD_SIZE);
+    cmd_buf[0] = STLINK_DEBUG_COMMAND;
+    cmd_buf[1] = STLINK_DEBUG_READALLREGS;
+    size = send_recv(slu, cmd_buf, STLINK_CMD_SIZE, buf, 84);
+    if (size == -1) {
+        printf("[!] send_recv\n");
+        return;
+    }
+    sl->q_len = (size_t) size;
+    stlink_print_data(sl);
+    for(i=0; i<16; i++)
+        regp->r[i]= read_uint32(sl->q_buf, i*4);
+    regp->xpsr       = read_uint32(sl->q_buf, 64);
+    regp->main_sp    = read_uint32(sl->q_buf, 68);
+    regp->process_sp = read_uint32(sl->q_buf, 72);
+    regp->rw         = read_uint32(sl->q_buf, 76);
+    regp->rw2        = read_uint32(sl->q_buf, 80);
+    if (sl->verbose < 2)
+        return;
+
+    DD(sl, "xpsr       = 0x%08x\n", read_uint32(sl->q_buf, 64));
+    DD(sl, "main_sp    = 0x%08x\n", read_uint32(sl->q_buf, 68));
+    DD(sl, "process_sp = 0x%08x\n", read_uint32(sl->q_buf, 72));
+    DD(sl, "rw         = 0x%08x\n", read_uint32(sl->q_buf, 76));
+    DD(sl, "rw2        = 0x%08x\n", read_uint32(sl->q_buf, 80));
 }
 
 void _stlink_usb_read_reg(stlink_t *sl, int r_idx, reg *regp) {
-    DD(sl, "oops! read_reg not implemented for USB! Wanted to read reg %d\n",
-            r_idx);
+    struct stlink_libusb * const slu = sl->backend_data;
+    unsigned char* const buf = sl->q_buf;
+    unsigned char* const cmd_buf = sl->c_buf;
+    ssize_t size;
+    uint32_t r;
+
+    memset(cmd_buf, 0, STLINK_CMD_SIZE);
+    cmd_buf[0] = STLINK_DEBUG_COMMAND;
+    cmd_buf[1] = STLINK_DEBUG_READREG;
+    cmd_buf[2] = (uint8_t) r_idx;
+    size = send_recv(slu, cmd_buf, STLINK_CMD_SIZE, buf, 4);
+    if (size == -1) {
+        printf("[!] send_recv\n");
+        return;
+    }
+    sl->q_len = (size_t) size;
+    stlink_print_data(sl);
+    r = read_uint32(sl->q_buf, 0);
+    DD(sl, "r_idx (%2d) = 0x%08x\n", r_idx, r);
+    
+    switch (r_idx) {
+    case 16:
+        regp->xpsr = r;
+        break;
+    case 17:
+        regp->main_sp = r;
+        break;
+    case 18:
+        regp->process_sp = r;
+        break;
+    case 19:
+        regp->rw = r; //XXX ?(primask, basemask etc.)
+        break;
+    case 20:
+        regp->rw2 = r; //XXX ?(primask, basemask etc.)
+        break;
+    default:
+        regp->r[r_idx] = r;
+    }
 }
 
 void _stlink_usb_write_reg(stlink_t *sl, uint32_t reg, int idx) {
-    DD(sl, "oops! write_reg not implemented for USB! Wanted to write %#x to %d\n",
-            reg, idx);
+    struct stlink_libusb * const slu = sl->backend_data;
+    unsigned char* const buf = sl->q_buf;
+    unsigned char *cmd_buf = sl->c_buf;
+    ssize_t size;
+
+    memset(cmd_buf, 0, STLINK_CMD_SIZE);
+    cmd_buf[0] = STLINK_DEBUG_COMMAND;
+    cmd_buf[1] = STLINK_DEBUG_WRITEREG;
+    cmd_buf[2] = idx;
+    write_uint32(cmd_buf + 3, reg);
+    size = send_recv(slu, cmd_buf, STLINK_CMD_SIZE, buf, 2);
+    if (size == -1) {
+        printf("[!] send_recv\n");
+        return;
+    }
+    sl->q_len = (size_t) size;
+    stlink_print_data(sl);
 }
-
-
 
 stlink_backend_t _stlink_usb_backend = {
     _stlink_usb_close,

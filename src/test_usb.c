@@ -4,6 +4,7 @@
 
 int main(int ac, char** av) {
     stlink_t* sl;
+    reg regs;
 
     sl = stlink_open_usb(NULL, 10);
     if (sl != NULL) {
@@ -46,6 +47,7 @@ int main(int ac, char** av) {
         // offset 0xC into TIM11 register? TIMx_DIER?
         //     stlink_read_mem32(sl, 0x4001100c, 4); */
 
+        /* Test 32 bit Write */
         write_uint32(sl->q_buf,0x01234567);
         stlink_write_mem32(sl,0x200000a8,4);
         write_uint32(sl->q_buf,0x89abcdef);
@@ -53,19 +55,29 @@ int main(int ac, char** av) {
         stlink_read_mem32(sl, 0x200000a8, 4);
         stlink_read_mem32(sl, 0x200000ac, 4);
         
+        /* Test 8 bit write */
         write_uint32(sl->q_buf,0x01234567);
         stlink_write_mem8(sl,0x200001a8,3);
         write_uint32(sl->q_buf,0x89abcdef);
         stlink_write_mem8(sl, 0x200001ac, 3);
         stlink_read_mem32(sl, 0x200001a8, 4);
         stlink_read_mem32(sl, 0x200001ac, 4);
-       
 
         printf("-- status\n");
         stlink_status(sl);
 
         printf("-- reset\n");
         stlink_reset(sl);
+        stlink_force_debug(sl);
+        /* Test reg write*/
+        stlink_write_reg(sl, 0x01234567, 3);
+        stlink_write_reg(sl, 0x89abcdef, 4);
+        stlink_write_reg(sl, 0x12345678, 15);
+        for (off = 0; off < 21; off += 1)
+            stlink_read_reg(sl, off, &regs);
+        
+       
+        stlink_read_all_regs(sl, &regs);
 
         printf("-- status\n");
         stlink_status(sl);
