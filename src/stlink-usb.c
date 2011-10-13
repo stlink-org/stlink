@@ -182,6 +182,9 @@ void _stlink_usb_write_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
     write_uint16(cmd_buf + 6, len);
     send_only(slu, cmd_buf, STLINK_CMD_SIZE);
 
+#if Q_BUF_LEN < UINT16_MAX
+    assert(len < sizeof(sl->q_buf));  // makes a compiler warning? always true?
+#endif
     assert((len & 3) == 0); 
     stlink_print_data(sl);
     send_only(slu, buf, len);
@@ -200,6 +203,9 @@ void _stlink_usb_write_mem8(stlink_t *sl, uint32_t addr, uint16_t len) {
     write_uint16(cmd_buf + 6, len);
     send_only(slu, cmd_buf, STLINK_CMD_SIZE);
 
+#if Q_BUF_LEN < UINT16_MAX
+    assert(len < sizeof(sl->q_buf));  // makes a compiler warning? always true?
+#endif
     stlink_print_data(sl);
     send_only(slu, buf, len);
 }
@@ -392,8 +398,9 @@ void _stlink_usb_read_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
     unsigned char* const buf = sl->q_buf;
     ssize_t size;
 
-    /* assume len < sizeof(sl->q_buf) */
-    assert(len < sizeof(sl->q_buf));  // makes a compiler warning? always true?
+#if Q_BUF_LEN < UINT16_MAX
+    assert(len < sizeof(sl->q_buf));
+#endif
 
     memset(buf, 0, sizeof (sl->q_buf));
     buf[0] = STLINK_DEBUG_COMMAND;
