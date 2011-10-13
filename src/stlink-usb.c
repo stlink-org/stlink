@@ -155,7 +155,7 @@ void _stlink_usb_version(stlink_t *sl) {
     buf[0] = STLINK_GET_VERSION;
     buf[1] = 0x80;
 
-    size = send_recv(slu, buf, STLINK_CMD_SIZE, buf, sizeof (sl->q_buf));
+    size = send_recv(slu, buf, STLINK_CMD_SIZE, buf, 6);
     if (size == -1) {
         printf("[!] send_recv\n");
         return;
@@ -211,7 +211,7 @@ int _stlink_usb_current_mode(stlink_t * sl) {
     ssize_t size;
     memset(buf, 0, sizeof (sl->q_buf));
     buf[0] = STLINK_GET_CURRENT_MODE;
-    size = send_recv(slu, buf, STLINK_CMD_SIZE, buf, sizeof (sl->q_buf));
+    size = send_recv(slu, buf, STLINK_CMD_SIZE, buf, 2);
     if (size == -1) {
         printf("[!] send_recv\n");
         return -1;
@@ -228,7 +228,7 @@ void _stlink_usb_core_id(stlink_t * sl) {
     buf[0] = STLINK_DEBUG_COMMAND;
     buf[1] = STLINK_DEBUG_READCOREID;
 
-    size = send_recv(slu, buf, STLINK_CMD_SIZE, buf, sizeof (sl->q_buf));
+    size = send_recv(slu, buf, STLINK_CMD_SIZE, buf, 4);
     if (size == -1) {
         printf("[!] send_recv\n");
         return;
@@ -247,7 +247,7 @@ void _stlink_usb_status(stlink_t * sl) {
     buf[0] = STLINK_DEBUG_COMMAND;
     buf[1] = STLINK_DEBUG_GETSTATUS;
 
-    size = send_recv(slu, buf, STLINK_CMD_SIZE, buf, sizeof (sl->q_buf));
+    size = send_recv(slu, buf, STLINK_CMD_SIZE, buf, 2);
     if (size == -1) {
         printf("[!] send_recv\n");
         return;
@@ -271,7 +271,7 @@ void _stlink_usb_force_debug(stlink_t *sl) {
 
     buf[0] = STLINK_DEBUG_COMMAND;
     buf[1] = STLINK_DEBUG_FORCEDEBUG;
-    size = send_recv(slu, buf, STLINK_CMD_SIZE, buf, sizeof (sl->q_buf));
+    size = send_recv(slu, buf, STLINK_CMD_SIZE, buf, 2);
     if (size == -1) {
         printf("[!] send_recv\n");
         return;
@@ -290,7 +290,7 @@ void _stlink_usb_enter_swd_mode(stlink_t * sl) {
     buf[1] = STLINK_SWD_ENTER;
     buf[2] = STLINK_DEBUG_ENTER_SWD;
 
-    size = send_recv(slu, buf, STLINK_CMD_SIZE, buf, sizeof (sl->q_buf));
+    size = send_recv(slu, buf, STLINK_CMD_SIZE, buf, 2);
     if (size == -1) {
         printf("[!] send_recv\n");
         return;
@@ -343,7 +343,7 @@ void _stlink_usb_step(stlink_t* sl) {
     buf[0] = STLINK_DEBUG_COMMAND;
     buf[1] = STLINK_DEBUG_STEPCORE;
 
-    size = send_recv(slu, buf, STLINK_CMD_SIZE, buf, sizeof (sl->q_buf));
+    size = send_recv(slu, buf, STLINK_CMD_SIZE, buf, 2);
     if (size == -1) {
         printf("[!] send_recv\n");
         return;
@@ -363,7 +363,7 @@ void _stlink_usb_run(stlink_t* sl) {
     buf[0] = STLINK_DEBUG_COMMAND;
     buf[1] = STLINK_DEBUG_RUNCORE;
 
-    size = send_recv(slu, buf, STLINK_CMD_SIZE, buf, sizeof (sl->q_buf));
+    size = send_recv(slu, buf, STLINK_CMD_SIZE, buf, 2);
     if (size == -1) {
         printf("[!] send_recv\n");
         return;
@@ -404,7 +404,7 @@ void _stlink_usb_read_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
     assert (len < 256);
     buf[6] = (uint8_t) len;
 
-    size = send_recv(slu, buf, STLINK_CMD_SIZE, buf, sizeof (sl->q_buf));
+    size = send_recv(slu, buf, STLINK_CMD_SIZE, buf, len);
     if (size == -1) {
         printf("[!] send_recv\n");
         return;
