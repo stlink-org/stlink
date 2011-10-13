@@ -163,7 +163,7 @@ void _stlink_usb_version(stlink_t *sl) {
 
 #if 1 /* DEBUG */
     {
-        unsigned int i;
+        ssize_t i;
         for (i = 0; i < size; ++i) printf("%02x", buf[i]);
         printf("\n");
     }
