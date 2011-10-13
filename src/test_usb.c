@@ -40,11 +40,26 @@ int main(int ac, char** av) {
         stlink_read_mem32(sl, CM3_REG_FP_CTRL, 4);
         
         // no idea what reg this is..  */
-        /*     stlink_read_mem32(sl, 0xe000ed90, 4);
+        //     stlink_read_mem32(sl, 0xe000ed90, 4);
         // no idea what register this is...
-        /*     stlink_read_mem32(sl, 0xe000edf0, 4);
+        //     stlink_read_mem32(sl, 0xe000edf0, 4);
         // offset 0xC into TIM11 register? TIMx_DIER?
-        /*     stlink_read_mem32(sl, 0x4001100c, 4); */
+        //     stlink_read_mem32(sl, 0x4001100c, 4); */
+
+        write_uint32(sl->q_buf,0x01234567);
+        stlink_write_mem32(sl,0x200000a8,4);
+        write_uint32(sl->q_buf,0x89abcdef);
+        stlink_write_mem32(sl,0x200000ac, 4);
+        stlink_read_mem32(sl, 0x200000a8, 4);
+        stlink_read_mem32(sl, 0x200000ac, 4);
+        
+        write_uint32(sl->q_buf,0x01234567);
+        stlink_write_mem8(sl,0x200001a8,3);
+        write_uint32(sl->q_buf,0x89abcdef);
+        stlink_write_mem8(sl, 0x200001ac, 3);
+        stlink_read_mem32(sl, 0x200001a8, 4);
+        stlink_read_mem32(sl, 0x200001ac, 4);
+       
 
         printf("-- status\n");
         stlink_status(sl);

@@ -171,13 +171,37 @@ void _stlink_usb_version(stlink_t *sl) {
 }
 
 void _stlink_usb_write_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
-    DD(sl, "oops! no write32 support yet, wanted to write %d bytes to %#x\n",
-            len, addr);
+    struct stlink_libusb * const slu = sl->backend_data;
+    unsigned char* const buf = sl->q_buf;
+    unsigned char *cmd_buf = sl->c_buf;
+
+    memset(cmd_buf, 0, STLINK_CMD_SIZE);
+    cmd_buf[0] = STLINK_DEBUG_COMMAND;
+    cmd_buf[1] =  STLINK_DEBUG_WRITEMEM_32BIT;
+    write_uint32(cmd_buf + 2, addr);
+    write_uint16(cmd_buf + 6, len);
+    send_only(slu, cmd_buf, STLINK_CMD_SIZE);
+
+    assert((len & 3) == 0); 
+    stlink_print_data(sl);
+    send_only(slu, buf, len);
+
 }
 
 void _stlink_usb_write_mem8(stlink_t *sl, uint32_t addr, uint16_t len) {
-    DD(sl, "oops! no write8 support yet, wanted to write %d bytes to %#x\n",
-            len, addr);
+    struct stlink_libusb * const slu = sl->backend_data;
+    unsigned char* const buf = sl->q_buf;
+    unsigned char *cmd_buf = sl->c_buf;
+
+    memset(cmd_buf, 0, STLINK_CMD_SIZE);
+    cmd_buf[0] = STLINK_DEBUG_COMMAND;
+    cmd_buf[1] =  STLINK_DEBUG_WRITEMEM_8BIT;
+    write_uint32(cmd_buf + 2, addr);
+    write_uint16(cmd_buf + 6, len);
+    send_only(slu, cmd_buf, STLINK_CMD_SIZE);
+
+    stlink_print_data(sl);
+    send_only(slu, buf, len);
 }
 
 
