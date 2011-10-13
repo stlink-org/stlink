@@ -63,6 +63,9 @@
 
  to your /etc/modprobe.conf or /etc/modprobe.d/local.conf (or add the "quirks=..."
  part to an existing options line for usb-storage).
+
+ https://wiki.kubuntu.org/Kernel/Debugging/USB explains the protocoll and 
+ would allow to replace the sg access to pure libusb access
  */
 
 
