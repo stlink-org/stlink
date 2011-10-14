@@ -14,8 +14,10 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+
+#include <stlink-common.h>
+
 #include "gdb-remote.h"
-#include "stlink-hw.h"
 
 #define FLASH_BASE 0x08000000
 #define FLASH_PAGE (sl->flash_pgsz)
@@ -26,52 +28,120 @@ static const char hex[] = "0123456789abcdef";
 
 static const char* current_memory_map = NULL;
 
+/*
+ * Chip IDs are explained in the appropriate programming manual for the
+ * DBGMCU_IDCODE register (0xE0042000)
+ */
 struct chip_params {
 	uint32_t chip_id;
 	char* description;
+        uint32_t flash_size_reg;
 	uint32_t max_flash_size, flash_pagesize;
 	uint32_t sram_size;
 	uint32_t bootrom_base, bootrom_size;
 } const devices[] = {
-	{ 0x412, "Low-density device",
-	  0x8000,   0x400, 0x2800,  0x1ffff000, 0x800  },
-	{ 0x410, "Medium-density device",
-	  0x20000,  0x400, 0x5000,  0x1ffff000, 0x800  },
-	{ 0x414, "High-density device",
-	  0x80000,  0x800, 0x10000, 0x1ffff000, 0x800  },
-	{ 0x418, "Connectivity line device",
+	{ 0x410, "F1 Medium-density device", 0x1ffff7e0,
+	  0x20000,  0x400, 0x5000,  0x1ffff000, 0x800  }, // table 2, pm0063
+	{ 0x411, "F2 device", 0, /* No flash size register found in the docs*/
+	  0x100000,   0x20000, 0x20000, 0x1ff00000, 0x7800  }, // table 1, pm0059
+	{ 0x412, "F1 Low-density device", 0x1ffff7e0,
+	  0x8000,   0x400, 0x2800,  0x1ffff000, 0x800  }, // table 1, pm0063
+	{ 0x413, "F4 device", 0x1FFF7A10,
+	  0x100000,   0x20000, 0x20000,  0x1ff00000, 0x7800  }, // table 1, pm0081
+	{ 0x414, "F1 High-density device", 0x1ffff7e0,
+	  0x80000,  0x800, 0x10000, 0x1ffff000, 0x800  },  // table 3 pm0063 
+          // This ignores the EEPROM! (and uses the page erase size,
+          // not the sector write protection...)
+	{ 0x416, "L1 Med-density device", 0x1FF8004C, // table 1, pm0062
+          0x20000, 0x100, 0x4000, 0x1ff00000, 0x1000 },
+	{ 0x418, "F1 Connectivity line device", 0x1ffff7e0,
 	  0x40000,  0x800, 0x10000, 0x1fffb000, 0x4800 },
-	{ 0x420, "Medium-density value line device",
+	{ 0x420, "F1 Medium-density value line device", 0x1ffff7e0,
 	  0x20000,  0x400, 0x2000,  0x1ffff000, 0x800  },
-	{ 0x428, "High-density value line device",
+	{ 0x428, "F1 High-density value line device", 0x1ffff7e0,
 	  0x80000,  0x800, 0x8000,  0x1ffff000, 0x800  },
-	{ 0x430, "XL-density device",
+	{ 0x430, "F1 XL-density device", 0x1ffff7e0,  // pm0068
 	  0x100000, 0x800, 0x18000, 0x1fffe000, 0x1800 },
 	{ 0 }
 };
 
-int serve(struct stlink* sl, int port);
+int serve(stlink_t *sl, int port);
 char* make_memory_map(const struct chip_params *params, uint32_t flash_size);
 
 int main(int argc, char** argv) {
-	if(argc != 3) {
-		fprintf(stderr, "Usage: %s <port> /dev/sgX\n", argv[0]);
-		return 1;
-	}
 
-	struct stlink *sl = stlink_quirk_open(argv[2], 0);
-	if (sl == NULL)
-		return 1;
+	stlink_t *sl = NULL;
+
+	const char * HelpStr =	"Usage:\n"
+								"\t st-util port [/dev/sgX]\n"
+								"\t st-util [port]\n"
+								"\t st-util --help\n";
+
+	switch(argc) {
+
+		default: {
+			fprintf(stderr, HelpStr, NULL);
+			return 1;
+		}
+
+		case 3 : {
+			//sl = stlink_quirk_open(argv[2], 0);
+                        // FIXME - hardcoded to usb....
+                        sl = stlink_open_usb(argv[2], 10);
+			if(sl == NULL) return 1;
+			break;
+		}
+
+		case 2 : {
+			if (strcmp(argv[1], "--help") == 0) {
+				fprintf(stdout, HelpStr, NULL);
+				return 1;
+			}
+		}
+
+		case 1 : { // Search ST-LINK (from /dev/sg0 to /dev/sg99)
+			const int DevNumMax = 99;
+			int ExistDevCount = 0;
+
+			for(int DevNum = 0; DevNum <= DevNumMax; DevNum++)
+			{
+				if(DevNum < 10) {
+					char DevName[] = "/dev/sgX";
+					const int X_index = 7;
+					DevName[X_index] = DevNum + '0';
+					if ( !access(DevName, F_OK) ) {
+						sl = stlink_quirk_open(DevName, 0);
+						ExistDevCount++;
+					}
+				}
+				else if(DevNum < 100) {
+					char DevName[] = "/dev/sgXY";
+					const int X_index = 7;
+					const int Y_index = 8;
+					DevName[X_index] = DevNum/10 + '0';
+					DevName[Y_index] = DevNum%10 + '0';
+					if ( !access(DevName, F_OK) ) {
+						sl = stlink_quirk_open(DevName, 0);
+						ExistDevCount++;
+					}
+				}
+				if(sl != NULL) break;
+			}
+
+			if(sl == NULL) {
+				fprintf(stdout, "\nNumber of /dev/sgX devices found: %i \n",
+						ExistDevCount);
+				fprintf(stderr, "ST-LINK not found\n");
+				return 1;
+			}
+			break;
+		}
+	}
 
 	if(stlink_current_mode(sl) != STLINK_DEV_DEBUG_MODE)
 		stlink_enter_swd_mode(sl);
 
-	uint32_t chip_id;
-
-	stlink_read_mem32(sl, 0xE0042000, 4);
-	chip_id = sl->q_buf[0] | (sl->q_buf[1] << 8) | (sl->q_buf[2] << 16) |
-		(sl->q_buf[3] << 24);
-
+	uint32_t chip_id = stlink_chip_id(sl);
 	printf("Chip ID is %08x.\n", chip_id);
 
 	const struct chip_params* params = NULL;
@@ -96,14 +166,23 @@ int main(int argc, char** argv) {
 
 	uint32_t flash_size;
 
-	stlink_read_mem32(sl, 0x1FFFF7E0, 4);
+	stlink_read_mem32(sl, params->flash_size_reg, 4);
 	flash_size = sl->q_buf[0] | (sl->q_buf[1] << 8);
 
 	printf("Flash size is %d KiB.\n", flash_size);
 	// memory map is in 1k blocks.
 	current_memory_map = make_memory_map(params, flash_size * 0x400);
 
-	int port = atoi(argv[1]);
+	int port;
+
+	if(argc == 1) {
+                // not on 64bit?
+		//srand((unsigned int)&port);
+		port = rand()/65535;
+	}
+	else {
+		port = atoi(argv[1]);
+	}
 
 	while(serve(sl, port) == 0);
 
@@ -170,9 +249,7 @@ struct code_hw_watchpoint {
 
 struct code_hw_watchpoint data_watches[DATA_WATCH_NUM];
 
-static void init_data_watchpoints(struct stlink *sl) {
-	int i;
-
+static void init_data_watchpoints(stlink_t *sl) {
 	#ifdef DEBUG
 	printf("init watchpoints\n");
 	#endif
@@ -190,10 +267,10 @@ static void init_data_watchpoints(struct stlink *sl) {
 	}
 }
 
-static int add_data_watchpoint(struct stlink* sl, enum watchfun wf, stm32_addr_t addr, unsigned int len)
+static int add_data_watchpoint(stlink_t *sl, enum watchfun wf, stm32_addr_t addr, unsigned int len)
 {
 	int i = 0;
-	uint32_t mask, temp;
+	uint32_t mask;
 
 	// computer mask
 	// find a free watchpoint
@@ -249,7 +326,7 @@ static int add_data_watchpoint(struct stlink* sl, enum watchfun wf, stm32_addr_t
 	return -1;
 }
 
-static int delete_data_watchpoint(struct stlink* sl, stm32_addr_t addr)
+static int delete_data_watchpoint(stlink_t *sl, stm32_addr_t addr)
 {
 	int i;
 
@@ -285,19 +362,21 @@ struct code_hw_breakpoint {
 
 struct code_hw_breakpoint code_breaks[CODE_BREAK_NUM];
 
-static void init_code_breakpoints(struct stlink* sl) {
+static void init_code_breakpoints(stlink_t *sl) {
 	memset(sl->q_buf, 0, 4);
 	sl->q_buf[0] = 0x03; // KEY | ENABLE
-	stlink_write_mem32(sl, 0xe0002000, 4);
+	stlink_write_mem32(sl, CM3_REG_FP_CTRL, 4);
+        printf("KARL - should read back as 0x03, not 60 02 00 00\n");
+        stlink_read_mem32(sl, CM3_REG_FP_CTRL, 4);
 
 	memset(sl->q_buf, 0, 4);
 	for(int i = 0; i < CODE_BREAK_NUM; i++) {
 		code_breaks[i].type = 0;
-		stlink_write_mem32(sl, 0xe0002008 + i * 4, 4);
+		stlink_write_mem32(sl, CM3_REG_FP_COMP0 + i * 4, 4);
 	}
 }
 
-static int update_code_breakpoint(struct stlink* sl, stm32_addr_t addr, int set) {
+static int update_code_breakpoint(stlink_t *sl, stm32_addr_t addr, int set) {
 	stm32_addr_t fpb_addr = addr & ~0x3;
 	int type = addr & 0x2 ? CODE_BREAK_HIGH : CODE_BREAK_LOW;
 
@@ -366,7 +445,7 @@ struct flash_block {
 static struct flash_block* flash_root;
 
 static int flash_add_block(stm32_addr_t addr, unsigned length, 
-			   struct stlink* sl) {
+			   stlink_t *sl) {
 	if(addr < FLASH_BASE || addr + length > FLASH_BASE + FLASH_SIZE) {
 		fprintf(stderr, "flash_add_block: incorrect bounds\n");
 		return -1;
@@ -429,7 +508,7 @@ static int flash_populate(stm32_addr_t addr, uint8_t* data, unsigned length) {
 	return 0;
 }
 
-static int flash_go(struct stlink* sl) {
+static int flash_go(stlink_t *sl) {
 	int error = -1;
 
 	// Some kinds of clock settings do not allow writing to flash.
@@ -471,7 +550,7 @@ error:
 	return error;
 }
 
-int serve(struct stlink* sl, int port) {
+int serve(stlink_t *sl, int port) {
 	int sock = socket(AF_INET, SOCK_STREAM, 0);
 	if(sock < 0) {
 		perror("socket");
@@ -533,6 +612,7 @@ int serve(struct stlink* sl, int port) {
 		#endif
 
 		char* reply = NULL;
+                reg regp;
 
 		switch(packet[0]) {
 		case 'q': {
@@ -727,29 +807,30 @@ int serve(struct stlink* sl, int port) {
 			break;
 
 		case 'g':
-			stlink_read_all_regs(sl);
+			stlink_read_all_regs(sl, &regp);
 
 			reply = calloc(8 * 16 + 1, 1);
 			for(int i = 0; i < 16; i++)
-				sprintf(&reply[i * 8], "%08x", htonl(sl->reg.r[i]));
+				sprintf(&reply[i * 8], "%08x", htonl(regp.r[i]));
 
 			break;
 
 		case 'p': {
-			unsigned id = strtoul(&packet[1], NULL, 16), reg = 0xDEADDEAD;
+			unsigned id = strtoul(&packet[1], NULL, 16);
+                        unsigned myreg = 0xDEADDEAD;
 
 			if(id < 16) {
-				stlink_read_reg(sl, id);
-				reg = htonl(sl->reg.r[id]);
+				stlink_read_reg(sl, id, &regp);
+				myreg = htonl(regp.r[id]);
 			} else if(id == 0x19) {
-				stlink_read_reg(sl, 16);
-				reg = htonl(sl->reg.xpsr);
+				stlink_read_reg(sl, 16, &regp);
+				myreg = htonl(regp.xpsr);
 			} else {
 				reply = strdup("E00");
 			}
 
 			reply = calloc(8 + 1, 1);
-			sprintf(reply, "%08x", reg);
+			sprintf(reply, "%08x", myreg);
 
 			break;
 		}
@@ -875,7 +956,7 @@ int serve(struct stlink* sl, int port) {
 		case 'z': {
 			char *endptr;
 			stm32_addr_t addr = strtoul(&packet[3], &endptr, 16);
-			stm32_addr_t len  = strtoul(&endptr[1], NULL, 16);
+			//stm32_addr_t len  = strtoul(&endptr[1], NULL, 16);
 
 			switch (packet[1]) {
 				case '1': // remove breakpoint
