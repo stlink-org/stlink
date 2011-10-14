@@ -119,9 +119,7 @@ void _stlink_sg_close(stlink_t *sl) {
     if (sl) {
         struct stlink_libsg *slsg = sl->backend_data;
         scsi_pt_close_device(slsg->sg_fd);
-        // CAUTION!? s this right?
         free(slsg);
-        free(sl);
     }
 }
 
