@@ -639,8 +639,9 @@ int serve(stlink_t *sl, int port) {
 			if(!strcmp(queryName, "Supported")) {
 				reply = strdup("PacketSize=3fff;qXfer:memory-map:read+");
 			} else if(!strcmp(queryName, "Xfer")) {
-				char *type, *op, *annex, *s_addr, *s_length;
+				char *type, *op, *s_addr, *s_length;
 				char *tok = params;
+				char *annex __attribute__((unused));
 
 				type     = strsep(&tok, ":");
 				op       = strsep(&tok, ":");
