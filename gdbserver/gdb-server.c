@@ -138,8 +138,13 @@ int main(int argc, char** argv) {
 		}
 	}
 
-	if(stlink_current_mode(sl) != STLINK_DEV_DEBUG_MODE)
-		stlink_enter_swd_mode(sl);
+        if (stlink_current_mode(sl) == STLINK_DEV_DFU_MODE) {
+            stlink_exit_dfu_mode(sl);
+        }
+
+	if(stlink_current_mode(sl) != STLINK_DEV_DEBUG_MODE) {
+	  stlink_enter_swd_mode(sl);
+	}
 
 	uint32_t chip_id = stlink_chip_id(sl);
 	printf("Chip ID is %08x.\n", chip_id);
@@ -173,14 +178,7 @@ int main(int argc, char** argv) {
 	// memory map is in 1k blocks.
 	current_memory_map = make_memory_map(params, flash_size * 0x400);
 
-	int port;
-
-	if(argc == 1) {
-		port = rand() & 0xffff;
-	}
-	else {
-		port = atoi(argv[1]);
-	}
+	int port = 4242;
 
 	while(serve(sl, port) == 0);
 
