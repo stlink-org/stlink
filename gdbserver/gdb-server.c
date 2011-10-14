@@ -176,9 +176,7 @@ int main(int argc, char** argv) {
 	int port;
 
 	if(argc == 1) {
-                // not on 64bit?
-		//srand((unsigned int)&port);
-		port = rand()/65535;
+		port = rand() & 0xffff;
 	}
 	else {
 		port = atoi(argv[1]);
