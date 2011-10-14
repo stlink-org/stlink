@@ -163,7 +163,7 @@ void _stlink_usb_version(stlink_t *sl) {
 
 #if 1 /* DEBUG */
     {
-        unsigned int i;
+        ssize_t i;
         for (i = 0; i < size; ++i) printf("%02x", buf[i]);
         printf("\n");
     }
@@ -393,7 +393,6 @@ void _stlink_usb_read_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
     ssize_t size;
 
     /* assume len < sizeof(sl->q_buf) */
-    assert(len < sizeof(sl->q_buf));  // makes a compiler warning? always true?
 
     memset(buf, 0, sizeof (sl->q_buf));
     buf[0] = STLINK_DEBUG_COMMAND;
@@ -537,6 +536,9 @@ stlink_backend_t _stlink_usb_backend = {
 stlink_t* stlink_open_usb(const char *dev_name, const int verbose) {
     stlink_t* sl = NULL;
     struct stlink_libusb* slu = NULL;
+
+    /* unused */
+    dev_name = dev_name;
 
     sl = malloc(sizeof (stlink_t));
     slu = malloc(sizeof (struct stlink_libusb));

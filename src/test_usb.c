@@ -6,6 +6,10 @@ int main(int ac, char** av) {
     stlink_t* sl;
     reg regs;
 
+    /* unused */
+    ac = ac;
+    av = av;
+
     sl = stlink_open_usb(NULL, 10);
     if (sl != NULL) {
         printf("-- version\n");
