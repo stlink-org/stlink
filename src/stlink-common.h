@@ -18,7 +18,7 @@ extern "C" {
     // Max data transfer size.
     // 6kB = max mem32_read block, 8kB sram
     //#define Q_BUF_LEN	96
-#define Q_BUF_LEN	1024 * 100
+#define Q_BUF_LEN			(1024 * 100)
 
     // st-link vendor cmd's
 #define USB_ST_VID			0x0483
