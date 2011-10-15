@@ -115,7 +115,7 @@ $> target extended localhost:4242
 \end{small}
 
 \paragraph{}
-To load the program, use:\\
+To load the program in SRAM, use:\\
 \begin{small}
 \begin{lstlisting}[frame=tb]
 $> load blink.elf
@@ -123,7 +123,8 @@ $> load blink.elf
 \end{small}
 
 \paragraph{}
-Then, you can run the program using:\\
+GDB automatically set the PC register to the correct value, 0x20000000 in this case. Then, you
+can run the program using:\\
 \begin{small}
 \begin{lstlisting}[frame=tb]
 $> run
