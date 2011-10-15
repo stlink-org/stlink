@@ -115,7 +115,8 @@ $> target extended localhost:4242
 \end{small}
 
 \paragraph{}
-To load the program in SRAM, use:\\
+By default, the program was linked such that the base address is 0x20000000. From the architecture
+memory map, GDB knows this address belongs to SRAM. To load the program in SRAM, simply use:\\
 \begin{small}
 \begin{lstlisting}[frame=tb]
 $> load blink.elf
@@ -127,7 +128,7 @@ GDB automatically set the PC register to the correct value, 0x20000000 in this c
 can run the program using:\\
 \begin{small}
 \begin{lstlisting}[frame=tb]
-$> run
+$> continue
 \end{lstlisting}
 \end{small}
 
