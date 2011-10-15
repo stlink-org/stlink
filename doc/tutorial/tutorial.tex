@@ -52,8 +52,16 @@ STLINK is an opensource software to program and debug the discovery kits. Those
 kits have an onboard chip that translates USB commands sent by the host PC into
 JTAG commands. This chip is called STLINK, which is confusing since the software
 has the same name. It comes into 2 versions (STLINK v1 and v2). From a software
-point of view, those version differ only in the transport layer used to communicate
+point of view, those versions differ only in the transport layer used to communicate
 (v1 uses SCSI passthru commands, while v2 uses raw USB).
+
+\paragraph{}
+Before continuing, the following dependencies are required:
+\begin{itemize}
+\item libusb-1.0
+\item libsg2
+\end{itemize}
+
 \paragraph{}
 The STLINK software source code is retrieved using:\\
 \begin{small}
