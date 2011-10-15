@@ -1,0 +1,131 @@
+\documentclass[a4paper, 11pt]{article}
+
+\usepackage{graphicx}
+\usepackage{graphics}
+\usepackage{verbatim}
+\usepackage{listings}
+\usepackage{color}
+
+\begin{document}
+
+\title{Using STM32 discovery kits with open source tools}
+\author{STLINK development team}
+\date{}
+
+\maketitle
+
+\newpage
+\tableofcontents
+\addtocontents{toc}{\protect\setcounter{tocdepth}{1}}
+
+
+\newpage
+
+\section{Overview}
+\paragraph{}
+This guide details the use of STMicroelectronics STM32 discovery kits in
+an opensource environment.
+
+
+\newpage
+
+\section{Installing a GNU toolchain}
+\paragraph{}
+Any toolchain supporting the cortex m3 should do. You can find the necessary
+to install such a toolchain here:\\
+\begin{small}
+\begin{lstlisting}[frame=tb]
+https://github.com/esden/summon-arm-toolchain
+\end{lstlisting}
+\end{small}
+
+\paragraph{}
+Details for the installation are provided in the topmost README file.
+This documentation assumes the toolchains is installed in a \$TOOLCHAIN\_PATH.
+
+
+\newpage
+
+\section{Installing STLINK}
+\paragraph{}
+STLINK is an opensource software to program and debug the discovery kits. Those
+kits have an onboard chip that translates USB commands sent by the host PC into
+JTAG commands. This chip is called STLINK, which is confusing since the software
+has the same name. It comes into 2 versions (STLINK v1 and v2). From a software
+point of view, those version differ only in the transport layer used to communicate
+(v1 uses SCSI passthru commands, while v2 uses raw USB).
+\paragraph{}
+The STLINK software source code is retrieved using:\\
+\begin{small}
+\begin{lstlisting}[frame=tb]
+git clone https://github.com/texane/stlink stlink.git
+\end{lstlisting}
+\end{small}
+
+\paragraph{}
+The GDB server is called st-util and is built using:\\
+\begin{small}
+\begin{lstlisting}[frame=tb]
+$> cd stlink.git; make ;
+\end{lstlisting}
+\end{small}
+
+
+\newpage
+
+\section{Building and running a program}
+A simple LED blinking example is provided in the example directory. It is built using:\\
+\begin{small}
+\begin{lstlisting}[frame=tb]
+cd stlink.git/example ;
+PATH=$TOOLCHAIN_PATH/bin:$PATH make ;
+\end{lstlisting}
+\end{small}
+
+\paragraph{}
+A GDB server must be start to interact with the STM32.
+Depending on the discovery kit you are using, you must
+run one of the 2 commands:\\
+\begin{small}
+\begin{lstlisting}[frame=tb]
+# STM32VL discovery kit
+$> sudo ./st-util /dev/sg2
+
+# STM32L discovery kit
+$> sudo ./st-util
+\end{lstlisting}
+\end{small}
+
+\paragraph{}
+Then, GDB can be used to interact with the kit:\\
+\begin{small}
+\begin{lstlisting}[frame=tb]
+$> $TOOLCHAIN_PATH/bin/arm-none-eabi-gdb
+\end{lstlisting}
+\end{small}
+
+\paragraph{}
+From GDB, connect to the server using:\\
+\begin{small}
+\begin{lstlisting}[frame=tb]
+$> target extended-remote localhost:4242
+\end{lstlisting}
+\end{small}
+
+\paragraph{}
+To load the program, use:\\
+\begin{small}
+\begin{lstlisting}[frame=tb]
+$> load program.elf
+\end{lstlisting}
+\end{small}
+
+\paragraph{}
+Then, you can run the program using:\\
+\begin{small}
+\begin{lstlisting}[frame=tb]
+$> run
+\end{lstlisting}
+\end{small}
+
+\end{document}
