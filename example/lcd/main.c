@@ -325,9 +325,6 @@ static void __attribute__((naked)) __attribute__((used)) main(void)
   Init_GPIOs();
 
   LCD_GLASS_Init();
-  LCD_BlinkConfig(LCD_BlinkMode_AllSEG_AllCOM,LCD_BlinkFrequency_Div512);
-  LCD_GLASS_DisplayString("FUBAR");
-  while (1) ;
 
   setup_leds();
 
@@ -335,15 +332,20 @@ static void __attribute__((naked)) __attribute__((used)) main(void)
   {
     /* switch_leds_on(); */
     GPIO_HIGH(LD_GPIO_PORT, LD_GREEN_GPIO_PIN);	
-    GPIO_HIGH(LD_GPIO_PORT, LD_BLUE_GPIO_PIN);	
+    GPIO_HIGH(LD_GPIO_PORT, LD_BLUE_GPIO_PIN);
+
+    LCD_GLASS_Clear();
+    LCD_GLASS_DisplayString("ON   ");
+
     delay();
 
     /* switch_leds_off(); */
     GPIO_LOW(LD_GPIO_PORT, LD_GREEN_GPIO_PIN);	
     GPIO_LOW(LD_GPIO_PORT, LD_BLUE_GPIO_PIN);	
-    delay();
 
     LCD_GLASS_Clear();
-    LCD_GLASS_DisplayString("FUBAR");
+    LCD_GLASS_DisplayString("  OFF");
+
+    delay();
   }
 }
