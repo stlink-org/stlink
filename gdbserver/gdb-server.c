@@ -138,8 +138,13 @@ int main(int argc, char** argv) {
 		}
 	}
 
-	if(stlink_current_mode(sl) != STLINK_DEV_DEBUG_MODE)
-		stlink_enter_swd_mode(sl);
+        if (stlink_current_mode(sl) == STLINK_DEV_DFU_MODE) {
+            stlink_exit_dfu_mode(sl);
+        }
+
+	if(stlink_current_mode(sl) != STLINK_DEV_DEBUG_MODE) {
+	  stlink_enter_swd_mode(sl);
+	}
 
 	uint32_t chip_id = stlink_chip_id(sl);
 	printf("Chip ID is %08x.\n", chip_id);
@@ -173,16 +178,7 @@ int main(int argc, char** argv) {
 	// memory map is in 1k blocks.
 	current_memory_map = make_memory_map(params, flash_size * 0x400);
 
-	int port;
-
-	if(argc == 1) {
-                // not on 64bit?
-		//srand((unsigned int)&port);
-		port = rand()/65535;
-	}
-	else {
-		port = atoi(argv[1]);
-	}
+	int port = 4242;
 
 	while(serve(sl, port) == 0);
 
@@ -639,8 +635,9 @@ int serve(stlink_t *sl, int port) {
 			if(!strcmp(queryName, "Supported")) {
 				reply = strdup("PacketSize=3fff;qXfer:memory-map:read+");
 			} else if(!strcmp(queryName, "Xfer")) {
-				char *type, *op, *annex, *s_addr, *s_length;
+				char *type, *op, *s_addr, *s_length;
 				char *tok = params;
+				char *annex __attribute__((unused));
 
 				type     = strsep(&tok, ":");
 				op       = strsep(&tok, ":");

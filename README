@@ -1,18 +1,33 @@
 HOWTO
 =====
 
-First, load the sg kernel module.
+First, you have to know there are several boards supported by the software.
+Those boards use a chip to translate from USB to JTAG commands. The chip is
+called stlink and there are 2 versions:
+. STLINKv1, present on STM32VL discovery kits,
+. STLINKv2, present on STM32L discovery and later kits.
+
+2 different transport layers are used:
+. STLINKv1 uses SCSI passthru commands over USB,
+. STLINKv2 uses raw USB commands.
+
+It means that if you are using a STM32VL board, you have to install and load
+SCSI related software. First, load the sg kernel module:
 # modprobe sg
 
-On Ubuntu you need to install the package libsgutils2-dev:
+Then, you need to install the package libsgutils2-dev. On Ubuntu:
 # sudo apt-get install libsgutils2-dev
+
+LIBUSB is required for both cases.
 
 To run the gdb server, do (you do not need sudo if you have set up
 permissions correctly):
-$ make -C build && sudo ./build/st-util 1234 /dev/sg1
+$ make -C build && sudo ./build/st-util [/dev/sgX]
+
+Currently, the GDB server listening port is hardcoded to 4242:
 
 Then, in gdb:
-(gdb) target remote :1234
+(gdb) target remote :4242
 
 Have fun!
 
@@ -21,15 +36,15 @@ Resetting the chip from GDB
 
 You may reset the chip using GDB if you want. You'll need to use `target
 extended-remote' command like in this session:
-(gdb) target extended-remote localhost:1111
-Remote debugging using localhost:1111
+(gdb) target extended-remote localhost:4242
+Remote debugging using localhost:4242
 0x080007a8 in _startup ()
 (gdb) kill
 Kill the program being debugged? (y or n) y
 (gdb) run
 Starting program: /home/whitequark/ST/apps/bally/firmware.elf 
 
-Remember that you can shorten the commands. `tar ext :1111' is good enough
+Remember that you can shorten the commands. `tar ext :4242' is good enough
 for GDB.
 
 Setting up udev rules

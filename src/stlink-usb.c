@@ -396,9 +396,7 @@ void _stlink_usb_read_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
     unsigned char* const buf = sl->q_buf;
     ssize_t size;
 
-#if Q_BUF_LEN < UINT16_MAX
-    assert(len < sizeof(sl->q_buf));
-#endif
+    /* assume len < sizeof(sl->q_buf) */
 
     memset(buf, 0, sizeof (sl->q_buf));
     buf[0] = STLINK_DEBUG_COMMAND;
@@ -419,6 +417,9 @@ void _stlink_usb_read_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
 
     stlink_print_data(sl);
 }
+
+
+#if 1 /* stlinkv1 */
 
 void _stlink_usb_read_all_regs(stlink_t *sl, reg *regp) {
     struct stlink_libusb * const slu = sl->backend_data;
@@ -453,6 +454,41 @@ void _stlink_usb_read_all_regs(stlink_t *sl, reg *regp) {
     DD(sl, "rw         = 0x%08x\n", read_uint32(sl->q_buf, 76));
     DD(sl, "rw2        = 0x%08x\n", read_uint32(sl->q_buf, 80));
 }
+
+#else /* stlinkv2 */
+
+static void _stlink_usb_read_all_regs(stlink_t *sl, reg *regp) {
+    struct stlink_libusb * const slu = sl->backend_data;
+    unsigned char* const buf = sl->q_buf;
+    unsigned char* const cmd_buf = sl->c_buf;
+    ssize_t size;
+    int i;
+
+#define STLINK_JTAG_COMMAND 0xf2
+#define STLINK_JTAG_READALLREGS2 0x3a
+    memset(cmd_buf, 0, STLINK_CMD_SIZE);
+    cmd_buf[0] = STLINK_JTAG_COMMAND;
+    cmd_buf[1] = STLINK_JTAG_READALLREGS2;
+    size = send_recv(slu, cmd_buf, STLINK_CMD_SIZE, buf, 84);
+
+    if (size == -1) {
+        printf("[!] send_recv\n");
+        return;
+    }
+
+    sl->q_len = (size_t) size;
+
+    for(i=0; i<16; i++)
+      regp->r[i]= read_uint32(sl->q_buf, i*4);
+
+    regp->xpsr       = read_uint32(sl->q_buf, 64);
+    regp->main_sp    = read_uint32(sl->q_buf, 68);
+    regp->process_sp = read_uint32(sl->q_buf, 72);
+    regp->rw         = read_uint32(sl->q_buf, 76);
+    regp->rw2        = read_uint32(sl->q_buf, 80);
+}
+
+#endif /* stlinkv1 */
 
 void _stlink_usb_read_reg(stlink_t *sl, int r_idx, reg *regp) {
     struct stlink_libusb * const slu = sl->backend_data;
@@ -496,6 +532,9 @@ void _stlink_usb_read_reg(stlink_t *sl, int r_idx, reg *regp) {
     }
 }
 
+
+#if 1 /* stlinkv1 */
+
 void _stlink_usb_write_reg(stlink_t *sl, uint32_t reg, int idx) {
     struct stlink_libusb * const slu = sl->backend_data;
     unsigned char* const buf = sl->q_buf;
@@ -515,6 +554,32 @@ void _stlink_usb_write_reg(stlink_t *sl, uint32_t reg, int idx) {
     sl->q_len = (size_t) size;
     stlink_print_data(sl);
 }
+
+#else /* stlinkv2 */
+
+void _stlink_usb_write_reg(stlink_t *sl, uint32_t reg, int idx) {
+    struct stlink_libusb * const slu = sl->backend_data;
+    unsigned char* const buf = sl->q_buf;
+    unsigned char *cmd_buf = sl->c_buf;
+    ssize_t size;
+
+#define STLINK_JTAG_WRITEREG2 0x34
+    memset(cmd_buf, 0, STLINK_CMD_SIZE);
+    cmd_buf[0] = STLINK_JTAG_COMMAND;
+    cmd_buf[1] = STLINK_JTAG_WRITEREG2;
+    cmd_buf[2] = idx;
+    write_uint32(cmd_buf + 3, reg);
+    size = send_recv(slu, cmd_buf, STLINK_CMD_SIZE, buf, 2);
+    if (size == -1) {
+        printf("[!] send_recv\n");
+        return;
+    }
+    sl->q_len = (size_t) size;
+    stlink_print_data(sl);
+}
+
+#endif /* stlinkv1 */
+
 
 stlink_backend_t _stlink_usb_backend = {
     _stlink_usb_close,
@@ -542,6 +607,9 @@ stlink_backend_t _stlink_usb_backend = {
 stlink_t* stlink_open_usb(const char *dev_name, const int verbose) {
     stlink_t* sl = NULL;
     struct stlink_libusb* slu = NULL;
+
+    /* unused */
+    dev_name = dev_name;
 
     sl = malloc(sizeof (stlink_t));
     slu = malloc(sizeof (struct stlink_libusb));

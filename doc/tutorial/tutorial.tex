@@ -1,0 +1,199 @@
+\documentclass[a4paper, 11pt]{article}
+
+\usepackage{graphicx}
+\usepackage{graphics}
+\usepackage{verbatim}
+\usepackage{listings}
+\usepackage{color}
+
+\begin{document}
+
+\title{Using STM32 discovery kits with open source tools}
+\author{STLINK development team}
+\date{}
+
+\maketitle
+
+\newpage
+\tableofcontents
+\addtocontents{toc}{\protect\setcounter{tocdepth}{1}}
+
+
+\newpage
+
+\section{Overview}
+\paragraph{}
+This guide details the use of STMicroelectronics STM32 discovery kits in
+an opensource environment.
+
+
+\newpage
+
+\section{Installing a GNU toolchain}
+\paragraph{}
+Any toolchain supporting the cortex m3 should do. You can find the necessary
+to install such a toolchain here:\\
+\begin{small}
+\begin{lstlisting}[frame=tb]
+https://github.com/esden/summon-arm-toolchain
+\end{lstlisting}
+\end{small}
+
+\paragraph{}
+Details for the installation are provided in the topmost README file.
+This documentation assumes the toolchains is installed in a \$TOOLCHAIN\_PATH.
+
+
+\newpage
+
+\section{Installing STLINK}
+\paragraph{}
+STLINK is an opensource software to program and debug the discovery kits. Those
+kits have an onboard chip that translates USB commands sent by the host PC into
+JTAG commands. This chip is called STLINK, which is confusing since the software
+has the same name. It comes into 2 versions (STLINK v1 and v2). From a software
+point of view, those versions differ only in the transport layer used to communicate
+(v1 uses SCSI passthru commands, while v2 uses raw USB).
+
+\paragraph{}
+Before continuing, the following dependencies are required:
+\begin{itemize}
+\item libusb-1.0
+\item libsg2
+\end{itemize}
+
+\paragraph{}
+The STLINK software source code is retrieved using:\\
+\begin{small}
+\begin{lstlisting}[frame=tb]
+git clone https://github.com/texane/stlink stlink.git
+\end{lstlisting}
+\end{small}
+
+\paragraph{}
+The GDB server is called st-util and is built using:\\
+\begin{small}
+\begin{lstlisting}[frame=tb]
+$> cd stlink.git;
+$> make ;
+$> cd gdbserver ;
+$> make ;
+\end{lstlisting}
+\end{small}
+
+
+\newpage
+
+\section{Building and running a program}
+A simple LED blinking example is provided in the example directory. It is built using:\\
+\begin{small}
+\begin{lstlisting}[frame=tb]
+cd stlink.git/example/blink ;
+PATH=$TOOLCHAIN_PATH/bin:$PATH make ;
+\end{lstlisting}
+\end{small}
+
+\paragraph{}
+A GDB server must be start to interact with the STM32. Depending on the discovery kit you
+are using, you must run one of the 2 commands:\\
+\begin{small}
+\begin{lstlisting}[frame=tb]
+# STM32VL discovery kit
+$> sudo ./st-util /dev/sg2
+
+# STM32L discovery kit
+$> sudo ./st-util
+\end{lstlisting}
+\end{small}
+
+\paragraph{}
+Then, GDB can be used to interact with the kit:\\
+\begin{small}
+\begin{lstlisting}[frame=tb]
+$> $TOOLCHAIN_PATH/bin/arm-none-eabi-gdb
+\end{lstlisting}
+\end{small}
+
+\paragraph{}
+From GDB, connect to the server using:\\
+\begin{small}
+\begin{lstlisting}[frame=tb]
+$> target extended localhost:4242
+\end{lstlisting}
+\end{small}
+
+\paragraph{}
+By default, the program was linked such that the base address is 0x20000000. From the architecture
+memory map, GDB knows this address belongs to SRAM. To load the program in SRAM, simply use:\\
+\begin{small}
+\begin{lstlisting}[frame=tb]
+$> load blink.elf
+\end{lstlisting}
+\end{small}
+
+\paragraph{}
+GDB automatically set the PC register to the correct value, 0x20000000 in this case. Then, you
+can run the program using:\\
+\begin{small}
+\begin{lstlisting}[frame=tb]
+$> continue
+\end{lstlisting}
+\end{small}
+
+\paragraph{}
+The board BLUE and GREEN leds should be blinking (those leds are near the user and reset buttons).
+
+
+\newpage
+\section{Notes}
+
+\subsection{Disassembling THUMB code in GDB}
+\paragraph{}
+By default, the disassemble command in GDB operates in ARM mode. The programs running on CORTEX-M3
+are compiled in THUMB mode. To correctly disassemble them under GDB, uses an odd address. For instance,
+if you want to disassemble the code at 0x20000000, use:\\
+\begin{small}
+\begin{lstlisting}[frame=tb]
+$> disassemble 0x20000001
+\end{lstlisting}
+\end{small}
+
+
+\subsection{libstm32l\_discovery}
+\paragraph{}
+The repository includes the STM32L discovery library source code from ST original firmware packages,
+available here:\\
+\begin{small}
+\begin{lstlisting}[frame=tb]
+http://www.st.com/internet/evalboard/product/250990.jsp#FIRMWARE
+\end{lstlisting}
+\end{small}
+
+\paragraph{}
+It is built using:\\
+\begin{small}
+\begin{lstlisting}[frame=tb]
+$> cd stlink.git/example/libstm32l_discovery/build
+$> make
+\end{lstlisting}
+\end{small}
+
+\paragraph{}
+An example using the library can be built using:\\
+\begin{small}
+\begin{lstlisting}[frame=tb]
+$> cd stlink.git/example/lcd
+$> make
+\end{lstlisting}
+\end{small}
+
+\newpage
+\section{References}
+\begin{itemize}
+\item http://www.st.com/internet/mcu/product/248823.jsp\\
+  documentation related to the STM32L mcu
+\item http://www.st.com/internet/evalboard/product/250990.jsp\\
+  documentation related to the STM32L discovery kit
+\end{itemize}
+
+\end{document}

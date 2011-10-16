@@ -7,6 +7,12 @@ OBJCOPY=arm-none-eabi-objcopy
 CFLAGS=-O2 -mlittle-endian -mthumb
 CFLAGS+=-mcpu=cortex-m3 -ffreestanding -nostdlib -nostdinc
 
+# to run from SRAM
+CFLAGS+=-Wl,-Ttext,0x20000000 -Wl,-e,0x20000000
+
+# to write to flash then run
+# CFLAGS+=-Wl,-Ttext,0x08000000 -Wl,-e,0x08000000
+
 all: $(BIN_IMAGE)
 
 $(BIN_IMAGE): $(EXECUTABLE)
