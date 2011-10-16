@@ -272,40 +272,40 @@ static void Init_GPIOs(void)
 
   /* PA[1:3,8:10,15] */
   *(volatile uint32_t*)GPIOA_MODER |=
-    (1 << (1 * 2)) |
-    (1 << (2 * 2)) |
-    (1 << (3 * 2)) |
-    (1 << (8 * 2)) |
-    (1 << (9 * 2)) |
-    (1 << (10 * 2)) |
-    (1 << (15 * 2));
+    (GPIO_Mode_AF << (1 * 2)) |
+    (GPIO_Mode_AF << (2 * 2)) |
+    (GPIO_Mode_AF << (3 * 2)) |
+    (GPIO_Mode_AF << (8 * 2)) |
+    (GPIO_Mode_AF << (9 * 2)) |
+    (GPIO_Mode_AF << (10 * 2)) |
+    (GPIO_Mode_AF << (15 * 2));
 
   /* PB[3:5,8:15] */
   *(volatile uint32_t*)GPIOB_MODER |=
-    (1 << (3 * 2)) |
-    (1 << (4 * 2)) |
-    (1 << (5 * 2)) |
-    (1 << (8 * 2)) |
-    (1 << (9 * 2)) |
-    (1 << (10 * 2)) |
-    (1 << (11 * 2)) |
-    (1 << (12 * 2)) |
-    (1 << (13 * 2)) |
-    (1 << (14 * 2)) |
-    (1 << (15 * 2));
+    (GPIO_Mode_AF << (3 * 2)) |
+    (GPIO_Mode_AF << (4 * 2)) |
+    (GPIO_Mode_AF << (5 * 2)) |
+    (GPIO_Mode_AF << (8 * 2)) |
+    (GPIO_Mode_AF << (9 * 2)) |
+    (GPIO_Mode_AF << (10 * 2)) |
+    (GPIO_Mode_AF << (11 * 2)) |
+    (GPIO_Mode_AF << (12 * 2)) |
+    (GPIO_Mode_AF << (13 * 2)) |
+    (GPIO_Mode_AF << (14 * 2)) |
+    (GPIO_Mode_AF << (15 * 2));
 
   /* PC[0:3,6:11] */
   *(volatile uint32_t*)GPIOC_MODER |=
-    (1 << (0 * 2)) |
-    (1 << (1 * 2)) |
-    (1 << (2 * 2)) |
-    (1 << (3 * 2)) |
-    (1 << (6 * 2)) |
-    (1 << (7 * 2)) |
-    (1 << (8 * 2)) |
-    (1 << (9 * 2)) |
-    (1 << (10 * 2)) |
-    (1 << (11 * 2));
+    (GPIO_Mode_AF << (0 * 2)) |
+    (GPIO_Mode_AF << (1 * 2)) |
+    (GPIO_Mode_AF << (2 * 2)) |
+    (GPIO_Mode_AF << (3 * 2)) |
+    (GPIO_Mode_AF << (6 * 2)) |
+    (GPIO_Mode_AF << (7 * 2)) |
+    (GPIO_Mode_AF << (8 * 2)) |
+    (GPIO_Mode_AF << (9 * 2)) |
+    (GPIO_Mode_AF << (10 * 2)) |
+    (GPIO_Mode_AF << (11 * 2));
 
 #endif /* fixme */
 }
