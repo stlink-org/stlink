@@ -1,8 +1,23 @@
-/* this example is only for stm32l discover */
+/* this example is only for stm32l discover.
+   adapted from ST firmwares projects.
+ */
 
-typedef unsigned char uint8_t;
-typedef unsigned int uint32_t;
+/* base headers */
+#include "stdint.h"
 
+/* libstm32l_discovery headers */
+#include "stm32l1xx_gpio.h"
+#include "stm32l1xx_adc.h"
+#include "stm32l1xx_lcd.h"
+#include "stm32l1xx_rcc.h"
+#include "stm32l1xx_rtc.h"
+#include "stm32l1xx_exti.h"
+#include "stm32l1xx_pwr.h"
+#include "stm32l1xx_syscfg.h"
+#include "stm32l1xx_dbgmcu.h"
+
+/* lcd wrapper routines header */
+#include "stm32l_discovery_lcd.h"
 
 /* boot mode */
 
@@ -15,17 +30,14 @@ typedef unsigned int uint32_t;
    refer to CD00240193.pdf, GPIO.
 */
 
-#define GPIOA 0x40020000
-#define GPIOA_MODER (GPIOA + 0x00)
-#define GPIOA_ODR (GPIOA + 0x14)
+#define GPIOA_MODER (GPIOA_BASE + 0x00)
+#define GPIOA_ODR (GPIOA_BASE + 0x14)
 
-#define GPIOB 0x40020400
-#define GPIOB_MODER (GPIOB + 0x00)
-#define GPIOB_ODR (GPIOB + 0x14)
+#define GPIOB_MODER (GPIOB_BASE + 0x00)
+#define GPIOB_ODR (GPIOB_BASE + 0x14)
 
-#define GPIOC 0x40020800
-#define GPIOC_MODER (GPIOC + 0x00)
-#define GPIOC_ODR (GPIOC + 0x14)
+#define GPIOC_MODER (GPIOC_BASE + 0x00)
+#define GPIOC_ODR (GPIOC_BASE + 0x14)
 
 
 /* leds */
@@ -50,43 +62,212 @@ static inline void switch_leds_off(void)
 }
 
 
-/* lcd. refer to DM00027954.pdf. */
+#define delay()						\
+do {							\
+  register unsigned int i;				\
+  for (i = 0; i < 1000000; ++i)				\
+    __asm__ __volatile__ ("nop\n\t":::"memory");	\
+} while (0)
+
+
+#if CONFIG_BOOT_SRAM
+
+extern uint32_t _fstack;
+
+static inline void setup_stack(void)
+{
+  /* setup the stack to point to _fstack (refer to ld script) */
+
+  static const uint32_t fstack = (uint32_t)&_fstack;
+
+  __asm__ __volatile__
+    (
+     "ldr sp, %0\n\t"
+     : 
+     : "m"(fstack)
+     : "sp"
+    );
+}
+
+#endif /* CONFIG_BOOT_SRAM */
+
+
+/* application related setup */
+
+static void RCC_Configuration(void)
+{  
+  /* Enable HSI Clock */
+  RCC_HSICmd(ENABLE);
+  
+  /*!< Wait till HSI is ready */
+  while (RCC_GetFlagStatus(RCC_FLAG_HSIRDY) == RESET);
+
+  /* Set HSI as sys clock*/
+  RCC_SYSCLKConfig(RCC_SYSCLKSource_HSI);
+  
+  /* Set MSI clock range to ~4.194MHz*/
+  RCC_MSIRangeConfig(RCC_MSIRange_6);
+  
+  /* Enable the GPIOs clocks */
+  RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA | RCC_AHBPeriph_GPIOB | RCC_AHBPeriph_GPIOC| RCC_AHBPeriph_GPIOD| RCC_AHBPeriph_GPIOE| RCC_AHBPeriph_GPIOH, ENABLE);     
+
+  /* Enable comparator, LCD and PWR mngt clocks */
+  RCC_APB1PeriphClockCmd(RCC_APB1Periph_COMP | RCC_APB1Periph_LCD | RCC_APB1Periph_PWR,ENABLE);
+    
+  /* Enable ADC & SYSCFG clocks */
+  RCC_APB2PeriphClockCmd(RCC_APB2Periph_ADC1 | RCC_APB2Periph_SYSCFG , ENABLE);
+
+  /* Allow access to the RTC */
+  PWR_RTCAccessCmd(ENABLE);
+
+  /* Reset RTC Backup Domain */
+  RCC_RTCResetCmd(ENABLE);
+  RCC_RTCResetCmd(DISABLE);
+
+  /* LSE Enable */
+  RCC_LSEConfig(RCC_LSE_ON);
+
+  /* Wait until LSE is ready */
+  while (RCC_GetFlagStatus(RCC_FLAG_LSERDY) == RESET);
+  
+   /* RTC Clock Source Selection */ 
+  RCC_RTCCLKConfig(RCC_RTCCLKSource_LSE); 
+  
+  /* Enable the RTC */
+  RCC_RTCCLKCmd(ENABLE);   
+  
+  /*Disable HSE*/
+  RCC_HSEConfig(RCC_HSE_OFF);
+  if(RCC_GetFlagStatus(RCC_FLAG_HSERDY) != RESET )
+  {
+    /* Stay in infinite loop if HSE is not disabled*/
+    while(1); 
+  }
+}
+
+static void Init_GPIOs(void)
+{
+#if 0 /* fixme: GPIO_Init raises a bug in some gcc toolchains */
+
+  /* GPIO, EXTI and NVIC Init structure declaration */
+  GPIO_InitTypeDef GPIO_InitStructure;
 
 #if 0
-
-#define LCD_SEG0 PA1
-#define LCD_SEG1 PA2
-#define LCD_SEG2 PA3
-#define LCD_SEG3 PB3
-#define LCD_SEG4 PB4
-#define LCD_SEG5 PB5
-#define LCD_SEG6 PB10
-#define LCD_SEG7 PB11
-#define LCD_SEG8 PB12
-#define LCD_SEG9 PB13
-#define LCD_SEG10 PB14
-#define LCD_SEG11 PB15
-#define LCD_SEG12 PA15
-#define LCD_SEG13 PB8
-#define LCD_SEG14 PC0
-#define LCD_SEG15 PC1
-#define LCD_SEG16 PC2
-#define LCD_SEG17 PC3
-#define LCD_SEG18 PC6
-#define LCD_SEG19 PC7
-#define LCD_SEG20 PC8
-#define LCD_SEG21 PC9
-#define LCD_SEG22 PC10
-#define LCD_SEG23 PC11
-#define LCD_COM0 PA8
-#define LCD_COM1 PA9
-#define LCD_COM2 PA10
-#define LCD_COM3 PB9
-
+  EXTI_InitTypeDef EXTI_InitStructure;
+  NVIC_InitTypeDef NVIC_InitStructure;
 #endif
 
-static void setup_lcd(void)
-{
+#if 0
+  /* Configure User Button pin as input */
+  GPIO_InitStructure.GPIO_Pin = USERBUTTON_GPIO_PIN;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
+  GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_40MHz;
+  GPIO_Init(USERBUTTON_GPIO_PORT, &GPIO_InitStructure);
+#endif
+
+#if 0
+  /* Select User Button pin as input source for EXTI Line */
+  SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOA,EXTI_PinSource0);
+
+  /* Configure EXT1 Line 0 in interrupt mode trigged on Rising edge */
+  EXTI_InitStructure.EXTI_Line = EXTI_Line0 ;  // PA0 for User button AND IDD_WakeUP
+  EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
+  EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Rising;  
+  EXTI_InitStructure.EXTI_LineCmd = ENABLE;
+  EXTI_Init(&EXTI_InitStructure);
+
+  /* Enable and set EXTI0 Interrupt to the lowest priority */
+  NVIC_InitStructure.NVIC_IRQChannel = EXTI0_IRQn ;
+  NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x0F;
+  NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x0F;
+  NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+  NVIC_Init(&NVIC_InitStructure); 
+#endif
+
+#if 0
+  /* Configure the LED_pin as output push-pull for LD3 & LD4 usage*/
+  GPIO_InitStructure.GPIO_Pin = LD_GREEN_GPIO_PIN | LD_BLUE_GPIO_PIN;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
+  GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+  GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
+  GPIO_Init(LD_GPIO_PORT, &GPIO_InitStructure);
+  
+  /* Force a low level on LEDs*/ 
+  GPIO_LOW(LD_GPIO_PORT,LD_GREEN_GPIO_PIN);	
+  GPIO_LOW(LD_GPIO_PORT,LD_BLUE_GPIO_PIN);
+    
+  /* Counter enable: GPIO set in output for enable the counter */
+  GPIO_InitStructure.GPIO_Pin = CTN_CNTEN_GPIO_PIN;
+  GPIO_Init( CTN_GPIO_PORT, &GPIO_InitStructure);
+  
+  /* To prepare to start counter */
+  GPIO_HIGH(CTN_GPIO_PORT,CTN_CNTEN_GPIO_PIN);
+      
+  /* Configure Port A LCD Output pins as alternate function */
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_1 | GPIO_Pin_2 | GPIO_Pin_3 | GPIO_Pin_8 | GPIO_Pin_9 |GPIO_Pin_10 |GPIO_Pin_15;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
+  GPIO_Init( GPIOA, &GPIO_InitStructure);
+  
+  /* Select LCD alternate function for Port A LCD Output pins */
+  GPIO_PinAFConfig(GPIOA, GPIO_PinSource1,GPIO_AF_LCD) ;
+  GPIO_PinAFConfig(GPIOA, GPIO_PinSource2,GPIO_AF_LCD) ;
+  GPIO_PinAFConfig(GPIOA, GPIO_PinSource3,GPIO_AF_LCD) ;
+  GPIO_PinAFConfig(GPIOA, GPIO_PinSource8,GPIO_AF_LCD) ;
+  GPIO_PinAFConfig(GPIOA, GPIO_PinSource9,GPIO_AF_LCD) ;
+  GPIO_PinAFConfig(GPIOA, GPIO_PinSource10,GPIO_AF_LCD) ;
+  GPIO_PinAFConfig(GPIOA, GPIO_PinSource15,GPIO_AF_LCD) ;  
+  
+  /* Configure Port B LCD Output pins as alternate function */ 
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_3 | GPIO_Pin_4 | GPIO_Pin_5 | GPIO_Pin_8 | GPIO_Pin_9 \
+                                 | GPIO_Pin_10 | GPIO_Pin_11 | GPIO_Pin_12 | GPIO_Pin_13 | GPIO_Pin_14 | GPIO_Pin_15;  
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
+  GPIO_Init( GPIOB, &GPIO_InitStructure);
+  
+  /* Select LCD alternate function for Port B LCD Output pins */
+  GPIO_PinAFConfig(GPIOB, GPIO_PinSource3,GPIO_AF_LCD) ;
+  GPIO_PinAFConfig(GPIOB, GPIO_PinSource4,GPIO_AF_LCD) ;
+  GPIO_PinAFConfig(GPIOB, GPIO_PinSource5,GPIO_AF_LCD) ;
+  GPIO_PinAFConfig(GPIOB, GPIO_PinSource8,GPIO_AF_LCD) ;
+  GPIO_PinAFConfig(GPIOB, GPIO_PinSource9,GPIO_AF_LCD) ;
+  GPIO_PinAFConfig(GPIOB, GPIO_PinSource10,GPIO_AF_LCD) ;
+  GPIO_PinAFConfig(GPIOB, GPIO_PinSource11,GPIO_AF_LCD) ;  
+  GPIO_PinAFConfig(GPIOB, GPIO_PinSource12,GPIO_AF_LCD) ;
+  GPIO_PinAFConfig(GPIOB, GPIO_PinSource13,GPIO_AF_LCD) ;   
+  GPIO_PinAFConfig(GPIOB, GPIO_PinSource14,GPIO_AF_LCD) ;
+  GPIO_PinAFConfig(GPIOB, GPIO_PinSource15,GPIO_AF_LCD) ;   
+#endif
+
+#if 0  
+  /* Configure Port C LCD Output pins as alternate function */ 
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0 | GPIO_Pin_1 | GPIO_Pin_2 | GPIO_Pin_3 | GPIO_Pin_6 \
+                                 | GPIO_Pin_7 | GPIO_Pin_8 | GPIO_Pin_9 | GPIO_Pin_10 |GPIO_Pin_11 ;                               
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
+  GPIO_Init( GPIOC, &GPIO_InitStructure);  
+
+  /* Select LCD alternate function for Port B LCD Output pins */
+  GPIO_PinAFConfig(GPIOC, GPIO_PinSource0,GPIO_AF_LCD) ;
+  GPIO_PinAFConfig(GPIOC, GPIO_PinSource1,GPIO_AF_LCD) ; 
+  GPIO_PinAFConfig(GPIOC, GPIO_PinSource2,GPIO_AF_LCD) ;
+  GPIO_PinAFConfig(GPIOC, GPIO_PinSource3,GPIO_AF_LCD) ;
+  GPIO_PinAFConfig(GPIOC, GPIO_PinSource6,GPIO_AF_LCD) ;
+  GPIO_PinAFConfig(GPIOC, GPIO_PinSource7,GPIO_AF_LCD) ;
+  GPIO_PinAFConfig(GPIOC, GPIO_PinSource8,GPIO_AF_LCD) ;
+  GPIO_PinAFConfig(GPIOC, GPIO_PinSource9,GPIO_AF_LCD) ;
+  GPIO_PinAFConfig(GPIOC, GPIO_PinSource10,GPIO_AF_LCD) ; 
+  GPIO_PinAFConfig(GPIOC, GPIO_PinSource11,GPIO_AF_LCD) ;  
+#endif
+  
+#if 0
+  /* Configure ADC (IDD_MEASURE) pin as Analogue */
+  GPIO_InitStructure.GPIO_Pin = IDD_MEASURE  ;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AN;
+  GPIO_Init( IDD_MEASURE_PORT, &GPIO_InitStructure);
+#endif
+
+#else /* fixme */
+
   /* set every port in digital output mode  */
 
   /* PA[1:3,8:10,15] */
@@ -125,187 +306,12 @@ static void setup_lcd(void)
     (1 << (9 * 2)) |
     (1 << (10 * 2)) |
     (1 << (11 * 2));
-}
 
-static inline void set_lcd_com(unsigned int i, unsigned int val)
-{
-  /* table for LCD_COM<N> */
-  static const uint32_t regs[4] = { GPIOA_ODR, GPIOA_ODR, GPIOA_ODR, GPIOB_ODR };
-  static const uint8_t bits[4] = { 8, 9, 10, 9 };
-
-  uint32_t tmp = *(volatile uint32_t*)regs[i];
-  tmp &= ~(1 << bits[i]);
-  tmp |= val << bits[i];
-  *(volatile uint32_t*)regs[i] = tmp;
-}
-
-static void clear_lcd(void)
-{
-  /* tables for LCD_SEG<N> */
-
-  static const uint32_t regs[24] =
-  {
-    GPIOA_ODR,
-    GPIOA_ODR,
-    GPIOA_ODR,
-
-    GPIOB_ODR,
-    GPIOB_ODR,
-    GPIOB_ODR,
-    GPIOB_ODR,
-    GPIOB_ODR,
-    GPIOB_ODR,
-    GPIOB_ODR,
-    GPIOB_ODR,
-    GPIOB_ODR,
-
-    GPIOA_ODR,
-
-    GPIOB_ODR,
-
-    GPIOC_ODR,
-    GPIOC_ODR,
-    GPIOC_ODR,
-    GPIOC_ODR,
-    GPIOC_ODR,
-    GPIOC_ODR,
-    GPIOC_ODR,
-    GPIOC_ODR,
-    GPIOC_ODR,
-    GPIOC_ODR
-  };
-
-  static const uint8_t bits[24] =
-  {
-    1,
-    2,
-    3,
-
-    3,
-    4,
-    5,
-    10,
-    11,
-    12,
-    13,
-    14,
-    15,
-
-    15,
-
-    8,
-
-    0,
-    1,
-    2,
-    3,
-    6,
-    7,
-    8,
-    9,
-    10,
-    11
-  };
-
-  /* foreach lcd selector, select and zero */
-  unsigned int i;
-  for (i = 0; i < sizeof(regs) / sizeof(regs[0]); ++i)
-  {
-    /* select */
-    *(volatile uint32_t*)regs[i] |= 1 << bits[i];
-
-    /* set segments */
-    set_lcd_com(0, 0);
-    set_lcd_com(1, 0);
-    set_lcd_com(2, 0);
-    set_lcd_com(3, 0);
-
-    /* deselect */
-    *(volatile uint32_t*)regs[i] &= ~(1 << bits[i]);
-  }
-}
-
-static void update_lcd(void)
-{
-  static unsigned int state = 0;
-
-  clear_lcd();
-
-/*   if (state == 0) */
-  if (1)
-  {
-    /* left square (segments: 1A, 1B, 1C, 1D, 1E, 1F) */
-
-    /* 1A, 1B: PC10, COM0, COM1 */
-    *(volatile uint32_t*)GPIOC_ODR |= 1 << 10;
-    set_lcd_com(0, 1);
-    set_lcd_com(1, 1);
-    set_lcd_com(2, 0);
-    set_lcd_com(3, 0);
-    *(volatile uint32_t*)GPIOC_ODR &= ~(1 << 10);
-
-    /* 1C: PA2, COM1 */
-    *(volatile uint32_t*)GPIOA_ODR |= 1 << 2;
-    set_lcd_com(0, 0);
-    set_lcd_com(1, 1);
-    set_lcd_com(2, 0);
-    set_lcd_com(3, 0);
-    *(volatile uint32_t*)GPIOA_ODR &= ~(1 << 2);
-
-    /* 1D, 1E: PA1, COM0, COM1 */
-    *(volatile uint32_t*)GPIOA_ODR |= 1 << 1;
-    set_lcd_com(0, 1);
-    set_lcd_com(1, 1);
-    set_lcd_com(2, 0);
-    set_lcd_com(3, 0);
-    *(volatile uint32_t*)GPIOA_ODR &= ~(1 << 1);
-
-    /* 1F: PC11, COM1 */
-    *(volatile uint32_t*)GPIOC_ODR |= 1 << 11;
-    set_lcd_com(0, 0);
-    set_lcd_com(1, 1);
-    set_lcd_com(2, 0);
-    set_lcd_com(3, 0);
-    *(volatile uint32_t*)GPIOC_ODR &= ~(1 << 11);
-  }
-  else
-  {
-    /* right square (segments: 6A, 6B, 6C, 6D, 6E, 6F) */
-  }
-
-/*   state ^= 1; */
+#endif /* fixme */
 }
 
 
-#define delay()						\
-do {							\
-  register unsigned int i;				\
-  for (i = 0; i < 1000000; ++i)				\
-    __asm__ __volatile__ ("nop\n\t":::"memory");	\
-} while (0)
-
-
-#if CONFIG_BOOT_SRAM
-
-extern uint32_t _fstack;
-
-static inline void setup_stack(void)
-{
-  /* setup the stack to point to _fstack (refer to ld script) */
-
-  static const uint32_t fstack = (uint32_t)&_fstack;
-
-  __asm__ __volatile__
-    (
-     "ldr sp, %0\n\t"
-     : 
-     : "m"(fstack)
-     : "sp"
-    );
-}
-
-#endif /* CONFIG_BOOT_SRAM */
-
+/* main */
 
 static void __attribute__((naked)) __attribute__((used)) main(void)
 {
@@ -314,23 +320,30 @@ static void __attribute__((naked)) __attribute__((used)) main(void)
   setup_stack();
 #endif /* CONFIG_BOOT_SRAM */
 
-  setup_leds();
+  RCC_Configuration();
 
-  setup_lcd();
-  clear_lcd();
-/*   while (1) ; */
+  Init_GPIOs();
 
-  update_lcd();
+  LCD_GLASS_Init();
+  LCD_BlinkConfig(LCD_BlinkMode_AllSEG_AllCOM,LCD_BlinkFrequency_Div512);
+  LCD_GLASS_DisplayString("FUBAR");
   while (1) ;
+
+  setup_leds();
 
   while (1)
   {
-    /* update_lcd(); */
-    switch_leds_on();
+    /* switch_leds_on(); */
+    GPIO_HIGH(LD_GPIO_PORT, LD_GREEN_GPIO_PIN);	
+    GPIO_HIGH(LD_GPIO_PORT, LD_BLUE_GPIO_PIN);	
     delay();
 
-    /* update_lcd(); */
-    switch_leds_off();
+    /* switch_leds_off(); */
+    GPIO_LOW(LD_GPIO_PORT, LD_GREEN_GPIO_PIN);	
+    GPIO_LOW(LD_GPIO_PORT, LD_BLUE_GPIO_PIN);	
     delay();
+
+    LCD_GLASS_Clear();
+    LCD_GLASS_DisplayString("FUBAR");
   }
 }

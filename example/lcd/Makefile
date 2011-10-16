@@ -1,28 +1,37 @@
-EXECUTABLE=lcd.elf
-BIN_IMAGE=lcd.bin
+ELF=lcd.elf
 
 CC=arm-none-eabi-gcc
-OBJCOPY=arm-none-eabi-objcopy
 
 CFLAGS=-O2 -mlittle-endian -mthumb
 CFLAGS+=-mcpu=cortex-m3 -ffreestanding -nostdlib -nostdinc
 
+CFLAGS+=-I.
+
+# stm32l_discovery lib
+CFLAGS+=-I../libstm32l_discovery/inc
+CFLAGS+=-I../libstm32l_discovery/inc/base
+CFLAGS+=-I../libstm32l_discovery/inc/core_support
+CFLAGS+=-I../libstm32l_discovery/inc/device_support
+
 # to run from SRAM
 CFLAGS+=-Wl,-T,linker_stm32l.lds
 
-# to write to flash then run
-# CFLAGS+=-Wl,-Ttext,0x08000000 -Wl,-e,0x08000000
+SRCS=\
+main.c\
+stm32l_discovery_lcd.c
 
-all: $(BIN_IMAGE)
+OBJS=$(SRCS:.c=.o)
 
-$(BIN_IMAGE): $(EXECUTABLE)
-	$(OBJCOPY) -O binary $^ $@
+all: $(ELF)
 
-$(EXECUTABLE): main.c
-	$(CC) $(CFLAGS) $^ -o $@
+$(ELF): $(OBJS)
+	$(CC) $(CFLAGS) -o $@ $(OBJS) -L../libstm32l_discovery/build -lstm32l_discovery
+
+%.o: %.c
+	$(CC) $(CFLAGS) -c -o $@ $^
 
 clean:
-	rm -rf $(EXECUTABLE)
-	rm -rf $(BIN_IMAGE)
+	-rm -f $(OBJS)
+	-rm -f $(ELF)
 
 .PHONY: all clean
