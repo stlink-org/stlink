@@ -702,6 +702,20 @@ on_libusb_error:
 
     sl->backend = &_stlink_usb_backend;
     sl->backend_data = slu;
+
+    /* flash memory settings */
+    sl->flash_base = STM32_FLASH_BASE;
+    sl->flash_size = STM32_FLASH_SIZE;
+    sl->flash_pgsz = STM32_FLASH_PGSZ;
+
+    /* system memory */
+    sl->sys_base = STM32_SYSTEM_BASE;
+    sl->sys_size = STM32_SYSTEM_SIZE;
+
+    /* sram memory settings */
+    sl->sram_base = STM32_SRAM_BASE;
+    sl->sram_size = STM32L_SRAM_SIZE;
+
     /* success */
     return sl;
 
