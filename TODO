@@ -1,0 +1,7 @@
+. flash writing is not working from GDB
+
+. remove libsg dependency using:
+https://github.com/afaerber/stlink/tree/master/libstlink
+
+. compile and test a realtime kernel, for instance:
+http://www.chibios.org/dokuwiki/doku.php?id=start
