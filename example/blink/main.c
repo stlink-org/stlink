@@ -3,12 +3,6 @@
 typedef unsigned int uint32_t;
 
 
-/* boot mode configuration */
-
-#define CONFIG_BOOT_SRAM 1
-#define CONFIG_BOOT_FLASH 0
-
-
 /* hardware configuration */
 
 #define CONFIG_STM32L_DISCOVERY 1
