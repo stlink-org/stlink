@@ -14,7 +14,7 @@ int main(int ac, char** av)
   stlink_t* sl = NULL;
   stm32_addr_t addr;
   const char* path;
-  int err;
+  int err = -1;
 
   if (ac == 4) /* stlinkv1 */
   {
@@ -37,12 +37,20 @@ int main(int ac, char** av)
 
   if (sl == NULL) goto on_error;
 
+  if (stlink_current_mode(sl) == STLINK_DEV_DFU_MODE)
+    stlink_exit_dfu_mode(sl);
+  stlink_enter_swd_mode(sl);
+  stlink_reset(sl);
+
   err = stlink_fwrite_flash(sl, path, addr);
   if (err == -1)
   {
     printf("stlink_fwrite_flash() == -1\n");
     goto on_error;
   }
+
+  /* success */
+  err = 0;
 
  on_error:
   if (sl != NULL) stlink_close(sl);
