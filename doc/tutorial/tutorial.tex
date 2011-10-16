@@ -145,6 +145,19 @@ The board BLUE and GREEN leds should be blinking (those leds are near the user a
 
 
 \newpage
+\section{Notes}
+\paragraph{}
+By default, the disassemble command in GDB operates in ARM mode. The programs running on CORTEX-M3
+are compiled in THUMB mode. To correctly disassemble them under GDB, uses an odd address. For instance,
+if you want to disassemble the code at 0x20000000, use:\\
+\begin{small}
+\begin{lstlisting}[frame=tb]
+$> disassemble 0x20000001
+\end{lstlisting}
+\end{small}
+
+
+\newpage
 \section{References}
 \begin{itemize}
 \item http://www.st.com/internet/mcu/product/248823.jsp\\
