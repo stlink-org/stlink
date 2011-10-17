@@ -83,9 +83,6 @@ int main(int ac, char** av)
     static const int scsi_verbose = 2;
     sl = stlink_quirk_open(o.devname, scsi_verbose);
     if (sl == NULL) goto on_error;
-
-    if (stlink_current_mode(sl) == STLINK_DEV_DFU_MODE)
-      stlink_exit_dfu_mode(sl);
   }
   else /* stlinkv2 */
   {
@@ -93,7 +90,12 @@ int main(int ac, char** av)
     if (sl == NULL) goto on_error;
   }
 
-  stlink_enter_swd_mode(sl);
+  if (stlink_current_mode(sl) == STLINK_DEV_DFU_MODE)
+    stlink_exit_dfu_mode(sl);
+
+  if (stlink_current_mode(sl) != STLINK_DEV_DEBUG_MODE)
+    stlink_enter_swd_mode(sl);
+
   stlink_reset(sl);
 
   if (o.do_read == 0) /* write */

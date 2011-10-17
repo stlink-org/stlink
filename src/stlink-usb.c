@@ -398,6 +398,9 @@ void _stlink_usb_read_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
     buf[0] = STLINK_DEBUG_COMMAND;
     buf[1] = STLINK_DEBUG_READMEM_32BIT;
     write_uint32(buf + 2, addr);
+
+    /* need to add +1 to len, otherwise get residue errors */
+    len += 1;
     buf[6] = (uint8_t) len;
     buf[7] = (uint8_t) (len >> 8);
 
