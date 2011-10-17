@@ -1,9 +1,11 @@
-. flash writing is not working from GDB
-add a standalone application, flash/
+. flash tool
+ . test support for reading
+ . writing is not working. refer to the specs, may have changed for stm32l
+ . then test with blink_flash example
+ . then update the documentation
 
-. add flash reading to flash/
-
-. add a startup.S based example
+. documentation
+ . make README points to doc/tutorial
 
 . remove libsg dependency using:
 https://github.com/afaerber/stlink/tree/master/libstlink
