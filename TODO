@@ -1,6 +1,8 @@
 . flash writing is not working from GDB
 add a standalone application, flash/
 
+. add flash reading to flash/
+
 . add a startup.S based example
 
 . remove libsg dependency using:
