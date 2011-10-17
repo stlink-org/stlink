@@ -48,7 +48,7 @@ static int get_opts(struct opts* o, int ac, char** av)
     o->do_read = 0;
 
     /* stlinkv1 mode */
-    if (ac == 5)
+    if (ac == 4)
     {
       o->devname = av[1];
       i = 1;
@@ -82,21 +82,22 @@ int main(int ac, char** av)
   {
     static const int scsi_verbose = 2;
     sl = stlink_quirk_open(o.devname, scsi_verbose);
+    if (sl == NULL) goto on_error;
+
+    if (stlink_current_mode(sl) == STLINK_DEV_DFU_MODE)
+      stlink_exit_dfu_mode(sl);
   }
   else /* stlinkv2 */
   {
     sl = stlink_open_usb(NULL, 10);
+    if (sl == NULL) goto on_error;
   }
 
-  if (sl == NULL) goto on_error;
+  stlink_enter_swd_mode(sl);
+  stlink_reset(sl);
 
   if (o.do_read == 0) /* write */
   {
-    if (stlink_current_mode(sl) == STLINK_DEV_DFU_MODE)
-      stlink_exit_dfu_mode(sl);
-    stlink_enter_swd_mode(sl);
-    stlink_reset(sl);
-
     err = stlink_fwrite_flash(sl, o.filename, o.addr);
     if (err == -1)
     {
