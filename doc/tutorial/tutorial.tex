@@ -145,6 +145,31 @@ The board BLUE and GREEN leds should be blinking (those leds are near the user a
 
 
 \newpage
+\section{Reading and writing to flash}
+\paragraph{}
+Flash memory reading and writing is done by a separate tool. A binary running in flash is assumed to
+be linked against address 0x8000000. The flash tool is then used as shown below:\\
+\begin{small}
+\begin{lstlisting}[frame=tb]
+# build the flash tool
+$> cd stlink.git/flash ; make ;
+
+# stlinkv1 command to read 4096 from flash into out.bin
+$> ./flash read /dev/sg2 out.bin 0x8000000 4096
+
+# stlinkv2 command
+$> ./flash read out.bin 0x8000000 4096
+
+# stlinkv1 command to write the file in.bin into flash
+$> ./flash write /dev/sg2 in.bin 0x8000000
+
+# stlinkv2 command
+$> ./flash write in.bin 0x8000000
+\end{lstlisting}
+\end{small}
+
+
+\newpage
 \section{Notes}
 
 \subsection{Disassembling THUMB code in GDB}
