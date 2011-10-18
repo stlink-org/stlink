@@ -32,6 +32,11 @@ static const char* current_memory_map = NULL;
  * Chip IDs are explained in the appropriate programming manual for the
  * DBGMCU_IDCODE register (0xE0042000)
  */
+
+#define CORE_M3_R1 0x1BA00477
+#define CORE_M3_R2 0x4BA00477
+#define CORE_M4_R0 0x2BA01477
+
 struct chip_params {
 	uint32_t chip_id;
 	char* description;
@@ -43,11 +48,11 @@ struct chip_params {
 	{ 0x410, "F1 Medium-density device", 0x1ffff7e0,
 	  0x20000,  0x400, 0x5000,  0x1ffff000, 0x800  }, // table 2, pm0063
 	{ 0x411, "F2 device", 0, /* No flash size register found in the docs*/
-	  0x100000,   0x20000, 0x20000, 0x1ff00000, 0x7800  }, // table 1, pm0059
+	  0x100000,   0x20000, 0x20000, 0x1fff0000, 0x7800  }, // table 1, pm0059
 	{ 0x412, "F1 Low-density device", 0x1ffff7e0,
 	  0x8000,   0x400, 0x2800,  0x1ffff000, 0x800  }, // table 1, pm0063
 	{ 0x413, "F4 device", 0x1FFF7A10,
-	  0x100000,   0x20000, 0x20000,  0x1ff00000, 0x7800  }, // table 1, pm0081
+	  0x100000,   0x20000, 0x20000,  0x1fff0000, 0x7800  }, // table 1, pm0081
 	{ 0x414, "F1 High-density device", 0x1ffff7e0,
 	  0x80000,  0x800, 0x10000, 0x1ffff000, 0x800  },  // table 3 pm0063 
           // This ignores the EEPROM! (and uses the page erase size,
@@ -147,7 +152,15 @@ int main(int argc, char** argv) {
 	}
 
 	uint32_t chip_id = stlink_chip_id(sl);
-	printf("Chip ID is %08x.\n", chip_id);
+	uint32_t core_id = stlink_core_id(sl);
+
+	/* Fix chip_id for F4 */
+	if (((chip_id & 0xFFF) == 0x411) && (core_id == CORE_M4_R0)) {
+	  printf("Fixing wrong chip_id for STM32F4 Rev A errata\n");
+	  chip_id = 0x413;
+	}
+
+	printf("Chip ID is %08x, Core ID is  %08x.\n", chip_id, core_id);
 
 	const struct chip_params* params = NULL;
 

@@ -124,6 +124,7 @@ ssize_t send_recv(struct stlink_libusb* handle, int terminate,
             (handle->rep_trans, handle->usb_handle,
              handle->ep_rep, sg_buf, 13, NULL, NULL, 0);
         res = submit_wait(handle, handle->rep_trans);
+	/* The STLink doesn't seem to evaluate the sequence number */
         handle->sg_transfer_idx++;
         if (res ) return -1;
     }
@@ -715,7 +716,10 @@ stlink_t* stlink_open_usb(const int verbose) {
     slu->cmd_len = (slu->protocoll == 1)? STLINK_SG_SIZE: STLINK_CMD_SIZE;
 
     /* success */
-    stlink_exit_dfu_mode(sl);
+    if (stlink_current_mode(sl) == STLINK_DEV_DFU_MODE) {
+      printf("-- exit_dfu_mode\n");
+      stlink_exit_dfu_mode(sl);
+    }
     stlink_version(sl);
     error = 0;
 
