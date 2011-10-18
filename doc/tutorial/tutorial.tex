@@ -88,8 +88,9 @@ $> make ;
 A simple LED blinking example is provided in the example directory. It is built using:\\
 \begin{small}
 \begin{lstlisting}[frame=tb]
+# update the make option accordingly to your architecture
 cd stlink.git/example/blink ;
-PATH=$TOOLCHAIN_PATH/bin:$PATH make ;
+PATH=$TOOLCHAIN_PATH/bin:$PATH make CONFIG_STM32L_DISCOVERY=1;
 \end{lstlisting}
 \end{small}
 
