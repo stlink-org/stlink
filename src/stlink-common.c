@@ -29,9 +29,10 @@ void DD(stlink_t *sl, char *format, ...) {
 }
 
 
+/* todo: stm32l15xxx flash memory, pm0062 manual */
+/* #define FLASH_REGS_ADDR 0x40022000 */
 
-/* FPEC flash controller interface, pm0063 manual
- */
+/* stm32f FPEC flash controller interface, pm0063 manual */
 
 #define FLASH_REGS_ADDR 0x40022000
 #define FLASH_REGS_SIZE 0x28
@@ -773,7 +774,7 @@ int init_flash_loader(stlink_t *sl, flash_loader_t* fl) {
 
 int write_loader_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* size) {
     /* from openocd, contrib/loaders/flash/stm32.s */
-    static const uint8_t loader_code[] = {
+    static const uint8_t loader_code_stm32vl[] = {
         0x08, 0x4c, /* ldr	r4, STM32_FLASH_BASE */
         0x1c, 0x44, /* add	r4, r3 */
         /* write_half_word: */
@@ -794,11 +795,39 @@ int write_loader_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* size) {
         0x00, 0x20, 0x02, 0x40, /* STM32_FLASH_BASE: .word 0x40022000 */
     };
 
-    memcpy(sl->q_buf, loader_code, sizeof (loader_code));
-    stlink_write_mem32(sl, sl->sram_base, sizeof (loader_code));
+    static const uint8_t loader_code_stm32l[] = {
+      /* see openocd.git/contib/loaders/flash/stm32lx.s for src */
+      0x00, 0x23,
+      0x04, 0xe0,
+
+      0x51, 0xf8, 0x04, 0xcb,
+      0x40, 0xf8, 0x04, 0xcb,
+      0x01, 0x33,
+
+      0x93, 0x42,
+      0xf8, 0xd3,
+      0x00, 0xbe
+    };
+
+    const uint8_t* loader_code;
+    size_t loader_size;
+
+    if (sl->core_id == 0x2ba01477) /* stm32l */
+    {
+      loader_code = loader_code_stm32l;
+      loader_size = sizeof(loader_code_stm32l);
+    }
+    else /* stm32vl */
+    {
+      loader_code = loader_code_stm32vl;
+      loader_size = sizeof(loader_code_stm32vl);
+    }
+
+    memcpy(sl->q_buf, loader_code, loader_size);
+    stlink_write_mem32(sl, sl->sram_base, loader_size);
 
     *addr = sl->sram_base;
-    *size = sizeof (loader_code);
+    *size = loader_size;
 
     /* success */
     return 0;
@@ -844,6 +873,9 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, unsigned 
         fprintf(stderr, "unaligned addr or size\n");
         return -1;
     }
+
+    /* needed for specializing loader */
+    stlink_core_id(sl);
 
     /* flash loader initialization */
     if (init_flash_loader(sl, &fl) == -1) {
@@ -913,6 +945,9 @@ int stlink_fwrite_flash(stlink_t *sl, const char* path, stm32_addr_t addr) {
         fprintf(stderr, "unaligned addr or size\n");
         goto on_error;
     }
+
+    /* needed for specializing loader */
+    stlink_core_id(sl);
 
     /* erase each page. todo: mass erase faster? */
     for (off = 0; off < mf.len; off += sl->flash_pgsz) {
