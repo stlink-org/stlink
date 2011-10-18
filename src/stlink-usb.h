@@ -15,6 +15,7 @@ extern "C" {
 #include <libusb-1.0/libusb.h>
 #include "stlink-common.h"
     
+#define STLINK_SG_SIZE 31
 #define STLINK_CMD_SIZE 16
 
 #if defined(CONFIG_USE_LIBUSB)
@@ -25,6 +26,9 @@ extern "C" {
         struct libusb_transfer* rep_trans;
         unsigned int ep_req;
         unsigned int ep_rep;
+        int protocoll;
+        unsigned int sg_transfer_idx;
+        unsigned int cmd_len;
     };
 #else
 #error "it's all bad!"
@@ -32,7 +36,7 @@ extern "C" {
 #endif
 
     
-    stlink_t* stlink_open_usb(const char *dev_name, const int verbose);
+    stlink_t* stlink_open_usb(const int verbose);
 
 
 #ifdef	__cplusplus

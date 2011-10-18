@@ -87,7 +87,7 @@ int main(int argc, char** argv) {
 		case 3 : {
 			//sl = stlink_quirk_open(argv[2], 0);
                         // FIXME - hardcoded to usb....
-                        sl = stlink_open_usb(argv[2], 10);
+                        sl = stlink_open_usb(10);
 			if(sl == NULL) return 1;
 			break;
 		}
