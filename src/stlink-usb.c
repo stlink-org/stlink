@@ -1,4 +1,3 @@
-#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -171,16 +170,15 @@ static int fill_command
     struct stlink_libusb * const slu = sl->backend_data;
     unsigned char* const cmd = sl->c_buf;
     int i = 0;
-    memset(cmd, 0, sizeof (sl->q_buf));
+    memset(cmd, 0, sizeof (sl->c_buf));
     if(slu->protocoll == 1) {
         cmd[i++] = 'U';
         cmd[i++] = 'S';
         cmd[i++] = 'B';
         cmd[i++] = 'C';
         write_uint32(&cmd[i], slu->sg_transfer_idx);
-        i+= 4;
-        write_uint32(&cmd[i], len);
-        i+= 4;
+        write_uint32(&cmd[i + 4], len);
+        i += 8;
         cmd[i++] = (dir == SG_DXFER_FROM_DEV)?0x80:0;
         cmd[i++] = 0; /* Logical unit */
         cmd[i++] = 0xa; /* Command length */
@@ -197,9 +195,8 @@ void _stlink_usb_version(stlink_t *sl) {
     int i = fill_command(sl, SG_DXFER_FROM_DEV, rep_len);
 
     cmd[i++] = STLINK_GET_VERSION;
-    cmd[i++] = 0x80;
 
-    size = send_recv(slu, 1, cmd, slu->cmd_len, data, 6);
+    size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len);
     if (size == -1) {
         printf("[!] send_recv\n");
         return;
@@ -211,18 +208,13 @@ void _stlink_usb_write_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
     unsigned char* const data = sl->q_buf;
     unsigned char* const cmd  = sl->c_buf;
 
-    int i = fill_command(sl, SG_DXFER_TO_DEV, 0);
+    int i = fill_command(sl, SG_DXFER_TO_DEV, len);
     cmd[i++] = STLINK_DEBUG_COMMAND;
     cmd[i++] = STLINK_DEBUG_WRITEMEM_32BIT;
     write_uint32(&cmd[i], addr);
-    i += 4;
-    write_uint16(&cmd[i], len);
+    write_uint16(&cmd[i + 4], len);
     send_only(slu, 0, cmd, slu->cmd_len);
 
-#if Q_BUF_LEN < UINT16_MAX
-    assert(len < sizeof(sl->q_buf));  // makes a compiler warning? always true?
-#endif
-    assert((len & 3) == 0); 
     send_only(slu, 1, data, len);
 }
 
@@ -235,13 +227,8 @@ void _stlink_usb_write_mem8(stlink_t *sl, uint32_t addr, uint16_t len) {
     cmd[i++] = STLINK_DEBUG_COMMAND;
     cmd[i++] = STLINK_DEBUG_WRITEMEM_8BIT;
     write_uint32(&cmd[i], addr);
-    i += 4;
-    write_uint16(&cmd[i], len);
+    write_uint16(&cmd[i + 4], len);
     send_only(slu, 0, cmd, slu->cmd_len);
-
-#if Q_BUF_LEN < UINT16_MAX
-    assert(len < sizeof(sl->q_buf));  // makes a compiler warning? always true?
-#endif
     send_only(slu, 1, data, len);
 }
 
@@ -322,7 +309,8 @@ void _stlink_usb_enter_swd_mode(stlink_t * sl) {
     struct stlink_libusb * const slu = sl->backend_data;
     unsigned char* const cmd  = sl->c_buf;
     ssize_t size;
-    int i = fill_command(sl, SG_DXFER_FROM_DEV, 0);
+    const int rep_len = 0;
+    int i = fill_command(sl, SG_DXFER_FROM_DEV, rep_len);
 
     cmd[i++] = STLINK_DEBUG_COMMAND;
     cmd[i++] = STLINK_DEBUG_ENTER;
@@ -418,7 +406,7 @@ void _stlink_usb_exit_debug_mode(stlink_t *sl) {
     struct stlink_libusb * const slu = sl->backend_data;
     unsigned char* const cmd = sl->c_buf;
     ssize_t size;
-    int i = fill_command(sl, SG_DXFER_TO_DEV, 0);
+    int i = fill_command(sl, SG_DXFER_FROM_DEV, 0);
 
     cmd[i++] = STLINK_DEBUG_COMMAND;
     cmd[i++] = STLINK_DEBUG_EXIT;
@@ -437,18 +425,10 @@ void _stlink_usb_read_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
     ssize_t size;
     int i = fill_command(sl, SG_DXFER_FROM_DEV, len);
 
-#if Q_BUF_LEN < UINT16_MAX
-    assert(len < sizeof(sl->q_buf));
-#endif
-
     cmd[i++] = STLINK_DEBUG_COMMAND;
     cmd[i++] = STLINK_DEBUG_READMEM_32BIT;
     write_uint32(&cmd[i], addr);
-    i += 4;
-    /* windows usb logs show only one byte is used for length ... */
-    // Presumably, this is because usb transfers can't be 16 bits worth of bytes long...
-    assert (len < 256);
-    cmd[i] = (uint8_t) len;
+    write_uint16(&cmd[i + 4], len);
 
     size = send_recv(slu, 1, cmd, slu->cmd_len, data, len);
     if (size == -1) {
@@ -674,8 +654,6 @@ stlink_t* stlink_open_usb(const int verbose) {
         goto on_libusb_error;
     }
 
-    libusb_reset_device(slu->usb_handle);
-
     if (libusb_get_configuration(slu->usb_handle, &config)) {
         /* this may fail for a previous configured device */
         printf("libusb_get_configuration()\n");
@@ -711,7 +689,6 @@ stlink_t* stlink_open_usb(const int verbose) {
     slu->ep_rep = 1 /* ep rep */ | LIBUSB_ENDPOINT_IN;
     slu->ep_req = 2 /* ep req */ | LIBUSB_ENDPOINT_OUT;
 
-    /* libusb_reset_device(slu->usb_handle); */
     slu->sg_transfer_idx = 0;
     slu->cmd_len = (slu->protocoll == 1)? STLINK_SG_SIZE: STLINK_CMD_SIZE;
 
