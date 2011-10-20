@@ -15,7 +15,7 @@ LDFLAGS=-lstlink -lusb-1.0 -lsgutils2 -L.
 
 LIBRARY=libstlink.a
 
-all:  $(LIBRARY) test_usb test_sg 
+all:  $(LIBRARY) flash gdbserver test_usb test_sg 
 
 $(LIBRARY): $(OBJS_LIB)
 	@echo "objs are $(OBJS_LIB)"
@@ -42,5 +42,15 @@ clean:
 	rm -rf $(LIBRARY)
 	rm -rf test_usb*
 	rm -rf test_sg*
+
+distclean: clean
+	$(MAKE) -C flash clean
+	$(MAKE) -C gdbserver clean
 	
-.PHONY: clean all
+flash:
+	$(MAKE) -C flash
+
+gdbserver:
+	$(MAKE) -C gdbserver
+
+.PHONY: clean all flash gdbserver
