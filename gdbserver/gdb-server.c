@@ -577,11 +577,7 @@ int serve(stlink_t *sl, int port) {
 	}
 
 	unsigned int val = 1;
-	struct timeval tv;
-	tv.tv_sec = 30; 
-	tv.tv_usec = 20000; 
 	setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &val, sizeof(val));
-	setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO , &tv, sizeof(tv));
 
 	struct sockaddr_in serv_addr = {0};
 	serv_addr.sin_family = AF_INET;
