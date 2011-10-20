@@ -14,6 +14,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <signal.h>
 
 #include <stlink-common.h>
 
@@ -23,6 +24,12 @@
 #define FLASH_PAGE (sl->flash_pgsz)
 #define FLASH_PAGE_MASK (~((1 << 10) - 1))
 #define FLASH_SIZE (FLASH_PAGE * 128)
+
+volatile int do_exit = 0;
+void ctrl_c(int sig)
+{
+  do_exit = 1;
+}
 
 static const char hex[] = "0123456789abcdef";
 
@@ -52,7 +59,7 @@ struct chip_params {
 	{ 0x412, "F1 Low-density device", 0x1ffff7e0,
 	  0x8000,   0x400, 0x2800,  0x1ffff000, 0x800  }, // table 1, pm0063
 	{ 0x413, "F4 device", 0x1FFF7A10,
-	  0x100000,   0x20000, 0x20000,  0x1fff0000, 0x7800  }, // table 1, pm0081
+	  0x100000,   0x20000, 0x30000,  0x1fff0000, 0x7800  }, // table 1, pm0081
 	{ 0x414, "F1 High-density device", 0x1ffff7e0,
 	  0x80000,  0x800, 0x10000, 0x1ffff000, 0x800  },  // table 3 pm0063 
           // This ignores the EEPROM! (and uses the page erase size,
@@ -195,6 +202,9 @@ int main(int argc, char** argv) {
 
 	while(serve(sl, port) == 0);
 
+	/* Switch back to mass storage mode before closing. */
+	stlink_run(sl);
+	stlink_exit_debug_mode(sl);
 	stlink_close(sl);
 
 	return 0;
@@ -567,7 +577,11 @@ int serve(stlink_t *sl, int port) {
 	}
 
 	unsigned int val = 1;
+	struct timeval tv;
+	tv.tv_sec = 30; 
+	tv.tv_usec = 20000; 
 	setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &val, sizeof(val));
+	setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO , &tv, sizeof(tv));
 
 	struct sockaddr_in serv_addr = {0};
 	serv_addr.sin_family = AF_INET;
@@ -591,7 +605,9 @@ int serve(stlink_t *sl, int port) {
 
 	printf("Listening at *:%d...\n", port);
 
+	(void) signal (SIGINT, ctrl_c);
 	int client = accept(sock, NULL, NULL);
+	signal (SIGINT, SIG_DFL);
 	if(client < 0) {
 		perror("accept");
 		return 1;
