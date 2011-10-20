@@ -71,15 +71,19 @@ git clone https://github.com/texane/stlink stlink.git
 \end{small}
 
 \paragraph{}
-The GDB server is called st-util and is built using:\\
+Everything can be built from the top directory:\\
 \begin{small}
 \begin{lstlisting}[frame=tb]
-$> cd stlink.git;
-$> make ;
-$> cd gdbserver ;
+$> cd stlink.git ;
 $> make ;
 \end{lstlisting}
 \end{small}
+It includes:
+\begin{itemize}
+\item a communication library (stlink.git/libstlink.a),
+\item a GDB server (stlink.git/gdbserver/st-util),
+\item a flash manipulation tool (stlink.git/flash/flash).
+\end{itemize}
 
 
 \newpage
@@ -152,8 +156,8 @@ Flash memory reading and writing is done by a separate tool. A binary running in
 be linked against address 0x8000000. The flash tool is then used as shown below:\\
 \begin{small}
 \begin{lstlisting}[frame=tb]
-# build the flash tool
-$> cd stlink.git/flash ; make ;
+# change to the flash tool directory
+$> cd stlink.git/flash ;
 
 # stlinkv1 command to read 4096 from flash into out.bin
 $> ./flash read /dev/sg2 out.bin 0x8000000 4096
