@@ -69,7 +69,7 @@ STLINK should run on any system meeting the above constraints.
 The STLINK software source code is retrieved using:\\
 \begin{small}
 \begin{lstlisting}[frame=tb]
-git clone https://github.com/texane/stlink stlink.git
+$> git clone https://github.com/texane/stlink stlink.git
 \end{lstlisting}
 \end{small}
 
@@ -77,8 +77,8 @@ git clone https://github.com/texane/stlink stlink.git
 Everything can be built from the top directory:\\
 \begin{small}
 \begin{lstlisting}[frame=tb]
-$> cd stlink.git ;
-$> make ;
+$> cd stlink.git
+$> make CONFIG_USE_LIBSG=0
 \end{lstlisting}
 \end{small}
 It includes:
