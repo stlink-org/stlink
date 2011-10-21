@@ -56,11 +56,14 @@ point of view, those versions differ only in the transport layer used to communi
 (v1 uses SCSI passthru commands, while v2 uses raw USB).
 
 \paragraph{}
-Before continuing, the following dependencies are required:
+Before continuing, the following dependencies must be met:
 \begin{itemize}
 \item libusb-1.0
-\item libsg2
+\item libsgutils2 (optionnal)
 \end{itemize}
+
+\paragraph{}
+STLINK should run on any system meeting the above constraints.
 
 \paragraph{}
 The STLINK software source code is retrieved using:\\
@@ -217,6 +220,17 @@ $> cd stlink.git/example/lcd
 $> make
 \end{lstlisting}
 \end{small}
+
+\subsection{STM32VL support}
+\paragraph{}
+It seems support for STM32VL is quite broken. If it does not work, try build STLINK using libsg:
+\begin{small}
+\begin{lstlisting}[frame=tb]
+$> cd stlink.git
+$> make CONFIG_USE_LIBSG=1
+\end{lstlisting}
+\end{small}
+
 
 \newpage
 \section{References}
