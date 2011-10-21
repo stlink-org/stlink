@@ -1,21 +1,36 @@
-
+# make ... for both libusb and libsg
+#
+# make CONFIG_USE_LIBSG=0 ...
+# for just libusb
+#
 VPATH=src
 
-SOURCES_LIB=stlink-common.c stlink-usb.c stlink-sg.c
+SOURCES_LIB=stlink-common.c stlink-usb.c
 OBJS_LIB=$(SOURCES_LIB:.c=.o)
+TEST_PROGRAMS=test_usb
+LDFLAGS=-lusb-1.0 -L. -lstlink
+
+ifeq ($(CONFIG_USE_LIBSG),)
+CONFIG_USE_LIBSG=1
+endif
+
+ifneq ($(CONFIG_USE_LIBSG),0)
+SOURCES_LIB+=stlink-sg.c
+CFLAGS+=-DCONFIG_USE_LIBSG=1
+LDFLAGS+=-lsgutils2
+TEST_PROGRAMS+=test_sg
+endif
 
 CFLAGS+=-g
-CFLAGS+=-DCONFIG_USE_LIBUSB
-CFLAGS+=-DCONFIG_USE_LIBSG
-CFLAGS+=-DDEBUG
+CFLAGS+=-DCONFIG_USE_LIBUSB=1
+CFLAGS+=-DDEBUG=1
 CFLAGS+=-std=gnu99
 CFLAGS+=-Wall -Wextra
 
-LDFLAGS=-lstlink -lusb-1.0 -lsgutils2 -L.
 
 LIBRARY=libstlink.a
 
-all:  $(LIBRARY) flash gdbserver test_usb test_sg 
+all:  $(LIBRARY) flash gdbserver $(TEST_PROGRAMS)
 
 $(LIBRARY): $(OBJS_LIB)
 	@echo "objs are $(OBJS_LIB)"
@@ -48,7 +63,7 @@ distclean: clean
 	$(MAKE) -C gdbserver clean
 	
 flash:
-	$(MAKE) -C flash
+	$(MAKE) -C flash CONFIG_USE_LIBSG="$(CONFIG_USE_LIBSG)" 
 
 gdbserver:
 	$(MAKE) -C gdbserver

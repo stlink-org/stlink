@@ -86,9 +86,14 @@ int main(int ac, char** av)
 
   if (o.devname != NULL) /* stlinkv1 */
   {
+#if CONFIG_USE_LIBSG
     static const int scsi_verbose = 2;
     sl = stlink_quirk_open(o.devname, scsi_verbose);
     if (sl == NULL) goto on_error;
+#else
+    printf("not compiled for use with STLink/V1");
+    goto on_error;
+#endif
   }
   else /* stlinkv2 */
   {

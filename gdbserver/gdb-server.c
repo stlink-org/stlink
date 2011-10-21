@@ -91,15 +91,10 @@ int main(int argc, char** argv) {
 
 	switch(argc) {
 
-		default: {
-			fprintf(stderr, HelpStr, NULL);
-			return 1;
-		}
-
 		case 3 : {
 			//sl = stlink_quirk_open(argv[2], 0);
-                        // FIXME - hardcoded to usb....
-                        sl = stlink_open_usb(10);
+			// FIXME - hardcoded to usb....
+			sl = stlink_open_usb(10);
 			if(sl == NULL) return 1;
 			break;
 		}
@@ -111,6 +106,7 @@ int main(int argc, char** argv) {
 			}
 		}
 
+#if CONFIG_USE_LIBSG
 		case 1 : { // Search ST-LINK (from /dev/sg0 to /dev/sg99)
 			const int DevNumMax = 99;
 			int ExistDevCount = 0;
@@ -148,11 +144,17 @@ int main(int argc, char** argv) {
 			}
 			break;
 		}
+#endif
+
+		default: {
+			fprintf(stderr, HelpStr, NULL);
+			return 1;
+		}
 	}
 
-        if (stlink_current_mode(sl) == STLINK_DEV_DFU_MODE) {
-            stlink_exit_dfu_mode(sl);
-        }
+	if (stlink_current_mode(sl) == STLINK_DEV_DFU_MODE) {
+		stlink_exit_dfu_mode(sl);
+	}
 
 	if(stlink_current_mode(sl) != STLINK_DEV_DEBUG_MODE) {
 	  stlink_enter_swd_mode(sl);
