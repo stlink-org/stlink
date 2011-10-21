@@ -77,9 +77,12 @@ int main(int ac, char** av)
   struct opts o;
   int err = -1;
 
+  setvbuf(stderr, NULL, _IONBF, BUFSIZ);
+  setvbuf(stdout, NULL, _IONBF, BUFSIZ);
+
   if (get_opts(&o, ac - 1, av + 1) == -1)
   {
-    printf("invalid command line\n");
+    fprintf(stderr, "invalid command line\n");
     usage();
     goto on_error;
   }
@@ -114,7 +117,7 @@ int main(int ac, char** av)
     err = stlink_fwrite_flash(sl, o.filename, o.addr);
     if (err == -1)
     {
-      printf("stlink_fwrite_flash() == -1\n");
+      fprintf(stderr, "stlink_fwrite_flash() == -1\n");
       goto on_error;
     }
   }
@@ -123,7 +126,7 @@ int main(int ac, char** av)
     err = stlink_fread(sl, o.filename, o.addr, o.size);
     if (err == -1)
     {
-      printf("stlink_fread() == -1\n");
+      fprintf(stderr, "stlink_fread() == -1\n");
       goto on_error;
     }
   }

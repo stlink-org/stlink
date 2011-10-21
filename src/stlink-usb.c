@@ -59,7 +59,7 @@ int submit_wait(struct stlink_libusb *slu, struct libusb_transfer * trans) {
     trans->user_data = &trans_ctx;
 
     if ((error = libusb_submit_transfer(trans))) {
-        printf("libusb_submit_transfer(%d)\n", error);
+        fprintf(stderr, "libusb_submit_transfer(%d)\n", error);
         return -1;
     }
 
@@ -70,20 +70,20 @@ int submit_wait(struct stlink_libusb *slu, struct libusb_transfer * trans) {
         timeout.tv_sec = 3;
         timeout.tv_usec = 0;
         if (libusb_handle_events_timeout(slu->libusb_ctx, &timeout)) {
-            printf("libusb_handle_events()\n");
+            fprintf(stderr, "libusb_handle_events()\n");
             return -1;
         }
 
         gettimeofday(&now, NULL);
         timersub(&now, &start, &diff);
         if (diff.tv_sec >= 3) {
-            printf("libusb_handle_events() timeout\n");
+            fprintf(stderr, "libusb_handle_events() timeout\n");
             return -1;
         }
     }
 
     if (trans_ctx.flags & TRANS_FLAGS_HAS_ERROR) {
-        printf("libusb_handle_events() | has_error\n");
+        fprintf(stderr, "libusb_handle_events() | has_error\n");
         return -1;
     }
 
@@ -198,7 +198,7 @@ void _stlink_usb_version(stlink_t *sl) {
 
     size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len);
     if (size == -1) {
-        printf("[!] send_recv\n");
+        fprintf(stderr, "[!] send_recv\n");
         return;
     }
 }
@@ -244,7 +244,7 @@ int _stlink_usb_current_mode(stlink_t * sl) {
     cmd[i++] = STLINK_GET_CURRENT_MODE;
     size = send_recv(slu, 1, cmd,  slu->cmd_len, data, rep_len);
     if (size == -1) {
-        printf("[!] send_recv\n");
+        fprintf(stderr, "[!] send_recv\n");
         return -1;
     }
     return sl->q_buf[0];
@@ -263,7 +263,7 @@ void _stlink_usb_core_id(stlink_t * sl) {
 
     size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len);
     if (size == -1) {
-        printf("[!] send_recv\n");
+        fprintf(stderr, "[!] send_recv\n");
         return;
     }
 
@@ -283,7 +283,7 @@ void _stlink_usb_status(stlink_t * sl) {
 
     size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len);
     if (size == -1) {
-        printf("[!] send_recv\n");
+        fprintf(stderr, "[!] send_recv\n");
         return;
     }
 }
@@ -300,7 +300,7 @@ void _stlink_usb_force_debug(stlink_t *sl) {
     cmd[i++] = STLINK_DEBUG_FORCEDEBUG;
     size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len);
     if (size == -1) {
-        printf("[!] send_recv\n");
+        fprintf(stderr, "[!] send_recv\n");
         return;
     }
 }
@@ -318,7 +318,7 @@ void _stlink_usb_enter_swd_mode(stlink_t * sl) {
 
     size = send_only(slu, 1, cmd, slu->cmd_len);
     if (size == -1) {
-        printf("[!] send_recv\n");
+        fprintf(stderr, "[!] send_recv\n");
         return;
     }
 }
@@ -334,7 +334,7 @@ void _stlink_usb_exit_dfu_mode(stlink_t* sl) {
 
     size = send_only(slu, 1, cmd, slu->cmd_len);
     if (size == -1) {
-        printf("[!] send_recv\n");
+        fprintf(stderr, "[!] send_recv\n");
         return;
     }
 }
@@ -356,7 +356,7 @@ void _stlink_usb_reset(stlink_t * sl) {
 
     size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len);
     if (size == -1) {
-        printf("[!] send_recv\n");
+        fprintf(stderr, "[!] send_recv\n");
         return;
     }
 }
@@ -375,7 +375,7 @@ void _stlink_usb_step(stlink_t* sl) {
 
     size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len);
     if (size == -1) {
-        printf("[!] send_recv\n");
+        fprintf(stderr, "[!] send_recv\n");
         return;
     }
 }
@@ -397,7 +397,7 @@ void _stlink_usb_run(stlink_t* sl) {
 
     size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len);
     if (size == -1) {
-        printf("[!] send_recv\n");
+        fprintf(stderr, "[!] send_recv\n");
         return;
     }
 }
@@ -413,7 +413,7 @@ void _stlink_usb_exit_debug_mode(stlink_t *sl) {
 
     size = send_only(slu, 1, cmd, slu->cmd_len);
     if (size == -1) {
-        printf("[!] send_only\n");
+        fprintf(stderr, "[!] send_only\n");
         return;
     }
 }
@@ -432,7 +432,7 @@ void _stlink_usb_read_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
 
     size = send_recv(slu, 1, cmd, slu->cmd_len, data, len);
     if (size == -1) {
-        printf("[!] send_recv\n");
+        fprintf(stderr, "[!] send_recv\n");
         return;
     }
 
@@ -453,7 +453,7 @@ void _stlink_usb_read_all_regs(stlink_t *sl, reg *regp) {
     cmd[i++] = STLINK_DEBUG_READALLREGS;
     size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len);
     if (size == -1) {
-        printf("[!] send_recv\n");
+        fprintf(stderr, "[!] send_recv\n");
         return;
     }
     sl->q_len = (size_t) size;
@@ -489,7 +489,7 @@ void _stlink_usb_read_reg(stlink_t *sl, int r_idx, reg *regp) {
     cmd[i++] = (uint8_t) r_idx;
     size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len);
     if (size == -1) {
-        printf("[!] send_recv\n");
+        fprintf(stderr, "[!] send_recv\n");
         return;
     }
     sl->q_len = (size_t) size;
@@ -532,7 +532,7 @@ void _stlink_usb_write_reg(stlink_t *sl, uint32_t reg, int idx) {
     write_uint32(&cmd[i], reg);
     size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len);
     if (size == -1) {
-        printf("[!] send_recv\n");
+        fprintf(stderr, "[!] send_recv\n");
         return;
     }
     sl->q_len = (size_t) size;
@@ -606,7 +606,7 @@ stlink_t* stlink_open_usb(const int verbose) {
     
     count = libusb_get_device_list(slu->libusb_ctx, &devs);
     if (count < 0) {
-        printf("libusb_get_device_list\n");
+        fprintf(stderr, "libusb_get_device_list\n");
         goto on_libusb_error;
     }
 
@@ -618,7 +618,7 @@ stlink_t* stlink_open_usb(const int verbose) {
     if (i == count) goto on_libusb_error;
 
     if (libusb_open(dev, &(slu->usb_handle))) {
-        printf("libusb_open()\n");
+        fprintf(stderr, "libusb_open()\n");
         goto on_libusb_error;
     }
     
@@ -629,17 +629,17 @@ stlink_t* stlink_open_usb(const int verbose) {
 
         r = libusb_get_device_descriptor(dev, &desc);
         if (r<0) {
-            printf("Can't get descriptor to match Iserial\n");
+            fprintf(stderr, "Can't get descriptor to match Iserial\n");
             goto on_libusb_error;
         }
         r = libusb_get_string_descriptor_ascii
             (slu->usb_handle, desc.iSerialNumber, serial, 256);
         if (r<0) {
-            printf("Can't get Serialnumber to match Iserial\n");
+            fprintf(stderr, "Can't get Serialnumber to match Iserial\n");
             goto on_libusb_error;
         }
         if (strcmp((char*)serial, iSerial)) {
-            printf("Mismatch in serial numbers, dev %s vs given %s\n",
+            fprintf(stderr, "Mismatch in serial numbers, dev %s vs given %s\n",
                    serial, iSerial);
             goto on_libusb_error;
         }
@@ -650,39 +650,39 @@ stlink_t* stlink_open_usb(const int verbose) {
         
         r = libusb_detach_kernel_driver(slu->usb_handle, 0);
         if (r<0)
-            printf("libusb_detach_kernel_driver(() error %s\n", strerror(-r));
+            fprintf(stderr, "libusb_detach_kernel_driver(() error %s\n", strerror(-r));
         goto on_libusb_error;
     }
 
     if (libusb_get_configuration(slu->usb_handle, &config)) {
         /* this may fail for a previous configured device */
-        printf("libusb_get_configuration()\n");
+        fprintf(stderr, "libusb_get_configuration()\n");
         goto on_libusb_error;
     }
 
     if (config != 1) {
-        printf("setting new configuration (%d -> 1)\n", config);
+        fprintf(stderr, "setting new configuration (%d -> 1)\n", config);
         if (libusb_set_configuration(slu->usb_handle, 1)) {
             /* this may fail for a previous configured device */
-            printf("libusb_set_configuration()\n");
+            fprintf(stderr, "libusb_set_configuration()\n");
             goto on_libusb_error;
         }
     }
 
     if (libusb_claim_interface(slu->usb_handle, 0)) {
-        printf("libusb_claim_interface()\n");
+        fprintf(stderr, "libusb_claim_interface()\n");
         goto on_libusb_error;
     }
 
     slu->req_trans = libusb_alloc_transfer(0);
     if (slu->req_trans == NULL) {
-        printf("libusb_alloc_transfer\n");
+        fprintf(stderr, "libusb_alloc_transfer\n");
         goto on_libusb_error;
     }
 
     slu->rep_trans = libusb_alloc_transfer(0);
     if (slu->rep_trans == NULL) {
-        printf("libusb_alloc_transfer\n");
+        fprintf(stderr, "libusb_alloc_transfer\n");
         goto on_libusb_error;
     }
 
@@ -694,7 +694,7 @@ stlink_t* stlink_open_usb(const int verbose) {
 
     /* success */
     if (stlink_current_mode(sl) == STLINK_DEV_DFU_MODE) {
-      printf("-- exit_dfu_mode\n");
+      fprintf(stderr, "-- exit_dfu_mode\n");
       stlink_exit_dfu_mode(sl);
     }
     stlink_version(sl);
