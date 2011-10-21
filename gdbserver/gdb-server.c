@@ -14,6 +14,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <signal.h>
 
 #include <stlink-common.h>
 
@@ -24,6 +25,12 @@
 #define FLASH_PAGE_MASK (~((1 << 10) - 1))
 #define FLASH_SIZE (FLASH_PAGE * 128)
 
+volatile int do_exit = 0;
+void ctrl_c(int sig)
+{
+  do_exit = 1;
+}
+
 static const char hex[] = "0123456789abcdef";
 
 static const char* current_memory_map = NULL;
@@ -32,6 +39,11 @@ static const char* current_memory_map = NULL;
  * Chip IDs are explained in the appropriate programming manual for the
  * DBGMCU_IDCODE register (0xE0042000)
  */
+
+#define CORE_M3_R1 0x1BA00477
+#define CORE_M3_R2 0x4BA00477
+#define CORE_M4_R0 0x2BA01477
+
 struct chip_params {
 	uint32_t chip_id;
 	char* description;
@@ -43,11 +55,11 @@ struct chip_params {
 	{ 0x410, "F1 Medium-density device", 0x1ffff7e0,
 	  0x20000,  0x400, 0x5000,  0x1ffff000, 0x800  }, // table 2, pm0063
 	{ 0x411, "F2 device", 0, /* No flash size register found in the docs*/
-	  0x100000,   0x20000, 0x20000, 0x1ff00000, 0x7800  }, // table 1, pm0059
+	  0x100000,   0x20000, 0x20000, 0x1fff0000, 0x7800  }, // table 1, pm0059
 	{ 0x412, "F1 Low-density device", 0x1ffff7e0,
 	  0x8000,   0x400, 0x2800,  0x1ffff000, 0x800  }, // table 1, pm0063
 	{ 0x413, "F4 device", 0x1FFF7A10,
-	  0x100000,   0x20000, 0x20000,  0x1ff00000, 0x7800  }, // table 1, pm0081
+	  0x100000,   0x20000, 0x30000,  0x1fff0000, 0x7800  }, // table 1, pm0081
 	{ 0x414, "F1 High-density device", 0x1ffff7e0,
 	  0x80000,  0x800, 0x10000, 0x1ffff000, 0x800  },  // table 3 pm0063 
           // This ignores the EEPROM! (and uses the page erase size,
@@ -79,15 +91,10 @@ int main(int argc, char** argv) {
 
 	switch(argc) {
 
-		default: {
-			fprintf(stderr, HelpStr, NULL);
-			return 1;
-		}
-
 		case 3 : {
 			//sl = stlink_quirk_open(argv[2], 0);
-                        // FIXME - hardcoded to usb....
-                        sl = stlink_open_usb(argv[2], 10);
+			// FIXME - hardcoded to usb....
+			sl = stlink_open_usb(10);
 			if(sl == NULL) return 1;
 			break;
 		}
@@ -99,6 +106,7 @@ int main(int argc, char** argv) {
 			}
 		}
 
+#if CONFIG_USE_LIBSG
 		case 1 : { // Search ST-LINK (from /dev/sg0 to /dev/sg99)
 			const int DevNumMax = 99;
 			int ExistDevCount = 0;
@@ -136,18 +144,32 @@ int main(int argc, char** argv) {
 			}
 			break;
 		}
+#endif
+
+		default: {
+			fprintf(stderr, HelpStr, NULL);
+			return 1;
+		}
 	}
 
-        if (stlink_current_mode(sl) == STLINK_DEV_DFU_MODE) {
-            stlink_exit_dfu_mode(sl);
-        }
+	if (stlink_current_mode(sl) == STLINK_DEV_DFU_MODE) {
+		stlink_exit_dfu_mode(sl);
+	}
 
 	if(stlink_current_mode(sl) != STLINK_DEV_DEBUG_MODE) {
 	  stlink_enter_swd_mode(sl);
 	}
 
 	uint32_t chip_id = stlink_chip_id(sl);
-	printf("Chip ID is %08x.\n", chip_id);
+	uint32_t core_id = stlink_core_id(sl);
+
+	/* Fix chip_id for F4 */
+	if (((chip_id & 0xFFF) == 0x411) && (core_id == CORE_M4_R0)) {
+	  printf("Fixing wrong chip_id for STM32F4 Rev A errata\n");
+	  chip_id = 0x413;
+	}
+
+	printf("Chip ID is %08x, Core ID is  %08x.\n", chip_id, core_id);
 
 	const struct chip_params* params = NULL;
 
@@ -182,6 +204,9 @@ int main(int argc, char** argv) {
 
 	while(serve(sl, port) == 0);
 
+	/* Switch back to mass storage mode before closing. */
+	stlink_run(sl);
+	stlink_exit_debug_mode(sl);
 	stlink_close(sl);
 
 	return 0;
@@ -578,7 +603,9 @@ int serve(stlink_t *sl, int port) {
 
 	printf("Listening at *:%d...\n", port);
 
+	(void) signal (SIGINT, ctrl_c);
 	int client = accept(sock, NULL, NULL);
+	signal (SIGINT, SIG_DFL);
 	if(client < 0) {
 		perror("accept");
 		return 1;

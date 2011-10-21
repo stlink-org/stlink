@@ -80,12 +80,14 @@
 #include <sys/stat.h>
 #include <sys/mman.h>
 
+#include "stlink-common.h"
+
+#if CONFIG_USE_LIBSG
 // sgutils2 (apt-get install libsgutils2-dev)
 #include <scsi/sg_lib.h>
 #include <scsi/sg_pt.h>
-
-#include "stlink-common.h"
 #include "stlink-sg.h"
+#endif
 
 
 // Suspends execution of the calling process for

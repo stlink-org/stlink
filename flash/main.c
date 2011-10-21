@@ -17,6 +17,11 @@ struct opts
   size_t size;
 };
 
+static void usage(void)
+{
+    puts("stlinkv1 command line: ./flash {read|write} /dev/sgX path addr <size>");
+    puts("stlinkv2 command line: ./flash {read|write} path addr <size>");
+}
 
 static int get_opts(struct opts* o, int ac, char** av)
 {
@@ -75,18 +80,24 @@ int main(int ac, char** av)
   if (get_opts(&o, ac - 1, av + 1) == -1)
   {
     printf("invalid command line\n");
+    usage();
     goto on_error;
   }
 
   if (o.devname != NULL) /* stlinkv1 */
   {
+#if CONFIG_USE_LIBSG
     static const int scsi_verbose = 2;
     sl = stlink_quirk_open(o.devname, scsi_verbose);
     if (sl == NULL) goto on_error;
+#else
+    printf("not compiled for use with STLink/V1");
+    goto on_error;
+#endif
   }
   else /* stlinkv2 */
   {
-    sl = stlink_open_usb(NULL, 10);
+    sl = stlink_open_usb(10);
     if (sl == NULL) goto on_error;
   }
 
