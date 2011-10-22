@@ -32,12 +32,6 @@
 #define FLASH_PAGE_MASK (~((1 << 10) - 1))
 #define FLASH_SIZE (FLASH_PAGE * 128)
 
-volatile int do_exit = 0;
-void ctrl_c(int sig)
-{
-  do_exit = 1;
-}
-
 static const char hex[] = "0123456789abcdef";
 
 static const char* current_memory_map = NULL;
@@ -697,7 +691,6 @@ int serve(stlink_t *sl, int port) {
 
 	printf("Listening at *:%d...\n", port);
 
-	(void) signal (SIGINT, ctrl_c);
 	int client = accept(sock, NULL, NULL);
 	signal (SIGINT, SIG_DFL);
 	if(client < 0) {
