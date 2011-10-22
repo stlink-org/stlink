@@ -5,8 +5,17 @@
 #include <time.h>
 #include <sys/types.h>
 #include <libusb-1.0/libusb.h>
+
 #include "stlink-common.h"
 #include "stlink-usb.h"
+#include "uglylogging.h"
+
+#define LOG_TAG __FILE__
+#define DLOG(format, args...)         ugly_log(UDEBUG, LOG_TAG, format, ## args)
+#define ILOG(format, args...)         ugly_log(UINFO, LOG_TAG, format, ## args)
+#define WLOG(format, args...)         ugly_log(UWARN, LOG_TAG, format, ## args)
+#define fatal(format, args...)        ugly_log(UFATAL, LOG_TAG, format, ## args)
+
 
 enum SCSI_Generic_Direction {SG_DXFER_TO_DEV=0, SG_DXFER_FROM_DEV=0x80};
 
@@ -472,11 +481,11 @@ void _stlink_usb_read_all_regs(stlink_t *sl, reg *regp) {
     if (sl->verbose < 2)
         return;
 
-    DD(sl, "xpsr       = 0x%08x\n", read_uint32(sl->q_buf, 64));
-    DD(sl, "main_sp    = 0x%08x\n", read_uint32(sl->q_buf, 68));
-    DD(sl, "process_sp = 0x%08x\n", read_uint32(sl->q_buf, 72));
-    DD(sl, "rw         = 0x%08x\n", read_uint32(sl->q_buf, 76));
-    DD(sl, "rw2        = 0x%08x\n", read_uint32(sl->q_buf, 80));
+    DLOG("xpsr       = 0x%08x\n", read_uint32(sl->q_buf, 64));
+    DLOG("main_sp    = 0x%08x\n", read_uint32(sl->q_buf, 68));
+    DLOG("process_sp = 0x%08x\n", read_uint32(sl->q_buf, 72));
+    DLOG("rw         = 0x%08x\n", read_uint32(sl->q_buf, 76));
+    DLOG("rw2        = 0x%08x\n", read_uint32(sl->q_buf, 80));
 }
 
 void _stlink_usb_read_reg(stlink_t *sl, int r_idx, reg *regp) {
@@ -499,7 +508,7 @@ void _stlink_usb_read_reg(stlink_t *sl, int r_idx, reg *regp) {
     sl->q_len = (size_t) size;
     stlink_print_data(sl);
     r = read_uint32(sl->q_buf, 0);
-    DD(sl, "r_idx (%2d) = 0x%08x\n", r_idx, r);
+    DLOG("r_idx (%2d) = 0x%08x\n", r_idx, r);
     
     switch (r_idx) {
     case 16:
@@ -584,7 +593,7 @@ stlink_t* stlink_open_usb(const int verbose) {
     memset(sl, 0, sizeof (stlink_t));
     memset(slu, 0, sizeof (struct stlink_libusb));
 
-    sl->verbose = verbose;
+    ugly_init(verbose);
     sl->backend = &_stlink_usb_backend;
     sl->backend_data = slu;
     
@@ -604,15 +613,15 @@ stlink_t* stlink_open_usb(const int verbose) {
     sl->sram_size = STM32L_SRAM_SIZE;
 
     if (libusb_init(&(slu->libusb_ctx))) {
-	fprintf(stderr, "failed to init libusb context, wrong version of libraries?\n");
-	goto on_error;
+        WLOG("failed to init libusb context, wrong version of libraries?\n");
+        goto on_error;
     }
     
     slu->usb_handle = libusb_open_device_with_vid_pid(slu->libusb_ctx, USB_ST_VID, USB_STLINK_32L_PID);
     if (slu->usb_handle == NULL) {
 		// TODO - free usb context too...
         free(slu);
-		fprintf(stderr, "Couldn't find any ST-Link/V2 devices");
+		WLOG("Couldn't find any ST-Link/V2 devices");
         return NULL;
     }
     
@@ -620,14 +629,15 @@ stlink_t* stlink_open_usb(const int verbose) {
         int r;
         
         r = libusb_detach_kernel_driver(slu->usb_handle, 0);
-        if (r<0)
-            printf("libusb_detach_kernel_driver(() error %s\n", strerror(-r));
+        if (r<0) {
+            WLOG("libusb_detach_kernel_driver(() error %s\n", strerror(-r));
+        }
         goto on_libusb_error;
     }
 
     if (libusb_get_configuration(slu->usb_handle, &config)) {
         /* this may fail for a previous configured device */
-        printf("libusb_get_configuration()\n");
+        WLOG("libusb_get_configuration()\n");
         goto on_libusb_error;
     }
 
@@ -635,25 +645,25 @@ stlink_t* stlink_open_usb(const int verbose) {
         printf("setting new configuration (%d -> 1)\n", config);
         if (libusb_set_configuration(slu->usb_handle, 1)) {
             /* this may fail for a previous configured device */
-            printf("libusb_set_configuration()\n");
+            WLOG("libusb_set_configuration() failed\n");
             goto on_libusb_error;
         }
     }
 
     if (libusb_claim_interface(slu->usb_handle, 0)) {
-        printf("libusb_claim_interface()\n");
+        WLOG("libusb_claim_interface() failed\n");
         goto on_libusb_error;
     }
 
     slu->req_trans = libusb_alloc_transfer(0);
     if (slu->req_trans == NULL) {
-        printf("libusb_alloc_transfer\n");
+        WLOG("libusb_alloc_transfer failed\n");
         goto on_libusb_error;
     }
 
     slu->rep_trans = libusb_alloc_transfer(0);
     if (slu->rep_trans == NULL) {
-        printf("libusb_alloc_transfer\n");
+        WLOG("libusb_alloc_transfer failed\n");
         goto on_libusb_error;
     }
     // TODO - could use the scanning techniq from stm8 code here...
@@ -666,7 +676,7 @@ stlink_t* stlink_open_usb(const int verbose) {
 
     /* success */
     if (stlink_current_mode(sl) == STLINK_DEV_DFU_MODE) {
-      printf("-- exit_dfu_mode\n");
+      ILOG("-- exit_dfu_mode\n");
       stlink_exit_dfu_mode(sl);
     }
     stlink_version(sl);

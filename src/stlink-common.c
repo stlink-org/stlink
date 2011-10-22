@@ -13,21 +13,13 @@
 
 
 #include "stlink-common.h"
+#include "uglylogging.h"
 
-void D(stlink_t *sl, char *txt) {
-    if (sl->verbose > 1)
-        fputs(txt, stderr);
-}
-
-void DD(stlink_t *sl, char *format, ...) {
-    if (sl->verbose > 0) {
-        va_list list;
-        va_start(list, format);
-        vfprintf(stderr, format, list);
-        va_end(list);
-    }
-}
-
+#define LOG_TAG __FILE__
+#define DLOG(format, args...)         ugly_log(UDEBUG, LOG_TAG, format, ## args)
+#define ILOG(format, args...)         ugly_log(UINFO, LOG_TAG, format, ## args)
+#define WLOG(format, args...)         ugly_log(UWARN, LOG_TAG, format, ## args)
+#define fatal(format, args...)        ugly_log(UFATAL, LOG_TAG, format, ## args)
 
 
 /* FPEC flash controller interface, pm0063 manual
@@ -256,38 +248,38 @@ static void disable_flash_read_protection(stlink_t *sl) {
 // Delegates to the backends...
 
 void stlink_close(stlink_t *sl) {
-    D(sl, "\n*** stlink_close ***\n");
+    DLOG("*** stlink_close ***\n");
     sl->backend->close(sl);
     free(sl);
 }
 
 void stlink_exit_debug_mode(stlink_t *sl) {
-    D(sl, "\n*** stlink_exit_debug_mode ***\n");
+    DLOG("*** stlink_exit_debug_mode ***\n");
     sl->backend->exit_debug_mode(sl);
 }
 
 void stlink_enter_swd_mode(stlink_t *sl) {
-    D(sl, "\n*** stlink_enter_swd_mode ***\n");
+    DLOG("*** stlink_enter_swd_mode ***\n");
     sl->backend->enter_swd_mode(sl);
 }
 
 // Force the core into the debug mode -> halted state.
 void stlink_force_debug(stlink_t *sl) {
-    D(sl, "\n*** stlink_force_debug_mode ***\n");
+    DLOG("*** stlink_force_debug_mode ***\n");
     sl->backend->force_debug(sl);
 }
 
 void stlink_exit_dfu_mode(stlink_t *sl) {
-    D(sl, "\n*** stlink_exit_dfu_mode ***\n");
+    DLOG("*** stlink_exit_dfu_mode ***\n");
     sl->backend->exit_dfu_mode(sl);
 }
 
 uint32_t stlink_core_id(stlink_t *sl) {
-    D(sl, "\n*** stlink_core_id ***\n");
+    DLOG("*** stlink_core_id ***\n");
     sl->backend->core_id(sl);
     if (sl->verbose > 2)
         stlink_print_data(sl);
-    DD(sl, "core_id = 0x%08x\n", sl->core_id);
+    DLOG("core_id = 0x%08x\n", sl->core_id);
     return sl->core_id;
 }
 
@@ -314,17 +306,17 @@ void stlink_cpu_id(stlink_t *sl, cortex_m3_cpuid_t *cpuid) {
 }
 
 void stlink_reset(stlink_t *sl) {
-    D(sl, "\n*** stlink_reset ***\n");
+    DLOG("*** stlink_reset ***\n");
     sl->backend->reset(sl);
 }
 
 void stlink_run(stlink_t *sl) {
-    D(sl, "\n*** stlink_run ***\n");
+    DLOG("*** stlink_run ***\n");
     sl->backend->run(sl);
 }
 
 void stlink_status(stlink_t *sl) {
-    D(sl, "\n*** stlink_status ***\n");
+    DLOG("*** stlink_status ***\n");
     sl->backend->status(sl);
     stlink_core_stat(sl);
 }
@@ -355,26 +347,26 @@ void _parse_version(stlink_t *sl, stlink_version_t *slv) {
 }
 
 void stlink_version(stlink_t *sl) {
-    D(sl, "*** looking up stlink version\n");
+    DLOG("*** looking up stlink version\n");
     stlink_version_t slv;
     sl->backend->version(sl);
     _parse_version(sl, &slv);
     
-    DD(sl, "st vid         = 0x%04x (expect 0x%04x)\n", slv.st_vid, USB_ST_VID);
-    DD(sl, "stlink pid     = 0x%04x\n", slv.stlink_pid);
-    DD(sl, "stlink version = 0x%x\n", slv.stlink_v);
-    DD(sl, "jtag version   = 0x%x\n", slv.jtag_v);
-    DD(sl, "swim version   = 0x%x\n", slv.swim_v);
+    DLOG("st vid         = 0x%04x (expect 0x%04x)\n", slv.st_vid, USB_ST_VID);
+    DLOG("stlink pid     = 0x%04x\n", slv.stlink_pid);
+    DLOG("stlink version = 0x%x\n", slv.stlink_v);
+    DLOG("jtag version   = 0x%x\n", slv.jtag_v);
+    DLOG("swim version   = 0x%x\n", slv.swim_v);
     if (slv.jtag_v == 0) {
-        DD(sl, "    notice: the firmware doesn't support a jtag/swd interface\n");
+        DLOG("    notice: the firmware doesn't support a jtag/swd interface\n");
     }
     if (slv.swim_v == 0) {
-        DD(sl, "    notice: the firmware doesn't support a swim interface\n");
+        DLOG("    notice: the firmware doesn't support a swim interface\n");
     }
 }
 
 void stlink_write_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
-    D(sl, "\n*** stlink_write_mem32 ***\n");
+    DLOG("*** stlink_write_mem32 ***\n");
     if (len % 4 != 0) {
         fprintf(stderr, "Error: Data length doesn't have a 32 bit alignment: +%d byte.\n", len % 4);
         return;
@@ -383,7 +375,7 @@ void stlink_write_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
 }
 
 void stlink_read_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
-    D(sl, "\n*** stlink_read_mem32 ***\n");
+    DLOG("*** stlink_read_mem32 ***\n");
     if (len % 4 != 0) { // !!! never ever: fw gives just wrong values
         fprintf(stderr, "Error: Data length doesn't have a 32 bit alignment: +%d byte.\n",
                 len % 4);
@@ -393,23 +385,23 @@ void stlink_read_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
 }
 
 void stlink_write_mem8(stlink_t *sl, uint32_t addr, uint16_t len) {
-    D(sl, "\n*** stlink_write_mem8 ***\n");
+    DLOG("*** stlink_write_mem8 ***\n");
     sl->backend->write_mem8(sl, addr, len);
 }
 
 void stlink_read_all_regs(stlink_t *sl, reg *regp) {
-    D(sl, "\n*** stlink_read_all_regs ***\n");
+    DLOG("*** stlink_read_all_regs ***\n");
     sl->backend->read_all_regs(sl, regp);
 }
 
 void stlink_write_reg(stlink_t *sl, uint32_t reg, int idx) {
-    D(sl, "\n*** stlink_write_reg\n");
+    DLOG("*** stlink_write_reg\n");
     sl->backend->write_reg(sl, reg, idx);
 }
 
 void stlink_read_reg(stlink_t *sl, int r_idx, reg *regp) {
-    D(sl, "\n*** stlink_read_reg\n");
-    DD(sl, " (%d) ***\n", r_idx);
+    DLOG("*** stlink_read_reg\n");
+    DLOG(" (%d) ***\n", r_idx);
 
     if (r_idx > 20 || r_idx < 0) {
         fprintf(stderr, "Error: register index must be in [0..20]\n");
@@ -426,7 +418,7 @@ unsigned int is_core_halted(stlink_t *sl) {
 }
 
 void stlink_step(stlink_t *sl) {
-    D(sl, "\n*** stlink_step ***\n");
+    DLOG("*** stlink_step ***\n");
     sl->backend->step(sl);
 }
 
@@ -434,16 +426,16 @@ int stlink_current_mode(stlink_t *sl) {
     int mode = sl->backend->current_mode(sl);
     switch (mode) {
         case STLINK_DEV_DFU_MODE:
-            DD(sl, "stlink current mode: dfu\n");
+            DLOG("stlink current mode: dfu\n");
             return mode;
         case STLINK_DEV_DEBUG_MODE:
-            DD(sl, "stlink current mode: debug (jtag or swd)\n");
+            DLOG("stlink current mode: debug (jtag or swd)\n");
             return mode;
         case STLINK_DEV_MASS_MODE:
-            DD(sl, "stlink current mode: mass\n");
+            DLOG("stlink current mode: mass\n");
             return mode;
     }
-    DD(sl, "stlink mode: unknown!\n");
+    DLOG("stlink mode: unknown!\n");
     return STLINK_DEV_UNKNOWN_MODE;
 }
 
@@ -496,11 +488,11 @@ void stlink_core_stat(stlink_t *sl) {
     switch (sl->q_buf[0]) {
         case STLINK_CORE_RUNNING:
             sl->core_stat = STLINK_CORE_RUNNING;
-            DD(sl, "  core status: running\n");
+            DLOG("  core status: running\n");
             return;
         case STLINK_CORE_HALTED:
             sl->core_stat = STLINK_CORE_HALTED;
-            DD(sl, "  core status: halted\n");
+            DLOG("  core status: halted\n");
             return;
         default:
             sl->core_stat = STLINK_CORE_STAT_UNKNOWN;

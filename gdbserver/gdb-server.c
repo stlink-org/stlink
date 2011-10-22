@@ -21,7 +21,7 @@
 
 #include "gdb-remote.h"
 
-#define DEFAULT_LOGGING_LEVEL 10
+#define DEFAULT_LOGGING_LEVEL 100
 #define DEFAULT_GDB_LISTEN_PORT 4242
 
 #define STRINGIFY_inner(name) #name
@@ -188,7 +188,7 @@ int main(int argc, char** argv) {
 	memset(&state, 0, sizeof(state));
 	// set defaults...
 	state.stlink_version = 2;
-	state.logging_level = 10;
+	state.logging_level = DEFAULT_LOGGING_LEVEL;
 	state.listen_port = DEFAULT_GDB_LISTEN_PORT;
 	parse_options(argc, argv, &state);
 	switch (state.stlink_version) {
@@ -234,15 +234,14 @@ int main(int argc, char** argv) {
 			sl = stlink_v1_open(state.devicename, state.logging_level);
 		}
 		break;
-	}
+    }
 
-	if (stlink_current_mode(sl) == STLINK_DEV_DFU_MODE) {
-		stlink_exit_dfu_mode(sl);
-	}
-
-	if(stlink_current_mode(sl) != STLINK_DEV_DEBUG_MODE) {
-	  stlink_enter_swd_mode(sl);
-	}
+    if (stlink_current_mode(sl) != STLINK_DEV_DEBUG_MODE) {
+        if (stlink_current_mode(sl) == STLINK_DEV_DFU_MODE) {
+            stlink_exit_dfu_mode(sl);
+        }
+        stlink_enter_swd_mode(sl);
+    }
 
 	uint32_t chip_id = stlink_chip_id(sl);
 	uint32_t core_id = stlink_core_id(sl);

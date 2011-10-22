@@ -81,9 +81,14 @@
 #include <sys/mman.h>
 
 #include "stlink-common.h"
-
 #include "stlink-sg.h"
+#include "uglylogging.h"
 
+#define LOG_TAG __FILE__
+#define DLOG(format, args...)         ugly_log(UDEBUG, LOG_TAG, format, ## args)
+#define ILOG(format, args...)         ugly_log(UINFO, LOG_TAG, format, ## args)
+#define WLOG(format, args...)         ugly_log(UWARN, LOG_TAG, format, ## args)
+#define fatal(format, args...)        ugly_log(UFATAL, LOG_TAG, format, ## args)
 
 // Suspends execution of the calling process for
 // (at least) ms milliseconds.
@@ -104,7 +109,7 @@ static void clear_cdb(struct stlink_libsg *sl) {
 // E.g. make the valgrind happy.
 
 static void clear_buf(stlink_t *sl) {
-    DD(sl, "*** clear_buf ***\n");
+    DLOG("*** clear_buf ***\n");
     for (size_t i = 0; i < sizeof (sl->q_buf); i++)
         sl->q_buf[i] = 0;
 
@@ -142,7 +147,7 @@ static void stlink_confirm_inq(stlink_t *stl, struct sg_pt_base *ptvp) {
     }
     const int duration = get_scsi_pt_duration_ms(ptvp);
     if ((stl->verbose > 1) && (duration >= 0))
-        DD(stl, "      duration=%d ms\n", duration);
+        DLOG("      duration=%d ms\n", duration);
 
     // XXX stlink fw sends broken residue, so ignore it and use the known q_len
     // "usb-storage quirks=483:3744:r"
@@ -159,7 +164,7 @@ static void stlink_confirm_inq(stlink_t *stl, struct sg_pt_base *ptvp) {
     switch (cat) {
         case SCSI_PT_RESULT_GOOD:
             if (stl->verbose && (resid > 0))
-                DD(stl, "      notice: requested %d bytes but "
+                DLOG("      notice: requested %d bytes but "
                     "got %d bytes, ignore [broken] residue = %d\n",
                     stl->q_len, dsize, resid);
             break;
@@ -168,7 +173,7 @@ static void stlink_confirm_inq(stlink_t *stl, struct sg_pt_base *ptvp) {
                 sg_get_scsi_status_str(
                         get_scsi_pt_status_response(ptvp), sizeof (buf),
                         buf);
-                DD(stl, "  scsi status: %s\n", buf);
+                DLOG("  scsi status: %s\n", buf);
             }
             return;
         case SCSI_PT_RESULT_SENSE:
@@ -176,11 +181,11 @@ static void stlink_confirm_inq(stlink_t *stl, struct sg_pt_base *ptvp) {
             if (stl->verbose) {
                 sg_get_sense_str("", sl->sense_buf, slen, (stl->verbose
                         > 1), sizeof (buf), buf);
-                DD(stl, "%s", buf);
+                DLOG("%s", buf);
             }
             if (stl->verbose && (resid > 0)) {
                 if ((stl->verbose) || (stl->q_len > 0))
-                    DD(stl, "    requested %d bytes but "
+                    DLOG("    requested %d bytes but "
                         "got %d bytes\n", stl->q_len, dsize);
             }
             return;
@@ -193,13 +198,13 @@ static void stlink_confirm_inq(stlink_t *stl, struct sg_pt_base *ptvp) {
                 // The 'host_status' field has the following values:
                 //	[0x07] Internal error detected in the host adapter.
                 // This may not be fatal (and the command may have succeeded).
-                DD(stl, "  transport: %s", buf);
+                DLOG("  transport: %s", buf);
             }
             return;
         case SCSI_PT_RESULT_OS_ERR:
             if (stl->verbose) {
                 get_scsi_pt_os_err_str(ptvp, sizeof (buf), buf);
-                DD(stl, "  os: %s", buf);
+                DLOG("  os: %s", buf);
             }
             return;
         default:
@@ -212,10 +217,10 @@ static void stlink_confirm_inq(stlink_t *stl, struct sg_pt_base *ptvp) {
 void stlink_q(stlink_t *sl) {
 #if FINISHED_WITH_SG
     struct stlink_libsg* sg = sl->backend_data;
-    DD(sl, "CDB[");
+    DLOG("CDB[");
     for (int i = 0; i < CDB_SL; i++)
-        DD(sl, " 0x%02x", (unsigned int) sg->cdb_cmd_blk[i]);
-    DD(sl, "]\n");
+        DLOG(" 0x%02x", (unsigned int) sg->cdb_cmd_blk[i]);
+    DLOG("]\n");
 
     // Get control command descriptor of scsi structure,
     // (one object per command!!)
@@ -258,13 +263,13 @@ void stlink_stat(stlink_t *stl, char *txt) {
 
     switch (stl->q_buf[0]) {
         case STLINK_OK:
-            DD(stl, "  %s: ok\n", txt);
+            DLOG("  %s: ok\n", txt);
             return;
         case STLINK_FALSE:
-            DD(stl, "  %s: false\n", txt);
+            DLOG("  %s: false\n", txt);
             return;
         default:
-            DD(stl, "  %s: unknown\n", txt);
+            DLOG("  %s: unknown\n", txt);
     }
 }
 
@@ -300,7 +305,7 @@ static void parse_version(stlink_t *stl) {
 
 void _stlink_sg_version(stlink_t *stl) {
     struct stlink_libsg *sl = stl->backend_data;
-    D(stl, "\n*** stlink_version ***\n");
+    DLOG("\n*** stlink_version ***\n");
     clear_cdb(sl);
     sl->cdb_cmd_blk[0] = STLINK_GET_VERSION;
     stl->q_len = 6;
@@ -339,7 +344,7 @@ void _stlink_sg_enter_swd_mode(stlink_t *sl) {
 
 void _stlink_sg_enter_jtag_mode(stlink_t *sl) {
     struct stlink_libsg *sg = sl->backend_data;
-    D(sl, "\n*** stlink_enter_jtag_mode ***\n");
+    DLOG("\n*** stlink_enter_jtag_mode ***\n");
     clear_cdb(sg);
     sg->cdb_cmd_blk[1] = STLINK_DEBUG_ENTER;
     sg->cdb_cmd_blk[2] = STLINK_DEBUG_ENTER_JTAG;
@@ -351,7 +356,7 @@ void _stlink_sg_enter_jtag_mode(stlink_t *sl) {
 
 void _stlink_sg_exit_dfu_mode(stlink_t *sl) {
     struct stlink_libsg *sg = sl->backend_data;
-    D(sl, "\n*** stlink_exit_dfu_mode ***\n");
+    DLOG("\n*** stlink_exit_dfu_mode ***\n");
     clear_cdb(sg);
     sg->cdb_cmd_blk[0] = STLINK_DFU_COMMAND;
     sg->cdb_cmd_blk[1] = STLINK_DFU_EXIT;
@@ -428,7 +433,7 @@ void _stlink_sg_reset(stlink_t *sl) {
 
 void _stlink_sg_status(stlink_t *sl) {
     struct stlink_libsg *sg = sl->backend_data;
-    D(sl, "\n*** stlink_status ***\n");
+    DLOG("\n*** stlink_status ***\n");
     clear_cdb(sg);
     sg->cdb_cmd_blk[1] = STLINK_DEBUG_GETSTATUS;
     sl->q_len = 2;
@@ -440,7 +445,7 @@ void _stlink_sg_status(stlink_t *sl) {
 
 void _stlink_sg_force_debug(stlink_t *sl) {
     struct stlink_libsg *sg = sl->backend_data;
-    D(sl, "\n*** stlink_force_debug ***\n");
+    DLOG("\n*** stlink_force_debug ***\n");
     clear_cdb(sg);
     sg->cdb_cmd_blk[1] = STLINK_DEBUG_FORCEDEBUG;
     sl->q_len = 2;
@@ -471,7 +476,7 @@ void _stlink_sg_read_all_regs(stlink_t *sl, reg *regp) {
     for (int i = 0; i < 16; i++) {
         sg->reg.r[i] = read_uint32(sl->q_buf, 4 * i);
         if (sl->verbose > 1)
-            DD(sl, "r%2d = 0x%08x\n", i, sg->reg.r[i]);
+            DLOG("r%2d = 0x%08x\n", i, sg->reg.r[i]);
     }
     sg->reg.xpsr = read_uint32(sl->q_buf, 64);
     sg->reg.main_sp = read_uint32(sl->q_buf, 68);
@@ -481,11 +486,11 @@ void _stlink_sg_read_all_regs(stlink_t *sl, reg *regp) {
     if (sl->verbose < 2)
         return;
 
-    DD(sl, "xpsr       = 0x%08x\n", sg->reg.xpsr);
-    DD(sl, "main_sp    = 0x%08x\n", sg->reg.main_sp);
-    DD(sl, "process_sp = 0x%08x\n", sg->reg.process_sp);
-    DD(sl, "rw         = 0x%08x\n", sg->reg.rw);
-    DD(sl, "rw2        = 0x%08x\n", sg->reg.rw2);
+    DLOG("xpsr       = 0x%08x\n", sg->reg.xpsr);
+    DLOG("main_sp    = 0x%08x\n", sg->reg.main_sp);
+    DLOG("process_sp = 0x%08x\n", sg->reg.process_sp);
+    DLOG("rw         = 0x%08x\n", sg->reg.rw);
+    DLOG("rw2        = 0x%08x\n", sg->reg.rw2);
 }
 
 // Read an arm-core register, the index must be in the range 0..20.
@@ -506,7 +511,7 @@ void _stlink_sg_read_reg(stlink_t *sl, int r_idx, reg *regp) {
     stlink_print_data(sl);
 
     uint32_t r = read_uint32(sl->q_buf, 0);
-    DD(sl, "r_idx (%2d) = 0x%08x\n", r_idx, r);
+    DLOG("r_idx (%2d) = 0x%08x\n", r_idx, r);
 
     switch (r_idx) {
         case 16:
@@ -553,7 +558,7 @@ void _stlink_sg_write_reg(stlink_t *sl, uint32_t reg, int idx) {
 
 void stlink_write_dreg(stlink_t *sl, uint32_t reg, uint32_t addr) {
     struct stlink_libsg *sg = sl->backend_data;
-    D(sl, "\n*** stlink_write_dreg ***\n");
+    DLOG("\n*** stlink_write_dreg ***\n");
     clear_cdb(sg);
     sg->cdb_cmd_blk[1] = STLINK_DEBUG_WRITEDEBUGREG;
     // 2-5: address of reg of the debug module
@@ -570,7 +575,7 @@ void stlink_write_dreg(stlink_t *sl, uint32_t reg, uint32_t addr) {
 
 void _stlink_sg_run(stlink_t *sl) {
     struct stlink_libsg *sg = sl->backend_data;
-    D(sl, "\n*** stlink_run ***\n");
+    DLOG("\n*** stlink_run ***\n");
     clear_cdb(sg);
     sg->cdb_cmd_blk[1] = STLINK_DEBUG_RUNCORE;
     sl->q_len = 2;
@@ -595,7 +600,7 @@ void _stlink_sg_step(stlink_t *sl) {
 // see Cortex-M3 Technical Reference Manual
 // TODO make delegate!
 void stlink_set_hw_bp(stlink_t *sl, int fp_nr, uint32_t addr, int fp) {
-    D(sl, "\n*** stlink_set_hw_bp ***\n");
+    DLOG("\n*** stlink_set_hw_bp ***\n");
     struct stlink_libsg *sg = sl->backend_data;
     clear_cdb(sg);
     sg->cdb_cmd_blk[1] = STLINK_DEBUG_SETFP;
@@ -616,7 +621,7 @@ void stlink_set_hw_bp(stlink_t *sl, int fp_nr, uint32_t addr, int fp) {
 // TODO make delegate!
 void stlink_clr_hw_bp(stlink_t *sl, int fp_nr) {
     struct stlink_libsg *sg = sl->backend_data;
-    D(sl, "\n*** stlink_clr_hw_bp ***\n");
+    DLOG("\n*** stlink_clr_hw_bp ***\n");
     clear_cdb(sg);
     sg->cdb_cmd_blk[1] = STLINK_DEBUG_CLEARFP;
     sg->cdb_cmd_blk[2] = fp_nr;
@@ -805,7 +810,7 @@ stlink_t* stlink_open(const char *dev_name, const int verbose) {
 
 
 stlink_t* stlink_v1_open(const char *dev_name, const int verbose) {
-
+    ugly_init(verbose);
     stlink_t *sl = stlink_open(dev_name, verbose);
     if (sl == NULL) {
         fputs("Error: could not open stlink device\n", stderr);
@@ -825,7 +830,7 @@ stlink_t* stlink_v1_open(const char *dev_name, const int verbose) {
         return NULL;
     }
 
-    D(sl, "\n*** stlink_force_open ***\n");
+    DLOG("\n*** stlink_force_open ***\n");
     switch (stlink_current_mode(sl)) {
         case STLINK_DEV_MASS_MODE:
             return sl;
@@ -833,10 +838,10 @@ stlink_t* stlink_v1_open(const char *dev_name, const int verbose) {
             // TODO go to mass?
             return sl;
     }
-    DD(sl, "\n*** switch the stlink to mass mode ***\n");
+    DLOG("\n*** switch the stlink to mass mode ***\n");
     _stlink_sg_exit_dfu_mode(sl);
     // exit the dfu mode -> the device is gone
-    DD(sl, "\n*** reopen the stlink device ***\n");
+    DLOG("\n*** reopen the stlink device ***\n");
     delay(1000);
     stlink_close(sl);
     delay(5000);

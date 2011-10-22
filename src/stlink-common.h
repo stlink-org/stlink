@@ -181,10 +181,6 @@ extern "C" {
 
     };
 
-    // some quick and dirty logging...
-    void D(stlink_t *sl, char *txt);
-    void DD(stlink_t *sl, char *format, ...);
-
     //stlink_t* stlink_quirk_open(const char *dev_name, const int verbose);
 
     // delegated functions...
