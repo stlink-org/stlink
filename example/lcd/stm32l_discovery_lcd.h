@@ -85,7 +85,7 @@ MSB   { 1 , 1 , 0 , 0   }
 #define BAR3_ON t_bar[0]  |= 2 
 #define BAR3_OFF t_bar[0] &= ~2 
 
-/* code for 'µ' character */
+/* code for 'Âµ' character */
 #define C_UMAP 0x6084
 
 /* code for 'm' character */
@@ -103,7 +103,7 @@ MSB   { 1 , 1 , 0 , 0   }
 /* constant code for '/' */
 #define C_slatch  0x00c0
 
-/* constant code for ° */
+/* constant code for Â° */
 #define C_percent_1 0xec00
 
 /* constant code  for small o */

@@ -281,7 +281,7 @@ static void LCD_Conv_Char_Seg(uint8_t* c,bool point,bool column, uint8_t* digit)
       ch = star;
       break;
                   
-    case 'µ' :
+    case 'Âµ' :
       ch = C_UMAP;
       break;
     
@@ -301,7 +301,7 @@ static void LCD_Conv_Char_Seg(uint8_t* c,bool point,bool column, uint8_t* digit)
       ch = C_slatch;
       break;  
       
-    case '°' :
+    case 'Â°' :
       ch = C_percent_1;
       break;  
     case '%' :
