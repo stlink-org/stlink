@@ -4,7 +4,7 @@ BIN_IMAGE=blink.bin
 CC=arm-none-eabi-gcc
 OBJCOPY=arm-none-eabi-objcopy
 
-CFLAGS=-O2 -mlittle-endian -mthumb
+CFLAGS=-O2 -mlittle-endian -mthumb -g
 CFLAGS+=-mcpu=cortex-m3 -ffreestanding -nostdlib -nostdinc
 
 # to run from SRAM
