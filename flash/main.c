@@ -97,7 +97,7 @@ int main(int ac, char** av)
   }
   else /* stlinkv2 */
   {
-    sl = stlink_open_usb(10);
+    sl = stlink_open_usb(0);
     if (sl == NULL) goto on_error;
   }
 
