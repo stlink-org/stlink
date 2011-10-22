@@ -6,6 +6,7 @@
  license that can be found in the LICENSE file.
 */
 
+#include <getopt.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -19,6 +20,12 @@
 #include <stlink-common.h>
 
 #include "gdb-remote.h"
+
+#define DEFAULT_LOGGING_LEVEL 10
+#define DEFAULT_GDB_LISTEN_PORT 4242
+
+#define STRINGIFY_inner(name) #name
+#define STRINGIFY(name) STRINGIFY_inner(name)
 
 #define FLASH_BASE 0x08000000
 #define FLASH_PAGE (sl->flash_pgsz)
@@ -77,79 +84,168 @@ struct chip_params {
 	{ 0 }
 };
 
+typedef struct _st_state_t {
+    // things from command line, bleh
+    int stlink_version;
+    // "/dev/serial/by-id/usb-FTDI_TTL232R-3V3_FTE531X6-if00-port0" is only 58 chars
+    char devicename[100];
+    int logging_level;
+	int listen_port;
+} st_state_t;
+
+
 int serve(stlink_t *sl, int port);
 char* make_memory_map(const struct chip_params *params, uint32_t flash_size);
+
+
+int parse_options(int argc, char** argv, st_state_t *st) {
+    static struct option long_options[] = {
+        {"help", no_argument, NULL, 'h'},
+        {"verbose", optional_argument, NULL, 'v'},
+        {"device", required_argument, NULL, 'd'},
+        {"stlink_version", required_argument, NULL, 's'},
+        {"stlinkv1", no_argument, NULL, '1'},
+		{"listen_port", required_argument, NULL, 'p'},
+        {0, 0, 0, 0},
+    };
+	const char * help_str = "%s - usage:\n\n"
+	"  -h, --help\t\tPrint this help\n"
+	"  -vXX, --verbose=XX\tspecify a specific verbosity level (0..99)\n"
+	"  -v, --verbose\tspecify generally verbose logging\n"
+	"  -d <device>, --device=/dev/stlink2_1\n"
+	"\t\t\tWhere is your stlink device connected?\n"
+	"  -s X, --stlink_version=X\n"
+	"\t\t\tChoose what version of stlink to use, (defaults to 2)\n"
+	"  -1, --stlinkv1\tForce stlink version 1\n"
+	"  -p 4242, --listen_port=1234\n"
+	"\t\t\tSet the gdb server listen port. "
+	"(default port: " STRINGIFY(DEFAULT_GDB_LISTEN_PORT) ")\n"
+	;
+
+
+    int option_index = 0;
+    int c;
+    int q;
+    while ((c = getopt_long(argc, argv, "hv::d:s:1p:", long_options, &option_index)) != -1) {
+        switch (c) {
+        case 0:
+            printf("XXXXX Shouldn't really normally come here, only if there's no corresponding option\n");
+            printf("option %s", long_options[option_index].name);
+            if (optarg) {
+                printf(" with arg %s", optarg);
+            }
+            printf("\n");
+            break;
+        case 'h':
+            printf(help_str, argv[0]);
+            exit(EXIT_SUCCESS);
+            break;
+        case 'v':
+            if (optarg) {
+                st->logging_level = atoi(optarg);
+            } else {
+                st->logging_level = DEFAULT_LOGGING_LEVEL;
+            }
+            break;
+        case 'd':
+            if (strlen(optarg) > sizeof (st->devicename)) {
+                fprintf(stderr, "device name too long: %ld\n", strlen(optarg));
+            } else {
+                strcpy(st->devicename, optarg);
+            }
+            break;
+		case '1':
+			st->stlink_version = 1;
+			break;
+		case 's':
+			sscanf(optarg, "%i", &q);
+			if (q < 0 || q > 2) {
+				fprintf(stderr, "stlink version %d unknown!\n", q);
+				exit(EXIT_FAILURE);
+			}
+			st->stlink_version = q;
+			break;
+		case 'p':
+			sscanf(optarg, "%i", &q);
+			if (q < 0) {
+				fprintf(stderr, "Can't use a negative port to listen on: %d\n", q);
+				exit(EXIT_FAILURE);
+			}
+			st->listen_port = q;
+			break;
+        }
+    }
+
+    if (optind < argc) {
+        printf("non-option ARGV-elements: ");
+        while (optind < argc)
+            printf("%s ", argv[optind++]);
+        printf("\n");
+    }
+    return 0;
+}
+
 
 int main(int argc, char** argv) {
 
 	stlink_t *sl = NULL;
 
-	const char * HelpStr =	"Usage:\n"
-								"\t st-util port [/dev/sgX]\n"
-								"\t st-util [port]\n"
-								"\t st-util --help\n";
-
-	switch(argc) {
-
-		case 3 : {
-			//sl = stlink_quirk_open(argv[2], 0);
-			// FIXME - hardcoded to usb....
-			sl = stlink_open_usb(10);
-			if(sl == NULL) return 1;
-			break;
-		}
-
-		case 2 : {
-			if (strcmp(argv[1], "--help") == 0) {
-				fprintf(stdout, HelpStr, NULL);
-				return 1;
-			}
-		}
-
-#if CONFIG_USE_LIBSG
-		case 1 : { // Search ST-LINK (from /dev/sg0 to /dev/sg99)
+	st_state_t state;
+	memset(&state, 0, sizeof(state));
+	// set defaults...
+	state.stlink_version = 2;
+	state.logging_level = 10;
+	state.listen_port = DEFAULT_GDB_LISTEN_PORT;
+	parse_options(argc, argv, &state);
+	switch (state.stlink_version) {
+	case 2:
+		sl = stlink_open_usb(state.logging_level);
+		if(sl == NULL) return 1;
+		break;
+	case 1:
+#if (CONFIG_USE_LIBSG == 1)
+		if (strlen(state.devicename) == 0) {
 			const int DevNumMax = 99;
 			int ExistDevCount = 0;
 
-			for(int DevNum = 0; DevNum <= DevNumMax; DevNum++)
-			{
-				if(DevNum < 10) {
+			for (int DevNum = 0; DevNum <= DevNumMax; DevNum++) {
+				if (DevNum < 10) {
 					char DevName[] = "/dev/sgX";
 					const int X_index = 7;
 					DevName[X_index] = DevNum + '0';
-					if ( !access(DevName, F_OK) ) {
+					if (!access(DevName, F_OK)) {
 						sl = stlink_quirk_open(DevName, 0);
 						ExistDevCount++;
 					}
-				}
-				else if(DevNum < 100) {
+				} else if (DevNum < 100) {
 					char DevName[] = "/dev/sgXY";
 					const int X_index = 7;
 					const int Y_index = 8;
-					DevName[X_index] = DevNum/10 + '0';
-					DevName[Y_index] = DevNum%10 + '0';
-					if ( !access(DevName, F_OK) ) {
+					DevName[X_index] = DevNum / 10 + '0';
+					DevName[Y_index] = DevNum % 10 + '0';
+					if (!access(DevName, F_OK)) {
 						sl = stlink_quirk_open(DevName, 0);
 						ExistDevCount++;
 					}
 				}
-				if(sl != NULL) break;
+				if (sl != NULL) break;
 			}
 
-			if(sl == NULL) {
+			if (sl == NULL) {
 				fprintf(stdout, "\nNumber of /dev/sgX devices found: %i \n",
-						ExistDevCount);
+					ExistDevCount);
 				fprintf(stderr, "ST-LINK not found\n");
 				return 1;
 			}
-			break;
+		} else {
+			sl = stlink_quirk_open(state.devicename, state.logging_level);
 		}
+		break;
+#else
+		fprintf(stderr, "Support for stlink v1 disabled at build time...\n");
+		fprintf(stderr, "Perhaps you're on OSX, and we haven't finished removing the libsg deps?\n");
+		exit(EXIT_FAILURE);
 #endif
-
-		default: {
-			fprintf(stderr, HelpStr, NULL);
-			return 1;
-		}
 	}
 
 	if (stlink_current_mode(sl) == STLINK_DEV_DFU_MODE) {
@@ -200,9 +296,7 @@ int main(int argc, char** argv) {
 	// memory map is in 1k blocks.
 	current_memory_map = make_memory_map(params, flash_size * 0x400);
 
-	int port = 4242;
-
-	while(serve(sl, port) == 0);
+	while(serve(sl, state.listen_port) == 0);
 
 	/* Switch back to mass storage mode before closing. */
 	stlink_run(sl);

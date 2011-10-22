@@ -106,12 +106,14 @@ A GDB server must be start to interact with the STM32. Depending on the discover
 are using, you must run one of the 2 commands:\\
 \begin{small}
 \begin{lstlisting}[frame=tb]
-# STM32VL discovery kit
-$> sudo ./st-util /dev/sg2
+# STM32VL discovery kit (onboard ST-link)
+$> sudo ./st-util --stlinkv1 [-d /dev/sg2]
 
-# STM32L discovery kit
-# 2 dummy command line arguments needed, will be fixed soon
-$> sudo ./st-util fu bar
+# STM32L discovery kit (onboard ST-link/V2)
+$> sudo ./st-util 
+
+# Full help for other options (listen port, version)
+$> ./st-util --help
 \end{lstlisting}
 \end{small}
 
