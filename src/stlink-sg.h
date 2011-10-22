@@ -40,7 +40,6 @@ extern "C" {
 
 
 
-#if defined(CONFIG_USE_LIBUSB)
     struct stlink_libsg {
         int sg_fd;
         int do_scsi_pt_err;
@@ -63,11 +62,8 @@ extern "C" {
 
         reg reg;
     };
-#else
-    struct stlink_libsg {};
-#endif
 
-    stlink_t* stlink_quirk_open(const char *dev_name, const int verbose);
+    stlink_t* stlink_v1_open(const char *dev_name, const int verbose);
 
 #ifdef	__cplusplus
 }

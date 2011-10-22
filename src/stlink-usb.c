@@ -116,7 +116,10 @@ ssize_t send_recv(struct stlink_libusb* handle, int terminate,
         if (submit_wait(handle, handle->rep_trans)) return -1;
         res = handle->rep_trans->actual_length;
     }
+    
     if ((handle->protocoll == 1) && terminate) {
+        fprintf(stderr, "This is never used....\n");
+        exit(EXIT_FAILURE);
         /* Read the SG reply */
         unsigned char sg_buf[13];
         libusb_fill_bulk_transfer
@@ -172,6 +175,7 @@ static int fill_command
     int i = 0;
     memset(cmd, 0, sizeof (sl->c_buf));
     if(slu->protocoll == 1) {
+        fprintf(stderr, "This is never used....\n");
         cmd[i++] = 'U';
         cmd[i++] = 'S';
         cmd[i++] = 'B';
@@ -652,11 +656,12 @@ stlink_t* stlink_open_usb(const int verbose) {
         printf("libusb_alloc_transfer\n");
         goto on_libusb_error;
     }
-
+    // TODO - could use the scanning techniq from stm8 code here...
     slu->ep_rep = 1 /* ep rep */ | LIBUSB_ENDPOINT_IN;
     slu->ep_req = 2 /* ep req */ | LIBUSB_ENDPOINT_OUT;
 
     slu->sg_transfer_idx = 0;
+    // TODO - never used at the moment, always CMD_SIZE
     slu->cmd_len = (slu->protocoll == 1)? STLINK_SG_SIZE: STLINK_CMD_SIZE;
 
     /* success */

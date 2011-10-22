@@ -37,7 +37,7 @@ int main(int argc, char *argv[]) {
 	fprintf(stderr, "Using sg_lib %s : scsi_pt %s\n", sg_lib_version(),
 		scsi_pt_version());
 
-	stlink_t *sl = stlink_quirk_open(dev_name, scsi_verbose);
+	stlink_t *sl = stlink_v1_open(dev_name, scsi_verbose);
 	if (sl == NULL)
 		return EXIT_FAILURE;
 

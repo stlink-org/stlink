@@ -1,5 +1,7 @@
 /* simple wrapper around the stlink_flash_write function */
 
+// TODO - this should be done as just a simple flag to the st-util command line...
+
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -87,7 +89,7 @@ int main(int ac, char** av)
   if (o.devname != NULL) /* stlinkv1 */
   {
     static const int scsi_verbose = 2;
-    sl = stlink_quirk_open(o.devname, scsi_verbose);
+    sl = stlink_v1_open(o.devname, scsi_verbose);
     if (sl == NULL) goto on_error;
   }
   else /* stlinkv2 */

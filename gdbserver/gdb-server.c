@@ -207,7 +207,7 @@ int main(int argc, char** argv) {
 					const int X_index = 7;
 					DevName[X_index] = DevNum + '0';
 					if (!access(DevName, F_OK)) {
-						sl = stlink_quirk_open(DevName, 0);
+						sl = stlink_v1_open(DevName, 0);
 						ExistDevCount++;
 					}
 				} else if (DevNum < 100) {
@@ -217,7 +217,7 @@ int main(int argc, char** argv) {
 					DevName[X_index] = DevNum / 10 + '0';
 					DevName[Y_index] = DevNum % 10 + '0';
 					if (!access(DevName, F_OK)) {
-						sl = stlink_quirk_open(DevName, 0);
+						sl = stlink_v1_open(DevName, 0);
 						ExistDevCount++;
 					}
 				}
@@ -231,7 +231,7 @@ int main(int argc, char** argv) {
 				return 1;
 			}
 		} else {
-			sl = stlink_quirk_open(state.devicename, state.logging_level);
+			sl = stlink_v1_open(state.devicename, state.logging_level);
 		}
 		break;
 	}

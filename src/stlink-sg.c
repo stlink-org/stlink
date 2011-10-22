@@ -82,12 +82,7 @@
 
 #include "stlink-common.h"
 
-#if CONFIG_USE_LIBSG
-// sgutils2 (apt-get install libsgutils2-dev)
-#include <scsi/sg_lib.h>
-#include <scsi/sg_pt.h>
 #include "stlink-sg.h"
-#endif
 
 
 // Suspends execution of the calling process for
@@ -119,15 +114,18 @@ static void clear_buf(stlink_t *sl) {
 
 void _stlink_sg_close(stlink_t *sl) {
     if (sl) {
+#if FINISHED_WITH_SG
         struct stlink_libsg *slsg = sl->backend_data;
         scsi_pt_close_device(slsg->sg_fd);
         free(slsg);
+#endif
     }
 }
 
 
 //TODO rewrite/cleanup, save the error in sl
 
+#if FINISHED_WITH_SG
 static void stlink_confirm_inq(stlink_t *stl, struct sg_pt_base *ptvp) {
     struct stlink_libsg *sl = stl->backend_data;
     const int e = sl->do_scsi_pt_err;
@@ -209,8 +207,10 @@ static void stlink_confirm_inq(stlink_t *stl, struct sg_pt_base *ptvp) {
                     "category (%d)\n", cat);
     }
 }
+#endif
 
 void stlink_q(stlink_t *sl) {
+#if FINISHED_WITH_SG
     struct stlink_libsg* sg = sl->backend_data;
     DD(sl, "CDB[");
     for (int i = 0; i < CDB_SL; i++)
@@ -245,6 +245,7 @@ void stlink_q(stlink_t *sl) {
     stlink_confirm_inq(sl, ptvp);
     // TODO recycle: clear_scsi_pt_obj(struct sg_pt_base * objp);
     destruct_scsi_pt_obj(ptvp);
+#endif
 }
 
 // TODO thinking, cleanup
@@ -803,7 +804,7 @@ stlink_t* stlink_open(const char *dev_name, const int verbose) {
 
 
 
-stlink_t* stlink_quirk_open(const char *dev_name, const int verbose) {
+stlink_t* stlink_v1_open(const char *dev_name, const int verbose) {
 
     stlink_t *sl = stlink_open(dev_name, verbose);
     if (sl == NULL) {
