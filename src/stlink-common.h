@@ -162,6 +162,7 @@ extern "C" {
 #define STM32_FLASH_BASE 0x08000000
 #define STM32_FLASH_SIZE (128 * 1024)
 #define STM32_FLASH_PGSZ 1024
+#define STM32L_FLASH_PGSZ 256
         stm32_addr_t flash_base;
         size_t flash_size;
         size_t flash_pgsz;

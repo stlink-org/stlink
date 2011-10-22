@@ -670,14 +670,16 @@ int stlink_fread(stlink_t* sl, const char* path, stm32_addr_t addr, size_t size)
     /* do the copy by 1k blocks */
     for (off = 0; off < size; off += 1024) {
         size_t read_size = 1024;
+	size_t rounded_size;
         if ((off + read_size) > size)
-            read_size = off + read_size;
+	  read_size = size - off;
 
         /* round size if needed */
-        if (read_size & 3)
-            read_size = (read_size + 4) & ~(3);
+	rounded_size = read_size;
+        if (rounded_size & 3)
+	  rounded_size = (rounded_size + 4) & ~(3);
 
-        stlink_read_mem32(sl, addr + off, read_size);
+        stlink_read_mem32(sl, addr + off, rounded_size);
 
         if (write(fd, sl->q_buf, read_size) != (ssize_t) read_size) {
             fprintf(stderr, "write() != read_size\n");

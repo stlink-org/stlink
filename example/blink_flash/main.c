@@ -5,10 +5,6 @@ typedef unsigned int uint32_t;
 
 /* hardware configuration */
 
-#define CONFIG_STM32L_DISCOVERY 1
-#define CONFIG_STM32VL_DISCOVERY 0
-
-
 #if CONFIG_STM32VL_DISCOVERY
 
 # define GPIOC 0x40011000 /* port C */
