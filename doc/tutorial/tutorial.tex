@@ -97,19 +97,21 @@ A simple LED blinking example is provided in the example directory. It is built 
 \begin{lstlisting}[frame=tb]
 # update the make option accordingly to your architecture
 cd stlink.git/example/blink ;
-PATH=$TOOLCHAIN_PATH/bin:$PATH make CONFIG_STM32L_DISCOVERY=1;
+PATH=$TOOLCHAIN_PATH/bin:$PATH make
 \end{lstlisting}
 \end{small}
+This builds three files, one for each of the Discovery boards currently
+available.
 
 \paragraph{}
-A GDB server must be start to interact with the STM32. Depending on the discovery kit you
+A GDB server must be started to interact with the STM32. Depending on the discovery kit you
 are using, you must run one of the 2 commands:\\
 \begin{small}
 \begin{lstlisting}[frame=tb]
 # STM32VL discovery kit (onboard ST-link)
 $> sudo ./st-util --stlinkv1 [-d /dev/sg2]
 
-# STM32L discovery kit (onboard ST-link/V2)
+# STM32L or STM32F4 discovery kit (onboard ST-link/V2)
 $> sudo ./st-util 
 
 # Full help for other options (listen port, version)
