@@ -56,30 +56,37 @@ point of view, those versions differ only in the transport layer used to communi
 (v1 uses SCSI passthru commands, while v2 uses raw USB).
 
 \paragraph{}
-Before continuing, the following dependencies are required:
+Before continuing, the following dependencies must be met:
 \begin{itemize}
 \item libusb-1.0
-\item libsg2
+\item libsgutils2 (optionnal)
 \end{itemize}
+
+\paragraph{}
+STLINK should run on any system meeting the above constraints.
 
 \paragraph{}
 The STLINK software source code is retrieved using:\\
 \begin{small}
 \begin{lstlisting}[frame=tb]
-git clone https://github.com/texane/stlink stlink.git
+$> git clone https://github.com/texane/stlink stlink.git
 \end{lstlisting}
 \end{small}
 
 \paragraph{}
-The GDB server is called st-util and is built using:\\
+Everything can be built from the top directory:\\
 \begin{small}
 \begin{lstlisting}[frame=tb]
-$> cd stlink.git;
-$> make ;
-$> cd gdbserver ;
-$> make ;
+$> cd stlink.git
+$> make CONFIG_USE_LIBSG=0
 \end{lstlisting}
 \end{small}
+It includes:
+\begin{itemize}
+\item a communication library (stlink.git/libstlink.a),
+\item a GDB server (stlink.git/gdbserver/st-util),
+\item a flash manipulation tool (stlink.git/flash/flash).
+\end{itemize}
 
 
 \newpage
@@ -88,8 +95,9 @@ $> make ;
 A simple LED blinking example is provided in the example directory. It is built using:\\
 \begin{small}
 \begin{lstlisting}[frame=tb]
+# update the make option accordingly to your architecture
 cd stlink.git/example/blink ;
-PATH=$TOOLCHAIN_PATH/bin:$PATH make ;
+PATH=$TOOLCHAIN_PATH/bin:$PATH make CONFIG_STM32L_DISCOVERY=1;
 \end{lstlisting}
 \end{small}
 
@@ -102,7 +110,8 @@ are using, you must run one of the 2 commands:\\
 $> sudo ./st-util /dev/sg2
 
 # STM32L discovery kit
-$> sudo ./st-util
+# 2 dummy command line arguments needed, will be fixed soon
+$> sudo ./st-util fu bar
 \end{lstlisting}
 \end{small}
 
@@ -142,6 +151,31 @@ $> continue
 
 \paragraph{}
 The board BLUE and GREEN leds should be blinking (those leds are near the user and reset buttons).
+
+
+\newpage
+\section{Reading and writing to flash}
+\paragraph{}
+Flash memory reading and writing is done by a separate tool. A binary running in flash is assumed to
+be linked against address 0x8000000. The flash tool is then used as shown below:\\
+\begin{small}
+\begin{lstlisting}[frame=tb]
+# change to the flash tool directory
+$> cd stlink.git/flash ;
+
+# stlinkv1 command to read 4096 from flash into out.bin
+$> ./flash read /dev/sg2 out.bin 0x8000000 4096
+
+# stlinkv2 command
+$> ./flash read out.bin 0x8000000 4096
+
+# stlinkv1 command to write the file in.bin into flash
+$> ./flash write /dev/sg2 in.bin 0x8000000
+
+# stlinkv2 command
+$> ./flash write in.bin 0x8000000
+\end{lstlisting}
+\end{small}
 
 
 \newpage
@@ -186,6 +220,17 @@ $> cd stlink.git/example/lcd
 $> make
 \end{lstlisting}
 \end{small}
+
+\subsection{STM32VL support}
+\paragraph{}
+It seems support for STM32VL is quite broken. If it does not work, try build STLINK using libsg:
+\begin{small}
+\begin{lstlisting}[frame=tb]
+$> cd stlink.git
+$> make CONFIG_USE_LIBSG=1
+\end{lstlisting}
+\end{small}
+
 
 \newpage
 \section{References}

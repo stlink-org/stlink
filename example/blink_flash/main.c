@@ -5,6 +5,10 @@ typedef unsigned int uint32_t;
 
 /* hardware configuration */
 
+#define CONFIG_STM32L_DISCOVERY 1
+#define CONFIG_STM32VL_DISCOVERY 0
+
+
 #if CONFIG_STM32VL_DISCOVERY
 
 # define GPIOC 0x40011000 /* port C */
@@ -54,36 +58,6 @@ static inline void switch_leds_off(void)
   *(volatile uint32_t*)GPIOB_ODR = 0;
 }
 
-#elif CONFIG_STM32F4_DISCOVERY
-
-#define GPIOD 0x40020C00 /* port D */
-# define GPIOD_MODER (GPIOD + 0x00) /* port mode register */
-# define GPIOD_ODR (GPIOD + 0x14) /* port output data register */
-
-# define LED_GREEN (1 << 12) /* port B, pin 12 */
-# define LED_ORANGE (1 << 13) /* port B, pin 13 */
-# define LED_RED (1 << 14) /* port B, pin 14 */
-# define LED_BLUE (1 << 15) /* port B, pin 15 */
-
-static inline void setup_leds(void)
-{
-  *(volatile uint32_t*)GPIOD_MODER |= (1 << (12 * 2)) | (1 << (13 * 2)) |
-  	(1 << (13 * 2)) | (1 << (14 * 2)) | (1 << (15 * 2));
-}
-
-
-static inline void switch_leds_on(void)
-{
-  *(volatile uint32_t*)GPIOD_ODR = LED_GREEN | LED_ORANGE | LED_RED | LED_BLUE;
-}
-
-static inline void switch_leds_off(void)
-{
-  *(volatile uint32_t*)GPIOD_ODR = 0;
-}
-
-#else
-#error "Architecture must be defined!"
 #endif /* otherwise, error */
 
 
@@ -94,7 +68,7 @@ do {							\
     __asm__ __volatile__ ("nop\n\t":::"memory");	\
 } while (0)
 
-static void __attribute__((naked)) __attribute__((used)) main(void)
+void main(void)
 {
   setup_leds();
 

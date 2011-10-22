@@ -1,4 +1,3 @@
-#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -8,6 +7,8 @@
 #include <libusb-1.0/libusb.h>
 #include "stlink-common.h"
 #include "stlink-usb.h"
+
+enum SCSI_Generic_Direction {SG_DXFER_TO_DEV=0, SG_DXFER_FROM_DEV=0x80};
 
 void _stlink_usb_close(stlink_t* sl) {
     struct stlink_libusb * const handle = sl->backend_data;
@@ -19,8 +20,9 @@ void _stlink_usb_close(stlink_t* sl) {
         if (handle->rep_trans != NULL)
             libusb_free_transfer(handle->rep_trans);
 
-        if (handle->usb_handle != NULL)
+        if (handle->usb_handle != NULL) {
             libusb_close(handle->usb_handle);
+        }
 
         libusb_exit(handle->libusb_ctx);
         free(handle);
@@ -88,10 +90,11 @@ int submit_wait(struct stlink_libusb *slu, struct libusb_transfer * trans) {
     return 0;
 }
 
-ssize_t send_recv(struct stlink_libusb* handle,
+ssize_t send_recv(struct stlink_libusb* handle, int terminate,
         unsigned char* txbuf, size_t txsize,
         unsigned char* rxbuf, size_t rxsize) {
     /* note: txbuf and rxbuf can point to the same area */
+    int res = 0;
 
     libusb_fill_bulk_transfer(handle->req_trans, handle->usb_handle,
             handle->ep_req,
@@ -100,122 +103,146 @@ ssize_t send_recv(struct stlink_libusb* handle,
             0
             );
 
-    printf("submit_wait(req)\n");
-
     if (submit_wait(handle, handle->req_trans)) return -1;
 
     /* send_only */
-    if (rxsize == 0) return 0;
+    if (rxsize != 0) {
 
-    /* read the response */
-
-    libusb_fill_bulk_transfer(handle->rep_trans, handle->usb_handle,
-            handle->ep_rep, rxbuf, rxsize, NULL, NULL, 0);
-
-    printf("submit_wait(rep)\n");
-
-    if (submit_wait(handle, handle->rep_trans)) return -1;
+        /* read the response */
+        
+        libusb_fill_bulk_transfer(handle->rep_trans, handle->usb_handle,
+                                  handle->ep_rep, rxbuf, rxsize, NULL, NULL, 0);
+        
+        if (submit_wait(handle, handle->rep_trans)) return -1;
+        res = handle->rep_trans->actual_length;
+    }
+    if ((handle->protocoll == 1) && terminate) {
+        /* Read the SG reply */
+        unsigned char sg_buf[13];
+        libusb_fill_bulk_transfer
+            (handle->rep_trans, handle->usb_handle,
+             handle->ep_rep, sg_buf, 13, NULL, NULL, 0);
+        res = submit_wait(handle, handle->rep_trans);
+	/* The STLink doesn't seem to evaluate the sequence number */
+        handle->sg_transfer_idx++;
+        if (res ) return -1;
+    }
 
     return handle->rep_trans->actual_length;
 }
 
 static inline int send_only
-(struct stlink_libusb* handle, unsigned char* txbuf, size_t txsize) {
-    return send_recv(handle, txbuf, txsize, NULL, 0);
+(struct stlink_libusb* handle, int terminate,
+ unsigned char* txbuf, size_t txsize) {
+    return send_recv(handle, terminate, txbuf, txsize, NULL, 0);
 }
 
 
-// KARL - fixme, common code! (or, one per backend)
-// candidate for common code...
-
-
-static int is_stlink_device(libusb_device * dev) {
+/* Search for a STLINK device, either any or teh one with the given PID
+ * Return the protocoll version
+ */
+static int is_stlink_device(libusb_device * dev, uint16_t pid) {
     struct libusb_device_descriptor desc;
+    int version;
 
     if (libusb_get_device_descriptor(dev, &desc))
         return 0;
 
-    printf("device: 0x%04x, 0x%04x\n", desc.idVendor, desc.idProduct);
-
     if (desc.idVendor != USB_ST_VID)
         return 0;
 
-    if (desc.idProduct != USB_STLINK_32L_PID)
+    if ((desc.idProduct != USB_STLINK_32L_PID) && 
+        (desc.idProduct != USB_STLINK_PID ))
         return 0;
 
-    return 1;
+    if(pid && (pid != desc.idProduct))
+        return 0;
+    if (desc.idProduct == USB_STLINK_PID )
+        version = 1;
+    else
+        version = 2;
+
+    return version;
+}
+
+static int fill_command
+(stlink_t * sl, enum SCSI_Generic_Direction dir, uint32_t len) {
+    struct stlink_libusb * const slu = sl->backend_data;
+    unsigned char* const cmd = sl->c_buf;
+    int i = 0;
+    memset(cmd, 0, sizeof (sl->c_buf));
+    if(slu->protocoll == 1) {
+        cmd[i++] = 'U';
+        cmd[i++] = 'S';
+        cmd[i++] = 'B';
+        cmd[i++] = 'C';
+        write_uint32(&cmd[i], slu->sg_transfer_idx);
+        write_uint32(&cmd[i + 4], len);
+        i += 8;
+        cmd[i++] = (dir == SG_DXFER_FROM_DEV)?0x80:0;
+        cmd[i++] = 0; /* Logical unit */
+        cmd[i++] = 0xa; /* Command length */
+    }
+    return i;
 }
 
 void _stlink_usb_version(stlink_t *sl) {
     struct stlink_libusb * const slu = sl->backend_data;
-    unsigned char* const buf = sl->q_buf;
+    unsigned char* const data = sl->q_buf;
+    unsigned char* const cmd  = sl->c_buf;
     ssize_t size;
+    uint32_t rep_len = 6;
+    int i = fill_command(sl, SG_DXFER_FROM_DEV, rep_len);
 
-    memset(buf, 0, sizeof (sl->q_buf));
-    buf[0] = STLINK_GET_VERSION;
-    buf[1] = 0x80;
+    cmd[i++] = STLINK_GET_VERSION;
 
-    size = send_recv(slu, buf, STLINK_CMD_SIZE, buf, 6);
+    size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len);
     if (size == -1) {
         printf("[!] send_recv\n");
         return;
     }
-
-#if 1 /* DEBUG */
-    {
-        ssize_t i;
-        for (i = 0; i < size; ++i) printf("%02x", buf[i]);
-        printf("\n");
-    }
-#endif /* DEBUG */
 }
 
 void _stlink_usb_write_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
     struct stlink_libusb * const slu = sl->backend_data;
-    unsigned char* const buf = sl->q_buf;
-    unsigned char *cmd_buf = sl->c_buf;
+    unsigned char* const data = sl->q_buf;
+    unsigned char* const cmd  = sl->c_buf;
 
-    memset(cmd_buf, 0, STLINK_CMD_SIZE);
-    cmd_buf[0] = STLINK_DEBUG_COMMAND;
-    cmd_buf[1] =  STLINK_DEBUG_WRITEMEM_32BIT;
-    write_uint32(cmd_buf + 2, addr);
-    write_uint16(cmd_buf + 6, len);
-    send_only(slu, cmd_buf, STLINK_CMD_SIZE);
+    int i = fill_command(sl, SG_DXFER_TO_DEV, len);
+    cmd[i++] = STLINK_DEBUG_COMMAND;
+    cmd[i++] = STLINK_DEBUG_WRITEMEM_32BIT;
+    write_uint32(&cmd[i], addr);
+    write_uint16(&cmd[i + 4], len);
+    send_only(slu, 0, cmd, slu->cmd_len);
 
-#if Q_BUF_LEN < UINT16_MAX
-    assert(len < sizeof(sl->q_buf));  // makes a compiler warning? always true?
-#endif
-    assert((len & 3) == 0); 
-    send_only(slu, buf, len);
-
+    send_only(slu, 1, data, len);
 }
 
 void _stlink_usb_write_mem8(stlink_t *sl, uint32_t addr, uint16_t len) {
     struct stlink_libusb * const slu = sl->backend_data;
-    unsigned char* const buf = sl->q_buf;
-    unsigned char *cmd_buf = sl->c_buf;
+    unsigned char* const data = sl->q_buf;
+    unsigned char* const cmd  = sl->c_buf;
 
-    memset(cmd_buf, 0, STLINK_CMD_SIZE);
-    cmd_buf[0] = STLINK_DEBUG_COMMAND;
-    cmd_buf[1] =  STLINK_DEBUG_WRITEMEM_8BIT;
-    write_uint32(cmd_buf + 2, addr);
-    write_uint16(cmd_buf + 6, len);
-    send_only(slu, cmd_buf, STLINK_CMD_SIZE);
-
-#if Q_BUF_LEN < UINT16_MAX
-    assert(len < sizeof(sl->q_buf));  // makes a compiler warning? always true?
-#endif
-    send_only(slu, buf, len);
+    int i = fill_command(sl, SG_DXFER_TO_DEV, 0);
+    cmd[i++] = STLINK_DEBUG_COMMAND;
+    cmd[i++] = STLINK_DEBUG_WRITEMEM_8BIT;
+    write_uint32(&cmd[i], addr);
+    write_uint16(&cmd[i + 4], len);
+    send_only(slu, 0, cmd, slu->cmd_len);
+    send_only(slu, 1, data, len);
 }
 
 
 int _stlink_usb_current_mode(stlink_t * sl) {
     struct stlink_libusb * const slu = sl->backend_data;
-    unsigned char* const buf = sl->q_buf;
+    unsigned char* const cmd  = sl->c_buf;
+    unsigned char* const data = sl->q_buf;
     ssize_t size;
-    memset(buf, 0, sizeof (sl->q_buf));
-    buf[0] = STLINK_GET_CURRENT_MODE;
-    size = send_recv(slu, buf, STLINK_CMD_SIZE, buf, 2);
+    int rep_len = 2;
+    int i = fill_command(sl, SG_DXFER_FROM_DEV, rep_len);
+    
+    cmd[i++] = STLINK_GET_CURRENT_MODE;
+    size = send_recv(slu, 1, cmd,  slu->cmd_len, data, rep_len);
     if (size == -1) {
         printf("[!] send_recv\n");
         return -1;
@@ -225,76 +252,71 @@ int _stlink_usb_current_mode(stlink_t * sl) {
 
 void _stlink_usb_core_id(stlink_t * sl) {
     struct stlink_libusb * const slu = sl->backend_data;
-    unsigned char* const buf = sl->q_buf;
+    unsigned char* const cmd  = sl->c_buf;
+    unsigned char* const data = sl->q_buf;
     ssize_t size;
+    int rep_len = 4;
+    int i = fill_command(sl, SG_DXFER_FROM_DEV, rep_len);
 
-    memset(buf, 0, sizeof (sl->q_buf));
-    buf[0] = STLINK_DEBUG_COMMAND;
-    buf[1] = STLINK_DEBUG_READCOREID;
+    cmd[i++] = STLINK_DEBUG_COMMAND;
+    cmd[i++] = STLINK_DEBUG_READCOREID;
 
-    size = send_recv(slu, buf, STLINK_CMD_SIZE, buf, 4);
+    size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len);
     if (size == -1) {
         printf("[!] send_recv\n");
         return;
     }
 
-    sl->core_id = read_uint32(buf, 0);
+    sl->core_id = read_uint32(data, 0);
 }
 
 void _stlink_usb_status(stlink_t * sl) {
     struct stlink_libusb * const slu = sl->backend_data;
-    unsigned char* const buf = sl->q_buf;
+    unsigned char* const data = sl->q_buf;
+    unsigned char* const cmd  = sl->c_buf;
     ssize_t size;
+    int rep_len = 2;
+    int i = fill_command(sl, SG_DXFER_FROM_DEV, rep_len);
 
-    memset(buf, 0, sizeof (sl->q_buf));
+    cmd[i++] = STLINK_DEBUG_COMMAND;
+    cmd[i++] = STLINK_DEBUG_GETSTATUS;
 
-    buf[0] = STLINK_DEBUG_COMMAND;
-    buf[1] = STLINK_DEBUG_GETSTATUS;
-
-    size = send_recv(slu, buf, STLINK_CMD_SIZE, buf, 2);
+    size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len);
     if (size == -1) {
         printf("[!] send_recv\n");
         return;
     }
-
-    /* todo: stlink_core_stat */
-
-    // FIXME - decode into sl->core_stat
-#if 1 /* DEBUG */
-    printf("status == 0x%x\n", buf[0]);
-#endif /* DEBUG */
-
 }
 
 void _stlink_usb_force_debug(stlink_t *sl) {
     struct stlink_libusb *slu = sl->backend_data;
-    unsigned char* const buf = sl->q_buf;
+    unsigned char* const data = sl->q_buf;
+    unsigned char* const cmd  = sl->c_buf;
     ssize_t size;
+    int rep_len = 2;
+    int i = fill_command(sl, SG_DXFER_FROM_DEV, rep_len);
 
-    memset(buf, 0, sizeof (sl->q_buf));
-
-    buf[0] = STLINK_DEBUG_COMMAND;
-    buf[1] = STLINK_DEBUG_FORCEDEBUG;
-    size = send_recv(slu, buf, STLINK_CMD_SIZE, buf, 2);
+    cmd[i++] = STLINK_DEBUG_COMMAND;
+    cmd[i++] = STLINK_DEBUG_FORCEDEBUG;
+    size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len);
     if (size == -1) {
         printf("[!] send_recv\n");
         return;
     }
 }
 
-
 void _stlink_usb_enter_swd_mode(stlink_t * sl) {
     struct stlink_libusb * const slu = sl->backend_data;
-    unsigned char* const buf = sl->q_buf;
+    unsigned char* const cmd  = sl->c_buf;
     ssize_t size;
+    const int rep_len = 0;
+    int i = fill_command(sl, SG_DXFER_FROM_DEV, rep_len);
 
-    memset(buf, 0, sizeof (sl->q_buf));
+    cmd[i++] = STLINK_DEBUG_COMMAND;
+    cmd[i++] = STLINK_DEBUG_ENTER;
+    cmd[i++] = STLINK_DEBUG_ENTER_SWD;
 
-    buf[0] = STLINK_DEBUG_COMMAND;
-    buf[1] = STLINK_SWD_ENTER;
-    buf[2] = STLINK_DEBUG_ENTER_SWD;
-
-    size = send_recv(slu, buf, STLINK_CMD_SIZE, buf, 2);
+    size = send_only(slu, 1, cmd, slu->cmd_len);
     if (size == -1) {
         printf("[!] send_recv\n");
         return;
@@ -303,14 +325,14 @@ void _stlink_usb_enter_swd_mode(stlink_t * sl) {
 
 void _stlink_usb_exit_dfu_mode(stlink_t* sl) {
     struct stlink_libusb * const slu = sl->backend_data;
-    unsigned char* const buf = sl->q_buf;
+    unsigned char* const cmd = sl->c_buf;
     ssize_t size;
+    int i = fill_command(sl, SG_DXFER_FROM_DEV, 0);
 
-    memset(buf, 0, sizeof (sl->q_buf));
-    buf[0] = STLINK_DFU_COMMAND;
-    buf[1] = STLINK_DFU_EXIT;
+    cmd[i++] = STLINK_DFU_COMMAND;
+    cmd[i++] = STLINK_DFU_EXIT;
 
-    size = send_only(slu, buf, 16);
+    size = send_only(slu, 1, cmd, slu->cmd_len);
     if (size == -1) {
         printf("[!] send_recv\n");
         return;
@@ -323,14 +345,16 @@ void _stlink_usb_exit_dfu_mode(stlink_t* sl) {
  */
 void _stlink_usb_reset(stlink_t * sl) {
     struct stlink_libusb * const slu = sl->backend_data;
-    unsigned char* const buf = sl->q_buf;
+    unsigned char* const data = sl->q_buf;
+    unsigned char* const cmd = sl->c_buf;
     ssize_t size;
+    int rep_len = 2;
+    int i = fill_command(sl, SG_DXFER_FROM_DEV, rep_len);
 
-    memset(buf, 0, sizeof (sl->q_buf));
-    buf[0] = STLINK_DEBUG_COMMAND;
-    buf[1] = STLINK_DEBUG_RESETSYS;
+    cmd[i++] = STLINK_DEBUG_COMMAND;
+    cmd[i++] = STLINK_DEBUG_RESETSYS;
 
-    size = send_recv(slu, buf, STLINK_CMD_SIZE, buf, sizeof (sl->q_buf));
+    size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len);
     if (size == -1) {
         printf("[!] send_recv\n");
         return;
@@ -340,14 +364,16 @@ void _stlink_usb_reset(stlink_t * sl) {
 
 void _stlink_usb_step(stlink_t* sl) {
     struct stlink_libusb * const slu = sl->backend_data;
-    unsigned char* const buf = sl->q_buf;
+    unsigned char* const data = sl->q_buf;
+    unsigned char* const cmd = sl->c_buf;
     ssize_t size;
+    int rep_len = 2;
+    int i = fill_command(sl, SG_DXFER_FROM_DEV, rep_len);
 
-    memset(buf, 0, sizeof (sl->q_buf));
-    buf[0] = STLINK_DEBUG_COMMAND;
-    buf[1] = STLINK_DEBUG_STEPCORE;
+    cmd[i++] = STLINK_DEBUG_COMMAND;
+    cmd[i++] = STLINK_DEBUG_STEPCORE;
 
-    size = send_recv(slu, buf, STLINK_CMD_SIZE, buf, 2);
+    size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len);
     if (size == -1) {
         printf("[!] send_recv\n");
         return;
@@ -360,31 +386,32 @@ void _stlink_usb_step(stlink_t* sl) {
  */
 void _stlink_usb_run(stlink_t* sl) {
     struct stlink_libusb * const slu = sl->backend_data;
-    unsigned char* const buf = sl->q_buf;
+    unsigned char* const data = sl->q_buf;
+    unsigned char* const cmd = sl->c_buf;
     ssize_t size;
+    int rep_len = 2;
+    int i = fill_command(sl, SG_DXFER_FROM_DEV, rep_len);
 
-    memset(buf, 0, sizeof (sl->q_buf));
-    buf[0] = STLINK_DEBUG_COMMAND;
-    buf[1] = STLINK_DEBUG_RUNCORE;
+    cmd[i++] = STLINK_DEBUG_COMMAND;
+    cmd[i++] = STLINK_DEBUG_RUNCORE;
 
-    size = send_recv(slu, buf, STLINK_CMD_SIZE, buf, 2);
+    size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len);
     if (size == -1) {
         printf("[!] send_recv\n");
         return;
     }
-
 }
 
 void _stlink_usb_exit_debug_mode(stlink_t *sl) {
     struct stlink_libusb * const slu = sl->backend_data;
-    unsigned char* const buf = sl->q_buf;
+    unsigned char* const cmd = sl->c_buf;
     ssize_t size;
+    int i = fill_command(sl, SG_DXFER_FROM_DEV, 0);
 
-    memset(buf, 0, sizeof (sl->q_buf));
-    buf[0] = STLINK_DEBUG_COMMAND;
-    buf[1] = STLINK_DEBUG_EXIT;
+    cmd[i++] = STLINK_DEBUG_COMMAND;
+    cmd[i++] = STLINK_DEBUG_EXIT;
 
-    size = send_only(slu, buf, 16);
+    size = send_only(slu, 1, cmd, slu->cmd_len);
     if (size == -1) {
         printf("[!] send_only\n");
         return;
@@ -393,21 +420,17 @@ void _stlink_usb_exit_debug_mode(stlink_t *sl) {
 
 void _stlink_usb_read_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
     struct stlink_libusb * const slu = sl->backend_data;
-    unsigned char* const buf = sl->q_buf;
+    unsigned char* const data = sl->q_buf;
+    unsigned char* const cmd = sl->c_buf;
     ssize_t size;
+    int i = fill_command(sl, SG_DXFER_FROM_DEV, len);
 
-    /* assume len < sizeof(sl->q_buf) */
+    cmd[i++] = STLINK_DEBUG_COMMAND;
+    cmd[i++] = STLINK_DEBUG_READMEM_32BIT;
+    write_uint32(&cmd[i], addr);
+    write_uint16(&cmd[i + 4], len);
 
-    memset(buf, 0, sizeof (sl->q_buf));
-    buf[0] = STLINK_DEBUG_COMMAND;
-    buf[1] = STLINK_DEBUG_READMEM_32BIT;
-    write_uint32(buf + 2, addr);
-    /* windows usb logs show only one byte is used for length ... */
-    // Presumably, this is because usb transfers can't be 16 bits worth of bytes long...
-    assert (len < 256);
-    buf[6] = (uint8_t) len;
-
-    size = send_recv(slu, buf, STLINK_CMD_SIZE, buf, len);
+    size = send_recv(slu, 1, cmd, slu->cmd_len, data, len);
     if (size == -1) {
         printf("[!] send_recv\n");
         return;
@@ -418,20 +441,17 @@ void _stlink_usb_read_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
     stlink_print_data(sl);
 }
 
-
-#if 1 /* stlinkv1 */
-
 void _stlink_usb_read_all_regs(stlink_t *sl, reg *regp) {
     struct stlink_libusb * const slu = sl->backend_data;
-    unsigned char* const buf = sl->q_buf;
-    unsigned char* const cmd_buf = sl->c_buf;
+    unsigned char* const cmd = sl->c_buf;
+    unsigned char* const data = sl->q_buf;
     ssize_t size;
-    int i;
+    uint32_t rep_len = 84;
+    int i = fill_command(sl, SG_DXFER_FROM_DEV, rep_len);
 
-    memset(cmd_buf, 0, STLINK_CMD_SIZE);
-    cmd_buf[0] = STLINK_DEBUG_COMMAND;
-    cmd_buf[1] = STLINK_DEBUG_READALLREGS;
-    size = send_recv(slu, cmd_buf, STLINK_CMD_SIZE, buf, 84);
+    cmd[i++] = STLINK_DEBUG_COMMAND;
+    cmd[i++] = STLINK_DEBUG_READALLREGS;
+    size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len);
     if (size == -1) {
         printf("[!] send_recv\n");
         return;
@@ -455,53 +475,19 @@ void _stlink_usb_read_all_regs(stlink_t *sl, reg *regp) {
     DD(sl, "rw2        = 0x%08x\n", read_uint32(sl->q_buf, 80));
 }
 
-#else /* stlinkv2 */
-
-static void _stlink_usb_read_all_regs(stlink_t *sl, reg *regp) {
-    struct stlink_libusb * const slu = sl->backend_data;
-    unsigned char* const buf = sl->q_buf;
-    unsigned char* const cmd_buf = sl->c_buf;
-    ssize_t size;
-    int i;
-
-#define STLINK_JTAG_COMMAND 0xf2
-#define STLINK_JTAG_READALLREGS2 0x3a
-    memset(cmd_buf, 0, STLINK_CMD_SIZE);
-    cmd_buf[0] = STLINK_JTAG_COMMAND;
-    cmd_buf[1] = STLINK_JTAG_READALLREGS2;
-    size = send_recv(slu, cmd_buf, STLINK_CMD_SIZE, buf, 84);
-
-    if (size == -1) {
-        printf("[!] send_recv\n");
-        return;
-    }
-
-    sl->q_len = (size_t) size;
-
-    for(i=0; i<16; i++)
-      regp->r[i]= read_uint32(sl->q_buf, i*4);
-
-    regp->xpsr       = read_uint32(sl->q_buf, 64);
-    regp->main_sp    = read_uint32(sl->q_buf, 68);
-    regp->process_sp = read_uint32(sl->q_buf, 72);
-    regp->rw         = read_uint32(sl->q_buf, 76);
-    regp->rw2        = read_uint32(sl->q_buf, 80);
-}
-
-#endif /* stlinkv1 */
-
 void _stlink_usb_read_reg(stlink_t *sl, int r_idx, reg *regp) {
     struct stlink_libusb * const slu = sl->backend_data;
-    unsigned char* const buf = sl->q_buf;
-    unsigned char* const cmd_buf = sl->c_buf;
+    unsigned char* const data = sl->q_buf;
+    unsigned char* const cmd  = sl->c_buf;
     ssize_t size;
     uint32_t r;
+    uint32_t rep_len = 4;
+    int i = fill_command(sl, SG_DXFER_FROM_DEV, rep_len);
 
-    memset(cmd_buf, 0, STLINK_CMD_SIZE);
-    cmd_buf[0] = STLINK_DEBUG_COMMAND;
-    cmd_buf[1] = STLINK_DEBUG_READREG;
-    cmd_buf[2] = (uint8_t) r_idx;
-    size = send_recv(slu, cmd_buf, STLINK_CMD_SIZE, buf, 4);
+    cmd[i++] = STLINK_DEBUG_COMMAND;
+    cmd[i++] = STLINK_DEBUG_READREG;
+    cmd[i++] = (uint8_t) r_idx;
+    size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len);
     if (size == -1) {
         printf("[!] send_recv\n");
         return;
@@ -522,31 +508,29 @@ void _stlink_usb_read_reg(stlink_t *sl, int r_idx, reg *regp) {
         regp->process_sp = r;
         break;
     case 19:
-        regp->rw = r; //XXX ?(primask, basemask etc.)
+        regp->rw = r; /* XXX ?(primask, basemask etc.) */
         break;
     case 20:
-        regp->rw2 = r; //XXX ?(primask, basemask etc.)
+        regp->rw2 = r; /* XXX ?(primask, basemask etc.) */
         break;
     default:
         regp->r[r_idx] = r;
     }
 }
 
-
-#if 1 /* stlinkv1 */
-
 void _stlink_usb_write_reg(stlink_t *sl, uint32_t reg, int idx) {
     struct stlink_libusb * const slu = sl->backend_data;
-    unsigned char* const buf = sl->q_buf;
-    unsigned char *cmd_buf = sl->c_buf;
+    unsigned char* const data = sl->q_buf;
+    unsigned char* const cmd  = sl->c_buf;
     ssize_t size;
+    uint32_t rep_len = 2;
+    int i = fill_command(sl, SG_DXFER_FROM_DEV, rep_len);
 
-    memset(cmd_buf, 0, STLINK_CMD_SIZE);
-    cmd_buf[0] = STLINK_DEBUG_COMMAND;
-    cmd_buf[1] = STLINK_DEBUG_WRITEREG;
-    cmd_buf[2] = idx;
-    write_uint32(cmd_buf + 3, reg);
-    size = send_recv(slu, cmd_buf, STLINK_CMD_SIZE, buf, 2);
+    cmd[i++] = STLINK_DEBUG_COMMAND;
+    cmd[i++] = STLINK_DEBUG_WRITEREG;
+    cmd[i++] = idx;
+    write_uint32(&cmd[i], reg);
+    size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len);
     if (size == -1) {
         printf("[!] send_recv\n");
         return;
@@ -554,32 +538,6 @@ void _stlink_usb_write_reg(stlink_t *sl, uint32_t reg, int idx) {
     sl->q_len = (size_t) size;
     stlink_print_data(sl);
 }
-
-#else /* stlinkv2 */
-
-void _stlink_usb_write_reg(stlink_t *sl, uint32_t reg, int idx) {
-    struct stlink_libusb * const slu = sl->backend_data;
-    unsigned char* const buf = sl->q_buf;
-    unsigned char *cmd_buf = sl->c_buf;
-    ssize_t size;
-
-#define STLINK_JTAG_WRITEREG2 0x34
-    memset(cmd_buf, 0, STLINK_CMD_SIZE);
-    cmd_buf[0] = STLINK_JTAG_COMMAND;
-    cmd_buf[1] = STLINK_JTAG_WRITEREG2;
-    cmd_buf[2] = idx;
-    write_uint32(cmd_buf + 3, reg);
-    size = send_recv(slu, cmd_buf, STLINK_CMD_SIZE, buf, 2);
-    if (size == -1) {
-        printf("[!] send_recv\n");
-        return;
-    }
-    sl->q_len = (size_t) size;
-    stlink_print_data(sl);
-}
-
-#endif /* stlinkv1 */
-
 
 stlink_backend_t _stlink_usb_backend = {
     _stlink_usb_close,
@@ -604,38 +562,48 @@ stlink_backend_t _stlink_usb_backend = {
 };
 
 
-stlink_t* stlink_open_usb(const char *dev_name, const int verbose) {
+stlink_t* stlink_open_usb(const int verbose) {
     stlink_t* sl = NULL;
     struct stlink_libusb* slu = NULL;
-
-    /* unused */
-    dev_name = dev_name;
-
-    sl = malloc(sizeof (stlink_t));
-    slu = malloc(sizeof (struct stlink_libusb));
-    if (sl == NULL) goto on_error;
-    if (slu == NULL) goto on_error;
-
-    sl->verbose = verbose;
-    
-    if (slu->libusb_ctx != NULL) {
-        fprintf(stderr, "reopening with an existing context? undefined behaviour!\n");
-        goto on_error;
-    } else {
-        if (libusb_init(&(slu->libusb_ctx))) {
-            fprintf(stderr, "failed to init libusb context, wrong version of libraries?\n");
-            goto on_error;
-        }
-    }
-
     int error = -1;
-
     libusb_device** devs = NULL;
     libusb_device* dev;
     ssize_t i;
     ssize_t count;
     int config;
+    char *iSerial = NULL;
 
+    sl = malloc(sizeof (stlink_t));
+    slu = malloc(sizeof (struct stlink_libusb));
+    if (sl == NULL) goto on_error;
+    if (slu == NULL) goto on_error;
+    memset(sl, 0, sizeof (stlink_t));
+    memset(slu, 0, sizeof (struct stlink_libusb));
+
+    sl->verbose = verbose;
+    sl->backend = &_stlink_usb_backend;
+    sl->backend_data = slu;
+    
+    sl->core_stat = STLINK_CORE_STAT_UNKNOWN;
+
+    /* flash memory settings */
+    sl->flash_base = STM32_FLASH_BASE;
+    sl->flash_size = STM32_FLASH_SIZE;
+    sl->flash_pgsz = STM32_FLASH_PGSZ;
+
+    /* system memory */
+    sl->sys_base = STM32_SYSTEM_BASE;
+    sl->sys_size = STM32_SYSTEM_SIZE;
+
+    /* sram memory settings */
+    sl->sram_base = STM32_SRAM_BASE;
+    sl->sram_size = STM32L_SRAM_SIZE;
+
+    if (libusb_init(&(slu->libusb_ctx))) {
+	fprintf(stderr, "failed to init libusb context, wrong version of libraries?\n");
+	goto on_error;
+    }
+    
     count = libusb_get_device_list(slu->libusb_ctx, &devs);
     if (count < 0) {
         printf("libusb_get_device_list\n");
@@ -644,12 +612,45 @@ stlink_t* stlink_open_usb(const char *dev_name, const int verbose) {
 
     for (i = 0; i < count; ++i) {
         dev = devs[i];
-        if (is_stlink_device(dev)) break;
+        slu->protocoll = is_stlink_device(dev, 0);
+        if (slu->protocoll > 0) break;
     }
-    if (i == count) return NULL;
+    if (i == count) goto on_libusb_error;
 
     if (libusb_open(dev, &(slu->usb_handle))) {
         printf("libusb_open()\n");
+        goto on_libusb_error;
+    }
+    
+    if (iSerial) {
+        unsigned char serial[256];
+        struct libusb_device_descriptor desc;
+        int r;
+
+        r = libusb_get_device_descriptor(dev, &desc);
+        if (r<0) {
+            printf("Can't get descriptor to match Iserial\n");
+            goto on_libusb_error;
+        }
+        r = libusb_get_string_descriptor_ascii
+            (slu->usb_handle, desc.iSerialNumber, serial, 256);
+        if (r<0) {
+            printf("Can't get Serialnumber to match Iserial\n");
+            goto on_libusb_error;
+        }
+        if (strcmp((char*)serial, iSerial)) {
+            printf("Mismatch in serial numbers, dev %s vs given %s\n",
+                   serial, iSerial);
+            goto on_libusb_error;
+        }
+    }
+
+    if (libusb_kernel_driver_active(slu->usb_handle, 0) == 1) {
+        int r;
+        
+        r = libusb_detach_kernel_driver(slu->usb_handle, 0);
+        if (r<0)
+            printf("libusb_detach_kernel_driver(() error %s\n", strerror(-r));
         goto on_libusb_error;
     }
 
@@ -688,15 +689,20 @@ stlink_t* stlink_open_usb(const char *dev_name, const int verbose) {
     slu->ep_rep = 1 /* ep rep */ | LIBUSB_ENDPOINT_IN;
     slu->ep_req = 2 /* ep req */ | LIBUSB_ENDPOINT_OUT;
 
-    /* libusb_reset_device(slu->usb_handle); */
+    slu->sg_transfer_idx = 0;
+    slu->cmd_len = (slu->protocoll == 1)? STLINK_SG_SIZE: STLINK_CMD_SIZE;
 
     /* success */
+    if (stlink_current_mode(sl) == STLINK_DEV_DFU_MODE) {
+      printf("-- exit_dfu_mode\n");
+      stlink_exit_dfu_mode(sl);
+    }
+    stlink_version(sl);
     error = 0;
 
 on_libusb_error:
     if (devs != NULL) {
         libusb_free_device_list(devs, 1);
-        fprintf(stderr, "freed libusb device list\n");
     }
 
     if (error == -1) {
@@ -704,8 +710,6 @@ on_libusb_error:
         return NULL;
     }
 
-    sl->backend = &_stlink_usb_backend;
-    sl->backend_data = slu;
     /* success */
     return sl;
 

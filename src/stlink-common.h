@@ -175,6 +175,7 @@ extern "C" {
         /* sram settings */
 #define STM32_SRAM_BASE 0x20000000
 #define STM32_SRAM_SIZE (8 * 1024)
+#define STM32L_SRAM_SIZE (16 * 1024)
         stm32_addr_t sram_base;
         size_t sram_size;
 

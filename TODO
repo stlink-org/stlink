@@ -1,10 +1,17 @@
-. flash writing is not working from GDB
-add a standalone application, flash/
+. flash tool
+ . test support for reading
+ . writing is not working. refer to the specs, may have changed for stm32l
+ . then test with blink_flash example
+ . then update the documentation
 
-. add a startup.S based example
+. documentation
+ . make README points to doc/tutorial
 
 . remove libsg dependency using:
 https://github.com/afaerber/stlink/tree/master/libstlink
 
 . compile and test a realtime kernel, for instance:
-http://www.chibios.org/dokuwiki/doku.php?id=start
+http://www.chibios.org/dokuwiki/doku.php?id=chibios:articles:stm32l_discovery
+svn checkout https://chibios.svn.sourceforge.net/svnroot/chibios/trunk ;
+cd chibios/trunk/demos/ARMCM3-STM32L152-DISCOVERY ;
+make ;
