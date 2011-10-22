@@ -197,7 +197,6 @@ int main(int argc, char** argv) {
 		if(sl == NULL) return 1;
 		break;
 	case 1:
-#if (CONFIG_USE_LIBSG == 1)
 		if (strlen(state.devicename) == 0) {
 			const int DevNumMax = 99;
 			int ExistDevCount = 0;
@@ -235,11 +234,6 @@ int main(int argc, char** argv) {
 			sl = stlink_quirk_open(state.devicename, state.logging_level);
 		}
 		break;
-#else
-		fprintf(stderr, "Support for stlink v1 disabled at build time...\n");
-		fprintf(stderr, "Perhaps you're on OSX, and we haven't finished removing the libsg deps?\n");
-		exit(EXIT_FAILURE);
-#endif
 	}
 
 	if (stlink_current_mode(sl) == STLINK_DEV_DFU_MODE) {

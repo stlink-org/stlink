@@ -6,10 +6,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#if CONFIG_USE_LIBSG
-#include <scsi/sg_lib.h>
-#include <scsi/sg_pt.h>
-#endif
 #include "stlink-common.h"
 
 int main(int argc, char *argv[]) {

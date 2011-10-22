@@ -604,47 +604,14 @@ stlink_t* stlink_open_usb(const int verbose) {
 	goto on_error;
     }
     
-    count = libusb_get_device_list(slu->libusb_ctx, &devs);
-    if (count < 0) {
-        printf("libusb_get_device_list\n");
-        goto on_libusb_error;
-    }
-
-    for (i = 0; i < count; ++i) {
-        dev = devs[i];
-        slu->protocoll = is_stlink_device(dev, 0);
-        if (slu->protocoll > 0) break;
-    }
-    if (i == count) goto on_libusb_error;
-
-    if (libusb_open(dev, &(slu->usb_handle))) {
-        printf("libusb_open()\n");
-        goto on_libusb_error;
+    slu->usb_handle = libusb_open_device_with_vid_pid(slu->libusb_ctx, USB_ST_VID, USB_STLINK_32L_PID);
+    if (slu->usb_handle == NULL) {
+		// TODO - free usb context too...
+        free(slu);
+		fprintf(stderr, "Couldn't find any ST-Link/V2 devices");
+        return NULL;
     }
     
-    if (iSerial) {
-        unsigned char serial[256];
-        struct libusb_device_descriptor desc;
-        int r;
-
-        r = libusb_get_device_descriptor(dev, &desc);
-        if (r<0) {
-            printf("Can't get descriptor to match Iserial\n");
-            goto on_libusb_error;
-        }
-        r = libusb_get_string_descriptor_ascii
-            (slu->usb_handle, desc.iSerialNumber, serial, 256);
-        if (r<0) {
-            printf("Can't get Serialnumber to match Iserial\n");
-            goto on_libusb_error;
-        }
-        if (strcmp((char*)serial, iSerial)) {
-            printf("Mismatch in serial numbers, dev %s vs given %s\n",
-                   serial, iSerial);
-            goto on_libusb_error;
-        }
-    }
-
     if (libusb_kernel_driver_active(slu->usb_handle, 0) == 1) {
         int r;
         
