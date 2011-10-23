@@ -1033,6 +1033,7 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, unsigned 
       val = read_uint32(sl->q_buf, 0) | (1 << 0) | (1 << 1) | (1 << 2);
       write_uint32(sl->q_buf, val);
       stlink_write_mem32(sl, STM32L_FLASH_PECR, sizeof(uint32_t));
+
     }
     else /* stm32vl */
     {
@@ -1106,7 +1107,7 @@ int stlink_fwrite_flash(stlink_t *sl, const char* path, stm32_addr_t addr) {
     } else if ((addr + mf.len) > (sl->flash_base + sl->flash_size)) {
         fprintf(stderr, "addr too high\n");
         goto on_error;
-    } else if ((addr & 1) || (mf.len & 1)) {
+    } else if ((addr & (sl->flash_pgsz - 1)) || (mf.len & 1)) {
         /* todo */
         fprintf(stderr, "unaligned addr or size\n");
         goto on_error;
@@ -1131,6 +1132,9 @@ int stlink_fwrite_flash(stlink_t *sl, const char* path, stm32_addr_t addr) {
       /* use fast word write. todo: half page. */
 
       uint32_t val;
+      uint32_t nwrites = sl->flash_pgsz;
+
+    redo_write:
 
       /* disable pecr protection */
       write_uint32(sl->q_buf, 0x89abcdef);
@@ -1174,6 +1178,42 @@ int stlink_fwrite_flash(stlink_t *sl, const char* path, stm32_addr_t addr) {
 	  stlink_read_mem32(sl, STM32L_FLASH_SR, sizeof(uint32_t));
 	  if ((read_uint32(sl->q_buf, 0) & (1 << 0)) == 0) break ;
 	}
+
+	/* check written bytes. todo: should be on a per page basis. */
+	stlink_read_mem32(sl, addr + off, sizeof(uint32_t));
+	if (memcmp(sl->q_buf, mf.base + off, sizeof(uint32_t)))
+	{
+	  /* re erase the page and redo the write operation */
+	  uint32_t page;
+	  uint32_t val;
+
+	  /* fail if successive write count too low */
+	  if (nwrites < sl->flash_pgsz) {
+	    fprintf(stderr, "writes operation failure count too high, aborting\n");
+	    goto on_error;
+	  }
+
+	  fprintf(stderr, "invalid write @%x(%x). retrying.\n", page, addr + off);
+
+	  nwrites = 0;
+
+	  /* assume addr aligned */
+	  if (off % sl->flash_pgsz) off &= ~(sl->flash_pgsz - 1);
+	  page = addr + off;
+
+	  /* reset lock bits */
+	  stlink_read_mem32(sl, STM32L_FLASH_PECR, sizeof(uint32_t));
+	  val = read_uint32(sl->q_buf, 0) | (1 << 0) | (1 << 1) | (1 << 2);
+	  write_uint32(sl->q_buf, val);
+	  stlink_write_mem32(sl, STM32L_FLASH_PECR, sizeof(uint32_t));
+
+	  stlink_erase_flash_page(sl, page);
+
+	  goto redo_write;
+	}
+
+	/* increment successive writes counter */
+	++nwrites;
       }
 
       /* reset lock bits */
