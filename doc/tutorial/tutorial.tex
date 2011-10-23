@@ -90,8 +90,8 @@ It includes:
 
 
 \newpage
-
-\section{Building and running a program}
+\section{Building and running a program in SRAM}
+\paragraph{}
 A simple LED blinking example is provided in the example directory. It is built using:\\
 \begin{small}
 \begin{lstlisting}[frame=tb]
@@ -154,10 +154,9 @@ The board BLUE and GREEN leds should be blinking (those leds are near the user a
 
 
 \newpage
-\section{Reading and writing to flash}
+\section{Building and flashing a program}
 \paragraph{}
-Flash memory reading and writing is done by a separate tool. A binary running in flash is assumed to
-be linked against address 0x8000000. The flash tool is then used as shown below:\\
+FLASH memory reading and writing is done by a separate tool, as shown below:\\
 \begin{small}
 \begin{lstlisting}[frame=tb]
 # change to the flash tool directory
@@ -177,6 +176,21 @@ $> ./flash write in.bin 0x8000000
 \end{lstlisting}
 \end{small}
 
+\paragraph{}
+A LED blinking example is provided:\\
+\begin{small}
+\begin{lstlisting}[frame=tb]
+# build the example, resulting in blink.bin
+$> cd stlink.git/example/blink_flash
+$> PATH=$TOOLCHAIN_PATH:$PATH make CONFIG_STM32L_DISCOVERY=1
+
+# write blink.bin into FLASH
+$> sudo ./flash write blink.bin 0x08000000
+\end{lstlisting}
+\end{small}
+
+\paragraph{}
+Upon reset, the board LEDs should be blinking.
 
 \newpage
 \section{Building and installing the CHIBIOS kernel}
