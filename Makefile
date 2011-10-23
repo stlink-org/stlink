@@ -8,7 +8,7 @@ VPATH=src
 SOURCES_LIB=stlink-common.c stlink-usb.c
 OBJS_LIB=$(SOURCES_LIB:.c=.o)
 TEST_PROGRAMS=test_usb
-LDFLAGS=-lusb-1.0 -L. -lstlink
+LDFLAGS=-L. -lstlink -lusb-1.0
 
 ifeq ($(CONFIG_USE_LIBSG),)
 CONFIG_USE_LIBSG=1
