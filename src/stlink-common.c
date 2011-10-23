@@ -1132,9 +1132,14 @@ int stlink_fwrite_flash(stlink_t *sl, const char* path, stm32_addr_t addr) {
       /* use fast word write. todo: half page. */
 
       uint32_t val;
+
+#if 0 /* todo: check write operation */
+
       uint32_t nwrites = sl->flash_pgsz;
 
     redo_write:
+
+#endif /* todo: check write operation */
 
       /* disable pecr protection */
       write_uint32(sl->q_buf, 0x89abcdef);
@@ -1179,6 +1184,8 @@ int stlink_fwrite_flash(stlink_t *sl, const char* path, stm32_addr_t addr) {
 	  if ((read_uint32(sl->q_buf, 0) & (1 << 0)) == 0) break ;
 	}
 
+#if 0 /* todo: check write operation */
+
 	/* check written bytes. todo: should be on a per page basis. */
 	stlink_read_mem32(sl, addr + off, sizeof(uint32_t));
 	if (memcmp(sl->q_buf, mf.base + off, sizeof(uint32_t)))
@@ -1193,13 +1200,14 @@ int stlink_fwrite_flash(stlink_t *sl, const char* path, stm32_addr_t addr) {
 	    goto on_error;
 	  }
 
-	  fprintf(stderr, "invalid write @%x(%x). retrying.\n", page, addr + off);
-
 	  nwrites = 0;
 
 	  /* assume addr aligned */
 	  if (off % sl->flash_pgsz) off &= ~(sl->flash_pgsz - 1);
 	  page = addr + off;
+
+	  fprintf(stderr, "invalid write @%x(%x): %x != %x. retrying.\n",
+		  page, addr + off, read_uint32(mf.base + off, 0), read_uint32(sl->q_buf, 0));
 
 	  /* reset lock bits */
 	  stlink_read_mem32(sl, STM32L_FLASH_PECR, sizeof(uint32_t));
@@ -1214,6 +1222,9 @@ int stlink_fwrite_flash(stlink_t *sl, const char* path, stm32_addr_t addr) {
 
 	/* increment successive writes counter */
 	++nwrites;
+
+#endif /* todo: check write operation */
+
       }
 
       /* reset lock bits */
