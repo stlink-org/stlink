@@ -62,7 +62,6 @@ defined in linker script */
   .weak Reset_Handler
   .type Reset_Handler, %function
 Reset_Handler:
-
 /* Copy the data segment initializers from flash to SRAM */  
   movs r1, #0
   b LoopCopyDataInit
@@ -92,7 +91,7 @@ LoopFillZerobss:
   bcc FillZerobss
 /* Call the clock system intitialization function.*/
 /* let main do the system initialization */
-/* bl  SystemInit */
+  bl  SystemInit
 /* Call the application's entry point.*/
   bl main
   bx lr
