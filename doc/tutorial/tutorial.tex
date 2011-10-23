@@ -179,6 +179,34 @@ $> ./flash write in.bin 0x8000000
 
 
 \newpage
+\section{Building and installing the CHIBIOS kernel}
+\paragraph{}
+CHIBIOS is an open source RTOS. More information can be found on the project website:
+\begin{center}
+http://www.chibios.org/dokuwiki/doku.php
+\end{center}
+
+\paragraph{}
+It supports several boards, including the STM32L DISCOVERY kit:
+\begin{center}
+http://www.chibios.org/dokuwiki/doku.php?id=chibios:articles:stm32l\_discovery
+\end{center}
+
+\paragraph{}
+The installation procedure is detailed below:\\
+\begin{small}
+\begin{lstlisting}[frame=tb]
+# checkout and build CHIBIOS for STM32L DISCOVERY kits
+svn checkout https://chibios.svn.sourceforge.net/svnroot/chibios/trunk
+cd chibios/trunk/demos/ARMCM3-STM32L152-DISCOVERY
+PATH=$TOOLCHAIN_PATH:$PATH make
+
+# flash the image into STM32L
+sudo ./flash write build/ch.bin 0x08000000
+\end{lstlisting}
+\end{small}
+
+\newpage
 \section{Notes}
 
 \subsection{Disassembling THUMB code in GDB}
