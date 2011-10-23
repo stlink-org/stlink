@@ -680,15 +680,20 @@ stlink_t* stlink_open_usb(const int verbose) {
     slu->cmd_len = (slu->protocoll == 1)? STLINK_SG_SIZE: STLINK_CMD_SIZE;
 
     /* success */
+
     if (stlink_current_mode(sl) == STLINK_DEV_DFU_MODE) {
-      printf("-- exit_dfu_mode\n");
       stlink_exit_dfu_mode(sl);
     }
+
+    if (stlink_current_mode(sl) != STLINK_DEV_DEBUG_MODE) {
+      stlink_enter_swd_mode(sl);
+    }
+
     stlink_version(sl);
 
     /* per device family initialization */
     stlink_core_id(sl);
-    if (sl->core_id == 0x2ba01477) /* stm32l */ {
+    if (sl->core_id == STM32L_CORE_ID) {
 
       /* flash memory settings */
       sl->flash_base = STM32_FLASH_BASE;
@@ -703,7 +708,7 @@ stlink_t* stlink_open_usb(const int verbose) {
       sl->sram_base = STM32_SRAM_BASE;
       sl->sram_size = STM32L_SRAM_SIZE;
 
-    } else /* stm32vl */ {
+    } else if (sl->core_id == STM32VL_CORE_ID) {
 
       /* flash memory settings */
       sl->flash_base = STM32_FLASH_BASE;
@@ -717,6 +722,11 @@ stlink_t* stlink_open_usb(const int verbose) {
       /* sram memory settings */
       sl->sram_base = STM32_SRAM_BASE;
       sl->sram_size = STM32_SRAM_SIZE;
+
+    } else {
+
+      fprintf(stderr, "unknown coreid: %x\n", sl->core_id);
+      goto on_libusb_error;
 
     }
 
