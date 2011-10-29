@@ -4,7 +4,8 @@ BIN_IMAGE=blink.bin
 CC=arm-none-eabi-gcc
 OBJCOPY=arm-none-eabi-objcopy
 
-CFLAGS=-g -O2 -mlittle-endian -mthumb
+CFLAGS=-g -mlittle-endian -mthumb
+#CFLAGS=-g -O2 -mlittle-endian -mthumb
 ifeq ($(CONFIG_STM32L_DISCOVERY), 1)
 	CFLAGS+=-mcpu=cortex-m3 -DCONFIG_STM32L_DISCOVERY
 else ifeq ($(CONFIG_STM32VL_DISCOVERY), 1)
