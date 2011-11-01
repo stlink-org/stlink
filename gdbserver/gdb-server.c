@@ -143,7 +143,7 @@ int parse_options(int argc, char** argv, st_state_t *st) {
             break;
         case 'd':
             if (strlen(optarg) > sizeof (st->devicename)) {
-                fprintf(stderr, "device name too long: %ld\n", strlen(optarg));
+                fprintf(stderr, "device name too long: %zd\n", strlen(optarg));
             } else {
                 strcpy(st->devicename, optarg);
             }
