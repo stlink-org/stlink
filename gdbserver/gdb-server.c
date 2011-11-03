@@ -197,42 +197,8 @@ int main(int argc, char** argv) {
 		if(sl == NULL) return 1;
 		break;
 	case 1:
-		if (strlen(state.devicename) == 0) {
-			const int DevNumMax = 99;
-			int ExistDevCount = 0;
-
-			for (int DevNum = 0; DevNum <= DevNumMax; DevNum++) {
-				if (DevNum < 10) {
-					char DevName[] = "/dev/sgX";
-					const int X_index = 7;
-					DevName[X_index] = DevNum + '0';
-					if (!access(DevName, F_OK)) {
-						sl = stlink_v1_open(DevName, 0);
-						ExistDevCount++;
-					}
-				} else if (DevNum < 100) {
-					char DevName[] = "/dev/sgXY";
-					const int X_index = 7;
-					const int Y_index = 8;
-					DevName[X_index] = DevNum / 10 + '0';
-					DevName[Y_index] = DevNum % 10 + '0';
-					if (!access(DevName, F_OK)) {
-						sl = stlink_v1_open(DevName, 0);
-						ExistDevCount++;
-					}
-				}
-				if (sl != NULL) break;
-			}
-
-			if (sl == NULL) {
-				fprintf(stdout, "\nNumber of /dev/sgX devices found: %i \n",
-					ExistDevCount);
-				fprintf(stderr, "ST-LINK not found\n");
-				return 1;
-			}
-		} else {
-			sl = stlink_v1_open(state.devicename, state.logging_level);
-		}
+		sl = stlink_v1_open(NULL, state.logging_level);
+		if(sl == NULL) return 1;
 		break;
     }
 

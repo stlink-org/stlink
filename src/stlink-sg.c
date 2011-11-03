@@ -967,8 +967,7 @@ stlink_backend_t _stlink_sg_backend = {
     _stlink_sg_force_debug
 };
 
-static stlink_t* stlink_open(const char *dev_name, const int verbose) {
-    DLOG("*** stlink_open [%s] ***\n", dev_name);
+static stlink_t* stlink_open(const int verbose) {
     
     stlink_t *sl = malloc(sizeof (stlink_t));
     struct stlink_libsg *slsg = malloc(sizeof (struct stlink_libsg));
@@ -1076,24 +1075,19 @@ static stlink_t* stlink_open(const char *dev_name, const int verbose) {
 
 
 
-stlink_t* stlink_v1_open(const char *dev_name, const int verbose) {
+stlink_t* stlink_v1_open(const int verbose) {
     ugly_init(verbose);
-    stlink_t *sl = stlink_open(dev_name, verbose);
+    stlink_t *sl = stlink_open(verbose);
     if (sl == NULL) {
         fputs("Error: could not open stlink device\n", stderr);
         return NULL;
     }
 
     stlink_version(sl);
-    struct stlink_libsg *sg = sl->backend_data;
 
     if ((sl->version.st_vid != USB_ST_VID) || (sl->version.stlink_pid != USB_STLINK_PID)) {
-        fprintf(stderr, "Error: the device %s is not a stlink\n",
-                dev_name);
-        fprintf(stderr, "       VID: got %04x expect %04x \n",
-                sl->version.st_vid, USB_ST_VID);
-        fprintf(stderr, "       PID: got %04x expect %04x \n",
-                sl->version.stlink_pid, USB_STLINK_PID);
+        ugly_log(UERROR, LOG_TAG, 
+            "WTF? successfully opened, but unable to read version details. BROKEN!\n");
         return NULL;
     }
 
@@ -1116,7 +1110,7 @@ stlink_t* stlink_v1_open(const char *dev_name, const int verbose) {
     delay(5000);
 
     DLOG("Attempting to reopen the stlink...\n");
-    sl = stlink_open(dev_name, verbose);
+    sl = stlink_open(verbose);
     if (sl == NULL) {
         fputs("Error: could not open stlink device\n", stderr);
         return NULL;

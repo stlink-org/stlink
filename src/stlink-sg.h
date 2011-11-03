@@ -57,12 +57,13 @@ extern "C" {
         uint32_t q_addr;
 
         // Sense (error information) data
+        // obsolete, this was fed to the scsi tools
         unsigned char sense_buf[SENSE_BUF_LEN];
 
         reg reg;
     };
 
-    stlink_t* stlink_v1_open(const char *dev_name, const int verbose);
+    stlink_t* stlink_v1_open(const int verbose);
 
 #ifdef	__cplusplus
 }

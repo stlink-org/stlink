@@ -10,33 +10,26 @@
 
 int main(int argc, char *argv[]) {
 	// set scpi lib debug level: 0 for no debug info, 10 for lots
-	char *dev_name;
 
 	switch (argc) {
 	case 1:
 		fputs(
-			"\nUsage: stlink-access-test /dev/sg0, sg1, ...\n"
+			"\nUsage: stlink-access-test [anything at all] ...\n"
 				"\n*** Notice: The stlink firmware violates the USB standard.\n"
-				"*** If you plug-in the discovery's stlink, wait a several\n"
-				"*** minutes to let the kernel driver swallow the broken device.\n"
-				"*** Watch:\ntail -f /var/log/messages\n"
-				"*** This command sequence can shorten the waiting time and fix some issues.\n"
+				"*** Because we just use libusb, we can just tell the kernel's\n"
+				"*** driver to simply ignore the device...\n"
 				"*** Unplug the stlink and execute once as root:\n"
-				"modprobe -r usb-storage && modprobe usb-storage quirks=483:3744:lrwsro\n\n",
+				"modprobe -r usb-storage && modprobe usb-storage quirks=483:3744:i\n\n",
 			stderr);
 		return EXIT_FAILURE;
-	case 2:
-		dev_name = argv[1];
-		break;
 	default:
-        fprintf(stderr, "bzzt\n");
-		return EXIT_FAILURE;
+        break;
 	}
 
-	stlink_t *sl = stlink_v1_open(dev_name, 99);
+	stlink_t *sl = stlink_v1_open(99);
 	if (sl == NULL)
 		return EXIT_FAILURE;
-
+    
 	// we are in mass mode, go to swd
 	stlink_enter_swd_mode(sl);
 	stlink_current_mode(sl);
