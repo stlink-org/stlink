@@ -736,26 +736,94 @@ stlink_backend_t _stlink_sg_backend = {
     _stlink_sg_force_debug
 };
 
-stlink_t* stlink_open(const char *dev_name, const int verbose) {
-    fprintf(stderr, "\n*** stlink_open [%s] ***\n", dev_name);
-    int sg_fd = scsi_pt_open_device(dev_name, RDWR, verbose);
-    if (sg_fd < 0) {
-        fprintf(stderr, "error opening device: %s: %s\n", dev_name,
-                safe_strerror(-sg_fd));
+#if using_stm8_stuff_XXXX
+stlink *stlink_open(libusb_context *usb_context)
+{
+    stlink *stl = malloc(sizeof(stlink));
+    stl->handle = libusb_open_device_with_vid_pid(usb_context, USB_VID_ST, USB_PID_STLINK);
+    if (stl->handle == NULL) {
+        free(stl);
         return NULL;
     }
 
+    libusb_device *dev = libusb_get_device(stl->handle);
+    struct libusb_config_descriptor *conf_desc;
+    int ret = libusb_get_config_descriptor(dev, 0, &conf_desc);
+    if (ret != LIBUSB_SUCCESS) {
+        libusb_close(stl->handle);
+        free(stl);
+        return NULL;
+    }
+    for (int i = 0; i < conf_desc->bNumInterfaces; i++) {
+        printf("interface %d\n", i);
+        for (int j = 0; j < conf_desc->interface[i].num_altsetting; j++) {
+            for (int k = 0; k < conf_desc->interface[i].altsetting[j].bNumEndpoints; k++) {
+                const struct libusb_endpoint_descriptor *endpoint;
+                endpoint = &conf_desc->interface[i].altsetting[j].endpoint[k];
+                if (endpoint->bEndpointAddress & LIBUSB_ENDPOINT_IN) {
+                    stl->endpoint_in = endpoint->bEndpointAddress;
+                    printf("Found IN endpoint\n");
+                } else {
+                    stl->endpoint_out = endpoint->bEndpointAddress;
+                    printf("Found OUT endpoint\n");
+                }
+            }
+        }
+    }
+    libusb_free_config_descriptor(conf_desc);
+
+    ret = libusb_kernel_driver_active(stl->handle, 0);
+    if (ret == 1) {
+        printf("kernel driver active\n");
+    } else if (ret == 0) {
+        //printf("kernel driver not active\n");
+    } else {
+        fprintf(stderr, "libusb_kernel_driver_active = %d\n", ret);
+    }
+    ret = libusb_claim_interface(stl->handle, 0);
+    if (ret != LIBUSB_SUCCESS) {
+        fprintf(stderr, "claiming interface failed: %d\n", ret);
+        libusb_close(stl->handle);
+        free(stl);
+        return NULL;
+    }
+
+    return stl;
+}
+#endif
+
+
+static stlink_t* stlink_open(const char *dev_name, const int verbose) {
+    fprintf(stderr, "\n*** stlink_open [%s] ***\n", dev_name);
+    
     stlink_t *sl = malloc(sizeof (stlink_t));
     struct stlink_libsg *slsg = malloc(sizeof (struct stlink_libsg));
     if (sl == NULL || slsg == NULL) {
-        fprintf(stderr, "Couldn't malloc stlink and stlink_sg structures out of memory!\n");
+        WLOG("Couldn't malloc stlink and stlink_sg structures out of memory!\n");
         return NULL;
     }
+    
+    if (libusb_init(&(slsg->libusb_ctx))) {
+        WLOG("failed to init libusb context, wrong version of libraries?\n");
+        free(sl);
+        free(slsg);
+        return NULL;
+    }
+    
+    slsg->handle = libusb_open_device_with_vid_pid(slsg->libusb_ctx, USB_ST_VID, USB_STLINK_PID);
+    if (slsg->handle == NULL) {
+        WLOG("Failed to find an stlink v1 by VID:PID\n");
+        free(sl);
+        free(slsg);
+        return NULL;
+    }
+    
+    DLOG("Successfully opened stlinkv1 by libusb :)\n");
+    
     sl->verbose = verbose;
     sl->backend_data = slsg;
     sl->backend = &_stlink_sg_backend;
 
-    slsg->sg_fd = sg_fd;
     sl->core_stat = STLINK_CORE_STAT_UNKNOWN;
     slsg->q_addr = 0;
     clear_buf(sl);

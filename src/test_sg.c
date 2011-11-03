@@ -29,10 +29,11 @@ int main(int argc, char *argv[]) {
 		dev_name = argv[1];
 		break;
 	default:
+        fprintf(stderr, "bzzt\n");
 		return EXIT_FAILURE;
 	}
 
-	stlink_t *sl = stlink_v1_open(dev_name, 10);
+	stlink_t *sl = stlink_v1_open(dev_name, 99);
 	if (sl == NULL)
 		return EXIT_FAILURE;
 

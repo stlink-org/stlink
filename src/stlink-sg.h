@@ -41,6 +41,9 @@ extern "C" {
 
 
     struct stlink_libsg {
+        libusb_context* libusb_ctx;
+        libusb_device_handle *handle;
+        
         int sg_fd;
         int do_scsi_pt_err;
 

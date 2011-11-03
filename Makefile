@@ -4,7 +4,7 @@ VPATH=src
 
 SOURCES_LIB=stlink-common.c stlink-usb.c stlink-sg.c uglylogging.c
 OBJS_LIB=$(SOURCES_LIB:.c=.o)
-TEST_PROGRAMS=test_usb #test_sg
+TEST_PROGRAMS=test_usb test_sg
 LDFLAGS=-lusb-1.0 -L. -lstlink
 
 CFLAGS+=-g
