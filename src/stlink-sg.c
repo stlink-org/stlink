@@ -244,6 +244,11 @@ int send_usb_mass_storage_command(libusb_device_handle *handle, uint8_t endpoint
     DLOG("Sending usb m-s cmd: cdblen:%d, rxsize=%d\n", cdb_length, expected_rx_size);
     dump_CDB_command(cdb, cdb_length);
 
+    static uint32_t tag;
+    if (tag == 0) {
+        tag = 1;
+    }
+
     int try = 0;
     int ret = 0;
     int real_transferred;
@@ -251,12 +256,12 @@ int send_usb_mass_storage_command(libusb_device_handle *handle, uint8_t endpoint
 
     uint8_t c_buf[STLINK_SG_SIZE];
     // tag is allegedly ignored... TODO - verify
-    uint32_t tag = 1;
     c_buf[i++] = 'U';
     c_buf[i++] = 'S';
     c_buf[i++] = 'B';
     c_buf[i++] = 'C';
     write_uint32(&c_buf[i], tag);
+    uint32_t this_tag = tag++;
     write_uint32(&c_buf[i+4], expected_rx_size);
     i+= 8;
     c_buf[i++] = flags;
@@ -286,7 +291,7 @@ int send_usb_mass_storage_command(libusb_device_handle *handle, uint8_t endpoint
         return -1;
     }
     DLOG("Actually sent: %d, returning tag: %d\n", real_transferred, tag);
-    return tag;
+    return this_tag;
 }
 
 
@@ -338,6 +343,7 @@ static int get_usb_mass_storage_status(libusb_device_handle *handle, uint8_t end
 static void
 get_sense(libusb_device_handle *handle, uint8_t endpoint_in, uint8_t endpoint_out)
 {
+    DLOG("Fetching sense...\n");
     uint8_t cdb[16];
     memset(cdb, 0, sizeof(cdb));
 #define REQUEST_SENSE 0x03
@@ -382,12 +388,18 @@ get_sense(libusb_device_handle *handle, uint8_t endpoint_in, uint8_t endpoint_ou
     }
 }
 
+int stlink_q2(stlink_t *sl, uint8_t cdb_len);
 int stlink_q(stlink_t *sl) {
+    return stlink_q2(sl, 10);
+}
+
+int stlink_q2(stlink_t *sl, uint8_t cdb_len) {
     struct stlink_libsg* sg = sl->backend_data;
     //uint8_t cdb_len = 6;  // FIXME varies!!!
-    uint8_t cdb_len = 10;  // FIXME varies!!!
+    //uint8_t cdb_len = 10;  // FIXME varies!!!
     uint8_t lun = 0;  // always zero...
-    send_usb_mass_storage_command(sg->usb_handle, sg->ep_req, sg->cdb_cmd_blk, cdb_len, lun, LIBUSB_ENDPOINT_IN, sl->q_len);
+    uint32_t tag = send_usb_mass_storage_command(sg->usb_handle, sg->ep_req, 
+        sg->cdb_cmd_blk, cdb_len, lun, LIBUSB_ENDPOINT_IN, sl->q_len);
     
     
     // now wait for our response...
@@ -414,11 +426,7 @@ int stlink_q(stlink_t *sl) {
     if (real_transferred != rx_length) {
         WLOG("received unexpected amount: %d != %d\n", real_transferred, rx_length);
     }
-    
-    
-// stm8 stuff...
-    
-    
+
     uint32_t received_tag;
     // -ve is for my errors, 0 is good, +ve is libusb sense status bytes
     int status = get_usb_mass_storage_status(sg->usb_handle, sg->ep_rep, &received_tag);
@@ -433,7 +441,6 @@ int stlink_q(stlink_t *sl) {
         get_sense(sg->usb_handle, sg->ep_rep, sg->ep_req);
         return -1;
     }
-    uint32_t tag = 1;
     if (received_tag != tag) {
         WLOG("received tag %d but expected %d\n", received_tag, tag);
         //return -1;
@@ -1093,7 +1100,7 @@ stlink_t* stlink_v1_open(const char *dev_name, const int verbose) {
         return NULL;
     }
 
-    DLOG("\n*** stlink_force_open ***\n");
+    DLOG("Reading current mode...\n");
     switch (stlink_current_mode(sl)) {
         case STLINK_DEV_MASS_MODE:
             return sl;
@@ -1101,8 +1108,11 @@ stlink_t* stlink_v1_open(const char *dev_name, const int verbose) {
             // TODO go to mass?
             return sl;
     }
-    DLOG("\n*** switch the stlink to mass mode ***\n");
+
+    DLOG("Attempting to exit DFU mode\n");
     _stlink_sg_exit_dfu_mode(sl);
+    
+#if 0    
     // exit the dfu mode -> the device is gone
     DLOG("\n*** reopen the stlink device ***\n");
     delay(1000);
@@ -1116,6 +1126,7 @@ stlink_t* stlink_v1_open(const char *dev_name, const int verbose) {
     }
     // re-query device info
     stlink_version(sl);
+#endif
     return sl;
 }
 
