@@ -10,7 +10,6 @@
 
 int main(int argc, char *argv[]) {
 	// set scpi lib debug level: 0 for no debug info, 10 for lots
-	const int scsi_verbose = 2;
 	char *dev_name;
 
 	switch (argc) {
@@ -33,11 +32,7 @@ int main(int argc, char *argv[]) {
 		return EXIT_FAILURE;
 	}
 
-	fputs("*** stlink access test ***\n", stderr);
-	fprintf(stderr, "Using sg_lib %s : scsi_pt %s\n", sg_lib_version(),
-		scsi_pt_version());
-
-	stlink_t *sl = stlink_v1_open(dev_name, scsi_verbose);
+	stlink_t *sl = stlink_v1_open(dev_name, 10);
 	if (sl == NULL)
 		return EXIT_FAILURE;
 
@@ -172,7 +167,7 @@ int main(int argc, char *argv[]) {
 	stlink_force_debug(sl);
 	stlink_status(sl);
 #endif
-#if 1 /* read the system bootloader */
+#if 0 /* read the system bootloader */
 	fputs("\n++++++++++ reading bootloader ++++++++++++++++\n\n", stderr);
 	stlink_fread(sl, "/tmp/barfoo", sl->sys_base, sl->sys_size);
 #endif
@@ -198,6 +193,7 @@ int main(int argc, char *argv[]) {
 	stlink_run_at(sl, sl->sram_base);
 #endif
 
+#if 0
 	stlink_run(sl);
 	stlink_status(sl);
 	//----------------------------------------------------------------------
@@ -205,6 +201,7 @@ int main(int argc, char *argv[]) {
 	stlink_exit_debug_mode(sl);
 	stlink_current_mode(sl);
 	stlink_close(sl);
+#endif
 
 	//fflush(stderr); fflush(stdout);
 	return EXIT_SUCCESS;

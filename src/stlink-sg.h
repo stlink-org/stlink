@@ -53,13 +53,6 @@ extern "C" {
         // Sense (error information) data
         unsigned char sense_buf[SENSE_BUF_LEN];
 
-        uint32_t st_vid;
-        uint32_t stlink_pid;
-        uint32_t stlink_v;
-        uint32_t jtag_v;
-        uint32_t swim_v;
-        uint32_t core_id;
-
         reg reg;
     };
 

@@ -179,6 +179,7 @@ extern "C" {
         stm32_addr_t sram_base;
         size_t sram_size;
 
+        struct stlink_version_ version;
     };
 
     //stlink_t* stlink_quirk_open(const char *dev_name, const int verbose);
