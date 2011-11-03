@@ -268,35 +268,6 @@ void stlink_stat(stlink_t *stl, char *txt) {
 }
 
 
-static void parse_version(stlink_t *stl) {
-  struct stlink_libsg *sl = stl->backend_data;
-
-  sl->st_vid = 0;
-  sl->stlink_pid = 0;
-
-  if (stl->q_len <= 0) {
-    fprintf(stderr, "Error: could not parse the stlink version");
-    return;
-  }
-
-  uint32_t b0 = stl->q_buf[0]; //lsb
-  uint32_t b1 = stl->q_buf[1];
-  uint32_t b2 = stl->q_buf[2];
-  uint32_t b3 = stl->q_buf[3];
-  uint32_t b4 = stl->q_buf[4];
-  uint32_t b5 = stl->q_buf[5]; //msb
-
-  // b0 b1 || b2 b3 | b4 b5
-  // 4b | 6b | 6b || 2B | 2B
-  // stlink_v | jtag_v | swim_v || st_vid | stlink_pid
-
-  sl->stlink_v = (b0 & 0xf0) >> 4;
-  sl->jtag_v = ((b0 & 0x0f) << 2) | ((b1 & 0xc0) >> 6);
-  sl->swim_v = b1 & 0x3f;
-  sl->st_vid = (b3 << 8) | b2;
-  sl->stlink_pid = (b5 << 8) | b4;
-}
-
 void _stlink_sg_version(stlink_t *stl) {
     struct stlink_libsg *sl = stl->backend_data;
     D(stl, "\n*** stlink_version ***\n");
@@ -305,7 +276,6 @@ void _stlink_sg_version(stlink_t *stl) {
     stl->q_len = 6;
     sl->q_addr = 0;
     stlink_q(stl);
-    parse_version(stl);
 }
 
 // Get stlink mode:
@@ -781,7 +751,6 @@ stlink_t* stlink_open(const char *dev_name, const int verbose) {
 
     slsg->sg_fd = sg_fd;
     sl->core_stat = STLINK_CORE_STAT_UNKNOWN;
-    slsg->core_id = 0;
     slsg->q_addr = 0;
     clear_buf(sl);
 
@@ -814,13 +783,13 @@ stlink_t* stlink_quirk_open(const char *dev_name, const int verbose) {
     stlink_version(sl);
     struct stlink_libsg *sg = sl->backend_data;
 
-    if ((sg->st_vid != USB_ST_VID) || (sg->stlink_pid != USB_STLINK_PID)) {
+    if ((sl->version.st_vid != USB_ST_VID) || (sl->version.stlink_pid != USB_STLINK_PID)) {
         fprintf(stderr, "Error: the device %s is not a stlink\n",
                 dev_name);
         fprintf(stderr, "       VID: got %04x expect %04x \n",
-                sg->st_vid, USB_ST_VID);
+                sl->version.st_vid, USB_ST_VID);
         fprintf(stderr, "       PID: got %04x expect %04x \n",
-                sg->stlink_pid, USB_STLINK_PID);
+                sl->version.stlink_pid, USB_STLINK_PID);
         return NULL;
     }
 

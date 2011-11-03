@@ -356,19 +356,18 @@ void _parse_version(stlink_t *sl, stlink_version_t *slv) {
 
 void stlink_version(stlink_t *sl) {
     D(sl, "*** looking up stlink version\n");
-    stlink_version_t slv;
     sl->backend->version(sl);
-    _parse_version(sl, &slv);
+    _parse_version(sl, &sl->version);
     
-    DD(sl, "st vid         = 0x%04x (expect 0x%04x)\n", slv.st_vid, USB_ST_VID);
-    DD(sl, "stlink pid     = 0x%04x\n", slv.stlink_pid);
-    DD(sl, "stlink version = 0x%x\n", slv.stlink_v);
-    DD(sl, "jtag version   = 0x%x\n", slv.jtag_v);
-    DD(sl, "swim version   = 0x%x\n", slv.swim_v);
-    if (slv.jtag_v == 0) {
+    DD(sl, "st vid         = 0x%04x (expect 0x%04x)\n", sl->version.st_vid, USB_ST_VID);
+    DD(sl, "stlink pid     = 0x%04x\n", sl->version.stlink_pid);
+    DD(sl, "stlink version = 0x%x\n", sl->version.stlink_v);
+    DD(sl, "jtag version   = 0x%x\n", sl->version.jtag_v);
+    DD(sl, "swim version   = 0x%x\n", sl->version.swim_v);
+    if (sl->version.jtag_v == 0) {
         DD(sl, "    notice: the firmware doesn't support a jtag/swd interface\n");
     }
-    if (slv.swim_v == 0) {
+    if (sl->version.swim_v == 0) {
         DD(sl, "    notice: the firmware doesn't support a swim interface\n");
     }
 }
