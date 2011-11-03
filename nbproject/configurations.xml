@@ -127,20 +127,6 @@
         <df name="stm32l_notes">
         </df>
       </df>
-      <df name="uwe">
-      </df>
-      <df name="uwe2">
-        <df name="stlink">
-        </df>
-      </df>
-      <df name="uwe3">
-        <df name="out">
-        </df>
-      </df>
-      <df name="uwe4">
-        <df name="out">
-        </df>
-      </df>
     </df>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
