@@ -631,8 +631,8 @@ stlink_t* stlink_open_usb(const int verbose) {
         r = libusb_detach_kernel_driver(slu->usb_handle, 0);
         if (r<0) {
             WLOG("libusb_detach_kernel_driver(() error %s\n", strerror(-r));
+            goto on_libusb_error;
         }
-        goto on_libusb_error;
     }
 
     if (libusb_get_configuration(slu->usb_handle, &config)) {

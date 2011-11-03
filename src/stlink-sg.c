@@ -281,7 +281,102 @@ void _stlink_sg_version(stlink_t *stl) {
     sl->cdb_cmd_blk[0] = STLINK_GET_VERSION;
     stl->q_len = 6;
     sl->q_addr = 0;
-    stlink_q(stl);
+//    stlink_q(stl);
+    // HACK use my own private version right now...
+    
+    int try = 0;
+    int ret = 0;
+    int real_transferred;
+    
+/*
+    uint32_t    dCBWSignature;
+    uint32_t    dCBWTag;
+    uint32_t    dCBWDataTransferLength;
+    uint8_t     bmCBWFlags;
+    uint8_t     bCBWLUN;
+    uint8_t     bCBWCBLength;
+    uint8_t     CBWCB[16];
+  */    
+
+#if using_old_code_examples
+    /*
+     * and from old code?
+    cmd[i++] = 'U';
+    cmd[i++] = 'S';
+    cmd[i++] = 'B';
+    cmd[i++] = 'C';
+    write_uint32(&cmd[i], sg->sg_transfer_idx);
+    write_uint32(&cmd[i + 4], len);
+    i += 8;
+    cmd[i++] = (dir == SG_DXFER_FROM_DEV)?0x80:0;
+    cmd[i++] = 0; /* Logical unit */
+    cmd[i++] = 0xa; /* Command length */
+     */
+#endif
+    
+    int i = 0;
+    stl->c_buf[i++] = 'U';
+    stl->c_buf[i++] = 'S';
+    stl->c_buf[i++] = 'B';
+    stl->c_buf[i++] = 'C';
+    // tag is allegedly ignored... TODO - verify
+    write_uint32(&stl->c_buf[i], 1);
+    // TODO - Does this even matter? verify with more commands....
+    uint32_t command_length = STLINK_CMD_SIZE;
+    write_uint32(&stl->c_buf[i+4], command_length);
+    i+= 8;
+    stl->c_buf[i++] = LIBUSB_ENDPOINT_IN;
+    // assumption: lun is always 0;
+    stl->c_buf[i++] = 0;  
+    
+    stl->c_buf[i++] = sizeof(sl->cdb_cmd_blk);
+    
+    // duh, now the actual data...
+    memcpy(&(stl->c_buf[i]), sl->cdb_cmd_blk, sizeof(sl->cdb_cmd_blk));
+    
+    int sending_length = STLINK_SG_SIZE;
+    DLOG("sending length set to: %d\n", sending_length);
+    
+    // send....
+    do {
+        DLOG("attempting tx...\n");
+        ret = libusb_bulk_transfer(sl->usb_handle, sl->ep_req, stl->c_buf, sending_length,
+                                   &real_transferred, 3 * 1000);
+        if (ret == LIBUSB_ERROR_PIPE) {
+            libusb_clear_halt(sl->usb_handle, sl->ep_req);
+        }
+        try++;
+    } while ((ret == LIBUSB_ERROR_PIPE) && (try < 3));
+    if (ret != LIBUSB_SUCCESS) {
+        WLOG("sending failed: %d\n", ret);
+        return;
+    }
+    DLOG("Actually sent: %d\n", real_transferred);
+    
+    // now wait for our response...
+    // length copied from stlink-usb...
+    int rx_length = 6;
+    try = 0;
+    do {
+        DLOG("attempting rx\n");
+        ret = libusb_bulk_transfer(sl->usb_handle, sl->ep_rep, stl->q_buf, rx_length, 
+            &real_transferred, 3 * 1000);
+        if (ret == LIBUSB_ERROR_PIPE) {
+            libusb_clear_halt(sl->usb_handle, sl->ep_req);
+        }
+        try++;
+    } while ((ret == LIBUSB_ERROR_PIPE) && (try < 3));
+
+    if (ret != LIBUSB_SUCCESS) {
+        WLOG("Receiving failed: %d\n", ret);
+        return;
+    }
+    
+    if (real_transferred != rx_length) {
+        WLOG("received unexpected amount: %d != %d\n", real_transferred, rx_length);
+    }
+        
+    DLOG("Actually received: %d\n", real_transferred);
 }
 
 // Get stlink mode:
@@ -736,65 +831,8 @@ stlink_backend_t _stlink_sg_backend = {
     _stlink_sg_force_debug
 };
 
-#if using_stm8_stuff_XXXX
-stlink *stlink_open(libusb_context *usb_context)
-{
-    stlink *stl = malloc(sizeof(stlink));
-    stl->handle = libusb_open_device_with_vid_pid(usb_context, USB_VID_ST, USB_PID_STLINK);
-    if (stl->handle == NULL) {
-        free(stl);
-        return NULL;
-    }
-
-    libusb_device *dev = libusb_get_device(stl->handle);
-    struct libusb_config_descriptor *conf_desc;
-    int ret = libusb_get_config_descriptor(dev, 0, &conf_desc);
-    if (ret != LIBUSB_SUCCESS) {
-        libusb_close(stl->handle);
-        free(stl);
-        return NULL;
-    }
-    for (int i = 0; i < conf_desc->bNumInterfaces; i++) {
-        printf("interface %d\n", i);
-        for (int j = 0; j < conf_desc->interface[i].num_altsetting; j++) {
-            for (int k = 0; k < conf_desc->interface[i].altsetting[j].bNumEndpoints; k++) {
-                const struct libusb_endpoint_descriptor *endpoint;
-                endpoint = &conf_desc->interface[i].altsetting[j].endpoint[k];
-                if (endpoint->bEndpointAddress & LIBUSB_ENDPOINT_IN) {
-                    stl->endpoint_in = endpoint->bEndpointAddress;
-                    printf("Found IN endpoint\n");
-                } else {
-                    stl->endpoint_out = endpoint->bEndpointAddress;
-                    printf("Found OUT endpoint\n");
-                }
-            }
-        }
-    }
-    libusb_free_config_descriptor(conf_desc);
-
-    ret = libusb_kernel_driver_active(stl->handle, 0);
-    if (ret == 1) {
-        printf("kernel driver active\n");
-    } else if (ret == 0) {
-        //printf("kernel driver not active\n");
-    } else {
-        fprintf(stderr, "libusb_kernel_driver_active = %d\n", ret);
-    }
-    ret = libusb_claim_interface(stl->handle, 0);
-    if (ret != LIBUSB_SUCCESS) {
-        fprintf(stderr, "claiming interface failed: %d\n", ret);
-        libusb_close(stl->handle);
-        free(stl);
-        return NULL;
-    }
-
-    return stl;
-}
-#endif
-
-
 static stlink_t* stlink_open(const char *dev_name, const int verbose) {
-    fprintf(stderr, "\n*** stlink_open [%s] ***\n", dev_name);
+    DLOG("*** stlink_open [%s] ***\n", dev_name);
     
     stlink_t *sl = malloc(sizeof (stlink_t));
     struct stlink_libsg *slsg = malloc(sizeof (struct stlink_libsg));
@@ -810,13 +848,69 @@ static stlink_t* stlink_open(const char *dev_name, const int verbose) {
         return NULL;
     }
     
-    slsg->handle = libusb_open_device_with_vid_pid(slsg->libusb_ctx, USB_ST_VID, USB_STLINK_PID);
-    if (slsg->handle == NULL) {
+    libusb_set_debug(slsg->libusb_ctx, 3);
+    
+    slsg->usb_handle = libusb_open_device_with_vid_pid(slsg->libusb_ctx, USB_ST_VID, USB_STLINK_PID);
+    if (slsg->usb_handle == NULL) {
         WLOG("Failed to find an stlink v1 by VID:PID\n");
+        libusb_close(slsg->usb_handle);
         free(sl);
         free(slsg);
         return NULL;
     }
+    
+    // TODO 
+    // Could read the interface config descriptor, and assert lots of the assumptions
+    
+    // assumption: numInterfaces is always 1...
+    if (libusb_kernel_driver_active(slsg->usb_handle, 0) == 1) {
+        int r = libusb_detach_kernel_driver(slsg->usb_handle, 0);
+        if (r < 0) {
+            WLOG("libusb_detach_kernel_driver(() error %s\n", strerror(-r));
+            libusb_close(slsg->usb_handle);
+            free(sl);
+            free(slsg);
+            return NULL;
+        }
+        DLOG("Kernel driver was successfully detached\n");
+    }
+
+    int config;
+    if (libusb_get_configuration(slsg->usb_handle, &config)) {
+        /* this may fail for a previous configured device */
+        WLOG("libusb_get_configuration()\n");
+        libusb_close(slsg->usb_handle);
+        free(sl);
+        free(slsg);
+        return NULL;
+
+    }
+    
+    // assumption: bConfigurationValue is always 1
+    if (config != 1) {
+        WLOG("Your stlink got into a real weird configuration, trying to fix it!\n");
+        DLOG("setting new configuration (%d -> 1)\n", config);
+        if (libusb_set_configuration(slsg->usb_handle, 1)) {
+            /* this may fail for a previous configured device */
+            WLOG("libusb_set_configuration() failed\n");
+            libusb_close(slsg->usb_handle);
+            free(sl);
+            free(slsg);
+            return NULL;
+        }
+    }
+
+    if (libusb_claim_interface(slsg->usb_handle, 0)) {
+        WLOG("libusb_claim_interface() failed\n");
+        libusb_close(slsg->usb_handle);
+        free(sl);
+        free(slsg);
+        return NULL;
+    }
+
+    // assumption: endpoint config is fixed mang. really.
+    slsg->ep_rep = 1 /* ep rep */ | LIBUSB_ENDPOINT_IN;
+    slsg->ep_req = 2 /* ep req */ | LIBUSB_ENDPOINT_OUT;
     
     DLOG("Successfully opened stlinkv1 by libusb :)\n");
     
