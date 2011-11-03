@@ -19,6 +19,7 @@ extern "C" {
 #define RDWR		0
 #define RO		1
 #define SG_TIMEOUT_SEC	1 // actually 1 is about 2 sec
+#define SG_TIMEOUT_MSEC	3 * 1000
     // Each CDB can be a total of 6, 10, 12, or 16 bytes, later version
     // of the SCSI standard also allow for variable-length CDBs (min. CDB is 6).
     // the stlink needs max. 10 bytes.

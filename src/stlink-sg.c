@@ -70,6 +70,7 @@
 
 
 #define __USE_GNU
+#include <assert.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdarg.h>
@@ -214,14 +215,238 @@ static void stlink_confirm_inq(stlink_t *stl, struct sg_pt_base *ptvp) {
 }
 #endif
 
-void stlink_q(stlink_t *sl) {
-#if FINISHED_WITH_SG
-    struct stlink_libsg* sg = sl->backend_data;
-    DLOG("CDB[");
-    for (int i = 0; i < CDB_SL; i++)
-        DLOG(" 0x%02x", (unsigned int) sg->cdb_cmd_blk[i]);
-    DLOG("]\n");
+static int dump_CDB_command(uint8_t *cdb, uint8_t cdb_len) {
+    char dbugblah[100];
+    char *dbugp = dbugblah;
+    dbugp += sprintf(dbugp, "Sending CDB [");
+    for (uint8_t i = 0; i < cdb_len; i++) {
+        dbugp += sprintf(dbugp, " %#02x", (unsigned int) cdb[i]);
+    }
+    sprintf(dbugp, "]\n");
+    DLOG(dbugblah);
+    return 0;
+}
 
+/**
+ * Wraps a CDB mass storage command in the appropriate gunk to get it down
+ * @param handle
+ * @param endpoint
+ * @param cdb
+ * @param cdb_length
+ * @param lun
+ * @param flags
+ * @param expected_rx_size
+ * @return 
+ */
+int send_usb_mass_storage_command(libusb_device_handle *handle, uint8_t endpoint_out,
+                              uint8_t *cdb, uint8_t cdb_length,
+                              uint8_t lun, uint8_t flags, uint32_t expected_rx_size) {
+    DLOG("Sending usb m-s cmd: cdblen:%d, rxsize=%d\n", cdb_length, expected_rx_size);
+    dump_CDB_command(cdb, cdb_length);
+
+    int try = 0;
+    int ret = 0;
+    int real_transferred;
+    int i = 0;
+
+    uint8_t c_buf[STLINK_SG_SIZE];
+    // tag is allegedly ignored... TODO - verify
+    uint32_t tag = 1;
+    c_buf[i++] = 'U';
+    c_buf[i++] = 'S';
+    c_buf[i++] = 'B';
+    c_buf[i++] = 'C';
+    write_uint32(&c_buf[i], tag);
+    write_uint32(&c_buf[i+4], expected_rx_size);
+    i+= 8;
+    c_buf[i++] = flags;
+    c_buf[i++] = lun;
+
+    c_buf[i++] = cdb_length;
+
+    // Now the actual CDB request
+    assert(cdb_length <= CDB_SL);
+    memcpy(&(c_buf[i]), cdb, cdb_length);
+    
+    int sending_length = STLINK_SG_SIZE;
+    DLOG("sending length set to: %d\n", sending_length);
+    
+    // send....
+    do {
+        DLOG("attempting tx...\n");
+        ret = libusb_bulk_transfer(handle, endpoint_out, c_buf, sending_length,
+                                   &real_transferred, SG_TIMEOUT_MSEC);
+        if (ret == LIBUSB_ERROR_PIPE) {
+            libusb_clear_halt(handle, endpoint_out);
+        }
+        try++;
+    } while ((ret == LIBUSB_ERROR_PIPE) && (try < 3));
+    if (ret != LIBUSB_SUCCESS) {
+        WLOG("sending failed: %d\n", ret);
+        return -1;
+    }
+    DLOG("Actually sent: %d, returning tag: %d\n", real_transferred, tag);
+    return tag;
+}
+
+
+static int get_usb_mass_storage_status(libusb_device_handle *handle, uint8_t endpoint, uint32_t *tag)
+{
+    unsigned char csw[13];
+    memset(csw, 0, sizeof(csw));
+    int transferred;
+    int ret;
+    int try = 0;
+    do {
+        ret = libusb_bulk_transfer(handle, endpoint, (unsigned char *)&csw, sizeof(csw),
+                                   &transferred, SG_TIMEOUT_MSEC);
+        if (ret == LIBUSB_ERROR_PIPE) {
+            libusb_clear_halt(handle, endpoint);
+        }
+        try++;
+    } while ((ret == LIBUSB_ERROR_PIPE) && (try < 3));
+    if (ret != LIBUSB_SUCCESS) {
+        fprintf(stderr, "%s: receiving failed: %d\n", __func__, ret);
+        return -1;
+    }
+    if (transferred != sizeof(csw)) {
+        fprintf(stderr, "%s: received unexpected amount: %d\n", __func__, transferred);
+        return -1;
+    }
+
+    uint32_t rsig = read_uint32(csw, 0);
+    uint32_t rtag = read_uint32(csw, 4);
+    uint32_t residue = read_uint32(csw, 8);
+#define USB_CSW_SIGNATURE 0x53425355  // 'U' 'S' 'B' 'S' (reversed)
+    if (rsig != USB_CSW_SIGNATURE) {
+        WLOG("status signature was invalid: %#x\n", rsig);
+        return -1;
+    }
+    DLOG("residue was= %#x\n", residue);
+    *tag = rtag;
+    uint8_t rstatus = csw[12];
+    DLOG("rstatus = %x\n", rstatus);
+    return rstatus;
+}
+
+/**
+ * Straight from stm8 stlink code...
+ * @param handle
+ * @param endpoint_in
+ * @param endpoint_out
+ */
+static void
+get_sense(libusb_device_handle *handle, uint8_t endpoint_in, uint8_t endpoint_out)
+{
+    uint8_t cdb[16];
+    memset(cdb, 0, sizeof(cdb));
+#define REQUEST_SENSE 0x03
+#define REQUEST_SENSE_LENGTH 18
+    cdb[0] = REQUEST_SENSE;
+    cdb[4] = REQUEST_SENSE_LENGTH;
+    uint32_t tag = send_usb_mass_storage_command(handle, endpoint_out, cdb, sizeof(cdb), 0,
+                                                 LIBUSB_ENDPOINT_IN, REQUEST_SENSE_LENGTH);
+    if (tag == 0) {
+        WLOG("refusing to send request sense with tag 0\n");
+        return;
+    }
+    unsigned char sense[REQUEST_SENSE_LENGTH];
+    int transferred;
+    int ret;
+    int try = 0;
+    do {
+        ret = libusb_bulk_transfer(handle, endpoint_in, sense, sizeof(sense),
+                                   &transferred, SG_TIMEOUT_MSEC);
+        if (ret == LIBUSB_ERROR_PIPE) {
+            libusb_clear_halt(handle, endpoint_in);
+        }
+        try++;
+    } while ((ret == LIBUSB_ERROR_PIPE) && (try < 3));
+    if (ret != LIBUSB_SUCCESS) {
+        WLOG("receiving sense failed: %d\n", ret);
+        return;
+    }
+    if (transferred != sizeof(sense)) {
+        WLOG("received unexpected amount of sense: %d != %d\n", transferred, sizeof(sense));
+    }
+    uint32_t received_tag;
+    int status = get_usb_mass_storage_status(handle, endpoint_in, &received_tag);
+    if (status != 0) {
+        WLOG("receiving sense failed with status: %02x\n", status);
+        return;
+    }
+    if (sense[0] != 0x70 && sense[0] != 0x71) {
+        WLOG("No sense data\n");
+    } else {
+        WLOG("Sense KCQ: %02X %02X %02X\n", sense[2] & 0x0f, sense[12], sense[13]);
+    }
+}
+
+int stlink_q(stlink_t *sl) {
+    struct stlink_libsg* sg = sl->backend_data;
+    //uint8_t cdb_len = 6;  // FIXME varies!!!
+    uint8_t cdb_len = 10;  // FIXME varies!!!
+    uint8_t lun = 0;  // always zero...
+    send_usb_mass_storage_command(sg->usb_handle, sg->ep_req, sg->cdb_cmd_blk, cdb_len, lun, LIBUSB_ENDPOINT_IN, sl->q_len);
+    
+    
+    // now wait for our response...
+    // length copied from stlink-usb...
+    int rx_length = sl->q_len;
+    int try = 0;
+    int real_transferred;
+    int ret;
+    do {
+        DLOG("attempting rx\n");
+        ret = libusb_bulk_transfer(sg->usb_handle, sg->ep_rep, sl->q_buf, rx_length, 
+            &real_transferred, SG_TIMEOUT_MSEC);
+        if (ret == LIBUSB_ERROR_PIPE) {
+            libusb_clear_halt(sg->usb_handle, sg->ep_req);
+        }
+        try++;
+    } while ((ret == LIBUSB_ERROR_PIPE) && (try < 3));
+
+    if (ret != LIBUSB_SUCCESS) {
+        WLOG("Receiving failed: %d\n", ret);
+        return -1;
+    }
+    
+    if (real_transferred != rx_length) {
+        WLOG("received unexpected amount: %d != %d\n", real_transferred, rx_length);
+    }
+    
+    
+// stm8 stuff...
+    
+    
+    uint32_t received_tag;
+    // -ve is for my errors, 0 is good, +ve is libusb sense status bytes
+    int status = get_usb_mass_storage_status(sg->usb_handle, sg->ep_rep, &received_tag);
+    if (status < 0) {
+        WLOG("receiving status failed: %d\n", status);
+        return -1;
+    }
+    if (status != 0) {
+        WLOG("receiving status not passed :(: %02x\n", status);
+    }
+    if (status == 1) {
+        get_sense(sg->usb_handle, sg->ep_rep, sg->ep_req);
+        return -1;
+    }
+    uint32_t tag = 1;
+    if (received_tag != tag) {
+        WLOG("received tag %d but expected %d\n", received_tag, tag);
+        //return -1;
+    }
+    if (rx_length > 0 && real_transferred != rx_length) {
+        return -1;
+    }
+    return 0;
+
+        
+    DLOG("Actually received: %d\n", real_transferred);
+
+#if FINISHED_WITH_SG
     // Get control command descriptor of scsi structure,
     // (one object per command!!)
     struct sg_pt_base *ptvp = construct_scsi_pt_obj();
@@ -281,102 +506,9 @@ void _stlink_sg_version(stlink_t *stl) {
     sl->cdb_cmd_blk[0] = STLINK_GET_VERSION;
     stl->q_len = 6;
     sl->q_addr = 0;
-//    stlink_q(stl);
+    stlink_q(stl);
     // HACK use my own private version right now...
     
-    int try = 0;
-    int ret = 0;
-    int real_transferred;
-    
-/*
-    uint32_t    dCBWSignature;
-    uint32_t    dCBWTag;
-    uint32_t    dCBWDataTransferLength;
-    uint8_t     bmCBWFlags;
-    uint8_t     bCBWLUN;
-    uint8_t     bCBWCBLength;
-    uint8_t     CBWCB[16];
-  */    
-
-#if using_old_code_examples
-    /*
-     * and from old code?
-    cmd[i++] = 'U';
-    cmd[i++] = 'S';
-    cmd[i++] = 'B';
-    cmd[i++] = 'C';
-    write_uint32(&cmd[i], sg->sg_transfer_idx);
-    write_uint32(&cmd[i + 4], len);
-    i += 8;
-    cmd[i++] = (dir == SG_DXFER_FROM_DEV)?0x80:0;
-    cmd[i++] = 0; /* Logical unit */
-    cmd[i++] = 0xa; /* Command length */
-     */
-#endif
-    
-    int i = 0;
-    stl->c_buf[i++] = 'U';
-    stl->c_buf[i++] = 'S';
-    stl->c_buf[i++] = 'B';
-    stl->c_buf[i++] = 'C';
-    // tag is allegedly ignored... TODO - verify
-    write_uint32(&stl->c_buf[i], 1);
-    // TODO - Does this even matter? verify with more commands....
-    uint32_t command_length = STLINK_CMD_SIZE;
-    write_uint32(&stl->c_buf[i+4], command_length);
-    i+= 8;
-    stl->c_buf[i++] = LIBUSB_ENDPOINT_IN;
-    // assumption: lun is always 0;
-    stl->c_buf[i++] = 0;  
-    
-    stl->c_buf[i++] = sizeof(sl->cdb_cmd_blk);
-    
-    // duh, now the actual data...
-    memcpy(&(stl->c_buf[i]), sl->cdb_cmd_blk, sizeof(sl->cdb_cmd_blk));
-    
-    int sending_length = STLINK_SG_SIZE;
-    DLOG("sending length set to: %d\n", sending_length);
-    
-    // send....
-    do {
-        DLOG("attempting tx...\n");
-        ret = libusb_bulk_transfer(sl->usb_handle, sl->ep_req, stl->c_buf, sending_length,
-                                   &real_transferred, 3 * 1000);
-        if (ret == LIBUSB_ERROR_PIPE) {
-            libusb_clear_halt(sl->usb_handle, sl->ep_req);
-        }
-        try++;
-    } while ((ret == LIBUSB_ERROR_PIPE) && (try < 3));
-    if (ret != LIBUSB_SUCCESS) {
-        WLOG("sending failed: %d\n", ret);
-        return;
-    }
-    DLOG("Actually sent: %d\n", real_transferred);
-    
-    // now wait for our response...
-    // length copied from stlink-usb...
-    int rx_length = 6;
-    try = 0;
-    do {
-        DLOG("attempting rx\n");
-        ret = libusb_bulk_transfer(sl->usb_handle, sl->ep_rep, stl->q_buf, rx_length, 
-            &real_transferred, 3 * 1000);
-        if (ret == LIBUSB_ERROR_PIPE) {
-            libusb_clear_halt(sl->usb_handle, sl->ep_req);
-        }
-        try++;
-    } while ((ret == LIBUSB_ERROR_PIPE) && (try < 3));
-
-    if (ret != LIBUSB_SUCCESS) {
-        WLOG("Receiving failed: %d\n", ret);
-        return;
-    }
-    
-    if (real_transferred != rx_length) {
-        WLOG("received unexpected amount: %d != %d\n", real_transferred, rx_length);
-    }
-        
-    DLOG("Actually received: %d\n", real_transferred);
 }
 
 // Get stlink mode:
