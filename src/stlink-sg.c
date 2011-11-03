@@ -388,15 +388,10 @@ get_sense(libusb_device_handle *handle, uint8_t endpoint_in, uint8_t endpoint_ou
     }
 }
 
-int stlink_q2(stlink_t *sl, uint8_t cdb_len);
 int stlink_q(stlink_t *sl) {
-    return stlink_q2(sl, 10);
-}
-
-int stlink_q2(stlink_t *sl, uint8_t cdb_len) {
     struct stlink_libsg* sg = sl->backend_data;
     //uint8_t cdb_len = 6;  // FIXME varies!!!
-    //uint8_t cdb_len = 10;  // FIXME varies!!!
+    uint8_t cdb_len = 10;  // FIXME varies!!!
     uint8_t lun = 0;  // always zero...
     uint32_t tag = send_usb_mass_storage_command(sg->usb_handle, sg->ep_req, 
         sg->cdb_cmd_blk, cdb_len, lun, LIBUSB_ENDPOINT_IN, sl->q_len);
@@ -408,23 +403,25 @@ int stlink_q2(stlink_t *sl, uint8_t cdb_len) {
     int try = 0;
     int real_transferred;
     int ret;
-    do {
-        DLOG("attempting rx\n");
-        ret = libusb_bulk_transfer(sg->usb_handle, sg->ep_rep, sl->q_buf, rx_length, 
-            &real_transferred, SG_TIMEOUT_MSEC);
-        if (ret == LIBUSB_ERROR_PIPE) {
-            libusb_clear_halt(sg->usb_handle, sg->ep_req);
-        }
-        try++;
-    } while ((ret == LIBUSB_ERROR_PIPE) && (try < 3));
+    if (rx_length > 0) {
+        do {
+            DLOG("attempting rx\n");
+            ret = libusb_bulk_transfer(sg->usb_handle, sg->ep_rep, sl->q_buf, rx_length, 
+                &real_transferred, SG_TIMEOUT_MSEC);
+            if (ret == LIBUSB_ERROR_PIPE) {
+                libusb_clear_halt(sg->usb_handle, sg->ep_req);
+            }
+            try++;
+        } while ((ret == LIBUSB_ERROR_PIPE) && (try < 3));
 
-    if (ret != LIBUSB_SUCCESS) {
-        WLOG("Receiving failed: %d\n", ret);
-        return -1;
-    }
-    
-    if (real_transferred != rx_length) {
-        WLOG("received unexpected amount: %d != %d\n", real_transferred, rx_length);
+        if (ret != LIBUSB_SUCCESS) {
+            WLOG("Receiving failed: %d\n", ret);
+            return -1;
+        }
+
+        if (real_transferred != rx_length) {
+            WLOG("received unexpected amount: %d != %d\n", real_transferred, rx_length);
+        }
     }
 
     uint32_t received_tag;
@@ -1112,13 +1109,13 @@ stlink_t* stlink_v1_open(const char *dev_name, const int verbose) {
     DLOG("Attempting to exit DFU mode\n");
     _stlink_sg_exit_dfu_mode(sl);
     
-#if 0    
     // exit the dfu mode -> the device is gone
     DLOG("\n*** reopen the stlink device ***\n");
     delay(1000);
     stlink_close(sl);
     delay(5000);
 
+    DLOG("Attempting to reopen the stlink...\n");
     sl = stlink_open(dev_name, verbose);
     if (sl == NULL) {
         fputs("Error: could not open stlink device\n", stderr);
@@ -1126,7 +1123,6 @@ stlink_t* stlink_v1_open(const char *dev_name, const int verbose) {
     }
     // re-query device info
     stlink_version(sl);
-#endif
     return sl;
 }
 
