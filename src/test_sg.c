@@ -78,7 +78,7 @@ int main(int argc, char *argv[]) {
 	stlink_read_mem32(sl, 0x4001100c, 4);
 	DD(sl, "GPIOC_ODR = 0x%08x", read_uint32(sl->q_buf, 0));
 #endif
-#if 1
+#if 0
 	// happy new year 2011: let blink all the leds
 	// see "RM0041 Reference manual - STM32F100xx advanced ARM-based 32-bit MCUs"
 
@@ -169,13 +169,14 @@ int main(int argc, char *argv[]) {
 	stlink_read_mem32(sl, 0x20000000, 1024 * 6);
 	stlink_read_mem32(sl, 0x20000000 + 1024 * 6, 1024 * 2);
 #endif
-#if 0
-	stlink_read_all_regs(sl);
+#if 1
+    reg regs;
+	stlink_read_all_regs(sl, &regs);
 	stlink_step(sl);
 	fputs("++++++++++ write r0 = 0x12345678\n", stderr);
 	stlink_write_reg(sl, 0x12345678, 0);
-	stlink_read_reg(sl, 0);
-	stlink_read_all_regs(sl);
+	stlink_read_reg(sl, 0, &regs);
+	stlink_read_all_regs(sl, &regs);
 #endif
 #if 0
 	stlink_run(sl);
