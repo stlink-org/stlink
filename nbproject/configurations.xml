@@ -117,6 +117,8 @@
         <in>stlink-usb.h</in>
         <in>test_sg.c</in>
         <in>test_usb.c</in>
+        <in>uglylogging.c</in>
+        <in>uglylogging.h</in>
       </df>
       <df name="toremove">
         <df name="stm32l">
@@ -153,9 +155,11 @@
           <cleanCommand>${MAKE} -f Makefile clean</cleanCommand>
           <executablePath>gdbserver/st-util</executablePath>
           <cTool>
+            <incDir>
+              <pElem>.</pElem>
+            </incDir>
             <preprocessorList>
-              <Elem>CONFIG_USE_LIBSG=1</Elem>
-              <Elem>CONFIG_USE_LIBUSB=1</Elem>
+              <Elem>DEBUG=1</Elem>
             </preprocessorList>
           </cTool>
         </makeTool>
@@ -473,6 +477,351 @@
           <incDir>
             <pElem>src</pElem>
           </incDir>
+          <preprocessorList>
+            <Elem>CONFIG_USE_LIBSG=1</Elem>
+            <Elem>CONFIG_USE_LIBUSB=1</Elem>
+          </preprocessorList>
+        </cTool>
+      </folder>
+      <item path="flash/main.c" ex="true" tool="0" flavor="0">
+      </item>
+      <item path="gdbserver/gdb-remote.c" ex="true" tool="0" flavor="0">
+      </item>
+      <item path="gdbserver/gdb-server.c" ex="true" tool="0" flavor="0">
+      </item>
+      <item path="toremove/stm32l/src/stlink-hw.h" ex="true" tool="3" flavor="0">
+      </item>
+    </conf>
+    <conf name="gdbserver" type="0">
+      <toolsSet>
+        <remote-sources-mode>LOCAL_SOURCES</remote-sources-mode>
+        <compilerSet>default</compilerSet>
+      </toolsSet>
+      <makefileType>
+        <makeTool>
+          <buildCommandWorkingDir>gdbserver</buildCommandWorkingDir>
+          <buildCommand>${MAKE} -f Makefile</buildCommand>
+          <cleanCommand>${MAKE} -f Makefile clean</cleanCommand>
+          <executablePath></executablePath>
+        </makeTool>
+      </makefileType>
+      <item path="example/blink/main.c" ex="true" tool="0" flavor="0">
+      </item>
+      <item path="example/blink_flash/main.c" ex="true" tool="0" flavor="0">
+      </item>
+      <item path="example/blink_flash/startup_stm32l1xx_md.s"
+            ex="true"
+            tool="4"
+            flavor="0">
+      </item>
+      <item path="example/blink_flash/system_stm32l1xx.c"
+            ex="true"
+            tool="0"
+            flavor="0">
+      </item>
+      <item path="example/lcd/discover_board.h" ex="true" tool="3" flavor="0">
+      </item>
+      <item path="example/lcd/main.c" ex="true" tool="0" flavor="0">
+      </item>
+      <item path="example/lcd/stm32l_discovery_lcd.c" ex="true" tool="0" flavor="0">
+      </item>
+      <item path="example/lcd/stm32l_discovery_lcd.h" ex="true" tool="3" flavor="0">
+      </item>
+      <item path="example/libstm32l_discovery/inc/base/stdint.h"
+            ex="true"
+            tool="3"
+            flavor="0">
+      </item>
+      <item path="example/libstm32l_discovery/inc/core_support/core_cm3.c"
+            ex="true"
+            tool="0"
+            flavor="0">
+      </item>
+      <item path="example/libstm32l_discovery/inc/core_support/core_cm3.h"
+            ex="true"
+            tool="3"
+            flavor="0">
+      </item>
+      <item path="example/libstm32l_discovery/inc/device_support/stm32l1xx.h"
+            ex="true"
+            tool="3"
+            flavor="0">
+      </item>
+      <item path="example/libstm32l_discovery/inc/device_support/system_stm32l1xx.h"
+            ex="true"
+            tool="3"
+            flavor="0">
+      </item>
+      <item path="example/libstm32l_discovery/inc/misc.h"
+            ex="true"
+            tool="3"
+            flavor="0">
+      </item>
+      <item path="example/libstm32l_discovery/inc/stm32l1xx_adc.h"
+            ex="true"
+            tool="3"
+            flavor="0">
+      </item>
+      <item path="example/libstm32l_discovery/inc/stm32l1xx_comp.h"
+            ex="true"
+            tool="3"
+            flavor="0">
+      </item>
+      <item path="example/libstm32l_discovery/inc/stm32l1xx_crc.h"
+            ex="true"
+            tool="3"
+            flavor="0">
+      </item>
+      <item path="example/libstm32l_discovery/inc/stm32l1xx_dac.h"
+            ex="true"
+            tool="3"
+            flavor="0">
+      </item>
+      <item path="example/libstm32l_discovery/inc/stm32l1xx_dbgmcu.h"
+            ex="true"
+            tool="3"
+            flavor="0">
+      </item>
+      <item path="example/libstm32l_discovery/inc/stm32l1xx_dma.h"
+            ex="true"
+            tool="3"
+            flavor="0">
+      </item>
+      <item path="example/libstm32l_discovery/inc/stm32l1xx_exti.h"
+            ex="true"
+            tool="3"
+            flavor="0">
+      </item>
+      <item path="example/libstm32l_discovery/inc/stm32l1xx_flash.h"
+            ex="true"
+            tool="3"
+            flavor="0">
+      </item>
+      <item path="example/libstm32l_discovery/inc/stm32l1xx_gpio.h"
+            ex="true"
+            tool="3"
+            flavor="0">
+      </item>
+      <item path="example/libstm32l_discovery/inc/stm32l1xx_i2c.h"
+            ex="true"
+            tool="3"
+            flavor="0">
+      </item>
+      <item path="example/libstm32l_discovery/inc/stm32l1xx_iwdg.h"
+            ex="true"
+            tool="3"
+            flavor="0">
+      </item>
+      <item path="example/libstm32l_discovery/inc/stm32l1xx_lcd.h"
+            ex="true"
+            tool="3"
+            flavor="0">
+      </item>
+      <item path="example/libstm32l_discovery/inc/stm32l1xx_pwr.h"
+            ex="true"
+            tool="3"
+            flavor="0">
+      </item>
+      <item path="example/libstm32l_discovery/inc/stm32l1xx_rcc.h"
+            ex="true"
+            tool="3"
+            flavor="0">
+      </item>
+      <item path="example/libstm32l_discovery/inc/stm32l1xx_rtc.h"
+            ex="true"
+            tool="3"
+            flavor="0">
+      </item>
+      <item path="example/libstm32l_discovery/inc/stm32l1xx_spi.h"
+            ex="true"
+            tool="3"
+            flavor="0">
+      </item>
+      <item path="example/libstm32l_discovery/inc/stm32l1xx_syscfg.h"
+            ex="true"
+            tool="3"
+            flavor="0">
+      </item>
+      <item path="example/libstm32l_discovery/inc/stm32l1xx_tim.h"
+            ex="true"
+            tool="3"
+            flavor="0">
+      </item>
+      <item path="example/libstm32l_discovery/inc/stm32l1xx_usart.h"
+            ex="true"
+            tool="3"
+            flavor="0">
+      </item>
+      <item path="example/libstm32l_discovery/inc/stm32l1xx_wwdg.h"
+            ex="true"
+            tool="3"
+            flavor="0">
+      </item>
+      <item path="example/libstm32l_discovery/src/misc.c"
+            ex="true"
+            tool="0"
+            flavor="0">
+      </item>
+      <item path="example/libstm32l_discovery/src/stm32l1xx_adc.c"
+            ex="true"
+            tool="0"
+            flavor="0">
+      </item>
+      <item path="example/libstm32l_discovery/src/stm32l1xx_comp.c"
+            ex="true"
+            tool="0"
+            flavor="0">
+      </item>
+      <item path="example/libstm32l_discovery/src/stm32l1xx_crc.c"
+            ex="true"
+            tool="0"
+            flavor="0">
+      </item>
+      <item path="example/libstm32l_discovery/src/stm32l1xx_dac.c"
+            ex="true"
+            tool="0"
+            flavor="0">
+      </item>
+      <item path="example/libstm32l_discovery/src/stm32l1xx_dbgmcu.c"
+            ex="true"
+            tool="0"
+            flavor="0">
+      </item>
+      <item path="example/libstm32l_discovery/src/stm32l1xx_dma.c"
+            ex="true"
+            tool="0"
+            flavor="0">
+      </item>
+      <item path="example/libstm32l_discovery/src/stm32l1xx_exti.c"
+            ex="true"
+            tool="0"
+            flavor="0">
+      </item>
+      <item path="example/libstm32l_discovery/src/stm32l1xx_flash.c"
+            ex="true"
+            tool="0"
+            flavor="0">
+      </item>
+      <item path="example/libstm32l_discovery/src/stm32l1xx_flash_ramfunc.c"
+            ex="true"
+            tool="0"
+            flavor="0">
+      </item>
+      <item path="example/libstm32l_discovery/src/stm32l1xx_gpio.c"
+            ex="true"
+            tool="0"
+            flavor="0">
+      </item>
+      <item path="example/libstm32l_discovery/src/stm32l1xx_i2c.c"
+            ex="true"
+            tool="0"
+            flavor="0">
+      </item>
+      <item path="example/libstm32l_discovery/src/stm32l1xx_iwdg.c"
+            ex="true"
+            tool="0"
+            flavor="0">
+      </item>
+      <item path="example/libstm32l_discovery/src/stm32l1xx_lcd.c"
+            ex="true"
+            tool="0"
+            flavor="0">
+      </item>
+      <item path="example/libstm32l_discovery/src/stm32l1xx_pwr.c"
+            ex="true"
+            tool="0"
+            flavor="0">
+      </item>
+      <item path="example/libstm32l_discovery/src/stm32l1xx_rcc.c"
+            ex="true"
+            tool="0"
+            flavor="0">
+      </item>
+      <item path="example/libstm32l_discovery/src/stm32l1xx_rtc.c"
+            ex="true"
+            tool="0"
+            flavor="0">
+      </item>
+      <item path="example/libstm32l_discovery/src/stm32l1xx_spi.c"
+            ex="true"
+            tool="0"
+            flavor="0">
+      </item>
+      <item path="example/libstm32l_discovery/src/stm32l1xx_syscfg.c"
+            ex="true"
+            tool="0"
+            flavor="0">
+      </item>
+      <item path="example/libstm32l_discovery/src/stm32l1xx_tim.c"
+            ex="true"
+            tool="0"
+            flavor="0">
+      </item>
+      <item path="example/libstm32l_discovery/src/stm32l1xx_usart.c"
+            ex="true"
+            tool="0"
+            flavor="0">
+      </item>
+      <item path="example/libstm32l_discovery/src/stm32l1xx_wwdg.c"
+            ex="true"
+            tool="0"
+            flavor="0">
+      </item>
+      <item path="example/original_fw/discover_board.h" ex="true" tool="3" flavor="0">
+      </item>
+      <item path="example/original_fw/discover_functions.c"
+            ex="true"
+            tool="0"
+            flavor="0">
+      </item>
+      <item path="example/original_fw/discover_functions.h"
+            ex="true"
+            tool="3"
+            flavor="0">
+      </item>
+      <item path="example/original_fw/icc_measure.c" ex="true" tool="0" flavor="0">
+      </item>
+      <item path="example/original_fw/icc_measure.h" ex="true" tool="3" flavor="0">
+      </item>
+      <item path="example/original_fw/icc_measure_Ram.c"
+            ex="true"
+            tool="0"
+            flavor="0">
+      </item>
+      <item path="example/original_fw/main.c" ex="true" tool="0" flavor="0">
+      </item>
+      <item path="example/original_fw/stm32_tsl_conf.h" ex="true" tool="3" flavor="0">
+      </item>
+      <item path="example/original_fw/stm32l1xx_conf.h" ex="true" tool="3" flavor="0">
+      </item>
+      <item path="example/original_fw/stm32l1xx_it.c" ex="true" tool="0" flavor="0">
+      </item>
+      <item path="example/original_fw/stm32l1xx_it.h" ex="true" tool="3" flavor="0">
+      </item>
+      <item path="example/original_fw/stm32l_discovery_lcd.c"
+            ex="true"
+            tool="0"
+            flavor="0">
+      </item>
+      <item path="example/original_fw/stm32l_discovery_lcd.h"
+            ex="true"
+            tool="3"
+            flavor="0">
+      </item>
+      <item path="example/original_fw/system_stm32l1xx.c"
+            ex="true"
+            tool="0"
+            flavor="0">
+      </item>
+      <folder path="stlink/gdbserver">
+        <cTool>
+          <incDir>
+            <pElem>src</pElem>
+          </incDir>
+          <preprocessorList>
+            <Elem>CONFIG_USE_LIBSG=1</Elem>
+            <Elem>CONFIG_USE_LIBUSB=1</Elem>
+          </preprocessorList>
         </cTool>
       </folder>
       <folder path="stlink/src">
@@ -486,8 +835,6 @@
         </cTool>
       </folder>
       <item path="flash/main.c" ex="true" tool="0" flavor="0">
-      </item>
-      <item path="gdbserver/gdb-remote.c" ex="true" tool="0" flavor="0">
       </item>
       <item path="toremove/stm32l/src/stlink-hw.h" ex="true" tool="3" flavor="0">
       </item>
