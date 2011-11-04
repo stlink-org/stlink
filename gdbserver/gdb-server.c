@@ -197,7 +197,7 @@ int main(int argc, char** argv) {
 		if(sl == NULL) return 1;
 		break;
 	case 1:
-		sl = stlink_v1_open(NULL, state.logging_level);
+		sl = stlink_v1_open(state.logging_level);
 		if(sl == NULL) return 1;
 		break;
     }
