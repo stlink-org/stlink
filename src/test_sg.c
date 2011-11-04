@@ -6,7 +6,31 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "stlink-common.h"
+#include "uglylogging.h"
+
+#define LOG_TAG __FILE__
+#define DLOG(format, args...)         ugly_log(UDEBUG, LOG_TAG, format, ## args)
+#define ILOG(format, args...)         ugly_log(UINFO, LOG_TAG, format, ## args)
+#define WLOG(format, args...)         ugly_log(UWARN, LOG_TAG, format, ## args)
+#define fatal(format, args...)        ugly_log(UFATAL, LOG_TAG, format, ## args)
+
+static void __attribute__((unused)) mark_buf(stlink_t *sl) {
+    memset(sl->q_buf, 0, sizeof(sl->q_buf));
+    sl->q_buf[0] = 0xaa;
+    sl->q_buf[1] = 0xbb;
+    sl->q_buf[2] = 0xcc;
+    sl->q_buf[3] = 0xdd;
+    sl->q_buf[4] = 0x11;
+    sl->q_buf[15] = 0x22;
+    sl->q_buf[16] = 0x33;
+    sl->q_buf[63] = 0x44;
+    sl->q_buf[64] = 0x69;
+    sl->q_buf[1024 * 6 - 1] = 0x42; //6kB
+    sl->q_buf[1024 * 8 - 1] = 0x42; //8kB
+}
+
 
 int main(int argc, char *argv[]) {
 	// set scpi lib debug level: 0 for no debug info, 10 for lots
@@ -40,14 +64,14 @@ int main(int argc, char *argv[]) {
 	//stlink_force_debug(sl);
 	stlink_reset(sl);
 	stlink_status(sl);
-#if 0
 	// core system control block
 	stlink_read_mem32(sl, 0xe000ed00, 4);
-	DD(sl, "cpu id base register: SCB_CPUID = got 0x%08x expect 0x411fc231", read_uint32(sl->q_buf, 0));
+	DLOG("cpu id base register: SCB_CPUID = got 0x%08x expect 0x411fc231\n", read_uint32(sl->q_buf, 0));
 	// no MPU
 	stlink_read_mem32(sl, 0xe000ed90, 4);
-	DD(sl, "mpu type register: MPU_TYPER = got 0x%08x expect 0x0", read_uint32(sl->q_buf, 0));
+	DLOG("mpu type register: MPU_TYPER = got 0x%08x expect 0x0\n", read_uint32(sl->q_buf, 0));
 
+#if 0
 	stlink_read_mem32(sl, 0xe000edf0, 4);
 	DD(sl, "DHCSR = 0x%08x", read_uint32(sl->q_buf, 0));
 
@@ -105,10 +129,10 @@ int main(int argc, char *argv[]) {
 #if 0
 	// sram 0x20000000 8kB
 	fputs("\n++++++++++ read/write 8bit, sram at 0x2000 0000 ++++++++++++++++\n\n", stderr);
-	clear_buf(sl);
+    memset(sl->q_buf, 0, sizeof(sl->q_buf));
+    mark_buf(sl);
 	stlink_write_mem8(sl, 0x20000000, 16);
 
-	mark_buf(sl);
 	stlink_write_mem8(sl, 0x20000000, 1);
 	stlink_write_mem8(sl, 0x20000001, 1);
 	stlink_write_mem8(sl, 0x2000000b, 3);
@@ -117,9 +141,7 @@ int main(int argc, char *argv[]) {
 #if 0
 	// a not aligned mem32 access doesn't work indeed
 	fputs("\n++++++++++ read/write 32bit, sram at 0x2000 0000 ++++++++++++++++\n\n", stderr);
-	clear_buf(sl);
-	stlink_write_mem8(sl, 0x20000000, 32);
-
+    memset(sl->q_buf, 0, sizeof(sl->q_buf));
 	mark_buf(sl);
 	stlink_write_mem32(sl, 0x20000000, 1);
 	stlink_read_mem32(sl, 0x20000000, 16);
@@ -134,9 +156,10 @@ int main(int argc, char *argv[]) {
 	stlink_write_mem32(sl, 0x20000000, 17);
 	stlink_read_mem32(sl, 0x20000000, 32);
 #endif
-#if 0
+#if 1
 	// sram 0x20000000 8kB
 	fputs("++++++++++ read/write 32bit, sram at 0x2000 0000 ++++++++++++\n", stderr);
+    memset(sl->q_buf, 0, sizeof(sl->q_buf));
 	mark_buf(sl);
 	stlink_write_mem8(sl, 0x20000000, 64);
 	stlink_read_mem32(sl, 0x20000000, 64);
