@@ -12,7 +12,6 @@
  The stlink related constants kindly provided by Oliver Spencer (OpenOCD)
  for use in a GPL compatible license.
 
- Code format ~ TAB = 8, K&R, linux kernel source, golang oriented
  Tested compatibility: linux, gcc >= 4.3.3
 
  The communication is based on standard USB mass storage device
@@ -31,10 +30,18 @@
  CBW 		- Command Block Wrapper
  CSW		- Command Status Wrapper
  RFU		- Reserved for Future Use
- scsi_pt	- SCSI pass-through
- sg		- SCSI generic
 
- * usb-storage.quirks
+ Originally, this driver used scsi pass through commands, which required the
+ usb-storage module to be loaded, providing the /dev/sgX links.  The USB mass
+ storage implementation on the STLinkv1 is however terribly broken, and it can 
+ take many minutes for the kernel to give up.
+ 
+ However, in Nov 2011, the scsi pass through was replaced by raw libusb, so 
+ instead of having to let usb-storage struggle with the device, and also greatly 
+ limiting the portability of the driver, you can now tell usb-storage to simply
+ ignore this device completely.
+   
+ usb-storage.quirks
  http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=blob_plain;f=Documentation/kernel-parameters.txt
  Each entry has the form VID:PID:Flags where VID and PID are Vendor and Product
  ID values (4-digit hex numbers) and Flags is a set of characters, each corresponding
@@ -54,18 +61,17 @@
 
  Example: quirks=0419:aaf5:rl,0421:0433:rc
  http://permalink.gmane.org/gmane.linux.usb.general/35053
+ 
+ For the stlinkv1, you just want the following
 
- modprobe -r usb-storage && modprobe usb-storage quirks=483:3744:l
+ modprobe -r usb-storage && modprobe usb-storage quirks=483:3744:i
 
  Equivalently, you can add a line saying
 
- options usb-storage quirks=483:3744:l
+ options usb-storage quirks=483:3744:i
 
  to your /etc/modprobe.conf or /etc/modprobe.d/local.conf (or add the "quirks=..."
  part to an existing options line for usb-storage).
-
- https://wiki.kubuntu.org/Kernel/Debugging/USB explains the protocoll and 
- would allow to replace the sg access to pure libusb access
  */
 
 

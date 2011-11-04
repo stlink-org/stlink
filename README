@@ -11,22 +11,47 @@ called stlink and there are 2 versions:
 . STLINKv1 uses SCSI passthru commands over USB,
 . STLINKv2 uses raw USB commands.
 
-It means that if you are using a STM32VL board, you have to install and load
-SCSI related software. First, load the sg kernel module:
-# modprobe sg
+Common requirements
+~~~~~~~~~~~~~~~~~~~
 
-Then, you need to install the package libsgutils2-dev. On Ubuntu:
-# sudo apt-get install libsgutils2-dev
+libusb-1.0  (You probably already have this, but you'll need the 
+development version to compile)
 
-LIBUSB is required for both cases.
+IF YOU HAVE AN STLINKv1
+~~~~~~~~~~~~~~~~~~~~~~~
+The STLINKv1's SCSI emulation is very broken, so the best thing to do
+is tell your operating system to completely ignore it.
+
+Options (do one of these before you plug it in)
+   *) modprobe -r usb-storage && modprobe usb-storage quirks=483:3744:i
+or *)1. add "options usb-storage quirks=483:3744:i" to /etc/modprobe.conf
+   *)2. modprobe -r usb-storage && modprobe usb-storage
+or *)1. cp stlink_v1.modprobe.conf /etc/modprobe.d
+   *)2. modprobe -r usb-storage && modprobe usb-storage
+
+IF YOU HAVE AN STLINKv2
+~~~~~~~~~~~~~~~~~~~~~~~
+
+You're ready to go :)
 
 To run the gdb server, do (you do not need sudo if you have set up
 permissions correctly):
-$ make -C build && sudo ./build/st-util [/dev/sgX]
+$ make && [sudo] ./gdbserver/st-util 
 
-Currently, the GDB server listening port is hardcoded to 4242:
+There are a few options:
 
-Then, in gdb:
+./gdbserver/st-util - usage:
+
+  -h, --help        Print this help
+  -vXX, --verbose=XX    specify a specific verbosity level (0..99)
+  -v, --verbose specify generally verbose logging
+  -s X, --stlink_version=X
+            Choose what version of stlink to use, (defaults to 2)
+  -1, --stlinkv1    Force stlink version 1
+  -p 4242, --listen_port=1234
+            Set the gdb server listen port. (default port: 4242)
+
+Then, in gdb: (remember, you need to run an _ARM_ gdb, not an x86 gdb)
 (gdb) target remote :4242
 
 Have fun!
@@ -50,13 +75,14 @@ for GDB.
 Setting up udev rules
 =====================
 
-For convenience, you may install udev rules file, 10-stlink.rules, located
+For convenience, you may install udev rules file, 49-stlinkv2.rules, located
 in the root of repository. You will need to copy it to /etc/udev/rules.d,
 and then either reboot or execute
 $ udevadm control --reload-rules
 
-Udev will now create a /dev/stlink file, which will point at appropriate
-/dev/sgX device. Good to not accidentally start debugging your flash drive.
+Udev will now create a /dev/stlinkv2_XX file, with the appropriate permissions.
+This is currently all the device is for, (only one stlinkv2 is supported at 
+any time presently)
 
 Running programs from SRAM
 ==========================
