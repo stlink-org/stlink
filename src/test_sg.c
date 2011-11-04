@@ -126,15 +126,15 @@ int main(int argc, char *argv[]) {
 	stlink_read_mem32(sl, 0x08000c00, 256);
 	stlink_read_mem32(sl, 0x08000c00, 256);
 #endif
-#if 0
+#if 1
 	// sram 0x20000000 8kB
 	fputs("\n++++++++++ read/write 8bit, sram at 0x2000 0000 ++++++++++++++++\n\n", stderr);
     memset(sl->q_buf, 0, sizeof(sl->q_buf));
     mark_buf(sl);
-	stlink_write_mem8(sl, 0x20000000, 16);
+	//stlink_write_mem8(sl, 0x20000000, 16);
 
-	stlink_write_mem8(sl, 0x20000000, 1);
-	stlink_write_mem8(sl, 0x20000001, 1);
+	//stlink_write_mem8(sl, 0x20000000, 1);
+	//stlink_write_mem8(sl, 0x20000001, 1);
 	stlink_write_mem8(sl, 0x2000000b, 3);
 	stlink_read_mem32(sl, 0x20000000, 16);
 #endif
@@ -156,7 +156,7 @@ int main(int argc, char *argv[]) {
 	stlink_write_mem32(sl, 0x20000000, 17);
 	stlink_read_mem32(sl, 0x20000000, 32);
 #endif
-#if 1
+#if 0
 	// sram 0x20000000 8kB
 	fputs("++++++++++ read/write 32bit, sram at 0x2000 0000 ++++++++++++\n", stderr);
     memset(sl->q_buf, 0, sizeof(sl->q_buf));
