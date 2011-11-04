@@ -78,7 +78,7 @@ int main(int argc, char *argv[]) {
 	stlink_read_mem32(sl, 0x4001100c, 4);
 	DD(sl, "GPIOC_ODR = 0x%08x", read_uint32(sl->q_buf, 0));
 #endif
-#if 0
+#if 1
 	// happy new year 2011: let blink all the leds
 	// see "RM0041 Reference manual - STM32F100xx advanced ARM-based 32-bit MCUs"
 
@@ -89,23 +89,23 @@ int main(int argc, char *argv[]) {
 #define LED_GREEN	(1<<9) // pin 9
 	stlink_read_mem32(sl, GPIOC_CRH, 4);
 	uint32_t io_conf = read_uint32(sl->q_buf, 0);
-	DD(sl, "GPIOC_CRH = 0x%08x", io_conf);
+	DLOG("GPIOC_CRH = 0x%08x\n", io_conf);
 
 	// set: general purpose output push-pull, output mode, max speed 10 MHz.
 	write_uint32(sl->q_buf, 0x44444411);
 	stlink_write_mem32(sl, GPIOC_CRH, 4);
 
-	clear_buf(sl);
+	memset(sl->q_buf, 0, sizeof(sl->q_buf));
 	for (int i = 0; i < 100; i++) {
 		write_uint32(sl->q_buf, LED_BLUE | LED_GREEN);
 		stlink_write_mem32(sl, GPIOC_ODR, 4);
 		/* stlink_read_mem32(sl, 0x4001100c, 4); */
 		/* DD(sl, "GPIOC_ODR = 0x%08x", read_uint32(sl->q_buf, 0)); */
-		delay(100);
+		usleep(100 * 1000);
 
-		clear_buf(sl);
+		memset(sl->q_buf, 0, sizeof(sl->q_buf));
 		stlink_write_mem32(sl, GPIOC_ODR, 4); // PC lo
-		delay(100);
+        usleep(100 * 1000);
 	}
 	write_uint32(sl->q_buf, io_conf); // set old state
 
@@ -126,7 +126,7 @@ int main(int argc, char *argv[]) {
 	stlink_read_mem32(sl, 0x08000c00, 256);
 	stlink_read_mem32(sl, 0x08000c00, 256);
 #endif
-#if 1
+#if 0
 	// sram 0x20000000 8kB
 	fputs("\n++++++++++ read/write 8bit, sram at 0x2000 0000 ++++++++++++++++\n\n", stderr);
     memset(sl->q_buf, 0, sizeof(sl->q_buf));
