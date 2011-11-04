@@ -1,5 +1,5 @@
-EXECUTABLE=blink.elf
-BIN_IMAGE=blink.bin
+EXECUTABLE=dac.elf
+BIN_IMAGE=dac.bin
 
 CC=arm-none-eabi-gcc
 OBJCOPY=arm-none-eabi-objcopy
@@ -37,4 +37,7 @@ clean:
 	rm -rf $(EXECUTABLE)
 	rm -rf $(BIN_IMAGE)
 
-.PHONY: all clean
+write: all
+	sudo ../../flash/flash write ./dac.bin 0x08000000
+
+.PHONY: all clean write

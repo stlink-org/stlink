@@ -90,8 +90,8 @@ It includes:
 
 
 \newpage
-
-\section{Building and running a program}
+\section{Building and running a program in SRAM}
+\paragraph{}
 A simple LED blinking example is provided in the example directory. It is built using:\\
 \begin{small}
 \begin{lstlisting}[frame=tb]
@@ -165,10 +165,9 @@ $> continue
 All the LEDs on the board should now be blinking in time (those leds are near the user and reset buttons).
 
 \newpage
-\section{Reading and writing to flash}
+\section{Building and flashing a program}
 \paragraph{}
-Flash memory reading and writing is done by a separate tool. A binary running in flash is assumed to
-be linked against address 0x8000000. The flash tool is then used as shown below:\\
+FLASH memory reading and writing is done by a separate tool, as shown below:\\
 \begin{small}
 \begin{lstlisting}[frame=tb]
 # change to the flash tool directory
@@ -188,6 +187,49 @@ $> ./flash write in.bin 0x8000000
 \end{lstlisting}
 \end{small}
 
+\paragraph{}
+A LED blinking example is provided:\\
+\begin{small}
+\begin{lstlisting}[frame=tb]
+# build the example, resulting in blink.bin
+$> cd stlink.git/example/blink_flash
+$> PATH=$TOOLCHAIN_PATH:$PATH make CONFIG_STM32L_DISCOVERY=1
+
+# write blink.bin into FLASH
+$> sudo ./flash write blink.bin 0x08000000
+\end{lstlisting}
+\end{small}
+
+\paragraph{}
+Upon reset, the board LEDs should be blinking.
+
+\newpage
+\section{Building and installing the CHIBIOS kernel}
+\paragraph{}
+CHIBIOS is an open source RTOS. More information can be found on the project website:
+\begin{center}
+http://www.chibios.org/dokuwiki/doku.php
+\end{center}
+
+\paragraph{}
+It supports several boards, including the STM32L DISCOVERY kit:
+\begin{center}
+http://www.chibios.org/dokuwiki/doku.php?id=chibios:articles:stm32l\_discovery
+\end{center}
+
+\paragraph{}
+The installation procedure is detailed below:\\
+\begin{small}
+\begin{lstlisting}[frame=tb]
+# checkout and build CHIBIOS for STM32L DISCOVERY kits
+svn checkout https://chibios.svn.sourceforge.net/svnroot/chibios/trunk
+cd chibios/trunk/demos/ARMCM3-STM32L152-DISCOVERY
+PATH=$TOOLCHAIN_PATH:$PATH make
+
+# flash the image into STM32L
+sudo ./flash write build/ch.bin 0x08000000
+\end{lstlisting}
+\end{small}
 
 \newpage
 \section{Notes}

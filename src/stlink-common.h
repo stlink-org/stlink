@@ -76,6 +76,11 @@ extern "C" {
 #define CM3_REG_FP_CTRL 0xE0002000
 #define CM3_REG_FP_COMP0 0xE0002008
 
+/* cortex core ids */
+#define STM32VL_CORE_ID 0x1ba01477
+#define STM32L_CORE_ID 0x2ba01477
+#define STM32F4_CORE_ID 0x2ba01477
+
 /* Enough space to hold both a V2 command or a V1 command packaged as generic scsi*/
 #define C_BUF_LEN 32
 
@@ -162,6 +167,7 @@ extern "C" {
 #define STM32_FLASH_BASE 0x08000000
 #define STM32_FLASH_SIZE (128 * 1024)
 #define STM32_FLASH_PGSZ 1024
+#define STM32L_FLASH_PGSZ 256
         stm32_addr_t flash_base;
         size_t flash_size;
         size_t flash_pgsz;

@@ -12,7 +12,7 @@ CFLAGS+=-std=gnu99
 CFLAGS+=-Wall -Wextra
 CFLAGS+=-I../src
 
-LDFLAGS=-lusb-1.0 -L.. -lstlink 
+LDFLAGS=-L.. -lstlink -lusb-1.0
 
 ifeq ($(CONFIG_USE_LIBSG),)
 CONFIG_USE_LIBSG=1

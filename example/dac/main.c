@@ -4,6 +4,7 @@
 /* libstm32l_discovery headers */
 #include "stm32l1xx_gpio.h"
 #include "stm32l1xx_adc.h"
+#include "stm32l1xx_dac.h"
 #include "stm32l1xx_lcd.h"
 #include "stm32l1xx_rcc.h"
 #include "stm32l1xx_rtc.h"
@@ -81,22 +82,27 @@ do {							\
 
 
 static void RCC_Configuration(void)
-{  
-  /* Enable HSI Clock */
+{
+  /* HSI is 16mhz RC clock directly fed to SYSCLK (rm00038, figure 9) */
+
+  /* enable the HSI clock (high speed internal) */
   RCC_HSICmd(ENABLE);
   
-  /*!< Wait till HSI is ready */
+  /* wail til HSI ready */
   while (RCC_GetFlagStatus(RCC_FLAG_HSIRDY) == RESET)
   {}
 
+  /* at startup, SYSCLK driven by MSI. set to HSI */
   RCC_SYSCLKConfig(RCC_SYSCLKSource_HSI);
   
+  /* set MSI to 4mhz */
   RCC_MSIRangeConfig(RCC_MSIRange_6);
 
+  /* turn HSE off */
   RCC_HSEConfig(RCC_HSE_OFF);  
-  if(RCC_GetFlagStatus(RCC_FLAG_HSERDY) != RESET )
+  if (RCC_GetFlagStatus(RCC_FLAG_HSERDY) != RESET)
   {
-    while(1);
+    while (1) ;
   }
 }
 
@@ -124,10 +130,71 @@ static void RTC_Configuration(void)
 
 }
 
+static void setup_dac1(void)
+{
+  /* see 10.2 notes */
+
+  static GPIO_InitTypeDef GPIO_InitStructure;
+  static DAC_InitTypeDef DAC_InitStructure;
+
+  /* DAC clock path:
+     HSI (16mhz) -> SYSCLK -> HCLK(/1) -> PCLK1(/1)
+   */
+
+  /* set the AHB clock (HCLK) prescaler to 1 */
+  RCC_HCLKConfig(RCC_SYSCLK_Div1);
+
+  /* set the low speed APB clock (APB1, ie. PCLK1) prescaler to 1 */
+  RCC_PCLK1Config(RCC_HCLK_Div1);
+
+  /* enable DAC APB1 clock */
+  /* signal connections: HSI(16mhz) -> SYSCLK -> AHB */
+  RCC_APB1PeriphClockCmd(RCC_APB1Periph_DAC, ENABLE);
+
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_4; /* GPIO_Pin_5 for channel 2 */
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AN;
+  GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+  GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
+  GPIO_Init(GPIOA, &GPIO_InitStructure);
+
+  DAC_StructInit(&DAC_InitStructure);
+  DAC_InitStructure.DAC_Trigger = DAC_Trigger_None;
+#if 0 /* triangle waveform generation */
+  DAC_InitStructure.DAC_WaveGeneration = DAC_WaveGeneration_Triangle;
+  DAC_InitStructure.DAC_LFSRUnmask_TriangleAmplitude = DAC_TriangleAmplitude_1;
+#else
+  DAC_InitStructure.DAC_WaveGeneration = DAC_WaveGeneration_None;
+  DAC_InitStructure.DAC_LFSRUnmask_TriangleAmplitude = DAC_LFSRUnmask_Bit0;
+#endif
+  DAC_InitStructure.DAC_OutputBuffer = DAC_OutputBuffer_Enable;
+  DAC_Init(DAC_Channel_1, &DAC_InitStructure);
+
+  /* enable dac channel */
+  DAC_Cmd(DAC_Channel_1, ENABLE);
+}
+
+static inline void set_dac1_mv(unsigned int mv)
+{
+  /* mv the millivolts */
+
+  /* vref in millivolts */
+  /* #define CONFIG_VREF 5000 */
+#define CONFIG_VREF 3000
+
+  /* resolution in bits */
+#define CONFIG_DAC_RES 12
+
+  const uint16_t n = (mv * (1 << (CONFIG_DAC_RES - 1))) / CONFIG_VREF;
+  DAC_SetChannel1Data(DAC_Align_12b_R, n);
+}
+
 void main(void)
 {
   static RCC_ClocksTypeDef RCC_Clocks;
   static GPIO_InitTypeDef GPIO_InitStructure;
+  static uint16_t dac_value;
+  static unsigned int led_state = 0;
 
   /* Configure Clocks for Application need */
   RCC_Configuration();
@@ -135,11 +202,12 @@ void main(void)
   /* Configure RTC Clocks */
   RTC_Configuration();
 
-  /* Set internal voltage regulator to 1.8V */
+#if 0
+  /* Set internal voltage regulator to 1.8v */
   PWR_VoltageScalingConfig(PWR_VoltageScaling_Range1);
-
   /* Wait Until the Voltage Regulator is ready */
   while (PWR_GetFlagStatus(PWR_FLAG_VOS) != RESET) ;
+#endif
 
   /* configure gpios */
 
@@ -156,11 +224,19 @@ void main(void)
   GPIO_LOW(LD_GPIO_PORT, LD_GREEN_GPIO_PIN);	
   GPIO_LOW(LD_GPIO_PORT, LD_BLUE_GPIO_PIN);
 
+  setup_dac1();
+
+  dac_value = 0;
+
   while (1)
   {
-    switch_leds_on();
-    delay();
-    switch_leds_off();
+    DAC_SetChannel1Data(DAC_Align_12b_R, dac_value & 0xfff);
+    dac_value += 0x10;
+
+    if (led_state & 1) switch_leds_on();
+    else switch_leds_off();
+    led_state ^= 1;
+
     delay();
   }
 }

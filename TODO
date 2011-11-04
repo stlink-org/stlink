@@ -1,8 +1,5 @@
 . flash tool
- . test support for reading
- . writing is not working. refer to the specs, may have changed for stm32l
- . then test with blink_flash example
- . then update the documentation
+ . improve flash writing, still use word fast write... too slow
 
 . documentation
  . make README points to doc/tutorial
