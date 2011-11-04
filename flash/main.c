@@ -88,8 +88,7 @@ int main(int ac, char** av)
 
   if (o.devname != NULL) /* stlinkv1 */
   {
-    static const int scsi_verbose = 2;
-    sl = stlink_v1_open(o.devname, scsi_verbose);
+    sl = stlink_v1_open(100);
     if (sl == NULL) goto on_error;
   }
   else /* stlinkv2 */

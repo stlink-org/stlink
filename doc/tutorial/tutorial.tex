@@ -24,7 +24,7 @@
 \section{Overview}
 \paragraph{}
 This guide details the use of STMicroelectronics STM32 discovery kits in
-an opensource environment.
+an open source environment.
 
 
 \newpage
@@ -48,18 +48,18 @@ This documentation assumes the toolchains is installed in a \$TOOLCHAIN\_PATH.
 
 \section{Installing STLINK}
 \paragraph{}
-STLINK is an opensource software to program and debug the discovery kits. Those
+STLINK is open source software to program and debug ST's STM32 Discovery kits. Those
 kits have an onboard chip that translates USB commands sent by the host PC into
-JTAG commands. This chip is called STLINK, which is confusing since the software
-has the same name. It comes into 2 versions (STLINK v1 and v2). From a software
+JTAG/SWD commands. This chip is called STLINK, (yes, isn't that confusing? suggest a better
+name!)  and comes in 2 versions (STLINK v1 and v2). From a software
 point of view, those versions differ only in the transport layer used to communicate
-(v1 uses SCSI passthru commands, while v2 uses raw USB).
+(v1 uses SCSI passthru commands, while v2 uses raw USB).  From a user point of view, they 
+are identical. 
 
 \paragraph{}
 Before continuing, the following dependencies must be met:
 \begin{itemize}
 \item libusb-1.0
-\item libsgutils2 (optionnal)
 \end{itemize}
 
 \paragraph{}
@@ -78,7 +78,7 @@ Everything can be built from the top directory:\\
 \begin{small}
 \begin{lstlisting}[frame=tb]
 $> cd stlink.git
-$> make CONFIG_USE_LIBSG=0
+$> make 
 \end{lstlisting}
 \end{small}
 It includes:
@@ -95,13 +95,20 @@ It includes:
 A simple LED blinking example is provided in the example directory. It is built using:\\
 \begin{small}
 \begin{lstlisting}[frame=tb]
-# update the make option accordingly to your architecture
 cd stlink.git/example/blink ;
 PATH=$TOOLCHAIN_PATH/bin:$PATH make
 \end{lstlisting}
 \end{small}
 This builds three files, one for each of the Discovery boards currently
-available.
+available, linked to run from SRAM. (So no risk of overwriting anything you didn't mean to) 
+These blink examples can safely be used to verify that:
+
+\begin{itemize}
+\item Your installed toolchain is capable of compiling for cortex M3/M4 targets
+\item stlink is functional
+\item Your arm-none-eabi-gdb is functional
+\item Your board is functional
+\end{itemize}
 
 \paragraph{}
 A GDB server must be started to interact with the STM32. Depending on the discovery kit you
@@ -109,10 +116,10 @@ are using, you must run one of the 2 commands:\\
 \begin{small}
 \begin{lstlisting}[frame=tb]
 # STM32VL discovery kit (onboard ST-link)
-$> sudo ./st-util --stlinkv1 [-d /dev/sg2]
+$> ./st-util --stlinkv1
 
 # STM32L or STM32F4 discovery kit (onboard ST-link/V2)
-$> sudo ./st-util 
+$> ./st-util 
 
 # Full help for other options (listen port, version)
 $> ./st-util --help
@@ -140,7 +147,8 @@ By default, the program was linked such that the base address is 0x20000000. Fro
 memory map, GDB knows this address belongs to SRAM. To load the program in SRAM, simply use:\\
 \begin{small}
 \begin{lstlisting}[frame=tb]
-$> load blink.elf
+$> # Choose one as appropriate for your Discovery kit
+$> load blink_32L.elf | load blink_32VL.elf | load blink_F4.elf
 \end{lstlisting}
 \end{small}
 
@@ -154,8 +162,7 @@ $> continue
 \end{small}
 
 \paragraph{}
-The board BLUE and GREEN leds should be blinking (those leds are near the user and reset buttons).
-
+All the LEDs on the board should now be blinking in time (those leds are near the user and reset buttons).
 
 \newpage
 \section{Reading and writing to flash}
@@ -168,13 +175,13 @@ be linked against address 0x8000000. The flash tool is then used as shown below:
 $> cd stlink.git/flash ;
 
 # stlinkv1 command to read 4096 from flash into out.bin
-$> ./flash read /dev/sg2 out.bin 0x8000000 4096
+$> ./flash read v1 out.bin 0x8000000 4096
 
 # stlinkv2 command
 $> ./flash read out.bin 0x8000000 4096
 
 # stlinkv1 command to write the file in.bin into flash
-$> ./flash write /dev/sg2 in.bin 0x8000000
+$> ./flash write v1 in.bin 0x8000000
 
 # stlinkv2 command
 $> ./flash write in.bin 0x8000000
@@ -222,16 +229,6 @@ An example using the library can be built using:\\
 \begin{lstlisting}[frame=tb]
 $> cd stlink.git/example/lcd
 $> make
-\end{lstlisting}
-\end{small}
-
-\subsection{STM32VL support}
-\paragraph{}
-It seems support for STM32VL is quite broken. If it does not work, try build STLINK using libsg:
-\begin{small}
-\begin{lstlisting}[frame=tb]
-$> cd stlink.git
-$> make CONFIG_USE_LIBSG=1
 \end{lstlisting}
 \end{small}
 
