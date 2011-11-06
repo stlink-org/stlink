@@ -83,74 +83,106 @@ char* make_memory_map(const struct chip_params *params, uint32_t flash_size);
 int main(int argc, char** argv) {
 
 	stlink_t *sl = NULL;
+        int port = 0;
 
-	const char * HelpStr =	"Usage:\n"
-								"\t st-util port [/dev/sgX]\n"
-								"\t st-util [port]\n"
-								"\t st-util --help\n";
+	const char * HelpStr =  "\nUsage:\n"
+                                 "\tst-util [Arguments]\n"
+                                 "\tArguments (no more than 2):\n"
+                                  "\t\t<Port>: Port. Default: 4242.\n"
+                                  "\t\t{usb|sgauto|/dev/sgX}: Transport, "
+                                   "where X = {0, 1, 2, ...}. Default: USB.\n"
+                                 "\tExamples:\n"
+                                  "\t\tst-util 1234\n"
+                                  "\t\tst-util sgauto\n"
+                                  "\t\tst-util 1234 usb\n"
+                                  "\t\tst-util /dev/sgX 1234\n"
+                                  "\t\tst-util 1234 /dev/sgX\n";
+        
+        
+        // Parsing the arguments of command line ...
+        
+        if (argc == 1 || argc > 3) {
+            fprintf(stderr, HelpStr, NULL);
+            return 1;
+        }
+                
+        for(int a = 1; a < argc; a++) {
+            
+            // Port
+            int p = atoi(argv[a]);
+            if (p < 0 || p > 0xFFFF) {
+                fprintf(stderr, "Invalid port\n");
+                fprintf(stderr, HelpStr, NULL);
+                return 1;
+            }
+            if (p > 0 && port == 0) {port = p; continue;}
+            
+            // if (p == 0) ...
+            
+            // usb
+            if (!strcmp(argv[a], "usb")) {
+                if (sl != NULL) return 1;
+                sl = stlink_open_usb(10);
+                if(sl == NULL) return 1;
+                continue;
+            }
 
-	switch(argc) {
+            // /dev/sgX
+            if (!strncmp(argv[a], "/dev/sgX", 7)) {
+                if(!CONFIG_USE_LIBSG) {
+                    fprintf(stderr, "libsg not use\n");
+                    return 1;
+                }
+                if (sl != NULL) return 1;
+                sl = stlink_quirk_open(argv[a], 0);
+                if(sl == NULL) return 1;
+                continue;
+            }
 
-		case 3 : {
-			//sl = stlink_quirk_open(argv[2], 0);
-			// FIXME - hardcoded to usb....
-			sl = stlink_open_usb(10);
-			if(sl == NULL) return 1;
-			break;
-		}
+            // sg_auto
+            if (!strcmp(argv[a], "sgauto")) {
+                if(!CONFIG_USE_LIBSG) {
+                    fprintf(stderr, "libsg not use\n");
+                    return 1;
+                }
 
-		case 2 : {
-			if (strcmp(argv[1], "--help") == 0) {
-				fprintf(stdout, HelpStr, NULL);
-				return 1;
-			}
-		}
+                // Search ST-LINK (from /dev/sg0 to /dev/sg99)
+                for(int DevNum = 0; DevNum <= 99; DevNum++)
+                {
+                    if(sl != NULL) return 1;
+                    if(DevNum < 10) {
+                        char DevName[] = "/dev/sgX";
+                        DevName[7] = DevNum + '0';
+                        if ( !access(DevName, F_OK) )
+                            sl = stlink_quirk_open(DevName, 0);
+                    }
+                    else {
+                        char DevName[] = "/dev/sgXY";
+                        DevName[7] = DevNum/10 + '0';
+                        DevName[8] = DevNum%10 + '0';
+                        if ( !access(DevName, F_OK) )
+                            sl = stlink_quirk_open(DevName, 0);
+                    }
 
-#if CONFIG_USE_LIBSG
-		case 1 : { // Search ST-LINK (from /dev/sg0 to /dev/sg99)
-			const int DevNumMax = 99;
-			int ExistDevCount = 0;
+                }
 
-			for(int DevNum = 0; DevNum <= DevNumMax; DevNum++)
-			{
-				if(DevNum < 10) {
-					char DevName[] = "/dev/sgX";
-					const int X_index = 7;
-					DevName[X_index] = DevNum + '0';
-					if ( !access(DevName, F_OK) ) {
-						sl = stlink_quirk_open(DevName, 0);
-						ExistDevCount++;
-					}
-				}
-				else if(DevNum < 100) {
-					char DevName[] = "/dev/sgXY";
-					const int X_index = 7;
-					const int Y_index = 8;
-					DevName[X_index] = DevNum/10 + '0';
-					DevName[Y_index] = DevNum%10 + '0';
-					if ( !access(DevName, F_OK) ) {
-						sl = stlink_quirk_open(DevName, 0);
-						ExistDevCount++;
-					}
-				}
-				if(sl != NULL) break;
-			}
-
-			if(sl == NULL) {
-				fprintf(stdout, "\nNumber of /dev/sgX devices found: %i \n",
-						ExistDevCount);
-				fprintf(stderr, "ST-LINK not found\n");
-				return 1;
-			}
-			break;
-		}
-#endif
-
-		default: {
-			fprintf(stderr, HelpStr, NULL);
-			return 1;
-		}
-	}
+                if(sl == NULL) return 1;
+                continue;
+            }
+            
+            // Invalid argumets
+            fprintf(stderr, "Invalid argumets\n");
+            fprintf(stderr, HelpStr, NULL);
+            return 1;
+        }
+         
+        // Default transport: USB
+        if (sl == NULL) sl = stlink_open_usb(10);
+        // Default port: 4242
+        if (port == 0) port = 4242;
+        
+        
+        if (sl == NULL) return 1;
 
 	if (stlink_current_mode(sl) == STLINK_DEV_DFU_MODE) {
 		stlink_exit_dfu_mode(sl);
@@ -199,8 +231,6 @@ int main(int argc, char** argv) {
 	printf("Flash size is %d KiB.\n", flash_size);
 	// memory map is in 1k blocks.
 	current_memory_map = make_memory_map(params, flash_size * 0x400);
-
-	int port = 4242;
 
 	while(serve(sl, port) == 0);
 
