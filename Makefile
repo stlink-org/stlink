@@ -66,6 +66,6 @@ flash:
 	$(MAKE) -C flash CONFIG_USE_LIBSG="$(CONFIG_USE_LIBSG)" 
 
 gdbserver:
-	$(MAKE) -C gdbserver
+	$(MAKE) -C gdbserver CONFIG_USE_LIBSG="$(CONFIG_USE_LIBSG)"
 
 .PHONY: clean all flash gdbserver
