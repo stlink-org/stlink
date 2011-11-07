@@ -7,11 +7,20 @@ CFLAGS+=-mcpu=cortex-m3 -ffreestanding -nostdlib -nostdinc
 
 CFLAGS+=-I.
 
-# stm32l_discovery lib
-CFLAGS+=-I../libstm32l_discovery/inc
-CFLAGS+=-I../libstm32l_discovery/inc/base
-CFLAGS+=-I../libstm32l_discovery/inc/core_support
-CFLAGS+=-I../libstm32l_discovery/inc/device_support
+
+PLATFORM=stm32l1xx
+LIBS_STM_PATH=../libs_stm
+
+INC_CORE_SUPPORT=$(LIBS_STM_PATH)/inc/core_support
+SRC_CORE_SUPPORT=$(LIBS_STM_PATH)/inc/core_support
+INC_DEVICE_SUPPORT=$(LIBS_STM_PATH)/inc/device_support
+INC_PLATFORM=$(LIBS_STM_PATH)/inc/$(PLATFORM)
+
+CFLAGS+=-I$(INC_CORE_SUPPORT)
+CFLAGS+=-I$(INC_DEVICE_SUPPORT)
+CFLAGS+=-I$(INC_PLATFORM)
+CFLAGS+=-I$(LIBS_STM_PATH)/inc/base
+
 
 # to run from SRAM
 CFLAGS+=-Wl,-T,linker_stm32l.lds
@@ -25,7 +34,7 @@ OBJS=$(SRCS:.c=.o)
 all: $(ELF)
 
 $(ELF): $(OBJS)
-	$(CC) $(CFLAGS) -o $@ $(OBJS) -L../libstm32l_discovery/build -lstm32l_discovery
+	$(CC) $(CFLAGS) -o $@ $(OBJS) -L$(LIBS_STM_PATH)/build -lstm32l_discovery
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c -o $@ $^
