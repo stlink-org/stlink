@@ -11,19 +11,15 @@ CFLAGS+=-I.
 PLATFORM=stm32l1xx
 LIBS_STM_PATH=../libs_stm
 
-INC_CORE_SUPPORT=$(LIBS_STM_PATH)/inc/core_support
-SRC_CORE_SUPPORT=$(LIBS_STM_PATH)/inc/core_support
-INC_DEVICE_SUPPORT=$(LIBS_STM_PATH)/inc/device_support
-INC_PLATFORM=$(LIBS_STM_PATH)/inc/$(PLATFORM)
-
-CFLAGS+=-I$(INC_CORE_SUPPORT)
-CFLAGS+=-I$(INC_DEVICE_SUPPORT)
-CFLAGS+=-I$(INC_PLATFORM)
 CFLAGS+=-I$(LIBS_STM_PATH)/inc/base
-
+CFLAGS+=-I$(LIBS_STM_PATH)/inc/core_support
+CFLAGS+=-I$(LIBS_STM_PATH)/inc/device_support
+CFLAGS+=-I$(LIBS_STM_PATH)/inc/$(PLATFORM)
 
 # to run from SRAM
 CFLAGS+=-Wl,-T,linker_stm32l.lds
+
+LDFLAGS+=-L$(LIBS_STM_PATH)/build -lstm32l_discovery
 
 SRCS=\
 main.c\
@@ -34,7 +30,7 @@ OBJS=$(SRCS:.c=.o)
 all: $(ELF)
 
 $(ELF): $(OBJS)
-	$(CC) $(CFLAGS) -o $@ $(OBJS) -L$(LIBS_STM_PATH)/build -lstm32l_discovery
+	$(CC) $(CFLAGS) -o $@ $(OBJS) $(LDFLAGS)
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c -o $@ $^
