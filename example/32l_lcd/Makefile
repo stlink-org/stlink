@@ -19,7 +19,7 @@ CFLAGS+=-I$(LIBS_STM_PATH)/inc/$(PLATFORM)
 # to run from SRAM
 CFLAGS+=-Wl,-T,linker_stm32l.lds
 
-LDFLAGS+=-L$(LIBS_STM_PATH)/build -lstm32l_discovery
+LDFLAGS+=-L$(LIBS_STM_PATH)/build -lstm32_stdperiph_l1xx
 
 SRCS=\
 main.c\

@@ -1,37 +1,10 @@
-LIB = libstm32l_discovery.a
 
-CC = arm-none-eabi-gcc
-AR = arm-none-eabi-ar
-RANLIB = arm-none-eabi-ranlib
-
-PLATFORM=stm32l1xx
-
-INC_CORE_SUPPORT=../inc/core_support
-SRC_CORE_SUPPORT=../inc/core_support
-INC_DEVICE_SUPPORT=../inc/device_support
-INC_PLATFORM=../inc/$(PLATFORM)
-SRC_PLATFORM=../src/$(PLATFORM)
-
-CFLAGS = -Wall -O2 -mlittle-endian -mthumb
-CFLAGS += -mcpu=cortex-m3 -ffreestanding -nostdlib -nostdinc
-CFLAGS += -I$(INC_PLATFORM) -I$(INC_DEVICE_SUPPORT) -I$(INC_CORE_SUPPORT) -I../inc/base
-
-SRCS=$(wildcard $(SRC_PLATFORM)/*.c)
-SRCS+=$(SRC_CORE_SUPPORT)/core_cm3.c
-
-OBJS = $(SRCS:.c=.o)
-
-all: $(LIB)
-
-$(LIB): $(OBJS)
-	$(AR) -r $(LIB) $(OBJS)
-	$(RANLIB) $(LIB)
-
-%.o : %.c
-	$(CC) $(CFLAGS) -c -o $@ $^
+all:
+	make -f Makefile.f10x
+	make -f Makefile.l1xx
 
 clean:
-	-rm -f $(OBJS)
-	-rm -f $(LIB)
+	make -f Makefile.f10x clean
+	make -f Makefile.l1xx clean
 
 .PHONY: all clean
