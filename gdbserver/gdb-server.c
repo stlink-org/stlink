@@ -119,9 +119,14 @@ int main(int argc, char** argv) {
             
             // if (p == 0) ...
             
+            if (sl != NULL) {
+                fprintf(stderr, "Invalid argumets\n");
+                fprintf(stderr, HelpStr, NULL);
+                return 1;
+            }
+            
             // usb
             if (!strcmp(argv[a], "usb")) {
-                if (sl != NULL) return 1;
                 sl = stlink_open_usb(10);
                 if(sl == NULL) return 1;
                 continue;
@@ -133,7 +138,6 @@ int main(int argc, char** argv) {
                     fprintf(stderr, "libsg not use\n");
                     return 1;
                 }
-                if (sl != NULL) return 1;
                 sl = stlink_quirk_open(argv[a], 0);
                 if(sl == NULL) return 1;
                 continue;
@@ -149,7 +153,6 @@ int main(int argc, char** argv) {
                 // Search ST-LINK (from /dev/sg0 to /dev/sg99)
                 for(int DevNum = 0; DevNum <= 99; DevNum++)
                 {
-                    if(sl != NULL) return 1;
                     if(DevNum < 10) {
                         char DevName[] = "/dev/sgX";
                         DevName[7] = DevNum + '0';
@@ -163,7 +166,7 @@ int main(int argc, char** argv) {
                         if ( !access(DevName, F_OK) )
                             sl = stlink_quirk_open(DevName, 0);
                     }
-
+		    if (sl != NULL) break;
                 }
 
                 if(sl == NULL) return 1;
@@ -180,6 +183,8 @@ int main(int argc, char** argv) {
         if (sl == NULL) sl = stlink_open_usb(10);
         // Default port: 4242
         if (port == 0) port = 4242;
+        
+        // End parsing
         
         
         if (sl == NULL) return 1;
