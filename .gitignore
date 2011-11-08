@@ -3,4 +3,8 @@
 libstlink.a
 test_usb
 test_sg
-gdbserver/st-utils
+gdbserver/st-util
+flash/flash
+example/*/*.bin
+example/*/*.elf
+*.log
