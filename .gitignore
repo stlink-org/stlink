@@ -5,6 +5,6 @@ test_usb
 test_sg
 gdbserver/st-util
 flash/flash
+*.log
 example/*/*.bin
 example/*/*.elf
-*.log
