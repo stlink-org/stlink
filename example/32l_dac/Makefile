@@ -20,7 +20,7 @@ CFLAGS+=-I$(LIBS_STM_PATH)/inc/core_support
 CFLAGS+=-I$(LIBS_STM_PATH)/inc/device_support
 CFLAGS+=-I$(LIBS_STM_PATH)/inc/$(PLATFORM)
 
-LDFLAGS+=-L$(LIBS_STM_PATH)/build -lstm32l_discovery
+LDFLAGS+=-L$(LIBS_STM_PATH)/build -lstm32_stdperiph_l1xx
 
 all: $(BIN_IMAGE)
 
