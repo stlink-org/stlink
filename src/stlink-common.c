@@ -1102,9 +1102,10 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, unsigned 
     size_t off;
     flash_loader_t fl;
 
+    fprintf(stdout, "WriteFlash - addr:%x len:%x\n", addr, len);
+
     stlink_identify_device(sl);
 
-    fprintf(stdout, "WriteFlash - addr:%x len:%x\n", addr, len);
     fprintf(stdout, "CoreID:%X ChipID:%X\n", sl->core_id, sl->chip_id);
 
     /* check addr range is inside the flash */
