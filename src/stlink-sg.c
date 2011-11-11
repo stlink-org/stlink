@@ -707,9 +707,6 @@ void _stlink_sg_force_debug(stlink_t *sl) {
 void _stlink_sg_read_all_regs(stlink_t *sl, reg *regp) {
     struct stlink_libsg *sg = sl->backend_data;
 
-    /* unused */
-    regp = regp;
-
     clear_cdb(sg);
     sg->cdb_cmd_blk[1] = STLINK_DEBUG_READALLREGS;
     sl->q_len = 84;
@@ -722,23 +719,23 @@ void _stlink_sg_read_all_regs(stlink_t *sl, reg *regp) {
     // 0-3 | 4-7 | ... | 60-63 | 64-67 | 68-71   | 72-75      | 76-79 | 80-83
     // r0  | r1  | ... | r15   | xpsr  | main_sp | process_sp | rw    | rw2
     for (int i = 0; i < 16; i++) {
-        sg->reg.r[i] = read_uint32(sl->q_buf, 4 * i);
+        regp->r[i] = read_uint32(sl->q_buf, 4 * i);
         if (sl->verbose > 1)
-            DLOG("r%2d = 0x%08x\n", i, sg->reg.r[i]);
+            DLOG("r%2d = 0x%08x\n", i, regp->r[i]);
     }
-    sg->reg.xpsr = read_uint32(sl->q_buf, 64);
-    sg->reg.main_sp = read_uint32(sl->q_buf, 68);
-    sg->reg.process_sp = read_uint32(sl->q_buf, 72);
-    sg->reg.rw = read_uint32(sl->q_buf, 76);
-    sg->reg.rw2 = read_uint32(sl->q_buf, 80);
+    regp->xpsr = read_uint32(sl->q_buf, 64);
+    regp->main_sp = read_uint32(sl->q_buf, 68);
+    regp->process_sp = read_uint32(sl->q_buf, 72);
+    regp->rw = read_uint32(sl->q_buf, 76);
+    regp->rw2 = read_uint32(sl->q_buf, 80);
     if (sl->verbose < 2)
         return;
 
-    DLOG("xpsr       = 0x%08x\n", sg->reg.xpsr);
-    DLOG("main_sp    = 0x%08x\n", sg->reg.main_sp);
-    DLOG("process_sp = 0x%08x\n", sg->reg.process_sp);
-    DLOG("rw         = 0x%08x\n", sg->reg.rw);
-    DLOG("rw2        = 0x%08x\n", sg->reg.rw2);
+    DLOG("xpsr       = 0x%08x\n", regp->xpsr);
+    DLOG("main_sp    = 0x%08x\n", regp->main_sp);
+    DLOG("process_sp = 0x%08x\n", regp->process_sp);
+    DLOG("rw         = 0x%08x\n", regp->rw);
+    DLOG("rw2        = 0x%08x\n", regp->rw2);
 }
 
 // Read an arm-core register, the index must be in the range 0..20.
