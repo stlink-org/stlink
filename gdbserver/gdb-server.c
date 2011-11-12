@@ -1,5 +1,5 @@
 /* -*- tab-width:8 -*- */
-#define DEBUG 1
+#define DEBUG 0
 /*
  Copyright (C)  2011 Peter Zotov <whitequark@whitequark.org>
  Use of this source code is governed by a BSD-style

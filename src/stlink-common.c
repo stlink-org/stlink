@@ -1102,11 +1102,12 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, unsigned 
     size_t off;
     flash_loader_t fl;
 
-    fprintf(stdout, "WriteFlash - addr:%x len:%x\n", addr, len);
-
     stlink_identify_device(sl);
 
+#if 0 /* todo: use in debugging mode only */
+    fprintf(stdout, "WriteFlash - addr:%x len:%x\n", addr, len);
     fprintf(stdout, "CoreID:%X ChipID:%X\n", sl->core_id, sl->chip_id);
+#endif
 
     /* check addr range is inside the flash */
     if (addr < sl->flash_base) {
@@ -1169,7 +1170,10 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, unsigned 
     	}
     	/* Relock flash */
     	lock_flash(sl);
-		fprintf(stdout, "Final CR:%X\n", read_flash_cr(sl));
+
+#if 0 /* todo: debug mode */
+	fprintf(stdout, "Final CR:%X\n", read_flash_cr(sl));
+#endif
 
 
 

@@ -97,7 +97,7 @@ do {							\
     __asm__ __volatile__ ("nop\n\t":::"memory");	\
 } while (0)
 
-//static void __attribute__((naked)) __attribute__((used)) main(void)
+/* static void __attribute__((naked)) __attribute__((used)) main(void) */
 void main(void)
 {
   setup_leds();
