@@ -692,8 +692,26 @@ stlink_t* stlink_open_usb(const int verbose) {
     stlink_version(sl);
 
     /* per device family initialization */
-    stlink_core_id(sl);
-    if (sl->core_id == STM32L_CORE_ID) {
+    stlink_identify_device(sl);
+
+    if (sl->chip_id == STM32F4_CHIP_ID) {
+
+    	/* flash memory settings */
+        sl->flash_base = STM32_FLASH_BASE;
+        sl->flash_size = STM32F4_FLASH_SIZE;
+        sl->flash_pgsz = STM32F4_FLASH_PGSZ;	//Dummy, pages size is variable in this config
+
+        /* system memory */
+        sl->sys_base = STM32_SYSTEM_BASE;
+        sl->sys_size = STM32_SYSTEM_SIZE;
+
+        /* sram memory settings */
+        sl->sram_base = STM32_SRAM_BASE;
+        sl->sram_size = STM32_SRAM_SIZE;
+
+      }
+
+    else if (sl->core_id == STM32L_CORE_ID) {
 
       /* flash memory settings */
       sl->flash_base = STM32_FLASH_BASE;
@@ -708,7 +726,8 @@ stlink_t* stlink_open_usb(const int verbose) {
       sl->sram_base = STM32_SRAM_BASE;
       sl->sram_size = STM32L_SRAM_SIZE;
 
-    } else if (sl->core_id == STM32VL_CORE_ID) {
+    }
+    else if (sl->core_id == STM32VL_CORE_ID) {
 
       /* flash memory settings */
       sl->flash_base = STM32_FLASH_BASE;
@@ -723,11 +742,10 @@ stlink_t* stlink_open_usb(const int verbose) {
       sl->sram_base = STM32_SRAM_BASE;
       sl->sram_size = STM32_SRAM_SIZE;
 
-    } else {
-
+    }
+    else {
       fprintf(stderr, "unknown coreid: %x\n", sl->core_id);
       goto on_libusb_error;
-
     }
 
     error = 0;

@@ -1,5 +1,5 @@
 /* -*- tab-width:8 -*- */
-
+#define DEBUG 1
 /*
  Copyright (C)  2011 Peter Zotov <whitequark@whitequark.org>
  Use of this source code is governed by a BSD-style
@@ -35,15 +35,6 @@ static const char hex[] = "0123456789abcdef";
 
 static const char* current_memory_map = NULL;
 
-/*
- * Chip IDs are explained in the appropriate programming manual for the
- * DBGMCU_IDCODE register (0xE0042000)
- */
-
-#define CORE_M3_R1 0x1BA00477
-#define CORE_M3_R2 0x4BA00477
-#define CORE_M4_R0 0x2BA01477
-
 struct chip_params {
 	uint32_t chip_id;
 	char* description;
@@ -58,8 +49,9 @@ struct chip_params {
 	  0x100000,   0x20000, 0x20000, 0x1fff0000, 0x7800  }, // table 1, pm0059
 	{ 0x412, "F1 Low-density device", 0x1ffff7e0,
 	  0x8000,   0x400, 0x2800,  0x1ffff000, 0x800  }, // table 1, pm0063
+	  /*No flash size register? page size is variable */
 	{ 0x413, "F4 device", 0x1FFF7A10,
-	  0x100000,   0x20000, 0x30000,  0x1fff0000, 0x7800  }, // table 1, pm0081
+	  0x100000,   0x4000, 0x30000,  0x1fff0000, 0x7800  }, // table 1, pm0081
 	{ 0x414, "F1 High-density device", 0x1ffff7e0,
 	  0x80000,  0x800, 0x10000, 0x1ffff000, 0x800  },  // table 3 pm0063 
           // This ignores the EEPROM! (and uses the page erase size,
@@ -197,21 +189,15 @@ int main(int argc, char** argv) {
 	  stlink_enter_swd_mode(sl);
 	}
 
-	uint32_t chip_id = stlink_chip_id(sl);
-	uint32_t core_id = stlink_core_id(sl);
+	stlink_identify_device(sl);
+	printf("Chip ID is %08x, Core ID is  %08x.\n", sl->chip_id, sl->core_id);
 
-	/* Fix chip_id for F4 */
-	if (((chip_id & 0xFFF) == 0x411) && (core_id == CORE_M4_R0)) {
-	  printf("Fixing wrong chip_id for STM32F4 Rev A errata\n");
-	  chip_id = 0x413;
-	}
-
-	printf("Chip ID is %08x, Core ID is  %08x.\n", chip_id, core_id);
+	sl->verbose=0;
 
 	const struct chip_params* params = NULL;
 
 	for(int i = 0; i < sizeof(devices) / sizeof(devices[0]); i++) {
-		if(devices[i].chip_id == (chip_id & 0xFFF)) {
+		if(devices[i].chip_id == (sl->chip_id & 0xFFF)) {
 			params = &devices[i];
 			break;
 		}
@@ -228,10 +214,15 @@ int main(int argc, char** argv) {
 
 	FLASH_PAGE = params->flash_pagesize;
 
+	//sl->flash_pgsz=0x4000;
+	//sl->flash_size=0x100000;
+
 	uint32_t flash_size;
 
 	stlink_read_mem32(sl, params->flash_size_reg, 4);
 	flash_size = sl->q_buf[0] | (sl->q_buf[1] << 8);
+
+	//flash_size=0x100000;
 
 	printf("Flash size is %d KiB.\n", flash_size);
 	// memory map is in 1k blocks.
@@ -581,6 +572,7 @@ static int flash_go(stlink_t *sl) {
 			printf("flash_do: page %08x\n", page);
 			#endif
 
+			//todo:write flash already does erase so why is this here?
 			stlink_erase_flash_page(sl, page);
 
 			if(stlink_write_flash(sl, page, fb->data + (page - fb->addr),
