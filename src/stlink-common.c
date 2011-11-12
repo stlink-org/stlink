@@ -314,6 +314,7 @@ int stlink_load_device_params(stlink_t *sl) {
     ILOG("Loading device parameters....\n");
     chip_params_t *params = NULL;
     uint32_t chip_id = stlink_chip_id(sl);
+    sl->chip_id = chip_id;
 	for(size_t i = 0; i < sizeof(devices) / sizeof(devices[0]); i++) {
 		if(devices[i].chip_id == (chip_id & 0xFFF)) {
 			params = &devices[i];
@@ -341,6 +342,8 @@ int stlink_load_device_params(stlink_t *sl) {
     sl->sram_size = params->sram_size;
     sl->sys_base = params->bootrom_base;
     sl->sys_size = params->bootrom_size;
+    
+    sl->core_id = stlink_core_id(sl);
     
     ILOG("Device connected is: %s\n", params->description);
     ILOG("SRAM size: %#x bytes (%d KiB), Flash: %#x bytes (%d KiB) in pages of %zd bytes\n",
@@ -742,7 +745,6 @@ int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t page)
 {
   /* page an addr in the page to erase */
 
-  stlink_core_id(sl);
   if (sl->core_id == STM32L_CORE_ID)
   {
 #define STM32L_FLASH_REGS_ADDR ((uint32_t)0x40023c00)
@@ -1020,7 +1022,6 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, unsigned 
         }
     }
 
-    stlink_core_id(sl);
     if (sl->core_id == STM32L_CORE_ID)
     {
       /* use fast word write. todo: half page. */

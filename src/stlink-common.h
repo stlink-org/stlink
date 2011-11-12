@@ -283,6 +283,7 @@ extern "C" {
         // transport layer verboseness: 0 for no debug info, 10 for lots
         int verbose;
         uint32_t core_id;
+        uint32_t chip_id;
         int core_stat;
 
 #define STM32_FLASH_PGSZ 1024
