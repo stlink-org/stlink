@@ -45,39 +45,6 @@ static const char* current_memory_map = NULL;
 #define CORE_M3_R2 0x4BA00477
 #define CORE_M4_R0 0x2BA01477
 
-struct chip_params {
-	uint32_t chip_id;
-	char* description;
-        uint32_t flash_size_reg;
-	uint32_t max_flash_size, flash_pagesize;
-	uint32_t sram_size;
-	uint32_t bootrom_base, bootrom_size;
-} const devices[] = {
-	{ 0x410, "F1 Medium-density device", 0x1ffff7e0,
-	  0x20000,  0x400, 0x5000,  0x1ffff000, 0x800  }, // table 2, pm0063
-	{ 0x411, "F2 device", 0, /* No flash size register found in the docs*/
-	  0x100000,   0x20000, 0x20000, 0x1fff0000, 0x7800  }, // table 1, pm0059
-	{ 0x412, "F1 Low-density device", 0x1ffff7e0,
-	  0x8000,   0x400, 0x2800,  0x1ffff000, 0x800  }, // table 1, pm0063
-	{ 0x413, "F4 device", 0x1FFF7A10,
-	  0x100000,   0x20000, 0x30000,  0x1fff0000, 0x7800  }, // table 1, pm0081
-	{ 0x414, "F1 High-density device", 0x1ffff7e0,
-	  0x80000,  0x800, 0x10000, 0x1ffff000, 0x800  },  // table 3 pm0063 
-          // This ignores the EEPROM! (and uses the page erase size,
-          // not the sector write protection...)
-	{ 0x416, "L1 Med-density device", 0x1FF8004C, // table 1, pm0062
-          0x20000, 0x100, 0x4000, 0x1ff00000, 0x1000 },
-	{ 0x418, "F1 Connectivity line device", 0x1ffff7e0,
-	  0x40000,  0x800, 0x10000, 0x1fffb000, 0x4800 },
-	{ 0x420, "F1 Medium-density value line device", 0x1ffff7e0,
-	  0x20000,  0x400, 0x2000,  0x1ffff000, 0x800  },
-	{ 0x428, "F1 High-density value line device", 0x1ffff7e0,
-	  0x80000,  0x800, 0x8000,  0x1ffff000, 0x800  },
-	{ 0x430, "F1 XL-density device", 0x1ffff7e0,  // pm0068
-	  0x100000, 0x800, 0x18000, 0x1fffe000, 0x1800 },
-	{ 0 }
-};
-
 typedef struct _st_state_t {
     // things from command line, bleh
     int stlink_version;
@@ -89,7 +56,7 @@ typedef struct _st_state_t {
 
 
 int serve(stlink_t *sl, int port);
-char* make_memory_map(const struct chip_params *params, uint32_t flash_size);
+char* make_memory_map(stlink_t *sl);
 
 
 int parse_options(int argc, char** argv, st_state_t *st) {
@@ -201,6 +168,8 @@ int main(int argc, char** argv) {
 		if(sl == NULL) return 1;
 		break;
     }
+    
+    // ALLLL of this should move into "stlink_open_xxx"
 
     if (stlink_current_mode(sl) != STLINK_DEV_DEBUG_MODE) {
         if (stlink_current_mode(sl) == STLINK_DEV_DFU_MODE) {
@@ -220,34 +189,7 @@ int main(int argc, char** argv) {
 
 	printf("Chip ID is %08x, Core ID is  %08x.\n", chip_id, core_id);
 
-	const struct chip_params* params = NULL;
-
-	for(int i = 0; i < sizeof(devices) / sizeof(devices[0]); i++) {
-		if(devices[i].chip_id == (chip_id & 0xFFF)) {
-			params = &devices[i];
-			break;
-		}
-	}
-
-	if(params == NULL) {
-		fprintf(stderr, "Cannot recognize the connected device!\n");
-		return 0;
-	}
-
-	printf("Device connected: %s\n", params->description);
-	printf("Device parameters: SRAM: 0x%x bytes, Flash: up to 0x%x bytes in pages of 0x%x bytes\n",
-		params->sram_size, params->max_flash_size, params->flash_pagesize);
-
-	FLASH_PAGE = params->flash_pagesize;
-
-	uint32_t flash_size;
-
-	stlink_read_mem32(sl, params->flash_size_reg, 4);
-	flash_size = sl->q_buf[0] | (sl->q_buf[1] << 8);
-
-	printf("Flash size is %d KiB.\n", flash_size);
-	// memory map is in 1k blocks.
-	current_memory_map = make_memory_map(params, flash_size * 0x400);
+	current_memory_map = make_memory_map(sl);
 
 	while(serve(sl, state.listen_port) == 0);
 
@@ -275,16 +217,16 @@ static const char* const memory_map_template =
   "  <memory type=\"rom\" start=\"0x1ffff800\" length=\"0x8\"/>"        // option byte area
   "</memory-map>";
 
-char* make_memory_map(const struct chip_params *params, uint32_t flash_size) {
+char* make_memory_map(stlink_t *sl) {
 	/* This will be freed in serve() */
 	char* map = malloc(4096);
 	map[0] = '\0';
 
 	snprintf(map, 4096, memory_map_template,
-			flash_size,
-			params->sram_size,
-			flash_size, params->flash_pagesize,
-			params->bootrom_base, params->bootrom_size);
+			sl->flash_size,
+			sl->sram_size,
+			sl->flash_size, sl->flash_pgsz,
+			sl->sys_base, sl->sys_size);
 
 	return map;
 }

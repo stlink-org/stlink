@@ -305,6 +305,50 @@ void stlink_cpu_id(stlink_t *sl, cortex_m3_cpuid_t *cpuid) {
     return;
 }
 
+/**
+ * reads and decodes the flash parameters, as dynamically as possible
+ * @param sl
+ * @return 0 for success, or -1 for unsupported core type.
+ */
+int stlink_load_device_params(stlink_t *sl) {
+    ILOG("Loading device parameters....\n");
+    chip_params_t *params = NULL;
+    uint32_t chip_id = stlink_chip_id(sl);
+	for(size_t i = 0; i < sizeof(devices) / sizeof(devices[0]); i++) {
+		if(devices[i].chip_id == (chip_id & 0xFFF)) {
+			params = &devices[i];
+			break;
+		}
+	}
+    if (params == NULL) {
+        WLOG("unknown chip id! %#x\n", chip_id);
+        return -1;
+    }
+    
+    // These are fixed...
+    sl->flash_base = STM32_FLASH_BASE;
+    sl->sram_base = STM32_SRAM_BASE;
+    
+    // read flash size from hardware, if possible...
+    if ((chip_id & 0xFFF) == STM32_CHIPID_F2) {
+        sl->flash_size = 0; // FIXME - need to work this out some other way, just set to max possible?
+    } else {
+        stlink_read_mem32(sl, params->flash_size_reg, 4);
+        uint32_t flash_size = sl->q_buf[0] | (sl->q_buf[1] << 8);
+        sl->flash_size = flash_size * 1024;
+    }
+    sl->flash_pgsz = params->flash_pagesize;
+    sl->sram_size = params->sram_size;
+    sl->sys_base = params->bootrom_base;
+    sl->sys_size = params->bootrom_size;
+    
+    ILOG("Device connected is: %s\n", params->description);
+    ILOG("SRAM size: %#x bytes (%d KiB), Flash: %#x bytes (%d KiB) in pages of %zd bytes\n",
+        sl->sram_size, sl->sram_size / 1024, sl->flash_size, sl->flash_size / 1024, 
+        sl->flash_pgsz);
+    return 0;
+}
+
 void stlink_reset(stlink_t *sl) {
     DLOG("*** stlink_reset ***\n");
     sl->backend->reset(sl);

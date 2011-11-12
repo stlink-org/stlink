@@ -673,45 +673,7 @@ stlink_t* stlink_open_usb(const int verbose) {
     }
 
     stlink_version(sl);
-
-    /* per device family initialization */
-    stlink_core_id(sl);
-    if (sl->core_id == STM32L_CORE_ID) {
-
-      /* flash memory settings */
-      sl->flash_base = STM32_FLASH_BASE;
-      sl->flash_size = STM32_FLASH_SIZE;
-      sl->flash_pgsz = STM32L_FLASH_PGSZ;
-
-      /* system memory */
-      sl->sys_base = STM32_SYSTEM_BASE;
-      sl->sys_size = STM32_SYSTEM_SIZE;
-
-      /* sram memory settings */
-      sl->sram_base = STM32_SRAM_BASE;
-      sl->sram_size = STM32L_SRAM_SIZE;
-
-    } else if (sl->core_id == STM32VL_CORE_ID) {
-
-      /* flash memory settings */
-      sl->flash_base = STM32_FLASH_BASE;
-      sl->flash_size = STM32_FLASH_SIZE;
-      sl->flash_pgsz = STM32_FLASH_PGSZ;
-
-      /* system memory */
-      sl->sys_base = STM32_SYSTEM_BASE;
-      sl->sys_size = STM32_SYSTEM_SIZE;
-
-      /* sram memory settings */
-      sl->sram_base = STM32_SRAM_BASE;
-      sl->sram_size = STM32_SRAM_SIZE;
-
-    } else {
-
-      fprintf(stderr, "unknown coreid: %x\n", sl->core_id);
-      goto on_libusb_error;
-
-    }
+    stlink_load_device_params(sl);
 
     error = 0;
 

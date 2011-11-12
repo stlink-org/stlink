@@ -80,10 +80,134 @@ extern "C" {
 #define STM32VL_CORE_ID 0x1ba01477
 #define STM32L_CORE_ID 0x2ba01477
 #define STM32F4_CORE_ID 0x2ba01477
+    
+// stm32 chipids, only lower 12 bits..
+#define STM32_CHIPID_F1_MEDIUM 0x410
+#define STM32_CHIPID_F2 0x411
+#define STM32_CHIPID_F1_LOW 0x412
+#define STM32_CHIPID_F4 0x413
+#define STM32_CHIPID_F1_HIGH 0x414
+#define STM32_CHIPID_L1_MEDIUM 0x416
+#define STM32_CHIPID_F1_CONN 0x418
+#define STM32_CHIPID_F1_VL_MEDIUM 0x420
+#define STM32_CHIPID_F1_VL_HIGH 0x428
+#define STM32_CHIPID_F1_XL 0x430
+
+// Constant STM32 memory map figures
+#define STM32_FLASH_BASE 0x08000000
+#define STM32_SRAM_BASE 0x20000000
 
 /* Enough space to hold both a V2 command or a V1 command packaged as generic scsi*/
 #define C_BUF_LEN 32
 
+    typedef struct chip_params_ {
+	uint32_t chip_id;
+	char* description;
+        uint32_t flash_size_reg;
+	uint32_t flash_pagesize;
+	uint32_t sram_size;
+	uint32_t bootrom_base, bootrom_size;
+    } chip_params_t;
+    
+    
+    // These maps are from a combination of the Programming Manuals, and 
+    // also the Reference manuals.  (flash size reg is normally in ref man)
+ static const chip_params_t devices[] = {
+        { // table 2, PM0063
+            .chip_id = 0x410,
+            .description = "F1 Medium-density device",
+            .flash_size_reg = 0x1ffff7e0,
+                    .flash_pagesize = 0x400,
+                    .sram_size = 0x5000,
+                    .bootrom_base = 0x1ffff000,
+                    .bootrom_size = 0x800
+        },
+        {  // table 1, PM0059
+            .chip_id = 0x411,
+                    .description = "F2 device",
+                    .flash_size_reg = 0, /* no flash size reg found in the docs! */
+                    .flash_pagesize = 0x20000,
+                    .sram_size = 0x20000,
+                    .bootrom_base = 0x1fff0000,
+                    .bootrom_size = 0x7800
+        },
+        { // PM0063
+            .chip_id = 0x412,
+                    .description = "F1 Low-density device",
+                    .flash_size_reg = 0x1ffff7e0,
+                    .flash_pagesize = 0x400,
+                    .sram_size = 0x2800,
+                    .bootrom_base = 0x1ffff000,
+                    .bootrom_size = 0x800
+        },
+        {
+            .chip_id = 0x413,
+                    .description = "F4 device",
+                    .flash_size_reg = 0x1FFF7A10,
+                    .flash_pagesize = 0x20000,
+                    .sram_size = 0x30000,
+                    .bootrom_base = 0x1fff0000,
+                    .bootrom_size = 0x7800
+        },
+        {
+            .chip_id = 0x414,
+                    .description = "F1 High-density device",
+                    .flash_size_reg = 0x1ffff7e0,
+                    .flash_pagesize = 0x800,
+                    .sram_size = 0x10000,
+                    .bootrom_base = 0x1ffff000,
+                    .bootrom_size = 0x800
+        },
+        {
+          // This ignores the EEPROM! (and uses the page erase size,
+          // not the sector write protection...)
+            .chip_id = 0x416,
+                    .description = "L1 Med-density device",
+                    .flash_size_reg = 0x1ff8004c,
+                    .flash_pagesize = 0x100,
+                    .sram_size = 0x4000,
+                    .bootrom_base = 0x1ff00000,
+                    .bootrom_size = 0x1000
+        },
+        {
+            .chip_id = 0x418,
+                    .description = "F1 Connectivity line device",
+                    .flash_size_reg = 0x1ffff7e0,
+                    .flash_pagesize = 0x800,
+                    .sram_size = 0x10000,
+                    .bootrom_base = 0x1fffb000,
+                    .bootrom_size = 0x4800
+        },
+        {
+            .chip_id = 0x420,
+                    .description = "F1 Medium-density Value Line device",
+                    .flash_size_reg = 0x1ffff7e0,
+                    .flash_pagesize = 0x400,
+                    .sram_size = 0x2000,
+                    .bootrom_base = 0x1ffff000,
+                    .bootrom_size = 0x800
+        },
+        {
+            .chip_id = 0x428,
+                    .description = "F1 High-density value line device",
+                    .flash_size_reg = 0x1ffff7e0,
+                    .flash_pagesize = 0x800,
+                    .sram_size = 0x8000,
+                    .bootrom_base = 0x1ffff000,
+                    .bootrom_size = 0x800
+        },
+        {
+            .chip_id = 0x430,
+                    .description = "F1 XL-density device",
+                    .flash_size_reg = 0x1ffff7e0,
+                    .flash_pagesize = 0x800,
+                    .sram_size = 0x18000,
+                    .bootrom_base = 0x1fffe000,
+                    .bootrom_size = 0x1800
+        }
+ };
+
+    
     typedef struct {
         uint32_t r[16];
         uint32_t xpsr;
@@ -161,29 +285,21 @@ extern "C" {
         uint32_t core_id;
         int core_stat;
 
-
-
-        /* medium density stm32 flash settings */
-#define STM32_FLASH_BASE 0x08000000
-#define STM32_FLASH_SIZE (128 * 1024)
 #define STM32_FLASH_PGSZ 1024
 #define STM32L_FLASH_PGSZ 256
         stm32_addr_t flash_base;
         size_t flash_size;
         size_t flash_pgsz;
 
-        /* in flash system memory */
-#define STM32_SYSTEM_BASE 0x1ffff000
-#define STM32_SYSTEM_SIZE (2 * 1024)
-        stm32_addr_t sys_base;
-        size_t sys_size;
-
         /* sram settings */
-#define STM32_SRAM_BASE 0x20000000
 #define STM32_SRAM_SIZE (8 * 1024)
 #define STM32L_SRAM_SIZE (16 * 1024)
         stm32_addr_t sram_base;
         size_t sram_size;
+        
+        // bootloader
+        stm32_addr_t sys_base;
+        size_t sys_size;
 
         struct stlink_version_ version;
     };
@@ -236,6 +352,7 @@ extern "C" {
     int write_loader_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* size);
     int stlink_fread(stlink_t* sl, const char* path, stm32_addr_t addr, size_t size);
     int run_flash_loader(stlink_t *sl, flash_loader_t* fl, stm32_addr_t target, const uint8_t* buf, size_t size);
+    int stlink_load_device_params(stlink_t *sl);
 
 
 

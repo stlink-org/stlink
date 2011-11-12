@@ -1100,19 +1100,6 @@ static stlink_t* stlink_open(const int verbose) {
     sl->core_stat = STLINK_CORE_STAT_UNKNOWN;
     slsg->q_addr = 0;
 
-    /* flash memory settings */
-    sl->flash_base = STM32_FLASH_BASE;
-    sl->flash_size = STM32_FLASH_SIZE;
-    sl->flash_pgsz = STM32_FLASH_PGSZ;
-
-    /* system memory */
-    sl->sys_base = STM32_SYSTEM_BASE;
-    sl->sys_size = STM32_SYSTEM_SIZE;
-
-    /* sram memory settings */
-    sl->sram_base = STM32_SRAM_BASE;
-    sl->sram_size = STM32_SRAM_SIZE;
-
     return sl;
 }
 
@@ -1127,7 +1114,7 @@ stlink_t* stlink_v1_open(const int verbose) {
     }
 
     stlink_version(sl);
-
+    stlink_load_device_params(sl);
     if ((sl->version.st_vid != USB_ST_VID) || (sl->version.stlink_pid != USB_STLINK_PID)) {
         ugly_log(UERROR, LOG_TAG, 
             "WTF? successfully opened, but unable to read version details. BROKEN!\n");
@@ -1160,5 +1147,6 @@ stlink_t* stlink_v1_open(const int verbose) {
     }
     // re-query device info
     stlink_version(sl);
+    stlink_load_device_params(sl);    
     return sl;
 }
