@@ -65,6 +65,9 @@ static inline void switch_leds_off(void)
 # define LED_RED (1 << 14) /* port B, pin 14 */
 # define LED_BLUE (1 << 15) /* port B, pin 15 */
 
+void _tmain(void) {
+	main();
+}
 static inline void setup_leds(void)
 {
   *(volatile uint32_t*)GPIOD_MODER |= (1 << (12 * 2)) | (1 << (13 * 2)) |
@@ -74,7 +77,7 @@ static inline void setup_leds(void)
 
 static inline void switch_leds_on(void)
 {
-  *(volatile uint32_t*)GPIOD_ODR = LED_GREEN | LED_ORANGE | LED_RED | LED_BLUE;
+  *(volatile uint32_t*)GPIOD_ODR = LED_GREEN | LED_RED ;
 }
 
 static inline void switch_leds_off(void)
@@ -94,7 +97,8 @@ do {							\
     __asm__ __volatile__ ("nop\n\t":::"memory");	\
 } while (0)
 
-static void __attribute__((naked)) __attribute__((used)) main(void)
+//static void __attribute__((naked)) __attribute__((used)) main(void)
+void main(void)
 {
   setup_leds();
 

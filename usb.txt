@@ -1,0 +1,127 @@
+-- version
+mode before doing anything: 2
+-- enter_swd_mode
+-- mode after entering swd mode: 2
+data_len = 4 0x4
+ 11 64 00 20
+
+-- chip id: 0x6411
+data_len = 4 0x4
+ 77 14 a0 2b
+
+-- core_id: 0x2ba01477
+data_len = 4 0x4
+ 41 c2 0f 41
+
+cpuid:impl_id = 0x41, variant = 0
+cpuid:part = 0xc24, rev = 0x1
+-- read_sram
+data_len = 4 0x4
+ 00 40 00 20
+
+data_len = 4 0x4
+ 55 0c 00 08
+
+data_len = 4 0x4
+ 99 0c 00 08
+
+data_len = 4 0x4
+ 99 0c 00 08
+
+FP_CTRL
+data_len = 4 0x4
+ 60 02 00 00
+
+data_len = 4 0x4
+ 67 45 23 01
+
+data_len = 4 0x4
+ ef cd ab 89
+
+data_len = 4 0x4
+ 67 45 23 62
+
+data_len = 4 0x4
+ ef cd ab 75
+
+-- status
+-- reset
+data_len = 2 0x2
+ 80 00
+
+data_len = 2 0x2
+ 80 00
+
+data_len = 2 0x2
+ 80 00
+
+data_len = 4 0x4
+ 00 00 00 00
+
+data_len = 4 0x4
+ 00 00 00 00
+
+data_len = 4 0x4
+ 00 00 00 00
+
+data_len = 4 0x4
+ 67 45 23 01
+
+data_len = 4 0x4
+ ef cd ab 89
+
+data_len = 4 0x4
+ 00 00 00 00
+
+data_len = 4 0x4
+ 00 00 00 00
+
+data_len = 4 0x4
+ 00 00 00 00
+
+data_len = 4 0x4
+ 00 00 00 00
+
+data_len = 4 0x4
+ 00 00 00 00
+
+data_len = 4 0x4
+ 00 00 00 00
+
+data_len = 4 0x4
+ 00 00 00 00
+
+data_len = 4 0x4
+ 00 00 00 00
+
+data_len = 4 0x4
+ 00 40 00 20
+
+data_len = 4 0x4
+ ff ff ff ff
+
+data_len = 4 0x4
+ 78 56 34 12
+
+data_len = 4 0x4
+ 00 00 00 01
+
+data_len = 4 0x4
+ 00 40 00 20
+
+data_len = 4 0x4
+ 00 00 00 00
+
+data_len = 4 0x4
+ 00 00 00 00
+
+data_len = 4 0x4
+ 00 00 00 00
+
+data_len = 84 0x54
+ 00 00 00 00 00 00 00 00 00 00 00 00 67 45 23 01 ef cd ab 89 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 40 00 20 ff ff ff ff 78 56 34 12 00 00 00 01 00 40 00 20 00 00 00 00 00 00 00 00 00 00 00 00
+
+-- status
+-- step
+-- run
+-- exit_debug_mode
