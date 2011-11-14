@@ -243,7 +243,8 @@ extern "C" {
 
     // privates, publics, the rest....
     // TODO sort what is private, and what is not
-    int stlink_erase_flash_page(stlink_t* sl, stm32_addr_t page);
+    int stlink_erase_flash_page(stlink_t* sl, stm32_addr_t flashaddr);
+    uint32_t stlink_calculate_pagesize(stlink_t *sl, uint32_t flashaddr);
     uint16_t read_uint16(const unsigned char *c, const int pt);
     void stlink_core_stat(stlink_t *sl);
     void stlink_print_data(stlink_t *sl);

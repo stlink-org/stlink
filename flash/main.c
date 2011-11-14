@@ -21,6 +21,7 @@ static void usage(void)
 {
     puts("stlinkv1 command line: ./flash {read|write} /dev/sgX path addr <size>");
     puts("stlinkv2 command line: ./flash {read|write} path addr <size>");
+    puts("                       use hex format for addr and <size>");
 }
 
 static int get_opts(struct opts* o, int ac, char** av)
@@ -46,7 +47,7 @@ static int get_opts(struct opts* o, int ac, char** av)
       i = 1;
     }
 
-    o->size = strtoul(av[i + 3], NULL, 10);
+    o->size = strtoul(av[i + 3], NULL, 16);
   }
   else if (strcmp(av[0], "write") == 0)
   {

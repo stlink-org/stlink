@@ -21,9 +21,9 @@
 #include "gdb-remote.h"
 
 #define FLASH_BASE 0x08000000
+
+//Allways update the FLASH_PAGE before each use, by calling stlink_calculate_pagesize
 #define FLASH_PAGE (sl->flash_pgsz)
-#define FLASH_PAGE_MASK (~((1 << 10) - 1))
-#define FLASH_SIZE (FLASH_PAGE * 128)
 
 volatile int do_exit = 0;
 void ctrl_c(int sig)
@@ -44,19 +44,19 @@ struct chip_params {
 	uint32_t bootrom_base, bootrom_size;
 } const devices[] = {
 	{ 0x410, "F1 Medium-density device", 0x1ffff7e0,
-	  0x20000,  0x400, 0x5000,  0x1ffff000, 0x800  }, // table 2, pm0063
+	  0x20000,  0x400, 0x5000,  0x1ffff000, 0x800  }, 		// table 2, pm0063
 	{ 0x411, "F2 device", 0, /* No flash size register found in the docs*/
-	  0x100000,   0x20000, 0x20000, 0x1fff0000, 0x7800  }, // table 1, pm0059
+	  0x100000,   0x20000, 0x20000, 0x1fff0000, 0x7800  }, 	// table 1, pm0059
 	{ 0x412, "F1 Low-density device", 0x1ffff7e0,
-	  0x8000,   0x400, 0x2800,  0x1ffff000, 0x800  }, // table 1, pm0063
-	  /*No flash size register? page size is variable */
-	{ 0x413, "F4 device", 0x1FFF7A10,
-	  0x100000,   0x4000, 0x30000,  0x1fff0000, 0x7800  }, // table 1, pm0081
+	  0x8000,   0x400, 0x2800,  0x1ffff000, 0x800  }, 		// table 1, pm0063
+	  /*Page size is variable */
+	{ 0x413, "F4 device", 0x1FFF7A10,						//RM0090 error same as unique ID
+	  0x100000,   0x4000, 0x30000,  0x1fff0000, 0x7800  }, 	// table 1, pm0081
 	{ 0x414, "F1 High-density device", 0x1ffff7e0,
-	  0x80000,  0x800, 0x10000, 0x1ffff000, 0x800  },  // table 3 pm0063 
+	  0x80000,  0x800, 0x10000, 0x1ffff000, 0x800  },		// table 3 pm0063
           // This ignores the EEPROM! (and uses the page erase size,
           // not the sector write protection...)
-	{ 0x416, "L1 Med-density device", 0x1FF8004C, // table 1, pm0062
+	{ 0x416, "L1 Med-density device", 0x1FF8004C, 			// table 1, pm0062
           0x20000, 0x100, 0x4000, 0x1ff00000, 0x1000 },
 	{ 0x418, "F1 Connectivity line device", 0x1ffff7e0,
 	  0x40000,  0x800, 0x10000, 0x1fffb000, 0x4800 },
@@ -64,18 +64,19 @@ struct chip_params {
 	  0x20000,  0x400, 0x2000,  0x1ffff000, 0x800  },
 	{ 0x428, "F1 High-density value line device", 0x1ffff7e0,
 	  0x80000,  0x800, 0x8000,  0x1ffff000, 0x800  },
-	{ 0x430, "F1 XL-density device", 0x1ffff7e0,  // pm0068
+	{ 0x430, "F1 XL-density device", 0x1ffff7e0,  			// pm0068
 	  0x100000, 0x800, 0x18000, 0x1fffe000, 0x1800 },
 	{ 0 }
 };
 
 int serve(stlink_t *sl, int port);
-char* make_memory_map(const struct chip_params *params, uint32_t flash_size);
+char* make_memory_map(stlink_t *sl, const struct chip_params *params, uint32_t flash_size);
 
 int main(int argc, char** argv) {
 
 	stlink_t *sl = NULL;
-        int port = 0;
+	int port = 0;
+	uint32_t flash_size;
 
 	const char * HelpStr =  "\nUsage:\n"
                                  "\tst-util [Arguments]\n"
@@ -209,24 +210,29 @@ int main(int argc, char** argv) {
 	}
 
 	printf("Device connected: %s\n", params->description);
-	printf("Device parameters: SRAM: 0x%x bytes, Flash: up to 0x%x bytes in pages of 0x%x bytes\n",
-		params->sram_size, params->max_flash_size, params->flash_pagesize);
 
+	if(sl->chip_id==STM32F4_CHIP_ID) {
+		flash_size=0x100000;			//todo: RM0090 error; size register same address as unique ID
+		printf("Device parameters: SRAM: 0x%x bytes, Flash: up to 0x%x bytes with variable page size\n",
+			params->sram_size, flash_size);
+	}
+	else {
+		printf("Device parameters: SRAM: 0x%x bytes, Flash: up to 0x%x bytes in pages of 0x%x bytes\n",
+			params->sram_size, params->max_flash_size, params->flash_pagesize);
+		stlink_read_mem32(sl, params->flash_size_reg, 4);
+		flash_size = sl->q_buf[0] | (sl->q_buf[1] << 8);
+		//flash_size_reg is in 1k blocks.
+		flash_size *= 0x400;
+	}
+
+	/* Init PAGE_SIZE for fixed page size devices.
+	 * stlink_calculate_pagesize will then return this value for them.
+	 * variable pagesize devices must allways update FLASH_PAGE before use! */
 	FLASH_PAGE = params->flash_pagesize;
+	sl->flash_size=flash_size;
 
-	//sl->flash_pgsz=0x4000;
-	//sl->flash_size=0x100000;
-
-	uint32_t flash_size;
-
-	stlink_read_mem32(sl, params->flash_size_reg, 4);
-	flash_size = sl->q_buf[0] | (sl->q_buf[1] << 8);
-
-	//flash_size=0x100000;
-
-	printf("Flash size is %d KiB.\n", flash_size);
-	// memory map is in 1k blocks.
-	current_memory_map = make_memory_map(params, flash_size * 0x400);
+	printf("Flash size is %d\n", flash_size);
+	current_memory_map = make_memory_map(sl, params, flash_size);
 
 	while(serve(sl, port) == 0);
 
@@ -237,6 +243,28 @@ int main(int argc, char** argv) {
 
 	return 0;
 }
+
+static const char* const memory_map_template_F4 =
+  "<?xml version=\"1.0\"?>"
+  "<!DOCTYPE memory-map PUBLIC \"+//IDN gnu.org//DTD GDB Memory Map V1.0//EN\""
+  "     \"http://sourceware.org/gdb/gdb-memory-map.dtd\">"
+  "<memory-map>"
+  "  <memory type=\"rom\" start=\"0x00000000\" length=\"0x100000\"/>"       // code = sram, bootrom or flash; flash is bigger
+  "  <memory type=\"ram\" start=\"0x20000000\" length=\"0x30000\"/>"        // sram
+  "  <memory type=\"flash\" start=\"0x08000000\" length=\"0x10000\">"		//Sectors 0..3
+  "    <property name=\"blocksize\">0x4000</property>"						//16kB
+  "  </memory>"
+  "  <memory type=\"flash\" start=\"0x08010000\" length=\"0x10000\">"		//Sector 4
+  "    <property name=\"blocksize\">0x10000</property>"						//64kB
+  "  </memory>"
+  "  <memory type=\"flash\" start=\"0x08020000\" length=\"0x70000\">"		//Sectors 5..11
+  "    <property name=\"blocksize\">0x20000</property>"						//128kB
+  "  </memory>"
+  "  <memory type=\"ram\" start=\"0x40000000\" length=\"0x1fffffff\"/>" 	// peripheral regs
+  "  <memory type=\"ram\" start=\"0xe0000000\" length=\"0x1fffffff\"/>" 	// cortex regs
+  "  <memory type=\"rom\" start=\"0x1fff0000\" length=\"0x7800\"/>"         // bootrom
+  "  <memory type=\"rom\" start=\"0x1fffc000\" length=\"0x10\"/>"        	// option byte area
+  "</memory-map>";
 
 static const char* const memory_map_template =
   "<?xml version=\"1.0\"?>"
@@ -254,17 +282,22 @@ static const char* const memory_map_template =
   "  <memory type=\"rom\" start=\"0x1ffff800\" length=\"0x8\"/>"        // option byte area
   "</memory-map>";
 
-char* make_memory_map(const struct chip_params *params, uint32_t flash_size) {
+char* make_memory_map(stlink_t *sl, const struct chip_params *params, uint32_t flash_size) {
 	/* This will be freed in serve() */
 	char* map = malloc(4096);
 	map[0] = '\0';
 
-	snprintf(map, 4096, memory_map_template,
-			flash_size,
-			params->sram_size,
-			flash_size, params->flash_pagesize,
-			params->bootrom_base, params->bootrom_size);
+	if(sl->chip_id==STM32F4_CHIP_ID) {
+    	strcpy(map, memory_map_template_F4);
+    }
 
+    else {
+    	snprintf(map, 4096, memory_map_template,
+    			flash_size,
+    			params->sram_size,
+    			flash_size, params->flash_pagesize,
+    			params->bootrom_base, params->bootrom_size);
+    }
 	return map;
 }
 
@@ -491,13 +524,14 @@ struct flash_block {
 
 static struct flash_block* flash_root;
 
-static int flash_add_block(stm32_addr_t addr, unsigned length, 
-			   stlink_t *sl) {
-	if(addr < FLASH_BASE || addr + length > FLASH_BASE + FLASH_SIZE) {
+static int flash_add_block(stm32_addr_t addr, unsigned length, stlink_t *sl) {
+
+	if(addr < FLASH_BASE || addr + length > FLASH_BASE + sl->flash_size) {
 		fprintf(stderr, "flash_add_block: incorrect bounds\n");
 		return -1;
 	}
 
+	stlink_calculate_pagesize(sl, addr);
 	if(addr % FLASH_PAGE != 0 || length % FLASH_PAGE != 0) {
 		fprintf(stderr, "flash_add_block: unaligned block\n");
 		return -1;
@@ -568,18 +602,18 @@ static int flash_go(stlink_t *sl) {
 
 		unsigned length = fb->length;
 		for(stm32_addr_t page = fb->addr; page < fb->addr + fb->length; page += FLASH_PAGE) {
+
+			//Update FLASH_PAGE
+			stlink_calculate_pagesize(sl, page);
+
 			#ifdef DEBUG
 			printf("flash_do: page %08x\n", page);
 			#endif
 
-			//todo:write flash already does erase so why is this here?
-			stlink_erase_flash_page(sl, page);
-
 			if(stlink_write_flash(sl, page, fb->data + (page - fb->addr),
 					length > FLASH_PAGE ? FLASH_PAGE : length) < 0)
 				goto error;
-		}
-
+			}
 	}
 
 	stlink_reset(sl);
