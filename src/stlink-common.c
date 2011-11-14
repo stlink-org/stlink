@@ -24,7 +24,7 @@
 /* todo: stm32l15xxx flash memory, pm0062 manual */
 
 /* stm32f FPEC flash controller interface, pm0063 manual */
-
+// TODO - all of this needs to be abstracted out....
 #define FLASH_REGS_ADDR 0x40022000
 #define FLASH_REGS_SIZE 0x28
 
@@ -412,7 +412,7 @@ void stlink_version(stlink_t *sl) {
 }
 
 void stlink_write_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
-    DLOG("*** stlink_write_mem32 ***\n");
+    DLOG("*** stlink_write_mem32 %u bytes to %#x\n", len, addr);
     if (len % 4 != 0) {
         fprintf(stderr, "Error: Data length doesn't have a 32 bit alignment: +%d byte.\n", len % 4);
         return;
@@ -744,7 +744,7 @@ int write_buffer_to_sram(stlink_t *sl, flash_loader_t* fl, const uint8_t* buf, s
 int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t page)
 {
   /* page an addr in the page to erase */
-
+    ILOG("Erasing flash page at addr: %#x\n", page);
   if (sl->core_id == STM32L_CORE_ID)
   {
 #define STM32L_FLASH_REGS_ADDR ((uint32_t)0x40023c00)
@@ -853,7 +853,7 @@ int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t page)
     lock_flash(sl);
   }
   else {
-    fprintf(stderr, "unknown coreid: %x\n", sl->core_id);
+    WLOG("unknown coreid: %x\n", sl->core_id);
     return -1;
   }
 
@@ -891,13 +891,13 @@ int init_flash_loader(stlink_t *sl, flash_loader_t* fl) {
 
     /* allocate the loader in sram */
     if (write_loader_to_sram(sl, &fl->loader_addr, &size) == -1) {
-        fprintf(stderr, "write_loader_to_sram() == -1\n");
+        WLOG("Failed to write flash loader to sram!\n");
         return -1;
     }
 
     /* allocate a one page buffer in sram right after loader */
     fl->buf_addr = fl->loader_addr + size;
-
+    ILOG("Successfully loaded flash loader in sram\n");
     return 0;
 }
 
@@ -960,7 +960,7 @@ int write_loader_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* size) {
     }
     else
     {
-      fprintf(stderr, "unknown coreid: %x\n", sl->core_id);
+      WLOG("unknown coreid, not sure what flash loader to use, aborting!: %x\n", sl->core_id);
       return -1;
     }
 
@@ -994,33 +994,38 @@ int stlink_fcheck_flash(stlink_t *sl, const char* path, stm32_addr_t addr) {
 int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, unsigned len) {
     size_t off;
     flash_loader_t fl;
-
+    ILOG("Attempting to write %d (%#x) bytes to stm32 address: %u (%#x)\n", 
+        len, len, addr, addr);
     /* check addr range is inside the flash */
     if (addr < sl->flash_base) {
-        fprintf(stderr, "addr too low\n");
+        WLOG("addr too low\n");
         return -1;
     } else if ((addr + len) < addr) {
-        fprintf(stderr, "addr overruns\n");
+        WLOG("addr overruns\n");
         return -1;
     } else if ((addr + len) > (sl->flash_base + sl->flash_size)) {
-        fprintf(stderr, "addr too high\n");
+        WLOG("addr too high\n");
         return -1;
     } else if ((addr & 1) || (len & 1)) {
-        fprintf(stderr, "unaligned addr or size\n");
+        WLOG("unaligned addr or size\n");
         return -1;
     } else if (addr & (sl->flash_pgsz - 1)) {
-        fprintf(stderr, "addr not a multiple of pagesize, not supported\n");
+        WLOG("addr not a multiple of pagesize, not supported\n");
         return -1;
     }
 
     /* erase each page */
+    int page_count = 0;
     for (off = 0; off < len; off += sl->flash_pgsz) {
         /* addr must be an addr inside the page */
         if (stlink_erase_flash_page(sl, addr + off) == -1) {
-            fprintf(stderr, "erase_flash_page(0x%zx) == -1\n", addr + off);
-	    return -1;
+            WLOG("Failed to erase_flash_page(%#zx) == -1\n", addr + off);
+            return -1;
         }
+        page_count++;
     }
+    ILOG("Finished erasing %d pages of %d (%#x) bytes\n", 
+        page_count, sl->flash_pgsz, sl->flash_pgsz);
 
     if (sl->core_id == STM32L_CORE_ID)
     {
@@ -1139,39 +1144,41 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, unsigned 
       val = read_uint32(sl->q_buf, 0) | (1 << 0) | (1 << 1) | (1 << 2);
       write_uint32(sl->q_buf, val);
       stlink_write_mem32(sl, STM32L_FLASH_PECR, sizeof(uint32_t));
-    }
-    else if (sl->core_id == STM32VL_CORE_ID)
-    {
-      /* flash loader initialization */
-      if (init_flash_loader(sl, &fl) == -1) {
-        fprintf(stderr, "init_flash_loader() == -1\n");
-        return -1;
-      }
-
-      /* write each page. above WRITE_BLOCK_SIZE fails? */
-#define WRITE_BLOCK_SIZE 0x40
-      for (off = 0; off < len; off += WRITE_BLOCK_SIZE)
-      {
-        /* adjust last write size */
-        size_t size = WRITE_BLOCK_SIZE;
-        if ((off + WRITE_BLOCK_SIZE) > len) size = len - off;
-
-	/* unlock and set programming mode */
-	unlock_flash_if(sl);
-	set_flash_cr_pg(sl);
-
-        if (run_flash_loader(sl, &fl, addr + off, base + off, size) == -1) {
-	  fprintf(stderr, "run_flash_loader(0x%zx) == -1\n", addr + off);
-	  return -1;
+    } else if (sl->core_id == STM32VL_CORE_ID) {
+        ILOG("Starting Flash write for VL core id\n");
+        /* flash loader initialization */
+        if (init_flash_loader(sl, &fl) == -1) {
+            WLOG("init_flash_loader() == -1\n");
+            return -1;
         }
 
-	lock_flash(sl);
-      }
+        /* write each page. above WRITE_BLOCK_SIZE fails? */
+#define WRITE_BLOCK_SIZE 0x40
+        int write_block_count = 0;
+        for (off = 0; off < len; off += WRITE_BLOCK_SIZE) {
+            ILOG("Writing flash block %d of size %d (%#x)\n", write_block_count,
+                WRITE_BLOCK_SIZE, WRITE_BLOCK_SIZE);
+            /* adjust last write size */
+            size_t size = WRITE_BLOCK_SIZE;
+            if ((off + WRITE_BLOCK_SIZE) > len) size = len - off;
+
+            /* unlock and set programming mode */
+            unlock_flash_if(sl);
+            set_flash_cr_pg(sl);
+            //DLOG("Finished setting flash cr pg, running loader!\n");
+            if (run_flash_loader(sl, &fl, addr + off, base + off, size) == -1) {
+                WLOG("run_flash_loader(%#zx) failed! == -1\n", addr + off);
+                return -1;
+            }
+            lock_flash(sl);
+            DLOG("Finished writing block %d\n", write_block_count++);
+        }
     } else {
-      fprintf(stderr, "unknown coreid: %x\n", sl->core_id);
-      return -1;
+        WLOG("unknown coreid, not sure how to write: %x\n", sl->core_id);
+        return -1;
     }
 
+    ILOG("Starting verification of write complete\n");
     for (off = 0; off < len; off += sl->flash_pgsz) {
         size_t aligned_size;
 
@@ -1189,32 +1196,35 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, unsigned 
         if (memcmp(sl->q_buf, base + off, cmp_size))
             return -1;
     }
-
+    ILOG("Flash written and verified! jolly good!\n");
     return 0;
 }
 
+/**
+ * Write the given binary file into flash at address "addr"
+ * @param sl
+ * @param path readable file path, should be binary image
+ * @param addr where to start writing
+ * @return 0 on success, -ve on failure.
+ */
 int stlink_fwrite_flash(stlink_t *sl, const char* path, stm32_addr_t addr) {
     /* write the file in flash at addr */
-
     int err;
     mapped_file_t mf = MAPPED_FILE_INITIALIZER;
-
     if (map_file(&mf, path) == -1) {
-        fprintf(stderr, "map_file() == -1\n");
+        WLOG("map_file() == -1\n");
         return -1;
     }
-
     err = stlink_write_flash(sl, addr, mf.base, mf.len);
-
     unmap_file(&mf);
-
     return err;
 }
 
 int run_flash_loader(stlink_t *sl, flash_loader_t* fl, stm32_addr_t target, const uint8_t* buf, size_t size) {
 
     reg rr;
-
+    DLOG("Running flash loader, write address:%#x, size: %zd\n", target, size);
+    // FIXME This can never return -1
     if (write_buffer_to_sram(sl, fl, buf, size) == -1) {
         fprintf(stderr, "write_buffer_to_sram() == -1\n");
         return -1;
@@ -1250,7 +1260,7 @@ int run_flash_loader(stlink_t *sl, flash_loader_t* fl, stm32_addr_t target, cons
     }
 
     /* run loader */
-    stlink_step(sl);
+    stlink_run(sl);
 
     /* wait until done (reaches breakpoint) */
     while (is_core_halted(sl) == 0) ;
