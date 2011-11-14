@@ -111,6 +111,8 @@ static void clear_cdb(struct stlink_libsg *sl) {
  */void _stlink_sg_close(stlink_t *sl) {
     if (sl) {
         struct stlink_libsg *slsg = sl->backend_data;
+        libusb_close(slsg->usb_handle);
+        libusb_exit(slsg->libusb_ctx);
         free(slsg);
     }
 }
