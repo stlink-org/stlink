@@ -46,10 +46,10 @@ $(EXECUTABLE): main.c selftest.c system_stm32f4xx.c startup_stm32f4xx.s stm32f4x
 	../../Utilities/STM32F4-Discovery/stm32f4_discovery_lis302dl.c \
 	../../STM32_USB_OTG_Driver/src/usb_dcd_int.c \
 	../../STM32_USB_OTG_Driver/src/usb_dcd.c \
-	../../STM32_USB_Device_Library/core/src/usbd_core.c \
-	../../STM32_USB_Device_Library/core/src/usbd_req.c \
-	../../STM32_USB_Device_Library/core/src/usbd_ioreq.c \
-	../../STM32_USB_Device_Library/class/hid/src/usbd_hid_core.c \
+	../../STM32_USB_Device_Library/Core/src/usbd_core.c \
+	../../STM32_USB_Device_Library/Core/src/usbd_req.c \
+	../../STM32_USB_Device_Library/Core/src/usbd_ioreq.c \
+	../../STM32_USB_Device_Library/Class/hid/src/usbd_hid_core.c \
 
 		
 	$(CC) $(CFLAGS) $^ -o $@  -L../../STM32F4xx_StdPeriph_Driver/build -lSTM32F4xx_StdPeriph_Driver -L../../STM32F_USB_OTG_Driver/build
