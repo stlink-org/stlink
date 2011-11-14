@@ -1,3 +1,11 @@
+IMPORTANT SHORT TERM NOTICE:
+If you are targetting F1 devices, with either stlinkv1 or v2 hardware, you
+_need_ to use karlp's libwork2 branch.  
+
+If you are targetting F4, you _need_ to use texane's master
+
+If you are targetting F2 or L1, please let us know how it goes!
+
 HOWTO
 =====
 
