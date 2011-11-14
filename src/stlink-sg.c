@@ -1104,8 +1104,7 @@ static stlink_t* stlink_open(const int verbose) {
 }
 
 
-
-stlink_t* stlink_v1_open(const int verbose) {
+stlink_t* stlink_v1_open_inner(const int verbose) {
     ugly_init(verbose);
     stlink_t *sl = stlink_open(verbose);
     if (sl == NULL) {
@@ -1114,7 +1113,6 @@ stlink_t* stlink_v1_open(const int verbose) {
     }
 
     stlink_version(sl);
-    stlink_load_device_params(sl);
     if ((sl->version.st_vid != USB_ST_VID) || (sl->version.stlink_pid != USB_STLINK_PID)) {
         ugly_log(UERROR, LOG_TAG, 
             "WTF? successfully opened, but unable to read version details. BROKEN!\n");
@@ -1123,11 +1121,14 @@ stlink_t* stlink_v1_open(const int verbose) {
 
     DLOG("Reading current mode...\n");
     switch (stlink_current_mode(sl)) {
-        case STLINK_DEV_MASS_MODE:
+    case STLINK_DEV_MASS_MODE:
             return sl;
-        case STLINK_DEV_DEBUG_MODE:
-            // TODO go to mass?
-            return sl;
+    case STLINK_DEV_DEBUG_MODE:
+        // TODO go to mass?
+        return sl;
+    default:
+        ILOG("Current mode unusable, trying to get back to a useful state...\n");
+        break;
     }
 
     DLOG("Attempting to exit DFU mode\n");
@@ -1145,8 +1146,25 @@ stlink_t* stlink_v1_open(const int verbose) {
         fputs("Error: could not open stlink device\n", stderr);
         return NULL;
     }
-    // re-query device info
+    // re-query device info (and retest)
     stlink_version(sl);
-    stlink_load_device_params(sl);    
+    if ((sl->version.st_vid != USB_ST_VID) || (sl->version.stlink_pid != USB_STLINK_PID)) {
+        ugly_log(UERROR, LOG_TAG, 
+            "WTF? successfully opened, but unable to read version details. BROKEN!\n");
+        return NULL;
+    }
+    return sl;
+}
+
+stlink_t* stlink_v1_open(const int verbose) {
+    stlink_t *sl = stlink_v1_open_inner(verbose);
+    if (sl == NULL) {
+        fputs("Error: could not open stlink device\n", stderr);
+        return NULL;
+    }
+    // by now, it _must_ be fully open and in a useful mode....
+	stlink_enter_swd_mode(sl);
+    stlink_load_device_params(sl);
+    ILOG("Successfully opened a stlink v1 debugger\n");
     return sl;
 }
