@@ -42,8 +42,6 @@ clean:
 	rm -rf $(LIBRARY)
 	rm -rf test_usb*
 	rm -rf test_sg*
-
-distclean: clean
 	$(MAKE) -C flash clean
 	$(MAKE) -C gdbserver clean
 	

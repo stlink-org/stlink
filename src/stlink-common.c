@@ -135,10 +135,12 @@ static int unlock_flash_if(stlink_t *sl) {
 
     if (is_flash_locked(sl)) {
         unlock_flash(sl);
-        if (is_flash_locked(sl))
+        if (is_flash_locked(sl)) {
+            WLOG("Failed to unlock flash!\n");
             return -1;
+        }
     }
-
+    ILOG("Successfully unlocked flash\n");
     return 0;
 }
 
@@ -312,7 +314,7 @@ void stlink_cpu_id(stlink_t *sl, cortex_m3_cpuid_t *cpuid) {
  */
 int stlink_load_device_params(stlink_t *sl) {
     ILOG("Loading device parameters....\n");
-    chip_params_t *params = NULL;
+    const chip_params_t *params = NULL;
     uint32_t chip_id = stlink_chip_id(sl);
     sl->chip_id = chip_id;
 	for(size_t i = 0; i < sizeof(devices) / sizeof(devices[0]); i++) {
@@ -545,7 +547,7 @@ void stlink_core_stat(stlink_t *sl) {
 }
 
 void stlink_print_data(stlink_t * sl) {
-    if (sl->q_len <= 0 || sl->verbose < 2)
+    if (sl->q_len <= 0 || sl->verbose < UDEBUG)
         return;
     if (sl->verbose > 2)
         fprintf(stdout, "data_len = %d 0x%x\n", sl->q_len, sl->q_len);
@@ -741,10 +743,16 @@ int write_buffer_to_sram(stlink_t *sl, flash_loader_t* fl, const uint8_t* buf, s
     return 0;
 }
 
+/**
+ * Erase a page of flash, assumes sl is fully populated with things like chip/core ids
+ * @param sl stlink context
+ * @param page
+ * @return 0 on success -ve on failure
+ */
 int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t page)
 {
   /* page an addr in the page to erase */
-    ILOG("Erasing flash page at addr: %#x\n", page);
+  ILOG("Erasing flash page at addr: %#x\n", page);
   if (sl->core_id == STM32L_CORE_ID)
   {
 #define STM32L_FLASH_REGS_ADDR ((uint32_t)0x40023c00)
@@ -771,7 +779,7 @@ int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t page)
     val = read_uint32(sl->q_buf, 0);
     if (val & (1 << 0))
     {
-      fprintf(stderr, "pecr.pelock not clear (0x%x)\n", val);
+      WLOG("pecr.pelock not clear (%#x)\n", val);
       return -1;
     }
 
@@ -786,7 +794,7 @@ int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t page)
     val = read_uint32(sl->q_buf, 0);
     if (val & (1 << 1))
     {
-      fprintf(stderr, "pecr.prglock not clear (0x%x)\n", val);
+      WLOG("pecr.prglock not clear (%#x)\n", val);
       return -1;
     }
 
@@ -994,11 +1002,11 @@ int stlink_fcheck_flash(stlink_t *sl, const char* path, stm32_addr_t addr) {
 int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, unsigned len) {
     size_t off;
     flash_loader_t fl;
-    ILOG("Attempting to write %d (%#x) bytes to stm32 address: %u (%#x)\n", 
+    ILOG("Attempting to write %d (%#x) bytes to stm32 address: %u (%#x)\n",
         len, len, addr, addr);
     /* check addr range is inside the flash */
     if (addr < sl->flash_base) {
-        WLOG("addr too low\n");
+        WLOG("addr too low %#x < %#x\n", addr, sl->flash_base);
         return -1;
     } else if ((addr + len) < addr) {
         WLOG("addr overruns\n");
@@ -1014,6 +1022,8 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, unsigned 
         return -1;
     }
 
+    // Make sure we've loaded the context with the chip details
+    stlink_core_id(sl);
     /* erase each page */
     int page_count = 0;
     for (off = 0; off < len; off += sl->flash_pgsz) {
@@ -1226,7 +1236,8 @@ int run_flash_loader(stlink_t *sl, flash_loader_t* fl, stm32_addr_t target, cons
     DLOG("Running flash loader, write address:%#x, size: %zd\n", target, size);
     // FIXME This can never return -1
     if (write_buffer_to_sram(sl, fl, buf, size) == -1) {
-        fprintf(stderr, "write_buffer_to_sram() == -1\n");
+        // IMPOSSIBLE!
+        WLOG("write_buffer_to_sram() == -1\n");
         return -1;
     }
 

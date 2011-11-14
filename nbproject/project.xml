@@ -18,10 +18,6 @@
                     <type>0</type>
                 </confElem>
                 <confElem>
-                    <name>gdbserver</name>
-                    <type>0</type>
-                </confElem>
-                <confElem>
                     <name>flash</name>
                     <type>0</type>
                 </confElem>

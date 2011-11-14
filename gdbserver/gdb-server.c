@@ -21,7 +21,7 @@
 
 #include "gdb-remote.h"
 
-#define DEFAULT_LOGGING_LEVEL 100
+#define DEFAULT_LOGGING_LEVEL 50
 #define DEFAULT_GDB_LISTEN_PORT 4242
 
 #define STRINGIFY_inner(name) #name
@@ -169,17 +169,8 @@ int main(int argc, char** argv) {
 		break;
     }
     
-    // ALLLL of this should move into "stlink_open_xxx"
-
-    if (stlink_current_mode(sl) != STLINK_DEV_DEBUG_MODE) {
-        if (stlink_current_mode(sl) == STLINK_DEV_DFU_MODE) {
-            stlink_exit_dfu_mode(sl);
-        }
-        stlink_enter_swd_mode(sl);
-    }
-
-	uint32_t chip_id = stlink_chip_id(sl);
-	uint32_t core_id = stlink_core_id(sl);
+	uint32_t chip_id = sl->chip_id;
+	uint32_t core_id = sl->core_id;
 
 	/* Fix chip_id for F4 */
 	if (((chip_id & 0xFFF) == 0x411) && (core_id == CORE_M4_R0)) {
