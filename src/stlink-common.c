@@ -314,7 +314,7 @@ void stlink_cpu_id(stlink_t *sl, cortex_m3_cpuid_t *cpuid) {
  */
 int stlink_load_device_params(stlink_t *sl) {
     ILOG("Loading device parameters....\n");
-    chip_params_t *params = NULL;
+    const chip_params_t *params = NULL;
     uint32_t chip_id = stlink_chip_id(sl);
     sl->chip_id = chip_id;
 	for(size_t i = 0; i < sizeof(devices) / sizeof(devices[0]); i++) {
@@ -547,7 +547,7 @@ void stlink_core_stat(stlink_t *sl) {
 }
 
 void stlink_print_data(stlink_t * sl) {
-    if (sl->q_len <= 0 || sl->verbose < 2)
+    if (sl->q_len <= 0 || sl->verbose < UDEBUG)
         return;
     if (sl->verbose > 2)
         fprintf(stdout, "data_len = %d 0x%x\n", sl->q_len, sl->q_len);

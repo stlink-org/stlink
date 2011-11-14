@@ -97,14 +97,6 @@
 #define WLOG(format, args...)         ugly_log(UWARN, LOG_TAG, format, ## args)
 #define fatal(format, args...)        ugly_log(UFATAL, LOG_TAG, format, ## args)
 
-// Suspends execution of the calling process for
-// (at least) ms milliseconds.
-
-static void delay(int ms) {
-    //fprintf(stderr, "*** wait %d ms\n", ms);
-    usleep(1000 * ms);
-}
-
 static void clear_cdb(struct stlink_libsg *sl) {
     for (size_t i = 0; i < sizeof (sl->cdb_cmd_blk); i++)
         sl->cdb_cmd_blk[i] = 0;

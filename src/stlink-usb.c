@@ -150,33 +150,6 @@ static inline int send_only
 }
 
 
-/* Search for a STLINK device, either any or teh one with the given PID
- * Return the protocoll version
- */
-static int is_stlink_device(libusb_device * dev, uint16_t pid) {
-    struct libusb_device_descriptor desc;
-    int version;
-
-    if (libusb_get_device_descriptor(dev, &desc))
-        return 0;
-
-    if (desc.idVendor != USB_ST_VID)
-        return 0;
-
-    if ((desc.idProduct != USB_STLINK_32L_PID) && 
-        (desc.idProduct != USB_STLINK_PID ))
-        return 0;
-
-    if(pid && (pid != desc.idProduct))
-        return 0;
-    if (desc.idProduct == USB_STLINK_PID )
-        version = 1;
-    else
-        version = 2;
-
-    return version;
-}
-
 static int fill_command
 (stlink_t * sl, enum SCSI_Generic_Direction dir, uint32_t len) {
     struct stlink_libusb * const slu = sl->backend_data;
@@ -580,11 +553,7 @@ stlink_t* stlink_open_usb(const int verbose) {
     struct stlink_libusb* slu = NULL;
     int error = -1;
     libusb_device** devs = NULL;
-    libusb_device* dev;
-    ssize_t i;
-    ssize_t count;
     int config;
-    char *iSerial = NULL;
 
     sl = malloc(sizeof (stlink_t));
     slu = malloc(sizeof (struct stlink_libusb));
