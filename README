@@ -119,3 +119,24 @@ Q: At some point I use GDB command `next', and it hangs.
 A: Sometimes when you will try to use GDB `next' command to skip a loop,
 it will use a rather inefficient single-stepping way of doing that.
 Set up a breakpoint manually in that case and do `continue'.
+
+Currently known working combinations of programmer and target
+=============================================================
+
+STLink v1 (as found on the 32VL Discovery board)
+
+Known Working Targets:
+* STM32F100xx (Medium Density VL)
+* STM32F103 (according to jpa- o n##stm32
+
+No information:
+* everything else!
+
+
+STLink v2 (as found on the 32L and F4 Discovery boards)
+Known Working Targets:
+* STM32F100xx (Medium Density VL, as on the 32VL Discovery board)
+* ?
+
+Please report any and all known working combinations so I can update this!
+
