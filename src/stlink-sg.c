@@ -467,7 +467,7 @@ void _stlink_sg_enter_jtag_mode(stlink_t *sl) {
 }
 
 // XXX kernel driver performs reset, the device temporally disappears
-
+// Suspect this is no longer the case when we have ignore on? RECHECK
 void _stlink_sg_exit_dfu_mode(stlink_t *sl) {
     struct stlink_libsg *sg = sl->backend_data;
     DLOG("\n*** stlink_exit_dfu_mode ***\n");
@@ -964,18 +964,6 @@ stlink_t* stlink_v1_open_inner(const int verbose) {
     DLOG("Attempting to exit DFU mode\n");
     _stlink_sg_exit_dfu_mode(sl);
     
-    // exit the dfu mode -> the device is gone
-    DLOG("\n*** reopen the stlink device ***\n");
-    delay(1000);
-    stlink_close(sl);
-    delay(5000);
-
-    DLOG("Attempting to reopen the stlink...\n");
-    sl = stlink_open(verbose);
-    if (sl == NULL) {
-        fputs("Error: could not open stlink device\n", stderr);
-        return NULL;
-    }
     // re-query device info (and retest)
     stlink_version(sl);
     if ((sl->version.st_vid != USB_ST_VID) || (sl->version.stlink_pid != USB_STLINK_PID)) {
