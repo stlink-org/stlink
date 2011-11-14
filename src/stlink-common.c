@@ -1,4 +1,4 @@
-
+#define DEBUG_FLASH 0
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -148,8 +148,10 @@ static inline uint32_t read_flash_cr(stlink_t *sl) {
 		stlink_read_mem32(sl, FLASH_F4_CR, sizeof (uint32_t));
 	else
 		stlink_read_mem32(sl, FLASH_CR, sizeof (uint32_t));
-	fprintf(stdout, "CR:%X\n", *(uint32_t*) sl->q_buf);
-    return *(uint32_t*) sl->q_buf;
+#if DEBUG_FLASH
+	fprintf(stdout, "CR:0x%x\n", *(uint32_t*) sl->q_buf);
+#endif
+	return *(uint32_t*) sl->q_buf;
 }
 
 static inline unsigned int is_flash_locked(stlink_t *sl) {
@@ -281,7 +283,7 @@ static inline uint32_t read_flash_sr(stlink_t *sl) {
 		stlink_read_mem32(sl, FLASH_F4_SR, sizeof (uint32_t));
 	else
 		stlink_read_mem32(sl, FLASH_SR, sizeof (uint32_t));
-    //fprintf(stdout, "SR:%X\n", *(uint32_t*) sl->q_buf);
+    //fprintf(stdout, "SR:0x%x\n", *(uint32_t*) sl->q_buf);
 	return *(uint32_t*) sl->q_buf;
 }
 
@@ -323,7 +325,9 @@ static inline void write_flash_cr_psiz(stlink_t *sl, uint32_t n) {
     uint32_t x = read_flash_cr(sl);
     x &= ~(0x03 << 8);
     x |= (n << 8);
-    fprintf(stdout, "PSIZ:%X %X\n", x, n);
+#if DEBUG_FLASH
+    fprintf(stdout, "PSIZ:0x%x 0x%x\n", x, n);
+#endif
     write_uint32(sl->q_buf, x);
     stlink_write_mem32(sl, FLASH_F4_CR, sizeof (uint32_t));
 }
@@ -334,7 +338,9 @@ static inline void write_flash_cr_snb(stlink_t *sl, uint32_t n) {
     x &= ~FLASH_F4_CR_SNB_MASK;
     x |= (n << FLASH_F4_CR_SNB);
     x |= (1 << FLASH_F4_CR_SER);
-    fprintf(stdout, "SNB:%X %X\n", x, n);
+#if DEBUG_FLASH
+    fprintf(stdout, "SNB:0x%x 0x%x\n", x, n);
+#endif
     write_uint32(sl->q_buf, x);
     stlink_write_mem32(sl, FLASH_F4_CR, sizeof (uint32_t));
 }
@@ -393,7 +399,7 @@ void stlink_identify_device(stlink_t *sl) {
             (sl->q_buf[3] << 24);
     /* Fix chip_id for F4 */
     if (((chip_id & 0xFFF) == 0x411) && (core_id == CORE_M4_R0)) {
-      printf("Fixing wrong chip_id for STM32F4 Rev A errata\n");
+      //printf("Fixing wrong chip_id for STM32F4 Rev A errata\n");
       chip_id = 0x413;
     }
     sl->chip_id=chip_id;
@@ -816,17 +822,17 @@ uint32_t calculate_F4_sectornum(uint32_t flashaddr){
 
 }
 
-uint32_t calculate_sectorsize(stlink_t *sl, uint32_t flashaddr){
+uint32_t stlink_calculate_pagesize(stlink_t *sl, uint32_t flashaddr){
 	if(sl->chip_id == STM32F4_CHIP_ID) {
 		uint32_t sector=calculate_F4_sectornum(flashaddr);
-		if (sector<4) return (0x4000);
-		else if(sector<5) return(0x10000);
-		else return(0x20000);
+		if (sector<4) sl->flash_pgsz=0x4000;
+		else if(sector<5) sl->flash_pgsz=0x10000;
+		else sl->flash_pgsz=0x20000;
 	}
-	else return (sl->flash_pgsz);
+	return (sl->flash_pgsz);
 }
 
-int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t page)
+int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr)
 {
   /* page an addr in the page to erase */
 
@@ -841,13 +847,11 @@ int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t page)
     unlock_flash_if(sl);
 
     /* select the page to erase */
-    //Page is passed to us as an addr, so calculate the actual page
-    uint32_t addr=page;
+    // calculate the actual page from the address
+    uint32_t sector=calculate_F4_sectornum(flashaddr);
 
-    page=calculate_F4_sectornum(addr);
-
-    fprintf(stderr, "Erasing Sector:%u SectorSize:%u\n", page, calculate_sectorsize(sl, addr));
-    write_flash_cr_snb(sl, page);
+    fprintf(stderr, "EraseFlash - Sector:0x%x Size:0x%x\n", sector, stlink_calculate_pagesize(sl, flashaddr));
+    write_flash_cr_snb(sl, sector);
 
     /* start erase operation */
     set_flash_cr_strt(sl);
@@ -858,8 +862,9 @@ int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t page)
     /* relock the flash */
     //todo: fails to program if this is in
     lock_flash(sl);
-	fprintf(stdout, "Erase Final CR:%X\n", read_flash_cr(sl));
-
+#if DEBUG_FLASH
+	fprintf(stdout, "Erase Final CR:0x%x\n", read_flash_cr(sl));
+#endif
   }
 
   else if (sl->core_id == STM32L_CORE_ID)
@@ -928,7 +933,7 @@ int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t page)
 
     /* write 0 to the first word of the page to be erased */
     memset(sl->q_buf, 0, sizeof(uint32_t));
-    stlink_write_mem32(sl, page, sizeof(uint32_t));
+    stlink_write_mem32(sl, flashaddr, sizeof(uint32_t));
 
     /* reset lock bits */
     stlink_read_mem32(sl, STM32L_FLASH_PECR, sizeof(uint32_t));
@@ -948,7 +953,7 @@ int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t page)
     set_flash_cr_per(sl);
 
     /* select the page to erase */
-    write_flash_ar(sl, page);
+    write_flash_ar(sl, flashaddr);
 
     /* start erase operation, reset by hw with bsy bit */
     set_flash_cr_strt(sl);
@@ -1068,7 +1073,7 @@ int write_loader_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* size) {
     }
     else
     {
-      fprintf(stderr, "unknown coreid: %x\n", sl->core_id);
+      fprintf(stderr, "unknown coreid: 0x%x\n", sl->core_id);
       return -1;
     }
 
@@ -1104,12 +1109,8 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, unsigned 
 
     stlink_identify_device(sl);
 
-#if 0 /* todo: use in debugging mode only */
-    fprintf(stdout, "WriteFlash - addr:%x len:%x\n", addr, len);
-    fprintf(stdout, "CoreID:%X ChipID:%X\n", sl->core_id, sl->chip_id);
-#endif
-
     /* check addr range is inside the flash */
+    stlink_calculate_pagesize(sl, addr);
     if (addr < sl->flash_base) {
         fprintf(stderr, "addr too low\n");
         return -1;
@@ -1128,13 +1129,19 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, unsigned 
     }
 
     /* erase each page */
-    for (off = 0; off < len; off += calculate_sectorsize(sl, addr + off) ) {
-        /* addr must be an addr inside the page */
+    for (off = 0; off < len; off += stlink_calculate_pagesize(sl, addr + off) ) {
+        //addr must be an addr inside the page
         if (stlink_erase_flash_page(sl, addr + off) == -1) {
            fprintf(stderr, "erase_flash_page(0x%zx) == -1\n", addr + off);
 	    return -1;
         }
     }
+
+#if 1 /* todo: use in debugging mode only */
+    fprintf(stdout, "WriteFlash - Addr:0x%x len:0x%x\n", addr, len);
+    //fprintf(stdout, "CoreID:0x%x ChipID:0x%x\n", sl->core_id, sl->chip_id);
+#endif
+
 
     if (sl->chip_id == STM32F4_CHIP_ID) {
     	/* todo: check write operation */
@@ -1172,7 +1179,7 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, unsigned 
     	lock_flash(sl);
 
 #if 0 /* todo: debug mode */
-	fprintf(stdout, "Final CR:%X\n", read_flash_cr(sl));
+	fprintf(stdout, "Final CR:0x%x\n", read_flash_cr(sl));
 #endif
 
 
@@ -1262,7 +1269,7 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, unsigned 
     			if (off % sl->flash_pgsz) off &= ~(sl->flash_pgsz - 1);
     			page = addr + off;
 
-    			fprintf(stderr, "invalid write @%x(%x): %x != %x. retrying.\n",
+    			fprintf(stderr, "invalid write @0x%x(0x%x): 0x%x != 0x%x. retrying.\n",
     					page, addr + off, read_uint32(base + off, 0), read_uint32(sl->q_buf, 0));
 
     			/* reset lock bits */
@@ -1343,7 +1350,7 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, unsigned 
         if (aligned_size & (4 - 1))
             aligned_size = (cmp_size + 4) & ~(4 - 1);
 
-		fprintf(stdout, "AlignedSize:%x\n", aligned_size);
+		fprintf(stdout, "AlignedSize:0x%x\n", aligned_size);
         stlink_read_mem32(sl, addr + off, aligned_size);
 
         if (memcmp(sl->q_buf, base + off, cmp_size))
@@ -1409,7 +1416,7 @@ int run_flash_loader(stlink_t *sl, flash_loader_t* fl, stm32_addr_t target, cons
       stlink_write_reg(sl, fl->loader_addr, 15); /* pc register */
 
     } else {
-      fprintf(stderr, "unknown coreid: %x\n", sl->core_id);
+      fprintf(stderr, "unknown coreid: 0x%x\n", sl->core_id);
       return -1;
     }
 
@@ -1441,7 +1448,7 @@ int run_flash_loader(stlink_t *sl, flash_loader_t* fl, stm32_addr_t target, cons
 
     } else {
 
-      fprintf(stderr, "unknown coreid: %x\n", sl->core_id);
+      fprintf(stderr, "unknown coreid: 0x%x\n", sl->core_id);
       return -1;
 
     }
