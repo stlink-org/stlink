@@ -76,9 +76,6 @@ If you would link your executable to 0x08000000 and then do
 (gdb) load firmware.elf
 then it would be written to the memory.
 
-STM32F4:
-The flash utility supports the full 1MB address space.
-The gdbserver only supports up to 64kB applications at the moment.
 
 FAQ
 ===
