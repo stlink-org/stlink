@@ -113,15 +113,13 @@ static void clear_cdb(struct stlink_libsg *sl) {
     sl->q_data_dir = Q_DATA_IN;
 }
 
-// close the device, free the allocated memory
-
-void _stlink_sg_close(stlink_t *sl) {
+/**
+ * Close and free any _backend_ related information...
+ * @param sl
+ */void _stlink_sg_close(stlink_t *sl) {
     if (sl) {
-#if FINISHED_WITH_SG
         struct stlink_libsg *slsg = sl->backend_data;
-        scsi_pt_close_device(slsg->sg_fd);
         free(slsg);
-#endif
     }
 }
 
@@ -141,11 +139,11 @@ static int get_usb_mass_storage_status(libusb_device_handle *handle, uint8_t end
         try++;
     } while ((ret == LIBUSB_ERROR_PIPE) && (try < 3));
     if (ret != LIBUSB_SUCCESS) {
-        fprintf(stderr, "%s: receiving failed: %d\n", __func__, ret);
+        WLOG("%s: receiving failed: %d\n", __func__, ret);
         return -1;
     }
     if (transferred != sizeof(csw)) {
-        fprintf(stderr, "%s: received unexpected amount: %d\n", __func__, transferred);
+        WLOG("%s: received unexpected amount: %d\n", __func__, transferred);
         return -1;
     }
 
@@ -157,10 +155,8 @@ static int get_usb_mass_storage_status(libusb_device_handle *handle, uint8_t end
         WLOG("status signature was invalid: %#x\n", rsig);
         return -1;
     }
-    DLOG("residue was= %#x\n", residue);
     *tag = rtag;
     uint8_t rstatus = csw[12];
-    DLOG("rstatus = %x\n", rstatus);
     return rstatus;
 }
 
@@ -223,11 +219,9 @@ int send_usb_mass_storage_command(libusb_device_handle *handle, uint8_t endpoint
     memcpy(&(c_buf[i]), cdb, cdb_length);
     
     int sending_length = STLINK_SG_SIZE;
-    DLOG("sending length set to: %d\n", sending_length);
     
     // send....
     do {
-        DLOG("attempting tx...\n");
         ret = libusb_bulk_transfer(handle, endpoint_out, c_buf, sending_length,
                                    &real_transferred, SG_TIMEOUT_MSEC);
         if (ret == LIBUSB_ERROR_PIPE) {
@@ -239,7 +233,6 @@ int send_usb_mass_storage_command(libusb_device_handle *handle, uint8_t endpoint
         WLOG("sending failed: %d\n", ret);
         return -1;
     }
-    DLOG("Actually sent: %d, returning tag: %d\n", real_transferred, tag);
     return this_tag;
 }
 
@@ -298,93 +291,6 @@ get_sense(libusb_device_handle *handle, uint8_t endpoint_in, uint8_t endpoint_ou
     }
 }
 
-
-//TODO rewrite/cleanup, save the error in sl
-
-#if FINISHED_WITH_SG
-static void stlink_confirm_inq(stlink_t *stl, struct sg_pt_base *ptvp) {
-    struct stlink_libsg *sl = stl->backend_data;
-    const int e = sl->do_scsi_pt_err;
-    if (e < 0) {
-        fprintf(stderr, "scsi_pt error: pass through os error: %s\n",
-                safe_strerror(-e));
-        return;
-    } else if (e == SCSI_PT_DO_BAD_PARAMS) {
-        fprintf(stderr, "scsi_pt error: bad pass through setup\n");
-        return;
-    } else if (e == SCSI_PT_DO_TIMEOUT) {
-        fprintf(stderr, "  pass through timeout\n");
-        return;
-    }
-    const int duration = get_scsi_pt_duration_ms(ptvp);
-    if ((stl->verbose > 1) && (duration >= 0))
-        DLOG("      duration=%d ms\n", duration);
-
-    // XXX stlink fw sends broken residue, so ignore it and use the known q_len
-    // "usb-storage quirks=483:3744:r"
-    // forces residue to be ignored and calculated, but this causes aboard if
-    // data_len = 0 and by some other data_len values.
-
-    const int resid = get_scsi_pt_resid(ptvp);
-    const int dsize = stl->q_len - resid;
-
-    const int cat = get_scsi_pt_result_category(ptvp);
-    char buf[512];
-    unsigned int slen;
-
-    switch (cat) {
-        case SCSI_PT_RESULT_GOOD:
-            if (stl->verbose && (resid > 0))
-                DLOG("      notice: requested %d bytes but "
-                    "got %d bytes, ignore [broken] residue = %d\n",
-                    stl->q_len, dsize, resid);
-            break;
-        case SCSI_PT_RESULT_STATUS:
-            if (stl->verbose) {
-                sg_get_scsi_status_str(
-                        get_scsi_pt_status_response(ptvp), sizeof (buf),
-                        buf);
-                DLOG("  scsi status: %s\n", buf);
-            }
-            return;
-        case SCSI_PT_RESULT_SENSE:
-            slen = get_scsi_pt_sense_len(ptvp);
-            if (stl->verbose) {
-                sg_get_sense_str("", sl->sense_buf, slen, (stl->verbose
-                        > 1), sizeof (buf), buf);
-                DLOG("%s", buf);
-            }
-            if (stl->verbose && (resid > 0)) {
-                if ((stl->verbose) || (stl->q_len > 0))
-                    DLOG("    requested %d bytes but "
-                        "got %d bytes\n", stl->q_len, dsize);
-            }
-            return;
-        case SCSI_PT_RESULT_TRANSPORT_ERR:
-            if (stl->verbose) {
-                get_scsi_pt_transport_err_str(ptvp, sizeof (buf), buf);
-                // http://tldp.org/HOWTO/SCSI-Generic-HOWTO/x291.html
-                // These codes potentially come from the firmware on a host adapter
-                // or from one of several hosts that an adapter driver controls.
-                // The 'host_status' field has the following values:
-                //	[0x07] Internal error detected in the host adapter.
-                // This may not be fatal (and the command may have succeeded).
-                DLOG("  transport: %s", buf);
-            }
-            return;
-        case SCSI_PT_RESULT_OS_ERR:
-            if (stl->verbose) {
-                get_scsi_pt_os_err_str(ptvp, sizeof (buf), buf);
-                DLOG("  os: %s", buf);
-            }
-            return;
-        default:
-            fprintf(stderr, "  unknown pass through result "
-                    "category (%d)\n", cat);
-    }
-}
-#endif
-
 /**
  * Just send a buffer on an endpoint, no questions asked.
  * Handles repeats, and time outs.  Also handles reading status reports and sense
@@ -401,7 +307,6 @@ int send_usb_data_only(libusb_device_handle *handle, unsigned char endpoint_out,
     int real_transferred;
     int try;
     do {
-        DLOG("attempting tx...\n");
         ret = libusb_bulk_transfer(handle, endpoint_out, cbuf, length,
                                    &real_transferred, SG_TIMEOUT_MSEC);
         if (ret == LIBUSB_ERROR_PIPE) {
@@ -413,7 +318,6 @@ int send_usb_data_only(libusb_device_handle *handle, unsigned char endpoint_out,
         WLOG("sending failed: %d\n", ret);
         return -1;
     }
-    DLOG("Actually sent: %d\n", real_transferred);
     
     // now, swallow up the status, so that things behave nicely...
     uint32_t received_tag;
@@ -452,7 +356,6 @@ int stlink_q(stlink_t *sl) {
     int ret;
     if (rx_length > 0) {
         do {
-            DLOG("attempting rx\n");
             ret = libusb_bulk_transfer(sg->usb_handle, sg->ep_rep, sl->q_buf, rx_length, 
                 &real_transferred, SG_TIMEOUT_MSEC);
             if (ret == LIBUSB_ERROR_PIPE) {
@@ -493,40 +396,6 @@ int stlink_q(stlink_t *sl) {
         return -1;
     }
     return 0;
-
-        
-    DLOG("Actually received: %d\n", real_transferred);
-
-#if FINISHED_WITH_SG
-    // Get control command descriptor of scsi structure,
-    // (one object per command!!)
-    struct sg_pt_base *ptvp = construct_scsi_pt_obj();
-    if (NULL == ptvp) {
-        fprintf(stderr, "construct_scsi_pt_obj: out of memory\n");
-        return;
-    }
-
-    set_scsi_pt_cdb(ptvp, sg->cdb_cmd_blk, sizeof (sg->cdb_cmd_blk));
-
-    // set buffer for sense (error information) data
-    set_scsi_pt_sense(ptvp, sg->sense_buf, sizeof (sg->sense_buf));
-
-    // Set a buffer to be used for data transferred from device
-    if (sg->q_data_dir == Q_DATA_IN) {
-        //clear_buf(sl);
-        set_scsi_pt_data_in(ptvp, sl->q_buf, sl->q_len);
-    } else {
-        set_scsi_pt_data_out(ptvp, sl->q_buf, sl->q_len);
-    }
-    // Executes SCSI command (or at least forwards it to lower layers).
-    sg->do_scsi_pt_err = do_scsi_pt(ptvp, sg->sg_fd, SG_TIMEOUT_SEC,
-            sl->verbose);
-
-    // check for scsi errors
-    stlink_confirm_inq(sl, ptvp);
-    // TODO recycle: clear_scsi_pt_obj(struct sg_pt_base * objp);
-    destruct_scsi_pt_obj(ptvp);
-#endif
 }
 
 // TODO thinking, cleanup
@@ -552,14 +421,11 @@ void stlink_stat(stlink_t *stl, char *txt) {
 
 void _stlink_sg_version(stlink_t *stl) {
     struct stlink_libsg *sl = stl->backend_data;
-    DLOG("\n*** stlink_version ***\n");
     clear_cdb(sl);
     sl->cdb_cmd_blk[0] = STLINK_GET_VERSION;
     stl->q_len = 6;
     sl->q_addr = 0;
     stlink_q(stl);
-    // HACK use my own private version right now...
-    
 }
 
 // Get stlink mode:
@@ -681,7 +547,6 @@ void _stlink_sg_reset(stlink_t *sl) {
 
 void _stlink_sg_status(stlink_t *sl) {
     struct stlink_libsg *sg = sl->backend_data;
-    DLOG("\n*** stlink_status ***\n");
     clear_cdb(sg);
     sg->cdb_cmd_blk[1] = STLINK_DEBUG_GETSTATUS;
     sl->q_len = 2;
@@ -693,7 +558,6 @@ void _stlink_sg_status(stlink_t *sl) {
 
 void _stlink_sg_force_debug(stlink_t *sl) {
     struct stlink_libsg *sg = sl->backend_data;
-    DLOG("\n*** stlink_force_debug ***\n");
     clear_cdb(sg);
     sg->cdb_cmd_blk[1] = STLINK_DEBUG_FORCEDEBUG;
     sl->q_len = 2;
@@ -820,7 +684,6 @@ void stlink_write_dreg(stlink_t *sl, uint32_t reg, uint32_t addr) {
 
 void _stlink_sg_run(stlink_t *sl) {
     struct stlink_libsg *sg = sl->backend_data;
-    DLOG("\n*** stlink_run ***\n");
     clear_cdb(sg);
     sg->cdb_cmd_blk[1] = STLINK_DEBUG_RUNCORE;
     sl->q_len = 2;
@@ -934,39 +797,6 @@ void _stlink_sg_write_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
 
     stlink_print_data(sl);
 }
-
-#if 0 /* not working */
-
-static int write_flash_mem16
-(struct stlink* sl, uint32_t addr, uint16_t val) {
-    /* half word writes */
-    if (addr % 2) return -1;
-
-    /* unlock if locked */
-    unlock_flash_if(sl);
-
-    /* set flash programming chosen bit */
-    set_flash_cr_pg(sl);
-
-    write_uint16(sl->q_buf, val);
-    stlink_write_mem16(sl, addr, 2);
-
-    /* wait for non business */
-    wait_flash_busy(sl);
-
-    lock_flash(sl);
-
-    /* check the programmed value back */
-    stlink_read_mem16(sl, addr, 2);
-    if (*(const uint16_t*) sl->q_buf != val) {
-        /* values differ at i * sizeof(uint16_t) */
-        return -1;
-    }
-
-    /* success */
-    return 0;
-}
-#endif /* not working */
 
 // Exit the jtag or swd mode and enter the mass mode.
 
