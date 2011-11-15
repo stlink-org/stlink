@@ -1148,6 +1148,46 @@ int stlink_fcheck_flash(stlink_t *sl, const char* path, stm32_addr_t addr) {
     return res;
 }
 
+/**
+ * Verify addr..addr+len is binary identical to base...base+len
+ * @param sl stlink context
+ * @param address stm device address
+ * @param data host side buffer to check against
+ * @param length how much
+ * @return 0 for success, -ve for failure
+ */
+int stlink_verify_write_flash(stlink_t *sl, stm32_addr_t address, uint8_t *data, unsigned length) {
+    size_t off;
+    if ((sl->chip_id & 0xFFF) == STM32_CHIPID_F4) {
+        DLOG("(FIXME)Skipping verification for F4, not enough ram (yet)\n");
+        return 0;
+    }
+    ILOG("Starting verification of write complete\n");
+    for (off = 0; off < length; off += sl->flash_pgsz) {
+        size_t aligned_size;
+
+        /* adjust last page size */
+        size_t cmp_size = sl->flash_pgsz;
+        if ((off + sl->flash_pgsz) > length)
+            cmp_size = length - off;
+
+        aligned_size = cmp_size;
+        if (aligned_size & (4 - 1))
+            aligned_size = (cmp_size + 4) & ~(4 - 1);
+
+		fprintf(stdout, "AlignedSize:%#zx\n", aligned_size);
+        stlink_read_mem32(sl, address + off, aligned_size);
+
+        if (memcmp(sl->q_buf, data + off, cmp_size)) {
+            WLOG("Verification of flash failed at offset: %zd\n", off);
+            return -1;
+        }
+    }
+    ILOG("Flash written and verified! jolly good!\n");
+    return 0;
+
+}
+
 int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, unsigned len) {
     size_t off;
     flash_loader_t fl;
@@ -1370,28 +1410,8 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, unsigned 
         WLOG("unknown coreid, not sure how to write: %x\n", sl->core_id);
         return -1;
     }
-
-    ILOG("Starting verification of write complete\n");
-    for (off = 0; off < len; off += sl->flash_pgsz) {
-        size_t aligned_size;
-
-        /* adjust last page size */
-        size_t cmp_size = sl->flash_pgsz;
-        if ((off + sl->flash_pgsz) > len)
-            cmp_size = len - off;
-
-        aligned_size = cmp_size;
-        if (aligned_size & (4 - 1))
-            aligned_size = (cmp_size + 4) & ~(4 - 1);
-
-		fprintf(stdout, "AlignedSize:%#zx\n", aligned_size);
-        stlink_read_mem32(sl, addr + off, aligned_size);
-
-        if (memcmp(sl->q_buf, base + off, cmp_size))
-            return -1;
-    }
-    ILOG("Flash written and verified! jolly good!\n");
-    return 0;
+    
+    return stlink_verify_write_flash(sl, addr, base, len);
 }
 
 /**
