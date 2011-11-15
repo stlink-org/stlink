@@ -49,6 +49,9 @@ static inline void setup_leds(void)
 #define LED_RED (1 << 14) /* port D, pin 14 */
 #define LED_BLUE (1 << 15) /* port D, pin 15 */
 
+void _tmain(void) {
+	main();
+}
 static inline void setup_leds(void)
 {
   *(volatile uint32_t*)GPIOD_MODER |= (1 << (12 * 2)) | (1 << (13 * 2)) |
@@ -76,7 +79,8 @@ do {							\
     __asm__ __volatile__ ("nop\n\t":::"memory");	\
 } while (0)
 
-static void __attribute__((naked)) __attribute__((used)) main(void)
+/* static void __attribute__((naked)) __attribute__((used)) main(void) */
+void main(void)
 {
   setup_leds();
 

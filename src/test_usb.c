@@ -27,8 +27,8 @@ int main(int ac, char** av) {
 
         printf("-- mode after entering swd mode: %d\n", stlink_current_mode(sl));
 
-        printf("-- chip id: %#x\n", stlink_chip_id(sl));
-        printf("-- core_id: %#x\n", stlink_core_id(sl));
+        printf("-- chip id: %#x\n", sl->chip_id);
+        printf("-- core_id: %#x\n", sl->core_id);
 
         cortex_m3_cpuid_t cpuid;
         stlink_cpu_id(sl, &cpuid);

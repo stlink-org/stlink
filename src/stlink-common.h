@@ -97,6 +97,17 @@ extern "C" {
 #define STM32_FLASH_BASE 0x08000000
 #define STM32_SRAM_BASE 0x20000000
 
+/*
+ * Chip IDs are explained in the appropriate programming manual for the
+ * DBGMCU_IDCODE register (0xE0042000)
+ */
+#define CORE_M3_R1 0x1BA00477
+#define CORE_M3_R2 0x4BA00477
+#define CORE_M4_R0 0x2BA01477
+
+/* using chip id for F4 ident, since core id is same as F1 */
+#define STM32F4_CHIP_ID 0x413
+
 /* Enough space to hold both a V2 command or a V1 command packaged as generic scsi*/
 #define C_BUF_LEN 32
 
@@ -143,8 +154,8 @@ extern "C" {
         {
             .chip_id = 0x413,
                     .description = "F4 device",
-                    .flash_size_reg = 0x1FFF7A10,
-                    .flash_pagesize = 0x20000,
+                    .flash_size_reg = 0x1FFF7A10,  //RM0090 error same as unique ID
+                    .flash_pagesize = 0x4000,
                     .sram_size = 0x30000,
                     .bootrom_base = 0x1fff0000,
                     .bootrom_size = 0x7800
@@ -288,6 +299,10 @@ extern "C" {
 
 #define STM32_FLASH_PGSZ 1024
 #define STM32L_FLASH_PGSZ 256
+
+#define STM32F4_FLASH_PGSZ 16384
+#define STM32F4_FLASH_SIZE (128 * 1024 * 8)
+
         stm32_addr_t flash_base;
         size_t flash_size;
         size_t flash_pgsz;
@@ -335,12 +350,13 @@ extern "C" {
     int stlink_fwrite_flash(stlink_t *sl, const char* path, stm32_addr_t addr);
     
     // PUBLIC
-    uint16_t stlink_chip_id(stlink_t *sl);
+    uint32_t stlink_chip_id(stlink_t *sl);
     void stlink_cpu_id(stlink_t *sl, cortex_m3_cpuid_t *cpuid);
 
     // privates, publics, the rest....
     // TODO sort what is private, and what is not
-    int stlink_erase_flash_page(stlink_t* sl, stm32_addr_t page);
+    int stlink_erase_flash_page(stlink_t* sl, stm32_addr_t flashaddr);
+    uint32_t stlink_calculate_pagesize(stlink_t *sl, uint32_t flashaddr);
     uint16_t read_uint16(const unsigned char *c, const int pt);
     void stlink_core_stat(stlink_t *sl);
     void stlink_print_data(stlink_t *sl);

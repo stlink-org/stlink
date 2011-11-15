@@ -110,6 +110,7 @@ If you would link your executable to 0x08000000 and then do
 (gdb) load firmware.elf
 then it would be written to the memory.
 
+
 FAQ
 ===
 

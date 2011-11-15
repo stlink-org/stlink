@@ -1,5 +1,5 @@
 /* -*- tab-width:8 -*- */
-
+#define DEBUG 0
 /*
  Copyright (C)  2011 Peter Zotov <whitequark@whitequark.org>
  Use of this source code is governed by a BSD-style
@@ -28,22 +28,13 @@
 #define STRINGIFY(name) STRINGIFY_inner(name)
 
 #define FLASH_BASE 0x08000000
+
+//Allways update the FLASH_PAGE before each use, by calling stlink_calculate_pagesize
 #define FLASH_PAGE (sl->flash_pgsz)
-#define FLASH_PAGE_MASK (~((1 << 10) - 1))
-#define FLASH_SIZE (FLASH_PAGE * 128)
 
 static const char hex[] = "0123456789abcdef";
 
 static const char* current_memory_map = NULL;
-
-/*
- * Chip IDs are explained in the appropriate programming manual for the
- * DBGMCU_IDCODE register (0xE0042000)
- */
-
-#define CORE_M3_R1 0x1BA00477
-#define CORE_M3_R2 0x4BA00477
-#define CORE_M4_R0 0x2BA01477
 
 typedef struct _st_state_t {
     // things from command line, bleh
@@ -169,16 +160,9 @@ int main(int argc, char** argv) {
 		break;
     }
     
-	uint32_t chip_id = sl->chip_id;
-	uint32_t core_id = sl->core_id;
+	printf("Chip ID is %08x, Core ID is  %08x.\n", sl->chip_id, sl->core_id);
 
-	/* Fix chip_id for F4 */
-	if (((chip_id & 0xFFF) == 0x411) && (core_id == CORE_M4_R0)) {
-	  printf("Fixing wrong chip_id for STM32F4 Rev A errata\n");
-	  chip_id = 0x413;
-	}
-
-	printf("Chip ID is %08x, Core ID is  %08x.\n", chip_id, core_id);
+	sl->verbose=0;
 
 	current_memory_map = make_memory_map(sl);
 
@@ -191,6 +175,28 @@ int main(int argc, char** argv) {
 
 	return 0;
 }
+
+static const char* const memory_map_template_F4 =
+  "<?xml version=\"1.0\"?>"
+  "<!DOCTYPE memory-map PUBLIC \"+//IDN gnu.org//DTD GDB Memory Map V1.0//EN\""
+  "     \"http://sourceware.org/gdb/gdb-memory-map.dtd\">"
+  "<memory-map>"
+  "  <memory type=\"rom\" start=\"0x00000000\" length=\"0x100000\"/>"       // code = sram, bootrom or flash; flash is bigger
+  "  <memory type=\"ram\" start=\"0x20000000\" length=\"0x30000\"/>"        // sram
+  "  <memory type=\"flash\" start=\"0x08000000\" length=\"0x10000\">"		//Sectors 0..3
+  "    <property name=\"blocksize\">0x4000</property>"						//16kB
+  "  </memory>"
+  "  <memory type=\"flash\" start=\"0x08010000\" length=\"0x10000\">"		//Sector 4
+  "    <property name=\"blocksize\">0x10000</property>"						//64kB
+  "  </memory>"
+  "  <memory type=\"flash\" start=\"0x08020000\" length=\"0x70000\">"		//Sectors 5..11
+  "    <property name=\"blocksize\">0x20000</property>"						//128kB
+  "  </memory>"
+  "  <memory type=\"ram\" start=\"0x40000000\" length=\"0x1fffffff\"/>" 	// peripheral regs
+  "  <memory type=\"ram\" start=\"0xe0000000\" length=\"0x1fffffff\"/>" 	// cortex regs
+  "  <memory type=\"rom\" start=\"0x1fff0000\" length=\"0x7800\"/>"         // bootrom
+  "  <memory type=\"rom\" start=\"0x1fffc000\" length=\"0x10\"/>"        	// option byte area
+  "</memory-map>";
 
 static const char* const memory_map_template =
   "<?xml version=\"1.0\"?>"
@@ -213,12 +219,15 @@ char* make_memory_map(stlink_t *sl) {
 	char* map = malloc(4096);
 	map[0] = '\0';
 
-	snprintf(map, 4096, memory_map_template,
+	if(sl->chip_id==STM32F4_CHIP_ID) {
+    	strcpy(map, memory_map_template_F4);
+    } else {
+        snprintf(map, 4096, memory_map_template,
 			sl->flash_size,
 			sl->sram_size,
 			sl->flash_size, sl->flash_pgsz,
 			sl->sys_base, sl->sys_size);
-
+    }
 	return map;
 }
 
@@ -445,13 +454,14 @@ struct flash_block {
 
 static struct flash_block* flash_root;
 
-static int flash_add_block(stm32_addr_t addr, unsigned length, 
-			   stlink_t *sl) {
-	if(addr < FLASH_BASE || addr + length > FLASH_BASE + FLASH_SIZE) {
+static int flash_add_block(stm32_addr_t addr, unsigned length, stlink_t *sl) {
+
+	if(addr < FLASH_BASE || addr + length > FLASH_BASE + sl->flash_size) {
 		fprintf(stderr, "flash_add_block: incorrect bounds\n");
 		return -1;
 	}
 
+	stlink_calculate_pagesize(sl, addr);
 	if(addr % FLASH_PAGE != 0 || length % FLASH_PAGE != 0) {
 		fprintf(stderr, "flash_add_block: unaligned block\n");
 		return -1;
@@ -522,17 +532,18 @@ static int flash_go(stlink_t *sl) {
 
 		unsigned length = fb->length;
 		for(stm32_addr_t page = fb->addr; page < fb->addr + fb->length; page += FLASH_PAGE) {
+
+			//Update FLASH_PAGE
+			stlink_calculate_pagesize(sl, page);
+
 			#ifdef DEBUG
 			printf("flash_do: page %08x\n", page);
 			#endif
 
-			stlink_erase_flash_page(sl, page);
-
 			if(stlink_write_flash(sl, page, fb->data + (page - fb->addr),
 					length > FLASH_PAGE ? FLASH_PAGE : length) < 0)
 				goto error;
-		}
-
+			}
 	}
 
 	stlink_reset(sl);

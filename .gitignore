@@ -6,4 +6,8 @@ doc/tutorial/*.aux
 libstlink.a
 test_usb
 test_sg
-gdbserver/st-utils
+gdbserver/st-util
+flash/flash
+*.log
+example/*/*.bin
+example/*/*.elf
