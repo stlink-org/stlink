@@ -19,6 +19,7 @@ extern "C" {
 #define RDWR		0
 #define RO		1
 #define SG_TIMEOUT_SEC	1 // actually 1 is about 2 sec
+#define SG_TIMEOUT_MSEC	3 * 1000
     // Each CDB can be a total of 6, 10, 12, or 16 bytes, later version
     // of the SCSI standard also allow for variable-length CDBs (min. CDB is 6).
     // the stlink needs max. 10 bytes.
@@ -40,8 +41,12 @@ extern "C" {
 
 
 
-#if defined(CONFIG_USE_LIBUSB)
     struct stlink_libsg {
+        libusb_context* libusb_ctx;
+        libusb_device_handle *usb_handle;
+        unsigned ep_rep;
+        unsigned ep_req;
+        
         int sg_fd;
         int do_scsi_pt_err;
 
@@ -52,22 +57,13 @@ extern "C" {
         uint32_t q_addr;
 
         // Sense (error information) data
+        // obsolete, this was fed to the scsi tools
         unsigned char sense_buf[SENSE_BUF_LEN];
-
-        uint32_t st_vid;
-        uint32_t stlink_pid;
-        uint32_t stlink_v;
-        uint32_t jtag_v;
-        uint32_t swim_v;
-        uint32_t core_id;
 
         reg reg;
     };
-#else
-    struct stlink_libsg {};
-#endif
 
-    stlink_t* stlink_quirk_open(const char *dev_name, const int verbose);
+    stlink_t* stlink_v1_open(const int verbose);
 
 #ifdef	__cplusplus
 }

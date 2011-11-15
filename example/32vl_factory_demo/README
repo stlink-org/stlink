@@ -1,0 +1,5 @@
+This source is copied from AN3268, the STM demo code for the VL discovery board.
+
+It was modified to add includes and things where needed,  but nothing else was touched.
+
+Eventually, this should be usable to restore a board to virgin state.  (but not yet)

@@ -14,11 +14,11 @@
             </sourceRootList>
             <confList>
                 <confElem>
-                    <name>library_cli</name>
+                    <name>Default</name>
                     <type>0</type>
                 </confElem>
                 <confElem>
-                    <name>gdbserver</name>
+                    <name>flash</name>
                     <type>0</type>
                 </confElem>
             </confList>
