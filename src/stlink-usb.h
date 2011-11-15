@@ -18,7 +18,6 @@ extern "C" {
 #define STLINK_SG_SIZE 31
 #define STLINK_CMD_SIZE 16
 
-#if defined(CONFIG_USE_LIBUSB)
     struct stlink_libusb {
         libusb_context* libusb_ctx;
         libusb_device_handle* usb_handle;
@@ -30,11 +29,6 @@ extern "C" {
         unsigned int sg_transfer_idx;
         unsigned int cmd_len;
     };
-#else
-#error "it's all bad!"
-    struct stlink_libusb {};
-#endif
-
     
     stlink_t* stlink_open_usb(const int verbose);
 

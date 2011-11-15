@@ -5,8 +5,17 @@
 #include <time.h>
 #include <sys/types.h>
 #include <libusb-1.0/libusb.h>
+
 #include "stlink-common.h"
 #include "stlink-usb.h"
+#include "uglylogging.h"
+
+#define LOG_TAG __FILE__
+#define DLOG(format, args...)         ugly_log(UDEBUG, LOG_TAG, format, ## args)
+#define ILOG(format, args...)         ugly_log(UINFO, LOG_TAG, format, ## args)
+#define WLOG(format, args...)         ugly_log(UWARN, LOG_TAG, format, ## args)
+#define fatal(format, args...)        ugly_log(UFATAL, LOG_TAG, format, ## args)
+
 
 enum SCSI_Generic_Direction {SG_DXFER_TO_DEV=0, SG_DXFER_FROM_DEV=0x80};
 
@@ -116,7 +125,10 @@ ssize_t send_recv(struct stlink_libusb* handle, int terminate,
         if (submit_wait(handle, handle->rep_trans)) return -1;
         res = handle->rep_trans->actual_length;
     }
+    
     if ((handle->protocoll == 1) && terminate) {
+        fprintf(stderr, "This is never used....\n");
+        exit(EXIT_FAILURE);
         /* Read the SG reply */
         unsigned char sg_buf[13];
         libusb_fill_bulk_transfer
@@ -138,33 +150,6 @@ static inline int send_only
 }
 
 
-/* Search for a STLINK device, either any or teh one with the given PID
- * Return the protocoll version
- */
-static int is_stlink_device(libusb_device * dev, uint16_t pid) {
-    struct libusb_device_descriptor desc;
-    int version;
-
-    if (libusb_get_device_descriptor(dev, &desc))
-        return 0;
-
-    if (desc.idVendor != USB_ST_VID)
-        return 0;
-
-    if ((desc.idProduct != USB_STLINK_32L_PID) && 
-        (desc.idProduct != USB_STLINK_PID ))
-        return 0;
-
-    if(pid && (pid != desc.idProduct))
-        return 0;
-    if (desc.idProduct == USB_STLINK_PID )
-        version = 1;
-    else
-        version = 2;
-
-    return version;
-}
-
 static int fill_command
 (stlink_t * sl, enum SCSI_Generic_Direction dir, uint32_t len) {
     struct stlink_libusb * const slu = sl->backend_data;
@@ -172,6 +157,7 @@ static int fill_command
     int i = 0;
     memset(cmd, 0, sizeof (sl->c_buf));
     if(slu->protocoll == 1) {
+        fprintf(stderr, "This is never used....\n");
         cmd[i++] = 'U';
         cmd[i++] = 'S';
         cmd[i++] = 'B';
@@ -468,11 +454,11 @@ void _stlink_usb_read_all_regs(stlink_t *sl, reg *regp) {
     if (sl->verbose < 2)
         return;
 
-    DD(sl, "xpsr       = 0x%08x\n", read_uint32(sl->q_buf, 64));
-    DD(sl, "main_sp    = 0x%08x\n", read_uint32(sl->q_buf, 68));
-    DD(sl, "process_sp = 0x%08x\n", read_uint32(sl->q_buf, 72));
-    DD(sl, "rw         = 0x%08x\n", read_uint32(sl->q_buf, 76));
-    DD(sl, "rw2        = 0x%08x\n", read_uint32(sl->q_buf, 80));
+    DLOG("xpsr       = 0x%08x\n", read_uint32(sl->q_buf, 64));
+    DLOG("main_sp    = 0x%08x\n", read_uint32(sl->q_buf, 68));
+    DLOG("process_sp = 0x%08x\n", read_uint32(sl->q_buf, 72));
+    DLOG("rw         = 0x%08x\n", read_uint32(sl->q_buf, 76));
+    DLOG("rw2        = 0x%08x\n", read_uint32(sl->q_buf, 80));
 }
 
 void _stlink_usb_read_reg(stlink_t *sl, int r_idx, reg *regp) {
@@ -495,7 +481,7 @@ void _stlink_usb_read_reg(stlink_t *sl, int r_idx, reg *regp) {
     sl->q_len = (size_t) size;
     stlink_print_data(sl);
     r = read_uint32(sl->q_buf, 0);
-    DD(sl, "r_idx (%2d) = 0x%08x\n", r_idx, r);
+    DLOG("r_idx (%2d) = 0x%08x\n", r_idx, r);
     
     switch (r_idx) {
     case 16:
@@ -567,11 +553,7 @@ stlink_t* stlink_open_usb(const int verbose) {
     struct stlink_libusb* slu = NULL;
     int error = -1;
     libusb_device** devs = NULL;
-    libusb_device* dev;
-    ssize_t i;
-    ssize_t count;
     int config;
-    char *iSerial = NULL;
 
     sl = malloc(sizeof (stlink_t));
     slu = malloc(sizeof (struct stlink_libusb));
@@ -580,70 +562,38 @@ stlink_t* stlink_open_usb(const int verbose) {
     memset(sl, 0, sizeof (stlink_t));
     memset(slu, 0, sizeof (struct stlink_libusb));
 
-    sl->verbose = verbose;
+    ugly_init(verbose);
     sl->backend = &_stlink_usb_backend;
     sl->backend_data = slu;
     
     sl->core_stat = STLINK_CORE_STAT_UNKNOWN;
 
     if (libusb_init(&(slu->libusb_ctx))) {
-	fprintf(stderr, "failed to init libusb context, wrong version of libraries?\n");
-	goto on_error;
+        WLOG("failed to init libusb context, wrong version of libraries?\n");
+        goto on_error;
     }
     
-    count = libusb_get_device_list(slu->libusb_ctx, &devs);
-    if (count < 0) {
-        printf("libusb_get_device_list\n");
-        goto on_libusb_error;
-    }
-
-    for (i = 0; i < count; ++i) {
-        dev = devs[i];
-        slu->protocoll = is_stlink_device(dev, 0);
-        if (slu->protocoll > 0) break;
-    }
-    if (i == count) goto on_libusb_error;
-
-    if (libusb_open(dev, &(slu->usb_handle))) {
-        printf("libusb_open()\n");
-        goto on_libusb_error;
+    slu->usb_handle = libusb_open_device_with_vid_pid(slu->libusb_ctx, USB_ST_VID, USB_STLINK_32L_PID);
+    if (slu->usb_handle == NULL) {
+		// TODO - free usb context too...
+        free(slu);
+		WLOG("Couldn't find any ST-Link/V2 devices");
+        return NULL;
     }
     
-    if (iSerial) {
-        unsigned char serial[256];
-        struct libusb_device_descriptor desc;
-        int r;
-
-        r = libusb_get_device_descriptor(dev, &desc);
-        if (r<0) {
-            printf("Can't get descriptor to match Iserial\n");
-            goto on_libusb_error;
-        }
-        r = libusb_get_string_descriptor_ascii
-            (slu->usb_handle, desc.iSerialNumber, serial, 256);
-        if (r<0) {
-            printf("Can't get Serialnumber to match Iserial\n");
-            goto on_libusb_error;
-        }
-        if (strcmp((char*)serial, iSerial)) {
-            printf("Mismatch in serial numbers, dev %s vs given %s\n",
-                   serial, iSerial);
-            goto on_libusb_error;
-        }
-    }
-
     if (libusb_kernel_driver_active(slu->usb_handle, 0) == 1) {
         int r;
         
         r = libusb_detach_kernel_driver(slu->usb_handle, 0);
-        if (r<0)
-            printf("libusb_detach_kernel_driver(() error %s\n", strerror(-r));
-        goto on_libusb_error;
+        if (r<0) {
+            WLOG("libusb_detach_kernel_driver(() error %s\n", strerror(-r));
+            goto on_libusb_error;
+        }
     }
 
     if (libusb_get_configuration(slu->usb_handle, &config)) {
         /* this may fail for a previous configured device */
-        printf("libusb_get_configuration()\n");
+        WLOG("libusb_get_configuration()\n");
         goto on_libusb_error;
     }
 
@@ -651,37 +601,39 @@ stlink_t* stlink_open_usb(const int verbose) {
         printf("setting new configuration (%d -> 1)\n", config);
         if (libusb_set_configuration(slu->usb_handle, 1)) {
             /* this may fail for a previous configured device */
-            printf("libusb_set_configuration()\n");
+            WLOG("libusb_set_configuration() failed\n");
             goto on_libusb_error;
         }
     }
 
     if (libusb_claim_interface(slu->usb_handle, 0)) {
-        printf("libusb_claim_interface()\n");
+        WLOG("libusb_claim_interface() failed\n");
         goto on_libusb_error;
     }
 
     slu->req_trans = libusb_alloc_transfer(0);
     if (slu->req_trans == NULL) {
-        printf("libusb_alloc_transfer\n");
+        WLOG("libusb_alloc_transfer failed\n");
         goto on_libusb_error;
     }
 
     slu->rep_trans = libusb_alloc_transfer(0);
     if (slu->rep_trans == NULL) {
-        printf("libusb_alloc_transfer\n");
+        WLOG("libusb_alloc_transfer failed\n");
         goto on_libusb_error;
     }
-
+    // TODO - could use the scanning techniq from stm8 code here...
     slu->ep_rep = 1 /* ep rep */ | LIBUSB_ENDPOINT_IN;
     slu->ep_req = 2 /* ep req */ | LIBUSB_ENDPOINT_OUT;
 
     slu->sg_transfer_idx = 0;
+    // TODO - never used at the moment, always CMD_SIZE
     slu->cmd_len = (slu->protocoll == 1)? STLINK_SG_SIZE: STLINK_CMD_SIZE;
 
     /* success */
 
     if (stlink_current_mode(sl) == STLINK_DEV_DFU_MODE) {
+      ILOG("-- exit_dfu_mode\n");
       stlink_exit_dfu_mode(sl);
     }
 
@@ -690,63 +642,7 @@ stlink_t* stlink_open_usb(const int verbose) {
     }
 
     stlink_version(sl);
-
-    /* per device family initialization */
-    stlink_identify_device(sl);
-
-    if (sl->chip_id == STM32F4_CHIP_ID) {
-
-    	/* flash memory settings */
-        sl->flash_base = STM32_FLASH_BASE;
-        sl->flash_size = STM32F4_FLASH_SIZE;
-        sl->flash_pgsz = STM32F4_FLASH_PGSZ;	//Dummy, pages size is variable in this config
-
-        /* system memory */
-        sl->sys_base = STM32_SYSTEM_BASE;
-        sl->sys_size = STM32_SYSTEM_SIZE;
-
-        /* sram memory settings */
-        sl->sram_base = STM32_SRAM_BASE;
-        sl->sram_size = STM32_SRAM_SIZE;
-
-      }
-
-    else if (sl->core_id == STM32L_CORE_ID) {
-
-      /* flash memory settings */
-      sl->flash_base = STM32_FLASH_BASE;
-      sl->flash_size = STM32_FLASH_SIZE;
-      sl->flash_pgsz = STM32L_FLASH_PGSZ;
-
-      /* system memory */
-      sl->sys_base = STM32_SYSTEM_BASE;
-      sl->sys_size = STM32_SYSTEM_SIZE;
-
-      /* sram memory settings */
-      sl->sram_base = STM32_SRAM_BASE;
-      sl->sram_size = STM32L_SRAM_SIZE;
-
-    }
-    else if (sl->core_id == STM32VL_CORE_ID) {
-
-      /* flash memory settings */
-      sl->flash_base = STM32_FLASH_BASE;
-      sl->flash_size = STM32_FLASH_SIZE;
-      sl->flash_pgsz = STM32_FLASH_PGSZ;
-
-      /* system memory */
-      sl->sys_base = STM32_SYSTEM_BASE;
-      sl->sys_size = STM32_SYSTEM_SIZE;
-
-      /* sram memory settings */
-      sl->sram_base = STM32_SRAM_BASE;
-      sl->sram_size = STM32_SRAM_SIZE;
-
-    }
-    else {
-      fprintf(stderr, "unknown coreid: %x\n", sl->core_id);
-      goto on_libusb_error;
-    }
+    stlink_load_device_params(sl);
 
     error = 0;
 

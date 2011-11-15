@@ -1,0 +1,5 @@
+LIB = libstm32_stdperiph_l1xx.a
+PLATFORM=stm32l1xx
+CFLAGS+=-mcpu=cortex-m3
+
+include Makefile.common
