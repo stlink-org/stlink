@@ -133,11 +133,11 @@ Known Working Targets:
 No information:
 * everything else!
 
-
 STLink v2 (as found on the 32L and F4 Discovery boards)
 Known Working Targets:
 * STM32F100xx (Medium Density VL, as on the 32VL Discovery board)
-* ?
+* STM32L1xx (STM32L Discovery board)
+* STM32F407xx (STM32F4 Discovery board)
 
 Please report any and all known working combinations so I can update this!
 
