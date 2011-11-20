@@ -28,7 +28,7 @@ $(BIN_IMAGE): $(EXECUTABLE)
 	$(OBJCOPY) -O binary $^ $@
 
 $(EXECUTABLE): main.c system_stm32l1xx.c startup_stm32l1xx_md.s
-	$(CC) $(CFLAGS) $^ -o $@  $(LDFLAGS)
+	$(CC) $(CFLAGS) $^ -o $@ $(LDFLAGS)
 
 clean:
 	rm -rf $(EXECUTABLE)
