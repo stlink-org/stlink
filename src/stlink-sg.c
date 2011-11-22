@@ -143,7 +143,7 @@ static int get_usb_mass_storage_status(libusb_device_handle *handle, uint8_t end
 
     uint32_t rsig = read_uint32(csw, 0);
     uint32_t rtag = read_uint32(csw, 4);
-    uint32_t residue = read_uint32(csw, 8);
+    /* uint32_t residue = read_uint32(csw, 8); */
 #define USB_CSW_SIGNATURE 0x53425355  // 'U' 'S' 'B' 'S' (reversed)
     if (rsig != USB_CSW_SIGNATURE) {
         WLOG("status signature was invalid: %#x\n", rsig);
@@ -299,7 +299,7 @@ int send_usb_data_only(libusb_device_handle *handle, unsigned char endpoint_out,
     unsigned char endpoint_in, unsigned char *cbuf, unsigned int length) {
     int ret;
     int real_transferred;
-    int try;
+    int try = 0;
     do {
         ret = libusb_bulk_transfer(handle, endpoint_out, cbuf, length,
                                    &real_transferred, SG_TIMEOUT_MSEC);
