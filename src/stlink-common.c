@@ -122,17 +122,17 @@ uint32_t read_uint32(const unsigned char *c, const int pt) {
 
 static uint32_t __attribute__((unused)) read_flash_rdp(stlink_t *sl) {
     stlink_read_mem32(sl, FLASH_WRPR, sizeof (uint32_t));
-    return (*(uint32_t*) sl->q_buf) & 0xff;
+    return read_uint32(sl->q_buf, 0) & 0xff;
 }
 
 static inline uint32_t read_flash_wrpr(stlink_t *sl) {
     stlink_read_mem32(sl, FLASH_WRPR, sizeof (uint32_t));
-    return *(uint32_t*) sl->q_buf;
+    return read_uint32(sl->q_buf, 0);
 }
 
 static inline uint32_t read_flash_obr(stlink_t *sl) {
     stlink_read_mem32(sl, FLASH_OBR, sizeof (uint32_t));
-    return *(uint32_t*) sl->q_buf;
+    return read_uint32(sl->q_buf, 0);
 }
 
 static inline uint32_t read_flash_cr(stlink_t *sl) {
@@ -143,7 +143,7 @@ static inline uint32_t read_flash_cr(stlink_t *sl) {
 #if DEBUG_FLASH
 	fprintf(stdout, "CR:0x%x\n", *(uint32_t*) sl->q_buf);
 #endif
-	return *(uint32_t*) sl->q_buf;
+	return read_uint32(sl->q_buf, 0);
 }
 
 static inline unsigned int is_flash_locked(stlink_t *sl) {
@@ -269,7 +269,7 @@ static void set_flash_cr_strt(stlink_t *sl) {
 
 static inline uint32_t read_flash_acr(stlink_t *sl) {
     stlink_read_mem32(sl, FLASH_ACR, sizeof (uint32_t));
-    return *(uint32_t*) sl->q_buf;
+    return read_uint32(sl->q_buf, 0);
 }
 
 static inline uint32_t read_flash_sr(stlink_t *sl) {
@@ -278,7 +278,7 @@ static inline uint32_t read_flash_sr(stlink_t *sl) {
 	else
 		stlink_read_mem32(sl, FLASH_SR, sizeof (uint32_t));
     //fprintf(stdout, "SR:0x%x\n", *(uint32_t*) sl->q_buf);
-	return *(uint32_t*) sl->q_buf;
+    return read_uint32(sl->q_buf, 0);
 }
 
 static inline unsigned int is_flash_busy(stlink_t *sl) {
@@ -969,16 +969,35 @@ int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr)
     write_uint32(sl->q_buf, val);
     stlink_write_mem32(sl, STM32L_FLASH_PECR, sizeof(uint32_t));
 
-    /* wait for sr.busy to be cleared */
+#if 0 /* fix_to_be_confirmed */
+
+    /* wait for sr.busy to be cleared
+       MP: Test shows that busy bit is not set here. Perhaps, PM0062 is
+       wrong and we do not need to wait here for clearing the busy bit.
+       TEXANE: ok, if experience says so and it works for you, we comment
+       it. If someone has a problem, please drop an email.
+     */
     while (1)
     {
       stlink_read_mem32(sl, STM32L_FLASH_SR, sizeof(uint32_t));
       if ((read_uint32(sl->q_buf, 0) & (1 << 0)) == 0) break ;
     }
 
+#endif /* fix_to_be_confirmed */
+
     /* write 0 to the first word of the page to be erased */
     memset(sl->q_buf, 0, sizeof(uint32_t));
     stlink_write_mem32(sl, flashaddr, sizeof(uint32_t));
+
+    /* MP: It is better to wait for clearing the busy bit after issuing
+    page erase command, even though PM0062 recommends to wait before it.
+    Test shows that a few iterations is performed in the following loop
+    before busy bit is cleared.*/
+    while (1)
+    {
+      stlink_read_mem32(sl, STM32L_FLASH_SR, sizeof(uint32_t));
+      if ((read_uint32(sl->q_buf, 0) & (1 << 0)) == 0) break;
+    }
 
     /* reset lock bits */
     stlink_read_mem32(sl, STM32L_FLASH_PECR, sizeof(uint32_t));
@@ -1175,7 +1194,6 @@ int stlink_verify_write_flash(stlink_t *sl, stm32_addr_t address, uint8_t *data,
         if (aligned_size & (4 - 1))
             aligned_size = (cmp_size + 4) & ~(4 - 1);
 
-		fprintf(stdout, "AlignedSize:%#zx\n", aligned_size);
         stlink_read_mem32(sl, address + off, aligned_size);
 
         if (memcmp(sl->q_buf, data + off, cmp_size)) {
@@ -1272,7 +1290,6 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, unsigned 
 
     else if (sl->core_id == STM32L_CORE_ID)    {
     	/* use fast word write. todo: half page. */
-
     	uint32_t val;
 
 #if 0 /* todo: check write operation */
