@@ -80,6 +80,7 @@ int main(int ac, char** av)
   struct opts o;
   int err = -1;
 
+  o.size = 0;
   if (get_opts(&o, ac - 1, av + 1) == -1)
   {
     printf("invalid command line\n");
@@ -89,12 +90,14 @@ int main(int ac, char** av)
 
   if (o.devname != NULL) /* stlinkv1 */
   {
-    sl = stlink_v1_open(100);
+    sl = stlink_v1_open(50);
+    sl->verbose = 50;
     if (sl == NULL) goto on_error;
   }
   else /* stlinkv2 */
   {
-    sl = stlink_open_usb(100);
+    sl = stlink_open_usb(50);
+    sl->verbose = 50;
     if (sl == NULL) goto on_error;
   }
 
@@ -129,7 +132,12 @@ int main(int ac, char** av)
   err = 0;
 
  on_error:
-  if (sl != NULL) stlink_close(sl);
+  if (sl != NULL)
+  {
+    stlink_reset(sl);
+    stlink_run(sl);
+    stlink_close(sl);
+  }
 
   return err;
 }
