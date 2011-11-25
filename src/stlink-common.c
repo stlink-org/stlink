@@ -1358,7 +1358,7 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, unsigned 
     fprintf(stdout,"\n");
     ILOG("Finished erasing %d pages of %d (%#x) bytes\n", 
         page_count, sl->flash_pgsz, sl->flash_pgsz);
-
+		
     if (sl->chip_id == STM32F4_CHIP_ID) {
     	/* todo: check write operation */
 
