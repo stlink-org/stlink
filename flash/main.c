@@ -48,8 +48,8 @@ static int get_opts(struct opts* o, int ac, char** av)
       o->devname = av[1];
       i = 1;
     }
-
-    o->size = strtoul(av[i + 3], NULL, 16);
+    if (ac > 3)
+	o->size = strtoul(av[i + 3], NULL, 16);
   }
   else if (strcmp(av[0], "write") == 0)
   {
