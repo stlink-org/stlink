@@ -91,14 +91,14 @@ int main(int ac, char** av)
   if (o.devname != NULL) /* stlinkv1 */
   {
     sl = stlink_v1_open(50);
-    sl->verbose = 50;
     if (sl == NULL) goto on_error;
+    sl->verbose = 50;
   }
   else /* stlinkv2 */
   {
     sl = stlink_open_usb(50);
-    sl->verbose = 50;
     if (sl == NULL) goto on_error;
+    sl->verbose = 50;
   }
 
   if (stlink_current_mode(sl) == STLINK_DEV_DFU_MODE)
