@@ -457,7 +457,7 @@ int stlink_load_device_params(stlink_t *sl) {
     sl->sys_base = params->bootrom_base;
     sl->sys_size = params->bootrom_size;
     
-    ILOG("Device connected is: %s\n", params->description);
+    ILOG("Device connected is: %s, id %#x\n", params->description, chip_id);
     // TODO make note of variable page size here.....
     ILOG("SRAM size: %#x bytes (%d KiB), Flash: %#x bytes (%d KiB) in pages of %zd bytes\n",
         sl->sram_size, sl->sram_size / 1024, sl->flash_size, sl->flash_size / 1024, 

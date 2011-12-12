@@ -48,8 +48,8 @@ static int get_opts(struct opts* o, int ac, char** av)
       o->devname = av[1];
       i = 1;
     }
-
-    o->size = strtoul(av[i + 3], NULL, 16);
+    if (ac > 3)
+	o->size = strtoul(av[i + 3], NULL, 16);
   }
   else if (strcmp(av[0], "write") == 0)
   {
@@ -91,14 +91,14 @@ int main(int ac, char** av)
   if (o.devname != NULL) /* stlinkv1 */
   {
     sl = stlink_v1_open(50);
-    sl->verbose = 50;
     if (sl == NULL) goto on_error;
+    sl->verbose = 50;
   }
   else /* stlinkv2 */
   {
     sl = stlink_open_usb(50);
-    sl->verbose = 50;
     if (sl == NULL) goto on_error;
+    sl->verbose = 50;
   }
 
   if (stlink_current_mode(sl) == STLINK_DEV_DFU_MODE)
