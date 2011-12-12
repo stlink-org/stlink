@@ -470,6 +470,11 @@ void stlink_reset(stlink_t *sl) {
     sl->backend->reset(sl);
 }
 
+void stlink_jtag_reset(stlink_t *sl, int value) {
+    DLOG("*** stlink_jtag_reset ***\n");
+    sl->backend->jtag_reset(sl, value);
+}
+
 void stlink_run(stlink_t *sl) {
     DLOG("*** stlink_run ***\n");
     sl->backend->run(sl);

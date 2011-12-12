@@ -70,6 +70,7 @@ extern "C" {
     // TODO - possible poor names...
 #define STLINK_SWD_ENTER 0x30
 #define STLINK_SWD_READCOREID 0x32  // TBD
+#define STLINK_JTAG_DRIVE_NRST 0x3c
 
 // cortex m3 technical reference manual
 #define CM3_REG_CPUID 0xE000ED00
@@ -267,6 +268,7 @@ extern "C" {
         void (*exit_dfu_mode) (stlink_t * stl);
         void (*core_id) (stlink_t * stl);
         void (*reset) (stlink_t * stl);
+        void (*jtag_reset) (stlink_t * stl, int value);
         void (*run) (stlink_t * stl);
         void (*status) (stlink_t * stl);
         void (*version) (stlink_t *sl);
@@ -330,6 +332,7 @@ extern "C" {
     void stlink_close(stlink_t *sl);
     uint32_t stlink_core_id(stlink_t *sl);
     void stlink_reset(stlink_t *sl);
+    void stlink_jtag_reset(stlink_t *sl, int value);
     void stlink_run(stlink_t *sl);
     void stlink_status(stlink_t *sl);
     void stlink_version(stlink_t *sl);

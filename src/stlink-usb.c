@@ -348,6 +348,26 @@ void _stlink_usb_reset(stlink_t * sl) {
 }
 
 
+void _stlink_usb_jtag_reset(stlink_t * sl, int value) {
+    struct stlink_libusb * const slu = sl->backend_data;
+    unsigned char* const data = sl->q_buf;
+    unsigned char* const cmd = sl->c_buf;
+    ssize_t size;
+    int rep_len = 2;
+    int i = fill_command(sl, SG_DXFER_FROM_DEV, rep_len);
+
+    cmd[i++] = STLINK_DEBUG_COMMAND;
+    cmd[i++] = STLINK_JTAG_DRIVE_NRST;
+    cmd[i++] = (value)?0:1;
+
+    size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len);
+    if (size == -1) {
+        printf("[!] send_recv\n");
+        return;
+    }
+}
+
+
 void _stlink_usb_step(stlink_t* sl) {
     struct stlink_libusb * const slu = sl->backend_data;
     unsigned char* const data = sl->q_buf;
@@ -533,6 +553,7 @@ stlink_backend_t _stlink_usb_backend = {
     _stlink_usb_exit_dfu_mode,
     _stlink_usb_core_id,
     _stlink_usb_reset,
+    _stlink_usb_jtag_reset,
     _stlink_usb_run,
     _stlink_usb_status,
     _stlink_usb_version,

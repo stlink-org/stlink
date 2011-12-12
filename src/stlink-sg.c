@@ -537,6 +537,19 @@ void _stlink_sg_reset(stlink_t *sl) {
     stlink_stat(sl, "core reset");
 }
 
+// Arm-core reset -> halted state.
+
+void _stlink_sg_jtag_reset(stlink_t *sl, int value) {
+    struct stlink_libsg *sg = sl->backend_data;
+    clear_cdb(sg);
+    sg->cdb_cmd_blk[1] = STLINK_JTAG_DRIVE_NRST;
+    sg->cdb_cmd_blk[2] = (value)?0:1;
+    sl->q_len = 3;
+    sg->q_addr = 2;
+    stlink_q(sl);
+    stlink_stat(sl, "core reset");
+}
+
 // Arm-core status: halted or running.
 
 void _stlink_sg_status(stlink_t *sl) {
@@ -820,6 +833,7 @@ stlink_backend_t _stlink_sg_backend = {
     _stlink_sg_exit_dfu_mode,
     _stlink_sg_core_id,
     _stlink_sg_reset,
+    _stlink_sg_jtag_reset,
     _stlink_sg_run,
     _stlink_sg_status,
     _stlink_sg_version,
