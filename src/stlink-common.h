@@ -112,6 +112,11 @@ extern "C" {
 /* using chip id for F4 ident, since core id is same as F1 */
 #define STM32F4_CHIP_ID 0x413
 
+/* Cortex™-M3 Technical Reference Manual */
+/* Debug Halting Control and Status Register */
+#define DHCSR 0xe000edf0
+#define DBGKEY 0xa05f0000
+
 /* Enough space to hold both a V2 command or a V1 command packaged as generic scsi*/
 #define C_BUF_LEN 32
 

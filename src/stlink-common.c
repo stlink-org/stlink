@@ -359,6 +359,7 @@ void stlink_close(stlink_t *sl) {
 
 void stlink_exit_debug_mode(stlink_t *sl) {
     DLOG("*** stlink_exit_debug_mode ***\n");
+    stlink_write_debug32(sl, DHCSR, DBGKEY);
     sl->backend->exit_debug_mode(sl);
 }
 

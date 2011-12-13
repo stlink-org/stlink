@@ -135,8 +135,7 @@ int main(int ac, char** av)
  on_error:
   if (sl != NULL)
   {
-    stlink_reset(sl);
-    stlink_run(sl);
+    stlink_exit_debug_mode(sl);
     stlink_close(sl);
   }
 
