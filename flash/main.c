@@ -108,6 +108,7 @@ int main(int ac, char** av)
     stlink_enter_swd_mode(sl);
 
   stlink_reset(sl);
+  stlink_load_device_params(sl);
 
   if (o.do_read == 0) /* write */
   {
@@ -134,8 +135,7 @@ int main(int ac, char** av)
  on_error:
   if (sl != NULL)
   {
-    stlink_reset(sl);
-    stlink_run(sl);
+    stlink_exit_debug_mode(sl);
     stlink_close(sl);
   }
 
