@@ -529,6 +529,17 @@ void stlink_version(stlink_t *sl) {
     }
 }
 
+uint32_t stlink_read_debug32(stlink_t *sl, uint32_t addr) {
+    uint32_t data = sl->backend->read_debug32(sl, addr);
+    DLOG("*** stlink_read_debug32 %x is %#x\n", data, addr);
+    return data;
+}
+
+void stlink_write_debug32(stlink_t *sl, uint32_t addr, uint32_t data) {
+    DLOG("*** stlink_write_debug32 %x to %#x\n", data, addr);
+    sl->backend->write_debug32(sl, addr, data);
+}
+
 void stlink_write_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
     DLOG("*** stlink_write_mem32 %u bytes to %#x\n", len, addr);
     if (len % 4 != 0) {

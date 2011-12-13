@@ -70,6 +70,9 @@ extern "C" {
     // TODO - possible poor names...
 #define STLINK_SWD_ENTER 0x30
 #define STLINK_SWD_READCOREID 0x32  // TBD
+#define STLINK_JTAG_WRITEDEBUG_32BIT 0x35
+#define STLINK_JTAG_READDEBUG_32BIT 0x36
+#define STLINK_JTAG_DRIVE_NRST 0x3c
 #define STLINK_JTAG_DRIVE_NRST 0x3c
 
 // cortex m3 technical reference manual
@@ -272,7 +275,9 @@ extern "C" {
         void (*run) (stlink_t * stl);
         void (*status) (stlink_t * stl);
         void (*version) (stlink_t *sl);
+        uint32_t (*read_debug32) (stlink_t *sl, uint32_t addr);
         void (*read_mem32) (stlink_t *sl, uint32_t addr, uint16_t len);
+        void (*write_debug32) (stlink_t *sl, uint32_t addr, uint32_t data);
         void (*write_mem32) (stlink_t *sl, uint32_t addr, uint16_t len);
         void (*write_mem8) (stlink_t *sl, uint32_t addr, uint16_t len);
         void (*read_all_regs) (stlink_t *sl, reg * regp);
@@ -336,7 +341,9 @@ extern "C" {
     void stlink_run(stlink_t *sl);
     void stlink_status(stlink_t *sl);
     void stlink_version(stlink_t *sl);
+    uint32_t stlink_read_debug32(stlink_t *sl, uint32_t addr);
     void stlink_read_mem32(stlink_t *sl, uint32_t addr, uint16_t len);
+    void stlink_write_debug32(stlink_t *sl, uint32_t addr, uint32_t data);
     void stlink_write_mem32(stlink_t *sl, uint32_t addr, uint16_t len);
     void stlink_write_mem8(stlink_t *sl, uint32_t addr, uint16_t len);
     void stlink_read_all_regs(stlink_t *sl, reg *regp);
