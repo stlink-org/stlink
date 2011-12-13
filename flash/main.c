@@ -108,6 +108,7 @@ int main(int ac, char** av)
     stlink_enter_swd_mode(sl);
 
   stlink_reset(sl);
+  stlink_load_device_params(sl);
 
   if (o.do_read == 0) /* write */
   {

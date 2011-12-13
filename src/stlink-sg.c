@@ -1025,7 +1025,6 @@ stlink_t* stlink_v1_open(const int verbose) {
     }
     // by now, it _must_ be fully open and in a useful mode....
 	stlink_enter_swd_mode(sl);
-    stlink_load_device_params(sl);
     ILOG("Successfully opened a stlink v1 debugger\n");
     return sl;
 }
