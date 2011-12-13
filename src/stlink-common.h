@@ -70,6 +70,10 @@ extern "C" {
     // TODO - possible poor names...
 #define STLINK_SWD_ENTER 0x30
 #define STLINK_SWD_READCOREID 0x32  // TBD
+#define STLINK_JTAG_WRITEDEBUG_32BIT 0x35
+#define STLINK_JTAG_READDEBUG_32BIT 0x36
+#define STLINK_JTAG_DRIVE_NRST 0x3c
+#define STLINK_JTAG_DRIVE_NRST 0x3c
 
 // cortex m3 technical reference manual
 #define CM3_REG_CPUID 0xE000ED00
@@ -107,6 +111,11 @@ extern "C" {
 
 /* using chip id for F4 ident, since core id is same as F1 */
 #define STM32F4_CHIP_ID 0x413
+
+/* Cortex™-M3 Technical Reference Manual */
+/* Debug Halting Control and Status Register */
+#define DHCSR 0xe000edf0
+#define DBGKEY 0xa05f0000
 
 /* Enough space to hold both a V2 command or a V1 command packaged as generic scsi*/
 #define C_BUF_LEN 32
@@ -267,10 +276,13 @@ extern "C" {
         void (*exit_dfu_mode) (stlink_t * stl);
         void (*core_id) (stlink_t * stl);
         void (*reset) (stlink_t * stl);
+        void (*jtag_reset) (stlink_t * stl, int value);
         void (*run) (stlink_t * stl);
         void (*status) (stlink_t * stl);
         void (*version) (stlink_t *sl);
+        uint32_t (*read_debug32) (stlink_t *sl, uint32_t addr);
         void (*read_mem32) (stlink_t *sl, uint32_t addr, uint16_t len);
+        void (*write_debug32) (stlink_t *sl, uint32_t addr, uint32_t data);
         void (*write_mem32) (stlink_t *sl, uint32_t addr, uint16_t len);
         void (*write_mem8) (stlink_t *sl, uint32_t addr, uint16_t len);
         void (*read_all_regs) (stlink_t *sl, reg * regp);
@@ -330,10 +342,13 @@ extern "C" {
     void stlink_close(stlink_t *sl);
     uint32_t stlink_core_id(stlink_t *sl);
     void stlink_reset(stlink_t *sl);
+    void stlink_jtag_reset(stlink_t *sl, int value);
     void stlink_run(stlink_t *sl);
     void stlink_status(stlink_t *sl);
     void stlink_version(stlink_t *sl);
+    uint32_t stlink_read_debug32(stlink_t *sl, uint32_t addr);
     void stlink_read_mem32(stlink_t *sl, uint32_t addr, uint16_t len);
+    void stlink_write_debug32(stlink_t *sl, uint32_t addr, uint32_t data);
     void stlink_write_mem32(stlink_t *sl, uint32_t addr, uint16_t len);
     void stlink_write_mem8(stlink_t *sl, uint32_t addr, uint16_t len);
     void stlink_read_all_regs(stlink_t *sl, reg *regp);
