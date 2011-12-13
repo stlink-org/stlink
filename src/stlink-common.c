@@ -1240,6 +1240,7 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, unsigned 
 #define PROGRESS_CHUNK_SIZE 0x1000
     	/* write a word in program memory */
     	for (off = 0; off < len; off += sizeof(uint32_t)) {
+    		uint32_t data;
     		if (sl->verbose >= 1) {
     			if ((off & (PROGRESS_CHUNK_SIZE - 1)) == 0) {
     				/* show progress. writing procedure is slow
@@ -1250,8 +1251,8 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, unsigned 
     			}
     		}
 
-    		memcpy(sl->q_buf, (const void*)(base + off), sizeof(uint32_t));
-    		stlink_write_mem32(sl, addr + off, sizeof(uint32_t));
+    		write_uint32((unsigned char*) &data, *(uint32_t*) (base + off));
+    		stlink_write_debug32(sl, addr + off, data);
 
     		/* wait for sr.busy to be cleared */
     	    wait_flash_busy(sl);
@@ -1304,6 +1305,7 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, unsigned 
 
     	/* write a word in program memory */
     	for (off = 0; off < len; off += sizeof(uint32_t)) {
+    		uint32_t data;
     		if (sl->verbose >= 1) {
     			if ((off & (sl->flash_pgsz - 1)) == 0) {
     				/* show progress. writing procedure is slow
@@ -1314,8 +1316,8 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, unsigned 
     			}
     		}
 
-    		memcpy(sl->q_buf, (const void*)(base + off), sizeof(uint32_t));
-    		stlink_write_mem32(sl, addr + off, sizeof(uint32_t));
+    		write_uint32((unsigned char*) &data, *(uint32_t*) (base + off));
+    		stlink_write_mem32(sl, addr + off, data);
 
     		/* wait for sr.busy to be cleared */
     		while (stlink_read_debug32(sl, STM32L_FLASH_SR & (1 << 0)) != 0) {
@@ -1324,8 +1326,8 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, unsigned 
 #if 0 /* todo: check redo write operation */
 
     		/* check written bytes. todo: should be on a per page basis. */
-    		stlink_read_mem32(sl, addr + off, sizeof(uint32_t));
-    		if (memcmp(sl->q_buf, base + off, sizeof(uint32_t))) {
+    		data = stlink_read_debug32(sl, addr + off);
+    		if (data == *(uint32_t*)(base + off)) {
     			/* re erase the page and redo the write operation */
     			uint32_t page;
     			uint32_t val;
