@@ -16,8 +16,10 @@ Attached to this mail you'll find the osx folder with the source code of the dri
 10.6.x and 10.7.x), an install.sh script and the modified Makefile, i only added a line at the end which
 invoke the install.sh.
 
-To install the driver the user have only to do:
+First, unpack the osx.tar.gz contents:
+tar xzvf osx.tar.gz
 
+Then, install the driver using:
 sudo make osx_stlink_shield
 
 no reboot required.
