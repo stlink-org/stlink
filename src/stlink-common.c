@@ -812,6 +812,9 @@ int stlink_fread(stlink_t* sl, const char* path, stm32_addr_t addr, size_t size)
         return -1;
     }
 
+    if (size > sl->flash_size)
+	size = sl->flash_size;
+
     /* do the copy by 1k blocks */
     for (off = 0; off < size; off += 1024) {
         size_t read_size = 1024;
