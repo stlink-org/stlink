@@ -803,6 +803,7 @@ int stlink_fread(stlink_t* sl, const char* path, stm32_addr_t addr, size_t size)
 
     int error = -1;
     size_t off;
+    int num_zero = 0;
 
     const int fd = open(path, O_RDWR | O_TRUNC | O_CREAT, 00700);
     if (fd == -1) {
@@ -814,6 +815,7 @@ int stlink_fread(stlink_t* sl, const char* path, stm32_addr_t addr, size_t size)
     for (off = 0; off < size; off += 1024) {
         size_t read_size = 1024;
 	size_t rounded_size;
+	size_t index;
         if ((off + read_size) > size)
 	  read_size = size - off;
 
@@ -824,11 +826,20 @@ int stlink_fread(stlink_t* sl, const char* path, stm32_addr_t addr, size_t size)
 
         stlink_read_mem32(sl, addr + off, rounded_size);
 
+	for(index = 0; index < read_size; index ++) {
+	    if (sl->q_buf[index] == 0)
+		num_zero ++;
+	    else
+		num_zero = 0;
+	}
         if (write(fd, sl->q_buf, read_size) != (ssize_t) read_size) {
             fprintf(stderr, "write() != read_size\n");
             goto on_error;
         }
     }
+
+    /* Ignore NULL Bytes at end of file */
+    ftruncate(fd, size - num_zero);
 
     /* success */
     error = 0;
