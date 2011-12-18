@@ -970,7 +970,7 @@ int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr)
 #endif /* fix_to_be_confirmed */
 
     /* write 0 to the first word of the page to be erased */
-    stlink_write_mem32(sl, flashaddr, 0);
+    stlink_write_debug32(sl, flashaddr, 0);
 
     /* MP: It is better to wait for clearing the busy bit after issuing
     page erase command, even though PM0062 recommends to wait before it.
