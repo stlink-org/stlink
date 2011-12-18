@@ -1245,6 +1245,7 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, unsigned 
     	/* First unlock the cr */
     	unlock_flash_if(sl);
 
+	/* TODO: Check that Voltage range is 2.7 - 3.6 V */
     	/* set parallelisim to 32 bit*/
     	write_flash_cr_psiz(sl, 2);
 
