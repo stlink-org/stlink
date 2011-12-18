@@ -1420,10 +1420,21 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, unsigned 
 int stlink_fwrite_flash(stlink_t *sl, const char* path, stm32_addr_t addr) {
     /* write the file in flash at addr */
     int err;
+    unsigned int num_zero = 0, index;
     mapped_file_t mf = MAPPED_FILE_INITIALIZER;
     if (map_file(&mf, path) == -1) {
         WLOG("map_file() == -1\n");
         return -1;
+    }
+    for(index = 0; index < mf.len; index ++) {
+	if (mf.base[index] == 0)
+	    num_zero ++;
+	else
+	    num_zero = 0;
+    }
+    if(num_zero != 0) {
+	ILOG("Ignoring %d bytes of Zeros at end of file\n",num_zero);
+	mf.len -= num_zero;
     }
     err = stlink_write_flash(sl, addr, mf.base, mf.len);
     unmap_file(&mf);
