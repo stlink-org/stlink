@@ -812,6 +812,9 @@ int stlink_fread(stlink_t* sl, const char* path, stm32_addr_t addr, size_t size)
         return -1;
     }
 
+    if (size <1)
+	size = sl->flash_size;
+
     if (size > sl->flash_size)
 	size = sl->flash_size;
 
