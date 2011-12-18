@@ -160,8 +160,6 @@ int main(int argc, char** argv) {
 		break;
     }
     
-	stlink_reset(sl);
-	stlink_load_device_params(sl);
 	printf("Chip ID is %08x, Core ID is  %08x.\n", sl->chip_id, sl->core_id);
 
 	sl->verbose=0;
