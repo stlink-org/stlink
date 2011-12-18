@@ -1317,10 +1317,10 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, unsigned 
     		}
 
     		write_uint32((unsigned char*) &data, *(uint32_t*) (base + off));
-    		stlink_write_mem32(sl, addr + off, data);
+    		stlink_write_debug32(sl, addr + off, data);
 
     		/* wait for sr.busy to be cleared */
-    		while (stlink_read_debug32(sl, STM32L_FLASH_SR & (1 << 0)) != 0) {
+    		while ((stlink_read_debug32(sl, STM32L_FLASH_SR) & (1 << 0)) != 0) {
     		}
 
 #if 0 /* todo: check redo write operation */
