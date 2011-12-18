@@ -803,7 +803,8 @@ int stlink_fread(stlink_t* sl, const char* path, stm32_addr_t addr, size_t size)
 
     int error = -1;
     size_t off;
-    int num_zero = 0;
+    int num_empty = 0;
+    unsigned char erased_pattern =(sl->chip_id == STM32_CHIPID_L1_MEDIUM)?0:0xff;
 
     const int fd = open(path, O_RDWR | O_TRUNC | O_CREAT, 00700);
     if (fd == -1) {
@@ -827,10 +828,10 @@ int stlink_fread(stlink_t* sl, const char* path, stm32_addr_t addr, size_t size)
         stlink_read_mem32(sl, addr + off, rounded_size);
 
 	for(index = 0; index < read_size; index ++) {
-	    if (sl->q_buf[index] == 0)
-		num_zero ++;
+	    if (sl->q_buf[index] == erased_pattern)
+		num_empty ++;
 	    else
-		num_zero = 0;
+		num_empty = 0;
 	}
         if (write(fd, sl->q_buf, read_size) != (ssize_t) read_size) {
             fprintf(stderr, "write() != read_size\n");
@@ -839,7 +840,7 @@ int stlink_fread(stlink_t* sl, const char* path, stm32_addr_t addr, size_t size)
     }
 
     /* Ignore NULL Bytes at end of file */
-    ftruncate(fd, size - num_zero);
+    ftruncate(fd, size - num_empty);
 
     /* success */
     error = 0;
@@ -1420,21 +1421,22 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, unsigned 
 int stlink_fwrite_flash(stlink_t *sl, const char* path, stm32_addr_t addr) {
     /* write the file in flash at addr */
     int err;
-    unsigned int num_zero = 0, index;
+    unsigned int num_empty = 0, index;
+    unsigned char erased_pattern =(sl->chip_id == STM32_CHIPID_L1_MEDIUM)?0:0xff;
     mapped_file_t mf = MAPPED_FILE_INITIALIZER;
     if (map_file(&mf, path) == -1) {
         WLOG("map_file() == -1\n");
         return -1;
     }
     for(index = 0; index < mf.len; index ++) {
-	if (mf.base[index] == 0)
-	    num_zero ++;
+	if (mf.base[index] == erased_pattern)
+	    num_empty ++;
 	else
-	    num_zero = 0;
+	    num_empty = 0;
     }
-    if(num_zero != 0) {
-	ILOG("Ignoring %d bytes of Zeros at end of file\n",num_zero);
-	mf.len -= num_zero;
+    if(num_empty != 0) {
+	ILOG("Ignoring %d bytes of Zeros at end of file\n",num_empty);
+	mf.len -= num_empty;
     }
     err = stlink_write_flash(sl, addr, mf.base, mf.len);
     unmap_file(&mf);
