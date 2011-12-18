@@ -368,9 +368,7 @@ uint32_t stlink_core_id(stlink_t *sl) {
 }
 
 uint32_t stlink_chip_id(stlink_t *sl) {
-    stlink_read_mem32(sl, 0xE0042000, 4);
-    uint32_t chip_id = sl->q_buf[0] | (sl->q_buf[1] << 8) | (sl->q_buf[2] << 16) |
-            (sl->q_buf[3] << 24);
+    uint32_t chip_id = stlink_read_debug32(sl, 0xE0042000);
     return chip_id;
 }
 
@@ -380,8 +378,7 @@ uint32_t stlink_chip_id(stlink_t *sl) {
  * @param cpuid pointer to the result object
  */
 void stlink_cpu_id(stlink_t *sl, cortex_m3_cpuid_t *cpuid) {
-    stlink_read_mem32(sl, CM3_REG_CPUID, 4);
-    uint32_t raw = read_uint32(sl->q_buf, 0);
+    uint32_t raw = stlink_read_debug32(sl, CM3_REG_CPUID);
     cpuid->implementer_id = (raw >> 24) & 0x7f;
     cpuid->variant = (raw >> 20) & 0xf;
     cpuid->part = (raw >> 4) & 0xfff;
@@ -428,8 +425,7 @@ int stlink_load_device_params(stlink_t *sl) {
     } else if ((chip_id & 0xFFF) == STM32_CHIPID_F4) {
 		sl->flash_size = 0x100000;			//todo: RM0090 error; size register same address as unique ID
     } else {
-        stlink_read_mem32(sl, params->flash_size_reg, 4);
-        uint32_t flash_size = sl->q_buf[0] | (sl->q_buf[1] << 8);
+        uint32_t flash_size = stlink_read_debug32(sl, params->flash_size_reg) & 0xffff;
         sl->flash_size = flash_size * 1024;
     }
     sl->flash_pgsz = params->flash_pagesize;
