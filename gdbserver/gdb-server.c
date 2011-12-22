@@ -18,6 +18,7 @@
 #include <signal.h>
 
 #include <stlink-common.h>
+#include "uglylogging.h"
 
 #include "gdb-remote.h"
 
@@ -159,8 +160,12 @@ int main(int argc, char** argv) {
 		if(sl == NULL) return 1;
 		break;
     }
-    
-	printf("Chip ID is %08x, Core ID is  %08x.\n", sl->chip_id, sl->core_id);
+
+	if(stlink_load_device_params(sl)){
+		ugly_log(UFATAL,__FILE__,"Could not read device parameters. Aborting\n");
+		return 1;}
+	else
+		ugly_log(UDEBUG,__FILE__,"Chip ID is %08x, Core ID is  %08x.\n", sl->chip_id, sl->core_id);
 
 	sl->verbose=0;
 
