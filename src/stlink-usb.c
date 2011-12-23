@@ -701,6 +701,8 @@ stlink_t* stlink_open_usb(const int verbose) {
       stlink_enter_swd_mode(sl);
     }
 
+    stlink_reset(sl);
+    stlink_load_device_params(sl);
     stlink_version(sl);
 
     error = 0;

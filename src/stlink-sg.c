@@ -985,6 +985,8 @@ stlink_t* stlink_v1_open_inner(const int verbose) {
         return NULL;
     }
 
+    stlink_reset(sl);
+    stlink_load_device_params(sl);
     stlink_version(sl);
     if ((sl->version.st_vid != USB_ST_VID) || (sl->version.stlink_pid != USB_STLINK_PID)) {
         ugly_log(UERROR, LOG_TAG, 

@@ -107,9 +107,6 @@ int main(int ac, char** av)
   if (stlink_current_mode(sl) != STLINK_DEV_DEBUG_MODE)
     stlink_enter_swd_mode(sl);
 
-  stlink_reset(sl);
-  stlink_load_device_params(sl);
-
   if (o.do_read == 0) /* write */
   {
     err = stlink_fwrite_flash(sl, o.filename, o.addr);

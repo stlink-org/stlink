@@ -368,9 +368,7 @@ uint32_t stlink_core_id(stlink_t *sl) {
 }
 
 uint32_t stlink_chip_id(stlink_t *sl) {
-    stlink_read_mem32(sl, 0xE0042000, 4);
-    uint32_t chip_id = sl->q_buf[0] | (sl->q_buf[1] << 8) | (sl->q_buf[2] << 16) |
-            (sl->q_buf[3] << 24);
+    uint32_t chip_id = stlink_read_debug32(sl, 0xE0042000);
     return chip_id;
 }
 
@@ -380,8 +378,7 @@ uint32_t stlink_chip_id(stlink_t *sl) {
  * @param cpuid pointer to the result object
  */
 void stlink_cpu_id(stlink_t *sl, cortex_m3_cpuid_t *cpuid) {
-    stlink_read_mem32(sl, CM3_REG_CPUID, 4);
-    uint32_t raw = read_uint32(sl->q_buf, 0);
+    uint32_t raw = stlink_read_debug32(sl, CM3_REG_CPUID);
     cpuid->implementer_id = (raw >> 24) & 0x7f;
     cpuid->variant = (raw >> 20) & 0xf;
     cpuid->part = (raw >> 4) & 0xfff;
@@ -428,8 +425,7 @@ int stlink_load_device_params(stlink_t *sl) {
     } else if ((chip_id & 0xFFF) == STM32_CHIPID_F4) {
 		sl->flash_size = 0x100000;			//todo: RM0090 error; size register same address as unique ID
     } else {
-        stlink_read_mem32(sl, params->flash_size_reg, 4);
-        uint32_t flash_size = sl->q_buf[0] | (sl->q_buf[1] << 8);
+        uint32_t flash_size = stlink_read_debug32(sl, params->flash_size_reg) & 0xffff;
         sl->flash_size = flash_size * 1024;
     }
     sl->flash_pgsz = params->flash_pagesize;
@@ -807,6 +803,8 @@ int stlink_fread(stlink_t* sl, const char* path, stm32_addr_t addr, size_t size)
 
     int error = -1;
     size_t off;
+    int num_empty = 0;
+    unsigned char erased_pattern =(sl->chip_id == STM32_CHIPID_L1_MEDIUM)?0:0xff;
 
     const int fd = open(path, O_RDWR | O_TRUNC | O_CREAT, 00700);
     if (fd == -1) {
@@ -814,10 +812,17 @@ int stlink_fread(stlink_t* sl, const char* path, stm32_addr_t addr, size_t size)
         return -1;
     }
 
+    if (size <1)
+	size = sl->flash_size;
+
+    if (size > sl->flash_size)
+	size = sl->flash_size;
+
     /* do the copy by 1k blocks */
     for (off = 0; off < size; off += 1024) {
         size_t read_size = 1024;
 	size_t rounded_size;
+	size_t index;
         if ((off + read_size) > size)
 	  read_size = size - off;
 
@@ -828,11 +833,20 @@ int stlink_fread(stlink_t* sl, const char* path, stm32_addr_t addr, size_t size)
 
         stlink_read_mem32(sl, addr + off, rounded_size);
 
+	for(index = 0; index < read_size; index ++) {
+	    if (sl->q_buf[index] == erased_pattern)
+		num_empty ++;
+	    else
+		num_empty = 0;
+	}
         if (write(fd, sl->q_buf, read_size) != (ssize_t) read_size) {
             fprintf(stderr, "write() != read_size\n");
             goto on_error;
         }
     }
+
+    /* Ignore NULL Bytes at end of file */
+    ftruncate(fd, size - num_empty);
 
     /* success */
     error = 0;
@@ -970,7 +984,7 @@ int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr)
 #endif /* fix_to_be_confirmed */
 
     /* write 0 to the first word of the page to be erased */
-    stlink_write_mem32(sl, flashaddr, 0);
+    stlink_write_debug32(sl, flashaddr, 0);
 
     /* MP: It is better to wait for clearing the busy bit after issuing
     page erase command, even though PM0062 recommends to wait before it.
@@ -1231,6 +1245,7 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, unsigned 
     	/* First unlock the cr */
     	unlock_flash_if(sl);
 
+	/* TODO: Check that Voltage range is 2.7 - 3.6 V */
     	/* set parallelisim to 32 bit*/
     	write_flash_cr_psiz(sl, 2);
 
@@ -1317,10 +1332,10 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, unsigned 
     		}
 
     		write_uint32((unsigned char*) &data, *(uint32_t*) (base + off));
-    		stlink_write_mem32(sl, addr + off, data);
+    		stlink_write_debug32(sl, addr + off, data);
 
     		/* wait for sr.busy to be cleared */
-    		while (stlink_read_debug32(sl, STM32L_FLASH_SR & (1 << 0)) != 0) {
+    		while ((stlink_read_debug32(sl, STM32L_FLASH_SR) & (1 << 0)) != 0) {
     		}
 
 #if 0 /* todo: check redo write operation */
@@ -1413,10 +1428,22 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, unsigned 
 int stlink_fwrite_flash(stlink_t *sl, const char* path, stm32_addr_t addr) {
     /* write the file in flash at addr */
     int err;
+    unsigned int num_empty = 0, index;
+    unsigned char erased_pattern =(sl->chip_id == STM32_CHIPID_L1_MEDIUM)?0:0xff;
     mapped_file_t mf = MAPPED_FILE_INITIALIZER;
     if (map_file(&mf, path) == -1) {
         WLOG("map_file() == -1\n");
         return -1;
+    }
+    for(index = 0; index < mf.len; index ++) {
+	if (mf.base[index] == erased_pattern)
+	    num_empty ++;
+	else
+	    num_empty = 0;
+    }
+    if(num_empty != 0) {
+	ILOG("Ignoring %d bytes of Zeros at end of file\n",num_empty);
+	mf.len -= num_empty;
     }
     err = stlink_write_flash(sl, addr, mf.base, mf.len);
     unmap_file(&mf);
