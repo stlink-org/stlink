@@ -985,8 +985,6 @@ stlink_t* stlink_v1_open_inner(const int verbose) {
         return NULL;
     }
 
-    stlink_reset(sl);
-    stlink_load_device_params(sl);
     stlink_version(sl);
     if ((sl->version.st_vid != USB_ST_VID) || (sl->version.stlink_pid != USB_STLINK_PID)) {
         ugly_log(UERROR, LOG_TAG, 
@@ -1016,6 +1014,7 @@ stlink_t* stlink_v1_open_inner(const int verbose) {
             "WTF? successfully opened, but unable to read version details. BROKEN!\n");
         return NULL;
     }
+
     return sl;
 }
 
@@ -1027,6 +1026,9 @@ stlink_t* stlink_v1_open(const int verbose) {
     }
     // by now, it _must_ be fully open and in a useful mode....
 	stlink_enter_swd_mode(sl);
+    /* Now we are ready to read the parameters  */
+    stlink_reset(sl);
+    stlink_load_device_params(sl);
     ILOG("Successfully opened a stlink v1 debugger\n");
     return sl;
 }
