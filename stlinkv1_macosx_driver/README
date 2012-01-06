@@ -17,12 +17,20 @@ Attached to this mail you'll find the osx folder with the source code of the dri
 
 == Update 4.1.2012 Fritz ==
 
-I changed the installation from the install.sh script to standard package which I made with the "PackageMaker" tool
-(standard in the MacOS Development). 
+I changed the installation from the install.sh script to a standard package which I made with 
+the "PackageMaker" tool (standard in the MacOS Development). 
 
-The packagemaker expects the kernel extensions for 10.6 and 10.7 in the Release Directory. So you need
-to build the Extensions with the XCode Environment, then build the package with the packagemaker. 
+The packagemaker expects the kernel extensions for 10.6 and 10.7 in the /tmp directory. So you need
+to build the Extensions with the XCode Environment, then build the package with the packagemaker. This
+is done with the provided Makefile. 
 
-If you do not want to do that you can simply install the package by double-clicking from the finder..
+The build process does not require root privilige. The settings for packagemaker are stored in the
+pmdoc directory. For whatever stupid reason each file in the stlink_shield package is named individually
+there together with the modified ownership (root:wheel) in the destination location. So when you 
+add or remove files in the project, you need to the rerun packagemaker gui and adapt the files.
 
+Another stupid thing is that the location of the source files are stored in absolute paths in the pmdoc
+directory. So I arranged the files in the tmp directory.  
+
+To install the package you can double-click in the finder. 
 
