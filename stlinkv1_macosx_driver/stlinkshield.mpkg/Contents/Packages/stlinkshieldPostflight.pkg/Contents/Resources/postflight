@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+RESULT=`/sbin/kextload -b 'com.libusb.stlink_shield'`
+
+exit 0
