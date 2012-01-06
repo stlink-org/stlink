@@ -13,13 +13,16 @@ I tested this codeless driver under OS X 10.6.8 and 10.7.2. I assume it works wi
 version as well.
 
 Attached to this mail you'll find the osx folder with the source code of the driver, both drivers (for
-10.6.x and 10.7.x), an install.sh script and the modified Makefile, i only added a line at the end which
-invoke the install.sh.
+10.6.x and 10.7.x). no reboot required.
 
-First, unpack the osx.tar.gz contents:
-tar xzvf osx.tar.gz
+== Update 4.1.2012 Fritz ==
 
-Then, install the driver using:
-sudo make osx_stlink_shield
+I changed the installation from the install.sh script to standard package which I made with the "PackageMaker" tool
+(standard in the MacOS Development). 
 
-no reboot required.
+The packagemaker expects the kernel extensions for 10.6 and 10.7 in the Release Directory. So you need
+to build the Extensions with the XCode Environment, then build the package with the packagemaker. 
+
+If you do not want to do that you can simply install the package by double-clicking from the finder..
+
+
