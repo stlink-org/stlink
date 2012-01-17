@@ -537,6 +537,11 @@ void stlink_read_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
 
 void stlink_write_mem8(stlink_t *sl, uint32_t addr, uint16_t len) {
     DLOG("*** stlink_write_mem8 ***\n");
+    if (len > 0x40 ) { // !!! never ever: Writing more then 0x40 bytes gives unexpected behaviour
+        fprintf(stderr, "Error: Data length > 64: +%d byte.\n",
+                len);
+        return;
+    }
     sl->backend->write_mem8(sl, addr, len);
 }
 
