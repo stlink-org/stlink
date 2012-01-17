@@ -864,8 +864,16 @@ on_error:
 
 int write_buffer_to_sram(stlink_t *sl, flash_loader_t* fl, const uint8_t* buf, size_t size) {
     /* write the buffer right after the loader */
-    memcpy(sl->q_buf, buf, size);
-    stlink_write_mem8(sl, fl->buf_addr, size);
+    size_t chunk = size & ~0x3;
+    size_t rem   = size & 0x3;
+    if (chunk) {
+        memcpy(sl->q_buf, buf, chunk);
+        stlink_write_mem32(sl, fl->buf_addr, chunk);
+    }
+    if (rem) {
+        memcpy(sl->q_buf, buf+chunk, rem);
+        stlink_write_mem8(sl, (fl->buf_addr)+chunk, rem);
+    }
     return 0;
 }
 
