@@ -181,7 +181,7 @@ static int unlock_flash_if(stlink_t *sl) {
             return -1;
         }
     }
-    ILOG("Successfully unlocked flash\n");
+    DLOG("Successfully unlocked flash\n");
     return 0;
 }
 
@@ -1454,15 +1454,11 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, unsigned 
             return -1;
         }
 
-        /* write each page. above WRITE_BLOCK_SIZE fails? */
-#define WRITE_BLOCK_SIZE 0x40
         int write_block_count = 0;
-        for (off = 0; off < len; off += WRITE_BLOCK_SIZE) {
-            ILOG("Writing flash block %d of size %d (%#x)\n", write_block_count,
-                WRITE_BLOCK_SIZE, WRITE_BLOCK_SIZE);
+        for (off = 0; off < len; off += sl->flash_pgsz) {
             /* adjust last write size */
-            size_t size = WRITE_BLOCK_SIZE;
-            if ((off + WRITE_BLOCK_SIZE) > len) size = len - off;
+            size_t size = sl->flash_pgsz;
+            if ((off + sl->flash_pgsz) > len) size = len - off;
 
             /* unlock and set programming mode */
             unlock_flash_if(sl);
@@ -1473,8 +1469,14 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, unsigned 
                 return -1;
             }
             lock_flash(sl);
-            DLOG("Finished writing block %d\n", write_block_count++);
+            if (sl->verbose >= 1) {
+                /* show progress. writing procedure is slow
+                   and previous errors are misleading */
+                fprintf(stdout, "\r%3u/%lu pages written", write_block_count++, len/sl->flash_pgsz);
+                fflush(stdout);
+            }
         }
+        fprintf(stdout, "\n");
     } else {
         WLOG("unknown coreid, not sure how to write: %x\n", sl->core_id);
         return -1;
