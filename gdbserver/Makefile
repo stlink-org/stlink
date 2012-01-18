@@ -6,7 +6,7 @@ LDFLAGS=-L.. -lstlink -lusb-1.0
 
 all: $(PRG)
 
-$(PRG): $(OBJS)  ../libstlink.a
+$(PRG): $(OBJS) ../libstlink.a
 	$(CC) -o $@  $^ $(LDFLAGS)
 
 clean:

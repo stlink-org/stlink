@@ -203,7 +203,7 @@ uint32_t _stlink_usb_read_debug32(stlink_t *sl, uint32_t addr) {
     size = send_recv(slu, 1, cmd, slu->cmd_len, rdata, rep_len);
     if (size == -1) {
         printf("[!] send_recv\n");
-        return;
+        return 0;
     }
     return read_uint32(rdata, 4);
 }
