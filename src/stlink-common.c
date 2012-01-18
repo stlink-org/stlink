@@ -59,8 +59,10 @@
 #define STM32L_FLASH_PRGKEYR (STM32L_FLASH_REGS_ADDR + 0x10)
 #define STM32L_FLASH_OPTKEYR (STM32L_FLASH_REGS_ADDR + 0x14)
 #define STM32L_FLASH_SR (STM32L_FLASH_REGS_ADDR + 0x18)
-#define STM32L_FLASH_OBR (STM32L_FLASH_REGS_ADDR + 0x0c)
+#define STM32L_FLASH_OBR (STM32L_FLASH_REGS_ADDR + 0x1c)
 #define STM32L_FLASH_WRPR (STM32L_FLASH_REGS_ADDR + 0x20)
+#define FLASH_L1_FPRG 10
+#define FLASH_L1_PROG 3
 
 
 //STM32F4
@@ -179,7 +181,7 @@ static int unlock_flash_if(stlink_t *sl) {
             return -1;
         }
     }
-    ILOG("Successfully unlocked flash\n");
+    DLOG("Successfully unlocked flash\n");
     return 0;
 }
 
@@ -537,6 +539,11 @@ void stlink_read_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
 
 void stlink_write_mem8(stlink_t *sl, uint32_t addr, uint16_t len) {
     DLOG("*** stlink_write_mem8 ***\n");
+    if (len > 0x40 ) { // !!! never ever: Writing more then 0x40 bytes gives unexpected behaviour
+        fprintf(stderr, "Error: Data length > 64: +%d byte.\n",
+                len);
+        return;
+    }
     sl->backend->write_mem8(sl, addr, len);
 }
 
@@ -859,8 +866,16 @@ on_error:
 
 int write_buffer_to_sram(stlink_t *sl, flash_loader_t* fl, const uint8_t* buf, size_t size) {
     /* write the buffer right after the loader */
-    memcpy(sl->q_buf, buf, size);
-    stlink_write_mem8(sl, fl->buf_addr, size);
+    size_t chunk = size & ~0x3;
+    size_t rem   = size & 0x3;
+    if (chunk) {
+        memcpy(sl->q_buf, buf, chunk);
+        stlink_write_mem32(sl, fl->buf_addr, chunk);
+    }
+    if (rem) {
+        memcpy(sl->q_buf, buf+chunk, rem);
+        stlink_write_mem8(sl, (fl->buf_addr)+chunk, rem);
+    }
     return 0;
 }
 
@@ -893,7 +908,6 @@ uint32_t stlink_calculate_pagesize(stlink_t *sl, uint32_t flashaddr){
  */
 int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr)
 {
-  ILOG("Erasing flash page at addr: %#x\n", flashaddr);
   if (sl->chip_id == STM32F4_CHIP_ID)
   {
     /* wait for ongoing op to finish */
@@ -1200,6 +1214,57 @@ int stlink_verify_write_flash(stlink_t *sl, stm32_addr_t address, uint8_t *data,
 
 }
 
+int stm32l1_write_half_pages(stlink_t *sl, stm32_addr_t addr, uint8_t* base, unsigned num_half_pages)
+{        
+    unsigned int count;
+    uint32_t val;
+    flash_loader_t fl;
+   
+    ILOG("Starting Half page flash write for STM32L core id\n");
+    /* flash loader initialization */
+    if (init_flash_loader(sl, &fl) == -1) {
+        WLOG("init_flash_loader() == -1\n");
+        return -1;
+    }
+    /* Unlock already done */
+    val = stlink_read_debug32(sl, STM32L_FLASH_PECR);
+    val |= (1 << FLASH_L1_FPRG);
+    stlink_write_debug32(sl, STM32L_FLASH_PECR, val);
+    
+    val |= (1 << FLASH_L1_PROG);
+    stlink_write_debug32(sl, STM32L_FLASH_PECR, val);
+    while ((stlink_read_debug32(sl, STM32L_FLASH_SR) & (1 << 0)) != 0) {}
+
+#define L1_WRITE_BLOCK_SIZE 0x80
+    for (count = 0; count  < num_half_pages; count ++) {
+        if (run_flash_loader(sl, &fl, addr + count * L1_WRITE_BLOCK_SIZE, base + count * L1_WRITE_BLOCK_SIZE, L1_WRITE_BLOCK_SIZE) == -1) {
+            WLOG("l1_run_flash_loader(%#zx) failed! == -1\n", addr + count * L1_WRITE_BLOCK_SIZE);
+            val = stlink_read_debug32(sl, STM32L_FLASH_PECR);
+            val &= ~((1 << FLASH_L1_FPRG) |(1 << FLASH_L1_PROG));
+            stlink_write_debug32(sl, STM32L_FLASH_PECR, val);
+            return -1;
+        }
+        /* wait for sr.busy to be cleared */
+        if (sl->verbose >= 1) {
+            /* show progress. writing procedure is slow
+               and previous errors are misleading */
+            fprintf(stdout, "\r%3u/%u halfpages written", count, num_half_pages);
+            fflush(stdout);
+        }
+        while ((stlink_read_debug32(sl, STM32L_FLASH_SR) & (1 << 0)) != 0) {
+        }
+    }
+    fprintf(stdout, "\n");
+    val = stlink_read_debug32(sl, STM32L_FLASH_PECR);
+    val &= ~(1 << FLASH_L1_PROG);
+    stlink_write_debug32(sl, STM32L_FLASH_PECR, val);
+    val = stlink_read_debug32(sl, STM32L_FLASH_PECR);
+    val &= ~(1 << FLASH_L1_FPRG);
+    stlink_write_debug32(sl, STM32L_FLASH_PECR, val);
+
+    return 0;
+}
+
 int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, unsigned len) {
     size_t off;
     flash_loader_t fl;
@@ -1234,8 +1299,11 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, unsigned 
             WLOG("Failed to erase_flash_page(%#zx) == -1\n", addr + off);
             return -1;
         }
+        fprintf(stdout,"\rFlash page at addr: 0x%08lx erased", addr + off);
+        fflush(stdout);
         page_count++;
     }
+    fprintf(stdout,"\n");
     ILOG("Finished erasing %d pages of %d (%#x) bytes\n", 
         page_count, sl->flash_pgsz, sl->flash_pgsz);
 
@@ -1317,20 +1385,16 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, unsigned 
     		fprintf(stderr, "pecr.prglock not clear\n");
     		return -1;
     	}
+        if (len > L1_WRITE_BLOCK_SIZE) {
+            if (stm32l1_write_half_pages(sl, addr, base, len/L1_WRITE_BLOCK_SIZE) == -1){
+                WLOG("\nwrite_half_pages failed == -1\n");
+                return -1;
+            }
+        }  
 
-    	/* write a word in program memory */
-    	for (off = 0; off < len; off += sizeof(uint32_t)) {
+    	/* write remainingword in program memory */
+    	for (off = (len /L1_WRITE_BLOCK_SIZE)*L1_WRITE_BLOCK_SIZE; off < len; off += sizeof(uint32_t)) {
     		uint32_t data;
-    		if (sl->verbose >= 1) {
-    			if ((off & (sl->flash_pgsz - 1)) == 0) {
-    				/* show progress. writing procedure is slow
-				   and previous errors are misleading */
-    				const uint32_t pgnum = off / sl->flash_pgsz;
-    				const uint32_t pgcount = len / sl->flash_pgsz;
-    				fprintf(stdout, "%u pages written out of %u\n", pgnum, pgcount);
-    			}
-    		}
-
     		write_uint32((unsigned char*) &data, *(uint32_t*) (base + off));
     		stlink_write_debug32(sl, addr + off, data);
 
@@ -1377,6 +1441,7 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, unsigned 
 
 #endif /* todo: check redo write operation */
     	}
+        fprintf(stdout, "\n");
     	/* reset lock bits */
     	val = stlink_read_debug32(sl, STM32L_FLASH_PECR)
              | (1 << 0) | (1 << 1) | (1 << 2);
@@ -1389,15 +1454,11 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, unsigned 
             return -1;
         }
 
-        /* write each page. above WRITE_BLOCK_SIZE fails? */
-#define WRITE_BLOCK_SIZE 0x40
         int write_block_count = 0;
-        for (off = 0; off < len; off += WRITE_BLOCK_SIZE) {
-            ILOG("Writing flash block %d of size %d (%#x)\n", write_block_count,
-                WRITE_BLOCK_SIZE, WRITE_BLOCK_SIZE);
+        for (off = 0; off < len; off += sl->flash_pgsz) {
             /* adjust last write size */
-            size_t size = WRITE_BLOCK_SIZE;
-            if ((off + WRITE_BLOCK_SIZE) > len) size = len - off;
+            size_t size = sl->flash_pgsz;
+            if ((off + sl->flash_pgsz) > len) size = len - off;
 
             /* unlock and set programming mode */
             unlock_flash_if(sl);
@@ -1408,8 +1469,14 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, unsigned 
                 return -1;
             }
             lock_flash(sl);
-            DLOG("Finished writing block %d\n", write_block_count++);
+            if (sl->verbose >= 1) {
+                /* show progress. writing procedure is slow
+                   and previous errors are misleading */
+                fprintf(stdout, "\r%3u/%lu pages written", write_block_count++, len/sl->flash_pgsz);
+                fflush(stdout);
+            }
         }
+        fprintf(stdout, "\n");
     } else {
         WLOG("unknown coreid, not sure how to write: %x\n", sl->core_id);
         return -1;
@@ -1453,6 +1520,7 @@ int stlink_fwrite_flash(stlink_t *sl, const char* path, stm32_addr_t addr) {
 int run_flash_loader(stlink_t *sl, flash_loader_t* fl, stm32_addr_t target, const uint8_t* buf, size_t size) {
 
     reg rr;
+    int i = 0;
     DLOG("Running flash loader, write address:%#x, size: %zd\n", target, size);
     // FIXME This can never return -1
     if (write_buffer_to_sram(sl, fl, buf, size) == -1) {
@@ -1470,7 +1538,6 @@ int run_flash_loader(stlink_t *sl, flash_loader_t* fl, stm32_addr_t target, cons
       stlink_write_reg(sl, target, 0); /* target */
       stlink_write_reg(sl, fl->buf_addr, 1); /* source */
       stlink_write_reg(sl, count, 2); /* count (32 bits words) */
-      stlink_write_reg(sl, 0, 3); /* output count */
       stlink_write_reg(sl, fl->loader_addr, 15); /* pc register */
 
     } else if (sl->core_id == STM32VL_CORE_ID) {
@@ -1494,8 +1561,16 @@ int run_flash_loader(stlink_t *sl, flash_loader_t* fl, stm32_addr_t target, cons
     stlink_run(sl);
 
     /* wait until done (reaches breakpoint) */
-    while (is_core_halted(sl) == 0) ;
+    while ((is_core_halted(sl) == 0) && (i <10000))
+    {
+        i++;
+    }
 
+    if ( i > 9999) {
+        fprintf(stderr, "run error\n");
+        return -1;
+    }
+        
     /* check written byte count */
     if (sl->core_id == STM32L_CORE_ID) {
 
