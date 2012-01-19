@@ -109,7 +109,12 @@ int main(int ac, char** av)
 
   if (o.do_read == 0) /* write */
   {
-    err = stlink_fwrite_flash(sl, o.filename, o.addr);
+    if ((o.addr >= sl->flash_base) &&
+	(o.addr < sl->flash_base + sl->flash_size))
+	err = stlink_fwrite_flash(sl, o.filename, o.addr);
+    else if ((o.addr >= sl->sram_base) &&
+	     (o.addr < sl->sram_base + sl->sram_size))
+	err = stlink_fwrite_sram(sl, o.filename, o.addr);
     if (err == -1)
     {
       printf("stlink_fwrite_flash() == -1\n");
