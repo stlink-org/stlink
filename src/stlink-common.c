@@ -405,9 +405,9 @@ int stlink_load_device_params(stlink_t *sl) {
       chip_id = 0x413;
     }
 
-    sl->chip_id = chip_id;
+    sl->chip_id = chip_id & 0xfff;
 	for(size_t i = 0; i < sizeof(devices) / sizeof(devices[0]); i++) {
-		if(devices[i].chip_id == (chip_id & 0xFFF)) {
+		if(devices[i].chip_id == sl->chip_id) {
 			params = &devices[i];
 			break;
 		}
@@ -422,9 +422,9 @@ int stlink_load_device_params(stlink_t *sl) {
     sl->sram_base = STM32_SRAM_BASE;
     
     // read flash size from hardware, if possible...
-    if ((chip_id & 0xFFF) == STM32_CHIPID_F2) {
+    if (sl->chip_id == STM32_CHIPID_F2) {
         sl->flash_size = 0; // FIXME - need to work this out some other way, just set to max possible?
-    } else if ((chip_id & 0xFFF) == STM32_CHIPID_F4) {
+    } else if (sl->chip_id == STM32_CHIPID_F4) {
 		sl->flash_size = 0x100000;			//todo: RM0090 error; size register same address as unique ID
     } else {
         uint32_t flash_size = stlink_read_debug32(sl, params->flash_size_reg) & 0xffff;
@@ -1185,7 +1185,7 @@ int stlink_fcheck_flash(stlink_t *sl, const char* path, stm32_addr_t addr) {
  */
 int stlink_verify_write_flash(stlink_t *sl, stm32_addr_t address, uint8_t *data, unsigned length) {
     size_t off;
-    if ((sl->chip_id & 0xFFF) == STM32_CHIPID_F4) {
+    if (sl->chip_id == STM32_CHIPID_F4) {
         DLOG("(FIXME)Skipping verification for F4, not enough ram (yet)\n");
         return 0;
     }
