@@ -9,10 +9,10 @@
 #include <sys/types.h>
 #include "stlink-common.h"
 
-
+enum st_cmds {DO_WRITE = 0, DO_READ = 1, DO_ERASE = 2};
 struct opts
 {
-  unsigned int do_read;
+  enum st_cmds cmd;
   const char* devname;
   const char* filename;
   stm32_addr_t addr;
@@ -22,7 +22,9 @@ struct opts
 static void usage(void)
 {
     puts("stlinkv1 command line: ./flash {read|write} /dev/sgX path addr <size>");
+    puts("stlinkv1 command line: ./flash /dev/sgX erase");
     puts("stlinkv2 command line: ./flash {read|write} path addr <size>");
+    puts("stlinkv2 command line: ./flash erase");
     puts("                       use hex format for addr and <size>");
 }
 
@@ -33,38 +35,52 @@ static int get_opts(struct opts* o, int ac, char** av)
 
   unsigned int i = 0;
 
-  if (ac < 3) return -1;
+  if (ac < 1) return -1;
 
   /* stlinkv2 */
   o->devname = NULL;
 
-  if (strcmp(av[0], "read") == 0)
+  if (strcmp(av[0], "erase") == 0)
   {
-    o->do_read = 1;
+    o->cmd = DO_ERASE;
 
     /* stlinkv1 mode */
-    if (ac == 5)
-    {
-      o->devname = av[1];
-      i = 1;
-    }
-    if (ac > 3)
-	o->size = strtoul(av[i + 3], NULL, 16);
-  }
-  else if (strcmp(av[0], "write") == 0)
-  {
-    o->do_read = 0;
-
-    /* stlinkv1 mode */
-    if (ac == 4)
+    if (ac == 2)
     {
       o->devname = av[1];
       i = 1;
     }
   }
-  else
-  {
-    return -1;
+  else {
+      if (ac < 3) return -1;
+      if (strcmp(av[0], "read") == 0)
+      {
+	  o->cmd = DO_READ;
+	  
+	  /* stlinkv1 mode */
+	  if (ac == 5)
+	  {
+	      o->devname = av[1];
+	      i = 1;
+	  }
+	  if (ac > 3)
+	      o->size = strtoul(av[i + 3], NULL, 16);
+      }
+      else if (strcmp(av[0], "write") == 0)
+      {
+	  o->cmd = DO_WRITE;
+	  
+	  /* stlinkv1 mode */
+	  if (ac == 4)
+	  {
+	      o->devname = av[1];
+	      i = 1;
+	  }
+      }
+      else
+      {
+	  return -1;
+      }
   }
 
   o->filename = av[i + 1];
@@ -107,7 +123,7 @@ int main(int ac, char** av)
   if (stlink_current_mode(sl) != STLINK_DEV_DEBUG_MODE)
     stlink_enter_swd_mode(sl);
 
-  if (o.do_read == 0) /* write */
+  if (o.cmd == DO_WRITE) /* write */
   {
     if ((o.addr >= sl->flash_base) &&
 	(o.addr < sl->flash_base + sl->flash_size))
@@ -115,6 +131,15 @@ int main(int ac, char** av)
     else if ((o.addr >= sl->sram_base) &&
 	     (o.addr < sl->sram_base + sl->sram_size))
 	err = stlink_fwrite_sram(sl, o.filename, o.addr);
+    if (err == -1)
+    {
+      printf("stlink_fwrite_flash() == -1\n");
+      goto on_error;
+    }
+  }
+  else if (o.cmd == DO_ERASE) 
+  {
+     err = stlink_erase_flash_mass(sl);
     if (err == -1)
     {
       printf("stlink_fwrite_flash() == -1\n");

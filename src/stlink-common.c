@@ -1053,26 +1053,44 @@ int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr)
 }
 
 int stlink_erase_flash_mass(stlink_t *sl) {
-    /* wait for ongoing op to finish */
-    wait_flash_busy(sl);
-
-    /* unlock if locked */
-    unlock_flash_if(sl);
-
-    /* set the mass erase bit */
-    set_flash_cr_mer(sl);
-
-    /* start erase operation, reset by hw with bsy bit */
-    set_flash_cr_strt(sl);
-
-    /* wait for completion */
-    wait_flash_busy(sl);
-
-    /* relock the flash */
-    lock_flash(sl);
-
-    /* todo: verify the erased memory */
-
+     if (sl->chip_id == STM32_CHIPID_F4) {
+        DLOG("(FIXME) Mass erase of STM32F4\n");
+      }
+     else if (sl->chip_id == STM32_CHIPID_L1_MEDIUM) {
+	 /* erase each page */
+	 int i = 0, num_pages = sl->flash_size/sl->flash_pgsz;
+	 for (i = 0; i < num_pages; i++) {
+	     /* addr must be an addr inside the page */
+	     stm32_addr_t addr = sl->flash_base + i * sl->flash_pgsz;
+	     if (stlink_erase_flash_page(sl, addr) == -1) {
+		 WLOG("Failed to erase_flash_page(%#zx) == -1\n", addr);
+		 return -1;
+	     }
+	     fprintf(stdout,"\rFlash page at %5d/%5d erased", i, num_pages);
+	     fflush(stdout);
+	 }
+     }
+     else {
+	 /* wait for ongoing op to finish */
+	 wait_flash_busy(sl);
+	 
+	 /* unlock if locked */
+	 unlock_flash_if(sl);
+	 
+	 /* set the mass erase bit */
+	 set_flash_cr_mer(sl);
+	 
+	 /* start erase operation, reset by hw with bsy bit */
+	 set_flash_cr_strt(sl);
+	 
+	 /* wait for completion */
+	 wait_flash_busy(sl);
+	 
+	 /* relock the flash */
+	 lock_flash(sl);
+	 
+	 /* todo: verify the erased memory */
+     }
     return 0;
 }
 
