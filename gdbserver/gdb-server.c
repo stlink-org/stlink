@@ -265,15 +265,13 @@ static void init_data_watchpoints(stlink_t *sl) {
 	#endif
 
 	// set trcena in debug command to turn on dwt unit
-	stlink_read_mem32(sl, 0xE000EDFC, 4);
-	sl->q_buf[3] |= 1;
-	stlink_write_mem32(sl, 0xE000EDFC, 4);
+	stlink_write_debug32(sl, 0xE000EDFC, 
+			     stlink_read_debug32(sl, 0xE000EDFC) | (1<<24));
 
 	// make sure all watchpoints are cleared
-	memset(sl->q_buf, 0, 4);
 	for(int i = 0; i < DATA_WATCH_NUM; i++) {
 		data_watches[i].fun = WATCHDISABLED;
-		stlink_write_mem32(sl, 0xe0001028 + i * 16, 4);
+		stlink_write_debug32(sl, 0xe0001028 + i * 16, 0);
 	}
 }
 
@@ -306,25 +304,16 @@ static int add_data_watchpoint(stlink_t *sl, enum watchfun wf, stm32_addr_t addr
 				data_watches[i].mask = mask;
 
 				// insert comparator address
-				sl->q_buf[0] = (addr & 0xff);
-				sl->q_buf[1] = ((addr >> 8) & 0xff);
-				sl->q_buf[2] = ((addr >> 16) & 0xff);
-				sl->q_buf[3] = ((addr >> 24)  & 0xff);
-
-				stlink_write_mem32(sl, 0xE0001020 + i * 16, 4);
+				stlink_write_debug32(sl, 0xE0001020 + i * 16, addr);
 
 				// insert mask
-				memset(sl->q_buf, 0, 4);
-				sl->q_buf[0] = mask;
-				stlink_write_mem32(sl, 0xE0001024 + i * 16, 4);
+				stlink_write_debug32(sl, 0xE0001024 + i * 16, mask);
 
 				// insert function
-				memset(sl->q_buf, 0, 4);
-				sl->q_buf[0] = wf;
-				stlink_write_mem32(sl, 0xE0001028 + i * 16, 4);
+				stlink_write_debug32(sl, 0xE0001028 + i * 16, wf);
 
 				// just to make sure the matched bit is clear !
-				stlink_read_mem32(sl,  0xE0001028 + i * 16, 4);
+				stlink_read_debug32(sl,  0xE0001028 + i * 16);
 				return 0;
 			}
 		}
@@ -346,9 +335,8 @@ static int delete_data_watchpoint(stlink_t *sl, stm32_addr_t addr)
 			printf("delete watchpoint %d addr %x\n", i, addr);
 			#endif
 
-			memset(sl->q_buf, 0, 4);
 			data_watches[i].fun = WATCHDISABLED;
-			stlink_write_mem32(sl, 0xe0001028 + i * 16, 4);
+			stlink_write_debug32(sl, 0xe0001028 + i * 16, 0);
 
 			return 0;
 		}
@@ -374,15 +362,13 @@ struct code_hw_breakpoint code_breaks[CODE_BREAK_NUM];
 
 static void init_code_breakpoints(stlink_t *sl) {
 	memset(sl->q_buf, 0, 4);
-	sl->q_buf[0] = 0x03; // KEY | ENABLE
-	stlink_write_mem32(sl, CM3_REG_FP_CTRL, 4);
+	stlink_write_debug32(sl, CM3_REG_FP_CTRL, 0x03 /*KEY | ENABLE4*/);
         printf("KARL - should read back as 0x03, not 60 02 00 00\n");
-        stlink_read_mem32(sl, CM3_REG_FP_CTRL, 4);
+        stlink_read_debug32(sl, CM3_REG_FP_CTRL);
 
-	memset(sl->q_buf, 0, 4);
 	for(int i = 0; i < CODE_BREAK_NUM; i++) {
 		code_breaks[i].type = 0;
-		stlink_write_mem32(sl, CM3_REG_FP_COMP0 + i * 4, 4);
+		stlink_write_debug32(sl, CM3_REG_FP_COMP0 + i * 4, 0);
 	}
 }
 
@@ -416,28 +402,23 @@ static int update_code_breakpoint(stlink_t *sl, stm32_addr_t addr, int set) {
 	if(set) brk->type |= type;
 	else	brk->type &= ~type;
 
-	memset(sl->q_buf, 0, 4);
-
 	if(brk->type == 0) {
 		#ifdef DEBUG
 		printf("clearing hw break %d\n", id);
 		#endif
 
-		stlink_write_mem32(sl, 0xe0002008 + id * 4, 4);
+		stlink_write_debug32(sl, 0xe0002008 + id * 4, 0);
 	} else {
-		sl->q_buf[0] = ( brk->addr        & 0xff) | 1;
-		sl->q_buf[1] = ((brk->addr >> 8)  & 0xff);
-		sl->q_buf[2] = ((brk->addr >> 16) & 0xff);
-		sl->q_buf[3] = ((brk->addr >> 24) & 0xff) | (brk->type << 6);
+	        uint32_t mask = (brk->addr) | 1 | (brk->type << 30);
 
 		#ifdef DEBUG
 		printf("setting hw break %d at %08x (%d)\n",
 			id, brk->addr, brk->type);
-		printf("reg %02x %02x %02x %02x\n",
-			sl->q_buf[3], sl->q_buf[2], sl->q_buf[1], sl->q_buf[0]);
+		printf("reg %08x \n",
+			mask);
 		#endif
 
-		stlink_write_mem32(sl, 0xe0002008 + id * 4, 4);
+		stlink_write_debug32(sl, 0xe0002008 + id * 4, mask);
 	}
 
 	return 0;
