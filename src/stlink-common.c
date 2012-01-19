@@ -405,9 +405,9 @@ int stlink_load_device_params(stlink_t *sl) {
       chip_id = 0x413;
     }
 
-    sl->chip_id = chip_id;
+    sl->chip_id = chip_id & 0xfff;
 	for(size_t i = 0; i < sizeof(devices) / sizeof(devices[0]); i++) {
-		if(devices[i].chip_id == (chip_id & 0xFFF)) {
+		if(devices[i].chip_id == sl->chip_id) {
 			params = &devices[i];
 			break;
 		}
@@ -422,9 +422,9 @@ int stlink_load_device_params(stlink_t *sl) {
     sl->sram_base = STM32_SRAM_BASE;
     
     // read flash size from hardware, if possible...
-    if ((chip_id & 0xFFF) == STM32_CHIPID_F2) {
+    if (sl->chip_id == STM32_CHIPID_F2) {
         sl->flash_size = 0; // FIXME - need to work this out some other way, just set to max possible?
-    } else if ((chip_id & 0xFFF) == STM32_CHIPID_F4) {
+    } else if (sl->chip_id == STM32_CHIPID_F4) {
 		sl->flash_size = 0x100000;			//todo: RM0090 error; size register same address as unique ID
     } else {
         uint32_t flash_size = stlink_read_debug32(sl, params->flash_size_reg) & 0xffff;
@@ -799,6 +799,11 @@ int stlink_fwrite_sram
 
     /* success */
     error = 0;
+    /* set stack*/
+    stlink_write_reg(sl, stlink_read_debug32(sl, addr    ),13);
+    /* Set PC to the reset routine*/
+    stlink_write_reg(sl, stlink_read_debug32(sl, addr + 4),15);
+    stlink_run(sl);
 
 on_error:
     unmap_file(&mf);
@@ -1048,26 +1053,45 @@ int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr)
 }
 
 int stlink_erase_flash_mass(stlink_t *sl) {
-    /* wait for ongoing op to finish */
-    wait_flash_busy(sl);
-
-    /* unlock if locked */
-    unlock_flash_if(sl);
-
-    /* set the mass erase bit */
-    set_flash_cr_mer(sl);
-
-    /* start erase operation, reset by hw with bsy bit */
-    set_flash_cr_strt(sl);
-
-    /* wait for completion */
-    wait_flash_busy(sl);
-
-    /* relock the flash */
-    lock_flash(sl);
-
-    /* todo: verify the erased memory */
-
+     if (sl->chip_id == STM32_CHIPID_F4) {
+        DLOG("(FIXME) Mass erase of STM32F4\n");
+      }
+     else if (sl->chip_id == STM32_CHIPID_L1_MEDIUM) {
+	 /* erase each page */
+	 int i = 0, num_pages = sl->flash_size/sl->flash_pgsz;
+	 for (i = 0; i < num_pages; i++) {
+	     /* addr must be an addr inside the page */
+	     stm32_addr_t addr = sl->flash_base + i * sl->flash_pgsz;
+	     if (stlink_erase_flash_page(sl, addr) == -1) {
+		 WLOG("Failed to erase_flash_page(%#zx) == -1\n", addr);
+		 return -1;
+	     }
+	     fprintf(stdout,"\rFlash page at %5d/%5d erased", i, num_pages);
+	     fflush(stdout);
+	 }
+	 fprintf(stdout, "\n");
+     }
+     else {
+	 /* wait for ongoing op to finish */
+	 wait_flash_busy(sl);
+	 
+	 /* unlock if locked */
+	 unlock_flash_if(sl);
+	 
+	 /* set the mass erase bit */
+	 set_flash_cr_mer(sl);
+	 
+	 /* start erase operation, reset by hw with bsy bit */
+	 set_flash_cr_strt(sl);
+	 
+	 /* wait for completion */
+	 wait_flash_busy(sl);
+	 
+	 /* relock the flash */
+	 lock_flash(sl);
+	 
+	 /* todo: verify the erased memory */
+     }
     return 0;
 }
 
@@ -1185,7 +1209,7 @@ int stlink_fcheck_flash(stlink_t *sl, const char* path, stm32_addr_t addr) {
  */
 int stlink_verify_write_flash(stlink_t *sl, stm32_addr_t address, uint8_t *data, unsigned length) {
     size_t off;
-    if ((sl->chip_id & 0xFFF) == STM32_CHIPID_F4) {
+    if (sl->chip_id == STM32_CHIPID_F4) {
         DLOG("(FIXME)Skipping verification for F4, not enough ram (yet)\n");
         return 0;
     }
@@ -1219,7 +1243,7 @@ int stm32l1_write_half_pages(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uns
     unsigned int count;
     uint32_t val;
     flash_loader_t fl;
-   
+
     ILOG("Starting Half page flash write for STM32L core id\n");
     /* flash loader initialization */
     if (init_flash_loader(sl, &fl) == -1) {
@@ -1254,7 +1278,6 @@ int stm32l1_write_half_pages(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uns
         while ((stlink_read_debug32(sl, STM32L_FLASH_SR) & (1 << 0)) != 0) {
         }
     }
-    fprintf(stdout, "\n");
     val = stlink_read_debug32(sl, STM32L_FLASH_PECR);
     val &= ~(1 << FLASH_L1_PROG);
     stlink_write_debug32(sl, STM32L_FLASH_PECR, val);
@@ -1386,16 +1409,29 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, unsigned 
     		fprintf(stderr, "pecr.prglock not clear\n");
     		return -1;
     	}
+	off = 0;
         if (len > L1_WRITE_BLOCK_SIZE) {
             if (stm32l1_write_half_pages(sl, addr, base, len/L1_WRITE_BLOCK_SIZE) == -1){
+		/* This may happen on a blank device! */
                 WLOG("\nwrite_half_pages failed == -1\n");
-                return -1;
-            }
-        }  
+	    }
+	    else{
+		off = (len /L1_WRITE_BLOCK_SIZE)*L1_WRITE_BLOCK_SIZE;
+	    }
+	}
 
     	/* write remainingword in program memory */
-    	for (off = (len /L1_WRITE_BLOCK_SIZE)*L1_WRITE_BLOCK_SIZE; off < len; off += sizeof(uint32_t)) {
+    	for ( ; off < len; off += sizeof(uint32_t)) {
     		uint32_t data;
+		if (off > 254)
+		    fprintf(stdout, "\r");
+
+		if ((off % sl->flash_pgsz) > (sl->flash_pgsz -5)) {
+		    fprintf(stdout, "\r%3u/%u pages written", 
+			    off/sl->flash_pgsz, len/sl->flash_pgsz);
+		    fflush(stdout);
+		}
+
     		write_uint32((unsigned char*) &data, *(uint32_t*) (base + off));
     		stlink_write_debug32(sl, addr + off, data);
 
@@ -1514,6 +1550,11 @@ int stlink_fwrite_flash(stlink_t *sl, const char* path, stm32_addr_t addr) {
 	mf.len -= num_empty;
     }
     err = stlink_write_flash(sl, addr, mf.base, mf.len);
+    /* set stack*/
+    stlink_write_reg(sl, stlink_read_debug32(sl, addr    ),13);
+    /* Set PC to the reset routine*/
+    stlink_write_reg(sl, stlink_read_debug32(sl, addr + 4),15);
+    stlink_run(sl);
     unmap_file(&mf);
     return err;
 }
@@ -1562,12 +1603,12 @@ int run_flash_loader(stlink_t *sl, flash_loader_t* fl, stm32_addr_t target, cons
     stlink_run(sl);
 
     /* wait until done (reaches breakpoint) */
-    while ((is_core_halted(sl) == 0) && (i <10000))
+    while ((is_core_halted(sl) == 0) && (i <1000))
     {
         i++;
     }
 
-    if ( i > 9999) {
+    if ( i > 999) {
         fprintf(stderr, "run error\n");
         return -1;
     }
