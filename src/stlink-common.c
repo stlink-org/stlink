@@ -1069,6 +1069,7 @@ int stlink_erase_flash_mass(stlink_t *sl) {
 	     fprintf(stdout,"\rFlash page at %5d/%5d erased", i, num_pages);
 	     fflush(stdout);
 	 }
+	 fprintf(stdout, "\n");
      }
      else {
 	 /* wait for ongoing op to finish */
@@ -1242,7 +1243,7 @@ int stm32l1_write_half_pages(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uns
     unsigned int count;
     uint32_t val;
     flash_loader_t fl;
-   
+
     ILOG("Starting Half page flash write for STM32L core id\n");
     /* flash loader initialization */
     if (init_flash_loader(sl, &fl) == -1) {
@@ -1277,7 +1278,6 @@ int stm32l1_write_half_pages(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uns
         while ((stlink_read_debug32(sl, STM32L_FLASH_SR) & (1 << 0)) != 0) {
         }
     }
-    fprintf(stdout, "\n");
     val = stlink_read_debug32(sl, STM32L_FLASH_PECR);
     val &= ~(1 << FLASH_L1_PROG);
     stlink_write_debug32(sl, STM32L_FLASH_PECR, val);
@@ -1409,16 +1409,29 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, unsigned 
     		fprintf(stderr, "pecr.prglock not clear\n");
     		return -1;
     	}
+	off = 0;
         if (len > L1_WRITE_BLOCK_SIZE) {
             if (stm32l1_write_half_pages(sl, addr, base, len/L1_WRITE_BLOCK_SIZE) == -1){
+		/* This may happen on a blank device! */
                 WLOG("\nwrite_half_pages failed == -1\n");
-                return -1;
-            }
-        }  
+	    }
+	    else{
+		off = (len /L1_WRITE_BLOCK_SIZE)*L1_WRITE_BLOCK_SIZE;
+	    }
+	}
 
     	/* write remainingword in program memory */
-    	for (off = (len /L1_WRITE_BLOCK_SIZE)*L1_WRITE_BLOCK_SIZE; off < len; off += sizeof(uint32_t)) {
+    	for ( ; off < len; off += sizeof(uint32_t)) {
     		uint32_t data;
+		if (off > 254)
+		    fprintf(stdout, "\r");
+
+		if ((off % sl->flash_pgsz) > (sl->flash_pgsz -5)) {
+		    fprintf(stdout, "\r%3u/%u pages written", 
+			    off/sl->flash_pgsz, len/sl->flash_pgsz);
+		    fflush(stdout);
+		}
+
     		write_uint32((unsigned char*) &data, *(uint32_t*) (base + off));
     		stlink_write_debug32(sl, addr + off, data);
 
@@ -1590,12 +1603,12 @@ int run_flash_loader(stlink_t *sl, flash_loader_t* fl, stm32_addr_t target, cons
     stlink_run(sl);
 
     /* wait until done (reaches breakpoint) */
-    while ((is_core_halted(sl) == 0) && (i <10000))
+    while ((is_core_halted(sl) == 0) && (i <1000))
     {
         i++;
     }
 
-    if ( i > 9999) {
+    if ( i > 999) {
         fprintf(stderr, "run error\n");
         return -1;
     }
