@@ -799,6 +799,11 @@ int stlink_fwrite_sram
 
     /* success */
     error = 0;
+    /* set stack*/
+    stlink_write_reg(sl, stlink_read_debug32(sl, addr    ),13);
+    /* Set PC to the reset routine*/
+    stlink_write_reg(sl, stlink_read_debug32(sl, addr + 4),15);
+    stlink_run(sl);
 
 on_error:
     unmap_file(&mf);
@@ -1514,6 +1519,11 @@ int stlink_fwrite_flash(stlink_t *sl, const char* path, stm32_addr_t addr) {
 	mf.len -= num_empty;
     }
     err = stlink_write_flash(sl, addr, mf.base, mf.len);
+    /* set stack*/
+    stlink_write_reg(sl, stlink_read_debug32(sl, addr    ),13);
+    /* Set PC to the reset routine*/
+    stlink_write_reg(sl, stlink_read_debug32(sl, addr + 4),15);
+    stlink_run(sl);
     unmap_file(&mf);
     return err;
 }
