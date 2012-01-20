@@ -246,9 +246,9 @@ static void set_flash_cr_strt(stlink_t *sl) {
 		stlink_write_debug32(sl, FLASH_F4_CR, x);
 	}
 	else {
-		/* assume come on the flash_cr_per path */
-	    const uint32_t n = (1 << FLASH_CR_PER) | (1 << FLASH_CR_STRT);
-	    stlink_write_debug32(sl, FLASH_CR, n);
+	    stlink_write_debug32(
+                sl, FLASH_CR, 
+                stlink_read_debug32(sl,FLASH_CR) |(1 << FLASH_CR_STRT) );
 	}
 }
 
