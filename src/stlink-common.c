@@ -229,13 +229,21 @@ static void __attribute__((unused)) clear_flash_cr_per(stlink_t *sl) {
 }
 
 static void set_flash_cr_mer(stlink_t *sl) {
-    const uint32_t n = 1 << FLASH_CR_MER;
-    stlink_write_debug32(sl, FLASH_CR, n);
+    if(sl->chip_id == STM32F4_CHIP_ID)
+        stlink_write_debug32(sl, FLASH_F4_CR,
+                             stlink_read_debug32(sl, FLASH_F4_CR) | (1 << FLASH_CR_MER));
+    else 
+        stlink_write_debug32(sl, FLASH_CR,
+                             stlink_read_debug32(sl, FLASH_CR) | (1 << FLASH_CR_MER));
 }
 
 static void __attribute__((unused)) clear_flash_cr_mer(stlink_t *sl) {
-    const uint32_t n = read_flash_cr(sl) & ~(1 << FLASH_CR_MER);
-    stlink_write_debug32(sl, FLASH_CR, n);
+    if(sl->chip_id == STM32F4_CHIP_ID)
+        stlink_write_debug32(sl, FLASH_F4_CR,
+                             stlink_read_debug32(sl, FLASH_F4_CR) & ~(1 << FLASH_CR_MER));
+    else 
+        stlink_write_debug32(sl, FLASH_CR,
+                             stlink_read_debug32(sl, FLASH_CR) & ~(1 << FLASH_CR_MER));
 }
 
 static void set_flash_cr_strt(stlink_t *sl) {
@@ -277,6 +285,22 @@ static void wait_flash_busy(stlink_t *sl) {
     /* todo: add some delays here */
     while (is_flash_busy(sl))
         ;
+}
+
+static void wait_flash_busy_progress(stlink_t *sl) {
+    int i = 0;
+    fprintf(stdout, "Mass erasing");
+    fflush(stdout);
+    while (is_flash_busy(sl))
+    {
+        usleep(10000);
+        i++;
+        if (i % 100 == 0) {
+            fprintf(stdout, ".");
+            fflush(stdout);
+        }
+    }
+    fprintf(stdout, "\n");
 }
 
 static inline unsigned int is_flash_eop(stlink_t *sl) {
@@ -1053,10 +1077,7 @@ int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr)
 }
 
 int stlink_erase_flash_mass(stlink_t *sl) {
-     if (sl->chip_id == STM32_CHIPID_F4) {
-        DLOG("(FIXME) Mass erase of STM32F4\n");
-      }
-     else if (sl->chip_id == STM32_CHIPID_L1_MEDIUM) {
+     if (sl->chip_id == STM32_CHIPID_L1_MEDIUM) {
 	 /* erase each page */
 	 int i = 0, num_pages = sl->flash_size/sl->flash_pgsz;
 	 for (i = 0; i < num_pages; i++) {
@@ -1085,7 +1106,7 @@ int stlink_erase_flash_mass(stlink_t *sl) {
 	 set_flash_cr_strt(sl);
 	 
 	 /* wait for completion */
-	 wait_flash_busy(sl);
+	 wait_flash_busy_progress(sl);
 	 
 	 /* relock the flash */
 	 lock_flash(sl);
