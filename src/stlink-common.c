@@ -747,15 +747,21 @@ static void unmap_file(mapped_file_t * mf) {
     mf->len = 0;
 }
 
+/* Limit the block size to compare to 0x1800
+   Anything larger will stall the STLINK2
+   Maybe STLINK V1 needs smaller value!*/
 static int check_file(stlink_t* sl, mapped_file_t* mf, stm32_addr_t addr) {
     size_t off;
+    size_t n_cmp = sl->flash_pgsz;
+    if ( n_cmp > 0x1800)
+        n_cmp = 0x1800;
 
-    for (off = 0; off < mf->len; off += sl->flash_pgsz) {
+    for (off = 0; off < mf->len; off += n_cmp) {
         size_t aligned_size;
 
         /* adjust last page size */
-        size_t cmp_size = sl->flash_pgsz;
-        if ((off + sl->flash_pgsz) > mf->len)
+        size_t cmp_size = n_cmp;
+        if ((off + n_cmp) > mf->len)
             cmp_size = mf->len - off;
 
         aligned_size = cmp_size;
