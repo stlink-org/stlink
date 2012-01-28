@@ -420,22 +420,23 @@ void stlink_cpu_id(stlink_t *sl, cortex_m3_cpuid_t *cpuid) {
 int stlink_load_device_params(stlink_t *sl) {
     ILOG("Loading device parameters....\n");
     const chip_params_t *params = NULL;
-    
     sl->core_id = stlink_core_id(sl);
     uint32_t chip_id = stlink_chip_id(sl);
     
-    /* Fix chip_id for F4 rev A errata */
-    if (((chip_id & 0xFFF) == 0x411) && (sl->core_id == CORE_M4_R0)) {
-      chip_id = 0x413;
+    sl->chip_id = chip_id & 0xfff;
+    /* Fix chip_id for F4 rev A errata , Read CPU ID, as CoreID is the same for F2/F4*/
+    if (sl->chip_id == 0x411) {
+        uint32_t cpuid = stlink_read_debug32(sl, 0xE000ED00);
+        if((cpuid  & 0xfff0) == 0xc240)
+            sl->chip_id = 0x413;
     }
 
-    sl->chip_id = chip_id & 0xfff;
-	for(size_t i = 0; i < sizeof(devices) / sizeof(devices[0]); i++) {
-		if(devices[i].chip_id == sl->chip_id) {
-			params = &devices[i];
-			break;
-		}
-	}
+    for(size_t i = 0; i < sizeof(devices) / sizeof(devices[0]); i++) {
+        if(devices[i].chip_id == sl->chip_id) {
+            params = &devices[i];
+            break;
+        }
+    }
     if (params == NULL) {
         WLOG("unknown chip id! %#x\n", chip_id);
         return -1;
