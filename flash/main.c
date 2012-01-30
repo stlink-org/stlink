@@ -148,6 +148,12 @@ int main(int ac, char** av)
   }
   else /* read */
   {
+    if ((o.addr >= sl->flash_base) &&
+	(o.addr < sl->flash_base + sl->flash_size))
+        o.size = sl->flash_size;
+    else if ((o.addr >= sl->sram_base) &&
+	     (o.addr < sl->sram_base + sl->sram_size))
+        o.size = sl->sram_size;
     err = stlink_fread(sl, o.filename, o.addr, o.size);
     if (err == -1)
     {
