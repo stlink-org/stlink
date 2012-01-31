@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <time.h>
 #include <sys/types.h>
-#include <libusb-1.0/libusb.h>
+#include <libusb.h>
 
 #include "stlink-common.h"
 #include "stlink-usb.h"
