@@ -126,17 +126,23 @@ int main(int ac, char** av)
   if (o.cmd == DO_WRITE) /* write */
   {
     if ((o.addr >= sl->flash_base) &&
-	(o.addr < sl->flash_base + sl->flash_size))
+	(o.addr < sl->flash_base + sl->flash_size)) {
 	err = stlink_fwrite_flash(sl, o.filename, o.addr);
-    else if ((o.addr >= sl->sram_base) &&
+	if (err == -1)
+	{
+	    printf("stlink_fwrite_flash() == -1\n");
+	    goto on_error;
+	}
+    }
+   else if ((o.addr >= sl->sram_base) &&
 	     (o.addr < sl->sram_base + sl->sram_size))
 	err = stlink_fwrite_sram(sl, o.filename, o.addr);
-    if (err == -1)
-    {
-      printf("stlink_fwrite_flash() == -1\n");
-      goto on_error;
-    }
-  }
+	if (err == -1)
+	{
+	    printf("stlink_sram_flash() == -1\n");
+	    goto on_error;
+	}
+   }
   else if (o.cmd == DO_ERASE) 
   {
      err = stlink_erase_flash_mass(sl);
@@ -148,6 +154,12 @@ int main(int ac, char** av)
   }
   else /* read */
   {
+    if ((o.addr >= sl->flash_base) &&
+	(o.addr < sl->flash_base + sl->flash_size))
+        o.size = sl->flash_size;
+    else if ((o.addr >= sl->sram_base) &&
+	     (o.addr < sl->sram_base + sl->sram_size))
+        o.size = sl->sram_size;
     err = stlink_fread(sl, o.filename, o.addr, o.size);
     if (err == -1)
     {
