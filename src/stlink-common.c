@@ -229,13 +229,21 @@ static void __attribute__((unused)) clear_flash_cr_per(stlink_t *sl) {
 }
 
 static void set_flash_cr_mer(stlink_t *sl) {
-    const uint32_t n = 1 << FLASH_CR_MER;
-    stlink_write_debug32(sl, FLASH_CR, n);
+    if(sl->chip_id == STM32F4_CHIP_ID)
+        stlink_write_debug32(sl, FLASH_F4_CR,
+                             stlink_read_debug32(sl, FLASH_F4_CR) | (1 << FLASH_CR_MER));
+    else 
+        stlink_write_debug32(sl, FLASH_CR,
+                             stlink_read_debug32(sl, FLASH_CR) | (1 << FLASH_CR_MER));
 }
 
 static void __attribute__((unused)) clear_flash_cr_mer(stlink_t *sl) {
-    const uint32_t n = read_flash_cr(sl) & ~(1 << FLASH_CR_MER);
-    stlink_write_debug32(sl, FLASH_CR, n);
+    if(sl->chip_id == STM32F4_CHIP_ID)
+        stlink_write_debug32(sl, FLASH_F4_CR,
+                             stlink_read_debug32(sl, FLASH_F4_CR) & ~(1 << FLASH_CR_MER));
+    else 
+        stlink_write_debug32(sl, FLASH_CR,
+                             stlink_read_debug32(sl, FLASH_CR) & ~(1 << FLASH_CR_MER));
 }
 
 static void set_flash_cr_strt(stlink_t *sl) {
@@ -246,9 +254,9 @@ static void set_flash_cr_strt(stlink_t *sl) {
 		stlink_write_debug32(sl, FLASH_F4_CR, x);
 	}
 	else {
-		/* assume come on the flash_cr_per path */
-	    const uint32_t n = (1 << FLASH_CR_PER) | (1 << FLASH_CR_STRT);
-	    stlink_write_debug32(sl, FLASH_CR, n);
+	    stlink_write_debug32(
+                sl, FLASH_CR, 
+                stlink_read_debug32(sl,FLASH_CR) |(1 << FLASH_CR_STRT) );
 	}
 }
 
@@ -277,6 +285,22 @@ static void wait_flash_busy(stlink_t *sl) {
     /* todo: add some delays here */
     while (is_flash_busy(sl))
         ;
+}
+
+static void wait_flash_busy_progress(stlink_t *sl) {
+    int i = 0;
+    fprintf(stdout, "Mass erasing");
+    fflush(stdout);
+    while (is_flash_busy(sl))
+    {
+        usleep(10000);
+        i++;
+        if (i % 100 == 0) {
+            fprintf(stdout, ".");
+            fflush(stdout);
+        }
+    }
+    fprintf(stdout, "\n");
 }
 
 static inline unsigned int is_flash_eop(stlink_t *sl) {
@@ -396,22 +420,23 @@ void stlink_cpu_id(stlink_t *sl, cortex_m3_cpuid_t *cpuid) {
 int stlink_load_device_params(stlink_t *sl) {
     ILOG("Loading device parameters....\n");
     const chip_params_t *params = NULL;
-    
     sl->core_id = stlink_core_id(sl);
     uint32_t chip_id = stlink_chip_id(sl);
     
-    /* Fix chip_id for F4 rev A errata */
-    if (((chip_id & 0xFFF) == 0x411) && (sl->core_id == CORE_M4_R0)) {
-      chip_id = 0x413;
+    sl->chip_id = chip_id & 0xfff;
+    /* Fix chip_id for F4 rev A errata , Read CPU ID, as CoreID is the same for F2/F4*/
+    if (sl->chip_id == 0x411) {
+        uint32_t cpuid = stlink_read_debug32(sl, 0xE000ED00);
+        if((cpuid  & 0xfff0) == 0xc240)
+            sl->chip_id = 0x413;
     }
 
-    sl->chip_id = chip_id & 0xfff;
-	for(size_t i = 0; i < sizeof(devices) / sizeof(devices[0]); i++) {
-		if(devices[i].chip_id == sl->chip_id) {
-			params = &devices[i];
-			break;
-		}
-	}
+    for(size_t i = 0; i < sizeof(devices) / sizeof(devices[0]); i++) {
+        if(devices[i].chip_id == sl->chip_id) {
+            params = &devices[i];
+            break;
+        }
+    }
     if (params == NULL) {
         WLOG("unknown chip id! %#x\n", chip_id);
         return -1;
@@ -723,15 +748,21 @@ static void unmap_file(mapped_file_t * mf) {
     mf->len = 0;
 }
 
+/* Limit the block size to compare to 0x1800
+   Anything larger will stall the STLINK2
+   Maybe STLINK V1 needs smaller value!*/
 static int check_file(stlink_t* sl, mapped_file_t* mf, stm32_addr_t addr) {
     size_t off;
+    size_t n_cmp = sl->flash_pgsz;
+    if ( n_cmp > 0x1800)
+        n_cmp = 0x1800;
 
-    for (off = 0; off < mf->len; off += sl->flash_pgsz) {
+    for (off = 0; off < mf->len; off += n_cmp) {
         size_t aligned_size;
 
         /* adjust last page size */
-        size_t cmp_size = sl->flash_pgsz;
-        if ((off + sl->flash_pgsz) > mf->len)
+        size_t cmp_size = n_cmp;
+        if ((off + n_cmp) > mf->len)
             cmp_size = mf->len - off;
 
         aligned_size = cmp_size;
@@ -1053,10 +1084,7 @@ int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr)
 }
 
 int stlink_erase_flash_mass(stlink_t *sl) {
-     if (sl->chip_id == STM32_CHIPID_F4) {
-        DLOG("(FIXME) Mass erase of STM32F4\n");
-      }
-     else if (sl->chip_id == STM32_CHIPID_L1_MEDIUM) {
+     if (sl->chip_id == STM32_CHIPID_L1_MEDIUM) {
 	 /* erase each page */
 	 int i = 0, num_pages = sl->flash_size/sl->flash_pgsz;
 	 for (i = 0; i < num_pages; i++) {
@@ -1085,7 +1113,7 @@ int stlink_erase_flash_mass(stlink_t *sl) {
 	 set_flash_cr_strt(sl);
 	 
 	 /* wait for completion */
-	 wait_flash_busy(sl);
+	 wait_flash_busy_progress(sl);
 	 
 	 /* relock the flash */
 	 lock_flash(sl);
