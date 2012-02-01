@@ -81,10 +81,18 @@ extern "C" {
 #define CM3_REG_FP_COMP0 0xE0002008
 
 /* cortex core ids */
+    // TODO clean this up...
 #define STM32VL_CORE_ID 0x1ba01477
 #define STM32L_CORE_ID 0x2ba01477
 #define STM32F4_CORE_ID 0x2ba01477
-    
+#define CORE_M3_R1 0x1BA00477
+#define CORE_M3_R2 0x4BA00477
+#define CORE_M4_R0 0x2BA01477
+
+/*
+ * Chip IDs are explained in the appropriate programming manual for the
+ * DBGMCU_IDCODE register (0xE0042000)
+ */
 // stm32 chipids, only lower 12 bits..
 #define STM32_CHIPID_F1_MEDIUM 0x410
 #define STM32_CHIPID_F2 0x411
@@ -100,17 +108,6 @@ extern "C" {
 // Constant STM32 memory map figures
 #define STM32_FLASH_BASE 0x08000000
 #define STM32_SRAM_BASE 0x20000000
-
-/*
- * Chip IDs are explained in the appropriate programming manual for the
- * DBGMCU_IDCODE register (0xE0042000)
- */
-#define CORE_M3_R1 0x1BA00477
-#define CORE_M3_R2 0x4BA00477
-#define CORE_M4_R0 0x2BA01477
-
-/* using chip id for F4 ident, since core id is same as F1 */
-#define STM32F4_CHIP_ID 0x413
 
 /* Cortex™-M3 Technical Reference Manual */
 /* Debug Halting Control and Status Register */
