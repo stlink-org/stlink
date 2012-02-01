@@ -14,8 +14,9 @@ called stlink and there are 2 versions:
 Common requirements
 ~~~~~~~~~~~~~~~~~~~
 
-libusb-1.0  (You probably already have this, but you'll need the 
+. libusb-1.0  (You probably already have this, but you'll need the
 development version to compile)
+. pkg-config
 
 IF YOU HAVE AN STLINKv1
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -128,7 +129,7 @@ STLink v1 (as found on the 32VL Discovery board)
 
 Known Working Targets:
 * STM32F100xx (Medium Density VL)
-* STM32F103 (according to jpa- on ##stm32
+* STM32F103 (according to jpa- on ##stm32)
 
 No information:
 * everything else!
