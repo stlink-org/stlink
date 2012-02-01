@@ -1,11 +1,3 @@
-IMPORTANT SHORT TERM NOTICE:
-If you are targetting F1 devices, with either stlinkv1 or v2 hardware, you
-_need_ to use karlp's libwork2 branch.  
-
-If you are targetting F4, you _need_ to use texane's master
-
-If you are targetting F2 or L1, please let us know how it goes!
-
 HOWTO
 =====
 
@@ -22,8 +14,9 @@ called stlink and there are 2 versions:
 Common requirements
 ~~~~~~~~~~~~~~~~~~~
 
-libusb-1.0  (You probably already have this, but you'll need the 
+. libusb-1.0  (You probably already have this, but you'll need the
 development version to compile)
+. pkg-config
 
 IF YOU HAVE AN STLINKv1
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -136,16 +129,16 @@ STLink v1 (as found on the 32VL Discovery board)
 
 Known Working Targets:
 * STM32F100xx (Medium Density VL)
-* STM32F103 (according to jpa- o n##stm32
+* STM32F103 (according to jpa- on ##stm32)
 
 No information:
 * everything else!
 
-
 STLink v2 (as found on the 32L and F4 Discovery boards)
 Known Working Targets:
 * STM32F100xx (Medium Density VL, as on the 32VL Discovery board)
-* ?
+* STM32L1xx (STM32L Discovery board)
+* STM32F407xx (STM32F4 Discovery board)
 
 Please report any and all known working combinations so I can update this!
 
