@@ -1377,7 +1377,7 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, unsigned 
     				/* show progress. writing procedure is slow
 					   and previous errors are misleading */
     				const uint32_t pgnum = (off / PROGRESS_CHUNK_SIZE)+1;
-    				const uint32_t pgcount = len / PROGRESS_CHUNK_SIZE;
+    				const uint32_t pgcount = len / PROGRESS_CHUNK_SIZE +1;
     				fprintf(stdout, "Writing %ukB chunk %u out of %u\n", PROGRESS_CHUNK_SIZE/1024, pgnum, pgcount);
     			}
     		}
