@@ -448,7 +448,7 @@ int stlink_load_device_params(stlink_t *sl) {
     
     // read flash size from hardware, if possible...
     if (sl->chip_id == STM32_CHIPID_F2) {
-        sl->flash_size = 0; // FIXME - need to work this out some other way, just set to max possible?
+        sl->flash_size = 0x100000; /* Use maximum, User must care!*/
     } else if (sl->chip_id == STM32_CHIPID_F4) {
 		sl->flash_size = 0x100000;			//todo: RM0090 error; size register same address as unique ID
     } else {
@@ -1237,17 +1237,13 @@ int stlink_fcheck_flash(stlink_t *sl, const char* path, stm32_addr_t addr) {
  */
 int stlink_verify_write_flash(stlink_t *sl, stm32_addr_t address, uint8_t *data, unsigned length) {
     size_t off;
-    if (sl->chip_id == STM32_CHIPID_F4) {
-        DLOG("(FIXME)Skipping verification for F4, not enough ram (yet)\n");
-        return 0;
-    }
+    size_t cmp_size = (sl->flash_pgsz > 0x1800)? 0x1800:sl->flash_pgsz;
     ILOG("Starting verification of write complete\n");
-    for (off = 0; off < length; off += sl->flash_pgsz) {
+    for (off = 0; off < length; off += cmp_size) {
         size_t aligned_size;
 
         /* adjust last page size */
-        size_t cmp_size = sl->flash_pgsz;
-        if ((off + sl->flash_pgsz) > length)
+        if ((off + cmp_size) > length)
             cmp_size = length - off;
 
         aligned_size = cmp_size;
