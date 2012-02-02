@@ -972,7 +972,7 @@ int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr)
 	fprintf(stdout, "Erase Final CR:0x%x\n", read_flash_cr(sl));
 #endif
   }
-  else if (sl->core_id == STM32L_CORE_ID)
+  else if (sl->chip_id == STM32_CHIPID_L1_MEDIUM)
   {
 
     uint32_t val;
@@ -1185,7 +1185,7 @@ int write_loader_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* size) {
     const uint8_t* loader_code;
     size_t loader_size;
 
-    if (sl->core_id == STM32L_CORE_ID) /* stm32l */
+    if (sl->chip_id == STM32_CHIPID_L1_MEDIUM) /* stm32l */
     {
       loader_code = loader_code_stm32l;
       loader_size = sizeof(loader_code_stm32l);
@@ -1404,7 +1404,7 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, unsigned 
 
     }	//STM32F4END
 
-    else if (sl->core_id == STM32L_CORE_ID)    {
+    else if (sl->chip_id == STM32_CHIPID_L1_MEDIUM)    {
     	/* use fast word write. todo: half page. */
     	uint32_t val;
 
@@ -1599,7 +1599,7 @@ int run_flash_loader(stlink_t *sl, flash_loader_t* fl, stm32_addr_t target, cons
         return -1;
     }
 
-    if (sl->core_id == STM32L_CORE_ID) {
+    if (sl->chip_id == STM32_CHIPID_L1_MEDIUM) {
 
       size_t count = size / sizeof(uint32_t);
       if (size % sizeof(uint32_t)) ++count;
@@ -1642,7 +1642,7 @@ int run_flash_loader(stlink_t *sl, flash_loader_t* fl, stm32_addr_t target, cons
     }
         
     /* check written byte count */
-    if (sl->core_id == STM32L_CORE_ID) {
+    if (sl->chip_id == STM32_CHIPID_L1_MEDIUM) {
 
       size_t count = size / sizeof(uint32_t);
       if (size % sizeof(uint32_t)) ++count;
