@@ -219,7 +219,7 @@ char* make_memory_map(stlink_t *sl) {
 	char* map = malloc(4096);
 	map[0] = '\0';
 
-	if(sl->chip_id==STM32F4_CHIP_ID) {
+	if(sl->chip_id==STM32_CHIPID_F4) {
     	strcpy(map, memory_map_template_F4);
     } else {
         snprintf(map, 4096, memory_map_template,
@@ -669,6 +669,49 @@ int serve(stlink_t *sl, int port) {
 						strncpy(&reply[1], data, length);
 					}
 				}
+			} else if(!strncmp(queryName, "Rcmd,",4)) {
+				// Rcmd uses the wrong separator
+				char *separator = strstr(packet, ","), *params = "";
+				if(separator == NULL) {
+					separator = packet + strlen(packet);
+				} else {
+					params = separator + 1;
+				}
+				
+
+				if (!strncmp(params,"7265",4)) {// resume
+#ifdef DEBUG
+					printf("Rcmd: resume\n");
+#endif
+					stlink_run(sl);
+
+					reply = strdup("OK");
+				} else if (!strncmp(params,"6861",4)) { //half
+					reply = strdup("OK");
+					
+					stlink_force_debug(sl);
+
+#ifdef DEBUG
+					printf("Rcmd: halt\n");
+#endif
+				} else if (!strncmp(params,"7265",4)) { //reset
+					reply = strdup("OK");
+					
+					stlink_force_debug(sl);
+					stlink_reset(sl);
+					init_code_breakpoints(sl);
+					init_data_watchpoints(sl);
+					
+#ifdef DEBUG
+					printf("Rcmd: reset\n");
+#endif
+				} else {
+#ifdef DEBUG
+					printf("Rcmd: %s\n", params);
+#endif
+
+				}
+				
 			}
 
 			if(reply == NULL)
