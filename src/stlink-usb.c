@@ -636,7 +636,6 @@ stlink_t* stlink_open_usb(const int verbose) {
     
     slu->usb_handle = libusb_open_device_with_vid_pid(slu->libusb_ctx, USB_ST_VID, USB_STLINK_32L_PID);
     if (slu->usb_handle == NULL) {
-		// TODO - free usb context too...
 		WLOG("Couldn't find any ST-Link/V2 devices");
         goto on_error;
     }
