@@ -127,8 +127,6 @@ ssize_t send_recv(struct stlink_libusb* handle, int terminate,
     }
     
     if ((handle->protocoll == 1) && terminate) {
-        fprintf(stderr, "This is never used....\n");
-        exit(EXIT_FAILURE);
         /* Read the SG reply */
         unsigned char sg_buf[13];
         libusb_fill_bulk_transfer
@@ -157,7 +155,6 @@ static int fill_command
     int i = 0;
     memset(cmd, 0, sizeof (sl->c_buf));
     if(slu->protocoll == 1) {
-        fprintf(stderr, "This is never used....\n");
         cmd[i++] = 'U';
         cmd[i++] = 'S';
         cmd[i++] = 'B';
@@ -636,10 +633,14 @@ stlink_t* stlink_open_usb(const int verbose) {
     
     slu->usb_handle = libusb_open_device_with_vid_pid(slu->libusb_ctx, USB_ST_VID, USB_STLINK_32L_PID);
     if (slu->usb_handle == NULL) {
-		WLOG("Couldn't find any ST-Link/V2 devices");
-        goto on_error;
+	slu->usb_handle = libusb_open_device_with_vid_pid(slu->libusb_ctx, USB_ST_VID, USB_STLINK_PID);
+	if (slu->usb_handle == NULL) {
+	    WLOG("Couldn't find any ST-Link/V2 devices");
+	    goto on_error;
+	}
+	slu->protocoll = 1;
     }
-    
+
     if (libusb_kernel_driver_active(slu->usb_handle, 0) == 1) {
         int r;
         
