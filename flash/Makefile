@@ -13,7 +13,7 @@ CFLAGS+=`pkg-config --cflags libusb-1.0`
 SRCS=main.c
 OBJS=$(SRCS:.c=.o)
 
-NAME=flash
+NAME=st-flash
 
 all: $(NAME)
 
