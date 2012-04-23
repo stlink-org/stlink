@@ -33,6 +33,8 @@ static void __attribute__((unused)) mark_buf(stlink_t *sl) {
 
 
 int main(int argc, char *argv[]) {
+	/* Avoid unused parameter warning */
+	(void)argv;
 	// set scpi lib debug level: 0 for no debug info, 10 for lots
 
 	switch (argc) {
