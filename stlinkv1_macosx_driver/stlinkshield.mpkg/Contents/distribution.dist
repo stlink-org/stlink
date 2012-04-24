@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<installer-script minSpecVersion="1.000000" authoringTool="com.apple.PackageMaker" authoringToolVersion="3.0.4" authoringToolBuild="179">
+    <title>stlink_shield</title>
+    <options customize="allow" allow-external-scripts="no" rootVolumeOnly="true"/>
+    <script>
+function pm_choice0_selected() {
+  result = true;
+  result = result &amp;&amp; (my.target.systemVersion &amp;&amp; /* &lt; */ system.compareVersions(my.target.systemVersion.ProductVersion, '10.7') &lt; 0);
+  return result;
+}
+
+
+function pm_choice0_enabled() {
+  result = true;
+  result = result &amp;&amp; (my.target.systemVersion &amp;&amp; /* &lt; */ system.compareVersions(my.target.systemVersion.ProductVersion, '10.7') &lt; 0);
+  return result;
+}
+
+
+function pm_choice1_selected() {
+  result = true;
+  result = result &amp;&amp; (my.target.systemVersion &amp;&amp; /* >= */ system.compareVersions(my.target.systemVersion.ProductVersion, '10.7') >= 0);
+  return result;
+}
+
+
+function pm_choice1_enabled() {
+  result = true;
+  result = result &amp;&amp; (my.target.systemVersion &amp;&amp; /* >= */ system.compareVersions(my.target.systemVersion.ProductVersion, '10.7') >= 0);
+  return result;
+}</script>
+    <choices-outline>
+        <line choice="choice0"/>
+        <line choice="choice1"/>
+        <line choice="choice4"/>
+    </choices-outline>
+    <choice id="choice0" title="stlink_shield for 10.6.x" selected="pm_choice0_selected()" enabled="pm_choice0_enabled()">
+        <pkg-ref id="com.stlinkv1.stlinkshield.stlink_shield106.pkg"/>
+    </choice>
+    <choice id="choice1" title="stlink_shield for 10.7" selected="pm_choice1_selected()" enabled="pm_choice1_enabled()">
+        <pkg-ref id="com.stlinkv1.stlinkshield.stlink_shield107.pkg"/>
+    </choice>
+    <choice id="choice4" title="stlink_shield Postflight" start_visible="false">
+        <pkg-ref id="com.stlinkv1.stlinkshield.postflight.pkg"/>
+    </choice>
+    <pkg-ref id="com.stlinkv1.stlinkshield.stlink_shield106.pkg" installKBytes="8" version="1.0" auth="Root">file:./Contents/Packages/stlinkshield.pkg</pkg-ref>
+    <pkg-ref id="com.stlinkv1.stlinkshield.stlink_shield107.pkg" installKBytes="8" version="1.0" auth="Root">file:./Contents/Packages/stlinkshield-1.pkg</pkg-ref>
+    <pkg-ref id="com.stlinkv1.stlinkshield.postflight.pkg" installKBytes="0" version="1.0" auth="Root">file:./Contents/Packages/stlinkshieldPostflight.pkg</pkg-ref>
+</installer-script>

@@ -1,0 +1,368 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 42;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		8CD33C2A149BB80D0033D618 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C167DFE841241C02AAC07 /* InfoPlist.strings */; };
+		EE19EF3D07B2D66E0083E1AA /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C167DFE841241C02AAC07 /* InfoPlist.strings */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		089C167EFE841241C02AAC07 /* English */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = English; path = English.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		8CD33C30149BB80D0033D618 /* stlink_shield.kext */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = stlink_shield.kext; sourceTree = BUILT_PRODUCTS_DIR; };
+		8CD33C31149BB80D0033D618 /* stlink_shield10_7.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = stlink_shield10_7.plist; sourceTree = "<group>"; };
+		EE19EF4007B2D66E0083E1AA /* stlink_shield10_6.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = stlink_shield10_6.plist; sourceTree = "<group>"; };
+		EE19EF4107B2D66E0083E1AA /* stlink_shield.kext */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = stlink_shield.kext; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		089C166AFE841209C02AAC07 /* NanosMouse */ = {
+			isa = PBXGroup;
+			children = (
+				089C167CFE841241C02AAC07 /* Resources */,
+				19C28FB6FE9D52B211CA2CBB /* Products */,
+			);
+			name = NanosMouse;
+			sourceTree = "<group>";
+		};
+		089C167CFE841241C02AAC07 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				EE19EF4007B2D66E0083E1AA /* stlink_shield10_6.plist */,
+				089C167DFE841241C02AAC07 /* InfoPlist.strings */,
+				8CD33C31149BB80D0033D618 /* stlink_shield10_7.plist */,
+			);
+			name = Resources;
+			sourceTree = "<group>";
+		};
+		19C28FB6FE9D52B211CA2CBB /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				EE19EF4107B2D66E0083E1AA /* stlink_shield.kext */,
+				8CD33C30149BB80D0033D618 /* stlink_shield.kext */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXHeadersBuildPhase section */
+		8CD33C28149BB80D0033D618 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		EE19EF3B07B2D66E0083E1AA /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
+/* Begin PBXNativeTarget section */
+		8CD33C26149BB80D0033D618 /* stlink_shield10.7 */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 8CD33C2D149BB80D0033D618 /* Build configuration list for PBXNativeTarget "stlink_shield10.7" */;
+			buildPhases = (
+				8CD33C27149BB80D0033D618 /* ShellScript */,
+				8CD33C28149BB80D0033D618 /* Headers */,
+				8CD33C29149BB80D0033D618 /* Resources */,
+				8CD33C2B149BB80D0033D618 /* Sources */,
+				8CD33C2C149BB80D0033D618 /* ShellScript */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = stlink_shield10.7;
+			productInstallPath = "$(SYSTEM_LIBRARY_DIR)/Extensions";
+			productName = NanosMouse;
+			productReference = 8CD33C30149BB80D0033D618 /* stlink_shield.kext */;
+			productType = "com.apple.product-type.kernel-extension.iokit";
+		};
+		EE19EF3907B2D66E0083E1AA /* stlink_shield10.6 */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3EEA308308D71E4B002CBB49 /* Build configuration list for PBXNativeTarget "stlink_shield10.6" */;
+			buildPhases = (
+				EE19EF3A07B2D66E0083E1AA /* ShellScript */,
+				EE19EF3B07B2D66E0083E1AA /* Headers */,
+				EE19EF3C07B2D66E0083E1AA /* Resources */,
+				EE19EF3E07B2D66E0083E1AA /* Sources */,
+				EE19EF3F07B2D66E0083E1AA /* ShellScript */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = stlink_shield10.6;
+			productInstallPath = "$(SYSTEM_LIBRARY_DIR)/Extensions";
+			productName = NanosMouse;
+			productReference = EE19EF4107B2D66E0083E1AA /* stlink_shield.kext */;
+			productType = "com.apple.product-type.kernel-extension.iokit";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		089C1669FE841209C02AAC07 /* Project object */ = {
+			isa = PBXProject;
+			buildConfigurationList = 3EEA308708D71E4B002CBB49 /* Build configuration list for PBXProject "stlink_shield" */;
+			compatibilityVersion = "Xcode 2.4";
+			developmentRegion = English;
+			hasScannedForEncodings = 1;
+			knownRegions = (
+				English,
+				Japanese,
+				French,
+				German,
+			);
+			mainGroup = 089C166AFE841209C02AAC07 /* NanosMouse */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				EE19EF3907B2D66E0083E1AA /* stlink_shield10.6 */,
+				8CD33C26149BB80D0033D618 /* stlink_shield10.7 */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		8CD33C29149BB80D0033D618 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8CD33C2A149BB80D0033D618 /* InfoPlist.strings in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		EE19EF3C07B2D66E0083E1AA /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				EE19EF3D07B2D66E0083E1AA /* InfoPlist.strings in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		8CD33C27149BB80D0033D618 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "script=\"${SYSTEM_DEVELOPER_DIR}/ProjectBuilder Extras/Kernel Extension Support/KEXTPreprocess\";\nif [ -x \"$script\" ]; then\n    . \"$script\"\nfi";
+		};
+		8CD33C2C149BB80D0033D618 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "script=\"${SYSTEM_DEVELOPER_DIR}/ProjectBuilder Extras/Kernel Extension Support/KEXTPostprocess\";\nif [ -x \"$script\" ]; then\n    . \"$script\"\nfi";
+		};
+		EE19EF3A07B2D66E0083E1AA /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "script=\"${SYSTEM_DEVELOPER_DIR}/ProjectBuilder Extras/Kernel Extension Support/KEXTPreprocess\";\nif [ -x \"$script\" ]; then\n    . \"$script\"\nfi";
+		};
+		EE19EF3F07B2D66E0083E1AA /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "script=\"${SYSTEM_DEVELOPER_DIR}/ProjectBuilder Extras/Kernel Extension Support/KEXTPostprocess\";\nif [ -x \"$script\" ]; then\n    . \"$script\"\nfi";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		8CD33C2B149BB80D0033D618 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		EE19EF3E07B2D66E0083E1AA /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		089C167DFE841241C02AAC07 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				089C167EFE841241C02AAC07 /* English */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		3EEA308408D71E4B002CBB49 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(NATIVE_ARCH_ACTUAL)";
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				INFOPLIST_FILE = stlink_shield10_6.plist;
+				INSTALL_PATH = "$(SYSTEM_LIBRARY_DIR)/Extensions";
+				KERNEL_MODULE = YES;
+				MODULE_IOKIT = YES;
+				MODULE_NAME = com.libusb.stlink_shield;
+				MODULE_VERSION = 1.0.0;
+				PRODUCT_NAME = stlink_shield10_6;
+				SDKROOT = "";
+				WRAPPER_EXTENSION = kext;
+				ZERO_LINK = YES;
+			};
+			name = Debug;
+		};
+		3EEA308508D71E4B002CBB49 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(NATIVE_ARCH_ACTUAL)";
+				DEPLOYMENT_LOCATION = YES;
+				DEPLOYMENT_POSTPROCESSING = YES;
+				DSTROOT = "/tmp/$(PROJECT_NAME)10_6.dst";
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_MODEL_TUNING = G5;
+				INFOPLIST_FILE = stlink_shield10_6.plist;
+				INSTALL_GROUP = "$(GROUP)";
+				INSTALL_OWNER = "$(USER)";
+				INSTALL_PATH = "$(SYSTEM_LIBRARY_DIR)/Extensions";
+				KERNEL_MODULE = YES;
+				MODULE_IOKIT = YES;
+				MODULE_NAME = com.libusb.stlink_shield;
+				MODULE_VERSION = 1.0.0;
+				PRODUCT_NAME = stlink_shield;
+				SDKROOT = "";
+				SYMROOT = build/10_6;
+				WRAPPER_EXTENSION = kext;
+			};
+			name = Release;
+		};
+		3EEA308808D71E4B002CBB49 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(NATIVE_ARCH_ACTUAL)";
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				PREBINDING = NO;
+			};
+			name = Debug;
+		};
+		3EEA308908D71E4B002CBB49 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(NATIVE_ARCH_ACTUAL)";
+				DEPLOYMENT_LOCATION = YES;
+				DEPLOYMENT_POSTPROCESSING = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				PREBINDING = NO;
+			};
+			name = Release;
+		};
+		8CD33C2E149BB80D0033D618 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(NATIVE_ARCH_ACTUAL)";
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				INFOPLIST_FILE = stlink_shield10_7.plist;
+				INSTALL_PATH = "$(SYSTEM_LIBRARY_DIR)/Extensions";
+				KERNEL_MODULE = YES;
+				MODULE_IOKIT = YES;
+				MODULE_NAME = com.libusb.stlink_shield;
+				MODULE_VERSION = 1.0.0;
+				PRODUCT_NAME = stlink_shield10_7;
+				SDKROOT = "";
+				WRAPPER_EXTENSION = kext;
+				ZERO_LINK = YES;
+			};
+			name = Debug;
+		};
+		8CD33C2F149BB80D0033D618 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(NATIVE_ARCH_ACTUAL)";
+				DEPLOYMENT_LOCATION = YES;
+				DEPLOYMENT_POSTPROCESSING = YES;
+				DSTROOT = "/tmp/$(PROJECT_NAME)10_7.dst";
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_MODEL_TUNING = G5;
+				INFOPLIST_FILE = stlink_shield10_7.plist;
+				INSTALL_PATH = "$(SYSTEM_LIBRARY_DIR)/Extensions";
+				KERNEL_MODULE = YES;
+				MODULE_IOKIT = YES;
+				MODULE_NAME = com.libusb.stlink_shield;
+				MODULE_VERSION = 1.0.0;
+				PRODUCT_NAME = stlink_shield;
+				SDKROOT = "";
+				SYMROOT = build/10_7;
+				WRAPPER_EXTENSION = kext;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		3EEA308308D71E4B002CBB49 /* Build configuration list for PBXNativeTarget "stlink_shield10.6" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3EEA308408D71E4B002CBB49 /* Debug */,
+				3EEA308508D71E4B002CBB49 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		3EEA308708D71E4B002CBB49 /* Build configuration list for PBXProject "stlink_shield" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3EEA308808D71E4B002CBB49 /* Debug */,
+				3EEA308908D71E4B002CBB49 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		8CD33C2D149BB80D0033D618 /* Build configuration list for PBXNativeTarget "stlink_shield10.7" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				8CD33C2E149BB80D0033D618 /* Debug */,
+				8CD33C2F149BB80D0033D618 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 089C1669FE841209C02AAC07 /* Project object */;
+}
