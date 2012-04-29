@@ -2,6 +2,11 @@
 
 #include "mingw.h"
 
+#undef socket
+#undef connect
+#undef accept
+#undef shutdown
+
 #include <string.h>
 #include <errno.h>
 #include <assert.h>
@@ -10,7 +15,7 @@ int win32_poll(struct pollfd *fds, unsigned int nfds, int timo)
 {
     struct timeval timeout, *toptr;
     fd_set ifds, ofds, efds, *ip, *op;
-    int i, rc;
+    unsigned int i, rc;
 
     /* Set up the file-descriptor sets in ifds, ofds and efds. */
     FD_ZERO(&ifds);
@@ -51,7 +56,7 @@ int win32_poll(struct pollfd *fds, unsigned int nfds, int timo)
 	return rc;
 
     if(rc > 0) {
-        for (i = 0; i < nfds; ++i) {
+        for ( i = 0; i < nfds; ++i) {
             int fd = fds[i].fd;
     	if(fds[i].events & (POLLIN|POLLPRI) && FD_ISSET(fd, &ifds))
     		fds[i].revents |= POLLIN;
@@ -162,7 +167,7 @@ int win32_close_socket(SOCKET fd) {
     int rc;
 
     rc = closesocket(fd);
-    return 0;
+    return rc;
 }
 
 
