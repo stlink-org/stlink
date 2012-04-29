@@ -21,3 +21,8 @@ config.status
 compile
 st-flash
 st-util
+*.deps*
+*.dirstamp
+*.a
+Makefile
+*.exe
