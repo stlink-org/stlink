@@ -170,7 +170,19 @@ int main(int argc, char** argv) {
 
 	current_memory_map = make_memory_map(sl);
 
+#ifdef __MINGW32__
+	WSADATA	wsadata;
+	if (WSAStartup(MAKEWORD(2,2),&wsadata) !=0 ) {
+		goto winsock_error;
+	}
+#endif
+
 	while(serve(sl, state.listen_port) == 0);
+
+#ifdef __MINGW32__
+winsock_error:
+	WSACleanup();
+#endif
 
 	/* Switch back to mass storage mode before closing. */
 	stlink_run(sl);
@@ -558,7 +570,7 @@ int serve(stlink_t *sl, int port) {
 	setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &val, sizeof(val));
 
 	struct sockaddr_in serv_addr;
-	bzero(&serv_addr,sizeof(struct sockaddr_in));
+	memset(&serv_addr,0,sizeof(struct sockaddr_in));
 	serv_addr.sin_family = AF_INET;
 	serv_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
 	serv_addr.sin_port = htons(port);
