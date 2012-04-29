@@ -32,6 +32,7 @@ CFLAGS="$CFLAGS $USB_CFLAGS"
 case "${host}" in
 	*-mingw32*)
 		LIBS="$LIBS -lws2_32"
+		CPPFLAGS="-D__USE_MINGW_ANSI_STDIO=1 $CPPFLAGS"
 	;;
 esac
 AC_CONFIG_FILES([Makefile])
