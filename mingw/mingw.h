@@ -2,7 +2,8 @@
 
 #include <io.h>
 
-#include <winsock.h>
+#define _USE_W32_SOCKETS 1
+#include <windows.h>
 
 #define ENOTCONN        WSAENOTCONN
 #define EWOULDBLOCK     WSAEWOULDBLOCK
