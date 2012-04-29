@@ -7,7 +7,7 @@ bin_PROGRAMS = st-flash st-util
 noinst_LIBRARIES      = libstlink.a
 
 st_flash_SOURCES = flash/main.c
-st_util_SOURCES = gdbserver/gdb-remote.c gdbserver/gdb-remote.h gdbserver/gdb-server.c
+st_util_SOURCES = gdbserver/gdb-remote.c gdbserver/gdb-remote.h gdbserver/gdb-server.c mingw/mingw.c mingw/mingw.h
 
 CFILES = \
 	src/stlink-common.c \
@@ -28,10 +28,10 @@ libstlink_a_CPPFLAGS	= -std=gnu99 -Wall -Wextra -O2
 libstlink_a_LIBADD = $(LIBOBJS)
 
 st_flash_LDADD	=	libstlink.a
-st_flash_CPPFLAGS	= -std=gnu99 -Wall -Wextra -O2 -I$(top_srcdir)/src
+st_flash_CPPFLAGS	= -std=gnu99 -Wall -Wextra -O2 -I$(top_srcdir)/src -I$(top_srcdir)/mingw
 
 st_util_LDADD	=	libstlink.a
-st_util_CPPFLAGS	= -std=gnu99 -Wall -Wextra -O2 -I$(top_srcdir)/src
+st_util_CPPFLAGS	= -std=gnu99 -Wall -Wextra -O2 -I$(top_srcdir)/src -I$(top_srcdir)/mingw
 
 EXTRA_DIST = autogen.sh
 

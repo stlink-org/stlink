@@ -11,7 +11,11 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdint.h>
+#ifdef __MINGW32__
+#include "mingw.h"
+#else
 #include <sys/poll.h>
+#endif
 
 static const char hex[] = "0123456789abcdef";
 
@@ -24,7 +28,7 @@ int gdb_send_packet(int fd, char* data) {
 	packet[0] = '$';
 
 	uint8_t cksum = 0;
-	for(int i = 0; i < strlen(data); i++) {
+	for(unsigned int i = 0; i < strlen(data); i++) {
 		packet[i + 1] = data[i];
 		cksum += data[i];
 	}
