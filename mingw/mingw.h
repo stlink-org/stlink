@@ -39,10 +39,12 @@ struct pollfd {
  * outside of this file "shouldn't" have to worry about winsock specific error
  * handling.
  */
-#define socket(x, y, z)      win32_socket(x, y, z)
-#define connect(x, y, z)     win32_connect(x, y, z)
-#define accept(x, y, z)      win32_accept(x, y, z)
-#define shutdown(x, y)       win32_shutdown(x, y)
+#define socket(x, y, z)		win32_socket(x, y, z)
+#define connect(x, y, z)	win32_connect(x, y, z)
+#define accept(x, y, z)		win32_accept(x, y, z)
+#define shutdown(x, y)		win32_shutdown(x, y)
+#define read(x, y, z)			win32_read_socket(x, y, z)
+#define write(x, y, z)			win32_write_socket(x, y, z)
 
 /* Winsock uses int instead of the usual socklen_t */
 typedef int socklen_t;
@@ -58,5 +60,9 @@ int     win32_shutdown(SOCKET, int);
 
 char *win32_strtok_r(char *s, const char *delim, char **lasts);
 char *win32_strsep(char **stringp, const char *delim);
+
+ssize_t win32_read_socket(SOCKET fd, void *buf, int n);
+ssize_t win32_write_socket(SOCKET fd, void *buf, int n);
+
 
 #endif

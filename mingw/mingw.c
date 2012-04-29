@@ -171,7 +171,7 @@ int win32_close_socket(SOCKET fd) {
 }
 
 
-int win32_write_socket(SOCKET fd, void *buf, int n)
+ssize_t win32_write_socket(SOCKET fd, void *buf, int n)
 {
     int rc = send(fd, buf, n, 0);
     if(rc == SOCKET_ERROR) {
@@ -180,7 +180,7 @@ int win32_write_socket(SOCKET fd, void *buf, int n)
     return rc;
 }
 
-int win32_read_socket(SOCKET fd, void *buf, int n)
+ssize_t win32_read_socket(SOCKET fd, void *buf, int n)
 {
     int rc = recv(fd, buf, n, 0);
     if(rc == SOCKET_ERROR) {
