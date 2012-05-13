@@ -567,7 +567,7 @@ int serve(stlink_t *sl, int port) {
 	}
 
 	unsigned int val = 1;
-	setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &val, sizeof(val));
+	setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (char *)&val, sizeof(val));
 
 	struct sockaddr_in serv_addr;
 	memset(&serv_addr,0,sizeof(struct sockaddr_in));
