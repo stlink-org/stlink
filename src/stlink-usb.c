@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
-#include <time.h>
+#include <sys/time.h>
 #include <sys/types.h>
 #include <libusb.h>
 
@@ -57,7 +57,7 @@ struct trans_ctx {
     volatile unsigned long flags;
 };
 
-static void on_trans_done(struct libusb_transfer * trans) {
+static void LIBUSB_CALL on_trans_done(struct libusb_transfer * trans) {
     struct trans_ctx * const ctx = trans->user_data;
 
     if (trans->status != LIBUSB_TRANSFER_COMPLETED)
