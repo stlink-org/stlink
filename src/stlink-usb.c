@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
-#include <time.h>
+#include <sys/time.h>
 #include <sys/types.h>
 #include <libusb.h>
 
@@ -16,6 +16,18 @@
 #define WLOG(format, args...)         ugly_log(UWARN, LOG_TAG, format, ## args)
 #define fatal(format, args...)        ugly_log(UFATAL, LOG_TAG, format, ## args)
 
+#ifndef timersub
+/* This is a copy from GNU C Library (GNU LGPL 2.1), sys/time.h. */
+# define timersub(a, b, result)                                               \
+  do {                                                                        \
+    (result)->tv_sec = (a)->tv_sec - (b)->tv_sec;                             \
+    (result)->tv_usec = (a)->tv_usec - (b)->tv_usec;                          \
+    if ((result)->tv_usec < 0) {                                              \
+      --(result)->tv_sec;                                                     \
+      (result)->tv_usec += 1000000;                                           \
+    }                                                                         \
+  } while (0)
+#endif
 
 enum SCSI_Generic_Direction {SG_DXFER_TO_DEV=0, SG_DXFER_FROM_DEV=0x80};
 
@@ -45,7 +57,7 @@ struct trans_ctx {
     volatile unsigned long flags;
 };
 
-static void on_trans_done(struct libusb_transfer * trans) {
+static void LIBUSB_CALL on_trans_done(struct libusb_transfer * trans) {
     struct trans_ctx * const ctx = trans->user_data;
 
     if (trans->status != LIBUSB_TRANSFER_COMPLETED)
