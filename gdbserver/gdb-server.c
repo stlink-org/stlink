@@ -12,10 +12,14 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/types.h>
+#ifdef __MINGW32__
+#include "mingw.h"
+#else
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <signal.h>
+#endif
 
 #include <stlink-common.h>
 
@@ -166,7 +170,19 @@ int main(int argc, char** argv) {
 
 	current_memory_map = make_memory_map(sl);
 
+#ifdef __MINGW32__
+	WSADATA	wsadata;
+	if (WSAStartup(MAKEWORD(2,2),&wsadata) !=0 ) {
+		goto winsock_error;
+	}
+#endif
+
 	while(serve(sl, state.listen_port) == 0);
+
+#ifdef __MINGW32__
+winsock_error:
+	WSACleanup();
+#endif
 
 	/* Switch back to mass storage mode before closing. */
 	stlink_run(sl);
@@ -204,15 +220,15 @@ static const char* const memory_map_template =
   "<!DOCTYPE memory-map PUBLIC \"+//IDN gnu.org//DTD GDB Memory Map V1.0//EN\""
   "     \"http://sourceware.org/gdb/gdb-memory-map.dtd\">"
   "<memory-map>"
-  "  <memory type=\"rom\" start=\"0x00000000\" length=\"0x%x\"/>"       // code = sram, bootrom or flash; flash is bigger
-  "  <memory type=\"ram\" start=\"0x20000000\" length=\"0x%x\"/>"       // sram 8k
-  "  <memory type=\"flash\" start=\"0x08000000\" length=\"0x%x\">"
-  "    <property name=\"blocksize\">0x%x</property>"
+  "  <memory type=\"rom\" start=\"0x00000000\" length=\"0x%zx\"/>"       // code = sram, bootrom or flash; flash is bigger
+  "  <memory type=\"ram\" start=\"0x20000000\" length=\"0x%zx\"/>"       // sram 8k
+  "  <memory type=\"flash\" start=\"0x08000000\" length=\"0x%zx\">"
+  "    <property name=\"blocksize\">0x%zx</property>"
   "  </memory>"
   "  <memory type=\"ram\" start=\"0x40000000\" length=\"0x1fffffff\"/>" // peripheral regs
   "  <memory type=\"ram\" start=\"0xe0000000\" length=\"0x1fffffff\"/>" // cortex regs
-  "  <memory type=\"rom\" start=\"0x%08x\" length=\"0x%x\"/>"           // bootrom
-  "  <memory type=\"rom\" start=\"0x1ffff800\" length=\"0x8\"/>"        // option byte area
+  "  <memory type=\"rom\" start=\"0x%08x\" length=\"0x%zx\"/>"           // bootrom
+  "  <memory type=\"rom\" start=\"0x1ffff800\" length=\"0x8x\"/>"        // option byte area
   "</memory-map>";
 
 char* make_memory_map(stlink_t *sl) {
@@ -292,7 +308,7 @@ static int add_data_watchpoint(stlink_t *sl, enum watchfun wf, stm32_addr_t addr
 		mask++;
 	}
 
-	if((mask != -1) && (mask < 16)) {
+	if((mask != (uint32_t)-1) && (mask < 16)) {
 		for(i = 0; i < DATA_WATCH_NUM; i++) {
 			// is this an empty slot ?
 			if(data_watches[i].fun == WATCHDISABLED) {
@@ -462,7 +478,7 @@ static int flash_add_block(stm32_addr_t addr, unsigned length, stlink_t *sl) {
 }
 
 static int flash_populate(stm32_addr_t addr, uint8_t* data, unsigned length) {
-	int fit_blocks = 0, fit_length = 0;
+	unsigned int fit_blocks = 0, fit_length = 0;
 
 	for(struct flash_block* fb = flash_root; fb; fb = fb->next) {
 		/* Block: ------X------Y--------
@@ -552,9 +568,10 @@ int serve(stlink_t *sl, int port) {
 	}
 
 	unsigned int val = 1;
-	setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &val, sizeof(val));
+	setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (char *)&val, sizeof(val));
 
-	struct sockaddr_in serv_addr = {0};
+	struct sockaddr_in serv_addr;
+	memset(&serv_addr,0,sizeof(struct sockaddr_in));
 	serv_addr.sin_family = AF_INET;
 	serv_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
 	serv_addr.sin_port = htons(port);
@@ -577,7 +594,7 @@ int serve(stlink_t *sl, int port) {
 	printf("Listening at *:%d...\n", port);
 
 	int client = accept(sock, NULL, NULL);
-	signal (SIGINT, SIG_DFL);
+	//signal (SIGINT, SIG_DFL);
 	if(client < 0) {
 		perror("accept");
 		return 1;
@@ -634,17 +651,17 @@ int serve(stlink_t *sl, int port) {
 			if(!strcmp(queryName, "Supported")) {
 				reply = strdup("PacketSize=3fff;qXfer:memory-map:read+");
 			} else if(!strcmp(queryName, "Xfer")) {
-				char *type, *op, *s_addr, *s_length;
+				char *type, *op, *__s_addr, *s_length;
 				char *tok = params;
 				char *annex __attribute__((unused));
 
 				type     = strsep(&tok, ":");
 				op       = strsep(&tok, ":");
 				annex    = strsep(&tok, ":");
-				s_addr   = strsep(&tok, ",");
+				__s_addr   = strsep(&tok, ",");
 				s_length = tok;
 
-				unsigned addr = strtoul(s_addr, NULL, 16),
+				unsigned addr = strtoul(__s_addr, NULL, 16),
 				       length = strtoul(s_length, NULL, 16);
 
 				#ifdef DEBUG
@@ -730,13 +747,13 @@ int serve(stlink_t *sl, int port) {
 			cmdName++; // vCommand -> Command
 
 			if(!strcmp(cmdName, "FlashErase")) {
-				char *s_addr, *s_length;
+				char *__s_addr, *s_length;
 				char *tok = params;
 
-				s_addr   = strsep(&tok, ",");
+				__s_addr   = strsep(&tok, ",");
 				s_length = tok;
 
-				unsigned addr = strtoul(s_addr, NULL, 16),
+				unsigned addr = strtoul(__s_addr, NULL, 16),
 				       length = strtoul(s_length, NULL, 16);
 
 				#ifdef DEBUG
@@ -750,13 +767,13 @@ int serve(stlink_t *sl, int port) {
 					reply = strdup("OK");
 				}
 			} else if(!strcmp(cmdName, "FlashWrite")) {
-				char *s_addr, *data;
+				char *__s_addr, *data;
 				char *tok = params;
 
-				s_addr = strsep(&tok, ":");
+				__s_addr = strsep(&tok, ":");
 				data   = tok;
 
-				unsigned addr = strtoul(s_addr, NULL, 16);
+				unsigned addr = strtoul(__s_addr, NULL, 16);
 				unsigned data_length = status - (data - packet);
 
 				// Length of decoded data cannot be more than
@@ -764,7 +781,7 @@ int serve(stlink_t *sl, int port) {
 				// Additional byte is reserved for alignment fix.
 				uint8_t *decoded = calloc(data_length + 1, 1);
 				unsigned dec_index = 0;
-				for(int i = 0; i < data_length; i++) {
+				for(unsigned int i = 0; i < data_length; i++) {
 					if(data[i] == 0x7d) {
 						i++;
 						decoded[dec_index++] = data[i] ^ 0x20;
@@ -920,7 +937,7 @@ int serve(stlink_t *sl, int port) {
 						count : count + 4 - (count % 4));
 
 			reply = calloc(count * 2 + 1, 1);
-			for(int i = 0; i < count; i++) {
+			for(unsigned int i = 0; i < count; i++) {
 				reply[i * 2 + 0] = hex[sl->q_buf[i + adj_start] >> 4];
 				reply[i * 2 + 1] = hex[sl->q_buf[i + adj_start] & 0xf];
 			}
@@ -936,7 +953,7 @@ int serve(stlink_t *sl, int port) {
 			stm32_addr_t start = strtoul(s_start, NULL, 16);
 			unsigned     count = strtoul(s_count, NULL, 16);
 
-			for(int i = 0; i < count; i ++) {
+			for(unsigned int i = 0; i < count; i ++) {
 				char hex[3] = { hexdata[i*2], hexdata[i*2+1], 0 };
 				uint8_t byte = strtoul(hex, NULL, 16);
 				sl->q_buf[i] = byte;

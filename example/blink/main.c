@@ -1,7 +1,7 @@
 /* missing type */
 
 typedef unsigned int uint32_t;
-
+void main(void);
 
 /* hardware configuration */
 
