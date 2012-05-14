@@ -198,7 +198,8 @@ static const char* const memory_map_template_F4 =
   "     \"http://sourceware.org/gdb/gdb-memory-map.dtd\">"
   "<memory-map>"
   "  <memory type=\"rom\" start=\"0x00000000\" length=\"0x100000\"/>"       // code = sram, bootrom or flash; flash is bigger
-  "  <memory type=\"ram\" start=\"0x20000000\" length=\"0x30000\"/>"        // sram
+  "  <memory type=\"ram\" start=\"0x10000000\" length=\"0x10000\"/>"        // ccm ram
+  "  <memory type=\"ram\" start=\"0x20000000\" length=\"0x20000\"/>"        // sram
   "  <memory type=\"flash\" start=\"0x08000000\" length=\"0x10000\">"		//Sectors 0..3
   "    <property name=\"blocksize\">0x4000</property>"						//16kB
   "  </memory>"
