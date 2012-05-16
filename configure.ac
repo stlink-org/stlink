@@ -18,8 +18,7 @@ AM_PROG_CC_C_O
 
 AC_CHECK_HEADERS(sys/mman.h)
 AC_CHECK_HEADERS(sys/poll.h)
-AC_CHECK_FUNCS(mmap)
-AC_REPLACE_FUNCS(mmap pread)
+AC_REPLACE_FUNCS(mmap)
 
 # Checks for libraries.
 PKG_CHECK_MODULES(USB, libusb-1.0 >= 1.0.0,,
