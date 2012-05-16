@@ -16,9 +16,9 @@ void *mmap (void *addr, size_t len, int prot, int flags, int fd, long long  offs
 	if ( NULL == buf ) return MAP_FAILED;
 
 	if (lseek(fd,offset,SEEK_SET) != offset) return MAP_FAILED;
-	
+
 	count = read(fd, buf, len);
-	
+
 	if (count != len) {
 		free (buf);
 		return MAP_FAILED;
