@@ -16,17 +16,18 @@
 #define WLOG(format, args...)         ugly_log(UWARN, LOG_TAG, format, ## args)
 #define fatal(format, args...)        ugly_log(UFATAL, LOG_TAG, format, ## args)
 
-#ifndef timersub
-/* This is a copy from GNU C Library (GNU LGPL 2.1), sys/time.h. */
-# define timersub(a, b, result)                                               \
-  do {                                                                        \
-    (result)->tv_sec = (a)->tv_sec - (b)->tv_sec;                             \
-    (result)->tv_usec = (a)->tv_usec - (b)->tv_usec;                          \
-    if ((result)->tv_usec < 0) {                                              \
-      --(result)->tv_sec;                                                     \
-      (result)->tv_usec += 1000000;                                           \
-    }                                                                         \
-  } while (0)
+/* code from bsd timersub.h 
+http://www.gnu-darwin.org/www001/src/ports/net/libevnet/work/libevnet-0.3.8/libnostd/bsd/sys/time/timersub.h.html
+*/
+#if !defined timersub
+#define	timersub(a, b, r) do {					\
+	(r)->tv_sec	= (a)->tv_sec - (b)->tv_sec;		\
+	(r)->tv_usec	= (a)->tv_usec - (b)->tv_usec;		\
+	if ((r)->tv_usec < 0) {					\
+		--(r)->tv_sec;					\
+		(r)->tv_usec += 1000000;			\
+	}							\
+} while (0)
 #endif
 
 enum SCSI_Generic_Direction {SG_DXFER_TO_DEV=0, SG_DXFER_FROM_DEV=0x80};
