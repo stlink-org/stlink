@@ -58,6 +58,10 @@ struct trans_ctx {
     volatile unsigned long flags;
 };
 
+#ifndef LIBUSB_CALL
+# define LIBUSB_CALL
+#endif
+
 static void LIBUSB_CALL on_trans_done(struct libusb_transfer * trans) {
     struct trans_ctx * const ctx = trans->user_data;
 
