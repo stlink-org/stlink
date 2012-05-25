@@ -228,7 +228,7 @@ static const char* const memory_map_template =
   "  <memory type=\"ram\" start=\"0x40000000\" length=\"0x1fffffff\"/>" // peripheral regs
   "  <memory type=\"ram\" start=\"0xe0000000\" length=\"0x1fffffff\"/>" // cortex regs
   "  <memory type=\"rom\" start=\"0x%08x\" length=\"0x%zx\"/>"           // bootrom
-  "  <memory type=\"rom\" start=\"0x1ffff800\" length=\"0x8x\"/>"        // option byte area
+  "  <memory type=\"rom\" start=\"0x1ffff800\" length=\"0x10\"/>"        // option byte area
   "</memory-map>";
 
 char* make_memory_map(stlink_t *sl) {
