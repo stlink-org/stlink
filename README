@@ -37,11 +37,11 @@ You're ready to go :)
 
 To run the gdb server, do (you do not need sudo if you have set up
 permissions correctly):
-$ make && [sudo] ./gdbserver/st-util 
+$ make && [sudo] ./st-util
 
 There are a few options:
 
-./gdbserver/st-util - usage:
+./st-util - usage:
 
   -h, --help        Print this help
   -vXX, --verbose=XX    specify a specific verbosity level (0..99)
