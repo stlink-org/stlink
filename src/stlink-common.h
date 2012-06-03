@@ -221,6 +221,17 @@ extern "C" {
                     .sram_size = 0x18000,
                     .bootrom_base = 0x1fffe000,
                     .bootrom_size = 0x1800
+        },
+        {
+            //Use this as an example for mapping future chips:
+            //RM0091 document was used to find these paramaters
+            .chip_id = 0x440,
+                    .description = "F0 device",
+                    .flash_size_reg = 0x1ffff7cc,	// "Flash size data register" (pg735)
+                    .flash_pagesize = 0x400,		// Page sizes listed in Table 4
+                    .sram_size = 0x2000,		// "SRAM" byte size in hex from Table 2
+                    .bootrom_base = 0x1fffec00,		// "System memory" starting address from Table 2
+                    .bootrom_size = 0xC00 		// "System memory" byte size in hex from Table 2
         }
  };
 
