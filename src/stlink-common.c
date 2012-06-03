@@ -394,6 +394,7 @@ uint32_t stlink_core_id(stlink_t *sl) {
 
 uint32_t stlink_chip_id(stlink_t *sl) {
     uint32_t chip_id = stlink_read_debug32(sl, 0xE0042000);
+    if (chip_id == 0) chip_id = stlink_read_debug32(sl, 0xE000ED00);
     return chip_id;
 }
 
