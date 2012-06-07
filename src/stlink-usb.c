@@ -652,7 +652,7 @@ stlink_t* stlink_open_usb(const int verbose) {
     if (slu->usb_handle == NULL) {
 	slu->usb_handle = libusb_open_device_with_vid_pid(slu->libusb_ctx, USB_ST_VID, USB_STLINK_PID);
 	if (slu->usb_handle == NULL) {
-	    WLOG("Couldn't find any ST-Link/V2 devices");
+	    WLOG("Couldn't find any ST-Link/V2 devices\n");
 	    goto on_error;
 	}
 	slu->protocoll = 1;
