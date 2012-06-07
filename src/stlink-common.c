@@ -1182,6 +1182,28 @@ int write_loader_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* size) {
       0x00, 0xbe
     };
 
+	static const uint8_t loader_code_stm32f4[] = {
+		// flashloaders/stm32f4.s
+
+		0x07, 0x4b,
+
+		0x62, 0xb1,
+		0x04, 0x68,
+		0x0c, 0x60,
+
+		0xdc, 0x89,
+		0x14, 0xf0, 0x01, 0x0f,
+		0xfb, 0xd1,
+		0x00, 0xf1, 0x04, 0x00,
+		0x01, 0xf1, 0x04, 0x01,
+		0xa2, 0xf1, 0x01, 0x02,
+		0xf1, 0xe7,
+
+		0x00, 0xbe,
+
+		0x00, 0x3c, 0x02, 0x40,
+	};
+
     const uint8_t* loader_code;
     size_t loader_size;
 
@@ -1195,6 +1217,11 @@ int write_loader_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* size) {
       loader_code = loader_code_stm32vl;
       loader_size = sizeof(loader_code_stm32vl);
     }
+	else if (sl->chip_id == STM32_CHIPID_F2 || sl->chip_id == STM32_CHIPID_F4)
+	{
+		loader_code = loader_code_stm32f4;
+		loader_size = sizeof(loader_code_stm32f4);
+	}
     else
     {
       WLOG("unknown coreid, not sure what flash loader to use, aborting!: %x\n", sl->core_id);
@@ -1358,6 +1385,13 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, unsigned 
     if ((sl->chip_id == STM32_CHIPID_F2) ||(sl->chip_id == STM32_CHIPID_F4)) {
     	/* todo: check write operation */
 
+		ILOG("Starting Flash write for F2/F4\n");
+		/* flash loader initialization */
+		if (init_flash_loader(sl, &fl) == -1) {
+			WLOG("init_flash_loader() == -1\n");
+			return -1;
+		}
+
     	/* First unlock the cr */
     	unlock_flash_if(sl);
 
@@ -1368,6 +1402,20 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, unsigned 
     	/* set programming mode */
     	set_flash_cr_pg(sl);
 
+		for(off = 0; off < len;) {
+			size_t size = len - off > 0x8000 ? 0x8000 : len - off;
+
+			printf("size: %u\n", size);
+
+			if (run_flash_loader(sl, &fl, addr + off, base + off, size) == -1) {
+				WLOG("run_flash_loader(%#zx) failed! == -1\n", addr + off);
+				return -1;
+			}
+
+			off += size;
+		}
+
+#if 0
 #define PROGRESS_CHUNK_SIZE 0x1000
     	/* write a word in program memory */
     	for (off = 0; off < len; off += sizeof(uint32_t)) {
@@ -1389,6 +1437,7 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, unsigned 
     	    wait_flash_busy(sl);
 
     	}
+#endif
     	/* Relock flash */
     	lock_flash(sl);
 
@@ -1618,6 +1667,17 @@ int run_flash_loader(stlink_t *sl, flash_loader_t* fl, stm32_addr_t target, cons
       stlink_write_reg(sl, 0, 3); /* flash bank 0 (input) */
       stlink_write_reg(sl, fl->loader_addr, 15); /* pc register */
 
+	} else if (sl->chip_id == STM32_CHIPID_F2 || sl->chip_id == STM32_CHIPID_F4) {
+
+		size_t count = size / sizeof(uint32_t);
+		if (size % sizeof(uint32_t)) ++count;
+
+		/* setup core */
+		stlink_write_reg(sl, fl->buf_addr, 0); /* source */
+		stlink_write_reg(sl, target, 1); /* target */
+		stlink_write_reg(sl, count, 2); /* count (32 bits words) */
+		stlink_write_reg(sl, fl->loader_addr, 15); /* pc register */
+
     } else {
       fprintf(stderr, "unknown coreid: 0x%x\n", sl->core_id);
       return -1;
@@ -1656,6 +1716,14 @@ int run_flash_loader(stlink_t *sl, flash_loader_t* fl, stm32_addr_t target, cons
         fprintf(stderr, "write error, count == %u\n", rr.r[2]);
         return -1;
       }
+
+	} else if (sl->chip_id == STM32_CHIPID_F2 || sl->chip_id == STM32_CHIPID_F4) {
+
+		stlink_read_reg(sl, 2, &rr);
+		if (rr.r[2] != 0) {
+			fprintf(stderr, "write error, count == %u\n", rr.r[2]);
+			return -1;
+		}
 
     } else {
 
