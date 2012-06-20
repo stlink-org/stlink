@@ -1,5 +1,0 @@
-LIB = libstm32_stdperiph_f10x.a
-PLATFORM=stm32f10x
-CFLAGS+= -mcpu=cortex-m3
-
-include Makefile.common
