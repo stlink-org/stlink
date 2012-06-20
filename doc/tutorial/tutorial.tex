@@ -61,6 +61,7 @@ Before continuing, the following dependencies must be met:
 \begin{itemize}
 \item libusb-1.0
 \item pkg-config
+\item autotools
 \end{itemize}
 
 \paragraph{}
@@ -79,30 +80,27 @@ Everything can be built from the top directory:\\
 \begin{small}
 \begin{lstlisting}[frame=tb]
 $> cd stlink.git
-$> make 
+$> ./autogen.sh 
+$> ./configure
+$> make
 \end{lstlisting}
 \end{small}
 It includes:
 \begin{itemize}
 \item a communication library (stlink.git/libstlink.a),
-\item a GDB server (stlink.git/gdbserver/st-util),
-\item a flash manipulation tool (stlink.git/flash/flash).
+\item a GDB server (stlink.git/st-util),
+\item a flash manipulation tool (stlink.git/st-flash).
 \end{itemize}
 
 
 \newpage
-\section{Building and running a program in SRAM}
+\section{Using the GDB server}
 \paragraph{}
-A simple LED blinking example is provided in the example directory. It is built using:\\
-\begin{small}
-\begin{lstlisting}[frame=tb]
-cd stlink.git/example/blink ;
-PATH=$TOOLCHAIN_PATH/bin:$PATH make
-\end{lstlisting}
-\end{small}
-This builds three files, one for each of the Discovery boards currently
-available, linked to run from SRAM. (So no risk of overwriting anything you didn't mean to) 
-These blink examples can safely be used to verify that:
+This assumes you have got the libopencm3 project downloaded in [ocm3].  The
+libopencm3 project has some good, reliable examples for each of the Discovery boards.
+
+Even if you don't plan on using libopencm3, the examples they provide will help you 
+verify that:
 
 \begin{itemize}
 \item Your installed toolchain is capable of compiling for cortex M3/M4 targets
@@ -131,7 +129,7 @@ $> ./st-util --help
 Then, GDB can be used to interact with the kit:\\
 \begin{small}
 \begin{lstlisting}[frame=tb]
-$> $TOOLCHAIN_PATH/bin/arm-none-eabi-gdb
+$> $TOOLCHAIN_PATH/bin/arm-none-eabi-gdb example_file.elf
 \end{lstlisting}
 \end{small}
 
@@ -139,98 +137,72 @@ $> $TOOLCHAIN_PATH/bin/arm-none-eabi-gdb
 From GDB, connect to the server using:\\
 \begin{small}
 \begin{lstlisting}[frame=tb]
-$> target extended localhost:4242
+(gdb) target extended localhost:4242
 \end{lstlisting}
 \end{small}
 
 \paragraph{}
-By default, the program was linked such that the base address is 0x20000000. From the architecture
-memory map, GDB knows this address belongs to SRAM. To load the program in SRAM, simply use:\\
+GDB has memory maps for as many chips as it knows about, and will load your project
+into either flash or SRAM based on how the project was linked.  Linking projects
+to boot from SRAM is beyond the scope of this document.
+
+Because of these built in memory maps, after specifying the .elf at the command line, now
+we can simply "load" the target:\\
 \begin{small}
 \begin{lstlisting}[frame=tb]
-$> # Choose one as appropriate for your Discovery kit
-$> load blink_32L.elf | load blink_32VL.elf | load blink_F4.elf
+(gdb) load
 \end{lstlisting}
 \end{small}
 
 \paragraph{}
-GDB automatically set the PC register to the correct value, 0x20000000 in this case. Then, you
-can run the program using:\\
+st-util will load all sections into their appropriate addresses, and "correctly" set the PC
+register.  So, to run your freshly loaded program, simply "continue"\\
 \begin{small}
 \begin{lstlisting}[frame=tb]
-$> continue
+(gdb) continue
 \end{lstlisting}
 \end{small}
 
 \paragraph{}
-All the LEDs on the board should now be blinking in time (those leds are near the user and reset buttons).
+Your program should now be running, and, if you used one of the blinking examples from
+libopencm3, the LEDs on the board should be blinking for you.
 
 \newpage
 \section{Building and flashing a program}
 \paragraph{}
-FLASH memory reading and writing is done by a separate tool, as shown below:\\
+If you want to simply flash binary files to arbitrary sections of memory, or
+read arbitary addresses of memory out to a binary file, use the st-flash tool, 
+as shown below:\\
 \begin{small}
 \begin{lstlisting}[frame=tb]
-# change to the flash tool directory
-$> cd stlink.git/flash ;
 
 # stlinkv1 command to read 4096 from flash into out.bin
-$> ./flash read v1 out.bin 0x8000000 4096
+$> ./st-flash read v1 out.bin 0x8000000 4096
 
 # stlinkv2 command
-$> ./flash read out.bin 0x8000000 4096
+$> ./st-flash read out.bin 0x8000000 4096
 
 # stlinkv1 command to write the file in.bin into flash
-$> ./flash write v1 in.bin 0x8000000
+$> ./st-flash write v1 in.bin 0x8000000
 
 # stlinkv2 command
-$> ./flash write in.bin 0x8000000
+$> ./st-flash write in.bin 0x8000000
 \end{lstlisting}
 \end{small}
 
 \paragraph{}
-A LED blinking example is provided:\\
+Of course, you can use this instead of the gdb server, if you prefer.  Just remember
+to use the ".bin" image, rather than the .elf file.\\
 \begin{small}
 \begin{lstlisting}[frame=tb]
-# build the example, resulting in blink.bin
-$> cd stlink.git/example/blink_flash
-$> PATH=$TOOLCHAIN_PATH:$PATH make CONFIG_STM32L_DISCOVERY=1
 
 # write blink.bin into FLASH
-$> sudo ./flash write blink.bin 0x08000000
+$> [sudo] ./st-flash write fancy_blink.bin 0x08000000
 \end{lstlisting}
 \end{small}
 
 \paragraph{}
 Upon reset, the board LEDs should be blinking.
-
-\newpage
-\section{Building and installing the CHIBIOS kernel}
-\paragraph{}
-CHIBIOS is an open source RTOS. More information can be found on the project website:
-\begin{center}
-http://www.chibios.org/dokuwiki/doku.php
-\end{center}
-
-\paragraph{}
-It supports several boards, including the STM32L DISCOVERY kit:
-\begin{center}
-http://www.chibios.org/dokuwiki/doku.php?id=chibios:articles:stm32l\_discovery
-\end{center}
-
-\paragraph{}
-The installation procedure is detailed below:\\
-\begin{small}
-\begin{lstlisting}[frame=tb]
-# checkout and build CHIBIOS for STM32L DISCOVERY kits
-svn checkout https://chibios.svn.sourceforge.net/svnroot/chibios/trunk
-cd chibios/trunk/demos/ARMCM3-STM32L152-DISCOVERY
-PATH=$TOOLCHAIN_PATH:$PATH make
-
-# flash the image into STM32L
-sudo ./flash write build/ch.bin 0x08000000
-\end{lstlisting}
-\end{small}
 
 \newpage
 \section{Notes}
@@ -242,36 +214,7 @@ are compiled in THUMB mode. To correctly disassemble them under GDB, uses an odd
 if you want to disassemble the code at 0x20000000, use:\\
 \begin{small}
 \begin{lstlisting}[frame=tb]
-$> disassemble 0x20000001
-\end{lstlisting}
-\end{small}
-
-
-\subsection{libstm32l\_discovery}
-\paragraph{}
-The repository includes the STM32L discovery library source code from ST original firmware packages,
-available here:\\
-\begin{small}
-\begin{lstlisting}[frame=tb]
-http://www.st.com/internet/evalboard/product/250990.jsp#FIRMWARE
-\end{lstlisting}
-\end{small}
-
-\paragraph{}
-It is built using:\\
-\begin{small}
-\begin{lstlisting}[frame=tb]
-$> cd stlink.git/example/libstm32l_discovery/build
-$> make
-\end{lstlisting}
-\end{small}
-
-\paragraph{}
-An example using the library can be built using:\\
-\begin{small}
-\begin{lstlisting}[frame=tb]
-$> cd stlink.git/example/lcd
-$> make
+(gdb) disassemble 0x20000001
 \end{lstlisting}
 \end{small}
 
@@ -283,6 +226,9 @@ $> make
   documentation related to the STM32L mcu
 \item http://www.st.com/internet/evalboard/product/250990.jsp\\
   documentation related to the STM32L discovery kit
+\item http://www.libopencm3.org\\
+  libopencm3, a project providing a firmware library, with solid examples for Cortex
+  M3, M4 and M0 processors from any vendor.
 \end{itemize}
 
 \end{document}
