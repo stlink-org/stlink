@@ -35,8 +35,20 @@ IF YOU HAVE AN STLINKv2
 
 You're ready to go :)
 
-To run the gdb server, do (you do not need sudo if you have set up
-permissions correctly):
+COMPILING
+~~~~~~~~~
+This project was converted to Autotools by a well meaning individual. The
+following steps will build the project for you.
+
+$ ./autogen.sh
+$ ./configure
+$ make
+
+USING THE GDBSERVER
+~~~~~~~~~~~~~~~~~~~
+To run the gdb server: (you do not need sudo if you have set up
+permissions correctly)
+
 $ make && [sudo] ./st-util
 
 There are a few options:
@@ -52,8 +64,21 @@ There are a few options:
   -p 4242, --listen_port=1234
             Set the gdb server listen port. (default port: 4242)
 
-Then, in gdb: (remember, you need to run an _ARM_ gdb, not an x86 gdb)
-(gdb) target remote :4242
+Then, in your project directory, someting like this...
+(remember, you need to run an _ARM_ gdb, not an x86 gdb)
+
+$ arm-none-eabi-gdb fancyblink.elf
+...
+(gdb) tar extended-remote :4242
+...
+(gdb) load
+Loading section .text, size 0x458 lma 0x8000000
+Loading section .data, size 0x8 lma 0x8000458
+Start address 0x80001c1, load size 1120
+Transfer rate: 1 KB/sec, 560 bytes/write.
+(gdb)
+...
+(gdb) continue
 
 Have fun!
 
