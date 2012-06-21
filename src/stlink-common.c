@@ -1323,7 +1323,7 @@ int stm32l1_write_half_pages(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uns
         if (sl->verbose >= 1) {
             /* show progress. writing procedure is slow
                and previous errors are misleading */
-            fprintf(stdout, "\r%3u/%u halfpages written", count, num_half_pages);
+            fprintf(stdout, "\r%3u/%u halfpages written", count + 1, num_half_pages);
             fflush(stdout);
         }
         while ((stlink_read_debug32(sl, STM32L_FLASH_SR) & (1 << 0)) != 0) {
