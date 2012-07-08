@@ -163,7 +163,7 @@ int main(int argc, char** argv) {
 		if(sl == NULL) return 1;
 		break;
     }
-    
+
 	printf("Chip ID is %08x, Core ID is  %08x.\n", sl->chip_id, sl->core_id);
 
 	sl->verbose=0;
@@ -249,7 +249,7 @@ char* make_memory_map(stlink_t *sl) {
 }
 
 
-/* 
+/*
  * DWT_COMP0     0xE0001020
  * DWT_MASK0     0xE0001024
  * DWT_FUNCTION0 0xE0001028
@@ -282,7 +282,7 @@ static void init_data_watchpoints(stlink_t *sl) {
 	#endif
 
 	// set trcena in debug command to turn on dwt unit
-	stlink_write_debug32(sl, 0xE000EDFC, 
+	stlink_write_debug32(sl, 0xE000EDFC,
 			     stlink_read_debug32(sl, 0xE000EDFC) | (1<<24));
 
 	// make sure all watchpoints are cleared
@@ -695,31 +695,31 @@ int serve(stlink_t *sl, int port) {
 				} else {
 					params = separator + 1;
 				}
-				
 
-				if (!strncmp(params,"7265",4)) {// resume
+
+				if (!strncmp(params,"726573756d65",12)) {// resume
 #ifdef DEBUG
 					printf("Rcmd: resume\n");
 #endif
 					stlink_run(sl);
 
 					reply = strdup("OK");
-				} else if (!strncmp(params,"6861",4)) { //half
+                } else if (!strncmp(params,"68616c74",8)) { //halt
 					reply = strdup("OK");
-					
+
 					stlink_force_debug(sl);
 
 #ifdef DEBUG
 					printf("Rcmd: halt\n");
 #endif
-				} else if (!strncmp(params,"7265",4)) { //reset
+                } else if (!strncmp(params,"7265736574",10)) { //reset
 					reply = strdup("OK");
-					
+
 					stlink_force_debug(sl);
 					stlink_reset(sl);
 					init_code_breakpoints(sl);
 					init_data_watchpoints(sl);
-					
+
 #ifdef DEBUG
 					printf("Rcmd: reset\n");
 #endif
@@ -729,7 +729,7 @@ int serve(stlink_t *sl, int port) {
 #endif
 
 				}
-				
+
 			}
 
 			if(reply == NULL)
