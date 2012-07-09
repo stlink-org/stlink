@@ -238,11 +238,13 @@ extern "C" {
     
     typedef struct {
         uint32_t r[16];
+        uint32_t s[32];
         uint32_t xpsr;
         uint32_t main_sp;
         uint32_t process_sp;
         uint32_t rw;
         uint32_t rw2;
+        uint32_t fpscr;
     } reg;
 
     typedef uint32_t stm32_addr_t;
@@ -295,6 +297,8 @@ extern "C" {
         void (*write_mem8) (stlink_t *sl, uint32_t addr, uint16_t len);
         void (*read_all_regs) (stlink_t *sl, reg * regp);
         void (*read_reg) (stlink_t *sl, int r_idx, reg * regp);
+        void (*read_all_unsupported_regs) (stlink_t *sl, reg *regp);
+        void (*read_unsupported_reg) (stlink_t *sl, int r_idx, reg *regp);
         void (*write_reg) (stlink_t *sl, uint32_t reg, int idx);
         void (*step) (stlink_t * stl);
         int (*current_mode) (stlink_t * stl);
@@ -360,7 +364,9 @@ extern "C" {
     void stlink_write_mem32(stlink_t *sl, uint32_t addr, uint16_t len);
     void stlink_write_mem8(stlink_t *sl, uint32_t addr, uint16_t len);
     void stlink_read_all_regs(stlink_t *sl, reg *regp);
+    void stlink_read_all_unsupported_regs(stlink_t *sl, reg *regp);
     void stlink_read_reg(stlink_t *sl, int r_idx, reg *regp);
+    void stlink_read_unsupported_reg(stlink_t *sl, int r_idx, reg *regp);
     void stlink_write_reg(stlink_t *sl, uint32_t reg, int idx);
     void stlink_step(stlink_t *sl);
     int stlink_current_mode(stlink_t *sl);

@@ -576,6 +576,38 @@ void _stlink_usb_read_reg(stlink_t *sl, int r_idx, reg *regp) {
     }
 }
 
+void _stlink_usb_read_unsupported_reg(stlink_t *sl, int r_idx, reg *regp) {
+    uint32_t r;
+
+    sl->q_buf[0] = (unsigned char) r_idx;
+    for (int i = 1; i < 4; i++) {
+        sl->q_buf[i] = 0;
+    }
+
+    _stlink_usb_write_mem32(sl, 0xE000EDF4, 4);
+    _stlink_usb_read_mem32(sl, 0xE000EDF8, 4);
+
+    r = read_uint32(sl->q_buf, 0);
+    DLOG("r_idx (%2d) = 0x%08x\n", r_idx, r);
+
+    switch (r_idx) {
+        case 0x21:
+            regp->fpscr = r;
+            break;
+        default:
+            regp->s[r_idx - 0x40] = r;
+            break;
+    }
+}
+
+void _stlink_usb_read_all_unsupported_regs(stlink_t *sl, reg *regp) {
+    _stlink_usb_read_unsupported_reg(sl, 0x21, regp);
+
+    for (int i = 0; i < 32; i++) {
+        _stlink_usb_read_unsupported_reg(sl, 0x40+i, regp);
+    }
+}
+
 void _stlink_usb_write_reg(stlink_t *sl, uint32_t reg, int idx) {
     struct stlink_libusb * const slu = sl->backend_data;
     unsigned char* const data = sl->q_buf;
@@ -616,6 +648,8 @@ stlink_backend_t _stlink_usb_backend = {
     _stlink_usb_write_mem8,
     _stlink_usb_read_all_regs,
     _stlink_usb_read_reg,
+    _stlink_usb_read_all_unsupported_regs,
+    _stlink_usb_read_unsupported_reg,
     _stlink_usb_write_reg,
     _stlink_usb_step,
     _stlink_usb_current_mode,

@@ -577,6 +577,11 @@ void stlink_read_all_regs(stlink_t *sl, reg *regp) {
     sl->backend->read_all_regs(sl, regp);
 }
 
+void stlink_read_all_unsupported_regs(stlink_t *sl, reg *regp) {
+    DLOG("*** stlink_read_all_unsupported_regs ***\n");
+    sl->backend->read_all_unsupported_regs(sl, regp);
+}
+
 void stlink_write_reg(stlink_t *sl, uint32_t reg, int idx) {
     DLOG("*** stlink_write_reg\n");
     sl->backend->write_reg(sl, reg, idx);
@@ -592,6 +597,18 @@ void stlink_read_reg(stlink_t *sl, int r_idx, reg *regp) {
     }
 
     sl->backend->read_reg(sl, r_idx, regp);
+}
+
+void stlink_read_unsupported_reg(stlink_t *sl, int r_idx, reg *regp) {
+    DLOG("*** stlink_read_unsupported_reg\n");
+    DLOG(" (%d) ***\n", r_idx);
+
+    if (r_idx != 0x21 || r_idx < 0x40 || r_idx > 0x5f) {
+        fprintf(stderr, "Error: register address must be in [0x21, 0x40..0x5f]\n");
+        return;
+    }
+
+    sl->backend->read_unsupported_reg(sl, r_idx, regp);
 }
 
 unsigned int is_core_halted(stlink_t *sl) {
