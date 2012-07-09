@@ -620,6 +620,27 @@ void stlink_read_unsupported_reg(stlink_t *sl, int r_idx, reg *regp) {
     sl->backend->read_unsupported_reg(sl, r_convert, regp);
 }
 
+void stlink_write_unsupported_reg(stlink_t *sl, uint32_t val, int r_idx, reg *regp) {
+    int r_convert;
+
+    DLOG("*** stlink_write_unsupported_reg\n");
+    DLOG(" (%d) ***\n", r_idx);
+
+    /* Convert to values used by DCRSR */
+    if (r_idx >= 0x1C && r_idx <= 0x1F) { /* primask, basepri, faultmask, or control */
+        r_convert = r_idx;  /* The backend function handles this */
+    } else if (r_idx == 0x40) {     /* FPSCR */
+        r_convert = 0x21;
+    } else if (r_idx >= 0x20 && r_idx < 0x40) {
+        r_convert = 0x40 + (r_idx - 0x20);
+    } else {
+        fprintf(stderr, "Error: register address must be in [0x1C..0x40]\n");
+        return;
+    }
+
+    sl->backend->write_unsupported_reg(sl, val, r_convert, regp);
+}
+
 unsigned int is_core_halted(stlink_t *sl) {
     /* return non zero if core is halted */
     stlink_status(sl);

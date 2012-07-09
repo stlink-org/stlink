@@ -999,6 +999,22 @@ int serve(stlink_t *sl, int port) {
 				stlink_write_reg(sl, ntohl(value), reg);
 			} else if(reg == 0x19) {
 				stlink_write_reg(sl, ntohl(value), 16);
+			} else if(reg == 0x1A) {
+				stlink_write_reg(sl, ntohl(value), 17);
+			} else if(reg == 0x1B) {
+				stlink_write_reg(sl, ntohl(value), 18);
+			} else if(reg == 0x1C) {
+				stlink_write_unsupported_reg(sl, ntohl(value), reg, &regp);
+			} else if(reg == 0x1D) {
+				stlink_write_unsupported_reg(sl, ntohl(value), reg, &regp);
+			} else if(reg == 0x1E) {
+				stlink_write_unsupported_reg(sl, ntohl(value), reg, &regp);
+			} else if(reg == 0x1F) {
+				stlink_write_unsupported_reg(sl, ntohl(value), reg, &regp);
+            } else if(reg >= 0x20 && reg < 0x40) {
+                stlink_write_unsupported_reg(sl, ntohl(value), reg, &regp);
+			} else if(reg == 0x40) {
+                stlink_write_unsupported_reg(sl, ntohl(value), reg, &regp);
 			} else {
 				reply = strdup("E00");
 			}
