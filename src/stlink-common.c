@@ -936,7 +936,9 @@ int stlink_fread(stlink_t* sl, const char* path, stm32_addr_t addr, size_t size)
     }
 
     /* Ignore NULL Bytes at end of file */
-    ftruncate(fd, size - num_empty);
+    if (!ftruncate(fd, size - num_empty)) {
+        error = -1;
+    }
 
     /* success */
     error = 0;
@@ -1452,7 +1454,7 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, unsigned 
 		for(off = 0; off < len;) {
 			size_t size = len - off > 0x8000 ? 0x8000 : len - off;
 
-			printf("size: %u\n", size);
+			printf("size: %zu\n", size);
 
 			if (run_flash_loader(sl, &fl, addr + off, base + off, size) == -1) {
 				WLOG("run_flash_loader(%#zx) failed! == -1\n", addr + off);
