@@ -112,6 +112,8 @@ extern "C" {
 /* Cortex™-M3 Technical Reference Manual */
 /* Debug Halting Control and Status Register */
 #define DHCSR 0xe000edf0
+#define DCRSR 0xe000edf4
+#define DCRDR 0xe000edf8
 #define DBGKEY 0xa05f0000
 
 /* Enough space to hold both a V2 command or a V1 command packaged as generic scsi*/
@@ -238,11 +240,17 @@ extern "C" {
     
     typedef struct {
         uint32_t r[16];
+        uint32_t s[32];
         uint32_t xpsr;
         uint32_t main_sp;
         uint32_t process_sp;
         uint32_t rw;
         uint32_t rw2;
+        uint8_t control;
+        uint8_t faultmask;
+        uint8_t basepri;
+        uint8_t primask;
+        uint32_t fpscr;
     } reg;
 
     typedef uint32_t stm32_addr_t;
@@ -295,6 +303,9 @@ extern "C" {
         void (*write_mem8) (stlink_t *sl, uint32_t addr, uint16_t len);
         void (*read_all_regs) (stlink_t *sl, reg * regp);
         void (*read_reg) (stlink_t *sl, int r_idx, reg * regp);
+        void (*read_all_unsupported_regs) (stlink_t *sl, reg *regp);
+        void (*read_unsupported_reg) (stlink_t *sl, int r_idx, reg *regp);
+        void (*write_unsupported_reg) (stlink_t *sl, uint32_t value, int idx, reg *regp);
         void (*write_reg) (stlink_t *sl, uint32_t reg, int idx);
         void (*step) (stlink_t * stl);
         int (*current_mode) (stlink_t * stl);
@@ -360,7 +371,10 @@ extern "C" {
     void stlink_write_mem32(stlink_t *sl, uint32_t addr, uint16_t len);
     void stlink_write_mem8(stlink_t *sl, uint32_t addr, uint16_t len);
     void stlink_read_all_regs(stlink_t *sl, reg *regp);
+    void stlink_read_all_unsupported_regs(stlink_t *sl, reg *regp);
     void stlink_read_reg(stlink_t *sl, int r_idx, reg *regp);
+    void stlink_read_unsupported_reg(stlink_t *sl, int r_idx, reg *regp);
+    void stlink_write_unsupported_reg(stlink_t *sl, uint32_t value, int r_idx, reg *regp);
     void stlink_write_reg(stlink_t *sl, uint32_t reg, int idx);
     void stlink_step(stlink_t *sl);
     int stlink_current_mode(stlink_t *sl);
