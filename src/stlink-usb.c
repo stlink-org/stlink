@@ -576,6 +576,7 @@ void _stlink_usb_read_reg(stlink_t *sl, int r_idx, reg *regp) {
     }
 }
 
+/* See section C1.6 of the ARMv7-M Architecture Reference Manual */
 void _stlink_usb_read_unsupported_reg(stlink_t *sl, int r_idx, reg *regp) {
     uint32_t r;
 
@@ -591,6 +592,12 @@ void _stlink_usb_read_unsupported_reg(stlink_t *sl, int r_idx, reg *regp) {
     DLOG("r_idx (%2d) = 0x%08x\n", r_idx, r);
 
     switch (r_idx) {
+        case 0x14:
+            regp->primask = (uint8_t) (r & 0xFF);
+            regp->basepri = (uint8_t) ((r>>8) & 0xFF);
+            regp->faultmask = (uint8_t) ((r>>16) & 0xFF);
+            regp->control = (uint8_t) ((r>>24) & 0xFF);
+            break;
         case 0x21:
             regp->fpscr = r;
             break;

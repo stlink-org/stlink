@@ -192,6 +192,71 @@ winsock_error:
 	return 0;
 }
 
+static const char* const target_description_F4 =
+    "<?xml version=\"1.0\"?>"
+    "<!DOCTYPE target SYSTEM \"gdb-target.dtd\">"
+    "<target version=\"1.0\">"
+    "   <architecture>arm</architecture>"
+    "   <feature name=\"org.gnu.gdb.arm.m-profile\">"
+    "       <reg name=\"r0\" bitsize=\"32\"/>"
+    "       <reg name=\"r1\" bitsize=\"32\"/>"
+    "       <reg name=\"r2\" bitsize=\"32\"/>"
+    "       <reg name=\"r3\" bitsize=\"32\"/>"
+    "       <reg name=\"r4\" bitsize=\"32\"/>"
+    "       <reg name=\"r5\" bitsize=\"32\"/>"
+    "       <reg name=\"r6\" bitsize=\"32\"/>"
+    "       <reg name=\"r7\" bitsize=\"32\"/>"
+    "       <reg name=\"r8\" bitsize=\"32\"/>"
+    "       <reg name=\"r9\" bitsize=\"32\"/>"
+    "       <reg name=\"r10\" bitsize=\"32\"/>"
+    "       <reg name=\"r11\" bitsize=\"32\"/>"
+    "       <reg name=\"r12\" bitsize=\"32\"/>"
+    "       <reg name=\"sp\" bitsize=\"32\" type=\"data_ptr\"/>"
+    "       <reg name=\"lr\" bitsize=\"32\"/>"
+    "       <reg name=\"pc\" bitsize=\"32\" type=\"code_ptr\"/>"
+    "       <reg name=\"xpsr\" bitsize=\"32\" regnum=\"25\"/>"
+    "       <reg name=\"msp\" bitsize=\"32\" regnum=\"26\" type=\"data_ptr\" group=\"general\" />"
+    "       <reg name=\"psp\" bitsize=\"32\" regnum=\"27\" type=\"data_ptr\" group=\"general\" />"
+    "       <reg name=\"control\" bitsize=\"8\" regnum=\"28\" type=\"int\" group=\"general\" />"
+    "       <reg name=\"faultmask\" bitsize=\"8\" regnum=\"29\" type=\"int\" group=\"general\" />"
+    "       <reg name=\"basepri\" bitsize=\"8\" regnum=\"30\" type=\"int\" group=\"general\" />"
+    "       <reg name=\"primask\" bitsize=\"8\" regnum=\"31\" type=\"int\" group=\"general\" />"
+    "       <reg name=\"s0\" bitsize=\"32\" regnum=\"32\" type=\"float\" group=\"float\" />"
+    "       <reg name=\"s1\" bitsize=\"32\" type=\"float\" group=\"float\" />"
+    "       <reg name=\"s2\" bitsize=\"32\" type=\"float\" group=\"float\" />"
+    "       <reg name=\"s3\" bitsize=\"32\" type=\"float\" group=\"float\" />"
+    "       <reg name=\"s4\" bitsize=\"32\" type=\"float\" group=\"float\" />"
+    "       <reg name=\"s5\" bitsize=\"32\" type=\"float\" group=\"float\" />"
+    "       <reg name=\"s6\" bitsize=\"32\" type=\"float\" group=\"float\" />"
+    "       <reg name=\"s7\" bitsize=\"32\" type=\"float\" group=\"float\" />"
+    "       <reg name=\"s8\" bitsize=\"32\" type=\"float\" group=\"float\" />"
+    "       <reg name=\"s9\" bitsize=\"32\" type=\"float\" group=\"float\" />"
+    "       <reg name=\"s10\" bitsize=\"32\" type=\"float\" group=\"float\" />"
+    "       <reg name=\"s11\" bitsize=\"32\" type=\"float\" group=\"float\" />"
+    "       <reg name=\"s12\" bitsize=\"32\" type=\"float\" group=\"float\" />"
+    "       <reg name=\"s13\" bitsize=\"32\" type=\"float\" group=\"float\" />"
+    "       <reg name=\"s14\" bitsize=\"32\" type=\"float\" group=\"float\" />"
+    "       <reg name=\"s15\" bitsize=\"32\" type=\"float\" group=\"float\" />"
+    "       <reg name=\"s16\" bitsize=\"32\" type=\"float\" group=\"float\" />"
+    "       <reg name=\"s17\" bitsize=\"32\" type=\"float\" group=\"float\" />"
+    "       <reg name=\"s18\" bitsize=\"32\" type=\"float\" group=\"float\" />"
+    "       <reg name=\"s19\" bitsize=\"32\" type=\"float\" group=\"float\" />"
+    "       <reg name=\"s20\" bitsize=\"32\" type=\"float\" group=\"float\" />"
+    "       <reg name=\"s21\" bitsize=\"32\" type=\"float\" group=\"float\" />"
+    "       <reg name=\"s22\" bitsize=\"32\" type=\"float\" group=\"float\" />"
+    "       <reg name=\"s23\" bitsize=\"32\" type=\"float\" group=\"float\" />"
+    "       <reg name=\"s24\" bitsize=\"32\" type=\"float\" group=\"float\" />"
+    "       <reg name=\"s25\" bitsize=\"32\" type=\"float\" group=\"float\" />"
+    "       <reg name=\"s26\" bitsize=\"32\" type=\"float\" group=\"float\" />"
+    "       <reg name=\"s27\" bitsize=\"32\" type=\"float\" group=\"float\" />"
+    "       <reg name=\"s28\" bitsize=\"32\" type=\"float\" group=\"float\" />"
+    "       <reg name=\"s29\" bitsize=\"32\" type=\"float\" group=\"float\" />"
+    "       <reg name=\"s30\" bitsize=\"32\" type=\"float\" group=\"float\" />"
+    "       <reg name=\"s31\" bitsize=\"32\" type=\"float\" group=\"float\" />"
+    "       <reg name=\"fpscr\" bitsize=\"32\" type=\"int\" group=\"float\" />"
+    "   </feature>"
+    "</target>";
+
 static const char* const memory_map_template_F4 =
   "<?xml version=\"1.0\"?>"
   "<!DOCTYPE memory-map PUBLIC \"+//IDN gnu.org//DTD GDB Memory Map V1.0//EN\""
@@ -649,7 +714,12 @@ int serve(stlink_t *sl, int port) {
 			#endif
 
 			if(!strcmp(queryName, "Supported")) {
-				reply = strdup("PacketSize=3fff;qXfer:memory-map:read+");
+                if(sl->chip_id==STM32_CHIPID_F4) {
+                    reply = strdup("PacketSize=3fff;qXfer:memory-map:read+;qXfer:features:read+");
+                }
+                else {
+                    reply = strdup("PacketSize=3fff;qXfer:memory-map:read+");
+                }
 			} else if(!strcmp(queryName, "Xfer")) {
 				char *type, *op, *__s_addr, *s_length;
 				char *tok = params;
@@ -673,6 +743,9 @@ int serve(stlink_t *sl, int port) {
 
 				if(!strcmp(type, "memory-map") && !strcmp(op, "read"))
 					data = current_memory_map;
+
+				if(!strcmp(type, "features") && !strcmp(op, "read"))
+					data = target_description_F4;
 
 				if(data) {
 					unsigned data_length = strlen(data);
@@ -881,6 +954,30 @@ int serve(stlink_t *sl, int port) {
 			} else if(id == 0x19) {
 				stlink_read_reg(sl, 16, &regp);
 				myreg = htonl(regp.xpsr);
+			} else if(id == 0x1A) {
+				stlink_read_reg(sl, 17, &regp);
+				myreg = htonl(regp.main_sp);
+			} else if(id == 0x1B) {
+				stlink_read_reg(sl, 18, &regp);
+				myreg = htonl(regp.process_sp);
+			} else if(id == 0x1C) {
+				stlink_read_unsupported_reg(sl, id, &regp);
+				myreg = htonl(regp.control);
+			} else if(id == 0x1D) {
+				stlink_read_unsupported_reg(sl, id, &regp);
+				myreg = htonl(regp.faultmask);
+			} else if(id == 0x1E) {
+				stlink_read_unsupported_reg(sl, id, &regp);
+				myreg = htonl(regp.basepri);
+			} else if(id == 0x1F) {
+				stlink_read_unsupported_reg(sl, id, &regp);
+				myreg = htonl(regp.primask);
+            } else if(id >= 0x20 && id < 0x40) {
+                stlink_read_unsupported_reg(sl, id, &regp);
+                myreg = htonl(regp.s[id-0x20]);
+			} else if(id == 0x40) {
+                stlink_read_unsupported_reg(sl, id, &regp);
+                myreg = htonl(regp.fpscr);
 			} else {
 				reply = strdup("E00");
 			}

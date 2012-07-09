@@ -244,6 +244,10 @@ extern "C" {
         uint32_t process_sp;
         uint32_t rw;
         uint32_t rw2;
+        uint8_t control;
+        uint8_t faultmask;
+        uint8_t basepri;
+        uint8_t primask;
         uint32_t fpscr;
     } reg;
 
