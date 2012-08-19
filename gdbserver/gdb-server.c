@@ -1108,13 +1108,14 @@ int serve(stlink_t *sl, int port) {
 						wf = WATCHREAD;
 					} else {
 						wf = WATCHACCESS;
-						if(add_data_watchpoint(sl, wf, addr, len) < 0) {
-							reply = strdup("E00");
-						} else {
-							reply = strdup("OK");
-							break;
-						}
 					}
+
+                    if(add_data_watchpoint(sl, wf, addr, len) < 0) {
+                        reply = strdup("E00");
+                    } else {
+                        reply = strdup("OK");
+                        break;
+                    }
 				}
 
 				default:
