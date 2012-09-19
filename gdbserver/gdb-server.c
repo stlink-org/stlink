@@ -785,6 +785,16 @@ int serve(stlink_t *sl, int port) {
 #ifdef DEBUG
 					printf("Rcmd: halt\n");
 #endif
+                } else if (!strncmp(params,"6a7461675f7265736574",20)) { //jtag_reset
+					reply = strdup("OK");
+
+					stlink_jtag_reset(sl, 1);
+					stlink_jtag_reset(sl, 0);
+					stlink_force_debug(sl);
+
+#ifdef DEBUG
+					printf("Rcmd: jtag_reset\n");
+#endif
                 } else if (!strncmp(params,"7265736574",10)) { //reset
 					reply = strdup("OK");
 
