@@ -85,6 +85,7 @@ extern "C" {
 #define STM32VL_CORE_ID 0x1ba01477
 #define STM32L_CORE_ID 0x2ba01477
 #define STM32F4_CORE_ID 0x2ba01477
+#define STM32F0_CORE_ID 0xbb11477
 #define CORE_M3_R1 0x1BA00477
 #define CORE_M3_R2 0x4BA00477
 #define CORE_M4_R0 0x2BA01477
@@ -104,6 +105,7 @@ extern "C" {
 #define STM32_CHIPID_F1_VL_MEDIUM 0x420
 #define STM32_CHIPID_F1_VL_HIGH 0x428
 #define STM32_CHIPID_F1_XL 0x430
+#define STM32_CHIPID_F0 0x440
 
 // Constant STM32 memory map figures
 #define STM32_FLASH_BASE 0x08000000

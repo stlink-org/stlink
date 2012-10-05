@@ -25,6 +25,7 @@
 
 /* stm32f FPEC flash controller interface, pm0063 manual */
 // TODO - all of this needs to be abstracted out....
+// STM32F05x is identical, based on RM0091 (DM00031936, Doc ID 018940 Rev 2, August 2012)
 #define FLASH_REGS_ADDR 0x40022000
 #define FLASH_REGS_SIZE 0x28
 
@@ -36,6 +37,7 @@
 #define FLASH_OBR (FLASH_REGS_ADDR + 0x1c)
 #define FLASH_WRPR (FLASH_REGS_ADDR + 0x20)
 
+// For STM32F05x, the RDPTR_KEY may be wrong, but as it is not used anywhere...
 #define FLASH_RDPTR_KEY 0x00a5
 #define FLASH_KEY1 0x45670123
 #define FLASH_KEY2 0xcdef89ab
@@ -1083,7 +1085,7 @@ int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr)
     val = stlink_read_debug32(sl, STM32L_FLASH_PECR)
         | (1 << 0) | (1 << 1) | (1 << 2);
     stlink_write_debug32(sl, STM32L_FLASH_PECR, val);
-  } else if (sl->core_id == STM32VL_CORE_ID) {
+  } else if (sl->core_id == STM32VL_CORE_ID || sl->core_id == STM32F0_CORE_ID) {
     /* wait for ongoing op to finish */
     wait_flash_busy(sl);
 
@@ -1191,6 +1193,54 @@ int write_loader_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* size) {
         0x00, 0x20, 0x02, 0x40, /* STM32_FLASH_BASE: .word 0x40022000 */
     };
 
+    /* flashloaders/stm32f0.s -- thumb1 only, same sequence as for STM32VL, bank ignored */
+    static const uint8_t loader_code_stm32f0[] = {
+#if 1
+        /*
+         * These two NOPs here are a safety precaution, added by Pekka Nikander
+         * while debugging the STM32F05x support.  They may not be needed, but
+         * there were strange problems with simpler programs, like a program
+         * that had just a breakpoint or a program that first moved zero to register r2
+         * and then had a breakpoint.  So, it appears safest to have these two nops.
+         *
+         * Feel free to remove them, if you dare, but then please do test the result
+         * rigorously.  Also, if you remove these, it may be a good idea first to
+         * #if 0 them out, with a comment when these were taken out, and to remove
+         * these only a few months later...  But YMMV.
+         */
+        0x00, 0x30, //     nop     /* add r0,#0 */
+        0x00, 0x30, //     nop     /* add r0,#0 */
+#endif
+        0x0A, 0x4C, //     ldr     r4, STM32_FLASH_BASE
+        0x01, 0x25, //     mov     r5, #1            /*  FLASH_CR_PG, FLASH_SR_BUSY */
+        0x04, 0x26, //     mov     r6, #4            /*  PGERR  */
+                    // write_half_word:
+        0x23, 0x69, //     ldr     r3, [r4, #16]     /*  FLASH->CR   */
+        0x2B, 0x43, //     orr     r3, r5
+        0x23, 0x61, //     str     r3, [r4, #16]     /*  FLASH->CR |= FLASH_CR_PG */
+        0x03, 0x88, //     ldrh    r3, [r0]          /*  r3 = *sram */
+        0x0B, 0x80, //     strh    r3, [r1]          /*  *flash = r3 */
+                    // busy:
+        0xE3, 0x68, //     ldr	   r3, [r4, #12]     /*  FLASH->SR  */
+        0x2B, 0x42, //     tst	   r3, r5            /*  FLASH_SR_BUSY  */
+        0xFC, 0xD0, //     beq	   busy
+
+        0x33, 0x42, //     tst	   r3, r6            /*  PGERR  */
+        0x04, 0xD1, //     bne	   exit
+
+        0x02, 0x30, //     add     r0, r0, #2        /*  sram += 2  */
+        0x02, 0x31, //     add     r1, r1, #2        /*  flash += 2  */
+        0x01, 0x3A, //     sub     r2, r2, #0x01     /*  count--  */
+        0x00, 0x2A, //     cmp     r2, #0
+        0xF0, 0xD1, //     bne	   write_half_word
+                    // exit:
+        0x23, 0x69, //     ldr     r3, [r4, #16]     /*  FLASH->CR  */
+        0xAB, 0x43, //     bic     r3, r5
+        0x23, 0x61, //     str     r3, [r4, #16]     /*  FLASH->CR &= ~FLASH_CR_PG  */
+        0x00, 0xBE, //     bkpt	#0x00
+        0x00, 0x20, 0x02, 0x40, /* STM32_FLASH_BASE: .word 0x40022000 */
+    };
+
     static const uint8_t loader_code_stm32l[] = {
 
         /* openocd.git/contrib/loaders/flash/stm32lx.S
@@ -1246,6 +1296,9 @@ int write_loader_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* size) {
     } else if (sl->chip_id == STM32_CHIPID_F2 || sl->chip_id == STM32_CHIPID_F4) {
         loader_code = loader_code_stm32f4;
         loader_size = sizeof(loader_code_stm32f4);
+    } else if (sl->chip_id == STM32_CHIPID_F0) {
+        loader_code = loader_code_stm32f0;
+        loader_size = sizeof(loader_code_stm32f0);
     } else {
         ELOG("unknown coreid, not sure what flash loader to use, aborting!: %x\n", sl->core_id);
         return -1;
@@ -1580,8 +1633,8 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, unsigned 
     	val = stlink_read_debug32(sl, STM32L_FLASH_PECR)
              | (1 << 0) | (1 << 1) | (1 << 2);
     	stlink_write_debug32(sl, STM32L_FLASH_PECR, val);
-    } else if (sl->core_id == STM32VL_CORE_ID) {
-        ILOG("Starting Flash write for VL core id\n");
+    } else if (sl->core_id == STM32VL_CORE_ID || sl->core_id == STM32F0_CORE_ID) {
+        ILOG("Starting Flash write for VL/F0 core id\n");
         /* flash loader initialization */
         if (init_flash_loader(sl, &fl) == -1) {
             ELOG("init_flash_loader() == -1\n");
@@ -1679,7 +1732,7 @@ int run_flash_loader(stlink_t *sl, flash_loader_t* fl, stm32_addr_t target, cons
         stlink_write_reg(sl, count, 2); /* count (32 bits words) */
         stlink_write_reg(sl, fl->loader_addr, 15); /* pc register */
 
-    } else if (sl->core_id == STM32VL_CORE_ID) {
+    } else if (sl->core_id == STM32VL_CORE_ID || sl->core_id == STM32F0_CORE_ID) {
 
         size_t count = size / sizeof(uint16_t);
         if (size % sizeof(uint16_t)) ++count;
@@ -1734,7 +1787,7 @@ int run_flash_loader(stlink_t *sl, flash_loader_t* fl, stm32_addr_t target, cons
         return -1;
       }
 
-    } else if (sl->core_id == STM32VL_CORE_ID) {
+    } else if (sl->core_id == STM32VL_CORE_ID || sl->core_id == STM32F0_CORE_ID) {
 
       stlink_read_reg(sl, 2, &rr);
       if (rr.r[2] != 0) {
