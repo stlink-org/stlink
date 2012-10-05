@@ -129,9 +129,9 @@ extern "C" {
     } chip_params_t;
     
     
-    // These maps are from a combination of the Programming Manuals, and 
-    // also the Reference manuals.  (flash size reg is normally in ref man)
- static const chip_params_t devices[] = {
+// These maps are from a combination of the Programming Manuals, and
+// also the Reference manuals.  (flash size reg is normally in ref man)
+static const chip_params_t devices[] = {
         { // table 2, PM0063
             .chip_id = 0x410,
             .description = "F1 Medium-density device",
