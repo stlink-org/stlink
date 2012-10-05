@@ -18,6 +18,7 @@
 #define DLOG(format, args...)         ugly_log(UDEBUG, LOG_TAG, format, ## args)
 #define ILOG(format, args...)         ugly_log(UINFO, LOG_TAG, format, ## args)
 #define WLOG(format, args...)         ugly_log(UWARN, LOG_TAG, format, ## args)
+#define ELOG(format, args...)         ugly_log(UERROR, LOG_TAG, format, ## args)
 #define fatal(format, args...)        ugly_log(UFATAL, LOG_TAG, format, ## args)
 
 /* todo: stm32l15xxx flash memory, pm0062 manual */
@@ -1104,7 +1105,7 @@ int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr)
     /* relock the flash */
     lock_flash(sl);
   } else {
-    WLOG("unknown coreid: %x\n", sl->core_id);
+    WLOG("unknown coreid %x, page erase failed\n", sl->core_id);
     return -1;
   }
 
@@ -1246,7 +1247,7 @@ int write_loader_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* size) {
         loader_code = loader_code_stm32f4;
         loader_size = sizeof(loader_code_stm32f4);
     } else {
-        WLOG("unknown coreid, not sure what flash loader to use, aborting!: %x\n", sl->core_id);
+        ELOG("unknown coreid, not sure what flash loader to use, aborting!: %x\n", sl->core_id);
         return -1;
     }
 
@@ -1302,7 +1303,7 @@ int stlink_verify_write_flash(stlink_t *sl, stm32_addr_t address, uint8_t *data,
         stlink_read_mem32(sl, address + off, aligned_size);
 
         if (memcmp(sl->q_buf, data + off, cmp_size)) {
-            WLOG("Verification of flash failed at offset: %zd\n", off);
+            ELOG("Verification of flash failed at offset: %zd\n", off);
             return -1;
         }
     }
@@ -1369,19 +1370,22 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, unsigned 
     /* check addr range is inside the flash */
     stlink_calculate_pagesize(sl, addr);
     if (addr < sl->flash_base) {
-        WLOG("addr too low %#x < %#x\n", addr, sl->flash_base);
+        ELOG("addr too low %#x < %#x\n", addr, sl->flash_base);
         return -1;
     } else if ((addr + len) < addr) {
-        WLOG("addr overruns\n");
+        ELOG("addr overruns\n");
         return -1;
     } else if ((addr + len) > (sl->flash_base + sl->flash_size)) {
-        WLOG("addr too high\n");
+        ELOG("addr too high\n");
         return -1;
-    } else if ((addr & 1) || (len & 1)) {
-        WLOG("unaligned addr or size\n");
+    } else if (addr & 1) {
+        ELOG("unaligned addr 0x%x\n", addr);
         return -1;
+    } else if (len & 1) {
+        WLOG("unaligned len 0x%x -- padding with zero\n", len);
+        len += 1;
     } else if (addr & (sl->flash_pgsz - 1)) {
-        WLOG("addr not a multiple of pagesize, not supported\n");
+        ELOG("addr not a multiple of pagesize, not supported\n");
         return -1;
     }
 
@@ -1392,7 +1396,7 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, unsigned 
     for (off = 0; off < len; off += stlink_calculate_pagesize(sl, addr + off)) {
         /* addr must be an addr inside the page */
         if (stlink_erase_flash_page(sl, addr + off) == -1) {
-            WLOG("Failed to erase_flash_page(%#zx) == -1\n", addr + off);
+            ELOG("Failed to erase_flash_page(%#zx) == -1\n", addr + off);
             return -1;
         }
         fprintf(stdout,"\rFlash page at addr: 0x%08lx erased",
@@ -1410,7 +1414,7 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, unsigned 
         ILOG("Starting Flash write for F2/F4\n");
         /* flash loader initialization */
         if (init_flash_loader(sl, &fl) == -1) {
-            WLOG("init_flash_loader() == -1\n");
+            ELOG("init_flash_loader() == -1\n");
             return -1;
         }
 
@@ -1430,7 +1434,7 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, unsigned 
             printf("size: %zu\n", size);
 
             if (run_flash_loader(sl, &fl, addr + off, base + off, size) == -1) {
-                WLOG("run_flash_loader(%#zx) failed! == -1\n", addr + off);
+                ELOG("run_flash_loader(%#zx) failed! == -1\n", addr + off);
                 return -1;
             }
 
@@ -1580,7 +1584,7 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, unsigned 
         ILOG("Starting Flash write for VL core id\n");
         /* flash loader initialization */
         if (init_flash_loader(sl, &fl) == -1) {
-            WLOG("init_flash_loader() == -1\n");
+            ELOG("init_flash_loader() == -1\n");
             return -1;
         }
 
@@ -1595,7 +1599,7 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, unsigned 
             set_flash_cr_pg(sl);
             //DLOG("Finished setting flash cr pg, running loader!\n");
             if (run_flash_loader(sl, &fl, addr + off, base + off, size) == -1) {
-                WLOG("run_flash_loader(%#zx) failed! == -1\n", addr + off);
+                ELOG("run_flash_loader(%#zx) failed! == -1\n", addr + off);
                 return -1;
             }
             lock_flash(sl);
@@ -1608,7 +1612,7 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, unsigned 
         }
         fprintf(stdout, "\n");
     } else {
-        WLOG("unknown coreid, not sure how to write: %x\n", sl->core_id);
+        ELOG("unknown coreid, not sure how to write: %x\n", sl->core_id);
         return -1;
     }
 
@@ -1629,7 +1633,7 @@ int stlink_fwrite_flash(stlink_t *sl, const char* path, stm32_addr_t addr) {
     unsigned char erased_pattern =(sl->chip_id == STM32_CHIPID_L1_MEDIUM)?0:0xff;
     mapped_file_t mf = MAPPED_FILE_INITIALIZER;
     if (map_file(&mf, path) == -1) {
-        WLOG("map_file() == -1\n");
+        ELOG("map_file() == -1\n");
         return -1;
     }
     for(index = 0; index < mf.len; index ++) {
@@ -1660,7 +1664,7 @@ int run_flash_loader(stlink_t *sl, flash_loader_t* fl, stm32_addr_t target, cons
     // FIXME This can never return -1
     if (write_buffer_to_sram(sl, fl, buf, size) == -1) {
         // IMPOSSIBLE!
-        WLOG("write_buffer_to_sram() == -1\n");
+        ELOG("write_buffer_to_sram() == -1\n");
         return -1;
     }
 
@@ -1699,20 +1703,22 @@ int run_flash_loader(stlink_t *sl, flash_loader_t* fl, stm32_addr_t target, cons
         stlink_write_reg(sl, fl->loader_addr, 15); /* pc register */
 
     } else {
-        fprintf(stderr, "unknown coreid: 0x%x\n", sl->core_id);
+        fprintf(stderr, "unknown coreid 0x%x, don't know what flash loader to use\n", sl->core_id);
         return -1;
     }
 
     /* run loader */
     stlink_run(sl);
 
+#define WAIT_ROUNDS 1000
     /* wait until done (reaches breakpoint) */
-    while ((is_core_halted(sl) == 0) && (i <1000)) {
-        i++;
+    for (i = 0; i < WAIT_ROUNDS; i++) {
+        if (is_core_halted(sl))
+            break;
     }
 
-    if ( i > 999) {
-        fprintf(stderr, "run error\n");
+    if (i >= WAIT_ROUNDS) {
+        fatal("flash loader run error\n");
         return -1;
     }
 
@@ -1746,7 +1752,7 @@ int run_flash_loader(stlink_t *sl, flash_loader_t* fl, stm32_addr_t target, cons
 
     } else {
 
-      fprintf(stderr, "unknown coreid: 0x%x\n", sl->core_id);
+      fprintf(stderr, "unknown coreid 0x%x, can't check written byte count\n", sl->core_id);
       return -1;
 
     }
