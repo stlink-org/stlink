@@ -209,6 +209,17 @@ static const chip_params_t devices[] = {
                     .bootrom_size = 0x800
         },
         {
+	    // This is STK32F303VCT6 device from STM32 F3 Discovery board.
+	    // Support based on DM00043574.pdf (RM0316) document.
+            .chip_id = 0x422,
+                    .description = "F3 device",
+                    .flash_size_reg = 0x1ffff7cc,
+                    .flash_pagesize = 0x800,
+                    .sram_size = 0xa000,
+                    .bootrom_base = 0x1ffff000,
+                    .bootrom_size = 0x800
+        },
+        {
             .chip_id = 0x428,
                     .description = "F1 High-density value line device",
                     .flash_size_reg = 0x1ffff7e0,
