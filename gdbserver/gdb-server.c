@@ -1,11 +1,12 @@
 /* -*- tab-width:8 -*- */
-#define DEBUG 0
+
 /*
  Copyright (C)  2011 Peter Zotov <whitequark@whitequark.org>
  Use of this source code is governed by a BSD-style
  license that can be found in the LICENSE file.
 */
 
+#include <stdarg.h>
 #include <getopt.h>
 #include <stdio.h>
 #include <string.h>
@@ -18,14 +19,15 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <signal.h>
 #endif
+#include <signal.h>
 
 #include <stlink-common.h>
 
 #include "gdb-remote.h"
 
-#define DEFAULT_LOGGING_LEVEL 50
+#define DEFAULT_LOGGING_LEVEL   0
+#define LOGGING_LEVEL_GDBSERVER  2
 #define DEFAULT_GDB_LISTEN_PORT 4242
 
 #define STRINGIFY_inner(name) #name
@@ -40,24 +42,47 @@ static const char hex[] = "0123456789abcdef";
 
 static const char* current_memory_map = NULL;
 
+FILE *my_stderr;
+FILE *my_stdout;
+
 typedef struct _st_state_t {
-    // things from command line, bleh
-    int stlink_version;
-    // "/dev/serial/by-id/usb-FTDI_TTL232R-3V3_FTE531X6-if00-port0" is only 58 chars
-    char devicename[100];
-    int logging_level;
+        // things from command line, bleh
+        int pipe;
+        int stlink_version;
+        // "/dev/serial/by-id/usb-FTDI_TTL232R-3V3_FTE531X6-if00-port0" is only 58 chars
+        char devicename[100];
+        int logging_level;
 	int listen_port;
 } st_state_t;
 
+int logging_level = DEFAULT_LOGGING_LEVEL;
 
-int serve(stlink_t *sl, int port);
+int remote_desc = -1;
+int remote_piping = 0;
+
+int remote_open(int port);
+int serve(stlink_t *sl);
 char* make_memory_map(stlink_t *sl);
 
+/*
+ * Own printf and redirect when piping.
+ */
+int
+printf (const char *format,...)
+{
+        int ret;
+        va_list args;
+        va_start (args, format);
+        ret =  vfprintf (my_stdout, format, args);
+        fflush (my_stdout);
+        return ret;
+}
 
 int parse_options(int argc, char** argv, st_state_t *st) {
     static struct option long_options[] = {
         {"help", no_argument, NULL, 'h'},
         {"verbose", optional_argument, NULL, 'v'},
+        {"pipe", no_argument, NULL, 'P'},
         {"device", required_argument, NULL, 'd'},
         {"stlink_version", required_argument, NULL, 's'},
         {"stlinkv1", no_argument, NULL, '1'},
@@ -78,11 +103,10 @@ int parse_options(int argc, char** argv, st_state_t *st) {
 	"(default port: " STRINGIFY(DEFAULT_GDB_LISTEN_PORT) ")\n"
 	;
 
-
     int option_index = 0;
     int c;
     int q;
-    while ((c = getopt_long(argc, argv, "hv::d:s:1p:", long_options, &option_index)) != -1) {
+    while ((c = getopt_long(argc, argv, "hv::d:s:1Pp:", long_options, &option_index)) != -1) {
         switch (c) {
         case 0:
             printf("XXXXX Shouldn't really normally come here, only if there's no corresponding option\n");
@@ -96,12 +120,16 @@ int parse_options(int argc, char** argv, st_state_t *st) {
             printf(help_str, argv[0]);
             exit(EXIT_SUCCESS);
             break;
+        case 'P':
+            st->pipe = 1;
+            break;
         case 'v':
             if (optarg) {
                 st->logging_level = atoi(optarg);
             } else {
                 st->logging_level = DEFAULT_LOGGING_LEVEL;
             }
+            logging_level = st->logging_level;
             break;
         case 'd':
             if (strlen(optarg) > sizeof (st->devicename)) {
@@ -149,10 +177,21 @@ int main(int argc, char** argv) {
 	st_state_t state;
 	memset(&state, 0, sizeof(state));
 	// set defaults...
+        state.pipe = 0;
 	state.stlink_version = 2;
 	state.logging_level = DEFAULT_LOGGING_LEVEL;
 	state.listen_port = DEFAULT_GDB_LISTEN_PORT;
 	parse_options(argc, argv, &state);
+
+        my_stdout = stdout;
+        my_stderr = stderr;
+
+        if (state.pipe) {
+               my_stdout = my_stderr = stderr;
+               state.listen_port = 0;
+               remote_piping = 1;
+        }
+
 	switch (state.stlink_version) {
 	case 2:
 		sl = stlink_open_usb(state.logging_level);
@@ -162,7 +201,18 @@ int main(int argc, char** argv) {
 		sl = stlink_v1_open(state.logging_level);
 		if(sl == NULL) return 1;
 		break;
-    }
+        }
+
+#ifdef __MINGW32__
+        if (!remote_piping) {
+                WSADATA	wsadata;
+                if (WSAStartup(MAKEWORD(2,2),&wsadata) !=0 ) {
+                        goto winsock_error;
+                }
+        }
+#endif
+
+        remote_open(state.listen_port);
 
 	printf("Chip ID is %08x, Core ID is  %08x.\n", sl->chip_id, sl->core_id);
 
@@ -170,18 +220,13 @@ int main(int argc, char** argv) {
 
 	current_memory_map = make_memory_map(sl);
 
-#ifdef __MINGW32__
-	WSADATA	wsadata;
-	if (WSAStartup(MAKEWORD(2,2),&wsadata) !=0 ) {
-		goto winsock_error;
-	}
-#endif
-
-	while(serve(sl, state.listen_port) == 0);
+	while(serve(sl) == 0);
 
 #ifdef __MINGW32__
+        if (!remote_piping) {
 winsock_error:
-	WSACleanup();
+                WSACleanup();
+        }
 #endif
 
 	/* Switch back to mass storage mode before closing. */
@@ -342,9 +387,8 @@ struct code_hw_watchpoint {
 struct code_hw_watchpoint data_watches[DATA_WATCH_NUM];
 
 static void init_data_watchpoints(stlink_t *sl) {
-	#ifdef DEBUG
-	printf("init watchpoints\n");
-	#endif
+        if (logging_level >= LOGGING_LEVEL_GDBSERVER)
+		printf("init watchpoints\n");
 
 	// set trcena in debug command to turn on dwt unit
 	stlink_write_debug32(sl, 0xE000EDFC,
@@ -377,9 +421,8 @@ static int add_data_watchpoint(stlink_t *sl, enum watchfun wf, stm32_addr_t addr
 		for(i = 0; i < DATA_WATCH_NUM; i++) {
 			// is this an empty slot ?
 			if(data_watches[i].fun == WATCHDISABLED) {
-				#ifdef DEBUG
-				printf("insert watchpoint %d addr %x wf %u mask %u len %d\n", i, addr, wf, mask, len);
-				#endif
+                                if (logging_level >= LOGGING_LEVEL_GDBSERVER)
+					printf("insert watchpoint %d addr %x wf %u mask %u len %d\n", i, addr, wf, mask, len);
 
 				data_watches[i].fun = wf;
 				data_watches[i].addr = addr;
@@ -401,9 +444,10 @@ static int add_data_watchpoint(stlink_t *sl, enum watchfun wf, stm32_addr_t addr
 		}
 	}
 
-	#ifdef DEBUG
-	printf("failure: add watchpoints addr %x wf %u len %u\n", addr, wf, len);
-	#endif
+
+        if (logging_level >= LOGGING_LEVEL_GDBSERVER)
+		printf("failure: add watchpoints addr %x wf %u len %u\n", addr, wf, len);
+
 	return -1;
 }
 
@@ -413,9 +457,8 @@ static int delete_data_watchpoint(stlink_t *sl, stm32_addr_t addr)
 
 	for(i = 0 ; i < DATA_WATCH_NUM; i++) {
 		if((data_watches[i].addr == addr) && (data_watches[i].fun != WATCHDISABLED)) {
-			#ifdef DEBUG
-			printf("delete watchpoint %d addr %x\n", i, addr);
-			#endif
+                        if (logging_level >= LOGGING_LEVEL_GDBSERVER)
+				printf("delete watchpoint %d addr %x\n", i, addr);
 
 			data_watches[i].fun = WATCHDISABLED;
 			stlink_write_debug32(sl, 0xe0001028 + i * 16, 0);
@@ -424,9 +467,8 @@ static int delete_data_watchpoint(stlink_t *sl, stm32_addr_t addr)
 		}
 	}
 
-	#ifdef DEBUG
-	printf("failure: delete watchpoint addr %x\n", addr);
-	#endif
+        if (logging_level >= LOGGING_LEVEL_GDBSERVER)
+		printf("failure: delete watchpoint addr %x\n", addr);
 
 	return -1;
 }
@@ -485,20 +527,19 @@ static int update_code_breakpoint(stlink_t *sl, stm32_addr_t addr, int set) {
 	else	brk->type &= ~type;
 
 	if(brk->type == 0) {
-		#ifdef DEBUG
-		printf("clearing hw break %d\n", id);
-		#endif
+                if (logging_level >= LOGGING_LEVEL_GDBSERVER)
+			printf("clearing hw break %d\n", id);
 
 		stlink_write_debug32(sl, 0xe0002008 + id * 4, 0);
 	} else {
 	        uint32_t mask = (brk->addr) | 1 | (brk->type << 30);
 
-		#ifdef DEBUG
-		printf("setting hw break %d at %08x (%d)\n",
-			id, brk->addr, brk->type);
-		printf("reg %08x \n",
-			mask);
-		#endif
+                if (logging_level >= LOGGING_LEVEL_GDBSERVER) {
+			printf("setting hw break %d at %08x (%d)\n",
+				id, brk->addr, brk->type);
+			printf("reg %08x \n",
+				mask);
+		}
 
 		stlink_write_debug32(sl, 0xe0002008 + id * 4, mask);
 	}
@@ -589,9 +630,8 @@ static int flash_go(stlink_t *sl) {
 	stlink_reset(sl);
 
 	for(struct flash_block* fb = flash_root; fb; fb = fb->next) {
-		#ifdef DEBUG
-		printf("flash_do: block %08x -> %04x\n", fb->addr, fb->length);
-		#endif
+                if (logging_level >= LOGGING_LEVEL_GDBSERVER)
+			printf("flash_do: block %08x -> %04x\n", fb->addr, fb->length);
 
 		unsigned length = fb->length;
 		for(stm32_addr_t page = fb->addr; page < fb->addr + fb->length; page += FLASH_PAGE) {
@@ -599,9 +639,8 @@ static int flash_go(stlink_t *sl) {
 			//Update FLASH_PAGE
 			stlink_calculate_pagesize(sl, page);
 
-			#ifdef DEBUG
-			printf("flash_do: page %08x\n", page);
-			#endif
+                        if (logging_level >= LOGGING_LEVEL_GDBSERVER)
+				printf("flash_do: page %08x\n", page);
 
 			if(stlink_write_flash(sl, page, fb->data + (page - fb->addr),
 					length > FLASH_PAGE ? FLASH_PAGE : length) < 0)
@@ -625,49 +664,73 @@ error:
 	return error;
 }
 
-int serve(stlink_t *sl, int port) {
-	int sock = socket(AF_INET, SOCK_STREAM, 0);
-	if(sock < 0) {
-		perror("socket");
-		return 1;
-	}
+int remote_open(int port) {
+        int sock = -1;
+        if (port == 0) {
+                remote_desc = STDOUT_FILENO;
+                remote_piping = 1;
+                signal(SIGINT, SIG_IGN);
+#ifdef __MINGW32__
+                if (_setmode (_fileno( stdout ), _O_BINARY) < 0)
+                        fprintf(stderr, "cannot change stdout mode to binary");
+                if (_setmode (_fileno( stdin ), _O_BINARY) < 0)
+                        fprintf(stderr, "cannot change stdin mode to binary");
+#else
+                signal(SIGIO, SIG_IGN);
+                signal(SIGCHLD, SIG_IGN);
+#endif
+        }
+        else {
+                sock = socket(AF_INET, SOCK_STREAM, 0);
+                if(sock < 0) {
+                        perror("socket");
+                        return 1;
+                }
 
-	unsigned int val = 1;
-	setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (char *)&val, sizeof(val));
+                unsigned int val = 1;
+                setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (char *)&val, sizeof(val));
 
-	struct sockaddr_in serv_addr;
-	memset(&serv_addr,0,sizeof(struct sockaddr_in));
-	serv_addr.sin_family = AF_INET;
-	serv_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
-	serv_addr.sin_port = htons(port);
+                struct sockaddr_in serv_addr;
+                memset(&serv_addr,0,sizeof(struct sockaddr_in));
+                serv_addr.sin_family = AF_INET;
+                serv_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
+                serv_addr.sin_port = htons(port);
 
-	if(bind(sock, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
-		perror("bind");
-		return 1;
-	}
+                if(bind(sock, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
+                        perror("bind");
+                        return 1;
+                }
 
-	if(listen(sock, 5) < 0) {
-		perror("listen");
-		return 1;
-	}
+                if(listen(sock, 5) < 0) {
+                        perror("listen");
+                        return 1;
+                }
+        }
+
+        if (!remote_piping) {
+                printf("Listening at *:%d...\n", port);
+
+                remote_desc = accept(sock, NULL, NULL);
+                //signal (SIGINT, SIG_DFL);
+                if(remote_desc < 0) {
+                        perror("accept");
+                        return 1;
+                }
+
+                close(sock);
+        }
+
+	printf("GDB connected.\n");
+
+        return 0;
+}
+
+int serve(stlink_t *sl) {
 
 	stlink_force_debug(sl);
 	stlink_reset(sl);
 	init_code_breakpoints(sl);
 	init_data_watchpoints(sl);
-
-	printf("Listening at *:%d...\n", port);
-
-	int client = accept(sock, NULL, NULL);
-	//signal (SIGINT, SIG_DFL);
-	if(client < 0) {
-		perror("accept");
-		return 1;
-	}
-
-	close(sock);
-
-	printf("GDB connected.\n");
 
 	/*
 	 * To allow resetting the chip from GDB it is required to
@@ -678,15 +741,14 @@ int serve(stlink_t *sl, int port) {
 	while(1) {
 		char* packet;
 
-		int status = gdb_recv_packet(client, &packet);
+		int status = gdb_recv_packet(remote_desc, &packet);
 		if(status < 0) {
 			fprintf(stderr, "cannot recv: %d\n", status);
 			return 1;
 		}
 
-		#ifdef DEBUG
-		printf("recv: %s\n", packet);
-		#endif
+                if (logging_level >= LOGGING_LEVEL_GDBSERVER)
+			printf("recv: %s\n", packet);
 
 		char* reply = NULL;
                 reg regp;
@@ -709,9 +771,8 @@ int serve(stlink_t *sl, int port) {
 			char* queryName = calloc(queryNameLength + 1, 1);
 			strncpy(queryName, &packet[1], queryNameLength);
 
-			#ifdef DEBUG
-			printf("query: %s;%s\n", queryName, params);
-			#endif
+                        if (logging_level >= LOGGING_LEVEL_GDBSERVER)
+				printf("query: %s;%s\n", queryName, params);
 
 			if(!strcmp(queryName, "Supported")) {
                 if(sl->chip_id==STM32_CHIPID_F4) {
@@ -734,10 +795,9 @@ int serve(stlink_t *sl, int port) {
 				unsigned addr = strtoul(__s_addr, NULL, 16),
 				       length = strtoul(s_length, NULL, 16);
 
-				#ifdef DEBUG
-				printf("Xfer: type:%s;op:%s;annex:%s;addr:%d;length:%d\n",
-					type, op, annex, addr, length);
-				#endif
+                                if (logging_level >= LOGGING_LEVEL_GDBSERVER)
+					printf("Xfer: type:%s;op:%s;annex:%s;addr:%d;length:%d\n",
+						type, op, annex, addr, length);
 
 				const char* data = NULL;
 
@@ -771,9 +831,8 @@ int serve(stlink_t *sl, int port) {
 
 
 				if (!strncmp(params,"726573756d65",12)) {// resume
-#ifdef DEBUG
-					printf("Rcmd: resume\n");
-#endif
+                                       if (logging_level >= LOGGING_LEVEL_GDBSERVER)
+						printf("Rcmd: resume\n");
 					stlink_run(sl);
 
 					reply = strdup("OK");
@@ -782,9 +841,9 @@ int serve(stlink_t *sl, int port) {
 
 					stlink_force_debug(sl);
 
-#ifdef DEBUG
-					printf("Rcmd: halt\n");
-#endif
+                                       if (logging_level >= LOGGING_LEVEL_GDBSERVER)
+						printf("Rcmd: halt\n");
+
                 } else if (!strncmp(params,"6a7461675f7265736574",20)) { //jtag_reset
 					reply = strdup("OK");
 
@@ -792,9 +851,9 @@ int serve(stlink_t *sl, int port) {
 					stlink_jtag_reset(sl, 0);
 					stlink_force_debug(sl);
 
-#ifdef DEBUG
-					printf("Rcmd: jtag_reset\n");
-#endif
+                                       if (logging_level >= LOGGING_LEVEL_GDBSERVER)
+						printf("Rcmd: jtag_reset\n");
+
                 } else if (!strncmp(params,"7265736574",10)) { //reset
 					reply = strdup("OK");
 
@@ -803,14 +862,12 @@ int serve(stlink_t *sl, int port) {
 					init_code_breakpoints(sl);
 					init_data_watchpoints(sl);
 
-#ifdef DEBUG
-					printf("Rcmd: reset\n");
-#endif
-				} else {
-#ifdef DEBUG
-					printf("Rcmd: %s\n", params);
-#endif
+                                       if (logging_level >= LOGGING_LEVEL_GDBSERVER)
+						printf("Rcmd: reset\n");
 
+				} else {
+                                       if (logging_level >= LOGGING_LEVEL_GDBSERVER)
+						printf("Rcmd: %s\n", params);
 				}
 
 			}
@@ -839,10 +896,9 @@ int serve(stlink_t *sl, int port) {
 				unsigned addr = strtoul(__s_addr, NULL, 16),
 				       length = strtoul(s_length, NULL, 16);
 
-				#ifdef DEBUG
-				printf("FlashErase: addr:%08x,len:%04x\n",
-					addr, length);
-				#endif
+                                if (logging_level >= LOGGING_LEVEL_GDBSERVER)
+					printf("FlashErase: addr:%08x,len:%04x\n",
+						addr, length);
 
 				if(flash_add_block(addr, length, sl) < 0) {
 					reply = strdup("E00");
@@ -877,9 +933,8 @@ int serve(stlink_t *sl, int port) {
 				if(dec_index % 2 != 0)
 					dec_index++;
 
-				#ifdef DEBUG
-				printf("binary packet %d -> %d\n", data_length, dec_index);
-				#endif
+                                if (logging_level >= LOGGING_LEVEL_GDBSERVER)
+					printf("binary packet %d -> %d\n", data_length, dec_index);
 
 				if(flash_populate(addr, decoded, dec_index) < 0) {
 					reply = strdup("E00");
@@ -908,7 +963,7 @@ int serve(stlink_t *sl, int port) {
 			stlink_run(sl);
 
 			while(1) {
-				int status = gdb_check_for_interrupt(client);
+				int status = gdb_check_for_interrupt(remote_desc);
 				if(status < 0) {
 					fprintf(stderr, "cannot check for int: %d\n", status);
 					return 1;
@@ -1190,11 +1245,10 @@ int serve(stlink_t *sl, int port) {
 		}
 
 		if(reply) {
-			#ifdef DEBUG
-			printf("send: %s\n", reply);
-			#endif
+                        if (logging_level >= LOGGING_LEVEL_GDBSERVER)
+				printf("send: %s\n", reply);
 
-			int result = gdb_send_packet(client, reply);
+			int result = gdb_send_packet(remote_desc, reply);
 			if(result != 0) {
 				fprintf(stderr, "cannot send: %d\n", result);
 				return 1;

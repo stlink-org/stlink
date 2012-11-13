@@ -21,9 +21,7 @@ AC_CHECK_HEADERS(sys/poll.h)
 AC_REPLACE_FUNCS(mmap)
 
 # Checks for libraries.
-PKG_CHECK_MODULES(USB, libusb-1.0 >= 1.0.0,,
-                 AC_MSG_ERROR([*** Required libusb-1.0 >= 1.0.0 not installed ***]))
-AC_CHECK_LIB([usbpath],[usb_path2devnum],,,-lusb)
+AC_CHECK_HEADER([libusb.h], [USB_LIBS="-lusb-1.0"])
 
 LIBS="$LIBS $USB_LIBS"
 CFLAGS="$CFLAGS $USB_CFLAGS"
