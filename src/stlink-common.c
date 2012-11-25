@@ -543,7 +543,7 @@ void stlink_write_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
     DLOG("*** stlink_write_mem32 %u bytes to %#x\n", len, addr);
     if (len % 4 != 0) {
         fprintf(stderr, "Error: Data length doesn't have a 32 bit alignment: +%d byte.\n", len % 4);
-        return;
+        abort();
     }
     sl->backend->write_mem32(sl, addr, len);
 }
@@ -553,7 +553,7 @@ void stlink_read_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
     if (len % 4 != 0) { // !!! never ever: fw gives just wrong values
         fprintf(stderr, "Error: Data length doesn't have a 32 bit alignment: +%d byte.\n",
                 len % 4);
-        return;
+        abort();
     }
     sl->backend->read_mem32(sl, addr, len);
 }
@@ -563,7 +563,7 @@ void stlink_write_mem8(stlink_t *sl, uint32_t addr, uint16_t len) {
     if (len > 0x40 ) { // !!! never ever: Writing more then 0x40 bytes gives unexpected behaviour
         fprintf(stderr, "Error: Data length > 64: +%d byte.\n",
                 len);
-        return;
+        abort();
     }
     sl->backend->write_mem8(sl, addr, len);
 }

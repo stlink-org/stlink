@@ -1076,20 +1076,43 @@ int serve(stlink_t *sl, int port) {
 			stm32_addr_t start = strtoul(s_start, NULL, 16);
 			unsigned     count = strtoul(s_count, NULL, 16);
 
-			for(unsigned int i = 0; i < count; i ++) {
+			if(start % 4) {
+			  unsigned align_count = 4 - start % 4;
+			  if (align_count > count) align_count = count;
+			  for(unsigned int i = 0; i < align_count; i ++) {
 				char hex[3] = { hexdata[i*2], hexdata[i*2+1], 0 };
 				uint8_t byte = strtoul(hex, NULL, 16);
 				sl->q_buf[i] = byte;
+			  }
+			  stlink_write_mem8(sl, start, align_count);
+			  start += align_count;
+			  count -= align_count;
+			  hexdata += 2*align_count;
 			}
 
-			if((count % 4) == 0 && (start % 4) == 0) {
-				stlink_write_mem32(sl, start, count);
-			} else {
-				stlink_write_mem8(sl, start, count);
+			if(count - count % 4) {
+			  unsigned aligned_count = count - count % 4;
+
+			  for(unsigned int i = 0; i < aligned_count; i ++) {
+			    char hex[3] = { hexdata[i*2], hexdata[i*2+1], 0 };
+			    uint8_t byte = strtoul(hex, NULL, 16);
+			    sl->q_buf[i] = byte;
+			  }
+			  stlink_write_mem32(sl, start, aligned_count);
+			  count -= aligned_count;
+			  start += aligned_count;
+			  hexdata += 2*aligned_count;
 			}
 
+			if(count) {
+			  for(unsigned int i = 0; i < count; i ++) {
+			    char hex[3] = { hexdata[i*2], hexdata[i*2+1], 0 };
+			    uint8_t byte = strtoul(hex, NULL, 16);
+			    sl->q_buf[i] = byte;
+			  }
+			  stlink_write_mem8(sl, start, count);
+			}
 			reply = strdup("OK");
-
 			break;
 		}
 
