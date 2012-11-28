@@ -100,6 +100,7 @@ extern "C" {
 #define STM32_CHIPID_F2 0x411
 #define STM32_CHIPID_F1_LOW 0x412
 #define STM32_CHIPID_F3 0x422
+#define STM32_CHIPID_F37x 0x432
 #define STM32_CHIPID_F4 0x413
 #define STM32_CHIPID_F1_HIGH 0x414
 #define STM32_CHIPID_L1_MEDIUM 0x416
@@ -214,6 +215,17 @@ static const chip_params_t devices[] = {
 	    // This is STK32F303VCT6 device from STM32 F3 Discovery board.
 	    // Support based on DM00043574.pdf (RM0316) document.
             .chip_id = 0x422,
+                    .description = "F3 device",
+                    .flash_size_reg = 0x1ffff7cc,
+                    .flash_pagesize = 0x800,
+                    .sram_size = 0xa000,
+                    .bootrom_base = 0x1ffff000,
+                    .bootrom_size = 0x800
+        },
+        {
+	    // This is STK32F373VCT6 device from STM32 F373 eval board
+	    // Support based on 303 above (37x and 30x have same memory map)
+            .chip_id = 0x432,
                     .description = "F3 device",
                     .flash_size_reg = 0x1ffff7cc,
                     .flash_pagesize = 0x800,
