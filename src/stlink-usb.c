@@ -576,6 +576,84 @@ void _stlink_usb_read_reg(stlink_t *sl, int r_idx, reg *regp) {
     }
 }
 
+/* See section C1.6 of the ARMv7-M Architecture Reference Manual */
+void _stlink_usb_read_unsupported_reg(stlink_t *sl, int r_idx, reg *regp) {
+    uint32_t r;
+
+    sl->q_buf[0] = (unsigned char) r_idx;
+    for (int i = 1; i < 4; i++) {
+        sl->q_buf[i] = 0;
+    }
+
+    _stlink_usb_write_mem32(sl, DCRSR, 4);
+    _stlink_usb_read_mem32(sl, DCRDR, 4);
+
+    r = read_uint32(sl->q_buf, 0);
+    DLOG("r_idx (%2d) = 0x%08x\n", r_idx, r);
+
+    switch (r_idx) {
+        case 0x14:
+            regp->primask = (uint8_t) (r & 0xFF);
+            regp->basepri = (uint8_t) ((r>>8) & 0xFF);
+            regp->faultmask = (uint8_t) ((r>>16) & 0xFF);
+            regp->control = (uint8_t) ((r>>24) & 0xFF);
+            break;
+        case 0x21:
+            regp->fpscr = r;
+            break;
+        default:
+            regp->s[r_idx - 0x40] = r;
+            break;
+    }
+}
+
+void _stlink_usb_read_all_unsupported_regs(stlink_t *sl, reg *regp) {
+    _stlink_usb_read_unsupported_reg(sl, 0x14, regp);
+    _stlink_usb_read_unsupported_reg(sl, 0x21, regp);
+
+    for (int i = 0; i < 32; i++) {
+        _stlink_usb_read_unsupported_reg(sl, 0x40+i, regp);
+    }
+}
+
+/* See section C1.6 of the ARMv7-M Architecture Reference Manual */
+void _stlink_usb_write_unsupported_reg(stlink_t *sl, uint32_t val, int r_idx, reg *regp) {
+    if (r_idx >= 0x1C && r_idx <= 0x1F) { /* primask, basepri, faultmask, or control */
+        /* These are held in the same register */
+        _stlink_usb_read_unsupported_reg(sl, 0x14, regp);
+
+        val = (uint8_t) (val>>24);
+
+        switch (r_idx) {
+            case 0x1C:  /* control */
+                val = (((uint32_t) val) << 24) | (((uint32_t) regp->faultmask) << 16) | (((uint32_t) regp->basepri) << 8) | ((uint32_t) regp->primask);
+                break;
+            case 0x1D:  /* faultmask */
+                val = (((uint32_t) regp->control) << 24) | (((uint32_t) val) << 16) | (((uint32_t) regp->basepri) << 8) | ((uint32_t) regp->primask);
+                break;
+            case 0x1E:  /* basepri */
+                val = (((uint32_t) regp->control) << 24) | (((uint32_t) regp->faultmask) << 16) | (((uint32_t) val) << 8) | ((uint32_t) regp->primask);
+                break;
+            case 0x1F:  /* primask */
+                val = (((uint32_t) regp->control) << 24) | (((uint32_t) regp->faultmask) << 16) | (((uint32_t) regp->basepri) << 8) | ((uint32_t) val);
+                break;
+        }
+
+        r_idx = 0x14;
+    }
+
+    write_uint32(sl->q_buf, val);
+
+    _stlink_usb_write_mem32(sl, DCRDR, 4);
+
+    sl->q_buf[0] = (unsigned char) r_idx;
+    sl->q_buf[1] = 0;
+    sl->q_buf[2] = 0x01;
+    sl->q_buf[3] = 0;
+
+    _stlink_usb_write_mem32(sl, DCRSR, 4);
+}
+
 void _stlink_usb_write_reg(stlink_t *sl, uint32_t reg, int idx) {
     struct stlink_libusb * const slu = sl->backend_data;
     unsigned char* const data = sl->q_buf;
@@ -616,6 +694,9 @@ stlink_backend_t _stlink_usb_backend = {
     _stlink_usb_write_mem8,
     _stlink_usb_read_all_regs,
     _stlink_usb_read_reg,
+    _stlink_usb_read_all_unsupported_regs,
+    _stlink_usb_read_unsupported_reg,
+    _stlink_usb_write_unsupported_reg,
     _stlink_usb_write_reg,
     _stlink_usb_step,
     _stlink_usb_current_mode,

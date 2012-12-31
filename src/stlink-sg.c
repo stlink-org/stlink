@@ -872,6 +872,9 @@ stlink_backend_t _stlink_sg_backend = {
     _stlink_sg_write_mem8,
     _stlink_sg_read_all_regs,
     _stlink_sg_read_reg,
+    NULL,                   /* read_all_unsupported_regs */
+    NULL,                   /* read_unsupported_regs */
+    NULL,                   /* write_unsupported_regs */
     _stlink_sg_write_reg,
     _stlink_sg_step,
     _stlink_sg_current_mode,

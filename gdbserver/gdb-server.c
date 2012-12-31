@@ -163,7 +163,7 @@ int main(int argc, char** argv) {
 		if(sl == NULL) return 1;
 		break;
     }
-    
+
 	printf("Chip ID is %08x, Core ID is  %08x.\n", sl->chip_id, sl->core_id);
 
 	sl->verbose=0;
@@ -191,6 +191,71 @@ winsock_error:
 
 	return 0;
 }
+
+static const char* const target_description_F4 =
+    "<?xml version=\"1.0\"?>"
+    "<!DOCTYPE target SYSTEM \"gdb-target.dtd\">"
+    "<target version=\"1.0\">"
+    "   <architecture>arm</architecture>"
+    "   <feature name=\"org.gnu.gdb.arm.m-profile\">"
+    "       <reg name=\"r0\" bitsize=\"32\"/>"
+    "       <reg name=\"r1\" bitsize=\"32\"/>"
+    "       <reg name=\"r2\" bitsize=\"32\"/>"
+    "       <reg name=\"r3\" bitsize=\"32\"/>"
+    "       <reg name=\"r4\" bitsize=\"32\"/>"
+    "       <reg name=\"r5\" bitsize=\"32\"/>"
+    "       <reg name=\"r6\" bitsize=\"32\"/>"
+    "       <reg name=\"r7\" bitsize=\"32\"/>"
+    "       <reg name=\"r8\" bitsize=\"32\"/>"
+    "       <reg name=\"r9\" bitsize=\"32\"/>"
+    "       <reg name=\"r10\" bitsize=\"32\"/>"
+    "       <reg name=\"r11\" bitsize=\"32\"/>"
+    "       <reg name=\"r12\" bitsize=\"32\"/>"
+    "       <reg name=\"sp\" bitsize=\"32\" type=\"data_ptr\"/>"
+    "       <reg name=\"lr\" bitsize=\"32\"/>"
+    "       <reg name=\"pc\" bitsize=\"32\" type=\"code_ptr\"/>"
+    "       <reg name=\"xpsr\" bitsize=\"32\" regnum=\"25\"/>"
+    "       <reg name=\"msp\" bitsize=\"32\" regnum=\"26\" type=\"data_ptr\" group=\"general\" />"
+    "       <reg name=\"psp\" bitsize=\"32\" regnum=\"27\" type=\"data_ptr\" group=\"general\" />"
+    "       <reg name=\"control\" bitsize=\"8\" regnum=\"28\" type=\"int\" group=\"general\" />"
+    "       <reg name=\"faultmask\" bitsize=\"8\" regnum=\"29\" type=\"int\" group=\"general\" />"
+    "       <reg name=\"basepri\" bitsize=\"8\" regnum=\"30\" type=\"int\" group=\"general\" />"
+    "       <reg name=\"primask\" bitsize=\"8\" regnum=\"31\" type=\"int\" group=\"general\" />"
+    "       <reg name=\"s0\" bitsize=\"32\" regnum=\"32\" type=\"float\" group=\"float\" />"
+    "       <reg name=\"s1\" bitsize=\"32\" type=\"float\" group=\"float\" />"
+    "       <reg name=\"s2\" bitsize=\"32\" type=\"float\" group=\"float\" />"
+    "       <reg name=\"s3\" bitsize=\"32\" type=\"float\" group=\"float\" />"
+    "       <reg name=\"s4\" bitsize=\"32\" type=\"float\" group=\"float\" />"
+    "       <reg name=\"s5\" bitsize=\"32\" type=\"float\" group=\"float\" />"
+    "       <reg name=\"s6\" bitsize=\"32\" type=\"float\" group=\"float\" />"
+    "       <reg name=\"s7\" bitsize=\"32\" type=\"float\" group=\"float\" />"
+    "       <reg name=\"s8\" bitsize=\"32\" type=\"float\" group=\"float\" />"
+    "       <reg name=\"s9\" bitsize=\"32\" type=\"float\" group=\"float\" />"
+    "       <reg name=\"s10\" bitsize=\"32\" type=\"float\" group=\"float\" />"
+    "       <reg name=\"s11\" bitsize=\"32\" type=\"float\" group=\"float\" />"
+    "       <reg name=\"s12\" bitsize=\"32\" type=\"float\" group=\"float\" />"
+    "       <reg name=\"s13\" bitsize=\"32\" type=\"float\" group=\"float\" />"
+    "       <reg name=\"s14\" bitsize=\"32\" type=\"float\" group=\"float\" />"
+    "       <reg name=\"s15\" bitsize=\"32\" type=\"float\" group=\"float\" />"
+    "       <reg name=\"s16\" bitsize=\"32\" type=\"float\" group=\"float\" />"
+    "       <reg name=\"s17\" bitsize=\"32\" type=\"float\" group=\"float\" />"
+    "       <reg name=\"s18\" bitsize=\"32\" type=\"float\" group=\"float\" />"
+    "       <reg name=\"s19\" bitsize=\"32\" type=\"float\" group=\"float\" />"
+    "       <reg name=\"s20\" bitsize=\"32\" type=\"float\" group=\"float\" />"
+    "       <reg name=\"s21\" bitsize=\"32\" type=\"float\" group=\"float\" />"
+    "       <reg name=\"s22\" bitsize=\"32\" type=\"float\" group=\"float\" />"
+    "       <reg name=\"s23\" bitsize=\"32\" type=\"float\" group=\"float\" />"
+    "       <reg name=\"s24\" bitsize=\"32\" type=\"float\" group=\"float\" />"
+    "       <reg name=\"s25\" bitsize=\"32\" type=\"float\" group=\"float\" />"
+    "       <reg name=\"s26\" bitsize=\"32\" type=\"float\" group=\"float\" />"
+    "       <reg name=\"s27\" bitsize=\"32\" type=\"float\" group=\"float\" />"
+    "       <reg name=\"s28\" bitsize=\"32\" type=\"float\" group=\"float\" />"
+    "       <reg name=\"s29\" bitsize=\"32\" type=\"float\" group=\"float\" />"
+    "       <reg name=\"s30\" bitsize=\"32\" type=\"float\" group=\"float\" />"
+    "       <reg name=\"s31\" bitsize=\"32\" type=\"float\" group=\"float\" />"
+    "       <reg name=\"fpscr\" bitsize=\"32\" type=\"int\" group=\"float\" />"
+    "   </feature>"
+    "</target>";
 
 static const char* const memory_map_template_F4 =
   "<?xml version=\"1.0\"?>"
@@ -249,7 +314,7 @@ char* make_memory_map(stlink_t *sl) {
 }
 
 
-/* 
+/*
  * DWT_COMP0     0xE0001020
  * DWT_MASK0     0xE0001024
  * DWT_FUNCTION0 0xE0001028
@@ -282,7 +347,7 @@ static void init_data_watchpoints(stlink_t *sl) {
 	#endif
 
 	// set trcena in debug command to turn on dwt unit
-	stlink_write_debug32(sl, 0xE000EDFC, 
+	stlink_write_debug32(sl, 0xE000EDFC,
 			     stlink_read_debug32(sl, 0xE000EDFC) | (1<<24));
 
 	// make sure all watchpoints are cleared
@@ -586,6 +651,7 @@ int serve(stlink_t *sl, int port) {
 		return 1;
 	}
 
+start_again:
 	stlink_force_debug(sl);
 	stlink_reset(sl);
 	init_code_breakpoints(sl);
@@ -616,7 +682,7 @@ int serve(stlink_t *sl, int port) {
 		int status = gdb_recv_packet(client, &packet);
 		if(status < 0) {
 			fprintf(stderr, "cannot recv: %d\n", status);
-			return 1;
+			goto start_again;         
 		}
 
 		#ifdef DEBUG
@@ -649,7 +715,12 @@ int serve(stlink_t *sl, int port) {
 			#endif
 
 			if(!strcmp(queryName, "Supported")) {
-				reply = strdup("PacketSize=3fff;qXfer:memory-map:read+");
+                if(sl->chip_id==STM32_CHIPID_F4) {
+                    reply = strdup("PacketSize=3fff;qXfer:memory-map:read+;qXfer:features:read+");
+                }
+                else {
+                    reply = strdup("PacketSize=3fff;qXfer:memory-map:read+");
+                }
 			} else if(!strcmp(queryName, "Xfer")) {
 				char *type, *op, *__s_addr, *s_length;
 				char *tok = params;
@@ -674,6 +745,9 @@ int serve(stlink_t *sl, int port) {
 				if(!strcmp(type, "memory-map") && !strcmp(op, "read"))
 					data = current_memory_map;
 
+				if(!strcmp(type, "features") && !strcmp(op, "read"))
+					data = target_description_F4;
+
 				if(data) {
 					unsigned data_length = strlen(data);
 					if(addr + length > data_length)
@@ -695,31 +769,41 @@ int serve(stlink_t *sl, int port) {
 				} else {
 					params = separator + 1;
 				}
-				
 
-				if (!strncmp(params,"7265",4)) {// resume
+
+				if (!strncmp(params,"726573756d65",12)) {// resume
 #ifdef DEBUG
 					printf("Rcmd: resume\n");
 #endif
 					stlink_run(sl);
 
 					reply = strdup("OK");
-				} else if (!strncmp(params,"6861",4)) { //half
+                } else if (!strncmp(params,"68616c74",8)) { //halt
 					reply = strdup("OK");
-					
+
 					stlink_force_debug(sl);
 
 #ifdef DEBUG
 					printf("Rcmd: halt\n");
 #endif
-				} else if (!strncmp(params,"7265",4)) { //reset
+                } else if (!strncmp(params,"6a7461675f7265736574",20)) { //jtag_reset
 					reply = strdup("OK");
-					
+
+					stlink_jtag_reset(sl, 1);
+					stlink_jtag_reset(sl, 0);
+					stlink_force_debug(sl);
+
+#ifdef DEBUG
+					printf("Rcmd: jtag_reset\n");
+#endif
+                } else if (!strncmp(params,"7265736574",10)) { //reset
+					reply = strdup("OK");
+
 					stlink_force_debug(sl);
 					stlink_reset(sl);
 					init_code_breakpoints(sl);
 					init_data_watchpoints(sl);
-					
+
 #ifdef DEBUG
 					printf("Rcmd: reset\n");
 #endif
@@ -729,7 +813,7 @@ int serve(stlink_t *sl, int port) {
 #endif
 
 				}
-				
+
 			}
 
 			if(reply == NULL)
@@ -881,6 +965,30 @@ int serve(stlink_t *sl, int port) {
 			} else if(id == 0x19) {
 				stlink_read_reg(sl, 16, &regp);
 				myreg = htonl(regp.xpsr);
+			} else if(id == 0x1A) {
+				stlink_read_reg(sl, 17, &regp);
+				myreg = htonl(regp.main_sp);
+			} else if(id == 0x1B) {
+				stlink_read_reg(sl, 18, &regp);
+				myreg = htonl(regp.process_sp);
+			} else if(id == 0x1C) {
+				stlink_read_unsupported_reg(sl, id, &regp);
+				myreg = htonl(regp.control);
+			} else if(id == 0x1D) {
+				stlink_read_unsupported_reg(sl, id, &regp);
+				myreg = htonl(regp.faultmask);
+			} else if(id == 0x1E) {
+				stlink_read_unsupported_reg(sl, id, &regp);
+				myreg = htonl(regp.basepri);
+			} else if(id == 0x1F) {
+				stlink_read_unsupported_reg(sl, id, &regp);
+				myreg = htonl(regp.primask);
+            } else if(id >= 0x20 && id < 0x40) {
+                stlink_read_unsupported_reg(sl, id, &regp);
+                myreg = htonl(regp.s[id-0x20]);
+			} else if(id == 0x40) {
+                stlink_read_unsupported_reg(sl, id, &regp);
+                myreg = htonl(regp.fpscr);
 			} else {
 				reply = strdup("E00");
 			}
@@ -902,6 +1010,22 @@ int serve(stlink_t *sl, int port) {
 				stlink_write_reg(sl, ntohl(value), reg);
 			} else if(reg == 0x19) {
 				stlink_write_reg(sl, ntohl(value), 16);
+			} else if(reg == 0x1A) {
+				stlink_write_reg(sl, ntohl(value), 17);
+			} else if(reg == 0x1B) {
+				stlink_write_reg(sl, ntohl(value), 18);
+			} else if(reg == 0x1C) {
+				stlink_write_unsupported_reg(sl, ntohl(value), reg, &regp);
+			} else if(reg == 0x1D) {
+				stlink_write_unsupported_reg(sl, ntohl(value), reg, &regp);
+			} else if(reg == 0x1E) {
+				stlink_write_unsupported_reg(sl, ntohl(value), reg, &regp);
+			} else if(reg == 0x1F) {
+				stlink_write_unsupported_reg(sl, ntohl(value), reg, &regp);
+            } else if(reg >= 0x20 && reg < 0x40) {
+                stlink_write_unsupported_reg(sl, ntohl(value), reg, &regp);
+			} else if(reg == 0x40) {
+                stlink_write_unsupported_reg(sl, ntohl(value), reg, &regp);
 			} else {
 				reply = strdup("E00");
 			}
@@ -953,20 +1077,43 @@ int serve(stlink_t *sl, int port) {
 			stm32_addr_t start = strtoul(s_start, NULL, 16);
 			unsigned     count = strtoul(s_count, NULL, 16);
 
-			for(unsigned int i = 0; i < count; i ++) {
+			if(start % 4) {
+			  unsigned align_count = 4 - start % 4;
+			  if (align_count > count) align_count = count;
+			  for(unsigned int i = 0; i < align_count; i ++) {
 				char hex[3] = { hexdata[i*2], hexdata[i*2+1], 0 };
 				uint8_t byte = strtoul(hex, NULL, 16);
 				sl->q_buf[i] = byte;
+			  }
+			  stlink_write_mem8(sl, start, align_count);
+			  start += align_count;
+			  count -= align_count;
+			  hexdata += 2*align_count;
 			}
 
-			if((count % 4) == 0 && (start % 4) == 0) {
-				stlink_write_mem32(sl, start, count);
-			} else {
-				stlink_write_mem8(sl, start, count);
+			if(count - count % 4) {
+			  unsigned aligned_count = count - count % 4;
+
+			  for(unsigned int i = 0; i < aligned_count; i ++) {
+			    char hex[3] = { hexdata[i*2], hexdata[i*2+1], 0 };
+			    uint8_t byte = strtoul(hex, NULL, 16);
+			    sl->q_buf[i] = byte;
+			  }
+			  stlink_write_mem32(sl, start, aligned_count);
+			  count -= aligned_count;
+			  start += aligned_count;
+			  hexdata += 2*aligned_count;
 			}
 
+			if(count) {
+			  for(unsigned int i = 0; i < count; i ++) {
+			    char hex[3] = { hexdata[i*2], hexdata[i*2+1], 0 };
+			    uint8_t byte = strtoul(hex, NULL, 16);
+			    sl->q_buf[i] = byte;
+			  }
+			  stlink_write_mem8(sl, start, count);
+			}
 			reply = strdup("OK");
-
 			break;
 		}
 
@@ -995,13 +1142,14 @@ int serve(stlink_t *sl, int port) {
 						wf = WATCHREAD;
 					} else {
 						wf = WATCHACCESS;
-						if(add_data_watchpoint(sl, wf, addr, len) < 0) {
-							reply = strdup("E00");
-						} else {
-							reply = strdup("OK");
-							break;
-						}
 					}
+
+                    if(add_data_watchpoint(sl, wf, addr, len) < 0) {
+                        reply = strdup("E00");
+                    } else {
+                        reply = strdup("OK");
+                        break;
+                    }
 				}
 
 				default:
@@ -1073,7 +1221,9 @@ int serve(stlink_t *sl, int port) {
 			int result = gdb_send_packet(client, reply);
 			if(result != 0) {
 				fprintf(stderr, "cannot send: %d\n", result);
-				return 1;
+				free(reply);
+				free(packet);
+				goto start_again;
 			}
 
 			free(reply);

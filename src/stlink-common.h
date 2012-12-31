@@ -84,7 +84,9 @@ extern "C" {
     // TODO clean this up...
 #define STM32VL_CORE_ID 0x1ba01477
 #define STM32L_CORE_ID 0x2ba01477
+#define STM32F3_CORE_ID 0x2ba01477
 #define STM32F4_CORE_ID 0x2ba01477
+#define STM32F0_CORE_ID 0xbb11477
 #define CORE_M3_R1 0x1BA00477
 #define CORE_M3_R2 0x4BA00477
 #define CORE_M4_R0 0x2BA01477
@@ -97,6 +99,8 @@ extern "C" {
 #define STM32_CHIPID_F1_MEDIUM 0x410
 #define STM32_CHIPID_F2 0x411
 #define STM32_CHIPID_F1_LOW 0x412
+#define STM32_CHIPID_F3 0x422
+#define STM32_CHIPID_F37x 0x432
 #define STM32_CHIPID_F4 0x413
 #define STM32_CHIPID_F1_HIGH 0x414
 #define STM32_CHIPID_L1_MEDIUM 0x416
@@ -104,6 +108,7 @@ extern "C" {
 #define STM32_CHIPID_F1_VL_MEDIUM 0x420
 #define STM32_CHIPID_F1_VL_HIGH 0x428
 #define STM32_CHIPID_F1_XL 0x430
+#define STM32_CHIPID_F0 0x440
 
 // Constant STM32 memory map figures
 #define STM32_FLASH_BASE 0x08000000
@@ -112,6 +117,8 @@ extern "C" {
 /* Cortex™-M3 Technical Reference Manual */
 /* Debug Halting Control and Status Register */
 #define DHCSR 0xe000edf0
+#define DCRSR 0xe000edf4
+#define DCRDR 0xe000edf8
 #define DBGKEY 0xa05f0000
 
 /* Enough space to hold both a V2 command or a V1 command packaged as generic scsi*/
@@ -127,9 +134,9 @@ extern "C" {
     } chip_params_t;
     
     
-    // These maps are from a combination of the Programming Manuals, and 
-    // also the Reference manuals.  (flash size reg is normally in ref man)
- static const chip_params_t devices[] = {
+// These maps are from a combination of the Programming Manuals, and
+// also the Reference manuals.  (flash size reg is normally in ref man)
+static const chip_params_t devices[] = {
         { // table 2, PM0063
             .chip_id = 0x410,
             .description = "F1 Medium-density device",
@@ -205,6 +212,28 @@ extern "C" {
                     .bootrom_size = 0x800
         },
         {
+	    // This is STK32F303VCT6 device from STM32 F3 Discovery board.
+	    // Support based on DM00043574.pdf (RM0316) document.
+            .chip_id = 0x422,
+                    .description = "F3 device",
+                    .flash_size_reg = 0x1ffff7cc,
+                    .flash_pagesize = 0x800,
+                    .sram_size = 0xa000,
+                    .bootrom_base = 0x1ffff000,
+                    .bootrom_size = 0x800
+        },
+        {
+	    // This is STK32F373VCT6 device from STM32 F373 eval board
+	    // Support based on 303 above (37x and 30x have same memory map)
+            .chip_id = 0x432,
+                    .description = "F3 device",
+                    .flash_size_reg = 0x1ffff7cc,
+                    .flash_pagesize = 0x800,
+                    .sram_size = 0xa000,
+                    .bootrom_base = 0x1ffff000,
+                    .bootrom_size = 0x800
+        },
+        {
             .chip_id = 0x428,
                     .description = "F1 High-density value line device",
                     .flash_size_reg = 0x1ffff7e0,
@@ -238,11 +267,17 @@ extern "C" {
     
     typedef struct {
         uint32_t r[16];
+        uint32_t s[32];
         uint32_t xpsr;
         uint32_t main_sp;
         uint32_t process_sp;
         uint32_t rw;
         uint32_t rw2;
+        uint8_t control;
+        uint8_t faultmask;
+        uint8_t basepri;
+        uint8_t primask;
+        uint32_t fpscr;
     } reg;
 
     typedef uint32_t stm32_addr_t;
@@ -295,6 +330,9 @@ extern "C" {
         void (*write_mem8) (stlink_t *sl, uint32_t addr, uint16_t len);
         void (*read_all_regs) (stlink_t *sl, reg * regp);
         void (*read_reg) (stlink_t *sl, int r_idx, reg * regp);
+        void (*read_all_unsupported_regs) (stlink_t *sl, reg *regp);
+        void (*read_unsupported_reg) (stlink_t *sl, int r_idx, reg *regp);
+        void (*write_unsupported_reg) (stlink_t *sl, uint32_t value, int idx, reg *regp);
         void (*write_reg) (stlink_t *sl, uint32_t reg, int idx);
         void (*step) (stlink_t * stl);
         int (*current_mode) (stlink_t * stl);
@@ -360,7 +398,10 @@ extern "C" {
     void stlink_write_mem32(stlink_t *sl, uint32_t addr, uint16_t len);
     void stlink_write_mem8(stlink_t *sl, uint32_t addr, uint16_t len);
     void stlink_read_all_regs(stlink_t *sl, reg *regp);
+    void stlink_read_all_unsupported_regs(stlink_t *sl, reg *regp);
     void stlink_read_reg(stlink_t *sl, int r_idx, reg *regp);
+    void stlink_read_unsupported_reg(stlink_t *sl, int r_idx, reg *regp);
+    void stlink_write_unsupported_reg(stlink_t *sl, uint32_t value, int r_idx, reg *regp);
     void stlink_write_reg(stlink_t *sl, uint32_t reg, int idx);
     void stlink_step(stlink_t *sl);
     int stlink_current_mode(stlink_t *sl);
