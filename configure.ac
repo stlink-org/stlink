@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.61)
-AC_INIT([stlink],[0.5.3],[davem@devkitpro.org])
+AC_INIT([stlink],[0.5.6],[davem@devkitpro.org])
 AC_CONFIG_SRCDIR([src/stlink-common.c])
 AC_CONFIG_LIBOBJ_DIR([src])
 AM_INIT_AUTOMAKE([1.10])

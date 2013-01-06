@@ -14,6 +14,10 @@
 #include "stlink-common.h"
 #include "uglylogging.h"
 
+#ifndef _WIN32
+#define O_BINARY 0
+#endif
+
 #define LOG_TAG __FILE__
 #define DLOG(format, args...)         ugly_log(UDEBUG, LOG_TAG, format, ## args)
 #define ILOG(format, args...)         ugly_log(UINFO, LOG_TAG, format, ## args)
@@ -757,7 +761,7 @@ static int map_file(mapped_file_t* mf, const char* path) {
     int error = -1;
     struct stat st;
 
-    const int fd = open(path, O_RDONLY);
+    const int fd = open(path, O_RDONLY | O_BINARY);
     if (fd == -1) {
         fprintf(stderr, "open(%s) == -1\n", path);
         return -1;
@@ -1415,7 +1419,7 @@ int stm32l1_write_half_pages(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uns
     return 0;
 }
 
-int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, unsigned len) {
+int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uint32_t len) {
     size_t off;
     flash_loader_t fl;
     ILOG("Attempting to write %d (%#x) bytes to stm32 address: %u (%#x)\n",
