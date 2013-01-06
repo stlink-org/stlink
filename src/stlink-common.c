@@ -1415,7 +1415,7 @@ int stm32l1_write_half_pages(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uns
     return 0;
 }
 
-int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, unsigned len) {
+int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uint32_t len) {
     size_t off;
     flash_loader_t fl;
     ILOG("Attempting to write %d (%#x) bytes to stm32 address: %u (%#x)\n",
