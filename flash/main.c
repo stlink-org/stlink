@@ -123,6 +123,14 @@ int main(int ac, char** av)
   if (stlink_current_mode(sl) != STLINK_DEV_DEBUG_MODE)
     stlink_enter_swd_mode(sl);
 
+// Disable DMA - Set All DMA CCR Registers to zero. - AKS 1/7/2013
+    memset(sl->q_buf,0,4);
+	for (int i=0;i<8;i++) {
+	    stlink_write_mem32(sl,0x40026000+0x10+0x18*i,4);
+	    stlink_write_mem32(sl,0x40026400+0x10+0x18*i,4);
+	    stlink_write_mem32(sl,0x40026000+0x24+0x18*i,4);
+	    stlink_write_mem32(sl,0x40026400+0x24+0x18*i,4);
+	}
   if (o.cmd == DO_WRITE) /* write */
   {
     if ((o.addr >= sl->flash_base) &&
