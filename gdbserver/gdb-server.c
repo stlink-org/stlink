@@ -1056,9 +1056,9 @@ start_again:
 			unsigned     count = strtoul(s_count, NULL, 16);
 
 			unsigned adj_start = start % 4;
+			unsigned count_rnd = (count + adj_start + 4 - 1) / 4 * 4;
 
-			stlink_read_mem32(sl, start - adj_start, (count % 4 == 0) ?
-						count : count + 4 - (count % 4));
+			stlink_read_mem32(sl, start - adj_start, count_rnd);
 
 			reply = calloc(count * 2 + 1, 1);
 			for(unsigned int i = 0; i < count; i++) {
