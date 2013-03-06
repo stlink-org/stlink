@@ -1021,7 +1021,7 @@ stlink_t* stlink_v1_open_inner(const int verbose) {
     return sl;
 }
 
-stlink_t* stlink_v1_open(const int verbose) {
+stlink_t* stlink_v1_open(const int verbose, int reset) {
     stlink_t *sl = stlink_v1_open_inner(verbose);
     if (sl == NULL) {
         fputs("Error: could not open stlink device\n", stderr);
@@ -1030,7 +1030,9 @@ stlink_t* stlink_v1_open(const int verbose) {
     // by now, it _must_ be fully open and in a useful mode....
 	stlink_enter_swd_mode(sl);
     /* Now we are ready to read the parameters  */
-    stlink_reset(sl);
+    if (reset) {
+        stlink_reset(sl);
+    }
     stlink_load_device_params(sl);
     ILOG("Successfully opened a stlink v1 debugger\n");
     return sl;
