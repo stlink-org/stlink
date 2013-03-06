@@ -40,6 +40,11 @@ static const char hex[] = "0123456789abcdef";
 
 static const char* current_memory_map = NULL;
 
+/* Persistent mode flag.
+ * In persistent mode, server starts listening again
+ * on GDB disconnect. */
+int persistent = 0;
+
 typedef struct _st_state_t {
     // things from command line, bleh
     int stlink_version;
@@ -62,6 +67,7 @@ int parse_options(int argc, char** argv, st_state_t *st) {
         {"stlink_version", required_argument, NULL, 's'},
         {"stlinkv1", no_argument, NULL, '1'},
 		{"listen_port", required_argument, NULL, 'p'},
+		{"multi", optional_argument, NULL, 'm'},
         {0, 0, 0, 0},
     };
 	const char * help_str = "%s - usage:\n\n"
@@ -76,13 +82,16 @@ int parse_options(int argc, char** argv, st_state_t *st) {
 	"  -p 4242, --listen_port=1234\n"
 	"\t\t\tSet the gdb server listen port. "
 	"(default port: " STRINGIFY(DEFAULT_GDB_LISTEN_PORT) ")\n"
+    "  -m, --multi\n"
+    "\t\t\tSet gdb server to extended mode.\n"
+    "\t\t\tst-util will continue listening for connections after disconnect.\n"
 	;
 
 
     int option_index = 0;
     int c;
     int q;
-    while ((c = getopt_long(argc, argv, "hv::d:s:1p:", long_options, &option_index)) != -1) {
+    while ((c = getopt_long(argc, argv, "hv::d:s:1p:m", long_options, &option_index)) != -1) {
         switch (c) {
         case 0:
             printf("XXXXX Shouldn't really normally come here, only if there's no corresponding option\n");
@@ -128,6 +137,9 @@ int parse_options(int argc, char** argv, st_state_t *st) {
 				exit(EXIT_FAILURE);
 			}
 			st->listen_port = q;
+			break;
+		case 'm':
+			persistent = 1;
 			break;
         }
     }
@@ -177,7 +189,9 @@ int main(int argc, char** argv) {
 	}
 #endif
 
-	while(serve(sl, state.listen_port) == 0);
+	do {
+		serve(sl, state.listen_port);
+	} while (persistent);
 
 #ifdef __MINGW32__
 winsock_error:
@@ -651,7 +665,6 @@ int serve(stlink_t *sl, int port) {
 		return 1;
 	}
 
-start_again:
 	stlink_force_debug(sl);
 	stlink_reset(sl);
 	init_code_breakpoints(sl);
@@ -682,7 +695,7 @@ start_again:
 		int status = gdb_recv_packet(client, &packet);
 		if(status < 0) {
 			fprintf(stderr, "cannot recv: %d\n", status);
-			goto start_again;         
+			return 1;
 		}
 
 		#ifdef DEBUG
@@ -1190,6 +1203,12 @@ start_again:
 			 * We do support that always.
 			 */
 
+			/*
+			 * Also, set to persistent mode
+			 * to allow GDB disconnect.
+			 */
+			persistent = 1;
+
 			reply = strdup("OK");
 
 			break;
@@ -1223,7 +1242,7 @@ start_again:
 				fprintf(stderr, "cannot send: %d\n", result);
 				free(reply);
 				free(packet);
-				goto start_again;
+				return 1;
 			}
 
 			free(reply);
