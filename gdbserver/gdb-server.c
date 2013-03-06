@@ -651,7 +651,6 @@ int serve(stlink_t *sl, int port) {
 		return 1;
 	}
 
-start_again:
 	stlink_force_debug(sl);
 	stlink_reset(sl);
 	init_code_breakpoints(sl);
@@ -682,7 +681,7 @@ start_again:
 		int status = gdb_recv_packet(client, &packet);
 		if(status < 0) {
 			fprintf(stderr, "cannot recv: %d\n", status);
-			goto start_again;         
+			return 1;
 		}
 
 		#ifdef DEBUG
@@ -1221,9 +1220,7 @@ start_again:
 			int result = gdb_send_packet(client, reply);
 			if(result != 0) {
 				fprintf(stderr, "cannot send: %d\n", result);
-				free(reply);
-				free(packet);
-				goto start_again;
+				return 1;
 			}
 
 			free(reply);
