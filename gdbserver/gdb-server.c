@@ -36,6 +36,8 @@
 //Allways update the FLASH_PAGE before each use, by calling stlink_calculate_pagesize
 #define FLASH_PAGE (sl->flash_pgsz)
 
+stlink_t *connected_stlink = NULL;
+
 static const char hex[] = "0123456789abcdef";
 
 static const char* current_memory_map = NULL;
@@ -54,6 +56,16 @@ typedef struct _st_state_t {
 int serve(stlink_t *sl, st_state_t *st);
 char* make_memory_map(stlink_t *sl);
 
+static void cleanup(int signal __attribute__((unused))) {
+    if (connected_stlink) {
+        /* Switch back to mass storage mode before closing. */
+        stlink_run(connected_stlink);
+        stlink_exit_debug_mode(connected_stlink);
+        stlink_close(connected_stlink);
+    }
+
+    exit(1);
+}
 
 int parse_options(int argc, char** argv, st_state_t *st) {
     static struct option long_options[] = {
@@ -171,6 +183,9 @@ int main(int argc, char** argv) {
 		if(sl == NULL) return 1;
 		break;
     }
+
+    connected_stlink = sl;
+    signal(SIGINT, &cleanup);
 
 	printf("Chip ID is %08x, Core ID is  %08x.\n", sl->chip_id, sl->core_id);
 
