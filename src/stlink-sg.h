@@ -63,7 +63,7 @@ extern "C" {
         reg reg;
     };
 
-    stlink_t* stlink_v1_open(const int verbose);
+    stlink_t* stlink_v1_open(const int verbose, int reset);
 
 #ifdef	__cplusplus
 }
