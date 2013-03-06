@@ -40,11 +40,6 @@ static const char hex[] = "0123456789abcdef";
 
 static const char* current_memory_map = NULL;
 
-/* Persistent mode flag.
- * In persistent mode, server starts listening again
- * on GDB disconnect. */
-int persistent = 0;
-
 typedef struct _st_state_t {
     // things from command line, bleh
     int stlink_version;
@@ -52,10 +47,11 @@ typedef struct _st_state_t {
     char devicename[100];
     int logging_level;
 	int listen_port;
+    int persistent;
 } st_state_t;
 
 
-int serve(stlink_t *sl, int port);
+int serve(stlink_t *sl, st_state_t *st);
 char* make_memory_map(stlink_t *sl);
 
 
@@ -139,7 +135,7 @@ int parse_options(int argc, char** argv, st_state_t *st) {
 			st->listen_port = q;
 			break;
 		case 'm':
-			persistent = 1;
+			st->persistent = 1;
 			break;
         }
     }
@@ -190,8 +186,8 @@ int main(int argc, char** argv) {
 #endif
 
 	do {
-		serve(sl, state.listen_port);
-	} while (persistent);
+		serve(sl, &state);
+	} while (state.persistent);
 
 #ifdef __MINGW32__
 winsock_error:
@@ -639,7 +635,7 @@ error:
 	return error;
 }
 
-int serve(stlink_t *sl, int port) {
+int serve(stlink_t *sl, st_state_t *st) {
 	int sock = socket(AF_INET, SOCK_STREAM, 0);
 	if(sock < 0) {
 		perror("socket");
@@ -653,7 +649,7 @@ int serve(stlink_t *sl, int port) {
 	memset(&serv_addr,0,sizeof(struct sockaddr_in));
 	serv_addr.sin_family = AF_INET;
 	serv_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
-	serv_addr.sin_port = htons(port);
+	serv_addr.sin_port = htons(st->listen_port);
 
 	if(bind(sock, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
 		perror("bind");
@@ -670,7 +666,7 @@ int serve(stlink_t *sl, int port) {
 	init_code_breakpoints(sl);
 	init_data_watchpoints(sl);
 
-	printf("Listening at *:%d...\n", port);
+	printf("Listening at *:%d...\n", st->listen_port);
 
 	int client = accept(sock, NULL, NULL);
 	//signal (SIGINT, SIG_DFL);
@@ -1207,7 +1203,7 @@ int serve(stlink_t *sl, int port) {
 			 * Also, set to persistent mode
 			 * to allow GDB disconnect.
 			 */
-			persistent = 1;
+			st->persistent = 1;
 
 			reply = strdup("OK");
 
