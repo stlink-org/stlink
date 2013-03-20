@@ -1023,26 +1023,30 @@ int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr)
 
     uint32_t val;
 
-    /* disable pecr protection */
-    stlink_write_debug32(sl, STM32L_FLASH_PEKEYR, 0x89abcdef);
-    stlink_write_debug32(sl, STM32L_FLASH_PEKEYR, 0x02030405);
-
-    /* check pecr.pelock is cleared */
+    /* check if the locks are set */
     val = stlink_read_debug32(sl, STM32L_FLASH_PECR);
-    if (val & (1 << 0)) {
-      WLOG("pecr.pelock not clear (%#x)\n", val);
-      return -1;
-    }
+    if((val & (1<<0))||(val & (1<<1))) {
+        /* disable pecr protection */
+        stlink_write_debug32(sl, STM32L_FLASH_PEKEYR, 0x89abcdef);
+        stlink_write_debug32(sl, STM32L_FLASH_PEKEYR, 0x02030405);
 
-    /* unlock program memory */
-    stlink_write_debug32(sl, STM32L_FLASH_PRGKEYR, 0x8c9daebf);
-    stlink_write_debug32(sl, STM32L_FLASH_PRGKEYR, 0x13141516);
+        /* check pecr.pelock is cleared */
+        val = stlink_read_debug32(sl, STM32L_FLASH_PECR);
+        if (val & (1 << 0)) {
+            WLOG("pecr.pelock not clear (%#x)\n", val);
+            return -1;
+        }
 
-    /* check pecr.prglock is cleared */
-    val = stlink_read_debug32(sl, STM32L_FLASH_PECR);
-    if (val & (1 << 1)) {
-      WLOG("pecr.prglock not clear (%#x)\n", val);
-      return -1;
+        /* unlock program memory */
+        stlink_write_debug32(sl, STM32L_FLASH_PRGKEYR, 0x8c9daebf);
+        stlink_write_debug32(sl, STM32L_FLASH_PRGKEYR, 0x13141516);
+
+        /* check pecr.prglock is cleared */
+        val = stlink_read_debug32(sl, STM32L_FLASH_PECR);
+        if (val & (1 << 1)) {
+            WLOG("pecr.prglock not clear (%#x)\n", val);
+            return -1;
+        }
     }
 
     /* unused: unlock the option byte block */
