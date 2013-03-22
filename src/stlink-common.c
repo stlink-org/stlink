@@ -1779,7 +1779,7 @@ int run_flash_loader(stlink_t *sl, flash_loader_t* fl, stm32_addr_t target, cons
     }
 
     if (i >= WAIT_ROUNDS) {
-        fatal("flash loader run error\n");
+        ELOG("flash loader run error\n");
         return -1;
     }
 
