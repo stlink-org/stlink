@@ -140,7 +140,7 @@ extern "C" {
 // also the Reference manuals.  (flash size reg is normally in ref man)
 static const chip_params_t devices[] = {
         { // table 2, PM0063
-            .chip_id = 0x410,
+            .chip_id = STM32_CHIPID_F1_MEDIUM,
             .description = "F1 Medium-density device",
             .flash_size_reg = 0x1ffff7e0,
                     .flash_pagesize = 0x400,
@@ -149,7 +149,7 @@ static const chip_params_t devices[] = {
                     .bootrom_size = 0x800
         },
         {  // table 1, PM0059
-            .chip_id = 0x411,
+            .chip_id = STM32_CHIPID_F2,
                     .description = "F2 device",
                     .flash_size_reg = 0, /* no flash size reg found in the docs! */
                     .flash_pagesize = 0x20000,
@@ -158,7 +158,7 @@ static const chip_params_t devices[] = {
                     .bootrom_size = 0x7800
         },
         { // PM0063
-            .chip_id = 0x412,
+            .chip_id = STM32_CHIPID_F1_LOW,
                     .description = "F1 Low-density device",
                     .flash_size_reg = 0x1ffff7e0,
                     .flash_pagesize = 0x400,
@@ -167,7 +167,7 @@ static const chip_params_t devices[] = {
                     .bootrom_size = 0x800
         },
         {
-            .chip_id = 0x413,
+            .chip_id = STM32_CHIPID_F4,
                     .description = "F4 device",
                     .flash_size_reg = 0x1FFF7A10,  //RM0090 error same as unique ID
                     .flash_pagesize = 0x4000,
@@ -176,7 +176,7 @@ static const chip_params_t devices[] = {
                     .bootrom_size = 0x7800
         },
         {
-            .chip_id = 0x414,
+            .chip_id = STM32_CHIPID_F1_HIGH,
                     .description = "F1 High-density device",
                     .flash_size_reg = 0x1ffff7e0,
                     .flash_pagesize = 0x800,
@@ -187,7 +187,7 @@ static const chip_params_t devices[] = {
         {
           // This ignores the EEPROM! (and uses the page erase size,
           // not the sector write protection...)
-            .chip_id = 0x416,
+            .chip_id = STM32_CHIPID_L1_MEDIUM,
                     .description = "L1 Med-density device",
                     .flash_size_reg = 0x1ff8004c,
                     .flash_pagesize = 0x100,
@@ -205,7 +205,7 @@ static const chip_params_t devices[] = {
                     .bootrom_size = 0x1000
         },
         {
-            .chip_id = 0x418,
+            .chip_id = STM32_CHIPID_F1_CONN,
                     .description = "F1 Connectivity line device",
                     .flash_size_reg = 0x1ffff7e0,
                     .flash_pagesize = 0x800,
@@ -214,7 +214,7 @@ static const chip_params_t devices[] = {
                     .bootrom_size = 0x4800
         },
         {
-            .chip_id = 0x420,
+            .chip_id = STM32_CHIPID_F1_VL_MEDIUM,
                     .description = "F1 Medium-density Value Line device",
                     .flash_size_reg = 0x1ffff7e0,
                     .flash_pagesize = 0x400,
@@ -225,7 +225,7 @@ static const chip_params_t devices[] = {
         {
 	    // This is STK32F303VCT6 device from STM32 F3 Discovery board.
 	    // Support based on DM00043574.pdf (RM0316) document.
-            .chip_id = 0x422,
+            .chip_id = STM32_CHIPID_F3,
                     .description = "F3 device",
                     .flash_size_reg = 0x1ffff7cc,
                     .flash_pagesize = 0x800,
@@ -236,7 +236,7 @@ static const chip_params_t devices[] = {
         {
 	    // This is STK32F373VCT6 device from STM32 F373 eval board
 	    // Support based on 303 above (37x and 30x have same memory map)
-            .chip_id = 0x432,
+            .chip_id = STM32_CHIPID_F37x,
                     .description = "F3 device",
                     .flash_size_reg = 0x1ffff7cc,
                     .flash_pagesize = 0x800,
@@ -245,7 +245,7 @@ static const chip_params_t devices[] = {
                     .bootrom_size = 0x800
         },
         {
-            .chip_id = 0x428,
+            .chip_id = STM32_CHIPID_F1_VL_HIGH,
                     .description = "F1 High-density value line device",
                     .flash_size_reg = 0x1ffff7e0,
                     .flash_pagesize = 0x800,
@@ -254,7 +254,7 @@ static const chip_params_t devices[] = {
                     .bootrom_size = 0x800
         },
         {
-            .chip_id = 0x430,
+            .chip_id = STM32_CHIPID_F1_XL,
                     .description = "F1 XL-density device",
                     .flash_size_reg = 0x1ffff7e0,
                     .flash_pagesize = 0x800,
@@ -265,7 +265,7 @@ static const chip_params_t devices[] = {
         {
             //Use this as an example for mapping future chips:
             //RM0091 document was used to find these paramaters
-            .chip_id = 0x440,
+            .chip_id = STM32_CHIPID_F0,
                     .description = "F0 device",
                     .flash_size_reg = 0x1ffff7cc,	// "Flash size data register" (pg735)
                     .flash_pagesize = 0x400,		// Page sizes listed in Table 4
