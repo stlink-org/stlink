@@ -67,6 +67,8 @@ static void cleanup(int signal __attribute__((unused))) {
     exit(1);
 }
 
+
+
 int parse_options(int argc, char** argv, st_state_t *st) {
     static struct option long_options[] = {
         {"help", no_argument, NULL, 'h'},
@@ -186,6 +188,7 @@ int main(int argc, char** argv) {
 
     connected_stlink = sl;
     signal(SIGINT, &cleanup);
+    signal(SIGTERM, &cleanup);
 
 	printf("Chip ID is %08x, Core ID is  %08x.\n", sl->chip_id, sl->core_id);
 
