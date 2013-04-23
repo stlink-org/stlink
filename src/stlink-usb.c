@@ -729,15 +729,46 @@ stlink_t* stlink_open_usb(const int verbose) {
         goto on_error;
     }
     
-    slu->usb_handle = libusb_open_device_with_vid_pid(slu->libusb_ctx, USB_ST_VID, USB_STLINK_32L_PID);
-    if (slu->usb_handle == NULL) {
-	slu->usb_handle = libusb_open_device_with_vid_pid(slu->libusb_ctx, USB_ST_VID, USB_STLINK_PID);
-	if (slu->usb_handle == NULL) {
-	    WLOG("Couldn't find any ST-Link/V2 devices\n");
+    libusb_device **list;
+    int cnt = libusb_get_device_list(slu->libusb_ctx, &list);
+    struct libusb_device_descriptor desc;
+    int devBus =0;
+    int devAddr=0;
+    
+    char *device = getenv("STLINK_DEVICE");
+    if (device) {
+	char *c = strchr(device,':');
+	if (c==NULL) {
+	    WLOG("STLINK_DEVICE must be <USB_BUS>:<USB_ADDR> format\n");
 	    goto on_error;
 	}
-	slu->protocoll = 1;
+	devBus=atoi(device);
+	*c++=0;
+	devAddr=atoi(c);
+	ILOG("bus %03d dev %03d\n",devBus, devAddr);
     }
+    while (cnt){
+	cnt--;
+        libusb_get_device_descriptor( list[cnt], &desc );
+        if (desc.idVendor!=USB_ST_VID) continue;
+        if (devBus && devAddr)
+            if ((libusb_get_bus_number(list[cnt])!=devBus) || (libusb_get_device_address(list[cnt])!=devAddr)) continue;
+        if (desc.idProduct == USB_STLINK_32L_PID) break;
+        if (desc.idProduct == USB_STLINK_PID) slu->protocoll = 1; break;
+    }
+    
+    if (cnt==0){
+	WLOG("Couldn't find %s ST-Link/V2 devices\n",(devBus && devAddr)?"matched":"any");
+	goto on_error;
+    } else {
+	if( libusb_open(list[cnt], &slu->usb_handle) !=0){
+	    WLOG("Couldn't open ST-Link/V2 device %03d:%03d\n",libusb_get_bus_number(list[cnt]), libusb_get_device_address(list[cnt]));
+    	    goto on_error;
+    	}
+    }
+    
+    libusb_free_device_list(list, 1);
+    
 
     if (libusb_kernel_driver_active(slu->usb_handle, 0) == 1) {
         int r;
