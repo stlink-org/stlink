@@ -2,18 +2,20 @@
 
 AUTOMAKE_OPTIONS = subdir-objects
 
-bin_PROGRAMS = st-flash st-util
+bin_PROGRAMS = st-flash st-util st-term
 
 noinst_LIBRARIES      = libstlink.a
 
 st_flash_SOURCES = flash/main.c
+st_term_SOURCES = src/st-term.c
 st_util_SOURCES = gdbserver/gdb-remote.c gdbserver/gdb-remote.h gdbserver/gdb-server.c mingw/mingw.c mingw/mingw.h
 
 CFILES = \
 	src/stlink-common.c \
 	src/stlink-usb.c \
 	src/stlink-sg.c \
-	src/uglylogging.c
+	src/uglylogging.c \
+        src/st-term.c
 
 HFILES	= \
 	src/stlink-common.h \
@@ -32,6 +34,10 @@ st_flash_CPPFLAGS	= -std=gnu99 -Wall -Wextra -O2 -I$(top_srcdir)/src -I$(top_src
 
 st_util_LDADD	=	libstlink.a
 st_util_CPPFLAGS	= -std=gnu99 -Wall -Wextra -O2 -I$(top_srcdir)/src -I$(top_srcdir)/mingw
+
+st_term_LDADD   =       libstlink.a
+st_term_CPPFLAGS        = -std=gnu99 -Wall -Wextra -O2 -I$(top_srcdir)/src -I$(top_srcdir)/mingw
+
 
 EXTRA_DIST = autogen.sh
 
