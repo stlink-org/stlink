@@ -35,7 +35,7 @@ struct stlinky*  stlinky_detect(stlink_t* sl)
 			st->off = sram_base + off;
 			stlink_read_mem32(sl, st->off + 4, 4);
 			st->bufsize = (size_t) *(unsigned char*) sl->q_buf;
-			printf("stlinky buffer size 0x%zu\n", st->bufsize);
+			printf("stlinky buffer size 0x%zu \n", st->bufsize);
 			return st;
 		}
 	}
@@ -117,10 +117,16 @@ void nonblock(int state)
 }
 
 static int keep_running = 1;
+static int sigcount=0;
 void cleanup(int dummy)
 {
+	sigcount++;
 	keep_running = 0;
-	printf("\n\nGot a signal - terminating\n");
+	printf("\n\nGot a signal\n");
+	if (sigcount==2) {
+		printf("\n\nGot a second signal - bailing out\n");
+		exit(1);
+	}
 }
 
 
@@ -155,7 +161,8 @@ int main(int ac, char** av) {
 		struct stlinky *st = stlinky_detect(sl);
 		if (st == NULL)
 		{
-			printf("stlinky magic not found in sram :(");
+			printf("stlinky magic not found in sram :(\n");
+			goto bailout;
 		}
 		char* rxbuf = malloc(st->bufsize);
 		char* txbuf = malloc(st->bufsize);
@@ -165,7 +172,7 @@ int main(int ac, char** av) {
 		int saved_flags = fcntl(fd, F_GETFL);
 		fcntl(fd, F_SETFL, saved_flags & ~O_NONBLOCK);
 		signal(SIGINT, cleanup);
-		printf("Entering interactive terminal. CTRL+C to exit\n");
+		printf("Entering interactive terminal. CTRL+C to exit\n\n\n");
 		while(1) {
 			if (stlinky_canrx(st)) {
 				tmp = stlinky_rx(st, rxbuf);
@@ -179,6 +186,7 @@ int main(int ac, char** av) {
 			if (!keep_running)
 				break;
 		}
+	bailout:
 		nonblock(0);
 		stlink_exit_debug_mode(sl);
 		stlink_close(sl);
