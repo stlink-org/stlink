@@ -1,4 +1,13 @@
 #include <stdio.h>
+/* According to POSIX.1-2001 */
+#include <sys/select.h>
+#include <string.h>
+#include <sys/time.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <termios.h>
+#include <fcntl.h>
+#include <signal.h>
 #include "stlink-common.h"
 
 #define STLINKY_MAGIC 0xDEADF00D
@@ -9,20 +18,16 @@ struct stlinky {
 	size_t bufsize;
 };
 
-void dump_qbuf(stlink_t* s)
-{
-	printf("== 0x%x\n", *(uint32_t*)s->q_buf);
-}
 
-/* Detects stlinky in RAM, returns handler */ 
-struct stlinky*  stlinky_detect(stlink_t* sl) 
+/* Detects stlinky in RAM, returns handler */
+struct stlinky*  stlinky_detect(stlink_t* sl)
 {
-        static const uint32_t sram_base = 0x20000000;
+	static const uint32_t sram_base = 0x20000000;
 	struct stlinky* st = malloc(sizeof(struct stlinky));
 	st->sl = sl;
 	printf("sram: 0x%x bytes @ 0x%x\n", sl->sram_base, sl->sram_size);
-        uint32_t off;
-        for (off = 0; off < sl->sram_size; off += 4) {
+	uint32_t off;
+	for (off = 0; off < sl->sram_size; off += 4) {
 		stlink_read_mem32(sl, sram_base + off, 4);
 		if ( STLINKY_MAGIC== *(uint32_t*) sl->q_buf)
 		{
@@ -30,13 +35,19 @@ struct stlinky*  stlinky_detect(stlink_t* sl)
 			st->off = sram_base + off;
 			stlink_read_mem32(sl, st->off + 4, 4);
 			st->bufsize = (size_t) *(unsigned char*) sl->q_buf;
-			printf("stlinky buffer size 0x%zu (%hhx)\n", st->bufsize);
+			printf("stlinky buffer size 0x%zu\n", st->bufsize);
 			return st;
 		}
 	}
 	return NULL;
 }
 
+int stlinky_canrx(struct stlinky *st)
+{
+	stlink_read_mem32(st->sl, st->off+4, 4);
+	unsigned char tx = (unsigned char) st->sl->q_buf[1];
+	return (int) tx;
+}
 
 size_t stlinky_rx(struct stlinky *st, char* buffer)
 {
@@ -47,128 +58,130 @@ size_t stlinky_rx(struct stlinky *st, char* buffer)
 	}
 	size_t rs = tx + (4 - (tx % 4)); /* voodoo */
 	stlink_read_mem32(st->sl, st->off+8, rs);
-	printf(st->sl->q_buf);
+	memcpy(buffer, st->sl->q_buf, (size_t) tx);
 	*st->sl->q_buf=0x0;
 	stlink_write_mem8(st->sl, st->off+5, 1);
+	return (size_t) tx;
+}
+
+size_t stlinky_tx(struct stlinky *st, char* buffer, size_t sz)
+{
+	unsigned char rx = 1;
+	while(rx != 0) {
+		stlink_read_mem32(st->sl, st->off+4, 4);
+		rx = (unsigned char) st->sl->q_buf[2];
+	}
+	memcpy(st->sl->q_buf, buffer, sz);
+	size_t rs = sz + (4 - (sz % 4)); /* voodoo */
+	stlink_write_mem32(st->sl, st->off+8+st->bufsize, rs);
+	*st->sl->q_buf=(unsigned char) sz;
+	stlink_write_mem8(st->sl, st->off+6, 1);
+	return (size_t) rx;
+}
+
+int kbhit()
+{
+	struct timeval tv;
+	fd_set fds;
+	tv.tv_sec = 0;
+	tv.tv_usec = 0;
+	FD_ZERO(&fds);
+	FD_SET(STDIN_FILENO, &fds); //STDIN_FILENO is 0
+	select(STDIN_FILENO+1, &fds, NULL, NULL, &tv);
+	return FD_ISSET(STDIN_FILENO, &fds);
+}
+
+void nonblock(int state)
+{
+	struct termios ttystate;
+
+	//get the terminal state
+	tcgetattr(STDIN_FILENO, &ttystate);
+
+	if (state==1)
+	{
+		//turn off canonical mode
+		ttystate.c_lflag &= ~ICANON;
+		ttystate.c_lflag &= ~ECHO;
+		//minimum of number input read.
+		ttystate.c_cc[VMIN] = 1;
+	}
+	else if (state==0)
+	{
+		//turn on canonical mode
+		ttystate.c_lflag |= ICANON | ECHO;
+	}
+	//set the terminal attributes.
+	tcsetattr(STDIN_FILENO, TCSANOW, &ttystate);
+
+}
+
+static int keep_running = 1;
+void cleanup(int dummy)
+{
+	keep_running = 0;
+	printf("\n\nGot a signal - terminating\n");
 }
 
 
 int main(int ac, char** av) {
-    stlink_t* sl;
-    reg regs;
+	stlink_t* sl;
 
-    /* unused */
-    ac = ac;
-    av = av;
+	/* unused */
+	ac = ac;
+	av = av;
+	sl = stlink_open_usb(10);
+	if (sl != NULL) {
+		printf("ST-Linky proof-of-concept terminal :: Created by Necromant for lulz\n");
+		stlink_version(sl);
+		stlink_enter_swd_mode(sl);
+		printf("chip id: %#x\n", sl->chip_id);
+		printf("core_id: %#x\n", sl->core_id);
 
-    sl = stlink_open_usb(10);
-    if (sl != NULL) {
-        printf("ST Link terminal :: Created by Necromant\n");
-        stlink_version(sl);
-        
-        printf("mode before doing anything: %d\n", stlink_current_mode(sl));
+		cortex_m3_cpuid_t cpuid;
+		stlink_cpu_id(sl, &cpuid);
+		printf("cpuid:impl_id = %0#x, variant = %#x\n", cpuid.implementer_id, cpuid.variant);
+		printf("cpuid:part = %#x, rev = %#x\n", cpuid.part, cpuid.revision);
 
-        if (stlink_current_mode(sl) == STLINK_DEV_DFU_MODE) {
-            printf("-- exit_dfu_mode\n");
-            stlink_exit_dfu_mode(sl);
-        }
+		stlink_reset(sl);
+		stlink_force_debug(sl);
+		stlink_run(sl);
+		stlink_status(sl);
 
-        printf("-- enter_swd_mode\n");
-        stlink_enter_swd_mode(sl);
-	
-        printf("-- mode after entering swd mode: %d\n", stlink_current_mode(sl));
+		/* wait for device to boot */
+		/* TODO: Make timeout adjustable via command line */
+		sleep(1);
 
-        printf("-- chip id: %#x\n", sl->chip_id);
-        printf("-- core_id: %#x\n", sl->core_id);
-
-        cortex_m3_cpuid_t cpuid;
-        stlink_cpu_id(sl, &cpuid);
-        printf("cpuid:impl_id = %0#x, variant = %#x\n", cpuid.implementer_id, cpuid.variant);
-        printf("cpuid:part = %#x, rev = %#x\n", cpuid.part, cpuid.revision);
-
-	stlink_reset(sl);
-	stlink_force_debug(sl);
-	stlink_run(sl);
-	stlink_status(sl);
-	/* wait for device to boot */
-
-	sleep(1);
-
-	struct stlinky *st = stlinky_detect(sl);
-	if (st == NULL)
-	{
-		printf("stlinky magic not found in sram :(");
+		struct stlinky *st = stlinky_detect(sl);
+		if (st == NULL)
+		{
+			printf("stlinky magic not found in sram :(");
+		}
+		char* rxbuf = malloc(st->bufsize);
+		char* txbuf = malloc(st->bufsize);
+		size_t tmp;
+		nonblock(1);
+		int fd = fileno(stdin);
+		int saved_flags = fcntl(fd, F_GETFL);
+		fcntl(fd, F_SETFL, saved_flags & ~O_NONBLOCK);
+		signal(SIGINT, cleanup);
+		printf("Entering interactive terminal. CTRL+C to exit\n");
+		while(1) {
+			if (stlinky_canrx(st)) {
+				tmp = stlinky_rx(st, rxbuf);
+				fwrite(rxbuf,tmp,1,stdout);
+				fflush(stdout);
+			}
+			if (kbhit()) {
+				tmp = read(fd, txbuf, st->bufsize);
+				stlinky_tx(st,txbuf,tmp);
+			}
+			if (!keep_running)
+				break;
+		}
+		nonblock(0);
+		stlink_exit_debug_mode(sl);
+		stlink_close(sl);
 	}
-
-	while(1) {
-		stlinky_rx(st, NULL);
-	}
-	//sleep(90);
-
-        printf("-- read_sram\n");
-	//     static const uint32_t sram_base = 0x8000000;
-	// uint32_t off;
-        //for (off = 0; off < 16; off += 4)
-        //    stlink_read_mem32(sl, sram_base + off, 4);
-	
-        //printf("FP_CTRL\n");
-        //stlink_read_mem32(sl, CM3_REG_FP_CTRL, 4);
-        
-        // no idea what reg this is..  */
-        //     stlink_read_mem32(sl, 0xe000ed90, 4);
-        // no idea what register this is...
-        //     stlink_read_mem32(sl, 0xe000edf0, 4);
-        // offset 0xC into TIM11 register? TIMx_DIER?
-        //     stlink_read_mem32(sl, 0x4001100c, 4); */
-
-        /* Test 32 bit Write */
-        write_uint32(sl->q_buf,0x01234567);
-        stlink_write_mem32(sl,0x200000a8,4);
-#if 0
-        write_uint32(sl->q_buf,0x89abcdef);
-        stlink_write_mem32(sl,0x200000ac, 4);
-        stlink_read_mem32(sl, 0x200000a8, 4);
-        stlink_read_mem32(sl, 0x200000ac, 4);
-        
-        /* Test 8 bit write */
-        write_uint32(sl->q_buf,0x01234567);
-        stlink_write_mem8(sl,0x200001a8,3);
-        write_uint32(sl->q_buf,0x89abcdef);
-        stlink_write_mem8(sl, 0x200001ac, 3);
-        stlink_read_mem32(sl, 0x200001a8, 4);
-        stlink_read_mem32(sl, 0x200001ac, 4);
-
-        printf("-- status\n");
-        stlink_status(sl);
-
-        printf("-- reset\n");
-        stlink_reset(sl);
-        stlink_force_debug(sl);
-        /* Test reg write*/
-        stlink_write_reg(sl, 0x01234567, 3);
-        stlink_write_reg(sl, 0x89abcdef, 4);
-        stlink_write_reg(sl, 0x12345678, 15);
-        for (off = 0; off < 21; off += 1)
-            stlink_read_reg(sl, off, &regs);
-        
-       
-        stlink_read_all_regs(sl, &regs);
-
-        printf("-- status\n");
-        stlink_status(sl);
-
-        printf("-- step\n");
-        stlink_step(sl);
-
-        printf("-- run\n");
-        stlink_run(sl);
-
-        printf("-- exit_debug_mode\n");
-#endif
-        stlink_exit_debug_mode(sl);
-
-        stlink_close(sl);
-    }
-
-    return 0;
+	return 0;
 }
