@@ -757,9 +757,9 @@ stlink_t* stlink_open_usb(const int verbose) {
         if (desc.idProduct == USB_STLINK_PID) slu->protocoll = 1; break;
     }
     
-    if (cnt==0){
-	WLOG("Couldn't find %s ST-Link/V2 devices\n",(devBus && devAddr)?"matched":"any");
-	goto on_error;
+    if (cnt < 0) {
+	    WLOG ("Couldn't find %s ST-Link/V2 devices\n",(devBus && devAddr)?"matched":"any");
+	    goto on_error;
     } else {
 	if( libusb_open(list[cnt], &slu->usb_handle) !=0){
 	    WLOG("Couldn't open ST-Link/V2 device %03d:%03d\n",libusb_get_bus_number(list[cnt]), libusb_get_device_address(list[cnt]));
