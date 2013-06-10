@@ -1,5 +1,7 @@
 # Makefile.am -- Process this file with automake to produce Makefile.in
 
+SUBDIRS = . $(MAYBE_GUI)
+
 AUTOMAKE_OPTIONS = subdir-objects
 
 bin_PROGRAMS = st-flash st-util st-term

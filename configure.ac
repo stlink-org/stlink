@@ -34,6 +34,17 @@ case "${host}" in
 		CPPFLAGS="-D__USE_MINGW_ANSI_STDIO=1 $CPPFLAGS"
 	;;
 esac
+
+MAYBE_GUI=
+AC_ARG_WITH([gtk], AS_HELP_STRING([--with-gtk], [enable GTK+ gui]))
+if test "x$with_gtk" = "xyes"; then
+      PKG_CHECK_MODULES([GTK], [gtk+-3.0])
+      PKG_CHECK_MODULES([GLIB], [glib-2.0 > 2.32.0])
+      MAYBE_GUI=gui
+      AC_CONFIG_FILES([gui/Makefile])
+fi
+AC_SUBST([MAYBE_GUI])
+
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT
 
