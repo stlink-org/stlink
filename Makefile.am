@@ -16,6 +16,7 @@ CFILES = \
 	src/stlink-common.c \
 	src/stlink-usb.c \
 	src/stlink-sg.c \
+	src/stlink-hex.c \
 	src/uglylogging.c \
         src/st-term.c
 
@@ -23,6 +24,7 @@ HFILES	= \
 	src/stlink-common.h \
 	src/stlink-usb.h \
 	src/stlink-sg.h \
+	src/stlink-hex.h \
 	src/uglylogging.h \
 	src/mmap.h
 
