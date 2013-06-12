@@ -4,6 +4,7 @@
 #include <gtk/gtk.h>
 
 #include "stlink-common.h"
+#include "stlink-hex.h"
 #include "stlink-gui.h"
 
 #define MEM_READ_SIZE 1024
@@ -203,14 +204,21 @@ stlink_gui_update_mem_view (STlinkGUI *gui, struct mem_t *mem, GtkTreeView *view
 
 	store = GTK_LIST_STORE (gtk_tree_view_get_model (view));
 
-	mem_view_add_buffer (store,
-	                     &iter,
-	                     mem->base,
-	                     mem->memory,
-	                     mem->size);
+	if (mem->memory != NULL) {
+		mem_view_add_buffer (store,
+		                     &iter,
+		                     mem->base,
+		                     mem->memory,
+		                     mem->size);
+	} else {
+		if (gtk_tree_model_get_iter_first (GTK_TREE_MODEL (store), &iter)) {
+			gtk_list_store_clear (store);
+		}
+	}
 
 	gtk_widget_hide (GTK_WIDGET (gui->progress.bar));
 	gtk_progress_bar_set_fraction (gui->progress.bar, 0);
+	gui->progress.activity_mode = FALSE;
 	stlink_gui_set_sensitivity (gui, TRUE);
 }
 
@@ -227,9 +235,6 @@ stlink_gui_populate_devmem_view (STlinkGUI *gui)
 {
 	guint            off;
 	stm32_addr_t     addr;
-
-	g_return_if_fail (gui != NULL);
-	g_return_if_fail (gui->sl != NULL);
 
 	addr = gui->sl->flash_base;
 
@@ -257,27 +262,48 @@ stlink_gui_populate_devmem_view (STlinkGUI *gui)
 			stlink_gui_set_info_error_message (gui, "Failed to read memory");
 			g_free (gui->flash_mem.memory);
 			gui->flash_mem.memory = NULL;
-			return;
+			goto out;
 		}
 		memcpy (gui->flash_mem.memory + off, gui->sl->q_buf, n_read);
 		gui->progress.fraction = (gdouble) (off + n_read) / gui->sl->flash_size;
 	}
+ out:
 	g_idle_add ((GSourceFunc) stlink_gui_update_devmem_view, gui);
 }
 
 static gboolean
 stlink_gui_update_filemem_view (STlinkGUI *gui)
 {
-	gchar *basename;
+	gchar *basename = NULL;
+	GtkWidget *page;
 
-	basename = g_path_get_basename (gui->filename);
-	gtk_notebook_set_tab_label_text (gui->notebook,
-	                                 GTK_WIDGET (gtk_notebook_get_nth_page (gui->notebook, 1)),
-	                                 basename);
-	g_free (basename);
+	page = gtk_notebook_get_nth_page (gui->notebook, PAGE_FILEMEM);
+
+	if (gui->filename) {
+		basename = g_path_get_basename (gui->filename);
+		gtk_notebook_set_tab_label_text (gui->notebook, page, basename);
+		g_free (basename);
+	} else {
+		gtk_notebook_set_tab_label_text (gui->notebook, page, "No file");
+	}
 
 	stlink_gui_update_mem_view (gui, &gui->file_mem, gui->filemem_treeview);
 
+	return FALSE;
+}
+
+static gboolean
+file_is_hex (gchar *path) {
+	gchar *basename;
+	gchar *dot;
+
+	basename = g_path_get_basename (path);
+	dot = g_strrstr (basename, ".");
+	if (dot) {
+		if (!g_strcmp0 (dot, ".hex")) {
+			return TRUE;
+		}
+	}
 	return FALSE;
 }
 
@@ -291,52 +317,72 @@ stlink_gui_populate_filemem_view (STlinkGUI *gui)
 	gint          off;
 	GError       *err = NULL;
 
-	g_return_val_if_fail (gui != NULL, NULL);
-	g_return_val_if_fail (gui->filename != NULL, NULL);
+	if (file_is_hex (gui->filename)) {
+		intel_hex_t hex;
 
-	file = g_file_new_for_path (gui->filename);
-	input_stream = G_INPUT_STREAM (g_file_read (file, NULL, &err));
-	if (err) {
-		stlink_gui_set_info_error_message (gui, err->message);
-		g_error_free (err);
-		goto out;
-	}
-
-	file_info = g_file_input_stream_query_info (G_FILE_INPUT_STREAM (input_stream),
-	                                            G_FILE_ATTRIBUTE_STANDARD_SIZE, NULL, &err);
-	if (err) {
-		stlink_gui_set_info_error_message (gui, err->message);
-		g_error_free (err);
-		goto out_input;
-	}
-	if (gui->file_mem.memory) {
-		g_free (gui->file_mem.memory);
-	}
-	gui->file_mem.size   = g_file_info_get_size (file_info);
-	gui->file_mem.memory = g_malloc (gui->file_mem.size);
-
-	for (off = 0; off < gui->file_mem.size; off += MEM_READ_SIZE) {
-		guint   n_read = MEM_READ_SIZE;
-
-		if (off + MEM_READ_SIZE > gui->file_mem.size) {
-			n_read = gui->file_mem.size - off;
+		if (stlink_hex_parse (&hex, gui->filename) < 0) {
+			stlink_gui_set_info_error_message (gui, "failed to parse Intel hex file");
+			goto err;
 		}
 
-		if (g_input_stream_read (G_INPUT_STREAM (input_stream),
-		                         &buffer, n_read, NULL, &err) == -1) {
+		if (gui->file_mem.memory) {
+			g_free (gui->file_mem.memory);
+		}
+		gui->file_mem.size   = hex.len;
+		gui->file_mem.memory = hex.data;
+		gui->file_mem.base   = hex.start_addr;
+
+	} else {
+		file = g_file_new_for_path (gui->filename);
+		input_stream = G_INPUT_STREAM (g_file_read (file, NULL, &err));
+		if (err) {
 			stlink_gui_set_info_error_message (gui, err->message);
 			g_error_free (err);
-			goto out_input;
+			goto err_file;
 		}
-		memcpy (gui->file_mem.memory + off, buffer, n_read);
-		gui->progress.fraction = (gdouble) (off + n_read) / gui->file_mem.size;
+
+		file_info = g_file_input_stream_query_info (G_FILE_INPUT_STREAM (input_stream),
+		                                            G_FILE_ATTRIBUTE_STANDARD_SIZE, NULL, &err);
+		if (err) {
+			stlink_gui_set_info_error_message (gui, err->message);
+			g_error_free (err);
+			goto err_input;
+		}
+		if (gui->file_mem.memory) {
+			g_free (gui->file_mem.memory);
+		}
+		gui->file_mem.size   = g_file_info_get_size (file_info);
+		gui->file_mem.memory = g_malloc (gui->file_mem.size);
+		gui->file_mem.base   = 0;
+
+		for (off = 0; off < gui->file_mem.size; off += MEM_READ_SIZE) {
+			guint   n_read = MEM_READ_SIZE;
+
+			if (off + MEM_READ_SIZE > gui->file_mem.size) {
+				n_read = gui->file_mem.size - off;
+			}
+
+			if (g_input_stream_read (G_INPUT_STREAM (input_stream),
+			                         &buffer, n_read, NULL, &err) == -1) {
+				stlink_gui_set_info_error_message (gui, err->message);
+				g_error_free (err);
+				goto err_input;
+			}
+			memcpy (gui->file_mem.memory + off, buffer, n_read);
+		}
 	}
 	g_idle_add ((GSourceFunc) stlink_gui_update_filemem_view, gui);
+	return NULL;
 
- out_input:
+ err_input:
 	g_object_unref (input_stream);
- out:
+ err_file:
 	g_object_unref (file);
+ err:
+	g_free (gui->file_mem.memory);
+	gui->file_mem.memory = NULL;
+	gui->filename = NULL;
+	g_idle_add ((GSourceFunc) stlink_gui_update_filemem_view, gui);
 	return NULL;
 }
 
@@ -611,6 +657,7 @@ stlink_gui_open_file (STlinkGUI *gui)
 		gtk_notebook_set_current_page (gui->notebook, PAGE_FILEMEM);
 		gtk_widget_show (GTK_WIDGET (gui->progress.bar));
 		gtk_progress_bar_set_text (gui->progress.bar, "Reading file");
+		gui->progress.activity_mode = TRUE;
 		g_thread_new ("file", (GThreadFunc) stlink_gui_populate_filemem_view, gui);
 	}
 	gtk_widget_destroy (dialog);
@@ -662,7 +709,13 @@ flash_button_cb (GtkWidget *widget, gpointer data)
 	g_return_if_fail (gui->sl != NULL);
 
 	if (!g_strcmp0 (gtk_entry_get_text (gui->flash_dialog_entry), "")) {
-		tmp_str = g_strdup_printf ("0x%08X", gui->sl->flash_base);
+		if (file_is_hex (gui->filename)) {
+			tmp_str = g_strdup_printf ("0x%08X", gui->file_mem.base);
+			gtk_editable_set_editable (GTK_EDITABLE (gui->flash_dialog_entry), FALSE);
+		} else {
+			tmp_str = g_strdup_printf ("0x%08X", gui->sl->flash_base);
+			gtk_editable_set_editable (GTK_EDITABLE (gui->flash_dialog_entry), TRUE);
+		}
 		gtk_entry_set_text (gui->flash_dialog_entry, tmp_str);
 		g_free (tmp_str);
 	}
@@ -766,6 +819,7 @@ dnd_received_cb (GtkWidget *widget,
 			gtk_notebook_set_current_page (gui->notebook, PAGE_FILEMEM);
 			gtk_widget_show (GTK_WIDGET (gui->progress.bar));
 			gtk_progress_bar_set_text (gui->progress.bar, "Reading file");
+			gui->progress.activity_mode = TRUE;
 			g_thread_new ("file", (GThreadFunc) stlink_gui_populate_filemem_view, gui);
 			break;
 		}
