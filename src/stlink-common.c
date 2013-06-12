@@ -9,9 +9,11 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <libgen.h>
 #include "mmap.h"
 
 #include "stlink-common.h"
+#include "stlink-hex.h"
 #include "uglylogging.h"
 
 #ifndef _WIN32
@@ -1697,6 +1699,24 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uint32_t 
     return stlink_verify_write_flash(sl, addr, base, len);
 }
 
+static int file_is_hex(const char *path) {
+    char *file;
+    int ret = 0;
+    char *path_copy = strdup(path);
+
+    file = basename(path_copy);
+    if (file) {
+        char *dot = strrchr(file, '.');
+        if (dot) {
+            if (!strncasecmp(dot, ".hex", 4)) {
+                ret = 1;
+            }
+        }
+    }
+    free(path_copy);
+    return ret;
+}
+
 /**
  * Write the given binary file into flash at address "addr"
  * @param sl
@@ -1709,28 +1729,51 @@ int stlink_fwrite_flash(stlink_t *sl, const char* path, stm32_addr_t addr) {
     int err;
     unsigned int num_empty = 0, index;
     unsigned char erased_pattern =(sl->chip_id == STM32_CHIPID_L1_MEDIUM || sl->chip_id == STM32_CHIPID_L1_MEDIUM_PLUS)?0:0xff;
+    intel_hex_t hex;
     mapped_file_t mf = MAPPED_FILE_INITIALIZER;
-    if (map_file(&mf, path) == -1) {
-        ELOG("map_file() == -1\n");
-        return -1;
+    size_t len;
+    uint8_t *data;
+    int is_hex = 0;
+
+    is_hex = file_is_hex(path);
+
+    if (is_hex) {
+        if (stlink_hex_parse (&hex, path) < 0) {
+            return -1;
+        }
+        len  = hex.len;
+        data = hex.data;
+        addr = hex.start_addr;
+    } else {
+        if (map_file(&mf, path) == -1) {
+            ELOG("map_file() == -1\n");
+            return -1;
+        }
+        data = mf.base;
+        len  = mf.len;
     }
-    for(index = 0; index < mf.len; index ++) {
-	if (mf.base[index] == erased_pattern)
-	    num_empty ++;
-	else
-	    num_empty = 0;
+
+    for(index = 0; index < len; index ++) {
+    if (data[index] == erased_pattern)
+        num_empty ++;
+    else
+        num_empty = 0;
     }
     if(num_empty != 0) {
-	ILOG("Ignoring %d bytes of Zeros at end of file\n",num_empty);
-	mf.len -= num_empty;
+    ILOG("Ignoring %d bytes of Zeros at end of file\n",num_empty);
+    len -= num_empty;
     }
-    err = stlink_write_flash(sl, addr, mf.base, mf.len);
+    err = stlink_write_flash(sl, addr, data, len);
     /* set stack*/
     stlink_write_reg(sl, stlink_read_debug32(sl, addr    ),13);
     /* Set PC to the reset routine*/
     stlink_write_reg(sl, stlink_read_debug32(sl, addr + 4),15);
     stlink_run(sl);
-    unmap_file(&mf);
+    if (is_hex) {
+        free(hex.data);
+    } else {
+        unmap_file(&mf);
+    }
     return err;
 }
 
