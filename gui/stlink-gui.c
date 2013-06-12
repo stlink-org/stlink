@@ -203,6 +203,9 @@ stlink_gui_update_mem_view (STlinkGUI *gui, struct mem_t *mem, GtkTreeView *view
 	GtkTreeIter   iter;
 
 	store = GTK_LIST_STORE (gtk_tree_view_get_model (view));
+	if (gtk_tree_model_get_iter_first (GTK_TREE_MODEL (store), &iter)) {
+		gtk_list_store_clear (store);
+	}
 
 	if (mem->memory != NULL) {
 		mem_view_add_buffer (store,
@@ -210,10 +213,6 @@ stlink_gui_update_mem_view (STlinkGUI *gui, struct mem_t *mem, GtkTreeView *view
 		                     mem->base,
 		                     mem->memory,
 		                     mem->size);
-	} else {
-		if (gtk_tree_model_get_iter_first (GTK_TREE_MODEL (store), &iter)) {
-			gtk_list_store_clear (store);
-		}
 	}
 
 	gtk_widget_hide (GTK_WIDGET (gui->progress.bar));
@@ -676,9 +675,11 @@ open_button_cb (GtkWidget *widget, gpointer data)
 static gboolean
 stlink_gui_write_flash_update (STlinkGUI *gui)
 {
-	stlink_gui_set_sensitivity (gui, TRUE);
 	gui->progress.activity_mode = FALSE;
-	gtk_widget_hide (GTK_WIDGET (gui->progress.bar));
+	gtk_notebook_set_current_page (gui->notebook, PAGE_DEVMEM);
+	gtk_progress_bar_set_text (gui->progress.bar, "Reading memory");
+
+	g_thread_new ("devmem", (GThreadFunc) stlink_gui_populate_devmem_view, gui);
 
 	return FALSE;
 }
