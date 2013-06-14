@@ -1110,7 +1110,10 @@ int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr)
     val = stlink_read_debug32(sl, STM32L_FLASH_PECR)
         | (1 << 0) | (1 << 1) | (1 << 2);
     stlink_write_debug32(sl, STM32L_FLASH_PECR, val);
-  } else if (sl->core_id == STM32VL_CORE_ID || sl->core_id == STM32F0_CORE_ID || sl->chip_id == STM32_CHIPID_F3 || sl->chip_id == STM32_CHIPID_F37x) {
+  } else if (sl->core_id == STM32VL_CORE_ID 
+	     || sl->core_id == STM32F0_CORE_ID 
+	     || sl->chip_id == STM32_CHIPID_F3 
+	     || sl->chip_id == STM32_CHIPID_F37x) {
     /* wait for ongoing op to finish */
     wait_flash_busy(sl);
 
@@ -1321,7 +1324,7 @@ int write_loader_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* size) {
     } else if (sl->chip_id == STM32_CHIPID_F2 || sl->chip_id == STM32_CHIPID_F4) {
         loader_code = loader_code_stm32f4;
         loader_size = sizeof(loader_code_stm32f4);
-    } else if (sl->chip_id == STM32_CHIPID_F0) {
+    } else if (sl->chip_id == STM32_CHIPID_F0 || sl->chip_id == STM32_CHIPID_F0_SMALL) {
         loader_code = loader_code_stm32f0;
         loader_size = sizeof(loader_code_stm32f0);
     } else {
