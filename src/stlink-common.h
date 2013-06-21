@@ -102,6 +102,7 @@ extern "C" {
 #define STM32_CHIPID_F3 0x422
 #define STM32_CHIPID_F37x 0x432
 #define STM32_CHIPID_F4 0x413
+#define STM32_CHIPID_F4_LP 0x423
 #define STM32_CHIPID_F1_HIGH 0x414
 #define STM32_CHIPID_L1_MEDIUM 0x416
 #define STM32_CHIPID_L1_MEDIUM_PLUS 0x436
@@ -111,6 +112,7 @@ extern "C" {
 #define STM32_CHIPID_F1_VL_HIGH 0x428
 #define STM32_CHIPID_F1_XL 0x430
 #define STM32_CHIPID_F0 0x440
+#define STM32_CHIPID_F0_SMALL 0x444
 
 // Constant STM32 memory map figures
 #define STM32_FLASH_BASE 0x08000000
@@ -172,6 +174,15 @@ static const chip_params_t devices[] = {
                     .flash_size_reg = 0x1FFF7A10,  //RM0090 error same as unique ID
                     .flash_pagesize = 0x4000,
                     .sram_size = 0x30000,
+                    .bootrom_base = 0x1fff0000,
+                    .bootrom_size = 0x7800
+        },
+        {
+            .chip_id = STM32_CHIPID_F4_LP,
+                    .description = "F4 device (low power)",
+                    .flash_size_reg = 0x1FFF7A10,
+                    .flash_pagesize = 0x4000,
+                    .sram_size = 0x10000,
                     .bootrom_base = 0x1fff0000,
                     .bootrom_size = 0x7800
         },
@@ -272,7 +283,18 @@ static const chip_params_t devices[] = {
                     .sram_size = 0x2000,		// "SRAM" byte size in hex from Table 2
                     .bootrom_base = 0x1fffec00,		// "System memory" starting address from Table 2
                     .bootrom_size = 0xC00 		// "System memory" byte size in hex from Table 2
-        }
+        },
+        {
+            //Use this as an example for mapping future chips:
+            //RM0091 document was used to find these paramaters
+            .chip_id = STM32_CHIPID_F0_SMALL,
+                    .description = "F0 small device",
+                    .flash_size_reg = 0x1ffff7cc,	// "Flash size data register" (pg735)
+                    .flash_pagesize = 0x400,		// Page sizes listed in Table 4
+                    .sram_size = 0x1000,		// "SRAM" byte size in hex from Table 2
+                    .bootrom_base = 0x1fffec00,		// "System memory" starting address from Table 2
+                    .bootrom_size = 0xC00 		// "System memory" byte size in hex from Table 2
+        },
  };
 
     
