@@ -104,7 +104,13 @@ extern "C" {
 #define STM32_CHIPID_F4 0x413
 #define STM32_CHIPID_F1_HIGH 0x414
 #define STM32_CHIPID_L1_MEDIUM 0x416
-#define STM32_CHIPID_L1_MEDIUM_PLUS 0x436
+#define STM32_CHIPID_L1_MEDIUM_PLUS 0x427
+/*
+ * 0x436 is actually assigned to some L1 chips that are called "Medium-Plus"
+ * and some that are called "High".  0x427 is assigned to the other "Medium-
+ * plus" chips.  To make it a bit simpler we just call 427 MEDIUM_PLUS and
+ * 0x436 HIGH.
+ */
 #define STM32_CHIPID_L1_HIGH 0x436
 #define STM32_CHIPID_F1_CONN 0x418
 #define STM32_CHIPID_F1_VL_MEDIUM 0x420
@@ -199,12 +205,22 @@ static const chip_params_t devices[] = {
         {
             .chip_id = STM32_CHIPID_L1_MEDIUM_PLUS,
                     .description = "L1 Medium-Plus-density device",
-                    .flash_size_reg = 0x1ff800CC,
+                    .flash_size_reg = 0x1ff800cc,
                     .flash_pagesize = 0x100,
-                    .sram_size = 0x8000,
+                    .sram_size = 0x8000,/*Not completely clear if there are some with 48K*/
                     .bootrom_base = 0x1ff00000,
                     .bootrom_size = 0x1000
         },
+        {
+            .chip_id = STM32_CHIPID_L1_HIGH,
+                    .description = "L1 High-density device",
+                    .flash_size_reg = 0x1ff800cc,
+                    .flash_pagesize = 0x100,
+                    .sram_size = 0xC000, /*Not completely clear if there are some with 32K*/
+                    .bootrom_base = 0x1ff00000,
+                    .bootrom_size = 0x1000
+        },
+
         {
             .chip_id = STM32_CHIPID_F1_CONN,
                     .description = "F1 Connectivity line device",
