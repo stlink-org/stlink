@@ -20,6 +20,7 @@ config.status
 compile
 st-flash
 st-util
+st-term
 test_usb
 test_sg
 *.deps*
