@@ -143,7 +143,8 @@ static inline uint32_t read_flash_obr(stlink_t *sl) {
 
 static inline uint32_t read_flash_cr(stlink_t *sl) {
     uint32_t res;
-    if ((sl->chip_id == STM32_CHIPID_F2) || (sl->chip_id == STM32_CHIPID_F4))
+    if ((sl->chip_id == STM32_CHIPID_F2) || (sl->chip_id == STM32_CHIPID_F4) ||
+        (sl->chip_id == STM32_CHIPID_F4_LP))
         res = stlink_read_debug32(sl, FLASH_F4_CR);
     else
         res = stlink_read_debug32(sl, FLASH_CR);
@@ -155,7 +156,8 @@ static inline uint32_t read_flash_cr(stlink_t *sl) {
 
 static inline unsigned int is_flash_locked(stlink_t *sl) {
     /* return non zero for true */
-    if ((sl->chip_id == STM32_CHIPID_F2) || (sl->chip_id == STM32_CHIPID_F4))
+    if ((sl->chip_id == STM32_CHIPID_F2) || (sl->chip_id == STM32_CHIPID_F4) ||
+        (sl->chip_id == STM32_CHIPID_F4_LP))
         return read_flash_cr(sl) & (1 << FLASH_F4_CR_LOCK);
     else
         return read_flash_cr(sl) & (1 << FLASH_CR_LOCK);
@@ -167,7 +169,8 @@ static void unlock_flash(stlink_t *sl) {
        an invalid sequence results in a definitive lock of
        the FPEC block until next reset.
      */
-    if ((sl->chip_id == STM32_CHIPID_F2) || (sl->chip_id == STM32_CHIPID_F4)) {
+    if ((sl->chip_id == STM32_CHIPID_F2) || (sl->chip_id == STM32_CHIPID_F4) ||
+        (sl->chip_id == STM32_CHIPID_F4_LP)) {
    	stlink_write_debug32(sl, FLASH_F4_KEYR, FLASH_KEY1);
         stlink_write_debug32(sl, FLASH_F4_KEYR, FLASH_KEY2);
     } else {
@@ -192,7 +195,8 @@ static int unlock_flash_if(stlink_t *sl) {
 }
 
 static void lock_flash(stlink_t *sl) {
-    if ((sl->chip_id == STM32_CHIPID_F2) || (sl->chip_id == STM32_CHIPID_F4)) {
+    if ((sl->chip_id == STM32_CHIPID_F2) || (sl->chip_id == STM32_CHIPID_F4) ||
+        (sl->chip_id == STM32_CHIPID_F4_LP)) {
     	const uint32_t n = read_flash_cr(sl) | (1 << FLASH_F4_CR_LOCK);
     	stlink_write_debug32(sl, FLASH_F4_CR, n);
     } else {
@@ -204,7 +208,8 @@ static void lock_flash(stlink_t *sl) {
 
 
 static void set_flash_cr_pg(stlink_t *sl) {
-    if ((sl->chip_id == STM32_CHIPID_F2) || (sl->chip_id == STM32_CHIPID_F4)) {
+    if ((sl->chip_id == STM32_CHIPID_F2) || (sl->chip_id == STM32_CHIPID_F4) ||
+        (sl->chip_id == STM32_CHIPID_F4_LP)) {
 		uint32_t x = read_flash_cr(sl);
 		x |= (1 << FLASH_CR_PG);
     	stlink_write_debug32(sl, FLASH_F4_CR, x);
@@ -216,7 +221,8 @@ static void set_flash_cr_pg(stlink_t *sl) {
 
 static void __attribute__((unused)) clear_flash_cr_pg(stlink_t *sl) {
     const uint32_t n = read_flash_cr(sl) & ~(1 << FLASH_CR_PG);
-    if ((sl->chip_id == STM32_CHIPID_F2) || (sl->chip_id == STM32_CHIPID_F4))
+    if ((sl->chip_id == STM32_CHIPID_F2) || (sl->chip_id == STM32_CHIPID_F4) ||
+        (sl->chip_id == STM32_CHIPID_F4_LP))
     	stlink_write_debug32(sl, FLASH_F4_CR, n);
     else
         stlink_write_debug32(sl, FLASH_CR, n);
@@ -233,7 +239,8 @@ static void __attribute__((unused)) clear_flash_cr_per(stlink_t *sl) {
 }
 
 static void set_flash_cr_mer(stlink_t *sl) {
-    if ((sl->chip_id == STM32_CHIPID_F2) || (sl->chip_id == STM32_CHIPID_F4))
+    if ((sl->chip_id == STM32_CHIPID_F2) || (sl->chip_id == STM32_CHIPID_F4) ||
+        (sl->chip_id == STM32_CHIPID_F4_LP))
         stlink_write_debug32(sl, FLASH_F4_CR,
                              stlink_read_debug32(sl, FLASH_F4_CR) | (1 << FLASH_CR_MER));
     else
@@ -242,7 +249,8 @@ static void set_flash_cr_mer(stlink_t *sl) {
 }
 
 static void __attribute__((unused)) clear_flash_cr_mer(stlink_t *sl) {
-    if ((sl->chip_id == STM32_CHIPID_F2) || (sl->chip_id == STM32_CHIPID_F4))
+    if ((sl->chip_id == STM32_CHIPID_F2) || (sl->chip_id == STM32_CHIPID_F4) ||
+        (sl->chip_id == STM32_CHIPID_F4_LP))
         stlink_write_debug32(sl, FLASH_F4_CR,
                              stlink_read_debug32(sl, FLASH_F4_CR) & ~(1 << FLASH_CR_MER));
     else
@@ -251,7 +259,8 @@ static void __attribute__((unused)) clear_flash_cr_mer(stlink_t *sl) {
 }
 
 static void set_flash_cr_strt(stlink_t *sl) {
-    if ((sl->chip_id == STM32_CHIPID_F2) || (sl->chip_id == STM32_CHIPID_F4)) {
+    if ((sl->chip_id == STM32_CHIPID_F2) || (sl->chip_id == STM32_CHIPID_F4) ||
+        (sl->chip_id == STM32_CHIPID_F4_LP)) {
         uint32_t x = read_flash_cr(sl);
         x |= (1 << FLASH_F4_CR_STRT);
         stlink_write_debug32(sl, FLASH_F4_CR, x);
@@ -267,7 +276,8 @@ static inline uint32_t read_flash_acr(stlink_t *sl) {
 
 static inline uint32_t read_flash_sr(stlink_t *sl) {
     uint32_t res;
-    if ((sl->chip_id == STM32_CHIPID_F2) || (sl->chip_id == STM32_CHIPID_F4))
+    if ((sl->chip_id == STM32_CHIPID_F2) || (sl->chip_id == STM32_CHIPID_F4) ||
+        (sl->chip_id == STM32_CHIPID_F4_LP))
         res = stlink_read_debug32(sl, FLASH_F4_SR);
     else
         res = stlink_read_debug32(sl, FLASH_SR);
@@ -276,7 +286,8 @@ static inline uint32_t read_flash_sr(stlink_t *sl) {
 }
 
 static inline unsigned int is_flash_busy(stlink_t *sl) {
-    if ((sl->chip_id == STM32_CHIPID_F2) || (sl->chip_id == STM32_CHIPID_F4))
+    if ((sl->chip_id == STM32_CHIPID_F2) || (sl->chip_id == STM32_CHIPID_F4) ||
+        (sl->chip_id == STM32_CHIPID_F4_LP))
         return read_flash_sr(sl) & (1 << FLASH_F4_SR_BSY);
     else
         return read_flash_sr(sl) & (1 << FLASH_SR_BSY);
@@ -450,7 +461,8 @@ int stlink_load_device_params(stlink_t *sl) {
     // read flash size from hardware, if possible...
     if (sl->chip_id == STM32_CHIPID_F2) {
         sl->flash_size = 0x100000; /* Use maximum, User must care!*/
-    } else if (sl->chip_id == STM32_CHIPID_F4) {
+    } else if (sl->chip_id == STM32_CHIPID_F4 ||
+        sl->chip_id == STM32_CHIPID_F4_LP) {
 		sl->flash_size = 0x100000;			//todo: RM0090 error; size register same address as unique ID
     } else if (sl->chip_id == STM32_CHIPID_L1_MEDIUM) {
         // if the flash size is zero, we assume it is 128k, if not we calculate the real value
@@ -993,7 +1005,8 @@ uint32_t calculate_F4_sectornum(uint32_t flashaddr){
 }
 
 uint32_t stlink_calculate_pagesize(stlink_t *sl, uint32_t flashaddr){
-	if ((sl->chip_id == STM32_CHIPID_F2) || (sl->chip_id == STM32_CHIPID_F4)) {
+	if ((sl->chip_id == STM32_CHIPID_F2) || (sl->chip_id == STM32_CHIPID_F4) ||
+      (sl->chip_id == STM32_CHIPID_F4_LP)) {
 		uint32_t sector=calculate_F4_sectornum(flashaddr);
 		if (sector<4) sl->flash_pgsz=0x4000;
 		else if(sector<5) sl->flash_pgsz=0x10000;
@@ -1010,7 +1023,8 @@ uint32_t stlink_calculate_pagesize(stlink_t *sl, uint32_t flashaddr){
  */
 int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr)
 {
-  if ((sl->chip_id == STM32_CHIPID_F2) || (sl->chip_id == STM32_CHIPID_F4)) {
+  if ((sl->chip_id == STM32_CHIPID_F2) || (sl->chip_id == STM32_CHIPID_F4) ||
+      (sl->chip_id == STM32_CHIPID_F4_LP)) {
     /* wait for ongoing op to finish */
     wait_flash_busy(sl);
 
@@ -1321,7 +1335,8 @@ int write_loader_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* size) {
     } else if (sl->core_id == STM32VL_CORE_ID || sl->chip_id == STM32_CHIPID_F3  || sl->chip_id == STM32_CHIPID_F37x) {
         loader_code = loader_code_stm32vl;
         loader_size = sizeof(loader_code_stm32vl);
-    } else if (sl->chip_id == STM32_CHIPID_F2 || sl->chip_id == STM32_CHIPID_F4) {
+    } else if (sl->chip_id == STM32_CHIPID_F2 ||
+        sl->chip_id == STM32_CHIPID_F4 || sl->chip_id == STM32_CHIPID_F4_LP) {
         loader_code = loader_code_stm32f4;
         loader_size = sizeof(loader_code_stm32f4);
     } else if (sl->chip_id == STM32_CHIPID_F0 || sl->chip_id == STM32_CHIPID_F0_SMALL) {
@@ -1489,7 +1504,8 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uint32_t 
     ILOG("Finished erasing %d pages of %d (%#x) bytes\n",
         page_count, sl->flash_pgsz, sl->flash_pgsz);
 
-    if ((sl->chip_id == STM32_CHIPID_F2) || (sl->chip_id == STM32_CHIPID_F4)) {
+    if ((sl->chip_id == STM32_CHIPID_F2) || (sl->chip_id == STM32_CHIPID_F4) ||
+        (sl->chip_id == STM32_CHIPID_F4_LP)) {
     	/* todo: check write operation */
 
         ILOG("Starting Flash write for F2/F4\n");
@@ -1772,7 +1788,8 @@ int run_flash_loader(stlink_t *sl, flash_loader_t* fl, stm32_addr_t target, cons
         stlink_write_reg(sl, 0, 3); /* flash bank 0 (input) */
         stlink_write_reg(sl, fl->loader_addr, 15); /* pc register */
 
-    } else if (sl->chip_id == STM32_CHIPID_F2 || sl->chip_id == STM32_CHIPID_F4) {
+    } else if (sl->chip_id == STM32_CHIPID_F2 ||
+        sl->chip_id == STM32_CHIPID_F4 || sl->chip_id == STM32_CHIPID_F4_LP) {
 
         size_t count = size / sizeof(uint32_t);
         if (size % sizeof(uint32_t)) ++count;
@@ -1824,7 +1841,8 @@ int run_flash_loader(stlink_t *sl, flash_loader_t* fl, stm32_addr_t target, cons
         return -1;
       }
 
-    } else if (sl->chip_id == STM32_CHIPID_F2 || sl->chip_id == STM32_CHIPID_F4) {
+    } else if (sl->chip_id == STM32_CHIPID_F2 ||
+        sl->chip_id == STM32_CHIPID_F4 || sl->chip_id == STM32_CHIPID_F4_LP) {
 
         stlink_read_reg(sl, 2, &rr);
         if (rr.r[2] != 0) {

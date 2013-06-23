@@ -102,6 +102,7 @@ extern "C" {
 #define STM32_CHIPID_F3 0x422
 #define STM32_CHIPID_F37x 0x432
 #define STM32_CHIPID_F4 0x413
+#define STM32_CHIPID_F4_LP 0x423
 #define STM32_CHIPID_F1_HIGH 0x414
 #define STM32_CHIPID_L1_MEDIUM 0x416
 #define STM32_CHIPID_L1_MEDIUM_PLUS 0x436
@@ -173,6 +174,15 @@ static const chip_params_t devices[] = {
                     .flash_size_reg = 0x1FFF7A10,  //RM0090 error same as unique ID
                     .flash_pagesize = 0x4000,
                     .sram_size = 0x30000,
+                    .bootrom_base = 0x1fff0000,
+                    .bootrom_size = 0x7800
+        },
+        {
+            .chip_id = STM32_CHIPID_F4_LP,
+                    .description = "F4 device (low power)",
+                    .flash_size_reg = 0x1FFF7A10,
+                    .flash_pagesize = 0x4000,
+                    .sram_size = 0x10000,
                     .bootrom_base = 0x1fff0000,
                     .bootrom_size = 0x7800
         },
