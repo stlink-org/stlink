@@ -499,6 +499,11 @@ int stlink_load_device_params(stlink_t *sl) {
 
 void stlink_reset(stlink_t *sl) {
     DLOG("*** stlink_reset ***\n");
+    // Step 1: assert jtag reset
+    sl->backend->jtag_reset(sl, 1);
+    // Step 2: deassert jtag reset
+    sl->backend->jtag_reset(sl, 0);
+    // Step 3: perform the sysreset command
     sl->backend->reset(sl);
 }
 
