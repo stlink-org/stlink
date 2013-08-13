@@ -754,7 +754,10 @@ stlink_t* stlink_open_usb(const int verbose) {
         if (devBus && devAddr)
             if ((libusb_get_bus_number(list[cnt])!=devBus) || (libusb_get_device_address(list[cnt])!=devAddr)) continue;
         if (desc.idProduct == USB_STLINK_32L_PID) break;
-        if (desc.idProduct == USB_STLINK_PID) slu->protocoll = 1; break;
+        if (desc.idProduct == USB_STLINK_PID) {
+            slu->protocoll = 1;
+            break;
+        }
     }
     
     if (cnt < 0) {
