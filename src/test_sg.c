@@ -52,7 +52,7 @@ int main(int argc, char *argv[]) {
         break;
 	}
 
-	stlink_t *sl = stlink_v1_open(99);
+	stlink_t *sl = stlink_v1_open(99, 1);
 	if (sl == NULL)
 		return EXIT_FAILURE;
     
