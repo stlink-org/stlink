@@ -50,6 +50,7 @@ typedef struct _st_state_t {
     int logging_level;
 	int listen_port;
     int persistent;
+    int reset;
 } st_state_t;
 
 
@@ -78,6 +79,7 @@ int parse_options(int argc, char** argv, st_state_t *st) {
         {"stlinkv1", no_argument, NULL, '1'},
 		{"listen_port", required_argument, NULL, 'p'},
 		{"multi", optional_argument, NULL, 'm'},
+		{"no-reset", optional_argument, NULL, 'n'},
         {0, 0, 0, 0},
     };
 	const char * help_str = "%s - usage:\n\n"
@@ -95,13 +97,15 @@ int parse_options(int argc, char** argv, st_state_t *st) {
     "  -m, --multi\n"
     "\t\t\tSet gdb server to extended mode.\n"
     "\t\t\tst-util will continue listening for connections after disconnect.\n"
+    "  -n, --no-reset\n"
+    "\t\t\tDo not reset board on connection.\n"
 	;
 
 
     int option_index = 0;
     int c;
     int q;
-    while ((c = getopt_long(argc, argv, "hv::d:s:1p:m", long_options, &option_index)) != -1) {
+    while ((c = getopt_long(argc, argv, "hv::d:s:1p:mn", long_options, &option_index)) != -1) {
         switch (c) {
         case 0:
             printf("XXXXX Shouldn't really normally come here, only if there's no corresponding option\n");
@@ -151,6 +155,9 @@ int parse_options(int argc, char** argv, st_state_t *st) {
 		case 'm':
 			st->persistent = 1;
 			break;
+		case 'n':
+			st->reset = 0;
+			break;
         }
     }
 
@@ -174,14 +181,15 @@ int main(int argc, char** argv) {
 	state.stlink_version = 2;
 	state.logging_level = DEFAULT_LOGGING_LEVEL;
 	state.listen_port = DEFAULT_GDB_LISTEN_PORT;
+	state.reset = 1;    /* By default, reset board */
 	parse_options(argc, argv, &state);
 	switch (state.stlink_version) {
 	case 2:
-		sl = stlink_open_usb(state.logging_level);
+		sl = stlink_open_usb(state.logging_level, 0);
 		if(sl == NULL) return 1;
 		break;
 	case 1:
-		sl = stlink_v1_open(state.logging_level);
+		sl = stlink_v1_open(state.logging_level, 0);
 		if(sl == NULL) return 1;
 		break;
     }
@@ -189,6 +197,10 @@ int main(int argc, char** argv) {
     connected_stlink = sl;
     signal(SIGINT, &cleanup);
     signal(SIGTERM, &cleanup);
+
+    if (state.reset) {
+		stlink_reset(sl);
+    }
 
 	printf("Chip ID is %08x, Core ID is  %08x.\n", sl->chip_id, sl->core_id);
 
@@ -205,6 +217,9 @@ int main(int argc, char** argv) {
 
 	do {
 		serve(sl, &state);
+
+		/* Continue */
+		stlink_run(sl);
 	} while (state.persistent);
 
 #ifdef __MINGW32__
@@ -213,7 +228,6 @@ winsock_error:
 #endif
 
 	/* Switch back to mass storage mode before closing. */
-	stlink_run(sl);
 	stlink_exit_debug_mode(sl);
 	stlink_close(sl);
 
@@ -679,11 +693,6 @@ int serve(stlink_t *sl, st_state_t *st) {
 		return 1;
 	}
 
-	stlink_force_debug(sl);
-	stlink_reset(sl);
-	init_code_breakpoints(sl);
-	init_data_watchpoints(sl);
-
 	printf("Listening at *:%d...\n", st->listen_port);
 
 	int client = accept(sock, NULL, NULL);
@@ -694,6 +703,13 @@ int serve(stlink_t *sl, st_state_t *st) {
 	}
 
 	close(sock);
+
+	stlink_force_debug(sl);
+	if (st->reset) {
+		stlink_reset(sl);
+    }
+	init_code_breakpoints(sl);
+	init_data_watchpoints(sl);
 
 	printf("GDB connected.\n");
 

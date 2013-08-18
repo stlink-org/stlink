@@ -30,7 +30,7 @@ extern "C" {
         unsigned int cmd_len;
     };
     
-    stlink_t* stlink_open_usb(const int verbose);
+    stlink_t* stlink_open_usb(const int verbose, int reset);
 
 
 #ifdef	__cplusplus

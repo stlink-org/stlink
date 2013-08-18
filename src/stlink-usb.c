@@ -704,7 +704,7 @@ stlink_backend_t _stlink_usb_backend = {
 };
 
 
-stlink_t* stlink_open_usb(const int verbose) {
+stlink_t* stlink_open_usb(const int verbose, int reset) {
     stlink_t* sl = NULL;
     struct stlink_libusb* slu = NULL;
     int error = -1;
@@ -833,7 +833,9 @@ stlink_t* stlink_open_usb(const int verbose) {
       stlink_enter_swd_mode(sl);
     }
 
-    stlink_reset(sl);
+    if (reset) {
+        stlink_reset(sl);
+    }
     stlink_load_device_params(sl);
     stlink_version(sl);
 
