@@ -384,7 +384,7 @@ struct code_hw_watchpoint {
 struct code_hw_watchpoint data_watches[DATA_WATCH_NUM];
 
 static void init_data_watchpoints(stlink_t *sl) {
-	#ifdef DEBUG
+	#if DEBUG
 	printf("init watchpoints\n");
 	#endif
 
@@ -419,7 +419,7 @@ static int add_data_watchpoint(stlink_t *sl, enum watchfun wf, stm32_addr_t addr
 		for(i = 0; i < DATA_WATCH_NUM; i++) {
 			// is this an empty slot ?
 			if(data_watches[i].fun == WATCHDISABLED) {
-				#ifdef DEBUG
+				#if DEBUG
 				printf("insert watchpoint %d addr %x wf %u mask %u len %d\n", i, addr, wf, mask, len);
 				#endif
 
@@ -443,7 +443,7 @@ static int add_data_watchpoint(stlink_t *sl, enum watchfun wf, stm32_addr_t addr
 		}
 	}
 
-	#ifdef DEBUG
+	#if DEBUG
 	printf("failure: add watchpoints addr %x wf %u len %u\n", addr, wf, len);
 	#endif
 	return -1;
@@ -455,7 +455,7 @@ static int delete_data_watchpoint(stlink_t *sl, stm32_addr_t addr)
 
 	for(i = 0 ; i < DATA_WATCH_NUM; i++) {
 		if((data_watches[i].addr == addr) && (data_watches[i].fun != WATCHDISABLED)) {
-			#ifdef DEBUG
+			#if DEBUG
 			printf("delete watchpoint %d addr %x\n", i, addr);
 			#endif
 
@@ -466,7 +466,7 @@ static int delete_data_watchpoint(stlink_t *sl, stm32_addr_t addr)
 		}
 	}
 
-	#ifdef DEBUG
+	#if DEBUG
 	printf("failure: delete watchpoint addr %x\n", addr);
 	#endif
 
@@ -527,7 +527,7 @@ static int update_code_breakpoint(stlink_t *sl, stm32_addr_t addr, int set) {
 	else	brk->type &= ~type;
 
 	if(brk->type == 0) {
-		#ifdef DEBUG
+		#if DEBUG
 		printf("clearing hw break %d\n", id);
 		#endif
 
@@ -535,7 +535,7 @@ static int update_code_breakpoint(stlink_t *sl, stm32_addr_t addr, int set) {
 	} else {
 	        uint32_t mask = (brk->addr) | 1 | (brk->type << 30);
 
-		#ifdef DEBUG
+		#if DEBUG
 		printf("setting hw break %d at %08x (%d)\n",
 			id, brk->addr, brk->type);
 		printf("reg %08x \n",
@@ -631,7 +631,7 @@ static int flash_go(stlink_t *sl) {
 	stlink_reset(sl);
 
 	for(struct flash_block* fb = flash_root; fb; fb = fb->next) {
-		#ifdef DEBUG
+		#if DEBUG
 		printf("flash_do: block %08x -> %04x\n", fb->addr, fb->length);
 		#endif
 
@@ -641,7 +641,7 @@ static int flash_go(stlink_t *sl) {
 			//Update FLASH_PAGE
 			stlink_calculate_pagesize(sl, page);
 
-			#ifdef DEBUG
+			#if DEBUG
 			printf("flash_do: page %08x\n", page);
 			#endif
 
@@ -728,7 +728,7 @@ int serve(stlink_t *sl, st_state_t *st) {
 			return 1;
 		}
 
-		#ifdef DEBUG
+		#if DEBUG
 		printf("recv: %s\n", packet);
 		#endif
 
@@ -753,7 +753,7 @@ int serve(stlink_t *sl, st_state_t *st) {
 			char* queryName = calloc(queryNameLength + 1, 1);
 			strncpy(queryName, &packet[1], queryNameLength);
 
-			#ifdef DEBUG
+			#if DEBUG
 			printf("query: %s;%s\n", queryName, params);
 			#endif
 
@@ -778,7 +778,7 @@ int serve(stlink_t *sl, st_state_t *st) {
 				unsigned addr = strtoul(__s_addr, NULL, 16),
 				       length = strtoul(s_length, NULL, 16);
 
-				#ifdef DEBUG
+				#if DEBUG
 				printf("Xfer: type:%s;op:%s;annex:%s;addr:%d;length:%d\n",
 					type, op, annex, addr, length);
 				#endif
@@ -815,7 +815,7 @@ int serve(stlink_t *sl, st_state_t *st) {
 
 
 				if (!strncmp(params,"726573756d65",12)) {// resume
-#ifdef DEBUG
+#if DEBUG
 					printf("Rcmd: resume\n");
 #endif
 					stlink_run(sl);
@@ -826,7 +826,7 @@ int serve(stlink_t *sl, st_state_t *st) {
 
 					stlink_force_debug(sl);
 
-#ifdef DEBUG
+#if DEBUG
 					printf("Rcmd: halt\n");
 #endif
                 } else if (!strncmp(params,"6a7461675f7265736574",20)) { //jtag_reset
@@ -836,7 +836,7 @@ int serve(stlink_t *sl, st_state_t *st) {
 					stlink_jtag_reset(sl, 0);
 					stlink_force_debug(sl);
 
-#ifdef DEBUG
+#if DEBUG
 					printf("Rcmd: jtag_reset\n");
 #endif
                 } else if (!strncmp(params,"7265736574",10)) { //reset
@@ -847,11 +847,11 @@ int serve(stlink_t *sl, st_state_t *st) {
 					init_code_breakpoints(sl);
 					init_data_watchpoints(sl);
 
-#ifdef DEBUG
+#if DEBUG
 					printf("Rcmd: reset\n");
 #endif
 				} else {
-#ifdef DEBUG
+#if DEBUG
 					printf("Rcmd: %s\n", params);
 #endif
 
@@ -883,7 +883,7 @@ int serve(stlink_t *sl, st_state_t *st) {
 				unsigned addr = strtoul(__s_addr, NULL, 16),
 				       length = strtoul(s_length, NULL, 16);
 
-				#ifdef DEBUG
+				#if DEBUG
 				printf("FlashErase: addr:%08x,len:%04x\n",
 					addr, length);
 				#endif
@@ -921,7 +921,7 @@ int serve(stlink_t *sl, st_state_t *st) {
 				if(dec_index % 2 != 0)
 					dec_index++;
 
-				#ifdef DEBUG
+				#if DEBUG
 				printf("binary packet %d -> %d\n", data_length, dec_index);
 				#endif
 
@@ -1263,7 +1263,7 @@ int serve(stlink_t *sl, st_state_t *st) {
 		}
 
 		if(reply) {
-			#ifdef DEBUG
+			#if DEBUG
 			printf("send: %s\n", reply);
 			#endif
 
