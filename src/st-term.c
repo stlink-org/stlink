@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 /* According to POSIX.1-2001 */
 #include <sys/select.h>
 #include <string.h>
