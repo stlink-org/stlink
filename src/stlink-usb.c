@@ -203,6 +203,34 @@ void _stlink_usb_version(stlink_t *sl) {
     }
 }
 
+int _stlink_usb_target_voltage(stlink_t *sl) {
+    struct stlink_libusb * const slu = sl->backend_data;
+    unsigned char* const rdata = sl->q_buf;
+    unsigned char* const cmd  = sl->c_buf;
+    ssize_t size;
+    uint32_t rep_len = 8;
+    int i = fill_command(sl, SG_DXFER_FROM_DEV, rep_len);
+    uint32_t factor, reading;
+    int voltage;
+
+    cmd[i++] = STLINK_GET_TARGET_VOLTAGE;
+
+    size = send_recv(slu, 1, cmd, slu->cmd_len, rdata, rep_len);
+    if (size == -1) {
+        printf("[!] send_recv\n");
+        return -1;
+    } else if (size != 8) {
+        printf("[!] wrong length\n");
+        return -1;
+    }
+
+    factor = (rdata[3] << 24) | (rdata[2] << 16) | (rdata[1] << 8) | (rdata[0] << 0);
+    reading = (rdata[7] << 24) | (rdata[6] << 16) | (rdata[5] << 8) | (rdata[4] << 0);
+    voltage = 2400 * reading / factor;
+
+    return voltage;
+}
+
 uint32_t _stlink_usb_read_debug32(stlink_t *sl, uint32_t addr) {
     struct stlink_libusb * const slu = sl->backend_data;
     unsigned char* const rdata = sl->q_buf;
@@ -700,7 +728,8 @@ stlink_backend_t _stlink_usb_backend = {
     _stlink_usb_write_reg,
     _stlink_usb_step,
     _stlink_usb_current_mode,
-    _stlink_usb_force_debug
+    _stlink_usb_force_debug,
+    _stlink_usb_target_voltage
 };
 
 

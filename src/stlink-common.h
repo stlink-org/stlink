@@ -34,6 +34,7 @@ extern "C" {
 
 #define STLINK_GET_VERSION		0xf1
 #define STLINK_GET_CURRENT_MODE	0xf5
+#define STLINK_GET_TARGET_VOLTAGE	0xF7
 
 #define STLINK_DEBUG_COMMAND		0xF2
 #define STLINK_DFU_COMMAND		0xF3
@@ -386,6 +387,7 @@ static const chip_params_t devices[] = {
         void (*step) (stlink_t * stl);
         int (*current_mode) (stlink_t * stl);
         void (*force_debug) (stlink_t *sl);
+        uint32_t (*target_voltage) (stlink_t *sl);
     } stlink_backend_t;
 
     struct _stlink {
@@ -455,6 +457,7 @@ static const chip_params_t devices[] = {
     void stlink_step(stlink_t *sl);
     int stlink_current_mode(stlink_t *sl);
     void stlink_force_debug(stlink_t *sl);
+    int stlink_target_voltage(stlink_t *sl);
 
 
     // unprocessed
