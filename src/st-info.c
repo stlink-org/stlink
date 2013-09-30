@@ -18,7 +18,7 @@ static void usage(void)
 	puts("st-info --chipid");
 }
 
-static int print_data(stlink_t* sl, int ac, char** av)
+static int print_data(stlink_t* sl, char** av)
 {
 	int ret = 0;
 	if (strcmp(av[1], "--flash") == 0) 
@@ -42,10 +42,11 @@ static int print_data(stlink_t* sl, int ac, char** av)
 		}
 		printf("%s\n", params->description);
 	}
+	return ret;
 } 
 
 
-stlink_t* open_sl() 
+stlink_t* open_sl(void) 
 {
 	stlink_t* sl;
 	sl = stlink_v1_open(0, 1);
@@ -76,7 +77,7 @@ int main(int ac, char** av)
 	if (stlink_current_mode(sl) != STLINK_DEV_DEBUG_MODE)
 		stlink_enter_swd_mode(sl);
 
-	err = print_data(sl, ac, av);
+	err = print_data(sl, av);
 	
 	if (sl != NULL)
 	{
