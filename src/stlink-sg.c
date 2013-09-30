@@ -878,7 +878,8 @@ stlink_backend_t _stlink_sg_backend = {
     _stlink_sg_write_reg,
     _stlink_sg_step,
     _stlink_sg_current_mode,
-    _stlink_sg_force_debug
+    _stlink_sg_force_debug,
+    NULL
 };
 
 static stlink_t* stlink_open(const int verbose) {
