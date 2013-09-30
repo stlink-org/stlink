@@ -561,6 +561,22 @@ void stlink_version(stlink_t *sl) {
     }
 }
 
+int stlink_target_voltage(stlink_t *sl) {
+    int voltage = -1;
+    DLOG("*** reading target voltage\n");
+    if (sl->backend->target_voltage != NULL) {
+        voltage = sl->backend->target_voltage(sl);
+	if (voltage != -1) {
+            DLOG("target voltage = %ldmV\n", voltage);
+	} else {
+            DLOG("error reading target voltage\n");
+	}
+    } else {
+        DLOG("reading voltage not supported by backend\n");
+    }
+    return voltage;
+}
+
 uint32_t stlink_read_debug32(stlink_t *sl, uint32_t addr) {
     uint32_t data = sl->backend->read_debug32(sl, addr);
     DLOG("*** stlink_read_debug32 %x is %#x\n", data, addr);
