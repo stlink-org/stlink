@@ -103,6 +103,7 @@ extern "C" {
 #define STM32_CHIPID_F3 0x422
 #define STM32_CHIPID_F37x 0x432
 #define STM32_CHIPID_F4 0x413
+#define STM32_CHIPID_F4_HD 0x419
 #define STM32_CHIPID_F4_LP 0x423
 #define STM32_CHIPID_F1_HIGH 0x414
 #define STM32_CHIPID_L1_MEDIUM 0x416
@@ -178,6 +179,15 @@ static const chip_params_t devices[] = {
         {
             .chip_id = STM32_CHIPID_F4,
                     .description = "F4 device",
+                    .flash_size_reg = 0x1FFF7A22,  /* As in rm0090 since Rev 2*/
+                    .flash_pagesize = 0x4000,
+                    .sram_size = 0x30000,
+                    .bootrom_base = 0x1fff0000,
+                    .bootrom_size = 0x7800
+        },
+        {
+            .chip_id = STM32_CHIPID_F4_HD,
+                    .description = "F42x and F43x device",
                     .flash_size_reg = 0x1FFF7A22,  /* As in rm0090 since Rev 2*/
                     .flash_pagesize = 0x4000,
                     .sram_size = 0x30000,
