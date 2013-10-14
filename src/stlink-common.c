@@ -434,6 +434,7 @@ int stlink_load_device_params(stlink_t *sl) {
     const chip_params_t *params = NULL;
     sl->core_id = stlink_core_id(sl);
     uint32_t chip_id = stlink_chip_id(sl);
+    uint32_t flash_size;
 
     sl->chip_id = chip_id & 0xfff;
     /* Fix chip_id for F4 rev A errata , Read CPU ID, as CoreID is the same for F2/F4*/
@@ -457,23 +458,14 @@ int stlink_load_device_params(stlink_t *sl) {
     // These are fixed...
     sl->flash_base = STM32_FLASH_BASE;
     sl->sram_base = STM32_SRAM_BASE;
+    flash_size = stlink_read_debug32(sl,(params->flash_size_reg) & ~3);
+    if (params->flash_size_reg & 2)
+        flash_size = flash_size >>16;
+    flash_size = flash_size & 0xffff;
 
-    // read flash size from hardware, if possible...
-    if (sl->chip_id == STM32_CHIPID_F2) {
-        sl->flash_size = 0x100000; /* Use maximum, User must care!*/
-    } else if (sl->chip_id == STM32_CHIPID_F4 ||
-        sl->chip_id == STM32_CHIPID_F4_LP) {
-		sl->flash_size = 0x100000;			//todo: RM0090 error; size register same address as unique ID
-    } else if (sl->chip_id == STM32_CHIPID_L1_MEDIUM || sl->chip_id == STM32_CHIPID_L1_MEDIUM_PLUS) {
-        // if the flash size is zero, we assume it is 128k, if not we calculate the real value
-        uint32_t flash_size = stlink_read_debug32(sl,params->flash_size_reg) & 0xffff;
-        if ( flash_size == 0 ) {
+    if ((sl->chip_id == STM32_CHIPID_L1_MEDIUM || sl->chip_id == STM32_CHIPID_L1_MEDIUM_PLUS) && ( flash_size == 0 )) {
             sl->flash_size = 128 * 1024;
-        } else {
-            sl->flash_size = flash_size * 1024;
-        }
     } else if ((sl->chip_id & 0xFFF) == STM32_CHIPID_L1_HIGH) {
-        uint32_t flash_size = stlink_read_debug32(sl, params->flash_size_reg) & 0x1;
         // 0 is 384k and 1 is 256k
         if ( flash_size == 0 ) {
             sl->flash_size = 384 * 1024;
@@ -481,7 +473,6 @@ int stlink_load_device_params(stlink_t *sl) {
             sl->flash_size = 256 * 1024;
         }
     } else {
-        uint32_t flash_size = stlink_read_debug32(sl, params->flash_size_reg) & 0xffff;
         sl->flash_size = flash_size * 1024;
     }
     sl->flash_pgsz = params->flash_pagesize;

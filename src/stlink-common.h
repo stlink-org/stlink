@@ -160,7 +160,7 @@ static const chip_params_t devices[] = {
         {  // table 1, PM0059
             .chip_id = STM32_CHIPID_F2,
                     .description = "F2 device",
-                    .flash_size_reg = 0, /* no flash size reg found in the docs! */
+                    .flash_size_reg = 0x1ff7a22, /* RM0033 sind Rev 4*/
                     .flash_pagesize = 0x20000,
                     .sram_size = 0x20000,
                     .bootrom_base = 0x1fff0000,
@@ -178,7 +178,7 @@ static const chip_params_t devices[] = {
         {
             .chip_id = STM32_CHIPID_F4,
                     .description = "F4 device",
-                    .flash_size_reg = 0x1FFF7A10,  //RM0090 error same as unique ID
+                    .flash_size_reg = 0x1FFF7A22,  /* As in rm0090 since Rev 2*/
                     .flash_pagesize = 0x4000,
                     .sram_size = 0x30000,
                     .bootrom_base = 0x1fff0000,
@@ -187,7 +187,7 @@ static const chip_params_t devices[] = {
         {
             .chip_id = STM32_CHIPID_F4_LP,
                     .description = "F4 device (low power)",
-                    .flash_size_reg = 0x1FFF7A10,
+                    .flash_size_reg = 0x1FFF7A22,
                     .flash_pagesize = 0x4000,
                     .sram_size = 0x10000,
                     .bootrom_base = 0x1fff0000,
