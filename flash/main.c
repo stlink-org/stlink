@@ -146,7 +146,7 @@ int main(int ac, char** av)
 	}
     }
    else if ((o.addr >= sl->sram_base) &&
-	     (o.addr < sl->sram_base + sl->sram_size))
+	     (o.addr < sl->sram_base + sl->sram_size)) {
 	err = stlink_fwrite_sram(sl, o.filename, o.addr);
 	if (err == -1)
 	{
@@ -154,7 +154,7 @@ int main(int ac, char** av)
 	    goto on_error;
 	}
    }
-  else if (o.cmd == DO_ERASE) 
+  } else if (o.cmd == DO_ERASE) 
   {
      err = stlink_erase_flash_mass(sl);
     if (err == -1)
