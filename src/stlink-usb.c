@@ -203,7 +203,7 @@ void _stlink_usb_version(stlink_t *sl) {
     }
 }
 
-int _stlink_usb_target_voltage(stlink_t *sl) {
+int32_t _stlink_usb_target_voltage(stlink_t *sl) {
     struct stlink_libusb * const slu = sl->backend_data;
     unsigned char* const rdata = sl->q_buf;
     unsigned char* const cmd  = sl->c_buf;

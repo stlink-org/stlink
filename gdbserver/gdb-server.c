@@ -172,7 +172,7 @@ int parse_options(int argc, char** argv, st_state_t *st) {
 
 
 int main(int argc, char** argv) {
-	uint32_t voltage;
+	int32_t voltage;
 
 	stlink_t *sl = NULL;
 

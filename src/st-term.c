@@ -13,6 +13,11 @@
 
 #define STLINKY_MAGIC 0xDEADF00D
 
+#define READ_UINT32_LE(buf)  ((uint32_t) (   buf[0]         \
+                                           | buf[1] <<  8   \
+                                           | buf[2] << 16   \
+                                           | buf[3] << 24))
+
 struct stlinky {
 	stlink_t *sl;
 	uint32_t off;
@@ -26,11 +31,11 @@ struct stlinky*  stlinky_detect(stlink_t* sl)
 	static const uint32_t sram_base = 0x20000000;
 	struct stlinky* st = malloc(sizeof(struct stlinky));
 	st->sl = sl;
-	printf("sram: 0x%x bytes @ 0x%x\n", sl->sram_base, sl->sram_size);
+	printf("sram: 0x%x bytes @ 0x%zx\n", sl->sram_base, sl->sram_size);
 	uint32_t off;
 	for (off = 0; off < sl->sram_size; off += 4) {
 		stlink_read_mem32(sl, sram_base + off, 4);
-		if ( STLINKY_MAGIC== *(uint32_t*) sl->q_buf)
+		if (STLINKY_MAGIC == READ_UINT32_LE(sl->q_buf))
 		{
 			printf("stlinky detected at 0x%x\n", sram_base + off);
 			st->off = sram_base + off;
@@ -121,6 +126,7 @@ static int keep_running = 1;
 static int sigcount=0;
 void cleanup(int dummy)
 {
+	(void) dummy;
 	sigcount++;
 	keep_running = 0;
 	printf("\n\nGot a signal\n");

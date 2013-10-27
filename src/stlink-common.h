@@ -397,7 +397,7 @@ static const chip_params_t devices[] = {
         void (*step) (stlink_t * stl);
         int (*current_mode) (stlink_t * stl);
         void (*force_debug) (stlink_t *sl);
-        uint32_t (*target_voltage) (stlink_t *sl);
+        int32_t (*target_voltage) (stlink_t *sl);
     } stlink_backend_t;
 
     struct _stlink {
