@@ -57,6 +57,7 @@ typedef struct _st_state_t {
 int serve(stlink_t *sl, st_state_t *st);
 char* make_memory_map(stlink_t *sl);
 
+#ifndef __MINGW32__
 static void cleanup(int signal __attribute__((unused))) {
     if (connected_stlink) {
         /* Switch back to mass storage mode before closing. */
@@ -67,6 +68,7 @@ static void cleanup(int signal __attribute__((unused))) {
 
     exit(1);
 }
+#endif
 
 
 
@@ -196,8 +198,10 @@ int main(int argc, char** argv) {
     }
 
     connected_stlink = sl;
+#ifndef __MINGW32__
     signal(SIGINT, &cleanup);
     signal(SIGTERM, &cleanup);
+#endif
 
     if (state.reset) {
 		stlink_reset(sl);
