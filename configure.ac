@@ -32,7 +32,11 @@ case "${host}" in
 	*-mingw32*)
 		LIBS="$LIBS -lws2_32"
 		CPPFLAGS="-D__USE_MINGW_ANSI_STDIO=1 $CPPFLAGS"
+		AC_DEFINE_UNQUOTED(MINGW,1,[This is a MinGW system])
+		AM_CONDITIONAL(MINGW, true)
 	;;
+	*)
+		AM_CONDITIONAL(MINGW, false)
 esac
 
 MAYBE_GUI=

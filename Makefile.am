@@ -4,7 +4,11 @@ SUBDIRS = . $(MAYBE_GUI)
 
 AUTOMAKE_OPTIONS = subdir-objects
 
+if MINGW
+bin_PROGRAMS = st-flash st-util st-info
+else
 bin_PROGRAMS = st-flash st-util st-term st-info
+endif
 
 noinst_LIBRARIES      = libstlink.a
 
@@ -18,8 +22,11 @@ CFILES = \
 	src/stlink-usb.c \
 	src/stlink-sg.c \
 	src/uglylogging.c \
-        src/st-term.c \
 	src/st-info.c
+
+if !MINGW
+CFILES += src/st-term.c
+endif
 
 HFILES	= \
 	src/stlink-common.h \
