@@ -17,13 +17,14 @@ struct opts
   const char* filename;
   stm32_addr_t addr;
   size_t size;
+  int reset;
 };
 
 static void usage(void)
 {
-    puts("stlinkv1 command line: ./flash {read|write} /dev/sgX path addr <size>");
+    puts("stlinkv1 command line: ./flash [--reset] {read|write} /dev/sgX path addr <size>");
     puts("stlinkv1 command line: ./flash /dev/sgX erase");
-    puts("stlinkv2 command line: ./flash {read|write} path addr <size>");
+    puts("stlinkv2 command line: ./flash [--reset] {read|write} path addr <size>");
     puts("stlinkv2 command line: ./flash erase");
     puts("                       use hex format for addr and <size>");
 }
@@ -36,6 +37,17 @@ static int get_opts(struct opts* o, int ac, char** av)
   unsigned int i = 0;
 
   if (ac < 1) return -1;
+
+  if (strcmp(av[0], "--reset") == 0)
+  {
+    o->reset = 1;
+    ac--;
+    av++;
+  }
+  else
+  {
+    o->reset = 0;
+  }
 
   /* stlinkv2 */
   o->devname = NULL;
@@ -123,6 +135,9 @@ int main(int ac, char** av)
   if (stlink_current_mode(sl) != STLINK_DEV_DEBUG_MODE)
     stlink_enter_swd_mode(sl);
 
+  if (o.reset)
+    stlink_reset(sl);
+
 // Disable DMA - Set All DMA CCR Registers to zero. - AKS 1/7/2013
   if (sl->chip_id == STM32_CHIPID_F4)
   {
@@ -178,6 +193,9 @@ int main(int ac, char** av)
       goto on_error;
     }
   }
+
+  if (o.reset)
+    stlink_reset(sl);
 
   /* success */
   err = 0;
