@@ -30,6 +30,7 @@ struct stlinky*  stlinky_detect(stlink_t* sl)
 {
 	static const uint32_t sram_base = 0x20000000;
 	struct stlinky* st = malloc(sizeof(struct stlinky));
+	int multiple=0;
 	st->sl = sl;
 	printf("sram: 0x%x bytes @ 0x%zx\n", sl->sram_base, sl->sram_size);
 	uint32_t off;
@@ -37,13 +38,21 @@ struct stlinky*  stlinky_detect(stlink_t* sl)
 		stlink_read_mem32(sl, sram_base + off, 4);
 		if (STLINKY_MAGIC == READ_UINT32_LE(sl->q_buf))
 		{
+			if (multiple > 0)
+				printf("WARNING: another ");
 			printf("stlinky detected at 0x%x\n", sram_base + off);
 			st->off = sram_base + off;
 			stlink_read_mem32(sl, st->off + 4, 4);
 			st->bufsize = (size_t) *(unsigned char*) sl->q_buf;
 			printf("stlinky buffer size 0x%zu \n", st->bufsize);
-			return st;
+			multiple++;
 		}
+	}
+	if (multiple > 0) {
+		if (multiple > 1) {
+			printf("Using last stlinky structure detected\n");
+		}
+		return st;
 	}
 	return NULL;
 }
