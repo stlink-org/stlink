@@ -39,7 +39,7 @@ struct stlinky*  stlinky_detect(stlink_t* sl)
 		if (STLINKY_MAGIC == READ_UINT32_LE(sl->q_buf))
 		{
 			if (multiple > 0)
-				printf("WARNING: another ");
+			printf("WARNING: another ");
 			printf("stlinky detected at 0x%x\n", sram_base + off);
 			st->off = sram_base + off;
 			stlink_read_mem32(sl, st->off + 4, 4);
@@ -148,10 +148,8 @@ void cleanup(int dummy)
 
 int main(int ac, char** av) {
 	stlink_t* sl;
-
-	/* unused */
-	ac = ac;
-	av = av;
+	struct stlinky *st;
+	
 	sl = stlink_open_usb(10, 1);
 	if (sl != NULL) {
 		printf("ST-Linky proof-of-concept terminal :: Created by Necromant for lulz\n");
@@ -174,7 +172,19 @@ int main(int ac, char** av) {
 		/* TODO: Make timeout adjustable via command line */
 		sleep(1);
 
-		struct stlinky *st = stlinky_detect(sl);
+		if(ac == 1){ 
+			st = stlinky_detect(sl);
+		}else if(ac == 2){
+			st = malloc(sizeof(struct stlinky));
+			st->sl = sl;
+			st->off = (int)strtol(av[1], NULL, 16);
+			printf("using stlinky at 0x%x\n", st->off);
+			stlink_read_mem32(sl, st->off + 4, 4);
+			st->bufsize = (size_t) *(unsigned char*) sl->q_buf;
+			printf("stlinky buffer size 0x%zu \n", st->bufsize);
+		}else{
+			goto bailout;
+		}
 		if (st == NULL)
 		{
 			printf("stlinky magic not found in sram :(\n");
