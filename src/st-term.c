@@ -38,8 +38,7 @@ struct stlinky*  stlinky_detect(stlink_t* sl)
 		stlink_read_mem32(sl, sram_base + off, 4);
 		if (STLINKY_MAGIC == READ_UINT32_LE(sl->q_buf))
 		{
-			if (multiple > 0)
-			printf("WARNING: another ");
+			if (multiple > 0) printf("WARNING: another ");
 			printf("stlinky detected at 0x%x\n", sram_base + off);
 			st->off = sram_base + off;
 			stlink_read_mem32(sl, st->off + 4, 4);
