@@ -18,12 +18,48 @@
                                            | buf[2] << 16   \
                                            | buf[3] << 24))
 
+static stlink_t* sl;
+sigset_t sig_mask;
+
 struct stlinky {
 	stlink_t *sl;
 	uint32_t off;
 	size_t bufsize;
 };
 
+void nonblock(int state);
+
+static void cleanup(int signal __attribute__((unused))) {
+	if (sl) {
+		/* Switch back to mass storage mode before closing. */
+		stlink_run(sl);
+		stlink_exit_debug_mode(sl);
+		stlink_close(sl);
+	}
+
+	printf("\n");
+	nonblock(0);
+	exit(1);
+}
+
+void sig_init() {
+	sigemptyset(&sig_mask);
+	sigaddset(&sig_mask, SIGINT);
+	sigaddset(&sig_mask, SIGTERM);
+	signal(SIGINT, &cleanup);
+	signal(SIGTERM, &cleanup);
+	sigprocmask(SIG_BLOCK, &sig_mask, NULL);
+}
+
+void sig_process() {
+	sigset_t pending;
+	sigpending(&pending);
+	if (sigismember(&pending, SIGINT) || sigismember(&pending, SIGTERM)) {
+		sigprocmask(SIG_UNBLOCK, &sig_mask, NULL);
+		sigsuspend(&pending);
+		sigprocmask(SIG_BLOCK, &sig_mask, NULL);
+	}
+}
 
 /* Detects stlinky in RAM, returns handler */
 struct stlinky*  stlinky_detect(stlink_t* sl)
@@ -35,6 +71,7 @@ struct stlinky*  stlinky_detect(stlink_t* sl)
 	printf("sram: 0x%x bytes @ 0x%zx\n", sl->sram_base, sl->sram_size);
 	uint32_t off;
 	for (off = 0; off < sl->sram_size; off += 4) {
+		if (off % 1024 == 0) sig_process();
 		stlink_read_mem32(sl, sram_base + off, 4);
 		if (STLINKY_MAGIC == READ_UINT32_LE(sl->q_buf))
 		{
@@ -130,25 +167,11 @@ void nonblock(int state)
 
 }
 
-static int keep_running = 1;
-static int sigcount=0;
-void cleanup(int dummy)
-{
-	(void) dummy;
-	sigcount++;
-	keep_running = 0;
-	printf("\n\nGot a signal\n");
-	if (sigcount==2) {
-		printf("\n\nGot a second signal - bailing out\n");
-		exit(1);
-	}
-}
-
-
 int main(int ac, char** av) {
-	stlink_t* sl;
 	struct stlinky *st;
 	
+	sig_init();
+
 	sl = stlink_open_usb(10, 1);
 	if (sl != NULL) {
 		printf("ST-Linky proof-of-concept terminal :: Created by Necromant for lulz\n");
@@ -182,12 +205,12 @@ int main(int ac, char** av) {
 			st->bufsize = (size_t) *(unsigned char*) sl->q_buf;
 			printf("stlinky buffer size 0x%zu \n", st->bufsize);
 		}else{
-			goto bailout;
+			cleanup(0);
 		}
 		if (st == NULL)
 		{
 			printf("stlinky magic not found in sram :(\n");
-			goto bailout;
+			cleanup(0);
 		}
 		char* rxbuf = malloc(st->bufsize);
 		char* txbuf = malloc(st->bufsize);
@@ -196,9 +219,9 @@ int main(int ac, char** av) {
 		int fd = fileno(stdin);
 		int saved_flags = fcntl(fd, F_GETFL);
 		fcntl(fd, F_SETFL, saved_flags & ~O_NONBLOCK);
-		signal(SIGINT, cleanup);
 		printf("Entering interactive terminal. CTRL+C to exit\n\n\n");
 		while(1) {
+			sig_process();
 			if (stlinky_canrx(st)) {
 				tmp = stlinky_rx(st, rxbuf);
 				fwrite(rxbuf,tmp,1,stdout);
@@ -208,13 +231,7 @@ int main(int ac, char** av) {
 				tmp = read(fd, txbuf, st->bufsize);
 				stlinky_tx(st,txbuf,tmp);
 			}
-			if (!keep_running)
-				break;
 		}
-	bailout:
-		nonblock(0);
-		stlink_exit_debug_mode(sl);
-		stlink_close(sl);
 	}
 	return 0;
 }
