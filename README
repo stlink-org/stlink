@@ -55,14 +55,22 @@ There are a few options:
 
 ./st-util - usage:
 
-  -h, --help        Print this help
-  -vXX, --verbose=XX    specify a specific verbosity level (0..99)
-  -v, --verbose specify generally verbose logging
+  -h, --help		Print this help
+  -vXX, --verbose=XX	Specify a specific verbosity level (0..99)
+  -v, --verbose		Specify generally verbose logging
   -s X, --stlink_version=X
-            Choose what version of stlink to use, (defaults to 2)
-  -1, --stlinkv1    Force stlink version 1
+			Choose what version of stlink to use, (defaults to 2)
+  -1, --stlinkv1	Force stlink version 1
   -p 4242, --listen_port=1234
-            Set the gdb server listen port. (default port: 4242)
+			Set the gdb server listen port. (default port: 4242)
+  -m, --multi
+			Set gdb server to extended mode.
+			st-util will continue listening for connections after disconnect.
+  -n, --no-reset
+			Do not reset board on connection.
+
+The STLINKv2 device to use can be specified in the environment
+variable STLINK_DEVICE on the format <USB_BUS>:<USB_ADDR>.
 
 Then, in your project directory, someting like this...
 (remember, you need to run an _ARM_ gdb, not an x86 gdb)
