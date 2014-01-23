@@ -45,10 +45,8 @@ static const char* current_memory_map = NULL;
 typedef struct _st_state_t {
     // things from command line, bleh
     int stlink_version;
-    // "/dev/serial/by-id/usb-FTDI_TTL232R-3V3_FTE531X6-if00-port0" is only 58 chars
-    char devicename[100];
     int logging_level;
-	int listen_port;
+    int listen_port;
     int persistent;
     int reset;
 } st_state_t;
@@ -74,7 +72,6 @@ int parse_options(int argc, char** argv, st_state_t *st) {
     static struct option long_options[] = {
         {"help", no_argument, NULL, 'h'},
         {"verbose", optional_argument, NULL, 'v'},
-        {"device", required_argument, NULL, 'd'},
         {"stlink_version", required_argument, NULL, 's'},
         {"stlinkv1", no_argument, NULL, '1'},
 		{"listen_port", required_argument, NULL, 'p'},
@@ -84,10 +81,8 @@ int parse_options(int argc, char** argv, st_state_t *st) {
     };
 	const char * help_str = "%s - usage:\n\n"
 	"  -h, --help\t\tPrint this help\n"
-	"  -vXX, --verbose=XX\tspecify a specific verbosity level (0..99)\n"
-	"  -v, --verbose\tspecify generally verbose logging\n"
-	"  -d <device>, --device=/dev/stlink2_1\n"
-	"\t\t\tWhere is your stlink device connected?\n"
+	"  -vXX, --verbose=XX\tSpecify a specific verbosity level (0..99)\n"
+	"  -v, --verbose\t\tSpecify generally verbose logging\n"
 	"  -s X, --stlink_version=X\n"
 	"\t\t\tChoose what version of stlink to use, (defaults to 2)\n"
 	"  -1, --stlinkv1\tForce stlink version 1\n"
@@ -99,13 +94,17 @@ int parse_options(int argc, char** argv, st_state_t *st) {
     "\t\t\tst-util will continue listening for connections after disconnect.\n"
     "  -n, --no-reset\n"
     "\t\t\tDo not reset board on connection.\n"
+	"\n"
+	"The STLINKv2 device to use can be specified in the environment\n"
+	"variable STLINK_DEVICE on the format <USB_BUS>:<USB_ADDR>.\n"
+	"\n"
 	;
 
 
     int option_index = 0;
     int c;
     int q;
-    while ((c = getopt_long(argc, argv, "hv::d:s:1p:mn", long_options, &option_index)) != -1) {
+    while ((c = getopt_long(argc, argv, "hv::s:1p:mn", long_options, &option_index)) != -1) {
         switch (c) {
         case 0:
             printf("XXXXX Shouldn't really normally come here, only if there's no corresponding option\n");
@@ -124,13 +123,6 @@ int parse_options(int argc, char** argv, st_state_t *st) {
                 st->logging_level = atoi(optarg);
             } else {
                 st->logging_level = DEFAULT_LOGGING_LEVEL;
-            }
-            break;
-        case 'd':
-            if (strlen(optarg) > sizeof (st->devicename)) {
-                fprintf(stderr, "device name too long: %zd\n", strlen(optarg));
-            } else {
-                strcpy(st->devicename, optarg);
             }
             break;
 		case '1':

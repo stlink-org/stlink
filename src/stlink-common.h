@@ -161,7 +161,7 @@ static const chip_params_t devices[] = {
         {  // table 1, PM0059
             .chip_id = STM32_CHIPID_F2,
                     .description = "F2 device",
-                    .flash_size_reg = 0x1ff7a22, /* RM0033 sind Rev 4*/
+                    .flash_size_reg = 0x1fff7a22, /* As in RM0033 Rev 5*/
                     .flash_pagesize = 0x20000,
                     .sram_size = 0x20000,
                     .bootrom_base = 0x1fff0000,
