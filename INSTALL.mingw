@@ -10,6 +10,7 @@ mingw32-base
 mingw-developer-toolkit
 
 2. Add C:\MinGW\bin to your path.
+Note: a user reports she had to use c:\MinGW\msys\1.0\bin
 
 3. Create the C:\MinGW\msys\1.0\etc\fstab file to mount C:\MinGW as /mingw as per
 http://www.mingw.org/wiki/MSYS:
