@@ -1752,8 +1752,10 @@ int stlink_fwrite_flash(stlink_t *sl, const char* path, stm32_addr_t addr) {
 	else
 	    num_empty = 0;
     }
+    /* Round down to words */
+    num_empty -= (num_empty & 3);
     if(num_empty != 0) {
-	ILOG("Ignoring %d bytes of Zeros at end of file\n",num_empty);
+	ILOG("Ignoring %d bytes of 0x%02x at end of file\n", num_empty, erased_pattern);
 	mf.len -= num_empty;
     }
     err = stlink_write_flash(sl, addr, mf.base, mf.len);
