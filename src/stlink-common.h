@@ -1,7 +1,7 @@
-/* 
+/*
  * File:   stlink-common.h
  * Bulk import from stlink-hw.h
- * 
+ *
  * This should contain all the common top level stlink interfaces, regardless
  * of how the backend does the work....
  */
@@ -24,6 +24,7 @@ extern "C" {
 #define USB_ST_VID			0x0483
 #define USB_STLINK_PID			0x3744
 #define USB_STLINK_32L_PID		0x3748
+#define USB_STLINK_NUCLEO_PID	0x374b
 
     // STLINK_DEBUG_RESETSYS, etc:
 #define STLINK_OK			0x80
@@ -67,7 +68,7 @@ extern "C" {
 #define STLINK_DEBUG_WRITEDEBUGREG	0x0f
 #define STLINK_DEBUG_ENTER_SWD		0xa3
 #define STLINK_DEBUG_ENTER_JTAG	0x00
-    
+
     // TODO - possible poor names...
 #define STLINK_SWD_ENTER 0x30
 #define STLINK_SWD_READCOREID 0x32  // TBD
@@ -144,8 +145,8 @@ extern "C" {
 	uint32_t sram_size;
 	uint32_t bootrom_base, bootrom_size;
     } chip_params_t;
-    
-    
+
+
 // These maps are from a combination of the Programming Manuals, and
 // also the Reference manuals.  (flash size reg is normally in ref man)
 static const chip_params_t devices[] = {
@@ -324,7 +325,7 @@ static const chip_params_t devices[] = {
         },
  };
 
-    
+
     typedef struct {
         uint32_t r[16];
         uint32_t s[32];
@@ -341,7 +342,7 @@ static const chip_params_t devices[] = {
     } reg;
 
     typedef uint32_t stm32_addr_t;
-    
+
     typedef struct _cortex_m3_cpuid_ {
         uint16_t implementer_id;
         uint16_t variant;
@@ -431,7 +432,7 @@ static const chip_params_t devices[] = {
 #define STM32L_SRAM_SIZE (16 * 1024)
         stm32_addr_t sram_base;
         size_t sram_size;
-        
+
         // bootloader
         stm32_addr_t sys_base;
         size_t sys_size;
@@ -476,7 +477,7 @@ static const chip_params_t devices[] = {
     int stlink_fwrite_flash(stlink_t *sl, const char* path, stm32_addr_t addr);
     int stlink_fwrite_sram(stlink_t *sl, const char* path, stm32_addr_t addr);
     int stlink_verify_write_flash(stlink_t *sl, stm32_addr_t address, uint8_t *data, uint32_t length);
-    
+
     // PUBLIC
     uint32_t stlink_chip_id(stlink_t *sl);
     void stlink_cpu_id(stlink_t *sl, cortex_m3_cpuid_t *cpuid);
@@ -502,7 +503,7 @@ static const chip_params_t devices[] = {
 
 
 #include "stlink-sg.h"
-#include "stlink-usb.h"    
+#include "stlink-usb.h"
 
 
 

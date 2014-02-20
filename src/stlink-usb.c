@@ -782,7 +782,7 @@ stlink_t* stlink_open_usb(const int verbose, int reset) {
         if (desc.idVendor!=USB_ST_VID) continue;
         if (devBus && devAddr)
             if ((libusb_get_bus_number(list[cnt])!=devBus) || (libusb_get_device_address(list[cnt])!=devAddr)) continue;
-        if (desc.idProduct == USB_STLINK_32L_PID) break;
+        if ( (desc.idProduct == USB_STLINK_32L_PID) || (desc.idProduct == USB_STLINK_NUCLEO_PID) ) break;
         if (desc.idProduct == USB_STLINK_PID) {
             slu->protocoll = 1;
             break;
@@ -843,9 +843,14 @@ stlink_t* stlink_open_usb(const int verbose, int reset) {
         WLOG("libusb_alloc_transfer failed\n");
         goto on_libusb_error;
     }
+
     // TODO - could use the scanning techniq from stm8 code here...
     slu->ep_rep = 1 /* ep rep */ | LIBUSB_ENDPOINT_IN;
-    slu->ep_req = 2 /* ep req */ | LIBUSB_ENDPOINT_OUT;
+    if (desc.idProduct == USB_STLINK_NUCLEO_PID) {
+    	slu->ep_req = 1 /* ep req */ | LIBUSB_ENDPOINT_OUT;
+    } else {
+    	slu->ep_req = 2 /* ep req */ | LIBUSB_ENDPOINT_OUT;
+    }
 
     slu->sg_transfer_idx = 0;
     // TODO - never used at the moment, always CMD_SIZE
