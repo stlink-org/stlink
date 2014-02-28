@@ -24,8 +24,10 @@ http://win32builder.gnome.org/packages/3.6/glib_2.34.3-1_win32.zip
 http://win32builder.gnome.org/packages/3.6/pkg-config_0.28-1_win32.zip
 http://win32builder.gnome.org/packages/3.6/pkg-config-dev_0.28-1_win32.zip
 
-5. Download latest libusb-1.0 source from git://git.libusb.org/libusb.git and
-build (prefix as per http://www.mingw.org/wiki/MSYS)
+5. Download latest libusb-1.0 source from
+https://github.com/libusb/libusb (newer repo, includes USB 3.0 hub support)
+OR the old git://git.libusb.org/libusb.git (original repo, NO USB 3.0 support)
+and build (prefix as per http://www.mingw.org/wiki/MSYS)
 
 ./autogen.sh
 ./configure --prefix=/mingw
