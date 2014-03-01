@@ -150,7 +150,7 @@ ssize_t send_recv(struct stlink_libusb* handle, int terminate,
             (handle->rep_trans, handle->usb_handle,
              handle->ep_rep, sg_buf, 13, NULL, NULL, 0);
         res = submit_wait(handle, handle->rep_trans);
-	/* The STLink doesn't seem to evaluate the sequence number */
+        /* The STLink doesn't seem to evaluate the sequence number */
         handle->sg_transfer_idx++;
         if (res ) return -1;
     }
@@ -766,18 +766,18 @@ stlink_t* stlink_open_usb(const int verbose, int reset) {
     
     char *device = getenv("STLINK_DEVICE");
     if (device) {
-	char *c = strchr(device,':');
-	if (c==NULL) {
-	    WLOG("STLINK_DEVICE must be <USB_BUS>:<USB_ADDR> format\n");
-	    goto on_error;
-	}
-	devBus=atoi(device);
-	*c++=0;
-	devAddr=atoi(c);
-	ILOG("bus %03d dev %03d\n",devBus, devAddr);
+        char *c = strchr(device,':');
+        if (c==NULL) {
+            WLOG("STLINK_DEVICE must be <USB_BUS>:<USB_ADDR> format\n");
+            goto on_error;
+        }
+        devBus=atoi(device);
+        *c++=0;
+        devAddr=atoi(c);
+        ILOG("bus %03d dev %03d\n",devBus, devAddr);
     }
     while (cnt){
-	cnt--;
+        cnt--;
         libusb_get_device_descriptor( list[cnt], &desc );
         if (desc.idVendor!=USB_ST_VID) continue;
         if (devBus && devAddr)
@@ -790,13 +790,14 @@ stlink_t* stlink_open_usb(const int verbose, int reset) {
     }
     
     if (cnt < 0) {
-	    WLOG ("Couldn't find %s ST-Link/V2 devices\n",(devBus && devAddr)?"matched":"any");
-	    goto on_error;
+        WLOG ("Couldn't find %s ST-Link/V2 devices\n",(devBus && devAddr)?"matched":"any");
+        goto on_error;
     } else {
-	if( libusb_open(list[cnt], &slu->usb_handle) !=0){
-	    WLOG("Couldn't open ST-Link/V2 device %03d:%03d\n",libusb_get_bus_number(list[cnt]), libusb_get_device_address(list[cnt]));
-    	    goto on_error;
-    	}
+        int error = libusb_open(list[cnt], &slu->usb_handle);
+        if( error !=0 ) {
+            WLOG("Error %d opening ST-Link/V2 device %03d:%03d\n", error, libusb_get_bus_number(list[cnt]), libusb_get_device_address(list[cnt]));
+            goto on_error;
+        }
     }
     
     libusb_free_device_list(list, 1);
