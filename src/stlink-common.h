@@ -123,6 +123,7 @@ extern "C" {
 #define STM32_CHIPID_F1_XL 0x430
 #define STM32_CHIPID_F0 0x440
 #define STM32_CHIPID_F0_SMALL 0x444
+#define STM32_CHIPID_F0_CAN 0x448
 
 // Constant STM32 memory map figures
 #define STM32_FLASH_BASE 0x08000000
@@ -310,6 +311,17 @@ static const chip_params_t devices[] = {
                     .sram_size = 0x18000,
                     .bootrom_base = 0x1fffe000,
                     .bootrom_size = 0x1800
+        },
+        { 
+             //Use this as an example for mapping future chips:
+             //RM0091 document was used to find these paramaters
+            .chip_id = STM32_CHIPID_F0_CAN,
+                    .description = "F07x device",
+                    .flash_size_reg = 0x1ffff7cc,      // "Flash size data register" (pg735)
+                    .flash_pagesize = 0x800,           // Page sizes listed in Table 4
+                    .sram_size = 0x4000,               // "SRAM" byte size in hex from Table 2
+                    .bootrom_base = 0x1fffC800,                // "System memory" starting address from Table 2
+                    .bootrom_size = 0x3000             // "System memory" byte size in hex from Table 2
         },
         {
             //Use this as an example for mapping future chips:
