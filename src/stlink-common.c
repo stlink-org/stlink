@@ -1350,7 +1350,7 @@ int write_loader_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* size) {
                sl->chip_id == STM32_CHIPID_F4_LP || sl->chip_id == STM32_CHIPID_F4_HD){
         loader_code = loader_code_stm32f4;
         loader_size = sizeof(loader_code_stm32f4);
-    } else if (sl->chip_id == STM32_CHIPID_F0 || sl->chip_id == STM32_CHIPID_F0_SMALL) {
+    } else if (sl->chip_id == STM32_CHIPID_F0 || sl->chip_id == STM32_CHIPID_CAN || sl->chip_id == STM32_CHIPID_F0_SMALL) {
         loader_code = loader_code_stm32f0;
         loader_size = sizeof(loader_code_stm32f0);
     } else {
