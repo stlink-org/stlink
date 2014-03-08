@@ -472,6 +472,7 @@ static int delete_data_watchpoint(stlink_t *sl, stm32_addr_t addr)
 }
 
 #define CODE_BREAK_NUM	6
+#define CODE_LIT_NUM 	2
 #define CODE_BREAK_LOW	0x01
 #define CODE_BREAK_HIGH	0x02
 
@@ -485,8 +486,14 @@ struct code_hw_breakpoint code_breaks[CODE_BREAK_NUM];
 static void init_code_breakpoints(stlink_t *sl) {
 	memset(sl->q_buf, 0, 4);
 	stlink_write_debug32(sl, CM3_REG_FP_CTRL, 0x03 /*KEY | ENABLE4*/);
-        printf("KARL - should read back as 0x03, not 60 02 00 00\n");
-        stlink_read_debug32(sl, CM3_REG_FP_CTRL);
+        unsigned int val = stlink_read_debug32(sl, CM3_REG_FP_CTRL);
+        if (((val & 3) != 1) ||
+            ((((val >> 8) & 0x70) | ((val >> 4) & 0xf)) != CODE_BREAK_NUM) ||
+            (((val >> 8) & 0xf) != CODE_LIT_NUM)){
+          fprintf(stderr, "[FP_CTRL] = 0x%08x expecting 0x%08x\n", val,
+            ((CODE_BREAK_NUM & 0x70) << 8) | (CODE_LIT_NUM << 8) |  ((CODE_BREAK_NUM & 0xf) << 4) | 1);
+        }
+        
 
 	for(int i = 0; i < CODE_BREAK_NUM; i++) {
 		code_breaks[i].type = 0;

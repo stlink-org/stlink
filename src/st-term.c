@@ -168,7 +168,7 @@ void nonblock(int state)
 }
 
 int main(int ac, char** av) {
-	struct stlinky *st;
+	struct stlinky *st=NULL;
 	
 	sig_init();
 

@@ -117,6 +117,7 @@ extern "C" {
  * 0x436 HIGH.
  */
 #define STM32_CHIPID_L1_HIGH 0x436
+#define STM32_CHIPID_L152_RE 0x437
 #define STM32_CHIPID_F1_CONN 0x418
 #define STM32_CHIPID_F1_VL_MEDIUM 0x420
 #define STM32_CHIPID_F1_VL_HIGH 0x428
@@ -253,7 +254,15 @@ static const chip_params_t devices[] = {
                     .bootrom_base = 0x1ff00000,
                     .bootrom_size = 0x1000
         },
-
+        {
+            .chip_id = STM32_CHIPID_L152_RE,
+                    .description = "L152RE",
+                    .flash_size_reg = 0x1ff800cc,
+                    .flash_pagesize = 0x100,
+                    .sram_size = 0x14000, /*Not completely clear if there are some with 32K*/
+                    .bootrom_base = 0x1ff00000,
+                    .bootrom_size = 0x1000
+        },
         {
             .chip_id = STM32_CHIPID_F1_CONN,
                     .description = "F1 Connectivity line device",

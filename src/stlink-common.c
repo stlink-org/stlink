@@ -931,7 +931,7 @@ int stlink_fread(stlink_t* sl, const char* path, stm32_addr_t addr, size_t size)
     size_t off;
     int num_empty = 0;
     unsigned char erased_pattern = (sl->chip_id == STM32_CHIPID_L1_MEDIUM  || sl->chip_id == STM32_CHIPID_L1_MEDIUM_PLUS
-                                     || sl->chip_id == STM32_CHIPID_L1_HIGH) ? 0:0xff;
+                                     || sl->chip_id == STM32_CHIPID_L1_HIGH || sl->chip_id == STM32_CHIPID_L152_RE) ? 0:0xff;
 
     const int fd = open(path, O_RDWR | O_TRUNC | O_CREAT, 00700);
     if (fd == -1) {
@@ -1059,7 +1059,7 @@ int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr)
 	fprintf(stdout, "Erase Final CR:0x%x\n", read_flash_cr(sl));
 #endif
   } else if (sl->chip_id == STM32_CHIPID_L1_MEDIUM || sl->chip_id == STM32_CHIPID_L1_MEDIUM_PLUS
-		|| sl->chip_id == STM32_CHIPID_L1_HIGH) {
+		|| sl->chip_id == STM32_CHIPID_L1_HIGH || sl->chip_id == STM32_CHIPID_L152_RE) {
 
     uint32_t val;
 
@@ -1169,7 +1169,7 @@ int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr)
 
 int stlink_erase_flash_mass(stlink_t *sl) {
     if (sl->chip_id == STM32_CHIPID_L1_MEDIUM || sl->chip_id == STM32_CHIPID_L1_MEDIUM_PLUS 
-	|| sl->chip_id == STM32_CHIPID_L1_HIGH) {
+	|| sl->chip_id == STM32_CHIPID_L1_HIGH || sl->chip_id == STM32_CHIPID_L152_RE) {
         /* erase each page */
         int i = 0, num_pages = sl->flash_size/sl->flash_pgsz;
         for (i = 0; i < num_pages; i++) {
@@ -1340,7 +1340,7 @@ int write_loader_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* size) {
     size_t loader_size;
 
     if (sl->chip_id == STM32_CHIPID_L1_MEDIUM || sl->chip_id == STM32_CHIPID_L1_MEDIUM_PLUS
-		|| sl->chip_id == STM32_CHIPID_L1_HIGH ) { /* stm32l */
+		|| sl->chip_id == STM32_CHIPID_L1_HIGH || sl->chip_id == STM32_CHIPID_L152_RE ) { /* stm32l */
         loader_code = loader_code_stm32l;
         loader_size = sizeof(loader_code_stm32l);
     } else if (sl->core_id == STM32VL_CORE_ID || sl->chip_id == STM32_CHIPID_F3  || sl->chip_id == STM32_CHIPID_F37x) {
@@ -1583,7 +1583,7 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uint32_t 
     }	//STM32F4END
 
     else if (sl->chip_id == STM32_CHIPID_L1_MEDIUM || sl->chip_id == STM32_CHIPID_L1_MEDIUM_PLUS
-		|| sl->chip_id == STM32_CHIPID_L1_HIGH ) {
+		|| sl->chip_id == STM32_CHIPID_L1_HIGH || sl->chip_id == STM32_CHIPID_L152_RE ) {
     	/* use fast word write. todo: half page. */
     	uint32_t val;
 
@@ -1740,7 +1740,7 @@ int stlink_fwrite_flash(stlink_t *sl, const char* path, stm32_addr_t addr) {
     int err;
     unsigned int num_empty = 0, index;
     unsigned char erased_pattern =(sl->chip_id == STM32_CHIPID_L1_MEDIUM || sl->chip_id == STM32_CHIPID_L1_MEDIUM_PLUS
-	|| sl->chip_id == STM32_CHIPID_L1_HIGH )?0:0xff;
+	|| sl->chip_id == STM32_CHIPID_L1_HIGH || sl->chip_id == STM32_CHIPID_L152_RE )?0:0xff;
     mapped_file_t mf = MAPPED_FILE_INITIALIZER;
     if (map_file(&mf, path) == -1) {
         ELOG("map_file() == -1\n");
@@ -1781,7 +1781,7 @@ int run_flash_loader(stlink_t *sl, flash_loader_t* fl, stm32_addr_t target, cons
     }
 
     if (sl->chip_id == STM32_CHIPID_L1_MEDIUM  || sl->chip_id == STM32_CHIPID_L1_MEDIUM_PLUS
-	|| sl->chip_id == STM32_CHIPID_L1_HIGH ) {
+	|| sl->chip_id == STM32_CHIPID_L1_HIGH || sl->chip_id == STM32_CHIPID_L152_RE ) {
 
         size_t count = size / sizeof(uint32_t);
         if (size % sizeof(uint32_t)) ++count;
@@ -1839,7 +1839,7 @@ int run_flash_loader(stlink_t *sl, flash_loader_t* fl, stm32_addr_t target, cons
 
     /* check written byte count */
     if (sl->chip_id == STM32_CHIPID_L1_MEDIUM || sl->chip_id == STM32_CHIPID_L1_MEDIUM_PLUS
-	|| sl->chip_id == STM32_CHIPID_L1_HIGH ) {
+	|| sl->chip_id == STM32_CHIPID_L1_HIGH || sl->chip_id == STM32_CHIPID_L152_RE ) {
 
       size_t count = size / sizeof(uint32_t);
       if (size % sizeof(uint32_t)) ++count;
