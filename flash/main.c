@@ -48,6 +48,8 @@ static int get_opts(struct opts* o, int ac, char** av)
   {
     o->reset = 0;
   }
+  
+  if (ac < 1) return -1;
 
   /* stlinkv2 */
   o->devname = NULL;
