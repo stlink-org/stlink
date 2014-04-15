@@ -22,11 +22,11 @@ static int print_data(stlink_t* sl, char** av)
 {
 	int ret = 0;
 	if (strcmp(av[1], "--flash") == 0) 
-		printf("0x%lx\n", sl->flash_size);
+		printf("0x%zx\n", sl->flash_size);
 	else if (strcmp(av[1], "--sram") == 0)
-		printf("0x%lx\n", sl->sram_size);
+		printf("0x%zx\n", sl->sram_size);
 	else if (strcmp(av[1], "--pagesize") == 0)
-		printf("0x%lx\n", sl->flash_pgsz);
+		printf("0x%zx\n", sl->flash_pgsz);
 	else if (strcmp(av[1], "--chipid") == 0)
 		printf("0x%.4x\n", sl->chip_id);
 	else if (strcmp(av[1], "--descr")==0) {
