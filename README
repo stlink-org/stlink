@@ -180,5 +180,8 @@ Known Working Targets:
 * STM32L151CB (custom board)
 * STM32L152RB (STM32L-Discovery board, custom board)
 
-Please report any and all known working combinations so I can update this!
+STLink v2-1 (as found on the Nucleo boards)
+Known Working Targets:
+* STM32F401xx (STM32 Nucleo-F401RE board) 
 
+Please report any and all known working combinations so I can update this!
