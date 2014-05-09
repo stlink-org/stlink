@@ -120,13 +120,13 @@ int main(int ac, char** av)
 
   if (o.devname != NULL) /* stlinkv1 */
   {
-    sl = stlink_v1_open(50, 1);
+    sl = stlink_v1_open(50, o.reset);
     if (sl == NULL) goto on_error;
     sl->verbose = 50;
   }
   else /* stlinkv2 */
   {
-    sl = stlink_open_usb(50, 1);
+    sl = stlink_open_usb(50, o.reset);
     if (sl == NULL) goto on_error;
     sl->verbose = 50;
   }
@@ -136,9 +136,6 @@ int main(int ac, char** av)
 
   if (stlink_current_mode(sl) != STLINK_DEV_DEBUG_MODE)
     stlink_enter_swd_mode(sl);
-
-  if (o.reset)
-    stlink_reset(sl);
 
 // Disable DMA - Set All DMA CCR Registers to zero. - AKS 1/7/2013
   if (sl->chip_id == STM32_CHIPID_F4)
