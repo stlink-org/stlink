@@ -7,7 +7,7 @@ stlink_gui_SOURCES = \
 stlink_gui_CPPFLAGS = \
 	-I$(top_srcdir) \
 	$(AM_CPPFLAGS) \
-	-I$(top_builddir)/src \
+	-I$(top_srcdir)/src \
 	@GTK_CFLAGS@
 
 stlink_gui_CFLAGS = \
