@@ -113,6 +113,7 @@ For convenience, you may install udev rules file, 49-stlinkv*.rules, located
 in the root of repository. You will need to copy it to /etc/udev/rules.d,
 and then either reboot or execute
 $ udevadm control --reload-rules
+$ udevadm trigger
 
 Udev will now create a /dev/stlinkv2_XX or /dev/stlinkv1_XX file, with the appropriate permissions.
 This is currently all the device is for, (only one stlink of each version is supported at 
@@ -169,6 +170,7 @@ No information:
 
 STLink v2 (as found on the 32L and F4 Discovery boards)
 Known Working Targets:
+* STM32F0Discovery (STM32F0 Discovery board)
 * STM32F100xx (Medium Density VL, as on the 32VL Discovery board)
 * STM32L1xx (STM32L Discovery board)
 * STM32F103VC, STM32F107RC, STM32L151RB, STM32F205RE and STM32F405RE on custom boards
