@@ -98,33 +98,46 @@ extern "C" {
  * DBGMCU_IDCODE register (0xE0042000)
  */
 // stm32 chipids, only lower 12 bits..
-#define STM32_CHIPID_F1_MEDIUM 0x410
-#define STM32_CHIPID_F2 0x411
-#define STM32_CHIPID_F1_LOW 0x412
-#define STM32_CHIPID_F3 0x422
-#define STM32_CHIPID_F37x 0x432
-#define STM32_CHIPID_F4 0x413
-#define STM32_CHIPID_F4_HD 0x419
-#define STM32_CHIPID_F4_LP 0x423
-#define STM32_CHIPID_F4_DE 0x433
-#define STM32_CHIPID_F1_HIGH 0x414
-#define STM32_CHIPID_L1_MEDIUM 0x416
+#define STM32_CHIPID_F1_MEDIUM      0x410
+#define STM32_CHIPID_F2             0x411
+#define STM32_CHIPID_F1_LOW         0x412
+#define STM32_CHIPID_F4             0x413
+#define STM32_CHIPID_F1_HIGH        0x414
+
+#define STM32_CHIPID_L1_MEDIUM      0x416
+
+#define STM32_CHIPID_F1_CONN        0x418
+#define STM32_CHIPID_F4_HD          0x419
+#define STM32_CHIPID_F1_VL_MEDIUM   0x420
+
+#define STM32_CHIPID_F3             0x422
+#define STM32_CHIPID_F4_LP          0x423
+
 #define STM32_CHIPID_L1_MEDIUM_PLUS 0x427
+#define STM32_CHIPID_F1_VL_HIGH     0x428
+
+#define STM32_CHIPID_F1_XL          0x430
+
+#define STM32_CHIPID_F37x           0x432
+#define STM32_CHIPID_F4_DE          0x433
+
+#define STM32_CHIPID_L1_HIGH        0x436
+#define STM32_CHIPID_L152_RE        0x437
+
+
+#define STM32_CHIPID_F3_SMALL       0x439
+#define STM32_CHIPID_F0             0x440
+
+#define STM32_CHIPID_F0_SMALL       0x444
+
+#define STM32_CHIPID_F0_CAN         0x448
+
 /*
  * 0x436 is actually assigned to some L1 chips that are called "Medium-Plus"
  * and some that are called "High".  0x427 is assigned to the other "Medium-
  * plus" chips.  To make it a bit simpler we just call 427 MEDIUM_PLUS and
  * 0x436 HIGH.
  */
-#define STM32_CHIPID_L1_HIGH 0x436
-#define STM32_CHIPID_L152_RE 0x437
-#define STM32_CHIPID_F1_CONN 0x418
-#define STM32_CHIPID_F1_VL_MEDIUM 0x420
-#define STM32_CHIPID_F1_VL_HIGH 0x428
-#define STM32_CHIPID_F1_XL 0x430
-#define STM32_CHIPID_F0 0x440
-#define STM32_CHIPID_F0_SMALL 0x444
-#define STM32_CHIPID_F0_CAN 0x448
 
 // Constant STM32 memory map figures
 #define STM32_FLASH_BASE 0x08000000
@@ -353,6 +366,16 @@ static const chip_params_t devices[] = {
                     .sram_size = 0x1000,		// "SRAM" byte size in hex from Table 2
                     .bootrom_base = 0x1fffec00,		// "System memory" starting address from Table 2
                     .bootrom_size = 0xC00 		// "System memory" byte size in hex from Table 2
+        },
+        {
+	    // STM32F30x
+            .chip_id = STM32_CHIPID_F3_SMALL,
+                    .description = "F3 small device",
+                    .flash_size_reg = 0x1ffff7cc,
+                    .flash_pagesize = 0x800,
+                    .sram_size = 0xa000,
+                    .bootrom_base = 0x1fffd800,
+                    .bootrom_size = 0x2000
         },
  };
 
