@@ -120,15 +120,21 @@ int main(int ac, char** av)
 
   if (o.devname != NULL) /* stlinkv1 */
   {
-    sl = stlink_v1_open(50, 1);
+    sl = stlink_v1_open(50, 0);
     if (sl == NULL) goto on_error;
     sl->verbose = 50;
   }
   else /* stlinkv2 */
   {
-    sl = stlink_open_usb(50, 1);
+    sl = stlink_open_usb(50, 0);
     if (sl == NULL) goto on_error;
     sl->verbose = 50;
+  }
+
+  if (o.addr >= sl->flash_base && o.addr + o.size <= sl->flash_base + sl->flash_size)
+  {
+    // Our address is inside flash memory so we need to reset the stlink.
+    stlink_reset(sl);
   }
 
   if (stlink_current_mode(sl) == STLINK_DEV_DFU_MODE)
