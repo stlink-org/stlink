@@ -355,16 +355,6 @@ static inline void write_flash_cr_snb(stlink_t *sl, uint32_t n) {
     stlink_write_debug32(sl, FLASH_F4_CR, x);
 }
 
-#if 0 /* todo */
-
-static void disable_flash_read_protection(stlink_t *sl) {
-    /* erase the option byte area */
-    /* rdp = 0x00a5; */
-    /* reset */
-}
-#endif /* todo */
-
-
 // Delegates to the backends...
 
 void stlink_close(stlink_t *sl) {
@@ -1089,19 +1079,6 @@ int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr)
             }
         }
 
-        /* unused: unlock the option byte block */
-#if 0
-        stlink_write_debug32(sl, STM32L_FLASH_OPTKEYR, 0xfbead9c8);
-        stlink_write_debug32(sl, STM32L_FLASH_OPTKEYR, 0x24252627);
-
-        /* check pecr.optlock is cleared */
-        val = stlink_read_debug32(sl, STM32L_FLASH_PECR);
-        if (val & (1 << 2)) {
-            fprintf(stderr, "pecr.prglock not clear\n");
-            return -1;
-        }
-#endif
-
         /* set pecr.{erase,prog} */
         val |= (1 << 9) | (1 << 3);
         stlink_write_debug32(sl, STM32L_FLASH_PECR, val);
@@ -1549,36 +1526,8 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uint32_t 
             off += size;
         }
 
-#if 0
-#define PROGRESS_CHUNK_SIZE 0x1000
-        /* write a word in program memory */
-        for (off = 0; off < len; off += sizeof(uint32_t)) {
-            uint32_t data;
-            if (sl->verbose >= 1) {
-                if ((off & (PROGRESS_CHUNK_SIZE - 1)) == 0) {
-                    /* show progress. writing procedure is slow
-                       and previous errors are misleading */
-                    const uint32_t pgnum = (off / PROGRESS_CHUNK_SIZE)+1;
-                    const uint32_t pgcount = len / PROGRESS_CHUNK_SIZE +1;
-                    fprintf(stdout, "Writing %ukB chunk %u out of %u\n",
-                            PROGRESS_CHUNK_SIZE/1024, pgnum, pgcount);
-                }
-            }
-
-            write_uint32((unsigned char*) &data, *(uint32_t*) (base + off));
-            stlink_write_debug32(sl, addr + off, data);
-
-            /* wait for sr.busy to be cleared */
-            wait_flash_busy(sl);
-
-        }
-#endif
         /* Relock flash */
         lock_flash(sl);
-
-#if 0 /* todo: debug mode */
-        fprintf(stdout, "Final CR:0x%x\n", read_flash_cr(sl));
-#endif
 
     }	//STM32F4END
 
@@ -1587,13 +1536,7 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uint32_t 
         /* use fast word write. todo: half page. */
         uint32_t val;
 
-#if 0 /* todo: check write operation */
-
-        uint32_t nwrites = sl->flash_pgsz;
-
-redo_write:
-
-#endif /* todo: check write operation */
+        /* todo: check write operation */
 
         /* disable pecr protection */
         stlink_write_debug32(sl, STM32L_FLASH_PEKEYR, 0x89abcdef);
@@ -1645,44 +1588,8 @@ redo_write:
             while ((stlink_read_debug32(sl, STM32L_FLASH_SR) & (1 << 0)) != 0)
                 ;
 
-#if 0 /* todo: check redo write operation */
+            /* todo: check redo write operation */
 
-            /* check written bytes. todo: should be on a per page basis. */
-            data = stlink_read_debug32(sl, addr + off);
-            if (data == *(uint32_t*)(base + off)) {
-                /* re erase the page and redo the write operation */
-                uint32_t page;
-                uint32_t val;
-
-                /* fail if successive write count too low */
-                if (nwrites < sl->flash_pgsz) {
-                    fprintf(stderr, "writes operation failure count too high, aborting\n");
-                    return -1;
-                }
-
-                nwrites = 0;
-
-                /* assume addr aligned */
-                if (off % sl->flash_pgsz) off &= ~(sl->flash_pgsz - 1);
-                page = addr + off;
-
-                fprintf(stderr, "invalid write @0x%x(0x%x): 0x%x != 0x%x. retrying.\n",
-                        page, addr + off, read_uint32(base + off, 0), read_uint32(sl->q_buf, 0));
-
-                /* reset lock bits */
-                val = stlink_read_debug32(sl, STM32L_FLASH_PECR)
-                    | (1 << 0) | (1 << 1) | (1 << 2);
-                stlink_write_debug32(sl, STM32L_FLASH_PECR, val);
-
-                stlink_erase_flash_page(sl, page);
-
-                goto redo_write;
-            }
-
-            /* increment successive writes counter */
-            ++nwrites;
-
-#endif /* todo: check redo write operation */
         }
         fprintf(stdout, "\n");
         /* reset lock bits */
