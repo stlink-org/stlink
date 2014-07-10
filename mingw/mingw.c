@@ -22,30 +22,30 @@ int win32_poll(struct pollfd *fds, unsigned int nfds, int timo)
     FD_ZERO(&ofds);
     FD_ZERO(&efds);
     for (i = 0, op = ip = 0; i < nfds; ++i) {
-	fds[i].revents = 0;
-	if(fds[i].events & (POLLIN|POLLPRI)) {
-		ip = &ifds;
-		FD_SET(fds[i].fd, ip);
-	}
-	if(fds[i].events & POLLOUT) {
-		op = &ofds;
-		FD_SET(fds[i].fd, op);
-	}
-	FD_SET(fds[i].fd, &efds);
+        fds[i].revents = 0;
+        if(fds[i].events & (POLLIN|POLLPRI)) {
+            ip = &ifds;
+            FD_SET(fds[i].fd, ip);
+        }
+        if(fds[i].events & POLLOUT) {
+            op = &ofds;
+            FD_SET(fds[i].fd, op);
+        }
+        FD_SET(fds[i].fd, &efds);
     } 
 
     /* Set up the timeval structure for the timeout parameter */
     if(timo < 0) {
-	toptr = 0;
+        toptr = 0;
     } else {
-	toptr = &timeout;
-	timeout.tv_sec = timo / 1000;
-	timeout.tv_usec = (timo - timeout.tv_sec * 1000) * 1000;
+        toptr = &timeout;
+        timeout.tv_sec = timo / 1000;
+        timeout.tv_usec = (timo - timeout.tv_sec * 1000) * 1000;
     }
 
 #ifdef DEBUG_POLL
     printf("Entering select() sec=%ld usec=%ld ip=%lx op=%lx\n",
-           (long)timeout.tv_sec, (long)timeout.tv_usec, (long)ip, (long)op);
+            (long)timeout.tv_sec, (long)timeout.tv_usec, (long)ip, (long)op);
 #endif
     rc = select(0, ip, op, &efds, toptr);
 #ifdef DEBUG_POLL
@@ -53,23 +53,23 @@ int win32_poll(struct pollfd *fds, unsigned int nfds, int timo)
 #endif
 
     if(rc <= 0)
-	return rc;
+        return rc;
 
     if(rc > 0) {
         for ( i = 0; i < nfds; ++i) {
             int fd = fds[i].fd;
-    	if(fds[i].events & (POLLIN|POLLPRI) && FD_ISSET(fd, &ifds))
-    		fds[i].revents |= POLLIN;
-    	if(fds[i].events & POLLOUT && FD_ISSET(fd, &ofds))
-    		fds[i].revents |= POLLOUT;
-    	if(FD_ISSET(fd, &efds))
-    		/* Some error was detected ... should be some way to know. */
-    		fds[i].revents |= POLLHUP;
+            if(fds[i].events & (POLLIN|POLLPRI) && FD_ISSET(fd, &ifds))
+                fds[i].revents |= POLLIN;
+            if(fds[i].events & POLLOUT && FD_ISSET(fd, &ofds))
+                fds[i].revents |= POLLOUT;
+            if(FD_ISSET(fd, &efds))
+                /* Some error was detected ... should be some way to know. */
+                fds[i].revents |= POLLHUP;
 #ifdef DEBUG_POLL
-        printf("%d %d %d revent = %x\n", 
-                FD_ISSET(fd, &ifds), FD_ISSET(fd, &ofds), FD_ISSET(fd, &efds), 
-                fds[i].revents
-        );
+            printf("%d %d %d revent = %x\n", 
+                    FD_ISSET(fd, &ifds), FD_ISSET(fd, &ofds), FD_ISSET(fd, &efds), 
+                    fds[i].revents
+                  );
 #endif
         }
     }
@@ -79,14 +79,14 @@ static void
 set_connect_errno(int winsock_err)
 {
     switch(winsock_err) {
-        case WSAEINVAL:
-        case WSAEALREADY:
-        case WSAEWOULDBLOCK:
-            errno = EINPROGRESS;
-            break;
-        default:
-            errno = winsock_err;
-            break;
+    case WSAEINVAL:
+    case WSAEALREADY:
+    case WSAEWOULDBLOCK:
+        errno = EINPROGRESS;
+        break;
+    default:
+        errno = winsock_err;
+        break;
     }
 }
 
@@ -94,12 +94,12 @@ static void
 set_socket_errno(int winsock_err)
 {
     switch(winsock_err) {
-        case WSAEWOULDBLOCK:
-            errno = EAGAIN;
-            break;
-        default:
-            errno = winsock_err;
-            break;
+    case WSAEWOULDBLOCK:
+        errno = EAGAIN;
+        break;
+    default:
+        errno = winsock_err;
+        break;
     }
 }
 /*
@@ -192,75 +192,75 @@ ssize_t win32_read_socket(SOCKET fd, void *buf, int n)
 
 char * win32_strtok_r(char *s, const char *delim, char **lasts)
 {
-	register char *spanp;
-	register int c, sc;
-	char *tok;
+    register char *spanp;
+    register int c, sc;
+    char *tok;
 
 
-	if (s == NULL && (s = *lasts) == NULL)
-		return (NULL);
+    if (s == NULL && (s = *lasts) == NULL)
+        return (NULL);
 
-	/*
-	 * Skip (span) leading delimiters (s += strspn(s, delim), sort of).
-	 */
+    /*
+     * Skip (span) leading delimiters (s += strspn(s, delim), sort of).
+     */
 cont:
-	c = *s++;
-	for (spanp = (char *)delim; (sc = *spanp++) != 0;) {
-		if (c == sc)
-			goto cont;
-	}
+    c = *s++;
+    for (spanp = (char *)delim; (sc = *spanp++) != 0;) {
+        if (c == sc)
+            goto cont;
+    }
 
-	if (c == 0) {		/* no non-delimiter characters */
-		*lasts = NULL;
-		return (NULL);
-	}
-	tok = s - 1;
+    if (c == 0) {		/* no non-delimiter characters */
+        *lasts = NULL;
+        return (NULL);
+    }
+    tok = s - 1;
 
-	/*
-	 * Scan token (scan for delimiters: s += strcspn(s, delim), sort of).
-	 * Note that delim must have one NUL; we stop if we see that, too.
-	 */
-	for (;;) {
-		c = *s++;
-		spanp = (char *)delim;
-		do {
-			if ((sc = *spanp++) == c) {
-				if (c == 0)
-					s = NULL;
-				else
-					s[-1] = 0;
-				*lasts = s;
-				return (tok);
-			}
-		} while (sc != 0);
-	}
-	/* NOTREACHED */
+    /*
+     * Scan token (scan for delimiters: s += strcspn(s, delim), sort of).
+     * Note that delim must have one NUL; we stop if we see that, too.
+     */
+    for (;;) {
+        c = *s++;
+        spanp = (char *)delim;
+        do {
+            if ((sc = *spanp++) == c) {
+                if (c == 0)
+                    s = NULL;
+                else
+                    s[-1] = 0;
+                *lasts = s;
+                return (tok);
+            }
+        } while (sc != 0);
+    }
+    /* NOTREACHED */
 }
 
 char *win32_strsep (char **stringp, const char *delim)
 {
-	register char *s;
-	register const char *spanp;
-	register int c, sc;
-	char *tok;
+    register char *s;
+    register const char *spanp;
+    register int c, sc;
+    char *tok;
 
-	if ((s = *stringp) == NULL)
-		return (NULL);
-	for (tok = s;;) {
-		c = *s++;
-		spanp = delim;
-		do {
-			if ((sc = *spanp++) == c) {
-				if (c == 0)
-					s = NULL;
-				else
-					s[-1] = 0;
-				*stringp = s;
-				return (tok);
-			}
-		} while (sc != 0);
-	}
-	/* NOTREACHED */
+    if ((s = *stringp) == NULL)
+        return (NULL);
+    for (tok = s;;) {
+        c = *s++;
+        spanp = delim;
+        do {
+            if ((sc = *spanp++) == c) {
+                if (c == 0)
+                    s = NULL;
+                else
+                    s[-1] = 0;
+                *stringp = s;
+                return (tok);
+            }
+        } while (sc != 0);
+    }
+    /* NOTREACHED */
 }
 
 #endif

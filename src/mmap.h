@@ -19,8 +19,8 @@
 extern "C" {
 #endif
 
-void *mmap(void *addr, size_t len, int prot, int flags, int fd, long long offset);
-int munmap(void *addr, size_t len);
+    void *mmap(void *addr, size_t len, int prot, int flags, int fd, long long offset);
+    int munmap(void *addr, size_t len);
 
 #ifdef __cplusplus
 }

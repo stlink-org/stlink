@@ -7,7 +7,7 @@
  */
 
 #ifndef STLINK_COMMON_H
-#define	STLINK_COMMON_H
+#define STLINK_COMMON_H
 
 #ifdef	__cplusplus
 extern "C" {
@@ -77,12 +77,12 @@ extern "C" {
 #define STLINK_JTAG_DRIVE_NRST 0x3c
 #define STLINK_JTAG_DRIVE_NRST 0x3c
 
-// cortex m3 technical reference manual
+    // cortex m3 technical reference manual
 #define CM3_REG_CPUID 0xE000ED00
 #define CM3_REG_FP_CTRL 0xE0002000
 #define CM3_REG_FP_COMP0 0xE0002008
 
-/* cortex core ids */
+    /* cortex core ids */
     // TODO clean this up...
 #define STM32VL_CORE_ID 0x1ba01477
 #define STM32L_CORE_ID 0x2ba01477
@@ -93,11 +93,11 @@ extern "C" {
 #define CORE_M3_R2 0x4BA00477
 #define CORE_M4_R0 0x2BA01477
 
-/*
- * Chip IDs are explained in the appropriate programming manual for the
- * DBGMCU_IDCODE register (0xE0042000)
- */
-// stm32 chipids, only lower 12 bits..
+    /*
+     * Chip IDs are explained in the appropriate programming manual for the
+     * DBGMCU_IDCODE register (0xE0042000)
+     */
+    // stm32 chipids, only lower 12 bits..
 #define STM32_CHIPID_F1_MEDIUM      0x410
 #define STM32_CHIPID_F2             0x411
 #define STM32_CHIPID_F1_LOW         0x412
@@ -132,252 +132,252 @@ extern "C" {
 
 #define STM32_CHIPID_F0_CAN         0x448
 
-/*
- * 0x436 is actually assigned to some L1 chips that are called "Medium-Plus"
- * and some that are called "High".  0x427 is assigned to the other "Medium-
- * plus" chips.  To make it a bit simpler we just call 427 MEDIUM_PLUS and
- * 0x436 HIGH.
- */
+    /*
+     * 0x436 is actually assigned to some L1 chips that are called "Medium-Plus"
+     * and some that are called "High".  0x427 is assigned to the other "Medium-
+     * plus" chips.  To make it a bit simpler we just call 427 MEDIUM_PLUS and
+     * 0x436 HIGH.
+     */
 
-// Constant STM32 memory map figures
+    // Constant STM32 memory map figures
 #define STM32_FLASH_BASE 0x08000000
 #define STM32_SRAM_BASE 0x20000000
 
-/* Cortex™-M3 Technical Reference Manual */
-/* Debug Halting Control and Status Register */
+    /* Cortex™-M3 Technical Reference Manual */
+    /* Debug Halting Control and Status Register */
 #define DHCSR 0xe000edf0
 #define DCRSR 0xe000edf4
 #define DCRDR 0xe000edf8
 #define DBGKEY 0xa05f0000
 
-/* Enough space to hold both a V2 command or a V1 command packaged as generic scsi*/
+    /* Enough space to hold both a V2 command or a V1 command packaged as generic scsi*/
 #define C_BUF_LEN 32
 
     typedef struct chip_params_ {
-	uint32_t chip_id;
-	char* description;
+        uint32_t chip_id;
+        char* description;
         uint32_t flash_size_reg;
-	uint32_t flash_pagesize;
-	uint32_t sram_size;
-	uint32_t bootrom_base, bootrom_size;
+        uint32_t flash_pagesize;
+        uint32_t sram_size;
+        uint32_t bootrom_base, bootrom_size;
     } chip_params_t;
 
 
-// These maps are from a combination of the Programming Manuals, and
-// also the Reference manuals.  (flash size reg is normally in ref man)
-static const chip_params_t devices[] = {
+    // These maps are from a combination of the Programming Manuals, and
+    // also the Reference manuals.  (flash size reg is normally in ref man)
+    static const chip_params_t devices[] = {
         { // table 2, PM0063
             .chip_id = STM32_CHIPID_F1_MEDIUM,
             .description = "F1 Medium-density device",
             .flash_size_reg = 0x1ffff7e0,
-                    .flash_pagesize = 0x400,
-                    .sram_size = 0x5000,
-                    .bootrom_base = 0x1ffff000,
-                    .bootrom_size = 0x800
+            .flash_pagesize = 0x400,
+            .sram_size = 0x5000,
+            .bootrom_base = 0x1ffff000,
+            .bootrom_size = 0x800
         },
         {  // table 1, PM0059
             .chip_id = STM32_CHIPID_F2,
-                    .description = "F2 device",
-                    .flash_size_reg = 0x1fff7a22, /* As in RM0033 Rev 5*/
-                    .flash_pagesize = 0x20000,
-                    .sram_size = 0x20000,
-                    .bootrom_base = 0x1fff0000,
-                    .bootrom_size = 0x7800
+            .description = "F2 device",
+            .flash_size_reg = 0x1fff7a22, /* As in RM0033 Rev 5*/
+            .flash_pagesize = 0x20000,
+            .sram_size = 0x20000,
+            .bootrom_base = 0x1fff0000,
+            .bootrom_size = 0x7800
         },
         { // PM0063
             .chip_id = STM32_CHIPID_F1_LOW,
-                    .description = "F1 Low-density device",
-                    .flash_size_reg = 0x1ffff7e0,
-                    .flash_pagesize = 0x400,
-                    .sram_size = 0x2800,
-                    .bootrom_base = 0x1ffff000,
-                    .bootrom_size = 0x800
+            .description = "F1 Low-density device",
+            .flash_size_reg = 0x1ffff7e0,
+            .flash_pagesize = 0x400,
+            .sram_size = 0x2800,
+            .bootrom_base = 0x1ffff000,
+            .bootrom_size = 0x800
         },
         {
             .chip_id = STM32_CHIPID_F4,
-                    .description = "F4 device",
-                    .flash_size_reg = 0x1FFF7A22,  /* As in rm0090 since Rev 2*/
-                    .flash_pagesize = 0x4000,
-                    .sram_size = 0x30000,
-                    .bootrom_base = 0x1fff0000,
-                    .bootrom_size = 0x7800
+            .description = "F4 device",
+            .flash_size_reg = 0x1FFF7A22,  /* As in rm0090 since Rev 2*/
+            .flash_pagesize = 0x4000,
+            .sram_size = 0x30000,
+            .bootrom_base = 0x1fff0000,
+            .bootrom_size = 0x7800
         },
         {
             .chip_id = STM32_CHIPID_F4_HD,
-                    .description = "F42x and F43x device",
-                    .flash_size_reg = 0x1FFF7A22,  /* As in rm0090 since Rev 2*/
-                    .flash_pagesize = 0x4000,
-                    .sram_size = 0x30000,
-                    .bootrom_base = 0x1fff0000,
-                    .bootrom_size = 0x7800
+            .description = "F42x and F43x device",
+            .flash_size_reg = 0x1FFF7A22,  /* As in rm0090 since Rev 2*/
+            .flash_pagesize = 0x4000,
+            .sram_size = 0x30000,
+            .bootrom_base = 0x1fff0000,
+            .bootrom_size = 0x7800
         },
         {
             .chip_id = STM32_CHIPID_F4_LP,
-                    .description = "F4 device (low power)",
-                    .flash_size_reg = 0x1FFF7A22,
-                    .flash_pagesize = 0x4000,
-                    .sram_size = 0x10000,
-                    .bootrom_base = 0x1fff0000,
-                    .bootrom_size = 0x7800
+            .description = "F4 device (low power)",
+            .flash_size_reg = 0x1FFF7A22,
+            .flash_pagesize = 0x4000,
+            .sram_size = 0x10000,
+            .bootrom_base = 0x1fff0000,
+            .bootrom_size = 0x7800
         },
         {
             .chip_id = STM32_CHIPID_F4_DE,
-                    .description = "F4 device (Dynamic Efficency)",
-                    .flash_size_reg = 0x1FFF7A22,
-                    .flash_pagesize = 0x4000,
-                    .sram_size = 0x18000,
-                    .bootrom_base = 0x1fff0000,
-                    .bootrom_size = 0x7800
+            .description = "F4 device (Dynamic Efficency)",
+            .flash_size_reg = 0x1FFF7A22,
+            .flash_pagesize = 0x4000,
+            .sram_size = 0x18000,
+            .bootrom_base = 0x1fff0000,
+            .bootrom_size = 0x7800
         },
         {
             .chip_id = STM32_CHIPID_F1_HIGH,
-                    .description = "F1 High-density device",
-                    .flash_size_reg = 0x1ffff7e0,
-                    .flash_pagesize = 0x800,
-                    .sram_size = 0x10000,
-                    .bootrom_base = 0x1ffff000,
-                    .bootrom_size = 0x800
+            .description = "F1 High-density device",
+            .flash_size_reg = 0x1ffff7e0,
+            .flash_pagesize = 0x800,
+            .sram_size = 0x10000,
+            .bootrom_base = 0x1ffff000,
+            .bootrom_size = 0x800
         },
         {
-          // This ignores the EEPROM! (and uses the page erase size,
-          // not the sector write protection...)
+            // This ignores the EEPROM! (and uses the page erase size,
+            // not the sector write protection...)
             .chip_id = STM32_CHIPID_L1_MEDIUM,
-                    .description = "L1 Med-density device",
-                    .flash_size_reg = 0x1ff8004c,
-                    .flash_pagesize = 0x100,
-                    .sram_size = 0x4000,
-                    .bootrom_base = 0x1ff00000,
-                    .bootrom_size = 0x1000
+            .description = "L1 Med-density device",
+            .flash_size_reg = 0x1ff8004c,
+            .flash_pagesize = 0x100,
+            .sram_size = 0x4000,
+            .bootrom_base = 0x1ff00000,
+            .bootrom_size = 0x1000
         },
         {
             .chip_id = STM32_CHIPID_L1_MEDIUM_PLUS,
-                    .description = "L1 Medium-Plus-density device",
-                    .flash_size_reg = 0x1ff800cc,
-                    .flash_pagesize = 0x100,
-                    .sram_size = 0x8000,/*Not completely clear if there are some with 48K*/
-                    .bootrom_base = 0x1ff00000,
-                    .bootrom_size = 0x1000
+            .description = "L1 Medium-Plus-density device",
+            .flash_size_reg = 0x1ff800cc,
+            .flash_pagesize = 0x100,
+            .sram_size = 0x8000,/*Not completely clear if there are some with 48K*/
+            .bootrom_base = 0x1ff00000,
+            .bootrom_size = 0x1000
         },
         {
             .chip_id = STM32_CHIPID_L1_HIGH,
-                    .description = "L1 High-density device",
-                    .flash_size_reg = 0x1ff800cc,
-                    .flash_pagesize = 0x100,
-                    .sram_size = 0xC000, /*Not completely clear if there are some with 32K*/
-                    .bootrom_base = 0x1ff00000,
-                    .bootrom_size = 0x1000
+            .description = "L1 High-density device",
+            .flash_size_reg = 0x1ff800cc,
+            .flash_pagesize = 0x100,
+            .sram_size = 0xC000, /*Not completely clear if there are some with 32K*/
+            .bootrom_base = 0x1ff00000,
+            .bootrom_size = 0x1000
         },
         {
             .chip_id = STM32_CHIPID_L152_RE,
-                    .description = "L152RE",
-                    .flash_size_reg = 0x1ff800cc,
-                    .flash_pagesize = 0x100,
-                    .sram_size = 0x14000, /*Not completely clear if there are some with 32K*/
-                    .bootrom_base = 0x1ff00000,
-                    .bootrom_size = 0x1000
+            .description = "L152RE",
+            .flash_size_reg = 0x1ff800cc,
+            .flash_pagesize = 0x100,
+            .sram_size = 0x14000, /*Not completely clear if there are some with 32K*/
+            .bootrom_base = 0x1ff00000,
+            .bootrom_size = 0x1000
         },
         {
             .chip_id = STM32_CHIPID_F1_CONN,
-                    .description = "F1 Connectivity line device",
-                    .flash_size_reg = 0x1ffff7e0,
-                    .flash_pagesize = 0x800,
-                    .sram_size = 0x10000,
-                    .bootrom_base = 0x1fffb000,
-                    .bootrom_size = 0x4800
+            .description = "F1 Connectivity line device",
+            .flash_size_reg = 0x1ffff7e0,
+            .flash_pagesize = 0x800,
+            .sram_size = 0x10000,
+            .bootrom_base = 0x1fffb000,
+            .bootrom_size = 0x4800
         },
         {
             .chip_id = STM32_CHIPID_F1_VL_MEDIUM,
-                    .description = "F1 Medium-density Value Line device",
-                    .flash_size_reg = 0x1ffff7e0,
-                    .flash_pagesize = 0x400,
-                    .sram_size = 0x2000,
-                    .bootrom_base = 0x1ffff000,
-                    .bootrom_size = 0x800
+            .description = "F1 Medium-density Value Line device",
+            .flash_size_reg = 0x1ffff7e0,
+            .flash_pagesize = 0x400,
+            .sram_size = 0x2000,
+            .bootrom_base = 0x1ffff000,
+            .bootrom_size = 0x800
         },
         {
-	    // This is STK32F303VCT6 device from STM32 F3 Discovery board.
-	    // Support based on DM00043574.pdf (RM0316) document.
+            // This is STK32F303VCT6 device from STM32 F3 Discovery board.
+            // Support based on DM00043574.pdf (RM0316) document.
             .chip_id = STM32_CHIPID_F3,
-                    .description = "F3 device",
-                    .flash_size_reg = 0x1ffff7cc,
-                    .flash_pagesize = 0x800,
-                    .sram_size = 0xa000,
-                    .bootrom_base = 0x1ffff000,
-                    .bootrom_size = 0x800
+            .description = "F3 device",
+            .flash_size_reg = 0x1ffff7cc,
+            .flash_pagesize = 0x800,
+            .sram_size = 0xa000,
+            .bootrom_base = 0x1ffff000,
+            .bootrom_size = 0x800
         },
         {
-	    // This is STK32F373VCT6 device from STM32 F373 eval board
-	    // Support based on 303 above (37x and 30x have same memory map)
+            // This is STK32F373VCT6 device from STM32 F373 eval board
+            // Support based on 303 above (37x and 30x have same memory map)
             .chip_id = STM32_CHIPID_F37x,
-                    .description = "F3 device",
-                    .flash_size_reg = 0x1ffff7cc,
-                    .flash_pagesize = 0x800,
-                    .sram_size = 0xa000,
-                    .bootrom_base = 0x1ffff000,
-                    .bootrom_size = 0x800
+            .description = "F3 device",
+            .flash_size_reg = 0x1ffff7cc,
+            .flash_pagesize = 0x800,
+            .sram_size = 0xa000,
+            .bootrom_base = 0x1ffff000,
+            .bootrom_size = 0x800
         },
         {
             .chip_id = STM32_CHIPID_F1_VL_HIGH,
-                    .description = "F1 High-density value line device",
-                    .flash_size_reg = 0x1ffff7e0,
-                    .flash_pagesize = 0x800,
-                    .sram_size = 0x8000,
-                    .bootrom_base = 0x1ffff000,
-                    .bootrom_size = 0x800
+            .description = "F1 High-density value line device",
+            .flash_size_reg = 0x1ffff7e0,
+            .flash_pagesize = 0x800,
+            .sram_size = 0x8000,
+            .bootrom_base = 0x1ffff000,
+            .bootrom_size = 0x800
         },
         {
             .chip_id = STM32_CHIPID_F1_XL,
-                    .description = "F1 XL-density device",
-                    .flash_size_reg = 0x1ffff7e0,
-                    .flash_pagesize = 0x800,
-                    .sram_size = 0x18000,
-                    .bootrom_base = 0x1fffe000,
-                    .bootrom_size = 0x1800
+            .description = "F1 XL-density device",
+            .flash_size_reg = 0x1ffff7e0,
+            .flash_pagesize = 0x800,
+            .sram_size = 0x18000,
+            .bootrom_base = 0x1fffe000,
+            .bootrom_size = 0x1800
         },
-        { 
-             //Use this as an example for mapping future chips:
-             //RM0091 document was used to find these paramaters
+        {
+            //Use this as an example for mapping future chips:
+            //RM0091 document was used to find these paramaters
             .chip_id = STM32_CHIPID_F0_CAN,
-                    .description = "F07x device",
-                    .flash_size_reg = 0x1ffff7cc,      // "Flash size data register" (pg735)
-                    .flash_pagesize = 0x800,           // Page sizes listed in Table 4
-                    .sram_size = 0x4000,               // "SRAM" byte size in hex from Table 2
-                    .bootrom_base = 0x1fffC800,                // "System memory" starting address from Table 2
-                    .bootrom_size = 0x3000             // "System memory" byte size in hex from Table 2
+            .description = "F07x device",
+            .flash_size_reg = 0x1ffff7cc,      // "Flash size data register" (pg735)
+            .flash_pagesize = 0x800,           // Page sizes listed in Table 4
+            .sram_size = 0x4000,               // "SRAM" byte size in hex from Table 2
+            .bootrom_base = 0x1fffC800,                // "System memory" starting address from Table 2
+            .bootrom_size = 0x3000             // "System memory" byte size in hex from Table 2
         },
         {
             //Use this as an example for mapping future chips:
             //RM0091 document was used to find these paramaters
             .chip_id = STM32_CHIPID_F0,
-                    .description = "F0 device",
-                    .flash_size_reg = 0x1ffff7cc,	// "Flash size data register" (pg735)
-                    .flash_pagesize = 0x400,		// Page sizes listed in Table 4
-                    .sram_size = 0x2000,		// "SRAM" byte size in hex from Table 2
-                    .bootrom_base = 0x1fffec00,		// "System memory" starting address from Table 2
-                    .bootrom_size = 0xC00 		// "System memory" byte size in hex from Table 2
+            .description = "F0 device",
+            .flash_size_reg = 0x1ffff7cc,	// "Flash size data register" (pg735)
+            .flash_pagesize = 0x400,		// Page sizes listed in Table 4
+            .sram_size = 0x2000,		// "SRAM" byte size in hex from Table 2
+            .bootrom_base = 0x1fffec00,		// "System memory" starting address from Table 2
+            .bootrom_size = 0xC00 		// "System memory" byte size in hex from Table 2
         },
         {
             //Use this as an example for mapping future chips:
             //RM0091 document was used to find these paramaters
             .chip_id = STM32_CHIPID_F0_SMALL,
-                    .description = "F0 small device",
-                    .flash_size_reg = 0x1ffff7cc,	// "Flash size data register" (pg735)
-                    .flash_pagesize = 0x400,		// Page sizes listed in Table 4
-                    .sram_size = 0x1000,		// "SRAM" byte size in hex from Table 2
-                    .bootrom_base = 0x1fffec00,		// "System memory" starting address from Table 2
-                    .bootrom_size = 0xC00 		// "System memory" byte size in hex from Table 2
+            .description = "F0 small device",
+            .flash_size_reg = 0x1ffff7cc,	// "Flash size data register" (pg735)
+            .flash_pagesize = 0x400,		// Page sizes listed in Table 4
+            .sram_size = 0x1000,		// "SRAM" byte size in hex from Table 2
+            .bootrom_base = 0x1fffec00,		// "System memory" starting address from Table 2
+            .bootrom_size = 0xC00 		// "System memory" byte size in hex from Table 2
         },
         {
-	    // STM32F30x
+            // STM32F30x
             .chip_id = STM32_CHIPID_F3_SMALL,
-                    .description = "F3 small device",
-                    .flash_size_reg = 0x1ffff7cc,
-                    .flash_pagesize = 0x800,
-                    .sram_size = 0xa000,
-                    .bootrom_base = 0x1fffd800,
-                    .bootrom_size = 0x2000
+            .description = "F3 small device",
+            .flash_size_reg = 0x1ffff7cc,
+            .flash_pagesize = 0x800,
+            .sram_size = 0xa000,
+            .bootrom_base = 0x1fffd800,
+            .bootrom_size = 0x2000
         },
- };
+    };
 
 
     typedef struct {
@@ -566,4 +566,3 @@ static const chip_params_t devices[] = {
 #endif
 
 #endif	/* STLINK_COMMON_H */
-
