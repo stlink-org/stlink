@@ -1,4 +1,4 @@
-/* 
+/*
  * Ugly, low performance, configurable level, logging "framework"
  */
 
@@ -8,7 +8,7 @@
 #ifdef	__cplusplus
 extern "C" {
 #endif
-    
+
 #define UDEBUG 90
 #define UINFO  50
 #define UWARN  30
