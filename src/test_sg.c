@@ -10,12 +10,6 @@
 #include "stlink-common.h"
 #include "uglylogging.h"
 
-#define LOG_TAG __FILE__
-#define DLOG(format, args...)         ugly_log(UDEBUG, LOG_TAG, format, ## args)
-#define ILOG(format, args...)         ugly_log(UINFO, LOG_TAG, format, ## args)
-#define WLOG(format, args...)         ugly_log(UWARN, LOG_TAG, format, ## args)
-#define fatal(format, args...)        ugly_log(UFATAL, LOG_TAG, format, ## args)
-
 static void __attribute__((unused)) mark_buf(stlink_t *sl) {
     memset(sl->q_buf, 0, sizeof(sl->q_buf));
     sl->q_buf[0] = 0xaa;
