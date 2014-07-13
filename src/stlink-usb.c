@@ -10,12 +10,6 @@
 #include "stlink-usb.h"
 #include "uglylogging.h"
 
-#define LOG_TAG __FILE__
-#define DLOG(format, args...)         ugly_log(UDEBUG, LOG_TAG, format, ## args)
-#define ILOG(format, args...)         ugly_log(UINFO, LOG_TAG, format, ## args)
-#define WLOG(format, args...)         ugly_log(UWARN, LOG_TAG, format, ## args)
-#define fatal(format, args...)        ugly_log(UFATAL, LOG_TAG, format, ## args)
-
 /* code from bsd timersub.h
 http://www.gnu-darwin.org/www001/src/ports/net/libevnet/work/libevnet-0.3.8/libnostd/bsd/sys/time/timersub.h.html
 */

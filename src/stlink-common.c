@@ -18,14 +18,6 @@
 #define O_BINARY 0
 #endif
 
-
-#define LOG_TAG __FILE__
-#define DLOG(format, args...)         ugly_log(UDEBUG, LOG_TAG, format, ## args)
-#define ILOG(format, args...)         ugly_log(UINFO, LOG_TAG, format, ## args)
-#define WLOG(format, args...)         ugly_log(UWARN, LOG_TAG, format, ## args)
-#define ELOG(format, args...)         ugly_log(UERROR, LOG_TAG, format, ## args)
-#define fatal(format, args...)        ugly_log(UFATAL, LOG_TAG, format, ## args)
-
 /* todo: stm32l15xxx flash memory, pm0062 manual */
 
 /* stm32f FPEC flash controller interface, pm0063 manual */

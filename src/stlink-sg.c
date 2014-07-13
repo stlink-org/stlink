@@ -91,12 +91,6 @@
 #include "stlink-sg.h"
 #include "uglylogging.h"
 
-#define LOG_TAG __FILE__
-#define DLOG(format, args...)         ugly_log(UDEBUG, LOG_TAG, format, ## args)
-#define ILOG(format, args...)         ugly_log(UINFO, LOG_TAG, format, ## args)
-#define WLOG(format, args...)         ugly_log(UWARN, LOG_TAG, format, ## args)
-#define fatal(format, args...)        ugly_log(UFATAL, LOG_TAG, format, ## args)
-
 static void clear_cdb(struct stlink_libsg *sl) {
     for (size_t i = 0; i < sizeof (sl->cdb_cmd_blk); i++)
         sl->cdb_cmd_blk[i] = 0;
@@ -992,8 +986,7 @@ stlink_t* stlink_v1_open_inner(const int verbose) {
 
     stlink_version(sl);
     if ((sl->version.st_vid != USB_ST_VID) || (sl->version.stlink_pid != USB_STLINK_PID)) {
-        ugly_log(UERROR, LOG_TAG,
-                "WTF? successfully opened, but unable to read version details. BROKEN!\n");
+        ELOG("WTF? successfully opened, but unable to read version details. BROKEN!\n");
         return NULL;
     }
 
@@ -1015,8 +1008,7 @@ stlink_t* stlink_v1_open_inner(const int verbose) {
     // re-query device info (and retest)
     stlink_version(sl);
     if ((sl->version.st_vid != USB_ST_VID) || (sl->version.stlink_pid != USB_STLINK_PID)) {
-        ugly_log(UERROR, LOG_TAG,
-                "WTF? successfully opened, but unable to read version details. BROKEN!\n");
+        ELOG("WTF? successfully opened, but unable to read version details. BROKEN!\n");
         return NULL;
     }
 

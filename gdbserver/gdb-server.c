@@ -1,4 +1,3 @@
-#define DEBUG 0
 /*
  * Copyright (C)  2011 Peter Zotov <whitequark@whitequark.org>
  * Use of this source code is governed by a BSD-style
@@ -22,14 +21,10 @@
 #endif
 
 #include <stlink-common.h>
+#include <uglylogging.h>
 
 #include "gdb-remote.h"
-
-#define DEFAULT_LOGGING_LEVEL 50
-#define DEFAULT_GDB_LISTEN_PORT 4242
-
-#define STRINGIFY_inner(name) #name
-#define STRINGIFY(name) STRINGIFY_inner(name)
+#include "gdb-server.h"
 
 #define FLASH_BASE 0x08000000
 
@@ -195,11 +190,11 @@ int main(int argc, char** argv) {
         stlink_reset(sl);
     }
 
-    printf("Chip ID is %08x, Core ID is  %08x.\n", sl->chip_id, sl->core_id);
+    ILOG("Chip ID is %08x, Core ID is  %08x.\n", sl->chip_id, sl->core_id);
 
     voltage = stlink_target_voltage(sl);
     if (voltage != -1) {
-        printf("Target voltage is %d mV.\n", voltage);
+        ILOG("Target voltage is %d mV.\n", voltage);
     }
 
     sl->verbose=0;
@@ -382,9 +377,7 @@ struct code_hw_watchpoint {
 struct code_hw_watchpoint data_watches[DATA_WATCH_NUM];
 
 static void init_data_watchpoints(stlink_t *sl) {
-#if DEBUG
-    printf("init watchpoints\n");
-#endif
+    DLOG("init watchpoints\n");
 
     // set trcena in debug command to turn on dwt unit
     stlink_write_debug32(sl, 0xE000EDFC,
@@ -397,8 +390,8 @@ static void init_data_watchpoints(stlink_t *sl) {
     }
 }
 
-static int add_data_watchpoint(stlink_t *sl, enum watchfun wf, stm32_addr_t addr, unsigned int len)
-{
+static int add_data_watchpoint(stlink_t *sl, enum watchfun wf,
+                               stm32_addr_t addr, unsigned int len) {
     int i = 0;
     uint32_t mask;
 
@@ -417,9 +410,7 @@ static int add_data_watchpoint(stlink_t *sl, enum watchfun wf, stm32_addr_t addr
         for(i = 0; i < DATA_WATCH_NUM; i++) {
             // is this an empty slot ?
             if(data_watches[i].fun == WATCHDISABLED) {
-#if DEBUG
-                printf("insert watchpoint %d addr %x wf %u mask %u len %d\n", i, addr, wf, mask, len);
-#endif
+                DLOG("insert watchpoint %d addr %x wf %u mask %u len %d\n", i, addr, wf, mask, len);
 
                 data_watches[i].fun = wf;
                 data_watches[i].addr = addr;
@@ -441,9 +432,7 @@ static int add_data_watchpoint(stlink_t *sl, enum watchfun wf, stm32_addr_t addr
         }
     }
 
-#if DEBUG
-    printf("failure: add watchpoints addr %x wf %u len %u\n", addr, wf, len);
-#endif
+    DLOG("failure: add watchpoints addr %x wf %u len %u\n", addr, wf, len);
     return -1;
 }
 
@@ -453,9 +442,7 @@ static int delete_data_watchpoint(stlink_t *sl, stm32_addr_t addr)
 
     for(i = 0 ; i < DATA_WATCH_NUM; i++) {
         if((data_watches[i].addr == addr) && (data_watches[i].fun != WATCHDISABLED)) {
-#if DEBUG
-            printf("delete watchpoint %d addr %x\n", i, addr);
-#endif
+            DLOG("delete watchpoint %d addr %x\n", i, addr);
 
             data_watches[i].fun = WATCHDISABLED;
             stlink_write_debug32(sl, 0xe0001028 + i * 16, 0);
@@ -464,9 +451,7 @@ static int delete_data_watchpoint(stlink_t *sl, stm32_addr_t addr)
         }
     }
 
-#if DEBUG
-    printf("failure: delete watchpoint addr %x\n", addr);
-#endif
+    DLOG("failure: delete watchpoint addr %x\n", addr);
 
     return -1;
 }
@@ -490,7 +475,7 @@ static void init_code_breakpoints(stlink_t *sl) {
     if (((val & 3) != 1) ||
             ((((val >> 8) & 0x70) | ((val >> 4) & 0xf)) != CODE_BREAK_NUM) ||
             (((val >> 8) & 0xf) != CODE_LIT_NUM)){
-        fprintf(stderr, "[FP_CTRL] = 0x%08x expecting 0x%08x\n", val,
+        ELOG("[FP_CTRL] = 0x%08x expecting 0x%08x\n", val,
                 ((CODE_BREAK_NUM & 0x70) << 8) | (CODE_LIT_NUM << 8) |  ((CODE_BREAK_NUM & 0xf) << 4) | 1);
     }
 
@@ -506,7 +491,7 @@ static int update_code_breakpoint(stlink_t *sl, stm32_addr_t addr, int set) {
     int type = addr & 0x2 ? CODE_BREAK_HIGH : CODE_BREAK_LOW;
 
     if(addr & 1) {
-        fprintf(stderr, "update_code_breakpoint: unaligned address %08x\n", addr);
+        ELOG("update_code_breakpoint: unaligned address %08x\n", addr);
         return -1;
     }
 
@@ -532,20 +517,16 @@ static int update_code_breakpoint(stlink_t *sl, stm32_addr_t addr, int set) {
     else	brk->type &= ~type;
 
     if(brk->type == 0) {
-#if DEBUG
-        printf("clearing hw break %d\n", id);
-#endif
+        DLOG("clearing hw break %d\n", id);
 
         stlink_write_debug32(sl, 0xe0002008 + id * 4, 0);
     } else {
         uint32_t mask = (brk->addr) | 1 | (brk->type << 30);
 
-#if DEBUG
-        printf("setting hw break %d at %08x (%d)\n",
-                id, brk->addr, brk->type);
-        printf("reg %08x \n",
-                mask);
-#endif
+        DLOG("setting hw break %d at %08x (%d)\n",
+                    id, brk->addr, brk->type);
+        DLOG("reg %08x \n",
+                    mask);
 
         stlink_write_debug32(sl, 0xe0002008 + id * 4, mask);
     }
@@ -567,13 +548,13 @@ static struct flash_block* flash_root;
 static int flash_add_block(stm32_addr_t addr, unsigned length, stlink_t *sl) {
 
     if(addr < FLASH_BASE || addr + length > FLASH_BASE + sl->flash_size) {
-        fprintf(stderr, "flash_add_block: incorrect bounds\n");
+        ELOG("flash_add_block: incorrect bounds\n");
         return -1;
     }
 
     stlink_calculate_pagesize(sl, addr);
     if(addr % FLASH_PAGE != 0 || length % FLASH_PAGE != 0) {
-        fprintf(stderr, "flash_add_block: unaligned block\n");
+        ELOG("flash_add_block: unaligned block\n");
         return -1;
     }
 
@@ -616,14 +597,14 @@ static int flash_populate(stm32_addr_t addr, uint8_t* data, unsigned length) {
     }
 
     if(fit_blocks == 0) {
-        fprintf(stderr, "Unfit data block %08x -> %04x\n", addr, length);
+        ELOG("Unfit data block %08x -> %04x\n", addr, length);
         return -1;
     }
 
     if(fit_length != length) {
-        fprintf(stderr, "warning: data block %08x -> %04x truncated to %04x\n",
+        WLOG("data block %08x -> %04x truncated to %04x\n",
                 addr, length, fit_length);
-        fprintf(stderr, "(this is not an error, just a GDB glitch)\n");
+        WLOG("(this is not an error, just a GDB glitch)\n");
     }
 
     return 0;
@@ -636,9 +617,7 @@ static int flash_go(stlink_t *sl) {
     stlink_reset(sl);
 
     for(struct flash_block* fb = flash_root; fb; fb = fb->next) {
-#if DEBUG
-        printf("flash_do: block %08x -> %04x\n", fb->addr, fb->length);
-#endif
+        DLOG("flash_do: block %08x -> %04x\n", fb->addr, fb->length);
 
         unsigned length = fb->length;
         for(stm32_addr_t page = fb->addr; page < fb->addr + fb->length; page += FLASH_PAGE) {
@@ -646,9 +625,7 @@ static int flash_go(stlink_t *sl) {
             //Update FLASH_PAGE
             stlink_calculate_pagesize(sl, page);
 
-#if DEBUG
-            printf("flash_do: page %08x\n", page);
-#endif
+            DLOG("flash_do: page %08x\n", page);
 
             if(stlink_write_flash(sl, page, fb->data + (page - fb->addr),
                         length > FLASH_PAGE ? FLASH_PAGE : length) < 0)
@@ -698,7 +675,7 @@ int serve(stlink_t *sl, st_state_t *st) {
         return 1;
     }
 
-    printf("Listening at *:%d...\n", st->listen_port);
+    ILOG("Listening at *:%d...\n", st->listen_port);
 
     int client = accept(sock, NULL, NULL);
     //signal (SIGINT, SIG_DFL);
@@ -716,7 +693,7 @@ int serve(stlink_t *sl, st_state_t *st) {
     init_code_breakpoints(sl);
     init_data_watchpoints(sl);
 
-    printf("GDB connected.\n");
+    ILOG("GDB connected.\n");
 
     /*
      * To allow resetting the chip from GDB it is required to
@@ -729,13 +706,11 @@ int serve(stlink_t *sl, st_state_t *st) {
 
         int status = gdb_recv_packet(client, &packet);
         if(status < 0) {
-            fprintf(stderr, "cannot recv: %d\n", status);
+            ELOG("cannot recv: %d\n", status);
             return 1;
         }
 
-#if DEBUG
-        printf("recv: %s\n", packet);
-#endif
+        DLOG("recv: %s\n", packet);
 
         char* reply = NULL;
         reg regp;
@@ -758,9 +733,7 @@ int serve(stlink_t *sl, st_state_t *st) {
                 char* queryName = calloc(queryNameLength + 1, 1);
                 strncpy(queryName, &packet[1], queryNameLength);
 
-#if DEBUG
-                printf("query: %s;%s\n", queryName, params);
-#endif
+                DLOG("query: %s;%s\n", queryName, params);
 
                 if(!strcmp(queryName, "Supported")) {
                     if(sl->chip_id==STM32_CHIPID_F4) {
@@ -783,10 +756,8 @@ int serve(stlink_t *sl, st_state_t *st) {
                     unsigned addr = strtoul(__s_addr, NULL, 16),
                              length = strtoul(s_length, NULL, 16);
 
-#if DEBUG
-                    printf("Xfer: type:%s;op:%s;annex:%s;addr:%d;length:%d\n",
-                            type, op, annex, addr, length);
-#endif
+                    DLOG("Xfer: type:%s;op:%s;annex:%s;addr:%d;length:%d\n",
+                                type, op, annex, addr, length);
 
                     const char* data = NULL;
 
@@ -820,9 +791,7 @@ int serve(stlink_t *sl, st_state_t *st) {
 
 
                     if (!strncmp(params,"726573756d65",12)) {// resume
-#if DEBUG
-                        printf("Rcmd: resume\n");
-#endif
+                        DLOG("Rcmd: resume\n");
                         stlink_run(sl);
 
                         reply = strdup("OK");
@@ -831,9 +800,7 @@ int serve(stlink_t *sl, st_state_t *st) {
 
                         stlink_force_debug(sl);
 
-#if DEBUG
-                        printf("Rcmd: halt\n");
-#endif
+                        DLOG("Rcmd: halt\n");
                     } else if (!strncmp(params,"6a7461675f7265736574",20)) { //jtag_reset
                         reply = strdup("OK");
 
@@ -841,9 +808,7 @@ int serve(stlink_t *sl, st_state_t *st) {
                         stlink_jtag_reset(sl, 0);
                         stlink_force_debug(sl);
 
-#if DEBUG
-                        printf("Rcmd: jtag_reset\n");
-#endif
+                        DLOG("Rcmd: jtag_reset\n");
                     } else if (!strncmp(params,"7265736574",10)) { //reset
                         reply = strdup("OK");
 
@@ -852,14 +817,9 @@ int serve(stlink_t *sl, st_state_t *st) {
                         init_code_breakpoints(sl);
                         init_data_watchpoints(sl);
 
-#if DEBUG
-                        printf("Rcmd: reset\n");
-#endif
+                        DLOG("Rcmd: reset\n");
                     } else {
-#if DEBUG
-                        printf("Rcmd: %s\n", params);
-#endif
-
+                        DLOG("Rcmd: %s\n", params);
                     }
 
                 }
@@ -888,10 +848,8 @@ int serve(stlink_t *sl, st_state_t *st) {
                     unsigned addr = strtoul(__s_addr, NULL, 16),
                              length = strtoul(s_length, NULL, 16);
 
-#if DEBUG
-                    printf("FlashErase: addr:%08x,len:%04x\n",
-                            addr, length);
-#endif
+                    DLOG("FlashErase: addr:%08x,len:%04x\n",
+                                addr, length);
 
                     if(flash_add_block(addr, length, sl) < 0) {
                         reply = strdup("E00");
@@ -926,9 +884,7 @@ int serve(stlink_t *sl, st_state_t *st) {
                     if(dec_index % 2 != 0)
                         dec_index++;
 
-#if DEBUG
-                    printf("binary packet %d -> %d\n", data_length, dec_index);
-#endif
+                    DLOG("binary packet %d -> %d\n", data_length, dec_index);
 
                     if(flash_populate(addr, decoded, dec_index) < 0) {
                         reply = strdup("E00");
@@ -959,7 +915,7 @@ int serve(stlink_t *sl, st_state_t *st) {
                 while(1) {
                     int status = gdb_check_for_interrupt(client);
                     if(status < 0) {
-                        fprintf(stderr, "cannot check for int: %d\n", status);
+                        ELOG("cannot check for int: %d\n", status);
                         return 1;
                     }
 
@@ -1267,13 +1223,11 @@ int serve(stlink_t *sl, st_state_t *st) {
         }
 
         if(reply) {
-#if DEBUG
-            printf("send: %s\n", reply);
-#endif
+            DLOG("send: %s\n", reply);
 
             int result = gdb_send_packet(client, reply);
             if(result != 0) {
-                fprintf(stderr, "cannot send: %d\n", result);
+                ELOG("cannot send: %d\n", result);
                 free(reply);
                 free(packet);
                 return 1;
