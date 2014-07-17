@@ -336,7 +336,7 @@ char* make_memory_map(stlink_t *sl) {
     char* map = malloc(4096);
     map[0] = '\0';
 
-    if(sl->chip_id==STM32_CHIPID_F4) {
+    if(sl->chip_id==STM32_CHIPID_F4 || sl->chip_id==STM32_CHIPID_F4_HD) {
         strcpy(map, memory_map_template_F4);
     } else {
         snprintf(map, 4096, memory_map_template,
@@ -736,7 +736,7 @@ int serve(stlink_t *sl, st_state_t *st) {
                 DLOG("query: %s;%s\n", queryName, params);
 
                 if(!strcmp(queryName, "Supported")) {
-                    if(sl->chip_id==STM32_CHIPID_F4) {
+                    if(sl->chip_id==STM32_CHIPID_F4 || sl->chip_id==STM32_CHIPID_F4_HD) {
                         reply = strdup("PacketSize=3fff;qXfer:memory-map:read+;qXfer:features:read+");
                     }
                     else {
