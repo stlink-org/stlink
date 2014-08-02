@@ -105,7 +105,7 @@ extern "C" {
 #define STM32_CHIPID_F1_HIGH        0x414
 
 #define STM32_CHIPID_L1_MEDIUM      0x416
-
+#define STM32_CHIPID_L0             0x417
 #define STM32_CHIPID_F1_CONN        0x418
 #define STM32_CHIPID_F4_HD          0x419
 #define STM32_CHIPID_F1_VL_MEDIUM   0x420
@@ -377,7 +377,18 @@ extern "C" {
             .bootrom_base = 0x1fffd800,
             .bootrom_size = 0x2000
         },
-    };
+        {
+            // STM32L0x
+            // RM0367,RM0377 documents was used to find these parameters
+            .chip_id = STM32_CHIPID_L0,
+            .description = "L0x3 device",
+            .flash_size_reg = 0x1ff8007c,
+            .flash_pagesize = 0x80,
+            .sram_size = 0x2000,
+            .bootrom_base = 0x1ff0000,
+            .bootrom_size = 0x1000
+        },
+ };
 
 
     typedef struct {
