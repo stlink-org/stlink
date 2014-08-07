@@ -113,6 +113,8 @@ extern "C" {
 #define STM32_CHIPID_F3             0x422
 #define STM32_CHIPID_F4_LP          0x423
 
+#define STM32_CHIPID_F411RE         0x431
+
 #define STM32_CHIPID_L1_MEDIUM_PLUS 0x427
 #define STM32_CHIPID_F1_VL_HIGH     0x428
 
@@ -217,6 +219,15 @@ extern "C" {
             .flash_size_reg = 0x1FFF7A22,
             .flash_pagesize = 0x4000,
             .sram_size = 0x10000,
+            .bootrom_base = 0x1fff0000,
+            .bootrom_size = 0x7800
+        },
+        {
+            .chip_id = STM32_CHIPID_F411RE,
+            .description = "F4 device (low power) - stm32f411re",
+            .flash_size_reg = 0x1FFF7A22,
+            .flash_pagesize = 0x4000,
+            .sram_size = 0x20000,
             .bootrom_base = 0x1fff0000,
             .bootrom_size = 0x7800
         },
