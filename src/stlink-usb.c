@@ -432,7 +432,7 @@ void _stlink_usb_jtag_reset(stlink_t * sl, int value) {
 
     cmd[i++] = STLINK_DEBUG_COMMAND;
     cmd[i++] = STLINK_JTAG_DRIVE_NRST;
-    cmd[i++] = (value)?0:1;
+    cmd[i++] = value;
 
     size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len);
     if (size == -1) {
