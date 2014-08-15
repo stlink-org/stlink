@@ -138,9 +138,9 @@ int main(int ac, char** av)
         stlink_enter_swd_mode(sl);
 
     if (o.reset){
-      stlink_jtag_reset(sl,2);
+        stlink_jtag_reset(sl,2);
         stlink_reset(sl);
-      }
+    }
 
     // Disable DMA - Set All DMA CCR Registers to zero. - AKS 1/7/2013
     if (sl->chip_id == STM32_CHIPID_F4)
@@ -199,9 +199,9 @@ int main(int ac, char** av)
     }
 
     if (o.reset){
-      stlink_jtag_reset(sl,2);
-      stlink_reset(sl);
-      }
+        stlink_jtag_reset(sl,2);
+        stlink_reset(sl);
+    }
 
     /* success */
     err = 0;

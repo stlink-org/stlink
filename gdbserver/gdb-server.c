@@ -804,8 +804,8 @@ int serve(stlink_t *sl, st_state_t *st) {
                     } else if (!strncmp(params,"6a7461675f7265736574",20)) { //jtag_reset
                         reply = strdup("OK");
 
-                        stlink_jtag_reset(sl, 1);
                         stlink_jtag_reset(sl, 0);
+                        stlink_jtag_reset(sl, 1);
                         stlink_force_debug(sl);
 
                         DLOG("Rcmd: jtag_reset\n");
