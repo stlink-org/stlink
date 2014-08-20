@@ -770,8 +770,7 @@ stlink_t* stlink_open_usb(const int verbose, int reset) {
         devAddr=atoi(c);
         ILOG("bus %03d dev %03d\n",devBus, devAddr);
     }
-    while (cnt){
-        cnt--;
+    while (cnt--){
         libusb_get_device_descriptor( list[cnt], &desc );
         if (desc.idVendor!=USB_ST_VID) continue;
         if (devBus && devAddr)
