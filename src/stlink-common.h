@@ -125,7 +125,7 @@ extern "C" {
 
 #define STM32_CHIPID_L1_HIGH        0x436
 #define STM32_CHIPID_L152_RE        0x437
-
+#define STM32_CHIPID_F334           0x438
 
 #define STM32_CHIPID_F3_SMALL       0x439
 #define STM32_CHIPID_F0             0x440
@@ -399,6 +399,18 @@ extern "C" {
             .bootrom_base = 0x1ff0000,
             .bootrom_size = 0x1000
         },
+        {
+            // STM32F334
+            // RM0364 document was used to find these parameters
+            .chip_id = STM32_CHIPID_F334,
+            .description = "F334 device",
+            .flash_size_reg = 0x1ffff7cc,
+            .flash_pagesize = 0x800,
+            .sram_size = 0x3000,
+            .bootrom_base = 0x1fffd800,
+            .bootrom_size = 0x2000
+        },
+
  };
 
 
