@@ -306,7 +306,7 @@ static const char* const memory_map_template_F4 =
     "  <memory type=\"flash\" start=\"0x08010000\" length=\"0x10000\">"     //Sector 4
     "    <property name=\"blocksize\">0x10000</property>"                   //64kB
     "  </memory>"
-    "  <memory type=\"flash\" start=\"0x08020000\" length=\"0x70000\">"     //Sectors 5..11
+    "  <memory type=\"flash\" start=\"0x08020000\" length=\"0xE0000\">"     //Sectors 5..11
     "    <property name=\"blocksize\">0x20000</property>"                   //128kB
     "  </memory>"
     "  <memory type=\"ram\" start=\"0x40000000\" length=\"0x1fffffff\"/>"   // peripheral regs
