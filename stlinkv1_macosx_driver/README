@@ -31,7 +31,6 @@ P.S. If error `OS X version not supported` occurs. For the latest versions of Ma
 > ISOSXLION=$(sw_vers -productVersion | sed -e 's:.[[:digit:]]*$::')
 ```
 FOR OS X 10.10 Yosemite you must force the system to load unsigned kernelextensions
-you can so this with this command
 
 sudo nvram boot-args="kext-dev-mode=1“
 
