@@ -89,7 +89,7 @@
 #define FLASH_F4_CR_LOCK 31
 #define FLASH_F4_CR_SER 1
 #define FLASH_F4_CR_SNB 3
-#define FLASH_F4_CR_SNB_MASK 0x38
+#define FLASH_F4_CR_SNB_MASK 0xf8
 #define FLASH_F4_SR_BSY 16
 
 #define L1_WRITE_BLOCK_SIZE 0x80
