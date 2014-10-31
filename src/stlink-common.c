@@ -1000,13 +1000,18 @@ int write_buffer_to_sram(stlink_t *sl, flash_loader_t* fl, const uint8_t* buf, s
 }
 
 uint32_t calculate_F4_sectornum(uint32_t flashaddr){
+    uint32_t offset = 0;
     flashaddr &= ~STM32_FLASH_BASE;	//Page now holding the actual flash address
-    if (flashaddr<0x4000) return (0);
-    else if(flashaddr<0x8000) return(1);
-    else if(flashaddr<0xc000) return(2);
-    else if(flashaddr<0x10000) return(3);
-    else if(flashaddr<0x20000) return(4);
-    else return(flashaddr/0x20000)+4;
+    if (flashaddr >= 0x100000) {
+        offset = 12;
+        flashaddr -= 0x100000;
+    } 
+    if (flashaddr<0x4000) return (offset + 0);
+    else if(flashaddr<0x8000) return(offset + 1);
+    else if(flashaddr<0xc000) return(offset + 2);
+    else if(flashaddr<0x10000) return(offset + 3);
+    else if(flashaddr<0x20000) return(offset + 4);
+    else return offset + (flashaddr/0x20000) +4;
 
 }
 
@@ -1014,6 +1019,9 @@ uint32_t stlink_calculate_pagesize(stlink_t *sl, uint32_t flashaddr){
     if ((sl->chip_id == STM32_CHIPID_F2) || (sl->chip_id == STM32_CHIPID_F4) || (sl->chip_id == STM32_CHIPID_F4_DE) ||
             (sl->chip_id == STM32_CHIPID_F4_LP) || (sl->chip_id == STM32_CHIPID_F4_HD) || (sl->chip_id == STM32_CHIPID_F411RE)) {
         uint32_t sector=calculate_F4_sectornum(flashaddr);
+        if (sector>= 12) {
+            sector -= 12;
+        }
         if (sector<4) sl->flash_pgsz=0x4000;
         else if(sector<5) sl->flash_pgsz=0x10000;
         else sl->flash_pgsz=0x20000;
