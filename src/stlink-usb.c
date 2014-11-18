@@ -864,10 +864,8 @@ stlink_t* stlink_open_usb(const int verbose, int reset) {
     if (reset) {
         stlink_reset(sl);
     }
-    stlink_load_device_params(sl);
     stlink_version(sl);
-
-    error = 0;
+    error = stlink_load_device_params(sl);
 
 on_libusb_error:
     if (devs != NULL) {
@@ -887,6 +885,6 @@ on_error:
         libusb_exit(slu->libusb_ctx);
     if (sl != NULL) free(sl);
     if (slu != NULL) free(slu);
-    return 0;
+    return NULL;
 }
 
