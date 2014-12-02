@@ -108,7 +108,7 @@ extern "C" {
 #define STM32_CHIPID_L0             0x417
 #define STM32_CHIPID_F1_CONN        0x418
 #define STM32_CHIPID_F4_HD          0x419
-#define STM32_CHIPID_F1_VL_MEDIUM   0x420
+#define STM32_CHIPID_F1_VL_MEDIUM_LOW 0x420
 
 #define STM32_CHIPID_F3             0x422
 #define STM32_CHIPID_F4_LP          0x423
@@ -296,12 +296,12 @@ extern "C" {
             .bootrom_base = 0x1fffb000,
             .bootrom_size = 0x4800
         },
-        {
-            .chip_id = STM32_CHIPID_F1_VL_MEDIUM,
-            .description = "F1 Medium-density Value Line device",
+        {//Low and Medium density VL have same chipid. RM0041 25.6.1
+            .chip_id = STM32_CHIPID_F1_VL_MEDIUM_LOW,
+            .description = "F1 Medium/Low-density Value Line device",
             .flash_size_reg = 0x1ffff7e0,
             .flash_pagesize = 0x400,
-            .sram_size = 0x2000,
+            .sram_size = 0x2000,//0x1000 for low density devices
             .bootrom_base = 0x1ffff000,
             .bootrom_size = 0x800
         },
