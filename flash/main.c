@@ -26,17 +26,17 @@ struct opts
 
 static void usage(void)
 {
-    puts("stlinkv1 command line: ./flash [--debug] [--reset] {read|write} /dev/sgX path addr <size>");
-    puts("stlinkv1 command line: ./flash [--debug] /dev/sgX erase");
-    puts("stlinkv2 command line: ./flash [--debug] [--reset] {read|write} path addr <size>");
-    puts("stlinkv2 command line: ./flash [--debug] erase");
+    puts("stlinkv1 command line: ./st-flash [--debug] [--reset] {read|write} /dev/sgX path addr <size>");
+    puts("stlinkv1 command line: ./st-flash [--debug] /dev/sgX erase");
+    puts("stlinkv2 command line: ./st-flash [--debug] [--reset] {read|write} path addr <size>");
+    puts("stlinkv2 command line: ./st-flash [--debug] erase");
     puts("                       use hex format for addr and <size>");
 }
 
 static int get_opts(struct opts* o, int ac, char** av)
 {
-    /* stlinkv1 command line: ./flash {read|write} /dev/sgX path addr <size> */
-    /* stlinkv2 command line: ./flash {read|write} path addr <size> */
+    /* stlinkv1 command line: ./st-flash {read|write} /dev/sgX path addr <size> */
+    /* stlinkv2 command line: ./st-flash {read|write} path addr <size> */
 
     unsigned int i = 0;
 
