@@ -132,6 +132,8 @@ extern "C" {
 
 #define STM32_CHIPID_F0_SMALL       0x444
 
+#define STM32_CHIPID_F04            0x445
+
 #define STM32_CHIPID_F0_CAN         0x448
 
     /*
@@ -364,6 +366,17 @@ extern "C" {
             .flash_size_reg = 0x1ffff7cc,	// "Flash size data register" (pg735)
             .flash_pagesize = 0x400,		// Page sizes listed in Table 4
             .sram_size = 0x2000,		// "SRAM" byte size in hex from Table 2
+            .bootrom_base = 0x1fffec00,		// "System memory" starting address from Table 2
+            .bootrom_size = 0xC00 		// "System memory" byte size in hex from Table 2
+        },
+        {
+            //Use this as an example for mapping future chips:
+            //RM0091 document was used to find these paramaters
+            .chip_id = STM32_CHIPID_F04,
+            .description = "F04x device",
+            .flash_size_reg = 0x1ffff7cc,	// "Flash size data register" (pg735)
+            .flash_pagesize = 0x400,		// Page sizes listed in Table 4
+            .sram_size = 0x1000,		// "SRAM" byte size in hex from Table 2
             .bootrom_base = 0x1fffec00,		// "System memory" starting address from Table 2
             .bootrom_size = 0xC00 		// "System memory" byte size in hex from Table 2
         },
