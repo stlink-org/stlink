@@ -9,6 +9,9 @@
 #include <sys/types.h>
 #include "stlink-common.h"
 
+#define DEBUG_LOG_LEVEL 100
+#define STND_LOG_LEVEL  50
+
 enum st_cmds {DO_WRITE = 0, DO_READ = 1, DO_ERASE = 2};
 struct opts
 {
@@ -18,25 +21,37 @@ struct opts
     stm32_addr_t addr;
     size_t size;
     int reset;
+    int log_level;
 };
 
 static void usage(void)
 {
-    puts("stlinkv1 command line: ./flash [--reset] {read|write} /dev/sgX path addr <size>");
-    puts("stlinkv1 command line: ./flash /dev/sgX erase");
-    puts("stlinkv2 command line: ./flash [--reset] {read|write} path addr <size>");
-    puts("stlinkv2 command line: ./flash erase");
+    puts("stlinkv1 command line: ./st-flash [--debug] [--reset] {read|write} /dev/sgX path addr <size>");
+    puts("stlinkv1 command line: ./st-flash [--debug] /dev/sgX erase");
+    puts("stlinkv2 command line: ./st-flash [--debug] [--reset] {read|write} path addr <size>");
+    puts("stlinkv2 command line: ./st-flash [--debug] erase");
     puts("                       use hex format for addr and <size>");
 }
 
 static int get_opts(struct opts* o, int ac, char** av)
 {
-    /* stlinkv1 command line: ./flash {read|write} /dev/sgX path addr <size> */
-    /* stlinkv2 command line: ./flash {read|write} path addr <size> */
+    /* stlinkv1 command line: ./st-flash {read|write} /dev/sgX path addr <size> */
+    /* stlinkv2 command line: ./st-flash {read|write} path addr <size> */
 
     unsigned int i = 0;
 
     if (ac < 1) return -1;
+
+    if (strcmp(av[0], "--debug") == 0)
+    {
+        o->log_level = DEBUG_LOG_LEVEL;
+        ac--;
+        av++;
+    }
+    else
+    {
+        o->log_level = STND_LOG_LEVEL;
+    }
 
     if (strcmp(av[0], "--reset") == 0)
     {
@@ -120,15 +135,15 @@ int main(int ac, char** av)
 
     if (o.devname != NULL) /* stlinkv1 */
     {
-        sl = stlink_v1_open(50, 1);
+        sl = stlink_v1_open(o.log_level, 1);
         if (sl == NULL) goto on_error;
-        sl->verbose = 50;
+        sl->verbose = o.log_level;
     }
     else /* stlinkv2 */
     {
-        sl = stlink_open_usb(50, 1);
+        sl = stlink_open_usb(o.log_level, 1);
         if (sl == NULL) goto on_error;
-        sl->verbose = 50;
+        sl->verbose = o.log_level;
     }
 
     if (stlink_current_mode(sl) == STLINK_DEV_DFU_MODE)

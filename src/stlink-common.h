@@ -108,7 +108,7 @@ extern "C" {
 #define STM32_CHIPID_L0             0x417
 #define STM32_CHIPID_F1_CONN        0x418
 #define STM32_CHIPID_F4_HD          0x419
-#define STM32_CHIPID_F1_VL_MEDIUM   0x420
+#define STM32_CHIPID_F1_VL_MEDIUM_LOW 0x420
 
 #define STM32_CHIPID_F3             0x422
 #define STM32_CHIPID_F4_LP          0x423
@@ -131,6 +131,8 @@ extern "C" {
 #define STM32_CHIPID_F0             0x440
 
 #define STM32_CHIPID_F0_SMALL       0x444
+
+#define STM32_CHIPID_F04            0x445
 
 #define STM32_CHIPID_F0_CAN         0x448
 
@@ -296,12 +298,12 @@ extern "C" {
             .bootrom_base = 0x1fffb000,
             .bootrom_size = 0x4800
         },
-        {
-            .chip_id = STM32_CHIPID_F1_VL_MEDIUM,
-            .description = "F1 Medium-density Value Line device",
+        {//Low and Medium density VL have same chipid. RM0041 25.6.1
+            .chip_id = STM32_CHIPID_F1_VL_MEDIUM_LOW,
+            .description = "F1 Medium/Low-density Value Line device",
             .flash_size_reg = 0x1ffff7e0,
             .flash_pagesize = 0x400,
-            .sram_size = 0x2000,
+            .sram_size = 0x2000,//0x1000 for low density devices
             .bootrom_base = 0x1ffff000,
             .bootrom_size = 0x800
         },
@@ -364,6 +366,17 @@ extern "C" {
             .flash_size_reg = 0x1ffff7cc,	// "Flash size data register" (pg735)
             .flash_pagesize = 0x400,		// Page sizes listed in Table 4
             .sram_size = 0x2000,		// "SRAM" byte size in hex from Table 2
+            .bootrom_base = 0x1fffec00,		// "System memory" starting address from Table 2
+            .bootrom_size = 0xC00 		// "System memory" byte size in hex from Table 2
+        },
+        {
+            //Use this as an example for mapping future chips:
+            //RM0091 document was used to find these paramaters
+            .chip_id = STM32_CHIPID_F04,
+            .description = "F04x device",
+            .flash_size_reg = 0x1ffff7cc,	// "Flash size data register" (pg735)
+            .flash_pagesize = 0x400,		// Page sizes listed in Table 4
+            .sram_size = 0x1000,		// "SRAM" byte size in hex from Table 2
             .bootrom_base = 0x1fffec00,		// "System memory" starting address from Table 2
             .bootrom_size = 0xC00 		// "System memory" byte size in hex from Table 2
         },

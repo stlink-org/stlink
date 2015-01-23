@@ -5,6 +5,7 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <libusb.h>
+#include <errno.h>
 
 #include "stlink-common.h"
 #include "stlink-usb.h"
@@ -788,7 +789,8 @@ stlink_t* stlink_open_usb(const int verbose, int reset) {
     } else {
         int error = libusb_open(list[cnt], &slu->usb_handle);
         if( error !=0 ) {
-            WLOG("Error %d opening ST-Link/V2 device %03d:%03d\n", error, libusb_get_bus_number(list[cnt]), libusb_get_device_address(list[cnt]));
+            WLOG("Error %d (%s) opening ST-Link/V2 device %03d:%03d\n", 
+		error, strerror (errno), libusb_get_bus_number(list[cnt]), libusb_get_device_address(list[cnt]));
             goto on_error;
         }
     }
@@ -864,10 +866,8 @@ stlink_t* stlink_open_usb(const int verbose, int reset) {
     if (reset) {
         stlink_reset(sl);
     }
-    stlink_load_device_params(sl);
     stlink_version(sl);
-
-    error = 0;
+    error = stlink_load_device_params(sl);
 
 on_libusb_error:
     if (devs != NULL) {
@@ -887,6 +887,6 @@ on_error:
         libusb_exit(slu->libusb_ctx);
     if (sl != NULL) free(sl);
     if (slu != NULL) free(slu);
-    return 0;
+    return NULL;
 }
 

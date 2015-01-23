@@ -478,6 +478,12 @@ int stlink_load_device_params(stlink_t *sl) {
     sl->sys_base = params->bootrom_base;
     sl->sys_size = params->bootrom_size;
 
+    //medium and low devices have the same chipid. ram size depends on flash size.
+    //STM32F100xx datasheet Doc ID 16455 Table 2
+    if(sl->chip_id == STM32_CHIPID_F1_VL_MEDIUM_LOW && sl->flash_size < 64 * 1024){
+        sl->sram_size = 0x1000;
+    }
+
     ILOG("Device connected is: %s, id %#x\n", params->description, chip_id);
     // TODO make note of variable page size here.....
     ILOG("SRAM size: %#x bytes (%d KiB), Flash: %#x bytes (%d KiB) in pages of %zd bytes\n",
@@ -1379,7 +1385,7 @@ int write_loader_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* size) {
             sl->chip_id == STM32_CHIPID_F4_LP || sl->chip_id == STM32_CHIPID_F4_HD || (sl->chip_id == STM32_CHIPID_F411RE)){
         loader_code = loader_code_stm32f4;
         loader_size = sizeof(loader_code_stm32f4);
-    } else if (sl->chip_id == STM32_CHIPID_F0 || sl->chip_id == STM32_CHIPID_F0_CAN || sl->chip_id == STM32_CHIPID_F0_SMALL) {
+    } else if (sl->chip_id == STM32_CHIPID_F0 || sl->chip_id == STM32_CHIPID_F04 || sl->chip_id == STM32_CHIPID_F0_CAN || sl->chip_id == STM32_CHIPID_F0_SMALL) {
         loader_code = loader_code_stm32f0;
         loader_size = sizeof(loader_code_stm32f0);
     } else if (sl->chip_id == STM32_CHIPID_L0) {
