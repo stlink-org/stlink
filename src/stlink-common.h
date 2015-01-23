@@ -209,7 +209,7 @@ extern "C" {
             .description = "F42x and F43x device",
             .flash_size_reg = 0x1FFF7A22,  /* As in rm0090 since Rev 2*/
             .flash_pagesize = 0x4000,
-            .sram_size = 0x30000,
+            .sram_size = 0x40000,
             .bootrom_base = 0x1fff0000,
             .bootrom_size = 0x7800
         },
