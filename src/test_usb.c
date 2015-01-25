@@ -10,11 +10,11 @@ int main(int ac, char** av) {
     ac = ac;
     av = av;
 
-    sl = stlink_open_usb(10);
+    sl = stlink_open_usb(10, 1);
     if (sl != NULL) {
         printf("-- version\n");
         stlink_version(sl);
-        
+
         printf("mode before doing anything: %d\n", stlink_current_mode(sl));
 
         if (stlink_current_mode(sl) == STLINK_DEV_DFU_MODE) {
@@ -43,7 +43,7 @@ int main(int ac, char** av) {
 
         printf("FP_CTRL\n");
         stlink_read_mem32(sl, CM3_REG_FP_CTRL, 4);
-        
+
         // no idea what reg this is..  */
         //     stlink_read_mem32(sl, 0xe000ed90, 4);
         // no idea what register this is...
@@ -58,7 +58,7 @@ int main(int ac, char** av) {
         stlink_write_mem32(sl,0x200000ac, 4);
         stlink_read_mem32(sl, 0x200000a8, 4);
         stlink_read_mem32(sl, 0x200000ac, 4);
-        
+
         /* Test 8 bit write */
         write_uint32(sl->q_buf,0x01234567);
         stlink_write_mem8(sl,0x200001a8,3);
@@ -79,8 +79,8 @@ int main(int ac, char** av) {
         stlink_write_reg(sl, 0x12345678, 15);
         for (off = 0; off < 21; off += 1)
             stlink_read_reg(sl, off, &regs);
-        
-       
+
+
         stlink_read_all_regs(sl, &regs);
 
         printf("-- status\n");

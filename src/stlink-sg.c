@@ -1,77 +1,77 @@
 /*
- Copyright (c) 2010 "Capt'ns Missing Link" Authors. All rights reserved.
- Use of this source code is governed by a BSD-style
- license that can be found in the LICENSE file.
-
- A linux stlink access demo. The purpose of this file is to mitigate the usual
- "reinventing the wheel" force by incompatible licenses and give you an idea,
- how to access the stlink device. That doesn't mean you should be a free-loader
- and not contribute your improvements to this code.
-
- Author: Martin Capitanio <m@capitanio.org>
- The stlink related constants kindly provided by Oliver Spencer (OpenOCD)
- for use in a GPL compatible license.
-
- Tested compatibility: linux, gcc >= 4.3.3
-
- The communication is based on standard USB mass storage device
- BOT (Bulk Only Transfer)
- - Endpoint 1: BULK_IN, 64 bytes max
- - Endpoint 2: BULK_OUT, 64 bytes max
-
- All CBW transfers are ordered with the LSB (byte 0) first (little endian).
- Any command must be answered before sending the next command.
- Each USB transfer must complete in less than 1s.
-
- SB Device Class Definition for Mass Storage Devices:
- www.usb.org/developers/devclass_docs/usbmassbulk_10.pdf
-
- dt		- Data Transfer (IN/OUT)
- CBW 		- Command Block Wrapper
- CSW		- Command Status Wrapper
- RFU		- Reserved for Future Use
-
- Originally, this driver used scsi pass through commands, which required the
- usb-storage module to be loaded, providing the /dev/sgX links.  The USB mass
- storage implementation on the STLinkv1 is however terribly broken, and it can 
- take many minutes for the kernel to give up.
- 
- However, in Nov 2011, the scsi pass through was replaced by raw libusb, so 
- instead of having to let usb-storage struggle with the device, and also greatly 
- limiting the portability of the driver, you can now tell usb-storage to simply
- ignore this device completely.
-   
- usb-storage.quirks
- http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=blob_plain;f=Documentation/kernel-parameters.txt
- Each entry has the form VID:PID:Flags where VID and PID are Vendor and Product
- ID values (4-digit hex numbers) and Flags is a set of characters, each corresponding
- to a common usb-storage quirk flag as follows:
-
- a = SANE_SENSE (collect more than 18 bytes of sense data);
- b = BAD_SENSE (don't collect more than 18 bytes of sense data);
- c = FIX_CAPACITY (decrease the reported device capacity by one sector);
- h = CAPACITY_HEURISTICS (decrease the reported device capacity by one sector if the number is odd);
- i = IGNORE_DEVICE (don't bind to this device);
- l = NOT_LOCKABLE (don't try to lock and unlock ejectable media);
- m = MAX_SECTORS_64 (don't transfer more than 64 sectors = 32 KB at a time);
- o = CAPACITY_OK (accept the capacity reported by the device);
- r = IGNORE_RESIDUE (the device reports bogus residue values);
- s = SINGLE_LUN (the device has only one Logical Unit);
- w = NO_WP_DETECT (don't test whether the medium is write-protected).
-
- Example: quirks=0419:aaf5:rl,0421:0433:rc
- http://permalink.gmane.org/gmane.linux.usb.general/35053
- 
- For the stlinkv1, you just want the following
-
- modprobe -r usb-storage && modprobe usb-storage quirks=483:3744:i
-
- Equivalently, you can add a line saying
-
- options usb-storage quirks=483:3744:i
-
- to your /etc/modprobe.conf or /etc/modprobe.d/local.conf (or add the "quirks=..."
- part to an existing options line for usb-storage).
+ * Copyright (c) 2010 "Capt'ns Missing Link" Authors. All rights reserved.
+ * Use of this source code is governed by a BSD-style
+ * license that can be found in the LICENSE file.
+ *
+ * A linux stlink access demo. The purpose of this file is to mitigate the usual
+ * "reinventing the wheel" force by incompatible licenses and give you an idea,
+ * how to access the stlink device. That doesn't mean you should be a free-loader
+ * and not contribute your improvements to this code.
+ *
+ * Author: Martin Capitanio <m@capitanio.org>
+ * The stlink related constants kindly provided by Oliver Spencer (OpenOCD)
+ * for use in a GPL compatible license.
+ *
+ * Tested compatibility: linux, gcc >= 4.3.3
+ *
+ * The communication is based on standard USB mass storage device
+ * BOT (Bulk Only Transfer)
+ * - Endpoint 1: BULK_IN, 64 bytes max
+ * - Endpoint 2: BULK_OUT, 64 bytes max
+ *
+ * All CBW transfers are ordered with the LSB (byte 0) first (little endian).
+ * Any command must be answered before sending the next command.
+ * Each USB transfer must complete in less than 1s.
+ *
+ * SB Device Class Definition for Mass Storage Devices:
+ * www.usb.org/developers/devclass_docs/usbmassbulk_10.pdf
+ *
+ * dt		- Data Transfer (IN/OUT)
+ * CBW 		- Command Block Wrapper
+ * CSW		- Command Status Wrapper
+ * RFU		- Reserved for Future Use
+ *
+ * Originally, this driver used scsi pass through commands, which required the
+ * usb-storage module to be loaded, providing the /dev/sgX links.  The USB mass
+ * storage implementation on the STLinkv1 is however terribly broken, and it can
+ * take many minutes for the kernel to give up.
+ *
+ * However, in Nov 2011, the scsi pass through was replaced by raw libusb, so
+ * instead of having to let usb-storage struggle with the device, and also greatly
+ * limiting the portability of the driver, you can now tell usb-storage to simply
+ * ignore this device completely.
+ *
+ * usb-storage.quirks
+ * http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=blob_plain;f=Documentation/kernel-parameters.txt
+ * Each entry has the form VID:PID:Flags where VID and PID are Vendor and Product
+ * ID values (4-digit hex numbers) and Flags is a set of characters, each corresponding
+ * to a common usb-storage quirk flag as follows:
+ *
+ * a = SANE_SENSE (collect more than 18 bytes of sense data);
+ * b = BAD_SENSE (don't collect more than 18 bytes of sense data);
+ * c = FIX_CAPACITY (decrease the reported device capacity by one sector);
+ * h = CAPACITY_HEURISTICS (decrease the reported device capacity by one sector if the number is odd);
+ * i = IGNORE_DEVICE (don't bind to this device);
+ * l = NOT_LOCKABLE (don't try to lock and unlock ejectable media);
+ * m = MAX_SECTORS_64 (don't transfer more than 64 sectors = 32 KB at a time);
+ * o = CAPACITY_OK (accept the capacity reported by the device);
+ * r = IGNORE_RESIDUE (the device reports bogus residue values);
+ * s = SINGLE_LUN (the device has only one Logical Unit);
+ * w = NO_WP_DETECT (don't test whether the medium is write-protected).
+ *
+ * Example: quirks=0419:aaf5:rl,0421:0433:rc
+ * http://permalink.gmane.org/gmane.linux.usb.general/35053
+ *
+ * For the stlinkv1, you just want the following
+ *
+ * modprobe -r usb-storage && modprobe usb-storage quirks=483:3744:i
+ *
+ * Equivalently, you can add a line saying
+ *
+ * options usb-storage quirks=483:3744:i
+ *
+ * to your /etc/modprobe.conf or /etc/modprobe.d/local.conf (or add the "quirks=..."
+ *         part to an existing options line for usb-storage).
  */
 
 
@@ -91,12 +91,6 @@
 #include "stlink-sg.h"
 #include "uglylogging.h"
 
-#define LOG_TAG __FILE__
-#define DLOG(format, args...)         ugly_log(UDEBUG, LOG_TAG, format, ## args)
-#define ILOG(format, args...)         ugly_log(UINFO, LOG_TAG, format, ## args)
-#define WLOG(format, args...)         ugly_log(UWARN, LOG_TAG, format, ## args)
-#define fatal(format, args...)        ugly_log(UFATAL, LOG_TAG, format, ## args)
-
 static void clear_cdb(struct stlink_libsg *sl) {
     for (size_t i = 0; i < sizeof (sl->cdb_cmd_blk); i++)
         sl->cdb_cmd_blk[i] = 0;
@@ -108,7 +102,8 @@ static void clear_cdb(struct stlink_libsg *sl) {
 /**
  * Close and free any _backend_ related information...
  * @param sl
- */void _stlink_sg_close(stlink_t *sl) {
+ */
+void _stlink_sg_close(stlink_t *sl) {
     if (sl) {
         struct stlink_libsg *slsg = sl->backend_data;
         libusb_close(slsg->usb_handle);
@@ -126,7 +121,7 @@ static int get_usb_mass_storage_status(libusb_device_handle *handle, uint8_t end
     int try = 0;
     do {
         ret = libusb_bulk_transfer(handle, endpoint, (unsigned char *)&csw, sizeof(csw),
-                                   &transferred, SG_TIMEOUT_MSEC);
+                &transferred, SG_TIMEOUT_MSEC);
         if (ret == LIBUSB_ERROR_PIPE) {
             libusb_clear_halt(handle, endpoint);
         }
@@ -175,11 +170,11 @@ static int dump_CDB_command(uint8_t *cdb, uint8_t cdb_len) {
  * @param lun
  * @param flags
  * @param expected_rx_size
- * @return 
+ * @return
  */
 int send_usb_mass_storage_command(libusb_device_handle *handle, uint8_t endpoint_out,
-                              uint8_t *cdb, uint8_t cdb_length,
-                              uint8_t lun, uint8_t flags, uint32_t expected_rx_size) {
+        uint8_t *cdb, uint8_t cdb_length,
+        uint8_t lun, uint8_t flags, uint32_t expected_rx_size) {
     DLOG("Sending usb m-s cmd: cdblen:%d, rxsize=%d\n", cdb_length, expected_rx_size);
     dump_CDB_command(cdb, cdb_length);
 
@@ -211,13 +206,13 @@ int send_usb_mass_storage_command(libusb_device_handle *handle, uint8_t endpoint
     // Now the actual CDB request
     assert(cdb_length <= CDB_SL);
     memcpy(&(c_buf[i]), cdb, cdb_length);
-    
+
     int sending_length = STLINK_SG_SIZE;
-    
+
     // send....
     do {
         ret = libusb_bulk_transfer(handle, endpoint_out, c_buf, sending_length,
-                                   &real_transferred, SG_TIMEOUT_MSEC);
+                &real_transferred, SG_TIMEOUT_MSEC);
         if (ret == LIBUSB_ERROR_PIPE) {
             libusb_clear_halt(handle, endpoint_out);
         }
@@ -237,7 +232,7 @@ int send_usb_mass_storage_command(libusb_device_handle *handle, uint8_t endpoint
  * @param endpoint_in
  * @param endpoint_out
  */
-static void
+    static void
 get_sense(libusb_device_handle *handle, uint8_t endpoint_in, uint8_t endpoint_out)
 {
     DLOG("Fetching sense...\n");
@@ -248,7 +243,7 @@ get_sense(libusb_device_handle *handle, uint8_t endpoint_in, uint8_t endpoint_ou
     cdb[0] = REQUEST_SENSE;
     cdb[4] = REQUEST_SENSE_LENGTH;
     uint32_t tag = send_usb_mass_storage_command(handle, endpoint_out, cdb, sizeof(cdb), 0,
-                                                 LIBUSB_ENDPOINT_IN, REQUEST_SENSE_LENGTH);
+            LIBUSB_ENDPOINT_IN, REQUEST_SENSE_LENGTH);
     if (tag == 0) {
         WLOG("refusing to send request sense with tag 0\n");
         return;
@@ -259,7 +254,7 @@ get_sense(libusb_device_handle *handle, uint8_t endpoint_in, uint8_t endpoint_ou
     int try = 0;
     do {
         ret = libusb_bulk_transfer(handle, endpoint_in, sense, sizeof(sense),
-                                   &transferred, SG_TIMEOUT_MSEC);
+                &transferred, SG_TIMEOUT_MSEC);
         if (ret == LIBUSB_ERROR_PIPE) {
             libusb_clear_halt(handle, endpoint_in);
         }
@@ -289,20 +284,20 @@ get_sense(libusb_device_handle *handle, uint8_t endpoint_in, uint8_t endpoint_ou
  * Just send a buffer on an endpoint, no questions asked.
  * Handles repeats, and time outs.  Also handles reading status reports and sense
  * @param handle libusb device *
- * @param endpoint_out sends 
- * @param endpoint_in used to read status reports back in 
+ * @param endpoint_out sends
+ * @param endpoint_in used to read status reports back in
  * @param cbuf  what to send
  * @param length how much to send
  * @return number of bytes actually sent, or -1 for failures.
  */
 int send_usb_data_only(libusb_device_handle *handle, unsigned char endpoint_out,
-    unsigned char endpoint_in, unsigned char *cbuf, unsigned int length) {
+        unsigned char endpoint_in, unsigned char *cbuf, unsigned int length) {
     int ret;
     int real_transferred;
     int try = 0;
     do {
         ret = libusb_bulk_transfer(handle, endpoint_out, cbuf, length,
-                                   &real_transferred, SG_TIMEOUT_MSEC);
+                &real_transferred, SG_TIMEOUT_MSEC);
         if (ret == LIBUSB_ERROR_PIPE) {
             libusb_clear_halt(handle, endpoint_out);
         }
@@ -312,7 +307,7 @@ int send_usb_data_only(libusb_device_handle *handle, unsigned char endpoint_out,
         WLOG("sending failed: %d\n", ret);
         return -1;
     }
-    
+
     // now, swallow up the status, so that things behave nicely...
     uint32_t received_tag;
     // -ve is for my errors, 0 is good, +ve is libusb sense status bytes
@@ -328,7 +323,7 @@ int send_usb_data_only(libusb_device_handle *handle, unsigned char endpoint_out,
         get_sense(handle, endpoint_in, endpoint_out);
         return -1;
     }
-    
+
     return real_transferred;
 }
 
@@ -338,10 +333,10 @@ int stlink_q(stlink_t *sl) {
     //uint8_t cdb_len = 6;  // FIXME varies!!!
     uint8_t cdb_len = 10;  // FIXME varies!!!
     uint8_t lun = 0;  // always zero...
-    uint32_t tag = send_usb_mass_storage_command(sg->usb_handle, sg->ep_req, 
-        sg->cdb_cmd_blk, cdb_len, lun, LIBUSB_ENDPOINT_IN, sl->q_len);
-    
-    
+    uint32_t tag = send_usb_mass_storage_command(sg->usb_handle, sg->ep_req,
+            sg->cdb_cmd_blk, cdb_len, lun, LIBUSB_ENDPOINT_IN, sl->q_len);
+
+
     // now wait for our response...
     // length copied from stlink-usb...
     int rx_length = sl->q_len;
@@ -350,8 +345,8 @@ int stlink_q(stlink_t *sl) {
     int ret;
     if (rx_length > 0) {
         do {
-            ret = libusb_bulk_transfer(sg->usb_handle, sg->ep_rep, sl->q_buf, rx_length, 
-                &real_transferred, SG_TIMEOUT_MSEC);
+            ret = libusb_bulk_transfer(sg->usb_handle, sg->ep_rep, sl->q_buf, rx_length,
+                    &real_transferred, SG_TIMEOUT_MSEC);
             if (ret == LIBUSB_ERROR_PIPE) {
                 libusb_clear_halt(sg->usb_handle, sg->ep_req);
             }
@@ -401,14 +396,14 @@ void stlink_stat(stlink_t *stl, char *txt) {
     stlink_print_data(stl);
 
     switch (stl->q_buf[0]) {
-        case STLINK_OK:
-            DLOG("  %s: ok\n", txt);
-            return;
-        case STLINK_FALSE:
-            DLOG("  %s: false\n", txt);
-            return;
-        default:
-            DLOG("  %s: unknown\n", txt);
+    case STLINK_OK:
+        DLOG("  %s: ok\n", txt);
+        return;
+    case STLINK_FALSE:
+        DLOG("  %s: false\n", txt);
+        return;
+    default:
+        DLOG("  %s: unknown\n", txt);
     }
 }
 
@@ -471,48 +466,48 @@ void _stlink_sg_exit_dfu_mode(stlink_t *sl) {
     sl->q_len = 0; // ??
     stlink_q(sl);
     /*
-     [135121.844564] sd 19:0:0:0: [sdb] Unhandled error code
-     [135121.844569] sd 19:0:0:0: [sdb] Result: hostbyte=DID_ERROR driverbyte=DRIVER_OK
-     [135121.844574] sd 19:0:0:0: [sdb] CDB: Read(10): 28 00 00 00 10 00 00 00 08 00
-     [135121.844584] end_request: I/O error, dev sdb, sector 4096
-     [135121.844590] Buffer I/O error on device sdb, logical block 512
-     [135130.122567] usb 6-1: reset full speed USB device using uhci_hcd and address 7
-     [135130.274551] usb 6-1: device firmware changed
-     [135130.274618] usb 6-1: USB disconnect, address 7
-     [135130.275186] VFS: busy inodes on changed media or resized disk sdb
-     [135130.275424] VFS: busy inodes on changed media or resized disk sdb
-     [135130.286758] VFS: busy inodes on changed media or resized disk sdb
-     [135130.292796] VFS: busy inodes on changed media or resized disk sdb
-     [135130.301481] VFS: busy inodes on changed media or resized disk sdb
-     [135130.304316] VFS: busy inodes on changed media or resized disk sdb
-     [135130.431113] usb 6-1: new full speed USB device using uhci_hcd and address 8
-     [135130.629444] usb-storage 6-1:1.0: Quirks match for vid 0483 pid 3744: 102a1
-     [135130.629492] scsi20 : usb-storage 6-1:1.0
-     [135131.625600] scsi 20:0:0:0: Direct-Access     STM32                          PQ: 0 ANSI: 0
-     [135131.627010] sd 20:0:0:0: Attached scsi generic sg2 type 0
-     [135131.633603] sd 20:0:0:0: [sdb] 64000 512-byte logical blocks: (32.7 MB/31.2 MiB)
-     [135131.633613] sd 20:0:0:0: [sdb] Assuming Write Enabled
-     [135131.633620] sd 20:0:0:0: [sdb] Assuming drive cache: write through
-     [135131.640584] sd 20:0:0:0: [sdb] Assuming Write Enabled
-     [135131.640592] sd 20:0:0:0: [sdb] Assuming drive cache: write through
-     [135131.640609]  sdb:
-     [135131.652634] sd 20:0:0:0: [sdb] Assuming Write Enabled
-     [135131.652639] sd 20:0:0:0: [sdb] Assuming drive cache: write through
-     [135131.652645] sd 20:0:0:0: [sdb] Attached SCSI removable disk
-     [135131.671536] sd 20:0:0:0: [sdb] Result: hostbyte=DID_OK driverbyte=DRIVER_SENSE
-     [135131.671548] sd 20:0:0:0: [sdb] Sense Key : Illegal Request [current]
-     [135131.671553] sd 20:0:0:0: [sdb] Add. Sense: Logical block address out of range
-     [135131.671560] sd 20:0:0:0: [sdb] CDB: Read(10): 28 00 00 00 f9 80 00 00 08 00
-     [135131.671570] end_request: I/O error, dev sdb, sector 63872
-     [135131.671575] Buffer I/O error on device sdb, logical block 7984
-     [135131.678527] sd 20:0:0:0: [sdb] Result: hostbyte=DID_OK driverbyte=DRIVER_SENSE
-     [135131.678532] sd 20:0:0:0: [sdb] Sense Key : Illegal Request [current]
-     [135131.678537] sd 20:0:0:0: [sdb] Add. Sense: Logical block address out of range
-     [135131.678542] sd 20:0:0:0: [sdb] CDB: Read(10): 28 00 00 00 f9 80 00 00 08 00
-     [135131.678551] end_request: I/O error, dev sdb, sector 63872
-     ...
-     [135131.853565] end_request: I/O error, dev sdb, sector 4096
-     */
+       [135121.844564] sd 19:0:0:0: [sdb] Unhandled error code
+       [135121.844569] sd 19:0:0:0: [sdb] Result: hostbyte=DID_ERROR driverbyte=DRIVER_OK
+       [135121.844574] sd 19:0:0:0: [sdb] CDB: Read(10): 28 00 00 00 10 00 00 00 08 00
+       [135121.844584] end_request: I/O error, dev sdb, sector 4096
+       [135121.844590] Buffer I/O error on device sdb, logical block 512
+       [135130.122567] usb 6-1: reset full speed USB device using uhci_hcd and address 7
+       [135130.274551] usb 6-1: device firmware changed
+       [135130.274618] usb 6-1: USB disconnect, address 7
+       [135130.275186] VFS: busy inodes on changed media or resized disk sdb
+       [135130.275424] VFS: busy inodes on changed media or resized disk sdb
+       [135130.286758] VFS: busy inodes on changed media or resized disk sdb
+       [135130.292796] VFS: busy inodes on changed media or resized disk sdb
+       [135130.301481] VFS: busy inodes on changed media or resized disk sdb
+       [135130.304316] VFS: busy inodes on changed media or resized disk sdb
+       [135130.431113] usb 6-1: new full speed USB device using uhci_hcd and address 8
+       [135130.629444] usb-storage 6-1:1.0: Quirks match for vid 0483 pid 3744: 102a1
+       [135130.629492] scsi20 : usb-storage 6-1:1.0
+       [135131.625600] scsi 20:0:0:0: Direct-Access     STM32                          PQ: 0 ANSI: 0
+       [135131.627010] sd 20:0:0:0: Attached scsi generic sg2 type 0
+       [135131.633603] sd 20:0:0:0: [sdb] 64000 512-byte logical blocks: (32.7 MB/31.2 MiB)
+       [135131.633613] sd 20:0:0:0: [sdb] Assuming Write Enabled
+       [135131.633620] sd 20:0:0:0: [sdb] Assuming drive cache: write through
+       [135131.640584] sd 20:0:0:0: [sdb] Assuming Write Enabled
+       [135131.640592] sd 20:0:0:0: [sdb] Assuming drive cache: write through
+       [135131.640609]  sdb:
+       [135131.652634] sd 20:0:0:0: [sdb] Assuming Write Enabled
+       [135131.652639] sd 20:0:0:0: [sdb] Assuming drive cache: write through
+       [135131.652645] sd 20:0:0:0: [sdb] Attached SCSI removable disk
+       [135131.671536] sd 20:0:0:0: [sdb] Result: hostbyte=DID_OK driverbyte=DRIVER_SENSE
+       [135131.671548] sd 20:0:0:0: [sdb] Sense Key : Illegal Request [current]
+       [135131.671553] sd 20:0:0:0: [sdb] Add. Sense: Logical block address out of range
+       [135131.671560] sd 20:0:0:0: [sdb] CDB: Read(10): 28 00 00 00 f9 80 00 00 08 00
+       [135131.671570] end_request: I/O error, dev sdb, sector 63872
+       [135131.671575] Buffer I/O error on device sdb, logical block 7984
+       [135131.678527] sd 20:0:0:0: [sdb] Result: hostbyte=DID_OK driverbyte=DRIVER_SENSE
+       [135131.678532] sd 20:0:0:0: [sdb] Sense Key : Illegal Request [current]
+       [135131.678537] sd 20:0:0:0: [sdb] Add. Sense: Logical block address out of range
+       [135131.678542] sd 20:0:0:0: [sdb] CDB: Read(10): 28 00 00 00 f9 80 00 00 08 00
+       [135131.678551] end_request: I/O error, dev sdb, sector 63872
+       ...
+       [135131.853565] end_request: I/O error, dev sdb, sector 4096
+       */
 }
 
 void _stlink_sg_core_id(stlink_t *sl) {
@@ -586,7 +581,7 @@ void _stlink_sg_read_all_regs(stlink_t *sl, reg *regp) {
     stlink_print_data(sl);
 
     // TODO - most of this should be re-extracted up....
-    
+
     // 0-3 | 4-7 | ... | 60-63 | 64-67 | 68-71   | 72-75      | 76-79 | 80-83
     // r0  | r1  | ... | r15   | xpsr  | main_sp | process_sp | rw    | rw2
     for (int i = 0; i < 16; i++) {
@@ -630,23 +625,23 @@ void _stlink_sg_read_reg(stlink_t *sl, int r_idx, reg *regp) {
     DLOG("r_idx (%2d) = 0x%08x\n", r_idx, r);
 
     switch (r_idx) {
-        case 16:
-            regp->xpsr = r;
-            break;
-        case 17:
-            regp->main_sp = r;
-            break;
-        case 18:
-            regp->process_sp = r;
-            break;
-        case 19:
-            regp->rw = r; //XXX ?(primask, basemask etc.)
-            break;
-        case 20:
-            regp->rw2 = r; //XXX ?(primask, basemask etc.)
-            break;
-        default:
-            regp->r[r_idx] = r;
+    case 16:
+        regp->xpsr = r;
+        break;
+    case 17:
+        regp->main_sp = r;
+        break;
+    case 18:
+        regp->process_sp = r;
+        break;
+    case 19:
+        regp->rw = r; //XXX ?(primask, basemask etc.)
+        break;
+    case 20:
+        regp->rw2 = r; //XXX ?(primask, basemask etc.)
+        break;
+    default:
+        regp->r[r_idx] = r;
     }
 }
 
@@ -872,14 +867,18 @@ stlink_backend_t _stlink_sg_backend = {
     _stlink_sg_write_mem8,
     _stlink_sg_read_all_regs,
     _stlink_sg_read_reg,
+    NULL,                   /* read_all_unsupported_regs */
+    NULL,                   /* read_unsupported_regs */
+    NULL,                   /* write_unsupported_regs */
     _stlink_sg_write_reg,
     _stlink_sg_step,
     _stlink_sg_current_mode,
-    _stlink_sg_force_debug
+    _stlink_sg_force_debug,
+    NULL
 };
 
 static stlink_t* stlink_open(const int verbose) {
-    
+
     stlink_t *sl = malloc(sizeof (stlink_t));
     memset(sl, 0, sizeof(stlink_t));
     struct stlink_libsg *slsg = malloc(sizeof (struct stlink_libsg));
@@ -887,16 +886,16 @@ static stlink_t* stlink_open(const int verbose) {
         WLOG("Couldn't malloc stlink and stlink_sg structures out of memory!\n");
         return NULL;
     }
-    
+
     if (libusb_init(&(slsg->libusb_ctx))) {
         WLOG("failed to init libusb context, wrong version of libraries?\n");
         free(sl);
         free(slsg);
         return NULL;
     }
-    
+
     libusb_set_debug(slsg->libusb_ctx, 3);
-    
+
     slsg->usb_handle = libusb_open_device_with_vid_pid(slsg->libusb_ctx, USB_ST_VID, USB_STLINK_PID);
     if (slsg->usb_handle == NULL) {
         WLOG("Failed to find an stlink v1 by VID:PID\n");
@@ -906,10 +905,10 @@ static stlink_t* stlink_open(const int verbose) {
         free(slsg);
         return NULL;
     }
-    
-    // TODO 
+
+    // TODO
     // Could read the interface config descriptor, and assert lots of the assumptions
-    
+
     // assumption: numInterfaces is always 1...
     if (libusb_kernel_driver_active(slsg->usb_handle, 0) == 1) {
         int r = libusb_detach_kernel_driver(slsg->usb_handle, 0);
@@ -935,7 +934,7 @@ static stlink_t* stlink_open(const int verbose) {
         return NULL;
 
     }
-    
+
     // assumption: bConfigurationValue is always 1
     if (config != 1) {
         WLOG("Your stlink got into a real weird configuration, trying to fix it!\n");
@@ -963,9 +962,9 @@ static stlink_t* stlink_open(const int verbose) {
     // assumption: endpoint config is fixed mang. really.
     slsg->ep_rep = 1 /* ep rep */ | LIBUSB_ENDPOINT_IN;
     slsg->ep_req = 2 /* ep req */ | LIBUSB_ENDPOINT_OUT;
-    
+
     DLOG("Successfully opened stlinkv1 by libusb :)\n");
-    
+
     sl->verbose = verbose;
     sl->backend_data = slsg;
     sl->backend = &_stlink_sg_backend;
@@ -987,15 +986,14 @@ stlink_t* stlink_v1_open_inner(const int verbose) {
 
     stlink_version(sl);
     if ((sl->version.st_vid != USB_ST_VID) || (sl->version.stlink_pid != USB_STLINK_PID)) {
-        ugly_log(UERROR, LOG_TAG, 
-            "WTF? successfully opened, but unable to read version details. BROKEN!\n");
+        ELOG("WTF? successfully opened, but unable to read version details. BROKEN!\n");
         return NULL;
     }
 
     DLOG("Reading current mode...\n");
     switch (stlink_current_mode(sl)) {
     case STLINK_DEV_MASS_MODE:
-            return sl;
+        return sl;
     case STLINK_DEV_DEBUG_MODE:
         // TODO go to mass?
         return sl;
@@ -1006,28 +1004,29 @@ stlink_t* stlink_v1_open_inner(const int verbose) {
 
     DLOG("Attempting to exit DFU mode\n");
     _stlink_sg_exit_dfu_mode(sl);
-    
+
     // re-query device info (and retest)
     stlink_version(sl);
     if ((sl->version.st_vid != USB_ST_VID) || (sl->version.stlink_pid != USB_STLINK_PID)) {
-        ugly_log(UERROR, LOG_TAG, 
-            "WTF? successfully opened, but unable to read version details. BROKEN!\n");
+        ELOG("WTF? successfully opened, but unable to read version details. BROKEN!\n");
         return NULL;
     }
 
     return sl;
 }
 
-stlink_t* stlink_v1_open(const int verbose) {
+stlink_t* stlink_v1_open(const int verbose, int reset) {
     stlink_t *sl = stlink_v1_open_inner(verbose);
     if (sl == NULL) {
         fputs("Error: could not open stlink device\n", stderr);
         return NULL;
     }
     // by now, it _must_ be fully open and in a useful mode....
-	stlink_enter_swd_mode(sl);
+    stlink_enter_swd_mode(sl);
     /* Now we are ready to read the parameters  */
-    stlink_reset(sl);
+    if (reset) {
+        stlink_reset(sl);
+    }
     stlink_load_device_params(sl);
     ILOG("Successfully opened a stlink v1 debugger\n");
     return sl;

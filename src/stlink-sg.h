@@ -1,4 +1,4 @@
-/* 
+/*
  * File:   stlink-sg.h
  * Author: karl
  *
@@ -11,11 +11,11 @@
 #ifdef	__cplusplus
 extern "C" {
 #endif
-    
+
 #include <libusb.h>
 #include "stlink-common.h"
-    
-        // device access
+
+    // device access
 #define RDWR		0
 #define RO		1
 #define SG_TIMEOUT_SEC	1 // actually 1 is about 2 sec
@@ -46,7 +46,7 @@ extern "C" {
         libusb_device_handle *usb_handle;
         unsigned ep_rep;
         unsigned ep_req;
-        
+
         int sg_fd;
         int do_scsi_pt_err;
 
@@ -63,7 +63,7 @@ extern "C" {
         reg reg;
     };
 
-    stlink_t* stlink_v1_open(const int verbose);
+    stlink_t* stlink_v1_open(const int verbose, int reset);
 
 #ifdef	__cplusplus
 }

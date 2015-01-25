@@ -20,6 +20,10 @@ config.status
 compile
 st-flash
 st-util
+st-term
+st-info
+test_usb
+test_sg
 *.deps*
 *.dirstamp
 *.a

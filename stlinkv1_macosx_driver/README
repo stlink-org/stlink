@@ -23,3 +23,15 @@ Then, install the driver using:
 sudo make osx_stlink_shield
 
 no reboot required.
+
+P.S. If error `OS X version not supported` occurs. For the latest versions of Mac OS X you may need to change the `osx/install.sh` as follows:
+```
+< ISOSXLION=$(sw_vers -productVersion)
+---
+> ISOSXLION=$(sw_vers -productVersion | sed -e 's:.[[:digit:]]*$::')
+```
+FOR OS X 10.10 Yosemite you must force the system to load unsigned kernelextensions
+
+sudo nvram boot-args="kext-dev-mode=1“
+
+reboot the system!

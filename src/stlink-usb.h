@@ -1,4 +1,4 @@
-/* 
+/*
  * File:   stlink-usb.h
  * Author: karl
  *
@@ -14,7 +14,7 @@ extern "C" {
 
 #include <libusb.h>
 #include "stlink-common.h"
-    
+
 #define STLINK_SG_SIZE 31
 #define STLINK_CMD_SIZE 16
 
@@ -29,8 +29,8 @@ extern "C" {
         unsigned int sg_transfer_idx;
         unsigned int cmd_len;
     };
-    
-    stlink_t* stlink_open_usb(const int verbose);
+
+    stlink_t* stlink_open_usb(const int verbose, int reset);
 
 
 #ifdef	__cplusplus
