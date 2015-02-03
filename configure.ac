@@ -13,10 +13,8 @@ AC_PROG_CC
 AC_PROG_INSTALL
 AC_CANONICAL_HOST
 AC_CANONICAL_BUILD
+AC_PROG_RANLIB
 AM_PROG_CC_C_O
-AC_CONFIG_MACRO_DIR([m4])
-
-LT_INIT
 
 AC_CHECK_HEADERS(sys/mman.h)
 AC_CHECK_HEADERS(sys/poll.h)
@@ -50,11 +48,6 @@ if test "x$with_gtk" = "xyes"; then
       AC_CONFIG_FILES([gui/Makefile])
 fi
 AC_SUBST([MAYBE_GUI])
-
-AC_ARG_ENABLE([static], AS_HELP_STRING([--enable-static], [enable binaries static linking]))
-if test "x$enable_static" = "xyes"; then
-      LDFLAGS="$LDFLAGS -all-static"
-fi
 
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT
