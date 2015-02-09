@@ -129,7 +129,7 @@ extern "C" {
 
 #define STM32_CHIPID_F3_SMALL       0x439
 #define STM32_CHIPID_F0             0x440
-
+#define STM32_CHIPID_F09X           0x442
 #define STM32_CHIPID_F0_SMALL       0x444
 
 #define STM32_CHIPID_F04            0x445
@@ -368,6 +368,15 @@ extern "C" {
             .sram_size = 0x2000,		// "SRAM" byte size in hex from Table 2
             .bootrom_base = 0x1fffec00,		// "System memory" starting address from Table 2
             .bootrom_size = 0xC00 		// "System memory" byte size in hex from Table 2
+        },
+	{
+            .chip_id = STM32_CHIPID_F09X,
+            .description = "F09X device",
+            .flash_size_reg = 0x1ffff7cc,	// "Flash size data register" (pg735)
+            .flash_pagesize = 0x800,		// Page sizes listed in Table 4 (pg 56)
+            .sram_size = 0x8000,		// "SRAM" byte size in hex from Table 2 (pg 50)
+            .bootrom_base = 0x1fffd800,		// "System memory" starting address from Table 2
+            .bootrom_size = 0x2000 		// "System memory" byte size in hex from Table 2
         },
         {
             //Use this as an example for mapping future chips:
