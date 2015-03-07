@@ -79,13 +79,8 @@
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
-#include <stdarg.h>
 #include <stdlib.h>
-#include <unistd.h>
-#include <fcntl.h>
 #include <sys/types.h>
-#include <sys/stat.h>
-#include "mmap.h"
 
 #include "stlink-common.h"
 #include "stlink-sg.h"
