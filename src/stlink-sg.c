@@ -980,7 +980,7 @@ stlink_t* stlink_v1_open_inner(const int verbose) {
     ugly_init(verbose);
     stlink_t *sl = stlink_open(verbose);
     if (sl == NULL) {
-        fputs("Error: could not open stlink device\n", stderr);
+        ELOG("Could not open stlink device\n");
         return NULL;
     }
 
