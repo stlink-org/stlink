@@ -79,13 +79,8 @@
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
-#include <stdarg.h>
 #include <stdlib.h>
-#include <unistd.h>
-#include <fcntl.h>
 #include <sys/types.h>
-#include <sys/stat.h>
-#include "mmap.h"
 
 #include "stlink-common.h"
 #include "stlink-sg.h"
@@ -980,7 +975,7 @@ stlink_t* stlink_v1_open_inner(const int verbose) {
     ugly_init(verbose);
     stlink_t *sl = stlink_open(verbose);
     if (sl == NULL) {
-        fputs("Error: could not open stlink device\n", stderr);
+        ELOG("Could not open stlink device\n");
         return NULL;
     }
 
@@ -1017,10 +1012,9 @@ stlink_t* stlink_v1_open_inner(const int verbose) {
 
 stlink_t* stlink_v1_open(const int verbose, int reset) {
     stlink_t *sl = stlink_v1_open_inner(verbose);
-    if (sl == NULL) {
-        fputs("Error: could not open stlink device\n", stderr);
+    if (sl == NULL)
         return NULL;
-    }
+
     // by now, it _must_ be fully open and in a useful mode....
     stlink_enter_swd_mode(sl);
     /* Now we are ready to read the parameters  */
