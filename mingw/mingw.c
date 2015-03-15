@@ -163,13 +163,15 @@ win32_shutdown(SOCKET fd, int mode)
     }
     return rc;
 }
-int win32_close_socket(SOCKET fd) {
-    int rc;
 
-    rc = closesocket(fd);
+int win32_close_socket(SOCKET fd)
+{
+    int rc = closesocket(fd);
+    if(rc == SOCKET_ERROR) {
+        set_socket_errno(WSAGetLastError());
+    }
     return rc;
 }
-
 
 ssize_t win32_write_socket(SOCKET fd, void *buf, int n)
 {

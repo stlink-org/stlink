@@ -733,6 +733,9 @@ int serve(stlink_t *sl, st_state_t *st) {
         int status = gdb_recv_packet(client, &packet);
         if(status < 0) {
             ELOG("cannot recv: %d\n", status);
+#ifdef __MINGW32__
+            win32_close_socket(sock);
+#endif
             return 1;
         }
 
@@ -942,6 +945,9 @@ int serve(stlink_t *sl, st_state_t *st) {
                     int status = gdb_check_for_interrupt(client);
                     if(status < 0) {
                         ELOG("cannot check for int: %d\n", status);
+#ifdef __MINGW32__
+                        win32_close_socket(sock);
+#endif
                         return 1;
                     }
 
@@ -1256,6 +1262,9 @@ int serve(stlink_t *sl, st_state_t *st) {
                 ELOG("cannot send: %d\n", result);
                 free(reply);
                 free(packet);
+#ifdef __MINGW32__
+                win32_close_socket(sock);
+#endif
                 return 1;
             }
 
@@ -1264,6 +1273,10 @@ int serve(stlink_t *sl, st_state_t *st) {
 
         free(packet);
     }
+
+#ifdef __MINGW32__
+    win32_close_socket(sock);
+#endif
 
     return 0;
 }

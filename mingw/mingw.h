@@ -54,6 +54,7 @@ SOCKET  win32_socket(int, int, int);
 int     win32_connect(SOCKET, struct sockaddr*, socklen_t);
 SOCKET  win32_accept(SOCKET, struct sockaddr*, socklen_t *);
 int     win32_shutdown(SOCKET, int);
+int 	win32_close_socket(SOCKET fd);
 
 #define strtok_r(x, y, z)      win32_strtok_r(x, y, z)
 #define strsep(x,y) win32_strsep(x,y)
