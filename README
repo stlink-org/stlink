@@ -170,6 +170,7 @@ No information:
 
 STLink v2 (as found on the 32L and F4 Discovery boards)
 Known Working Targets:
+* STM32F030F4P6 (custom board)
 * STM32F0Discovery (STM32F0 Discovery board)
 * STM32F100xx (Medium Density VL, as on the 32VL Discovery board)
 * STM32L1xx (STM32L Discovery board)
