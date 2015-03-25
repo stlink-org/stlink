@@ -209,7 +209,9 @@ int main(int argc, char** argv) {
 #endif
 
     do {
-        serve(sl, &state);
+        if (serve(sl, &state)) {
+	  sleep (1); // don't go bezurk if serve returns with error
+	}
 
         /* Continue */
         stlink_run(sl);
