@@ -176,6 +176,7 @@ Known Working Targets:
 * STM32L1xx (STM32L Discovery board)
 * STM32F103VC, STM32F107RC, STM32L151RB, STM32F205RE and STM32F405RE on custom boards
   (https://github.com/UweBonnes/wiki_fuer_alex/layout/usps...)
+* STM32F103VET6 (HY-STM32 board)
 * STM32F303xx (STM32F3 Discovery board)
 * STM32F407xx (STM32F4 Discovery board)
 * STM32F429I-DISCO (STM32F4 Discovery board with LCD)
