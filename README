@@ -156,6 +156,11 @@ A: Sometimes when you will try to use GDB `next' command to skip a loop,
 it will use a rather inefficient single-stepping way of doing that.
 Set up a breakpoint manually in that case and do `continue'.
 
+Q: Load command does not work in GDB.
+
+A: Some people report XML/EXPAT is not enabled by default when compiling
+GDB. Memory map parsing thus fail. Use --enable-expat.
+
 Currently known working combinations of programmer and target
 =============================================================
 
