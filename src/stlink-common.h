@@ -134,6 +134,8 @@ extern "C" {
 
 #define STM32_CHIPID_F04            0x445
 
+#define STM32_CHIPID_F303_HIGH      0x446
+
 #define STM32_CHIPID_F0_CAN         0x448
 
     /*
@@ -430,6 +432,17 @@ extern "C" {
             .flash_pagesize = 0x800,
             .sram_size = 0x3000,
             .bootrom_base = 0x1fffd800,
+            .bootrom_size = 0x2000
+        },
+        {
+            // This is STK32F303RET6 device from STM32 F3 Nucelo board.
+            // Support based on DM00043574.pdf (RM0316) document rev 5.
+            .chip_id = STM32_CHIPID_F303_HIGH,
+            .description = "F303 high density device",
+            .flash_size_reg = 0x1ffff7cc,    // 34.2.1 Flash size data register
+            .flash_pagesize = 0x800,         // 4.2.1 Flash memory organization
+            .sram_size = 0x10000,            // 3.3 Embedded SRAM
+            .bootrom_base = 0x1fffd800,      // 3.3.2 / Table 4 System Memory
             .bootrom_size = 0x2000
         },
 
