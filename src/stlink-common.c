@@ -1145,6 +1145,7 @@ int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr)
     } else if (sl->core_id == STM32VL_CORE_ID 
             || sl->core_id == STM32F0_CORE_ID 
             || sl->chip_id == STM32_CHIPID_F3 
+            || sl->chip_id == STM32_CHIPID_F303_HIGH
             || sl->chip_id == STM32_CHIPID_F37x
             || sl->chip_id == STM32_CHIPID_F334)  {
         /* wait for ongoing op to finish */
@@ -1377,8 +1378,11 @@ int write_loader_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* size) {
             || sl->chip_id == STM32_CHIPID_L1_HIGH || sl->chip_id == STM32_CHIPID_L152_RE) { /* stm32l */
         loader_code = loader_code_stm32l;
         loader_size = sizeof(loader_code_stm32l);
-    } else if (sl->core_id == STM32VL_CORE_ID || sl->chip_id == STM32_CHIPID_F3  ||
-                sl->chip_id == STM32_CHIPID_F37x || sl->chip_id == STM32_CHIPID_F334) {
+    } else if (sl->core_id == STM32VL_CORE_ID 
+            || sl->chip_id == STM32_CHIPID_F3
+            || sl->chip_id == STM32_CHIPID_F303_HIGH
+            || sl->chip_id == STM32_CHIPID_F37x
+            || sl->chip_id == STM32_CHIPID_F334) {
         loader_code = loader_code_stm32vl;
         loader_size = sizeof(loader_code_stm32vl);
     } else if (sl->chip_id == STM32_CHIPID_F2 || sl->chip_id == STM32_CHIPID_F4 || (sl->chip_id == STM32_CHIPID_F4_DE) ||
@@ -1682,6 +1686,7 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uint32_t 
     } else if (sl->core_id == STM32VL_CORE_ID ||
                 sl->core_id == STM32F0_CORE_ID ||
                 sl->chip_id == STM32_CHIPID_F3  ||
+                sl->chip_id == STM32_CHIPID_F303_HIGH ||
                 sl->chip_id == STM32_CHIPID_F334 ||
                 sl->chip_id == STM32_CHIPID_F37x) {
         ILOG("Starting Flash write for VL/F0/F3 core id\n");
@@ -1790,6 +1795,7 @@ int run_flash_loader(stlink_t *sl, flash_loader_t* fl, stm32_addr_t target, cons
     } else if (sl->core_id == STM32VL_CORE_ID ||
                 sl->core_id == STM32F0_CORE_ID ||
                 sl->chip_id == STM32_CHIPID_F3 ||
+                sl->chip_id == STM32_CHIPID_F303_HIGH ||
                 sl->chip_id == STM32_CHIPID_F37x ||
                 sl->chip_id == STM32_CHIPID_F334) {
 
@@ -1853,6 +1859,7 @@ int run_flash_loader(stlink_t *sl, flash_loader_t* fl, stm32_addr_t target, cons
     } else if (sl->core_id == STM32VL_CORE_ID ||
                 sl->core_id == STM32F0_CORE_ID ||
                 sl->chip_id == STM32_CHIPID_F3 ||
+                sl->chip_id == STM32_CHIPID_F303_HIGH ||
                 sl->chip_id == STM32_CHIPID_F37x ||
                 sl->chip_id == STM32_CHIPID_F334) {
 
