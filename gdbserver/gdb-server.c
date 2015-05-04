@@ -325,7 +325,11 @@ static const char* const memory_map_template_F4_HD =
     "<memory-map>"
     "  <memory type=\"rom\" start=\"0x00000000\" length=\"0x100000\"/>"     // code = sram, bootrom or flash; flash is bigger
     "  <memory type=\"ram\" start=\"0x10000000\" length=\"0x10000\"/>"      // ccm ram
-    "  <memory type=\"ram\" start=\"0x20000000\" length=\"0x30000\"/>"      // sram
+    "  <memory type=\"ram\" start=\"0x20000000\" length=\"0x40000\"/>"      // sram
+    "  <memory type=\"ram\" start=\"0x60000000\" length=\"0x10000000\"/>"   // fmc bank 1 (nor/psram/sram)
+    "  <memory type=\"ram\" start=\"0x70000000\" length=\"0x20000000\"/>"   // fmc bank 2 & 3 (nand flash)
+    "  <memory type=\"ram\" start=\"0x90000000\" length=\"0x10000000\"/>"   // fmc bank 4 (pc card)
+    "  <memory type=\"ram\" start=\"0xC0000000\" length=\"0x20000000\"/>"   // fmc sdram bank 1 & 2
     "  <memory type=\"flash\" start=\"0x08000000\" length=\"0x10000\">"     //Sectors 0..3
     "    <property name=\"blocksize\">0x4000</property>"                    //16kB
     "  </memory>"
