@@ -345,6 +345,28 @@ static const char* const memory_map_template_F4_HD =
     "  <memory type=\"rom\" start=\"0x1fffc000\" length=\"0x10\"/>"         // option byte area
     "</memory-map>";
 
+static const char* const memory_map_template_F2 =
+    "<?xml version=\"1.0\"?>"
+    "<!DOCTYPE memory-map PUBLIC \"+//IDN gnu.org//DTD GDB Memory Map V1.0//EN\""
+    "     \"http://sourceware.org/gdb/gdb-memory-map.dtd\">"
+    "<memory-map>"
+    "  <memory type=\"rom\" start=\"0x00000000\" length=\"0x%zx\"/>"        // code = sram, bootrom or flash; flash is bigger
+    "  <memory type=\"ram\" start=\"0x20000000\" length=\"0x%zx\"/>"        // sram
+    "  <memory type=\"flash\" start=\"0x08000000\" length=\"0x10000\">"     //Sectors 0..3
+    "    <property name=\"blocksize\">0x4000</property>"                    //16kB
+    "  </memory>"
+    "  <memory type=\"flash\" start=\"0x08010000\" length=\"0x10000\">"     //Sector 4
+    "    <property name=\"blocksize\">0x10000</property>"                   //64kB
+    "  </memory>"
+    "  <memory type=\"flash\" start=\"0x08020000\" length=\"0x%zx\">"       //Sectors 5..
+    "    <property name=\"blocksize\">0x20000</property>"                   //128kB
+    "  </memory>"
+    "  <memory type=\"ram\" start=\"0x40000000\" length=\"0x1fffffff\"/>"   // peripheral regs
+    "  <memory type=\"ram\" start=\"0xe0000000\" length=\"0x1fffffff\"/>"   // cortex regs
+    "  <memory type=\"rom\" start=\"0x%08x\" length=\"0x%zx\"/>"            // bootrom
+    "  <memory type=\"rom\" start=\"0x1fffc000\" length=\"0x10\"/>"         // option byte area
+    "</memory-map>";
+
 static const char* const memory_map_template =
     "<?xml version=\"1.0\"?>"
     "<!DOCTYPE memory-map PUBLIC \"+//IDN gnu.org//DTD GDB Memory Map V1.0//EN\""
@@ -370,6 +392,12 @@ char* make_memory_map(stlink_t *sl) {
         strcpy(map, memory_map_template_F4);
     } else if(sl->chip_id==STM32_CHIPID_F4_HD) {
         strcpy(map, memory_map_template_F4_HD);
+    } else if(sl->chip_id==STM32_CHIPID_F2) {
+        snprintf(map, 4096, memory_map_template_F2,
+                sl->flash_size,
+                sl->sram_size,
+                sl->flash_size - 0x20000,
+                sl->sys_base, sl->sys_size);
     } else {
         snprintf(map, 4096, memory_map_template,
                 sl->flash_size,
