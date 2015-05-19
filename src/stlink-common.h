@@ -117,6 +117,7 @@ extern "C" {
 
 #define STM32_CHIPID_L1_MEDIUM_PLUS 0x427
 #define STM32_CHIPID_F1_VL_HIGH     0x428
+#define STM32_CHIPID_L1_CAT2        0x429
 
 #define STM32_CHIPID_F1_XL          0x430
 
@@ -261,6 +262,15 @@ extern "C" {
             .flash_size_reg = 0x1ff8004c,
             .flash_pagesize = 0x100,
             .sram_size = 0x4000,
+            .bootrom_base = 0x1ff00000,
+            .bootrom_size = 0x1000
+        },
+        {
+            .chip_id = STM32_CHIPID_L1_CAT2,
+            .description = "L1 Cat.2 device",
+            .flash_size_reg = 0x1ff8004c,
+            .flash_pagesize = 0x100,
+            .sram_size = 0x8000,
             .bootrom_base = 0x1ff00000,
             .bootrom_size = 0x1000
         },
