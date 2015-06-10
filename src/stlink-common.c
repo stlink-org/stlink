@@ -65,6 +65,7 @@
 
 //STM32L0x flash register base and offsets
 //same as 32L1 above
+// RM0090 - DM00031020.pdf
 #define STM32L0_FLASH_REGS_ADDR ((uint32_t)0x40022000)
 #define FLASH_ACR_OFF     ((uint32_t) 0x00)
 #define FLASH_PECR_OFF    ((uint32_t) 0x04)
@@ -1374,6 +1375,29 @@ int write_loader_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* size) {
         0x00, 0x3c, 0x02, 0x40,
     };
 
+    static const uint8_t loader_code_stm32f4_lv[] = {
+        // flashloaders/stm32f4lv.s
+        0x92, 0x00,
+
+        0x08, 0x4b,
+        0x62, 0xb1,
+        0x04, 0x78,
+        0x0c, 0x70,
+
+        0xdc, 0x89,
+        0x14, 0xf0, 0x01, 0x0f,
+        0xfb, 0xd1,
+        0x00, 0xf1, 0x01, 0x00,
+        0x01, 0xf1, 0x01, 0x01,
+        0xa2, 0xf1, 0x01, 0x02,
+        0xf1, 0xe7,
+
+        0x00, 0xbe,
+        0x00, 0xbf,
+
+        0x00, 0x3c, 0x02, 0x40,
+    };
+
     const uint8_t* loader_code;
     size_t loader_size;
 
@@ -1391,15 +1415,21 @@ int write_loader_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* size) {
         loader_size = sizeof(loader_code_stm32vl);
     } else if (sl->chip_id == STM32_CHIPID_F2 || sl->chip_id == STM32_CHIPID_F4 || (sl->chip_id == STM32_CHIPID_F4_DE) ||
             sl->chip_id == STM32_CHIPID_F4_LP || sl->chip_id == STM32_CHIPID_F4_HD || (sl->chip_id == STM32_CHIPID_F411RE)){
-        loader_code = loader_code_stm32f4;
-        loader_size = sizeof(loader_code_stm32f4);
+        int voltage = stlink_target_voltage(sl);
+        if (voltage > 2700) {
+            loader_code = loader_code_stm32f4;
+            loader_size = sizeof(loader_code_stm32f4);
+        } else {
+            loader_code = loader_code_stm32f4_lv;
+            loader_size = sizeof(loader_code_stm32f4_lv);
+        }
     } else if (sl->chip_id == STM32_CHIPID_F0 || sl->chip_id == STM32_CHIPID_F04 || sl->chip_id == STM32_CHIPID_F0_CAN || sl->chip_id == STM32_CHIPID_F0_SMALL || sl->chip_id == STM32_CHIPID_F09X) {
         loader_code = loader_code_stm32f0;
         loader_size = sizeof(loader_code_stm32f0);
     } else if (sl->chip_id == STM32_CHIPID_L0) {
-		loader_code = loader_code_stm32l0;
-		loader_size = sizeof(loader_code_stm32l0);
-	} else {
+        loader_code = loader_code_stm32l0;
+        loader_size = sizeof(loader_code_stm32l0);
+    } else {
         ELOG("unknown coreid, not sure what flash loader to use, aborting!: %x\n", sl->core_id);
         return -1;
     }
@@ -1588,7 +1618,14 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uint32_t 
 
         /* TODO: Check that Voltage range is 2.7 - 3.6 V */
         /* set parallelisim to 32 bit*/
-        write_flash_cr_psiz(sl, 2);
+        int voltage = stlink_target_voltage(sl);
+        if (voltage > 2700) {
+            printf("enabling 32-bit flash writes\n");
+            write_flash_cr_psiz(sl, 2);
+        } else {
+            printf("Target voltage (%d mV) too low for 32-bit flash, using 8-bit flash writes\n", voltage);
+            write_flash_cr_psiz(sl, 0);
+        }
 
         /* set programming mode */
         set_flash_cr_pg(sl);
