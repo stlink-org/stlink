@@ -110,6 +110,7 @@ extern "C" {
 #define STM32_CHIPID_F4_HD          0x419
 #define STM32_CHIPID_F1_VL_MEDIUM_LOW 0x420
 
+#define STM32_CHIPID_F446           0x421
 #define STM32_CHIPID_F3             0x422
 #define STM32_CHIPID_F4_LP          0x423
 
@@ -318,6 +319,16 @@ extern "C" {
             .sram_size = 0x2000,//0x1000 for low density devices
             .bootrom_base = 0x1ffff000,
             .bootrom_size = 0x800
+        },
+        {
+            // STM32F446x family. Support based on DM00135183.pdf (RM0390) document.
+            .chip_id = STM32_CHIPID_F446,
+            .description = "F446 device",
+            .flash_size_reg = 0x1fff7a22,
+            .flash_pagesize = 0x20000,
+            .sram_size = 0x20000,
+            .bootrom_base = 0x1fff0000,
+            .bootrom_size = 0x7800
         },
         {
             // This is STK32F303VCT6 device from STM32 F3 Discovery board.
