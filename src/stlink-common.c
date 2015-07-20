@@ -80,6 +80,10 @@
 #define STM32L4_FLASH_CR_STRT   16      /* Start command */
 #define STM32L4_FLASH_CR_BKER   11      /* Bank select for page erase */
 #define STM32L4_FLASH_CR_PNB    3       /* Page number (8 bits) */
+// Bits requesting flash operations (useful when we want to clear them)
+#define STM32L4_FLASH_CR_OPBITS                                     \
+    ((1lu<<STM32L4_FLASH_CR_PG) | (1lu<<STM32L4_FLASH_CR_PER)       \
+    | (1lu<<STM32L4_FLASH_CR_MER1) | (1lu<<STM32L4_FLASH_CR_MER1))
 // Page is fully specified by BKER and PNB
 #define STM32L4_FLASH_CR_PAGEMASK (0x1fflu << STM32L4_FLASH_CR_PNB)
 
@@ -263,6 +267,7 @@ static void set_flash_cr_pg(stlink_t *sl) {
         stlink_write_debug32(sl, FLASH_F4_CR, x);
     } else if (sl->chip_id == STM32_CHIPID_L4) {
         uint32_t x = read_flash_cr(sl);
+        x &=~ STM32L4_FLASH_CR_OPBITS;
         x |= (1 << STM32L4_FLASH_CR_PG);
         stlink_write_debug32(sl, STM32L4_FLASH_CR, x);
     } else {
@@ -282,14 +287,8 @@ static void __attribute__((unused)) clear_flash_cr_pg(stlink_t *sl) {
 }
 
 static void set_flash_cr_per(stlink_t *sl) {
-    if (sl->chip_id == STM32_CHIPID_L4) {
-    	uint32_t n = read_flash_cr(sl);
-	n |= (1lu << STM32L4_FLASH_CR_PER);
-    	stlink_write_debug32(sl, STM32L4_FLASH_CR, n);
-    } else {
-    	const uint32_t n = 1 << FLASH_CR_PER;
-    	stlink_write_debug32(sl, FLASH_CR, n);
-    }
+    const uint32_t n = 1 << FLASH_CR_PER;
+    stlink_write_debug32(sl, FLASH_CR, n);
 }
 
 static void __attribute__((unused)) clear_flash_cr_per(stlink_t *sl) {
@@ -303,12 +302,12 @@ static void set_flash_cr_mer(stlink_t *sl) {
             (sl->chip_id == STM32_CHIPID_F446))
         stlink_write_debug32(sl, FLASH_F4_CR,
                 stlink_read_debug32(sl, FLASH_F4_CR) | (1 << FLASH_CR_MER));
-    else if (sl->chip_id == STM32_CHIPID_L4)
-	stlink_write_debug32(sl, STM32L4_FLASH_CR,
-		stlink_read_debug32(sl, STM32L4_FLASH_CR) |
-			(1lu << STM32L4_FLASH_CR_MER1) |
-			(1lu << STM32L4_FLASH_CR_MER2));
-    else
+    else if (sl->chip_id == STM32_CHIPID_L4) {
+        uint32_t x = stlink_read_debug32(sl, STM32L4_FLASH_CR);
+        x &=~ STM32L4_FLASH_CR_OPBITS;
+        x |= (1lu << STM32L4_FLASH_CR_MER1) | (1lu << STM32L4_FLASH_CR_MER2);
+        stlink_write_debug32(sl, STM32L4_FLASH_CR, x);
+    } else
         stlink_write_debug32(sl, FLASH_CR,
                 stlink_read_debug32(sl, FLASH_CR) | (1 << FLASH_CR_MER));
 }
@@ -434,6 +433,7 @@ static inline void write_flash_cr_snb(stlink_t *sl, uint32_t n) {
 
 static inline void write_flash_cr_bker_pnb(stlink_t *sl, uint32_t n) {
     uint32_t x = read_flash_cr(sl);
+    x &=~ STM32L4_FLASH_CR_OPBITS;
     x &=~ STM32L4_FLASH_CR_PAGEMASK;
     x |= (n << STM32L4_FLASH_CR_PNB);
     x |= (1lu << STM32L4_FLASH_CR_PER);
