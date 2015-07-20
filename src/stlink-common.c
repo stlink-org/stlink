@@ -1503,6 +1503,25 @@ int write_loader_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* size) {
         0x00, 0x3c, 0x02, 0x40,
     };
 
+    static const uint8_t loader_code_stm32l4[] = {
+        // flashloaders/stm32l4.s
+        0x08, 0x4b,             // start: ldr   r3, [pc, #32] ; <flash_base>
+        0x72, 0xb1,             // next:  cbz   r2, <done>
+        0x04, 0x68,             //        ldr   r4, [r0, #0]
+        0x45, 0x68,             //        ldr   r5, [r0, #4]
+        0x0c, 0x60,             //        str   r4, [r1, #0]
+        0x4d, 0x60,             //        str   r5, [r1, #4]
+        0x5c, 0x8a,             // wait:  ldrh  r4, [r3, #18]
+        0x14, 0xf0, 0x01, 0x0f, //        tst.w r4, #1
+        0xfb, 0xd1,             //        bne.n <wait>
+        0x00, 0xf1, 0x08, 0x00, //        add.w r0, r0, #8
+        0x01, 0xf1, 0x08, 0x01, //        add.w r1, r1, #8
+        0xa2, 0xf1, 0x02, 0x02, //        add.w r2, r2, #2
+        0xef, 0xe7,             //        b.n   <next>
+        0x00, 0xbe,             // done:  bkpt  0x0000
+        0x00, 0x20, 0x02, 0x40  // flash_base:  .word 0x40022000
+    };
+
     const uint8_t* loader_code;
     size_t loader_size;
 
@@ -1535,6 +1554,9 @@ int write_loader_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* size) {
     } else if (sl->chip_id == STM32_CHIPID_L0) {
         loader_code = loader_code_stm32l0;
         loader_size = sizeof(loader_code_stm32l0);
+    } else if (sl->chip_id == STM32_CHIPID_L4) {
+        loader_code = loader_code_stm32l4;
+        loader_size = sizeof(loader_code_stm32l4);
     } else {
         ELOG("unknown coreid, not sure what flash loader to use, aborting!: %x\n", sl->core_id);
         return -1;
@@ -1710,10 +1732,11 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uint32_t 
         (sl->chip_id == STM32_CHIPID_F4_LP) ||
         (sl->chip_id == STM32_CHIPID_F4_HD) ||
         (sl->chip_id == STM32_CHIPID_F411RE) ||
-        (sl->chip_id == STM32_CHIPID_F446)) {
+        (sl->chip_id == STM32_CHIPID_F446) ||
+        (sl->chip_id == STM32_CHIPID_L4)) {
         /* todo: check write operation */
 
-        ILOG("Starting Flash write for F2/F4\n");
+        ILOG("Starting Flash write for F2/F4/L4\n");
         /* flash loader initialization */
         if (init_flash_loader(sl, &fl) == -1) {
             ELOG("init_flash_loader() == -1\n");
@@ -1724,14 +1747,23 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uint32_t 
         unlock_flash_if(sl);
 
         /* TODO: Check that Voltage range is 2.7 - 3.6 V */
-        /* set parallelisim to 32 bit*/
-        int voltage = stlink_target_voltage(sl);
-        if (voltage > 2700) {
-            printf("enabling 32-bit flash writes\n");
-            write_flash_cr_psiz(sl, 2);
+        if (sl->chip_id != STM32_CHIPID_L4) {
+            /* set parallelisim to 32 bit*/
+            int voltage = stlink_target_voltage(sl);
+            if (voltage > 2700) {
+                printf("enabling 32-bit flash writes\n");
+                write_flash_cr_psiz(sl, 2);
+            } else {
+                printf("Target voltage (%d mV) too low for 32-bit flash, using 8-bit flash writes\n", voltage);
+                write_flash_cr_psiz(sl, 0);
+            }
         } else {
-            printf("Target voltage (%d mV) too low for 32-bit flash, using 8-bit flash writes\n", voltage);
-            write_flash_cr_psiz(sl, 0);
+            /* L4 does not have a byte-write mode */
+            int voltage = stlink_target_voltage(sl);
+            if (voltage <= 2700) {
+                printf("Target voltage (%d mV) too low for flash writes!\n", voltage);
+                return -1;
+            }
         }
 
         /* set programming mode */
@@ -1960,10 +1992,13 @@ int run_flash_loader(stlink_t *sl, flash_loader_t* fl, stm32_addr_t target, cons
 
     } else if (sl->chip_id == STM32_CHIPID_F2 || sl->chip_id == STM32_CHIPID_F4 || (sl->chip_id == STM32_CHIPID_F4_DE) ||
             sl->chip_id == STM32_CHIPID_F4_LP || sl->chip_id == STM32_CHIPID_F4_HD || (sl->chip_id == STM32_CHIPID_F411RE) ||
-            (sl->chip_id == STM32_CHIPID_F446)) {
+            (sl->chip_id == STM32_CHIPID_F446) || (sl->chip_id == STM32_CHIPID_L4)) {
 
         size_t count = size / sizeof(uint32_t);
         if (size % sizeof(uint32_t)) ++count;
+        if (sl->chip_id == STM32_CHIPID_L4) {
+            if (count % 2) ++count;
+        }
 
         /* setup core */
         stlink_write_reg(sl, fl->buf_addr, 0); /* source */
@@ -2021,7 +2056,7 @@ int run_flash_loader(stlink_t *sl, flash_loader_t* fl, stm32_addr_t target, cons
 
     } else if (sl->chip_id == STM32_CHIPID_F2 || sl->chip_id == STM32_CHIPID_F4 || (sl->chip_id == STM32_CHIPID_F4_DE) ||
             sl->chip_id == STM32_CHIPID_F4_LP || sl->chip_id == STM32_CHIPID_F4_HD || (sl->chip_id == STM32_CHIPID_F411RE) ||
-            (sl->chip_id == STM32_CHIPID_F446)) {
+            (sl->chip_id == STM32_CHIPID_F446) || (sl->chip_id == STM32_CHIPID_L4)) {
 
         stlink_read_reg(sl, 2, &rr);
         if (rr.r[2] != 0) {
