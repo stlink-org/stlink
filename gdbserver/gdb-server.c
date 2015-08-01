@@ -388,7 +388,7 @@ char* make_memory_map(stlink_t *sl) {
     char* map = malloc(4096);
     map[0] = '\0';
 
-    if(sl->chip_id==STM32_CHIPID_F4) {
+    if(sl->chip_id==STM32_CHIPID_F4 || sl->chip_id==STM32_CHIPID_F446) {
         strcpy(map, memory_map_template_F4);
     } else if(sl->chip_id==STM32_CHIPID_F4_HD) {
         strcpy(map, memory_map_template_F4_HD);
