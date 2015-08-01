@@ -103,7 +103,7 @@ extern "C" {
 #define STM32_CHIPID_F1_LOW         0x412
 #define STM32_CHIPID_F4             0x413
 #define STM32_CHIPID_F1_HIGH        0x414
-
+#define STM32_CHIPID_L4             0x415       /* Seen on L4x6 (RM0351) */
 #define STM32_CHIPID_L1_MEDIUM      0x416
 #define STM32_CHIPID_L0             0x417
 #define STM32_CHIPID_F1_CONN        0x418
@@ -465,6 +465,20 @@ extern "C" {
             .sram_size = 0x10000,            // 3.3 Embedded SRAM
             .bootrom_base = 0x1fffd800,      // 3.3.2 / Table 4 System Memory
             .bootrom_size = 0x2000
+        },
+        {
+            // STM32L4x6
+            // From RM0351.
+            .chip_id = STM32_CHIPID_L4,
+            .description = "L4 device",
+            .flash_size_reg = 0x1fff75e0,    // "Flash size data register" (sec 45.2, page 1671)
+            .flash_pagesize = 0x800,         // 2K (sec 3.2, page 78; also appears in sec 3.3.1 and tables 4-6 on pages 79-81)
+            // SRAM1 is "up to" 96k in the standard Cortex-M memory map;
+            // SRAM2 is 32k mapped at at 0x10000000 (sec 2.3, page 73 for
+            // sizes; table 2, page 74 for SRAM2 location)
+            .sram_size = 0x18000,
+            .bootrom_base = 0x1fff0000,      // Tables 4-6, pages 80-81 (Bank 1 system memory)
+            .bootrom_size = 0x7000           // 28k (per bank), same source as base
         },
 
  };
