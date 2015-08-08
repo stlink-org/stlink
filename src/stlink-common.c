@@ -953,6 +953,7 @@ int stlink_fwrite_sram
 
     int error = -1;
     size_t off;
+    size_t len;
     mapped_file_t mf = MAPPED_FILE_INITIALIZER;
 
 
@@ -971,16 +972,23 @@ int stlink_fwrite_sram
     } else if ((addr + mf.len) > (sl->sram_base + sl->sram_size)) {
         fprintf(stderr, "addr too high\n");
         goto on_error;
-    } else if ((addr & 3) || (mf.len & 3)) {
+    } else if (addr & 3) {
         /* todo */
-        fprintf(stderr, "unaligned addr or size\n");
+        fprintf(stderr, "unaligned addr\n");
         goto on_error;
     }
+
+    len = mf.len;
+
+    if(len & 3) {
+      len -= len & 3;
+    }
+
     /* do the copy by 1k blocks */
-    for (off = 0; off < mf.len; off += 1024) {
+    for (off = 0; off < len; off += 1024) {
         size_t size = 1024;
-        if ((off + size) > mf.len)
-            size = mf.len - off;
+        if ((off + size) > len)
+            size = len - off;
 
         memcpy(sl->q_buf, mf.base + off, size);
 
@@ -989,6 +997,11 @@ int stlink_fwrite_sram
             size += 2;
 
         stlink_write_mem32(sl, addr + off, size);
+    }
+
+    if(mf.len > len) {
+        memcpy(sl->q_buf, mf.base + len, mf.len - len);
+        stlink_write_mem8(sl, addr + len, mf.len - len);
     }
 
     /* check the file ha been written */
