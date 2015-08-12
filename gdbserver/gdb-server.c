@@ -705,8 +705,8 @@ static int flash_go(stlink_t *sl) {
     for(struct flash_block* fb = flash_root; fb; fb = fb->next) {
         DLOG("flash_do: block %08x -> %04x\n", fb->addr, fb->length);
 
-        unsigned length = fb->length;
         for(stm32_addr_t page = fb->addr; page < fb->addr + fb->length; page += FLASH_PAGE) {
+            unsigned length = fb->length - (page - fb->addr);
 
             //Update FLASH_PAGE
             stlink_calculate_pagesize(sl, page);
