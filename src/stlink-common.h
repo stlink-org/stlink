@@ -140,6 +140,8 @@ extern "C" {
 
 #define STM32_CHIPID_F0_CAN         0x448
 
+#define STM32_CHIPID_F7             0x449
+
     /*
      * 0x436 is actually assigned to some L1 chips that are called "Medium-Plus"
      * and some that are called "High".  0x427 is assigned to the other "Medium-
@@ -174,6 +176,16 @@ extern "C" {
     // These maps are from a combination of the Programming Manuals, and
     // also the Reference manuals.  (flash size reg is normally in ref man)
     static const chip_params_t devices[] = {
+        {
+            //RM0385 and DS10916 document was used to find these paramaters
+            .chip_id = STM32_CHIPID_F7,
+            .description = "F7 device",
+            .flash_size_reg = 0x1ff0f442,      // section 41.2
+            .flash_pagesize = 0x800,           // No flash pages
+            .sram_size = 0x50000,              // "SRAM" byte size in hex from DS Fig 18
+            .bootrom_base = 0x00100000,        // "System memory" starting address from DS Fig 18
+            .bootrom_size = 0xEDC0             // "System memory" byte size in hex from DS Fig 18
+        },
         { // table 2, PM0063
             .chip_id = STM32_CHIPID_F1_MEDIUM,
             .description = "F1 Medium-density device",
