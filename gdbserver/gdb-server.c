@@ -383,6 +383,30 @@ static const char* const memory_map_template =
     "  <memory type=\"rom\" start=\"0x1ffff800\" length=\"0x10\"/>"         // option byte area
     "</memory-map>";
 
+static const char* const memory_map_template_F7 =
+    "<?xml version=\"1.0\"?>"
+    "<!DOCTYPE memory-map PUBLIC \"+//IDN gnu.org//DTD GDB Memory Map V1.0//EN\""
+    "     \"http://sourceware.org/gdb/gdb-memory-map.dtd\">"
+    "<memory-map>"
+    "  <memory type=\"ram\" start=\"0x00000000\" length=\"0x4000\"/>"       // ITCM ram 16kB
+    "  <memory type=\"rom\" start=\"0x00200000\" length=\"0x100000\"/>"     // ITCM flash
+    "  <memory type=\"ram\" start=\"0x20000000\" length=\"0x50000\"/>"      // sram
+    "  <memory type=\"flash\" start=\"0x08000000\" length=\"0x20000\">"     // Sectors 0..3
+    "    <property name=\"blocksize\">0x8000</property>"                    // 32kB
+    "  </memory>"
+    "  <memory type=\"flash\" start=\"0x08020000\" length=\"0x20000\">"     // Sector 4
+    "    <property name=\"blocksize\">0x20000</property>"                   // 128kB
+    "  </memory>"
+    "  <memory type=\"flash\" start=\"0x08040000\" length=\"0xC0000\">"     // Sectors 5..7
+    "    <property name=\"blocksize\">0x40000</property>"                   // 128kB
+    "  </memory>"
+    "  <memory type=\"ram\" start=\"0x40000000\" length=\"0x1fffffff\"/>"   // peripheral regs
+    "  <memory type=\"ram\" start=\"0x60000000\" length=\"0x7fffffff\"/>"   // AHB3 Peripherals
+    "  <memory type=\"ram\" start=\"0xe0000000\" length=\"0x1fffffff\"/>"   // cortex regs
+    "  <memory type=\"rom\" start=\"0x00100000\" length=\"0xEDC0\"/>"       // bootrom
+    "  <memory type=\"rom\" start=\"0x1fff0000\" length=\"0x20\"/>"         // option byte area
+    "</memory-map>";
+
 char* make_memory_map(stlink_t *sl) {
     /* This will be freed in serve() */
     char* map = malloc(4096);
@@ -390,6 +414,8 @@ char* make_memory_map(stlink_t *sl) {
 
     if(sl->chip_id==STM32_CHIPID_F4 || sl->chip_id==STM32_CHIPID_F446) {
         strcpy(map, memory_map_template_F4);
+    } else if(sl->chip_id==STM32_CHIPID_F4 || sl->chip_id==STM32_CHIPID_F7) {
+        strcpy(map, memory_map_template_F7);
     } else if(sl->chip_id==STM32_CHIPID_F4_HD) {
         strcpy(map, memory_map_template_F4_HD);
     } else if(sl->chip_id==STM32_CHIPID_F2) {
