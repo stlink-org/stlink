@@ -1267,6 +1267,7 @@ int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr)
     } else if (sl->core_id == STM32VL_CORE_ID 
             || sl->core_id == STM32F0_CORE_ID 
             || sl->chip_id == STM32_CHIPID_F3 
+            || sl->chip_id == STM32_CHIPID_F3_SMALL
             || sl->chip_id == STM32_CHIPID_F303_HIGH
             || sl->chip_id == STM32_CHIPID_F37x
             || sl->chip_id == STM32_CHIPID_F334)  {
@@ -1545,6 +1546,7 @@ int write_loader_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* size) {
         loader_size = sizeof(loader_code_stm32l);
     } else if (sl->core_id == STM32VL_CORE_ID 
             || sl->chip_id == STM32_CHIPID_F3
+            || sl->chip_id == STM32_CHIPID_F3_SMALL
             || sl->chip_id == STM32_CHIPID_F303_HIGH
             || sl->chip_id == STM32_CHIPID_F37x
             || sl->chip_id == STM32_CHIPID_F334) {
@@ -1879,6 +1881,7 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uint32_t 
     } else if (sl->core_id == STM32VL_CORE_ID ||
                 sl->core_id == STM32F0_CORE_ID ||
                 sl->chip_id == STM32_CHIPID_F3  ||
+                sl->chip_id == STM32_CHIPID_F3_SMALL  ||
                 sl->chip_id == STM32_CHIPID_F303_HIGH ||
                 sl->chip_id == STM32_CHIPID_F334 ||
                 sl->chip_id == STM32_CHIPID_F37x) {
@@ -1989,6 +1992,7 @@ int run_flash_loader(stlink_t *sl, flash_loader_t* fl, stm32_addr_t target, cons
     } else if (sl->core_id == STM32VL_CORE_ID ||
                 sl->core_id == STM32F0_CORE_ID ||
                 sl->chip_id == STM32_CHIPID_F3 ||
+                sl->chip_id == STM32_CHIPID_F3_SMALL ||
                 sl->chip_id == STM32_CHIPID_F303_HIGH ||
                 sl->chip_id == STM32_CHIPID_F37x ||
                 sl->chip_id == STM32_CHIPID_F334) {
@@ -2057,6 +2061,7 @@ int run_flash_loader(stlink_t *sl, flash_loader_t* fl, stm32_addr_t target, cons
     } else if (sl->core_id == STM32VL_CORE_ID ||
                 sl->core_id == STM32F0_CORE_ID ||
                 sl->chip_id == STM32_CHIPID_F3 ||
+                sl->chip_id == STM32_CHIPID_F3_SMALL ||
                 sl->chip_id == STM32_CHIPID_F303_HIGH ||
                 sl->chip_id == STM32_CHIPID_F37x ||
                 sl->chip_id == STM32_CHIPID_F334) {
