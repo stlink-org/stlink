@@ -413,7 +413,8 @@ void _stlink_usb_reset(stlink_t * sl) {
     int i = fill_command(sl, SG_DXFER_FROM_DEV, rep_len);
 
     cmd[i++] = STLINK_DEBUG_COMMAND;
-    cmd[i++] = STLINK_DEBUG_RESETSYS;
+    cmd[i++] = STLINK_DEBUG_HARDRESET;
+    cmd[i++] = 0x2;
 
     size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len);
     if (size == -1) {
