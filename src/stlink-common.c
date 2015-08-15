@@ -1117,6 +1117,14 @@ uint32_t calculate_F4_sectornum(uint32_t flashaddr){
 
 }
 
+uint32_t calculate_F7_sectornum(uint32_t flashaddr){
+    flashaddr &= ~STM32_FLASH_BASE;	//Page now holding the actual flash address
+	if(flashaddr<0x20000) return(flashaddr/0x8000);
+    else if(flashaddr<0x40000) return(4);
+    else return(flashaddr/0x40000) +4;
+
+}
+
 // Returns BKER:PNB for the given page address
 uint32_t calculate_L4_page(stlink_t *sl, uint32_t flashaddr) {
     uint32_t bker = 0;
@@ -1137,7 +1145,7 @@ uint32_t calculate_L4_page(stlink_t *sl, uint32_t flashaddr) {
 uint32_t stlink_calculate_pagesize(stlink_t *sl, uint32_t flashaddr){
     if ((sl->chip_id == STM32_CHIPID_F2) || (sl->chip_id == STM32_CHIPID_F4) || (sl->chip_id == STM32_CHIPID_F4_DE) ||
             (sl->chip_id == STM32_CHIPID_F4_LP) || (sl->chip_id == STM32_CHIPID_F4_HD) || (sl->chip_id == STM32_CHIPID_F411RE) ||
-            (sl->chip_id == STM32_CHIPID_F446) || (sl->chip_id == STM32_CHIPID_F7)) {
+            (sl->chip_id == STM32_CHIPID_F446)) {
         uint32_t sector=calculate_F4_sectornum(flashaddr);
         if (sector>= 12) {
             sector -= 12;
@@ -1145,6 +1153,12 @@ uint32_t stlink_calculate_pagesize(stlink_t *sl, uint32_t flashaddr){
         if (sector<4) sl->flash_pgsz=0x4000;
         else if(sector<5) sl->flash_pgsz=0x10000;
         else sl->flash_pgsz=0x20000;
+    }
+    else if (sl->chip_id == STM32_CHIPID_F7) {
+        uint32_t sector=calculate_F7_sectornum(flashaddr);
+        if (sector<4) sl->flash_pgsz=0x8000;
+        else if(sector<5) sl->flash_pgsz=0x20000;
+        else sl->flash_pgsz=0x40000;
     }
     return (sl->flash_pgsz);
 }
@@ -1172,6 +1186,13 @@ int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr)
             uint32_t page = calculate_L4_page(sl, flashaddr);
 
             write_flash_cr_bker_pnb(sl, page);
+        } else if (sl->chip_id == STM32_CHIPID_F7) {
+            // calculate the actual page from the address
+            uint32_t sector=calculate_F7_sectornum(flashaddr);
+
+            fprintf(stderr, "EraseFlash - Sector:0x%x Size:0x%x\n", sector, stlink_calculate_pagesize(sl, flashaddr));
+
+            write_flash_cr_snb(sl, sector);
         } else {
             // calculate the actual page from the address
             uint32_t sector=calculate_F4_sectornum(flashaddr);
