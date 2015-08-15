@@ -168,6 +168,11 @@ int main(int ac, char** av)
             stlink_write_mem32(sl,0x40026400+0x24+0x18*i,4);
         }
     }
+
+    // Core must be halted to use RAM based flashloaders
+    stlink_force_debug(sl);
+    stlink_status(sl);
+
     if (o.cmd == DO_WRITE) /* write */
     {
         if ((o.addr >= sl->flash_base) &&
