@@ -712,10 +712,12 @@ static int flash_go(stlink_t *sl) {
             stlink_calculate_pagesize(sl, page);
 
             DLOG("flash_do: page %08x\n", page);
-
+            unsigned send = length > FLASH_PAGE ? FLASH_PAGE : length;
             if(stlink_write_flash(sl, page, fb->data + (page - fb->addr),
-                        length > FLASH_PAGE ? FLASH_PAGE : length) < 0)
+                        send) < 0)
                 goto error;
+            length -= send;
+            
         }
     }
 
