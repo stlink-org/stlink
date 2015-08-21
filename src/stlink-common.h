@@ -68,7 +68,6 @@ extern "C" {
 #define STLINK_DEBUG_WRITEDEBUGREG	0x0f
 #define STLINK_DEBUG_ENTER_SWD		0xa3
 #define STLINK_DEBUG_ENTER_JTAG	0x00
-#define STLINK_DEBUG_HARDRESET   	0x3c
 
     // TODO - possible poor names...
 #define STLINK_SWD_ENTER 0x30
