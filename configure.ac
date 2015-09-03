@@ -20,6 +20,11 @@ AC_CHECK_HEADERS(sys/mman.h)
 AC_CHECK_HEADERS(sys/poll.h)
 AC_REPLACE_FUNCS(mmap)
 
+if ! hash pkg-config; then
+	echo "ERROR: pkg-config is needed..."
+	exit 1
+fi 
+
 # Checks for libraries.
 PKG_CHECK_MODULES(USB, libusb-1.0 >= 1.0.0,,
                  AC_MSG_ERROR([*** Required libusb-1.0 >= 1.0.0 not installed ***]))
