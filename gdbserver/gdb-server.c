@@ -542,8 +542,9 @@ static int delete_data_watchpoint(stlink_t *sl, stm32_addr_t addr)
     return -1;
 }
 
-#define CODE_BREAK_NUM	6
-#define CODE_LIT_NUM 	2
+int code_break_num;
+int code_lit_num;
+#define CODE_BREAK_NUM_MAX	15
 #define CODE_BREAK_LOW	0x01
 #define CODE_BREAK_HIGH	0x02
 
@@ -552,37 +553,41 @@ struct code_hw_breakpoint {
     int          type;
 };
 
-struct code_hw_breakpoint code_breaks[CODE_BREAK_NUM];
+struct code_hw_breakpoint code_breaks[CODE_BREAK_NUM_MAX];
 
 static void init_code_breakpoints(stlink_t *sl) {
     memset(sl->q_buf, 0, 4);
     stlink_write_debug32(sl, CM3_REG_FP_CTRL, 0x03 /*KEY | ENABLE4*/);
     unsigned int val = stlink_read_debug32(sl, CM3_REG_FP_CTRL);
-    if (((val & 3) != 1) ||
-            ((((val >> 8) & 0x70) | ((val >> 4) & 0xf)) != CODE_BREAK_NUM) ||
-            (((val >> 8) & 0xf) != CODE_LIT_NUM)){
-        ELOG("[FP_CTRL] = 0x%08x expecting 0x%08x\n", val,
-                ((CODE_BREAK_NUM & 0x70) << 8) | (CODE_LIT_NUM << 8) |  ((CODE_BREAK_NUM & 0xf) << 4) | 1);
-    }
+    code_break_num = ((val >> 4) & 0xf);
+    code_lit_num = ((val >> 8) & 0xf);
 
+    ILOG("Found %i hw breakpoint registers\n", code_break_num);
 
-    for(int i = 0; i < CODE_BREAK_NUM; i++) {
+    for(int i = 0; i < code_break_num; i++) {
         code_breaks[i].type = 0;
         stlink_write_debug32(sl, CM3_REG_FP_COMP0 + i * 4, 0);
     }
 }
 
 static int update_code_breakpoint(stlink_t *sl, stm32_addr_t addr, int set) {
-    stm32_addr_t fpb_addr = addr & ~0x3;
-    int type = addr & 0x2 ? CODE_BREAK_HIGH : CODE_BREAK_LOW;
+    stm32_addr_t fpb_addr;
+    uint32_t mask;
+    int type = (addr & 0x2) ? CODE_BREAK_HIGH : CODE_BREAK_LOW;
 
     if(addr & 1) {
         ELOG("update_code_breakpoint: unaligned address %08x\n", addr);
         return -1;
     }
 
+	if (sl->chip_id==STM32_CHIPID_F7) {
+		fpb_addr = addr;
+	} else {
+		fpb_addr = addr & ~0x3;
+	}
+
     int id = -1;
-    for(int i = 0; i < CODE_BREAK_NUM; i++) {
+    for(int i = 0; i < code_break_num; i++) {
         if(fpb_addr == code_breaks[i].addr ||
                 (set && code_breaks[i].type == 0)) {
             id = i;
@@ -599,16 +604,23 @@ static int update_code_breakpoint(stlink_t *sl, stm32_addr_t addr, int set) {
 
     brk->addr = fpb_addr;
 
-    if(set) brk->type |= type;
-    else	brk->type &= ~type;
+	if (sl->chip_id==STM32_CHIPID_F7) {
+		if(set) brk->type = type;
+		else	brk->type = 0;
+
+		mask = (brk->addr) | 1;
+	} else {
+		if(set) brk->type |= type;
+		else	brk->type &= ~type;
+
+		mask = (brk->addr) | 1 | (brk->type << 30);
+	}
 
     if(brk->type == 0) {
         DLOG("clearing hw break %d\n", id);
 
         stlink_write_debug32(sl, 0xe0002008 + id * 4, 0);
     } else {
-        uint32_t mask = (brk->addr) | 1 | (brk->type << 30);
-
         DLOG("setting hw break %d at %08x (%d)\n",
                     id, brk->addr, brk->type);
         DLOG("reg %08x \n",
@@ -701,6 +713,7 @@ static int flash_go(stlink_t *sl) {
 
     // Some kinds of clock settings do not allow writing to flash.
     stlink_reset(sl);
+    stlink_force_debug(sl);
 
     for(struct flash_block* fb = flash_root; fb; fb = fb->next) {
         DLOG("flash_do: block %08x -> %04x\n", fb->addr, fb->length);
