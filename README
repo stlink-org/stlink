@@ -200,5 +200,6 @@ Known Working Targets:
 * STM32F303RET6 (STM32 Nucleo-F303RE board)
 * STM32F334R8 (STM32 Nucleo-F334R8 board)
 * STM32F411RET6 (STM32 Nucleo-F411RE board)
+& STM32F756NGHx (STMF7 evaluation board)
 
 Please report any and all known working combinations so I can update this!
