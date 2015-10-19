@@ -1818,7 +1818,7 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uint32_t 
         } else {
             /* L4 does not have a byte-write mode */
             int voltage = stlink_target_voltage(sl);
-            if (voltage <= 2700) {
+            if (voltage < 1710) {
                 printf("Target voltage (%d mV) too low for flash writes!\n", voltage);
                 return -1;
             }
