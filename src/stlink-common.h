@@ -124,6 +124,9 @@ extern "C" {
 
 #define STM32_CHIPID_F37x           0x432
 #define STM32_CHIPID_F4_DE          0x433
+#define STM32_CHIPID_F4_DE          0x433
+
+#define STM32_CHIPID_F4_DSI         0x434
 
 #define STM32_CHIPID_L1_HIGH        0x436
 #define STM32_CHIPID_L152_RE        0x437
@@ -219,6 +222,15 @@ extern "C" {
             .flash_size_reg = 0x1FFF7A22,  /* As in rm0090 since Rev 2*/
             .flash_pagesize = 0x4000,
             .sram_size = 0x30000,
+            .bootrom_base = 0x1fff0000,
+            .bootrom_size = 0x7800
+        },
+        {
+            .chip_id = STM32_CHIPID_F4_DSI,
+            .description = "F46x and F47x device",
+            .flash_size_reg = 0x1FFF7A22,  /* As in rm0090 since Rev 2*/
+            .flash_pagesize = 0x4000,
+            .sram_size = 0x40000,
             .bootrom_base = 0x1fff0000,
             .bootrom_size = 0x7800
         },
