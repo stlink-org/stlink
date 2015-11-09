@@ -11,7 +11,29 @@
 #include <signal.h>
 #include "stlink-common.h"
 
+/* STLinky structure on STM chip
+
+struct stlinky {
+    uint32_t magic;
+    uint32_t bufsize;
+    uint32_t up_tail;
+    uint32_t up_head;
+    uint32_t dw_tail;
+    uint32_t dw_head;
+    char upbuf[CONFIG_LIB_STLINKY_BSIZE];
+    char dwbuf[CONFIG_LIB_STLINKY_BSIZE];
+} __attribute__ ((packed));
+*/
+
+
 #define STLINKY_MAGIC 0xDEADF00D
+
+#define ST_TERM_MAX_BUFF_SIZE               (1024*1024)   //1Mb
+
+#define RX_Q_OFFSET                         8
+#define RX_BUFF_OFFSET                      24
+#define TX_Q_OFFSET                         16
+#define TX_BUFF_OFFSET(bufsize)             (24 + bufsize)
 
 #define READ_UINT32_LE(buf)  ((uint32_t) (  buf[0]         \
                                           | buf[1] <<  8   \
@@ -79,7 +101,7 @@ struct stlinky*  stlinky_detect(stlink_t* sl)
             printf("stlinky detected at 0x%x\n", sram_base + off);
             st->off = sram_base + off;
             stlink_read_mem32(sl, st->off + 4, 4);
-            st->bufsize = (size_t) *(unsigned char*) sl->q_buf;
+            st->bufsize = READ_UINT32_LE(sl->q_buf);
             printf("stlinky buffer size 0x%zu \n", st->bufsize);
             multiple++;
         }
@@ -93,41 +115,98 @@ struct stlinky*  stlinky_detect(stlink_t* sl)
     return NULL;
 }
 
-int stlinky_canrx(struct stlinky *st)
+static void stlinky_read_buff(struct stlinky *st, uint32_t off, uint32_t size, char *buffer)
 {
-    stlink_read_mem32(st->sl, st->off+4, 4);
-    unsigned char tx = (unsigned char) st->sl->q_buf[1];
-    return (int) tx;
+    int aligned_size;
+
+    if (size == 0)
+        return;
+
+    //Read from device with 4-byte alignment
+    aligned_size = (size & 0xFFFFFFFC) + 8;
+    stlink_read_mem32(st->sl, off & 0xFFFFFFFC, aligned_size);
+
+    //copy to local buffer
+    memcpy(buffer, st->sl->q_buf + (off & 0x3), size);
+
+    return;
+}
+
+static void stlinky_write_buf(struct stlinky *st, uint32_t off, uint32_t size, char *buffer)
+{
+    memcpy(st->sl->q_buf, buffer, size);
+    stlink_write_mem8(st->sl, off, size);
+    return;
 }
 
 size_t stlinky_rx(struct stlinky *st, char* buffer)
 {
-    unsigned char tx = 0;
-    while(tx == 0) {
-        stlink_read_mem32(st->sl, st->off+4, 4);
-        tx = (unsigned char) st->sl->q_buf[1];
+    //read head and tail values
+    uint32_t tail, head;
+    stlink_read_mem32(st->sl, st->off + RX_Q_OFFSET, sizeof(tail) + sizeof(head));
+    memcpy(&tail, &st->sl->q_buf[0], sizeof(tail));
+    memcpy(&head, &st->sl->q_buf[sizeof(tail)], sizeof(head));
+
+    //return if empty
+    if(head == tail)
+        return 0;
+
+    //read data
+    int size_read = 0;
+    if(head > tail){
+        stlinky_read_buff(st, st->off + RX_BUFF_OFFSET + tail, head - tail, buffer);
+        size_read += head - tail;
+    } else if(head < tail){
+        stlinky_read_buff(st, st->off + RX_BUFF_OFFSET + tail, st->bufsize - tail, buffer);
+        size_read += st->bufsize - tail;
+
+        stlinky_read_buff(st, st->off + RX_BUFF_OFFSET, head, buffer + size_read);
+        size_read += head;
     }
-    size_t rs = tx + (4 - (tx % 4)); /* voodoo */
-    stlink_read_mem32(st->sl, st->off+8, rs);
-    memcpy(buffer, st->sl->q_buf, (size_t) tx);
-    *st->sl->q_buf=0x0;
-    stlink_write_mem8(st->sl, st->off+5, 1);
-    return (size_t) tx;
+
+    //move tail
+    tail = (tail + size_read) % st->bufsize;
+
+    //write tail
+    memcpy(st->sl->q_buf, &tail, sizeof(tail));
+    stlink_write_mem32(st->sl, st->off + RX_Q_OFFSET, sizeof(tail));
+
+    return size_read;
 }
 
-size_t stlinky_tx(struct stlinky *st, char* buffer, size_t sz)
+size_t stlinky_tx(struct stlinky *st, char* buffer, size_t siz)
 {
-    unsigned char rx = 1;
-    while(rx != 0) {
-        stlink_read_mem32(st->sl, st->off+4, 4);
-        rx = (unsigned char) st->sl->q_buf[2];
-    }
-    memcpy(st->sl->q_buf, buffer, sz);
-    size_t rs = sz + (4 - (sz % 4)); /* voodoo */
-    stlink_write_mem32(st->sl, st->off+8+st->bufsize, rs);
-    *st->sl->q_buf=(unsigned char) sz;
-    stlink_write_mem8(st->sl, st->off+6, 1);
-    return (size_t) rx;
+    //read head and tail values
+    uint32_t tail, head;
+    stlink_read_mem32(st->sl, st->off + TX_Q_OFFSET, sizeof(tail) + sizeof(head));
+    memcpy(&tail, &st->sl->q_buf[0], sizeof(tail));
+    memcpy(&head, &st->sl->q_buf[sizeof(tail)], sizeof(head));
+
+    //Figure out buffer usage
+    int usage = head - tail;
+    if (usage < 0)
+        usage += st->bufsize;
+
+    //check if new data will fit
+    if (usage + siz >= st->bufsize)
+        return 0;
+
+    //copy in data (take care of possible split)
+    int first_chunk = head + siz >= st->bufsize ? st->bufsize - head : siz;
+    int second_chunk = siz - first_chunk;
+
+    //copy data
+    stlinky_write_buf(st, st->off + TX_BUFF_OFFSET(st->bufsize) + head, first_chunk, buffer);
+    if (second_chunk > 0)
+        stlinky_write_buf(st, st->off + TX_BUFF_OFFSET(st->bufsize),
+                                        second_chunk, buffer + first_chunk);
+
+    //increment head pointer
+    head = (head + siz) % st->bufsize;
+    memcpy(st->sl->q_buf, &head, sizeof(head));
+    stlink_write_mem32(st->sl, st->off + TX_Q_OFFSET + sizeof(tail), sizeof(head));
+
+    return siz;
 }
 
 int kbhit()
@@ -202,7 +281,7 @@ int main(int ac, char** av) {
             st->off = (int)strtol(av[1], NULL, 16);
             printf("using stlinky at 0x%x\n", st->off);
             stlink_read_mem32(sl, st->off + 4, 4);
-            st->bufsize = (size_t) *(unsigned char*) sl->q_buf;
+            st->bufsize = READ_UINT32_LE(sl->q_buf);
             printf("stlinky buffer size 0x%zu \n", st->bufsize);
         }else{
             cleanup(0);
@@ -210,6 +289,10 @@ int main(int ac, char** av) {
         if (st == NULL)
         {
             printf("stlinky magic not found in sram :(\n");
+            cleanup(0);
+        }
+        if (st->bufsize > ST_TERM_MAX_BUFF_SIZE){
+            printf("stlinky buffer size too big\n");
             cleanup(0);
         }
         char* rxbuf = malloc(st->bufsize);
@@ -222,8 +305,9 @@ int main(int ac, char** av) {
         printf("Entering interactive terminal. CTRL+C to exit\n\n\n");
         while(1) {
             sig_process();
-            if (stlinky_canrx(st)) {
-                tmp = stlinky_rx(st, rxbuf);
+            tmp = stlinky_rx(st, rxbuf);
+            if(tmp > 0)
+            {
                 fwrite(rxbuf,tmp,1,stdout);
                 fflush(stdout);
             }
