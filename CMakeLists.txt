@@ -42,7 +42,7 @@ install(TARGETS  stlink st-flash st-util
         RUNTIME DESTINATION bin
         ARCHIVE DESTINATION lib)
 
-if(NOT ${MINGW})
+if(NOT MINGW)
   list(APPEND CFILES src/st-term.c)
   add_executable(st-term src/st-term.c)
   target_link_libraries(st-term stlink)
