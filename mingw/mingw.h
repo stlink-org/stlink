@@ -65,5 +65,6 @@ char *win32_strsep(char **stringp, const char *delim);
 ssize_t win32_read_socket(SOCKET fd, void *buf, int n);
 ssize_t win32_write_socket(SOCKET fd, void *buf, int n);
 
+static inline void sleep(unsigned ms) { Sleep(ms); }
 
 #endif
