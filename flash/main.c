@@ -17,6 +17,7 @@ struct opts
 {
     enum st_cmds cmd;
     const char* devname;
+	char *serial;
     const char* filename;
     stm32_addr_t addr;
     size_t size;
@@ -26,11 +27,11 @@ struct opts
 
 static void usage(void)
 {
-    puts("stlinkv1 command line: ./st-flash [--debug] [--reset] {read|write} /dev/sgX path addr <size>");
+    puts("stlinkv1 command line: ./st-flash [--debug] [--reset] [--serial <iSerial>] {read|write} /dev/sgX path addr <size>");
     puts("stlinkv1 command line: ./st-flash [--debug] /dev/sgX erase");
-    puts("stlinkv2 command line: ./st-flash [--debug] [--reset] {read|write} path addr <size>");
-    puts("stlinkv2 command line: ./st-flash [--debug] erase");
-    puts("                       use hex format for addr and <size>");
+    puts("stlinkv2 command line: ./st-flash [--debug] [--reset] [--serial <iSerial>] {read|write} path addr <size>");
+    puts("stlinkv2 command line: ./st-flash [--debug] [--serial <iSerial>] erase");
+    puts("                       use hex format for addr, <iSerial> and <size>");
 }
 
 static int get_opts(struct opts* o, int ac, char** av)
@@ -62,6 +63,31 @@ static int get_opts(struct opts* o, int ac, char** av)
     else
     {
         o->reset = 0;
+    }
+
+    if (strcmp(av[0], "--serial") == 0)
+    {
+        ac--;
+        av++;
+	    int i=strlen(av[0]);
+	    if(i%2 != 0){
+		    puts("no valid hex value, length must be multiple of 2\n");
+		    return -1;
+	    }
+	    int j=0;
+	    while(i>=0 && j<=13){
+		    char buffer[3]={0};
+		    memcpy(buffer,&av[0][i],2);
+		    o->serial[12-j] = (char)strtol((const char*)buffer,NULL, 16);
+		    j++;
+		    i-=2;
+	    }
+        ac--;
+        av++;
+    }
+    else
+    {
+        o->serial = NULL;
     }
 
     if (ac < 1) return -1;
@@ -123,6 +149,8 @@ int main(int ac, char** av)
 {
     stlink_t* sl = NULL;
     struct opts o;
+    char serial_buffer[13] = {0};
+    o.serial = serial_buffer;
     int err = -1;
 
     o.size = 0;
@@ -141,7 +169,7 @@ int main(int ac, char** av)
     }
     else /* stlinkv2 */
     {
-        sl = stlink_open_usb(o.log_level, 1);
+	    sl = stlink_open_usb(o.log_level, 1, o.serial);
         if (sl == NULL) goto on_error;
         sl->verbose = o.log_level;
     }

@@ -251,7 +251,7 @@ int main(int ac, char** av) {
 
     sig_init();
 
-    sl = stlink_open_usb(10, 1);
+    sl = stlink_open_usb(10, 1, NULL);
     if (sl != NULL) {
         printf("ST-Linky proof-of-concept terminal :: Created by Necromant for lulz\n");
         stlink_version(sl);

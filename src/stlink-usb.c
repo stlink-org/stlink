@@ -728,7 +728,7 @@ stlink_backend_t _stlink_usb_backend = {
 };
 
 
-stlink_t* stlink_open_usb(const int verbose, int reset) {
+stlink_t* stlink_open_usb(const int verbose, int reset, char *p_usb_iserial) {
     stlink_t* sl = NULL;
     struct stlink_libusb* slu = NULL;
     int error = -1;
@@ -747,7 +747,6 @@ stlink_t* stlink_open_usb(const int verbose, int reset) {
     sl->backend_data = slu;
 
     sl->core_stat = STLINK_CORE_STAT_UNKNOWN;
-
     if (libusb_init(&(slu->libusb_ctx))) {
         WLOG("failed to init libusb context, wrong version of libraries?\n");
         goto on_error;
@@ -776,7 +775,22 @@ stlink_t* stlink_open_usb(const int verbose, int reset) {
         if (desc.idVendor!=USB_ST_VID) continue;
         if (devBus && devAddr)
             if ((libusb_get_bus_number(list[cnt])!=devBus) || (libusb_get_device_address(list[cnt])!=devAddr)) continue;
-        if ( (desc.idProduct == USB_STLINK_32L_PID) || (desc.idProduct == USB_STLINK_NUCLEO_PID) ) break;
+        if ( (desc.idProduct == USB_STLINK_32L_PID) || (desc.idProduct == USB_STLINK_NUCLEO_PID) ){
+            if ((p_usb_iserial != NULL)){
+                unsigned char buffer[13];
+                struct libusb_device_handle* handle;
+                libusb_open(list[cnt], &handle);
+                libusb_get_string_descriptor_ascii(handle, desc.iSerialNumber, buffer, 13);
+                libusb_close(handle);
+                if (memcmp(p_usb_iserial,&buffer,12) == 0){
+                    break;
+                }else{
+                    continue;
+                }
+            }else{
+                break;
+            }
+        }
         if (desc.idProduct == USB_STLINK_PID) {
             slu->protocoll = 1;
             break;
