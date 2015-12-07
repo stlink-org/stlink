@@ -51,7 +51,7 @@ stlink_t* open_sl(void)
     stlink_t* sl;
     sl = stlink_v1_open(0, 1);
     if (sl == NULL)
-        sl = stlink_open_usb(0, 1);
+	    sl = stlink_open_usb(0, 1, NULL);
     return sl;
 }
 

@@ -10,7 +10,7 @@ int main(int ac, char** av) {
     ac = ac;
     av = av;
 
-    sl = stlink_open_usb(10, 1);
+    sl = stlink_open_usb(10, 1, NULL);
     if (sl != NULL) {
         printf("-- version\n");
         stlink_version(sl);
