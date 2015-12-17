@@ -18,7 +18,8 @@
 static const char hex[] = "0123456789abcdef";
 
 int gdb_send_packet(int fd, char* data) {
-    int length = strlen(data) + 5;
+    unsigned int data_length = strlen(data);
+    int length = data_length + 4;
     char* packet = malloc(length); /* '$' data (hex) '#' cksum (hex) */
 
     memset(packet, 0, length);
@@ -26,14 +27,14 @@ int gdb_send_packet(int fd, char* data) {
     packet[0] = '$';
 
     uint8_t cksum = 0;
-    for(unsigned int i = 0; i < strlen(data); i++) {
+    for(unsigned int i = 0; i < data_length; i++) {
         packet[i + 1] = data[i];
         cksum += data[i];
     }
 
-    packet[length - 4] = '#';
-    packet[length - 3] = hex[cksum >> 4];
-    packet[length - 2] = hex[cksum & 0xf];
+    packet[length - 3] = '#';
+    packet[length - 2] = hex[cksum >> 4];
+    packet[length - 1] = hex[cksum & 0xf];
 
     while(1) {
         if(write(fd, packet, length) != length) {
