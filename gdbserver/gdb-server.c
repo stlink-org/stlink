@@ -840,7 +840,9 @@ int serve(stlink_t *sl, st_state_t *st) {
                 DLOG("query: %s;%s\n", queryName, params);
 
                 if(!strcmp(queryName, "Supported")) {
-                    if(sl->chip_id==STM32_CHIPID_F4 || sl->chip_id==STM32_CHIPID_F4_HD) {
+                    if(sl->chip_id==STM32_CHIPID_F4
+		       || sl->chip_id==STM32_CHIPID_F4_HD
+		       || sl->chip_id==STM32_CHIPID_F7) {
                         reply = strdup("PacketSize=3fff;qXfer:memory-map:read+;qXfer:features:read+");
                     }
                     else {
