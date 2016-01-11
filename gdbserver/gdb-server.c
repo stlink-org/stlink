@@ -49,6 +49,7 @@ typedef struct _st_state_t {
 
 int serve(stlink_t *sl, st_state_t *st);
 char* make_memory_map(stlink_t *sl);
+static void init_cache (stlink_t *sl);
 
 static void cleanup(int signal __attribute__((unused))) {
     if (connected_stlink) {
@@ -207,6 +208,8 @@ int main(int argc, char** argv) {
         goto winsock_error;
     }
 #endif
+
+    init_cache(sl);
 
     do {
         if (serve(sl, &state)) {
@@ -750,6 +753,161 @@ error:
     return error;
 }
 
+#define CLIDR   0xE000ED78
+#define CTR     0xE000ED7C
+#define CCSIDR  0xE000ED80
+#define CSSELR  0xE000ED84
+#define CCR     0xE000ED14
+#define CCR_DC  (1 << 16)
+#define CCR_IC  (1 << 17)
+#define DCCSW   0xE000EF6C
+#define ICIALLU 0xE000EF50
+
+struct cache_level_desc
+{
+  unsigned int nsets;
+  unsigned int nways;
+  unsigned int log2_nways;
+  unsigned int width;
+};
+
+struct cache_desc_t
+{
+  /* Minimal line size in bytes.  */
+  unsigned int dminline;
+  unsigned int iminline;
+
+  /* Last level of unification (uniprocessor).  */
+  unsigned int louu;
+
+  struct cache_level_desc icache[7];
+  struct cache_level_desc dcache[7];
+};
+
+static struct cache_desc_t cache_desc;
+
+/* Return the smallest R so that V <= (1 << R).  Not performance critical.  */
+static unsigned ceil_log2(unsigned v)
+{
+  unsigned res;
+  for (res = 0; (1 << res) < v; res++)
+    ;
+  return res;
+}
+
+static void read_cache_level_desc(stlink_t *sl, struct cache_level_desc *desc)
+{
+  unsigned int ccsidr;
+  unsigned int log2_nsets;
+  ccsidr = stlink_read_debug32(sl, CCSIDR);
+  desc->nsets = ((ccsidr >> 13) & 0x3fff) + 1;
+  desc->nways = ((ccsidr >> 3) & 0x1ff) + 1;
+  desc->log2_nways = ceil_log2 (desc->nways);
+  log2_nsets = ceil_log2 (desc->nsets);
+  desc->width = 4 + (ccsidr & 7) + log2_nsets;
+  ILOG("%08x LineSize: %u, ways: %u, sets: %u (width: %u)\n",
+       ccsidr, 4 << (ccsidr & 7), desc->nways, desc->nsets, desc->width);
+}
+
+static void init_cache (stlink_t *sl) {
+  unsigned int clidr;
+  unsigned int ccr;
+  unsigned int ctr;
+  int i;
+
+  /* Assume only F7 has a cache.  */
+  if(sl->chip_id!=STM32_CHIPID_F7)
+    return;
+
+  clidr = stlink_read_debug32(sl, CLIDR);
+  ccr = stlink_read_debug32(sl, CCR);
+  ctr = stlink_read_debug32(sl, CTR);
+  cache_desc.dminline = 4 << ((ctr >> 16) & 0x0f);
+  cache_desc.iminline = 4 << (ctr & 0x0f);
+  cache_desc.louu = (clidr >> 27) & 7;
+
+  ILOG("Chip clidr: %08x, I-Cache: %s, D-Cache: %s\n",
+       clidr, ccr & CCR_IC ? "on" : "off", ccr & CCR_DC ? "on" : "off");
+  ILOG(" cache: LoUU: %u, LoC: %u, LoUIS: %u\n",
+       (clidr >> 27) & 7, (clidr >> 24) & 7, (clidr >> 21) & 7);
+  ILOG(" cache: ctr: %08x, DminLine: %u bytes, IminLine: %u bytes\n", ctr,
+       cache_desc.dminline, cache_desc.iminline);
+  for(i = 0; i < 7; i++)
+    {
+      unsigned int ct = (clidr >> (3 * i)) & 0x07;
+
+      cache_desc.dcache[i].width = 0;
+      cache_desc.icache[i].width = 0;
+
+      if(ct == 2 || ct == 3 || ct == 4)
+	{
+	  /* Data.  */
+	  stlink_write_debug32(sl, CSSELR, i << 1);
+	  ILOG("D-Cache L%d: ", i);
+	  read_cache_level_desc(sl, &cache_desc.dcache[i]);
+	}
+
+      if(ct == 1 || ct == 3)
+	{
+	  /* Instruction.  */
+	  stlink_write_debug32(sl, CSSELR, (i << 1) | 1);
+	  ILOG("I-Cache L%d: ", i);
+	  read_cache_level_desc(sl, &cache_desc.icache[i]);
+	}
+    }
+}
+
+static void cache_flush(stlink_t *sl, unsigned ccr) {
+  int level;
+
+  if (ccr & CCR_DC)
+    for (level = cache_desc.louu - 1; level >= 0; level--)
+      {
+	struct cache_level_desc *desc = &cache_desc.dcache[level];
+	unsigned addr;
+	unsigned max_addr = 1 << desc->width;
+	unsigned way_sh = 32 - desc->log2_nways;
+
+	/* D-cache clean by set-ways.  */
+	for (addr = (level << 1); addr < max_addr; addr += cache_desc.dminline)
+	  {
+	    unsigned int way;
+
+	    for (way = 0; way < desc->nways; way++)
+	      stlink_write_debug32(sl, DCCSW, addr | (way << way_sh));
+	  }
+      }
+
+  /* Invalidate all I-cache to oPU.  */
+  if (ccr & CCR_IC)
+    stlink_write_debug32(sl, ICIALLU, 0);
+}
+
+static int cache_modified;
+
+static void cache_change(stm32_addr_t start, unsigned count)
+{
+  if (count == 0)
+    return;
+  (void)start;
+  cache_modified = 1;
+}
+
+static void cache_sync(stlink_t *sl)
+{
+  unsigned ccr;
+
+  if(sl->chip_id!=STM32_CHIPID_F7)
+    return;
+  if (!cache_modified)
+    return;
+  cache_modified = 0;
+
+  ccr = stlink_read_debug32(sl, CCR);
+  if (ccr & (CCR_IC | CCR_DC))
+    cache_flush(sl, ccr);
+}
+
 int serve(stlink_t *sl, st_state_t *st) {
     int sock = socket(AF_INET, SOCK_STREAM, 0);
     if(sock < 0) {
@@ -898,6 +1056,7 @@ int serve(stlink_t *sl, st_state_t *st) {
 
                     if (!strncmp(params,"726573756d65",12)) {// resume
                         DLOG("Rcmd: resume\n");
+                        cache_sync(sl);
                         stlink_run(sl);
 
                         reply = strdup("OK");
@@ -1016,6 +1175,7 @@ int serve(stlink_t *sl, st_state_t *st) {
             }
 
             case 'c':
+                cache_sync(sl);
                 stlink_run(sl);
 
                 while(1) {
@@ -1045,6 +1205,7 @@ int serve(stlink_t *sl, st_state_t *st) {
                 break;
 
             case 's':
+	        cache_sync(sl);
                 stlink_step(sl);
 
                 reply = strdup("S05"); // TRAP
@@ -1199,6 +1360,7 @@ int serve(stlink_t *sl, st_state_t *st) {
                         sl->q_buf[i] = byte;
                     }
                     stlink_write_mem8(sl, start, align_count);
+                    cache_change(start, align_count);
                     start += align_count;
                     count -= align_count;
                     hexdata += 2*align_count;
@@ -1213,6 +1375,7 @@ int serve(stlink_t *sl, st_state_t *st) {
                         sl->q_buf[i] = byte;
                     }
                     stlink_write_mem32(sl, start, aligned_count);
+                    cache_change(start, aligned_count);
                     count -= aligned_count;
                     start += aligned_count;
                     hexdata += 2*aligned_count;
@@ -1225,6 +1388,7 @@ int serve(stlink_t *sl, st_state_t *st) {
                         sl->q_buf[i] = byte;
                     }
                     stlink_write_mem8(sl, start, count);
+                    cache_change(start, count);
                 }
                 reply = strdup("OK");
                 break;
