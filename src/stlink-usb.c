@@ -6,6 +6,7 @@
 #include <sys/types.h>
 #include <libusb.h>
 #include <errno.h>
+#include <unistd.h>
 
 #include "stlink-common.h"
 #include "stlink-usb.h"
@@ -879,6 +880,7 @@ stlink_t* stlink_open_usb(const int verbose, int reset, char *p_usb_iserial) {
 
     if (reset) {
         stlink_reset(sl);
+        usleep(10000);
     }
     stlink_version(sl);
     error = stlink_load_device_params(sl);
