@@ -174,11 +174,11 @@ int main(int argc, char** argv) {
     parse_options(argc, argv, &state);
     switch (state.stlink_version) {
         case 2:
-	        sl = stlink_open_usb(state.logging_level, 0, NULL);
+            sl = stlink_open_usb(state.logging_level, state.reset, NULL);
             if(sl == NULL) return 1;
             break;
         case 1:
-            sl = stlink_v1_open(state.logging_level, 0);
+            sl = stlink_v1_open(state.logging_level, state.reset);
             if(sl == NULL) return 1;
             break;
     }
