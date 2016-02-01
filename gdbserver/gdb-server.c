@@ -812,7 +812,7 @@ static struct cache_desc_t cache_desc;
 static unsigned ceil_log2(unsigned v)
 {
   unsigned res;
-  for (res = 0; (1 << res) < v; res++)
+  for (res = 0; (1U << res) < v; res++)
     ;
   return res;
 }
