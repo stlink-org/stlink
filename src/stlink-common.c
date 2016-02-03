@@ -432,9 +432,12 @@ static inline void write_flash_cr_snb(stlink_t *sl, uint32_t n) {
 }
 
 static inline void write_flash_cr_bker_pnb(stlink_t *sl, uint32_t n) {
+    stlink_write_debug32(sl, STM32L4_FLASH_SR, 0xFFFFFFFF & ~(1<<STM32L4_FLASH_SR_BSY));
     uint32_t x = read_flash_cr(sl);
     x &=~ STM32L4_FLASH_CR_OPBITS;
     x &=~ STM32L4_FLASH_CR_PAGEMASK;
+    x &= ~(1<<STM32L4_FLASH_CR_MER1);
+    x &= ~(1<<STM32L4_FLASH_CR_MER2);
     x |= (n << STM32L4_FLASH_CR_PNB);
     x |= (1lu << STM32L4_FLASH_CR_PER);
 #if DEBUG_FLASH
