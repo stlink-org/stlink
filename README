@@ -190,6 +190,7 @@ Known Working Targets:
 * STM32L052K8T6 (custom board)
 * STM32L151CB (custom board)
 * STM32L152RB (STM32L-Discovery board, custom board)
+* STM32F051R8T6 (STM320518-EVAL board)
 
 STLink v2-1 (as found on the Nucleo boards)
 Known Working Targets:
