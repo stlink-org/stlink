@@ -21,8 +21,6 @@ extern "C" {
     struct stlink_libusb {
         libusb_context* libusb_ctx;
         libusb_device_handle* usb_handle;
-        struct libusb_transfer* req_trans;
-        struct libusb_transfer* rep_trans;
         unsigned int ep_req;
         unsigned int ep_rep;
         int protocoll;
