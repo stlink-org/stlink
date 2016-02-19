@@ -1031,7 +1031,6 @@ int stlink_fread(stlink_t* sl, const char* path, stm32_addr_t addr, size_t size)
 
     int error = -1;
     size_t off;
-    int num_empty = 0;
 
     const int fd = open(path, O_RDWR | O_TRUNC | O_CREAT, 00700);
     if (fd == -1) {

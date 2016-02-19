@@ -12,32 +12,12 @@
 #include "stlink-usb.h"
 #include "uglylogging.h"
 
-/* code from bsd timersub.h
-http://www.gnu-darwin.org/www001/src/ports/net/libevnet/work/libevnet-0.3.8/libnostd/bsd/sys/time/timersub.h.html
-*/
-#if !defined timersub
-#define	timersub(a, b, r) do {					\
-    (r)->tv_sec	= (a)->tv_sec - (b)->tv_sec;		\
-    (r)->tv_usec	= (a)->tv_usec - (b)->tv_usec;		\
-    if ((r)->tv_usec < 0) {					\
-        --(r)->tv_sec;					\
-        (r)->tv_usec += 1000000;			\
-    }							\
-} while (0)
-#endif
-
 enum SCSI_Generic_Direction {SG_DXFER_TO_DEV=0, SG_DXFER_FROM_DEV=0x80};
 
 void _stlink_usb_close(stlink_t* sl) {
     struct stlink_libusb * const handle = sl->backend_data;
     // maybe we couldn't even get the usb device?
     if (handle != NULL) {
-        if (handle->req_trans != NULL)
-            libusb_free_transfer(handle->req_trans);
-
-        if (handle->rep_trans != NULL)
-            libusb_free_transfer(handle->rep_trans);
-
         if (handle->usb_handle != NULL) {
             libusb_close(handle->usb_handle);
         }
@@ -47,111 +27,42 @@ void _stlink_usb_close(stlink_t* sl) {
     }
 }
 
-
-struct trans_ctx {
-#define TRANS_FLAGS_IS_DONE (1 << 0)
-#define TRANS_FLAGS_HAS_ERROR (1 << 1)
-    volatile unsigned long flags;
-};
-
-#ifndef LIBUSB_CALL
-# define LIBUSB_CALL
-#endif
-
-static void LIBUSB_CALL on_trans_done(struct libusb_transfer * trans) {
-    struct trans_ctx * const ctx = trans->user_data;
-
-    if (trans->status != LIBUSB_TRANSFER_COMPLETED)
-        ctx->flags |= TRANS_FLAGS_HAS_ERROR;
-
-    ctx->flags |= TRANS_FLAGS_IS_DONE;
-}
-
-int submit_wait(struct stlink_libusb *slu, struct libusb_transfer * trans) {
-    struct timeval start;
-    struct timeval now;
-    struct timeval diff;
-    struct trans_ctx trans_ctx;
-    enum libusb_error error;
-
-    trans_ctx.flags = 0;
-
-    /* brief intrusion inside the libusb interface */
-    trans->callback = on_trans_done;
-    trans->user_data = &trans_ctx;
-
-    if ((error = libusb_submit_transfer(trans))) {
-        printf("libusb_submit_transfer(%d)\n", error);
-        return -1;
-    }
-
-    gettimeofday(&start, NULL);
-
-    while (trans_ctx.flags == 0) {
-        struct timeval timeout;
-        timeout.tv_sec = 3;
-        timeout.tv_usec = 0;
-        if (libusb_handle_events_timeout(slu->libusb_ctx, &timeout)) {
-            printf("libusb_handle_events()\n");
-            return -1;
-        }
-
-        gettimeofday(&now, NULL);
-        timersub(&now, &start, &diff);
-        if (diff.tv_sec >= 3) {
-            printf("libusb_handle_events() timeout\n");
-            return -1;
-        }
-    }
-
-    if (trans_ctx.flags & TRANS_FLAGS_HAS_ERROR) {
-        printf("libusb_handle_events() | has_error\n");
-        return -1;
-    }
-
-    return 0;
-}
-
 ssize_t send_recv(struct stlink_libusb* handle, int terminate,
         unsigned char* txbuf, size_t txsize,
         unsigned char* rxbuf, size_t rxsize) {
     /* note: txbuf and rxbuf can point to the same area */
     int res = 0;
 
-    libusb_fill_bulk_transfer(handle->req_trans, handle->usb_handle,
-            handle->ep_req,
-            txbuf, txsize,
-            NULL, NULL,
-            0
-            );
+    if (libusb_bulk_transfer(handle->usb_handle, handle->ep_req,
+            txbuf,
+            txsize,
+            &res,
+            3000))
+        return -1;
 
-    if (submit_wait(handle, handle->req_trans)) return -1;
-
-    /* send_only */
     if (rxsize != 0) {
-
-        /* read the response */
-
-        libusb_fill_bulk_transfer(handle->rep_trans, handle->usb_handle,
-                handle->ep_rep, rxbuf, rxsize, NULL, NULL, 0);
-
-        if (submit_wait(handle, handle->rep_trans)) return -1;
-        res = handle->rep_trans->actual_length;
+        if (libusb_bulk_transfer(handle->usb_handle, handle->ep_rep,
+                rxbuf,
+                rxsize,
+                &res,
+                3000))
+            return -1;
     }
 
     if ((handle->protocoll == 1) && terminate) {
         /* Read the SG reply */
         unsigned char sg_buf[13];
-        libusb_fill_bulk_transfer
-            (handle->rep_trans, handle->usb_handle,
-             handle->ep_rep, sg_buf, 13, NULL, NULL, 0);
-        res = submit_wait(handle, handle->rep_trans);
+        if (libusb_bulk_transfer(handle->usb_handle, handle->ep_rep,
+                sg_buf,
+                13,
+                &res,
+                3000))
+            return -1;
         /* The STLink doesn't seem to evaluate the sequence number */
         handle->sg_transfer_idx++;
-        if (res ) return -1;
     }
 
-    return handle->rep_trans->actual_length;
+    return res;
 }
 
 static inline int send_only
@@ -840,18 +751,6 @@ stlink_t* stlink_open_usb(const int verbose, int reset, char *p_usb_iserial) {
 
     if (libusb_claim_interface(slu->usb_handle, 0)) {
         WLOG("libusb_claim_interface() failed\n");
-        goto on_libusb_error;
-    }
-
-    slu->req_trans = libusb_alloc_transfer(0);
-    if (slu->req_trans == NULL) {
-        WLOG("libusb_alloc_transfer failed\n");
-        goto on_libusb_error;
-    }
-
-    slu->rep_trans = libusb_alloc_transfer(0);
-    if (slu->rep_trans == NULL) {
-        WLOG("libusb_alloc_transfer failed\n");
         goto on_libusb_error;
     }
 
