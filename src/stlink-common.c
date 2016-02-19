@@ -1032,9 +1032,6 @@ int stlink_fread(stlink_t* sl, const char* path, stm32_addr_t addr, size_t size)
     int error = -1;
     size_t off;
     int num_empty = 0;
-    unsigned char erased_pattern = (sl->chip_id == STM32_CHIPID_L1_MEDIUM || sl->chip_id == STM32_CHIPID_L1_CAT2
-            || sl->chip_id == STM32_CHIPID_L1_MEDIUM_PLUS || sl->chip_id == STM32_CHIPID_L1_HIGH
-            || sl->chip_id == STM32_CHIPID_L152_RE) ? 0:0xff;
 
     const int fd = open(path, O_RDWR | O_TRUNC | O_CREAT, 00700);
     if (fd == -1) {
@@ -1048,36 +1045,24 @@ int stlink_fread(stlink_t* sl, const char* path, stm32_addr_t addr, size_t size)
     if (size > sl->flash_size)
         size = sl->flash_size;
 
-    /* do the copy by 1k blocks */
-    for (off = 0; off < size; off += 1024) {
-        size_t read_size = 1024;
-        size_t rounded_size;
-        size_t index;
-        if ((off + read_size) > size)
-            read_size = size - off;
+    size_t cmp_size = (sl->flash_pgsz > 0x1800)? 0x1800:sl->flash_pgsz;
+    for (off = 0; off < size; off += cmp_size) {
+        size_t aligned_size;
 
-        /* round size if needed */
-        rounded_size = read_size;
-        if (rounded_size & 3)
-            rounded_size = (rounded_size + 4) & ~(3);
+        /* adjust last page size */
+        if ((off + cmp_size) > size)
+            cmp_size = size - off;
 
-        stlink_read_mem32(sl, addr + off, rounded_size);
+        aligned_size = cmp_size;
+        if (aligned_size & (4 - 1))
+            aligned_size = (cmp_size + 4) & ~(4 - 1);
 
-        for(index = 0; index < read_size; index ++) {
-            if (sl->q_buf[index] == erased_pattern)
-                num_empty ++;
-            else
-                num_empty = 0;
-        }
-        if (write(fd, sl->q_buf, read_size) != (ssize_t) read_size) {
-            fprintf(stderr, "write() != read_size\n");
+        stlink_read_mem32(sl, addr + off, aligned_size);
+
+        if (write(fd, sl->q_buf, sl->q_len) != (ssize_t) aligned_size) {
+            fprintf(stderr, "write() != aligned_size\n");
             goto on_error;
         }
-    }
-
-    /* Ignore NULL Bytes at end of file */
-    if (!ftruncate(fd, size - num_empty)) {
-        error = -1;
     }
 
     /* success */
