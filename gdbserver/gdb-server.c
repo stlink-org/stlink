@@ -1353,6 +1353,12 @@ int serve(stlink_t *sl, st_state_t *st) {
 
                 unsigned adj_start = start % 4;
                 unsigned count_rnd = (count + adj_start + 4 - 1) / 4 * 4;
+                if (count_rnd > sl->flash_pgsz)
+                    count_rnd = sl->flash_pgsz;
+                if (count_rnd > 0x1800)
+                    count_rnd = 0x1800;
+                if (count_rnd < count)
+                    count = count_rnd;
 
                 stlink_read_mem32(sl, start - adj_start, count_rnd);
 
