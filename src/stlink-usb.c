@@ -259,6 +259,7 @@ void _stlink_usb_status(stlink_t * sl) {
         printf("[!] send_recv\n");
         return;
     }
+    sl->q_len = (size_t) size;
 }
 
 void _stlink_usb_force_debug(stlink_t *sl) {
@@ -644,7 +645,6 @@ stlink_t* stlink_open_usb(const int verbose, int reset, char *p_usb_iserial) {
     stlink_t* sl = NULL;
     struct stlink_libusb* slu = NULL;
     int error = -1;
-    libusb_device** devs = NULL;
     int config;
 
     sl = malloc(sizeof (stlink_t));
@@ -785,10 +785,6 @@ stlink_t* stlink_open_usb(const int verbose, int reset, char *p_usb_iserial) {
     error = stlink_load_device_params(sl);
 
 on_libusb_error:
-    if (devs != NULL) {
-        libusb_free_device_list(devs, 1);
-    }
-
     if (error == -1) {
         stlink_close(sl);
         return NULL;
