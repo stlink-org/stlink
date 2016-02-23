@@ -9,7 +9,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <signal.h>
 #include <unistd.h>
 #include <sys/types.h>
 #ifdef __MINGW32__
@@ -186,6 +185,7 @@ int main(int argc, char** argv) {
     connected_stlink = sl;
     signal(SIGINT, &cleanup);
     signal(SIGTERM, &cleanup);
+    signal(SIGSEGV, &cleanup);
 
     if (state.reset) {
         stlink_reset(sl);
