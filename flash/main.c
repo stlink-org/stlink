@@ -3,6 +3,7 @@
 // TODO - this should be done as just a simple flag to the st-util command line...
 
 
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -11,6 +12,19 @@
 
 #define DEBUG_LOG_LEVEL 100
 #define STND_LOG_LEVEL  50
+
+stlink_t *connected_stlink = NULL;
+
+static void cleanup(int signal __attribute__((unused))) {
+    if (connected_stlink) {
+        /* Switch back to mass storage mode before closing. */
+        stlink_run(connected_stlink);
+        stlink_exit_debug_mode(connected_stlink);
+        stlink_close(connected_stlink);
+    }
+
+    exit(1);
+}
 
 enum st_cmds {DO_WRITE = 0, DO_READ = 1, DO_ERASE = 2};
 struct opts
@@ -173,6 +187,11 @@ int main(int ac, char** av)
         if (sl == NULL) goto on_error;
         sl->verbose = o.log_level;
     }
+
+    connected_stlink = sl;
+    signal(SIGINT, &cleanup);
+    signal(SIGTERM, &cleanup);
+    signal(SIGSEGV, &cleanup);
 
     if (stlink_current_mode(sl) == STLINK_DEV_DFU_MODE)
         stlink_exit_dfu_mode(sl);
