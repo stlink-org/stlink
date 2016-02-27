@@ -1723,7 +1723,7 @@ int stm32l1_write_half_pages(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uin
     return 0;
 }
 
-int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uint32_t len) {
+int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uint32_t len, uint8_t eraseonly) {
     size_t off;
     flash_loader_t fl;
     ILOG("Attempting to write %d (%#x) bytes to stm32 address: %u (%#x)\n",
@@ -1768,6 +1768,9 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uint32_t 
     fprintf(stdout,"\n");
     ILOG("Finished erasing %d pages of %d (%#x) bytes\n",
             page_count, sl->flash_pgsz, sl->flash_pgsz);
+
+    if (eraseonly)
+        return 0;
 
     if ((sl->chip_id == STM32_CHIPID_F2) ||
         (sl->chip_id == STM32_CHIPID_F4) ||
@@ -1972,19 +1975,18 @@ int stlink_fwrite_flash(stlink_t *sl, const char* path, stm32_addr_t addr) {
         ELOG("map_file() == -1\n");
         return -1;
     }
-    for(index = 0; index < mf.len; index ++) {
-        if (mf.base[index] == erased_pattern)
-            num_empty ++;
-        else
-            num_empty = 0;
+    for(index = mf.len - 1; num_empty < mf.len; index --) {
+        if (mf.base[index] != erased_pattern) {
+            break;
+        }
+        num_empty ++;
     }
     /* Round down to words */
     num_empty -= (num_empty & 3);
     if(num_empty != 0) {
         ILOG("Ignoring %d bytes of 0x%02x at end of file\n", num_empty, erased_pattern);
-        mf.len -= num_empty;
     }
-    err = stlink_write_flash(sl, addr, mf.base, mf.len);
+    err = stlink_write_flash(sl, addr, mf.base, num_empty == mf.len? mf.len : mf.len - num_empty, num_empty == mf.len);
     /* set stack*/
     stlink_write_reg(sl, stlink_read_debug32(sl, addr    ),13);
     /* Set PC to the reset routine*/

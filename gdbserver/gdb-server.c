@@ -752,7 +752,7 @@ static int flash_go(stlink_t *sl) {
             DLOG("flash_do: page %08x\n", page);
             unsigned send = length > FLASH_PAGE ? FLASH_PAGE : length;
             if(stlink_write_flash(sl, page, fb->data + (page - fb->addr),
-                        send) < 0)
+                        send, 0) < 0)
                 goto error;
             length -= send;
             
