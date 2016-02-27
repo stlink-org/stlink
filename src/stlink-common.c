@@ -1966,7 +1966,7 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uint32_t 
 int stlink_fwrite_flash(stlink_t *sl, const char* path, stm32_addr_t addr) {
     /* write the file in flash at addr */
     int err;
-    unsigned int num_empty = 0, index;
+    unsigned int num_empty, index;
     unsigned char erased_pattern = (sl->chip_id == STM32_CHIPID_L1_MEDIUM || sl->chip_id == STM32_CHIPID_L1_CAT2
             || sl->chip_id == STM32_CHIPID_L1_MEDIUM_PLUS || sl->chip_id == STM32_CHIPID_L1_HIGH
             || sl->chip_id == STM32_CHIPID_L152_RE) ? 0:0xff;
@@ -1975,11 +1975,11 @@ int stlink_fwrite_flash(stlink_t *sl, const char* path, stm32_addr_t addr) {
         ELOG("map_file() == -1\n");
         return -1;
     }
-    for(index = mf.len - 1; num_empty < mf.len; index --) {
-        if (mf.base[index] != erased_pattern) {
+    index = mf.len;
+    for(num_empty = 0; num_empty != mf.len; ++num_empty) {
+        if (mf.base[--index] != erased_pattern) {
             break;
         }
-        num_empty ++;
     }
     /* Round down to words */
     num_empty -= (num_empty & 3);
