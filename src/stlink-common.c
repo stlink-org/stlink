@@ -1609,7 +1609,10 @@ int write_loader_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* size) {
             sl->chip_id == STM32_CHIPID_F4_LP || sl->chip_id == STM32_CHIPID_F4_HD || (sl->chip_id == STM32_CHIPID_F411RE) ||
             (sl->chip_id == STM32_CHIPID_F446) || (sl->chip_id == STM32_CHIPID_F4_DSI)){
         int voltage = stlink_target_voltage(sl);
-        if (voltage > 2700) {
+        if (voltage == -1) {
+            printf("Failed to read Target voltage\n");
+            return voltage;
+        } else if (voltage > 2700) {
             loader_code = loader_code_stm32f4;
             loader_size = sizeof(loader_code_stm32f4);
         } else {
@@ -1829,7 +1832,10 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uint32_t 
         if (sl->chip_id != STM32_CHIPID_L4) {
             /* set parallelisim to 32 bit*/
             int voltage = stlink_target_voltage(sl);
-            if (voltage > 2700) {
+            if (voltage == -1) {
+                printf("Failed to read Target voltage\n");
+                return voltage;
+            } else if (voltage > 2700) {
                 printf("enabling 32-bit flash writes\n");
                 write_flash_cr_psiz(sl, 2);
             } else {
@@ -1839,7 +1845,10 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uint32_t 
         } else {
             /* L4 does not have a byte-write mode */
             int voltage = stlink_target_voltage(sl);
-            if (voltage < 1710) {
+            if (voltage == -1) {
+                printf("Failed to read Target voltage\n");
+                return voltage;
+            } else if (voltage < 1710) {
                 printf("Target voltage (%d mV) too low for flash writes!\n", voltage);
                 return -1;
             }
