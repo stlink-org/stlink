@@ -566,7 +566,7 @@ extern "C" {
         void (*run) (stlink_t * stl);
         void (*status) (stlink_t * stl);
         void (*version) (stlink_t *sl);
-        uint32_t (*read_debug32) (stlink_t *sl, uint32_t addr);
+        void (*read_debug32) (stlink_t *sl, uint32_t addr, uint32_t *data);
         void (*read_mem32) (stlink_t *sl, uint32_t addr, uint16_t len);
         void (*write_debug32) (stlink_t *sl, uint32_t addr, uint32_t data);
         void (*write_mem32) (stlink_t *sl, uint32_t addr, uint16_t len);
@@ -636,7 +636,7 @@ extern "C" {
     void stlink_run(stlink_t *sl);
     void stlink_status(stlink_t *sl);
     void stlink_version(stlink_t *sl);
-    uint32_t stlink_read_debug32(stlink_t *sl, uint32_t addr);
+    void stlink_read_debug32(stlink_t *sl, uint32_t addr, uint32_t *data);
     void stlink_read_mem32(stlink_t *sl, uint32_t addr, uint16_t len);
     void stlink_write_debug32(stlink_t *sl, uint32_t addr, uint32_t data);
     void stlink_write_mem32(stlink_t *sl, uint32_t addr, uint16_t len);

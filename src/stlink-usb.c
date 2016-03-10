@@ -138,7 +138,7 @@ int32_t _stlink_usb_target_voltage(stlink_t *sl) {
     return voltage;
 }
 
-uint32_t _stlink_usb_read_debug32(stlink_t *sl, uint32_t addr) {
+void _stlink_usb_read_debug32(stlink_t *sl, uint32_t addr, uint32_t *data) {
     struct stlink_libusb * const slu = sl->backend_data;
     unsigned char* const rdata = sl->q_buf;
     unsigned char* const cmd  = sl->c_buf;
@@ -152,9 +152,10 @@ uint32_t _stlink_usb_read_debug32(stlink_t *sl, uint32_t addr) {
     size = send_recv(slu, 1, cmd, slu->cmd_len, rdata, rep_len);
     if (size == -1) {
         printf("[!] send_recv\n");
-        return 0;
+        return;
     }
-    return read_uint32(rdata, 4);
+    *data = read_uint32(rdata, 4);
+    return;
 }
 
 void _stlink_usb_write_debug32(stlink_t *sl, uint32_t addr, uint32_t data) {

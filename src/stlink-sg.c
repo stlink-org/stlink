@@ -811,7 +811,7 @@ void _stlink_sg_write_debug32(stlink_t *sl, uint32_t addr, uint32_t data) {
 
 // Read one DWORD data from memory
 
-uint32_t _stlink_sg_read_debug32(stlink_t *sl, uint32_t addr) {
+void _stlink_sg_read_debug32(stlink_t *sl, uint32_t addr, uint32_t *data) {
     struct stlink_libsg *sg = sl->backend_data;
     clear_cdb(sg);
     sg->cdb_cmd_blk[1] = STLINK_JTAG_READDEBUG_32BIT;
@@ -820,7 +820,8 @@ uint32_t _stlink_sg_read_debug32(stlink_t *sl, uint32_t addr) {
     sl->q_len = 8;
     stlink_q(sl);
 
-    return read_uint32(sl->q_buf, 4);
+    *data = read_uint32(sl->q_buf, 4);
+    return;
 }
 
 // Exit the jtag or swd mode and enter the mass mode.
