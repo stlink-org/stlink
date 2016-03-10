@@ -630,7 +630,7 @@ extern "C" {
     void stlink_exit_debug_mode(stlink_t *sl);
     void stlink_exit_dfu_mode(stlink_t *sl);
     void stlink_close(stlink_t *sl);
-    uint32_t stlink_core_id(stlink_t *sl);
+    void stlink_core_id(stlink_t *sl);
     void stlink_reset(stlink_t *sl);
     void stlink_jtag_reset(stlink_t *sl, int value);
     void stlink_run(stlink_t *sl);

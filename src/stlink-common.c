@@ -494,13 +494,13 @@ void stlink_exit_dfu_mode(stlink_t *sl) {
     sl->backend->exit_dfu_mode(sl);
 }
 
-uint32_t stlink_core_id(stlink_t *sl) {
+void stlink_core_id(stlink_t *sl) {
     DLOG("*** stlink_core_id ***\n");
     sl->backend->core_id(sl);
     if (sl->verbose > 2)
         stlink_print_data(sl);
     DLOG("core_id = 0x%08x\n", sl->core_id);
-    return sl->core_id;
+    return;
 }
 
 uint32_t stlink_chip_id(stlink_t *sl) {
@@ -534,7 +534,7 @@ void stlink_cpu_id(stlink_t *sl, cortex_m3_cpuid_t *cpuid) {
 int stlink_load_device_params(stlink_t *sl) {
     ILOG("Loading device parameters....\n");
     const chip_params_t *params = NULL;
-    sl->core_id = stlink_core_id(sl);
+    stlink_core_id(sl);
     uint32_t chip_id = stlink_chip_id(sl);
     uint32_t flash_size;
 
