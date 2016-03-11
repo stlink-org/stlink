@@ -403,13 +403,13 @@ void stlink_stat(stlink_t *stl, char *txt) {
 }
 
 
-void _stlink_sg_version(stlink_t *stl) {
+int _stlink_sg_version(stlink_t *stl) {
     struct stlink_libsg *sl = stl->backend_data;
     clear_cdb(sl);
     sl->cdb_cmd_blk[0] = STLINK_GET_VERSION;
     stl->q_len = 6;
     sl->q_addr = 0;
-    stlink_q(stl);
+    return stlink_q(stl);
 }
 
 // Get stlink mode:
@@ -422,44 +422,46 @@ int _stlink_sg_current_mode(stlink_t *stl) {
     sl->cdb_cmd_blk[0] = STLINK_GET_CURRENT_MODE;
     stl->q_len = 2;
     sl->q_addr = 0;
-    stlink_q(stl);
+    if (stlink_q(stl))
+        return -1;
+
     return stl->q_buf[0];
 }
 
 // Exit the mass mode and enter the swd debug mode.
 
-void _stlink_sg_enter_swd_mode(stlink_t *sl) {
+int _stlink_sg_enter_swd_mode(stlink_t *sl) {
     struct stlink_libsg *sg = sl->backend_data;
     clear_cdb(sg);
     sg->cdb_cmd_blk[1] = STLINK_DEBUG_ENTER;
     sg->cdb_cmd_blk[2] = STLINK_DEBUG_ENTER_SWD;
     sl->q_len = 0; // >0 -> aboard
-    stlink_q(sl);
+    return stlink_q(sl);
 }
 
 // Exit the mass mode and enter the jtag debug mode.
 // (jtag is disabled in the discovery's stlink firmware)
 
-void _stlink_sg_enter_jtag_mode(stlink_t *sl) {
+int _stlink_sg_enter_jtag_mode(stlink_t *sl) {
     struct stlink_libsg *sg = sl->backend_data;
     DLOG("\n*** stlink_enter_jtag_mode ***\n");
     clear_cdb(sg);
     sg->cdb_cmd_blk[1] = STLINK_DEBUG_ENTER;
     sg->cdb_cmd_blk[2] = STLINK_DEBUG_ENTER_JTAG;
     sl->q_len = 0;
-    stlink_q(sl);
+    return stlink_q(sl);
 }
 
 // XXX kernel driver performs reset, the device temporally disappears
 // Suspect this is no longer the case when we have ignore on? RECHECK
-void _stlink_sg_exit_dfu_mode(stlink_t *sl) {
+int _stlink_sg_exit_dfu_mode(stlink_t *sl) {
     struct stlink_libsg *sg = sl->backend_data;
     DLOG("\n*** stlink_exit_dfu_mode ***\n");
     clear_cdb(sg);
     sg->cdb_cmd_blk[0] = STLINK_DFU_COMMAND;
     sg->cdb_cmd_blk[1] = STLINK_DFU_EXIT;
     sl->q_len = 0; // ??
-    stlink_q(sl);
+    return stlink_q(sl);
     /*
        [135121.844564] sd 19:0:0:0: [sdb] Unhandled error code
        [135121.844569] sd 19:0:0:0: [sdb] Result: hostbyte=DID_ERROR driverbyte=DRIVER_OK
@@ -505,74 +507,91 @@ void _stlink_sg_exit_dfu_mode(stlink_t *sl) {
        */
 }
 
-void _stlink_sg_core_id(stlink_t *sl) {
+int _stlink_sg_core_id(stlink_t *sl) {
     struct stlink_libsg *sg = sl->backend_data;
+    int ret;
     clear_cdb(sg);
     sg->cdb_cmd_blk[1] = STLINK_DEBUG_READCOREID;
     sl->q_len = 4;
     sg->q_addr = 0;
-    stlink_q(sl);
+    ret = stlink_q(sl);
+    if (ret)
+        return ret;
+
     sl->core_id = read_uint32(sl->q_buf, 0);
+    return 0;
 }
 
 // Arm-core reset -> halted state.
 
-void _stlink_sg_reset(stlink_t *sl) {
+int _stlink_sg_reset(stlink_t *sl) {
     struct stlink_libsg *sg = sl->backend_data;
     clear_cdb(sg);
     sg->cdb_cmd_blk[1] = STLINK_DEBUG_RESETSYS;
     sl->q_len = 2;
     sg->q_addr = 0;
-    stlink_q(sl);
+    if (stlink_q(sl))
+        return -1;
+
     stlink_stat(sl, "core reset");
+    return 0;
 }
 
 // Arm-core reset -> halted state.
 
-void _stlink_sg_jtag_reset(stlink_t *sl, int value) {
+int _stlink_sg_jtag_reset(stlink_t *sl, int value) {
     struct stlink_libsg *sg = sl->backend_data;
     clear_cdb(sg);
     sg->cdb_cmd_blk[1] = STLINK_JTAG_DRIVE_NRST;
     sg->cdb_cmd_blk[2] = (value)?0:1;
     sl->q_len = 3;
     sg->q_addr = 2;
-    stlink_q(sl);
+    if (stlink_q(sl))
+        return -1;
+
     stlink_stat(sl, "core reset");
+
+    return 0;
 }
 
 // Arm-core status: halted or running.
 
-void _stlink_sg_status(stlink_t *sl) {
+int _stlink_sg_status(stlink_t *sl) {
     struct stlink_libsg *sg = sl->backend_data;
     clear_cdb(sg);
     sg->cdb_cmd_blk[1] = STLINK_DEBUG_GETSTATUS;
     sl->q_len = 2;
     sg->q_addr = 0;
-    stlink_q(sl);
+    return stlink_q(sl);
 }
 
 // Force the core into the debug mode -> halted state.
 
-void _stlink_sg_force_debug(stlink_t *sl) {
+int _stlink_sg_force_debug(stlink_t *sl) {
     struct stlink_libsg *sg = sl->backend_data;
     clear_cdb(sg);
     sg->cdb_cmd_blk[1] = STLINK_DEBUG_FORCEDEBUG;
     sl->q_len = 2;
     sg->q_addr = 0;
-    stlink_q(sl);
+    if (stlink_q(sl))
+        return -1;
+
     stlink_stat(sl, "force debug");
+    return 0;
 }
 
 // Read all arm-core registers.
 
-void _stlink_sg_read_all_regs(stlink_t *sl, reg *regp) {
+int _stlink_sg_read_all_regs(stlink_t *sl, reg *regp) {
     struct stlink_libsg *sg = sl->backend_data;
 
     clear_cdb(sg);
     sg->cdb_cmd_blk[1] = STLINK_DEBUG_READALLREGS;
     sl->q_len = 84;
     sg->q_addr = 0;
-    stlink_q(sl);
+    if (stlink_q(sl))
+        return -1;
+
     stlink_print_data(sl);
 
     // TODO - most of this should be re-extracted up....
@@ -590,27 +609,31 @@ void _stlink_sg_read_all_regs(stlink_t *sl, reg *regp) {
     regp->rw = read_uint32(sl->q_buf, 76);
     regp->rw2 = read_uint32(sl->q_buf, 80);
     if (sl->verbose < 2)
-        return;
+        return 0;
 
     DLOG("xpsr       = 0x%08x\n", regp->xpsr);
     DLOG("main_sp    = 0x%08x\n", regp->main_sp);
     DLOG("process_sp = 0x%08x\n", regp->process_sp);
     DLOG("rw         = 0x%08x\n", regp->rw);
     DLOG("rw2        = 0x%08x\n", regp->rw2);
+
+    return 0;
 }
 
 // Read an arm-core register, the index must be in the range 0..20.
 //  0  |  1  | ... |  15   |  16   |   17    |   18       |  19   |  20
 // r0  | r1  | ... | r15   | xpsr  | main_sp | process_sp | rw    | rw2
 
-void _stlink_sg_read_reg(stlink_t *sl, int r_idx, reg *regp) {
+int _stlink_sg_read_reg(stlink_t *sl, int r_idx, reg *regp) {
     struct stlink_libsg *sg = sl->backend_data;
     clear_cdb(sg);
     sg->cdb_cmd_blk[1] = STLINK_DEBUG_READREG;
     sg->cdb_cmd_blk[2] = r_idx;
     sl->q_len = 4;
     sg->q_addr = 0;
-    stlink_q(sl);
+    if (stlink_q(sl))
+        return -1;
+
     //  0  |  1  | ... |  15   |  16   |   17    |   18       |  19   |  20
     // 0-3 | 4-7 | ... | 60-63 | 64-67 | 68-71   | 72-75      | 76-79 | 80-83
     // r0  | r1  | ... | r15   | xpsr  | main_sp | process_sp | rw    | rw2
@@ -638,13 +661,15 @@ void _stlink_sg_read_reg(stlink_t *sl, int r_idx, reg *regp) {
     default:
         regp->r[r_idx] = r;
     }
+
+    return 0;
 }
 
 // Write an arm-core register. Index:
 //  0  |  1  | ... |  15   |  16   |   17    |   18       |  19   |  20
 // r0  | r1  | ... | r15   | xpsr  | main_sp | process_sp | rw    | rw2
 
-void _stlink_sg_write_reg(stlink_t *sl, uint32_t reg, int idx) {
+int _stlink_sg_write_reg(stlink_t *sl, uint32_t reg, int idx) {
     struct stlink_libsg *sg = sl->backend_data;
     clear_cdb(sg);
     sg->cdb_cmd_blk[1] = STLINK_DEBUG_WRITEREG;
@@ -654,8 +679,11 @@ void _stlink_sg_write_reg(stlink_t *sl, uint32_t reg, int idx) {
     write_uint32(sg->cdb_cmd_blk + 3, reg);
     sl->q_len = 2;
     sg->q_addr = 0;
-    stlink_q(sl);
+    if (stlink_q(sl))
+        return -1;
+
     stlink_stat(sl, "write reg");
+    return 0;
 }
 
 // Write a register of the debug module of the core.
@@ -679,26 +707,33 @@ void stlink_write_dreg(stlink_t *sl, uint32_t reg, uint32_t addr) {
 
 // Force the core exit the debug mode.
 
-void _stlink_sg_run(stlink_t *sl) {
+int _stlink_sg_run(stlink_t *sl) {
     struct stlink_libsg *sg = sl->backend_data;
     clear_cdb(sg);
     sg->cdb_cmd_blk[1] = STLINK_DEBUG_RUNCORE;
     sl->q_len = 2;
     sg->q_addr = 0;
-    stlink_q(sl);
+    if (stlink_q(sl))
+        return -1;
+
     stlink_stat(sl, "run core");
+
+    return 0;
 }
 
 // Step the arm-core.
 
-void _stlink_sg_step(stlink_t *sl) {
+int _stlink_sg_step(stlink_t *sl) {
     struct stlink_libsg *sg = sl->backend_data;
     clear_cdb(sg);
     sg->cdb_cmd_blk[1] = STLINK_DEBUG_STEPCORE;
     sl->q_len = 2;
     sg->q_addr = 0;
-    stlink_q(sl);
+    if (stlink_q(sl))
+        return -1;
+
     stlink_stat(sl, "step core");
+    return 0;
 }
 
 // TODO test
@@ -738,7 +773,7 @@ void stlink_clr_hw_bp(stlink_t *sl, int fp_nr) {
 
 // Read a "len" bytes to the sl->q_buf from the memory, max 6kB (6144 bytes)
 
-void _stlink_sg_read_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
+int _stlink_sg_read_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
     struct stlink_libsg *sg = sl->backend_data;
     clear_cdb(sg);
     sg->cdb_cmd_blk[1] = STLINK_DEBUG_READMEM_32BIT;
@@ -754,14 +789,19 @@ void _stlink_sg_read_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
     //     (broken residue issue)
     sl->q_len = len;
     sg->q_addr = addr;
-    stlink_q(sl);
+    if (stlink_q(sl))
+        return -1;
+
     stlink_print_data(sl);
+    return 0;
 }
 
 // Write a "len" bytes from the sl->q_buf to the memory, max 64 Bytes.
 
-void _stlink_sg_write_mem8(stlink_t *sl, uint32_t addr, uint16_t len) {
+int _stlink_sg_write_mem8(stlink_t *sl, uint32_t addr, uint16_t len) {
     struct stlink_libsg *sg = sl->backend_data;
+    int ret;
+
     clear_cdb(sg);
     sg->cdb_cmd_blk[1] = STLINK_DEBUG_WRITEMEM_8BIT;
     // 2-5: addr
@@ -770,16 +810,27 @@ void _stlink_sg_write_mem8(stlink_t *sl, uint32_t addr, uint16_t len) {
     write_uint16(sg->cdb_cmd_blk + 6, len);
 
     // this sends the command...
-    send_usb_mass_storage_command(sg->usb_handle, sg->ep_req, sg->cdb_cmd_blk, CDB_SL, 0, 0, 0);
+    ret = send_usb_mass_storage_command(sg->usb_handle,
+            sg->ep_req, sg->cdb_cmd_blk, CDB_SL, 0, 0, 0);
+    if (ret == -1)
+        return ret;
+
     // This sends the data...
-    send_usb_data_only(sg->usb_handle, sg->ep_req, sg->ep_rep, sl->q_buf, len);
+    ret = send_usb_data_only(sg->usb_handle,
+            sg->ep_req, sg->ep_rep, sl->q_buf, len);
+    if (ret == -1)
+        return ret;
+
     stlink_print_data(sl);
+    return 0;
 }
 
 // Write a "len" bytes from the sl->q_buf to the memory, max Q_BUF_LEN bytes.
 
-void _stlink_sg_write_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
+int _stlink_sg_write_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
     struct stlink_libsg *sg = sl->backend_data;
+    int ret;
+
     clear_cdb(sg);
     sg->cdb_cmd_blk[1] = STLINK_DEBUG_WRITEMEM_32BIT;
     // 2-5: addr
@@ -788,16 +839,24 @@ void _stlink_sg_write_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
     write_uint16(sg->cdb_cmd_blk + 6, len);
 
     // this sends the command...
-    send_usb_mass_storage_command(sg->usb_handle, sg->ep_req, sg->cdb_cmd_blk, CDB_SL, 0, 0, 0);
+    ret = send_usb_mass_storage_command(sg->usb_handle,
+            sg->ep_req, sg->cdb_cmd_blk, CDB_SL, 0, 0, 0);
+    if (ret == -1)
+        return ret;
+
     // This sends the data...
-    send_usb_data_only(sg->usb_handle, sg->ep_req, sg->ep_rep, sl->q_buf, len);
+    ret = send_usb_data_only(sg->usb_handle,
+            sg->ep_req, sg->ep_rep, sl->q_buf, len);
+    if (ret == -1)
+        return ret;
 
     stlink_print_data(sl);
+    return 0;
 }
 
 // Write one DWORD data to memory
 
-void _stlink_sg_write_debug32(stlink_t *sl, uint32_t addr, uint32_t data) {
+int _stlink_sg_write_debug32(stlink_t *sl, uint32_t addr, uint32_t data) {
     struct stlink_libsg *sg = sl->backend_data;
     clear_cdb(sg);
     sg->cdb_cmd_blk[1] = STLINK_JTAG_WRITEDEBUG_32BIT;
@@ -805,36 +864,38 @@ void _stlink_sg_write_debug32(stlink_t *sl, uint32_t addr, uint32_t data) {
     write_uint32(sg->cdb_cmd_blk + 2, addr);
     write_uint32(sg->cdb_cmd_blk + 6, data);
     sl->q_len = 2;
-    stlink_q(sl);
-
+    return stlink_q(sl);
 }
 
 // Read one DWORD data from memory
 
-void _stlink_sg_read_debug32(stlink_t *sl, uint32_t addr, uint32_t *data) {
+int _stlink_sg_read_debug32(stlink_t *sl, uint32_t addr, uint32_t *data) {
     struct stlink_libsg *sg = sl->backend_data;
     clear_cdb(sg);
     sg->cdb_cmd_blk[1] = STLINK_JTAG_READDEBUG_32BIT;
     // 2-5: addr
     write_uint32(sg->cdb_cmd_blk + 2, addr);
     sl->q_len = 8;
-    stlink_q(sl);
+    if (stlink_q(sl))
+        return -1;
 
     *data = read_uint32(sl->q_buf, 4);
-    return;
+    return 0;
 }
 
 // Exit the jtag or swd mode and enter the mass mode.
 
-void _stlink_sg_exit_debug_mode(stlink_t *stl) {
-
+int _stlink_sg_exit_debug_mode(stlink_t *stl)
+{
     if (stl) {
         struct stlink_libsg* sl = stl->backend_data;
         clear_cdb(sl);
         sl->cdb_cmd_blk[1] = STLINK_DEBUG_EXIT;
         stl->q_len = 0; // >0 -> aboard
-        stlink_q(stl);
+        return stlink_q(stl);
     }
+
+    return 0;
 }
 
 
