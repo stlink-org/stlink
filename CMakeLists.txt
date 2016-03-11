@@ -38,7 +38,10 @@ add_executable(st-util gdbserver/gdb-remote.c
                        gdbserver/gdb-server.h)
 target_link_libraries(st-util stlink)
 
-install(TARGETS  stlink st-flash st-util
+add_executable(st-info src/st-info.c)
+target_link_libraries(st-info stlink)
+
+install(TARGETS  stlink st-flash st-util st-info
         RUNTIME DESTINATION bin
         ARCHIVE DESTINATION lib)
 
