@@ -625,31 +625,31 @@ extern "C" {
     //stlink_t* stlink_quirk_open(const char *dev_name, const int verbose);
 
     // delegated functions...
-    void stlink_enter_swd_mode(stlink_t *sl);
-    void stlink_enter_jtag_mode(stlink_t *sl);
-    void stlink_exit_debug_mode(stlink_t *sl);
-    void stlink_exit_dfu_mode(stlink_t *sl);
+    int stlink_enter_swd_mode(stlink_t *sl);
+    int stlink_enter_jtag_mode(stlink_t *sl);
+    int stlink_exit_debug_mode(stlink_t *sl);
+    int stlink_exit_dfu_mode(stlink_t *sl);
     void stlink_close(stlink_t *sl);
-    void stlink_core_id(stlink_t *sl);
-    void stlink_reset(stlink_t *sl);
-    void stlink_jtag_reset(stlink_t *sl, int value);
-    void stlink_run(stlink_t *sl);
-    void stlink_status(stlink_t *sl);
-    void stlink_version(stlink_t *sl);
-    void stlink_read_debug32(stlink_t *sl, uint32_t addr, uint32_t *data);
-    void stlink_read_mem32(stlink_t *sl, uint32_t addr, uint16_t len);
-    void stlink_write_debug32(stlink_t *sl, uint32_t addr, uint32_t data);
-    void stlink_write_mem32(stlink_t *sl, uint32_t addr, uint16_t len);
-    void stlink_write_mem8(stlink_t *sl, uint32_t addr, uint16_t len);
-    void stlink_read_all_regs(stlink_t *sl, reg *regp);
-    void stlink_read_all_unsupported_regs(stlink_t *sl, reg *regp);
-    void stlink_read_reg(stlink_t *sl, int r_idx, reg *regp);
-    void stlink_read_unsupported_reg(stlink_t *sl, int r_idx, reg *regp);
-    void stlink_write_unsupported_reg(stlink_t *sl, uint32_t value, int r_idx, reg *regp);
-    void stlink_write_reg(stlink_t *sl, uint32_t reg, int idx);
-    void stlink_step(stlink_t *sl);
+    int stlink_core_id(stlink_t *sl);
+    int stlink_reset(stlink_t *sl);
+    int stlink_jtag_reset(stlink_t *sl, int value);
+    int stlink_run(stlink_t *sl);
+    int stlink_status(stlink_t *sl);
+    int stlink_version(stlink_t *sl);
+    int stlink_read_debug32(stlink_t *sl, uint32_t addr, uint32_t *data);
+    int stlink_read_mem32(stlink_t *sl, uint32_t addr, uint16_t len);
+    int stlink_write_debug32(stlink_t *sl, uint32_t addr, uint32_t data);
+    int stlink_write_mem32(stlink_t *sl, uint32_t addr, uint16_t len);
+    int stlink_write_mem8(stlink_t *sl, uint32_t addr, uint16_t len);
+    int stlink_read_all_regs(stlink_t *sl, reg *regp);
+    int stlink_read_all_unsupported_regs(stlink_t *sl, reg *regp);
+    int stlink_read_reg(stlink_t *sl, int r_idx, reg *regp);
+    int stlink_read_unsupported_reg(stlink_t *sl, int r_idx, reg *regp);
+    int stlink_write_unsupported_reg(stlink_t *sl, uint32_t value, int r_idx, reg *regp);
+    int stlink_write_reg(stlink_t *sl, uint32_t reg, int idx);
+    int stlink_step(stlink_t *sl);
     int stlink_current_mode(stlink_t *sl);
-    void stlink_force_debug(stlink_t *sl);
+    int stlink_force_debug(stlink_t *sl);
     int stlink_target_voltage(stlink_t *sl);
 
 
@@ -661,8 +661,8 @@ extern "C" {
     int stlink_verify_write_flash(stlink_t *sl, stm32_addr_t address, uint8_t *data, uint32_t length);
 
     // PUBLIC
-    uint32_t stlink_chip_id(stlink_t *sl);
-    void stlink_cpu_id(stlink_t *sl, cortex_m3_cpuid_t *cpuid);
+    int stlink_chip_id(stlink_t *sl, uint32_t *chip_id);
+    int stlink_cpu_id(stlink_t *sl, cortex_m3_cpuid_t *cpuid);
 
     // privates, publics, the rest....
     // TODO sort what is private, and what is not

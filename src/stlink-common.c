@@ -472,43 +472,59 @@ void stlink_close(stlink_t *sl) {
     free(sl);
 }
 
-void stlink_exit_debug_mode(stlink_t *sl) {
+int stlink_exit_debug_mode(stlink_t *sl) {
+    int ret;
+
     DLOG("*** stlink_exit_debug_mode ***\n");
-    stlink_write_debug32(sl, DHCSR, DBGKEY);
-    sl->backend->exit_debug_mode(sl);
+    ret = stlink_write_debug32(sl, DHCSR, DBGKEY);
+    if (ret == -1)
+        return ret;
+
+    return sl->backend->exit_debug_mode(sl);
 }
 
-void stlink_enter_swd_mode(stlink_t *sl) {
+int stlink_enter_swd_mode(stlink_t *sl) {
     DLOG("*** stlink_enter_swd_mode ***\n");
-    sl->backend->enter_swd_mode(sl);
+    return sl->backend->enter_swd_mode(sl);
 }
 
 // Force the core into the debug mode -> halted state.
-void stlink_force_debug(stlink_t *sl) {
+int stlink_force_debug(stlink_t *sl) {
     DLOG("*** stlink_force_debug_mode ***\n");
-    sl->backend->force_debug(sl);
+    return sl->backend->force_debug(sl);
 }
 
-void stlink_exit_dfu_mode(stlink_t *sl) {
+int stlink_exit_dfu_mode(stlink_t *sl) {
     DLOG("*** stlink_exit_dfu_mode ***\n");
-    sl->backend->exit_dfu_mode(sl);
+    return sl->backend->exit_dfu_mode(sl);
 }
 
-void stlink_core_id(stlink_t *sl) {
+int stlink_core_id(stlink_t *sl) {
+    int ret;
+
     DLOG("*** stlink_core_id ***\n");
-    sl->backend->core_id(sl);
+    ret = sl->backend->core_id(sl);
+    if (ret == -1) {
+        ELOG("Failed to read core_id\n");
+        return ret;
+    }
     if (sl->verbose > 2)
         stlink_print_data(sl);
     DLOG("core_id = 0x%08x\n", sl->core_id);
-    return;
+    return ret;
 }
 
-uint32_t stlink_chip_id(stlink_t *sl) {
-    uint32_t chip_id;
-    stlink_read_debug32(sl, 0xE0042000, &chip_id);
+int stlink_chip_id(stlink_t *sl, uint32_t *chip_id) {
+    int ret;
+
+    ret = stlink_read_debug32(sl, 0xE0042000, chip_id);
+    if (ret == -1)
+        return ret;
+
     if (chip_id == 0)
-        stlink_read_debug32(sl, 0x40015800, &chip_id);    //Try Corex M0 DBGMCU_IDCODE register address
-    return chip_id;
+        ret = stlink_read_debug32(sl, 0x40015800, chip_id);    //Try Corex M0 DBGMCU_IDCODE register address
+
+    return ret;
 }
 
 /**
@@ -516,14 +532,17 @@ uint32_t stlink_chip_id(stlink_t *sl) {
  * @param sl stlink context
  * @param cpuid pointer to the result object
  */
-void stlink_cpu_id(stlink_t *sl, cortex_m3_cpuid_t *cpuid) {
+int stlink_cpu_id(stlink_t *sl, cortex_m3_cpuid_t *cpuid) {
     uint32_t raw;
-    stlink_read_debug32(sl, CM3_REG_CPUID, &raw);
+
+    if (stlink_read_debug32(sl, CM3_REG_CPUID, &raw))
+        return -1;
+
     cpuid->implementer_id = (raw >> 24) & 0x7f;
     cpuid->variant = (raw >> 20) & 0xf;
     cpuid->part = (raw >> 4) & 0xfff;
     cpuid->revision = raw & 0xf;
-    return;
+    return 0;
 }
 
 /**
@@ -535,9 +554,10 @@ int stlink_load_device_params(stlink_t *sl) {
     ILOG("Loading device parameters....\n");
     const chip_params_t *params = NULL;
     stlink_core_id(sl);
-    uint32_t chip_id = stlink_chip_id(sl);
+    uint32_t chip_id;
     uint32_t flash_size;
 
+    stlink_chip_id(sl, &chip_id);
     sl->chip_id = chip_id & 0xfff;
     /* Fix chip_id for F4 rev A errata , Read CPU ID, as CoreID is the same for F2/F4*/
     if (sl->chip_id == 0x411) {
@@ -599,25 +619,29 @@ int stlink_load_device_params(stlink_t *sl) {
     return 0;
 }
 
-void stlink_reset(stlink_t *sl) {
+int stlink_reset(stlink_t *sl) {
     DLOG("*** stlink_reset ***\n");
-    sl->backend->reset(sl);
+    return sl->backend->reset(sl);
 }
 
-void stlink_jtag_reset(stlink_t *sl, int value) {
+int stlink_jtag_reset(stlink_t *sl, int value) {
     DLOG("*** stlink_jtag_reset ***\n");
-    sl->backend->jtag_reset(sl, value);
+    return sl->backend->jtag_reset(sl, value);
 }
 
-void stlink_run(stlink_t *sl) {
+int stlink_run(stlink_t *sl) {
     DLOG("*** stlink_run ***\n");
-    sl->backend->run(sl);
+    return sl->backend->run(sl);
 }
 
-void stlink_status(stlink_t *sl) {
+int stlink_status(stlink_t *sl) {
+    int ret;
+
     DLOG("*** stlink_status ***\n");
-    sl->backend->status(sl);
+    ret = sl->backend->status(sl);
     stlink_core_stat(sl);
+
+    return ret;
 }
 
 /**
@@ -645,9 +669,11 @@ void _parse_version(stlink_t *sl, stlink_version_t *slv) {
     return;
 }
 
-void stlink_version(stlink_t *sl) {
+int stlink_version(stlink_t *sl) {
     DLOG("*** looking up stlink version\n");
-    sl->backend->version(sl);
+    if (sl->backend->version(sl))
+        return -1;
+
     _parse_version(sl, &sl->version);
 
     DLOG("st vid         = 0x%04x (expect 0x%04x)\n", sl->version.st_vid, USB_ST_VID);
@@ -661,6 +687,8 @@ void stlink_version(stlink_t *sl) {
     if (sl->version.swim_v == 0) {
         DLOG("    notice: the firmware doesn't support a swim interface\n");
     }
+
+    return -1;
 }
 
 int stlink_target_voltage(stlink_t *sl) {
@@ -679,74 +707,78 @@ int stlink_target_voltage(stlink_t *sl) {
     return voltage;
 }
 
-void stlink_read_debug32(stlink_t *sl, uint32_t addr, uint32_t *data) {
-    sl->backend->read_debug32(sl, addr, data);
-    DLOG("*** stlink_read_debug32 %x is %#x\n", data, addr);
-    return;
+int stlink_read_debug32(stlink_t *sl, uint32_t addr, uint32_t *data) {
+    int ret;
+
+    ret = sl->backend->read_debug32(sl, addr, data);
+    if (!ret)
+	    DLOG("*** stlink_read_debug32 %x is %#x\n", data, addr);
+
+	return ret;
 }
 
-void stlink_write_debug32(stlink_t *sl, uint32_t addr, uint32_t data) {
+int stlink_write_debug32(stlink_t *sl, uint32_t addr, uint32_t data) {
     DLOG("*** stlink_write_debug32 %x to %#x\n", data, addr);
-    sl->backend->write_debug32(sl, addr, data);
+    return sl->backend->write_debug32(sl, addr, data);
 }
 
-void stlink_write_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
+int stlink_write_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
     DLOG("*** stlink_write_mem32 %u bytes to %#x\n", len, addr);
     if (len % 4 != 0) {
         fprintf(stderr, "Error: Data length doesn't have a 32 bit alignment: +%d byte.\n", len % 4);
         abort();
     }
-    sl->backend->write_mem32(sl, addr, len);
+    return sl->backend->write_mem32(sl, addr, len);
 }
 
-void stlink_read_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
+int stlink_read_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
     DLOG("*** stlink_read_mem32 ***\n");
     if (len % 4 != 0) { // !!! never ever: fw gives just wrong values
         fprintf(stderr, "Error: Data length doesn't have a 32 bit alignment: +%d byte.\n",
                 len % 4);
         abort();
     }
-    sl->backend->read_mem32(sl, addr, len);
+    return sl->backend->read_mem32(sl, addr, len);
 }
 
-void stlink_write_mem8(stlink_t *sl, uint32_t addr, uint16_t len) {
+int stlink_write_mem8(stlink_t *sl, uint32_t addr, uint16_t len) {
     DLOG("*** stlink_write_mem8 ***\n");
     if (len > 0x40 ) { // !!! never ever: Writing more then 0x40 bytes gives unexpected behaviour
         fprintf(stderr, "Error: Data length > 64: +%d byte.\n",
                 len);
         abort();
     }
-    sl->backend->write_mem8(sl, addr, len);
+    return sl->backend->write_mem8(sl, addr, len);
 }
 
-void stlink_read_all_regs(stlink_t *sl, reg *regp) {
+int stlink_read_all_regs(stlink_t *sl, reg *regp) {
     DLOG("*** stlink_read_all_regs ***\n");
-    sl->backend->read_all_regs(sl, regp);
+    return sl->backend->read_all_regs(sl, regp);
 }
 
-void stlink_read_all_unsupported_regs(stlink_t *sl, reg *regp) {
+int stlink_read_all_unsupported_regs(stlink_t *sl, reg *regp) {
     DLOG("*** stlink_read_all_unsupported_regs ***\n");
-    sl->backend->read_all_unsupported_regs(sl, regp);
+    return sl->backend->read_all_unsupported_regs(sl, regp);
 }
 
-void stlink_write_reg(stlink_t *sl, uint32_t reg, int idx) {
+int stlink_write_reg(stlink_t *sl, uint32_t reg, int idx) {
     DLOG("*** stlink_write_reg\n");
-    sl->backend->write_reg(sl, reg, idx);
+    return sl->backend->write_reg(sl, reg, idx);
 }
 
-void stlink_read_reg(stlink_t *sl, int r_idx, reg *regp) {
+int stlink_read_reg(stlink_t *sl, int r_idx, reg *regp) {
     DLOG("*** stlink_read_reg\n");
     DLOG(" (%d) ***\n", r_idx);
 
     if (r_idx > 20 || r_idx < 0) {
         fprintf(stderr, "Error: register index must be in [0..20]\n");
-        return;
+        return -1;
     }
 
-    sl->backend->read_reg(sl, r_idx, regp);
+    return sl->backend->read_reg(sl, r_idx, regp);
 }
 
-void stlink_read_unsupported_reg(stlink_t *sl, int r_idx, reg *regp) {
+int stlink_read_unsupported_reg(stlink_t *sl, int r_idx, reg *regp) {
     int r_convert;
 
     DLOG("*** stlink_read_unsupported_reg\n");
@@ -761,13 +793,13 @@ void stlink_read_unsupported_reg(stlink_t *sl, int r_idx, reg *regp) {
         r_convert = 0x40 + (r_idx - 0x20);
     } else {
         fprintf(stderr, "Error: register address must be in [0x1C..0x40]\n");
-        return;
+        return -1;
     }
 
-    sl->backend->read_unsupported_reg(sl, r_convert, regp);
+    return sl->backend->read_unsupported_reg(sl, r_convert, regp);
 }
 
-void stlink_write_unsupported_reg(stlink_t *sl, uint32_t val, int r_idx, reg *regp) {
+int stlink_write_unsupported_reg(stlink_t *sl, uint32_t val, int r_idx, reg *regp) {
     int r_convert;
 
     DLOG("*** stlink_write_unsupported_reg\n");
@@ -782,10 +814,10 @@ void stlink_write_unsupported_reg(stlink_t *sl, uint32_t val, int r_idx, reg *re
         r_convert = 0x40 + (r_idx - 0x20);
     } else {
         fprintf(stderr, "Error: register address must be in [0x1C..0x40]\n");
-        return;
+        return -1;
     }
 
-    sl->backend->write_unsupported_reg(sl, val, r_convert, regp);
+    return sl->backend->write_unsupported_reg(sl, val, r_convert, regp);
 }
 
 unsigned int is_core_halted(stlink_t *sl) {
@@ -794,9 +826,9 @@ unsigned int is_core_halted(stlink_t *sl) {
     return sl->q_buf[0] == STLINK_CORE_HALTED;
 }
 
-void stlink_step(stlink_t *sl) {
+int stlink_step(stlink_t *sl) {
     DLOG("*** stlink_step ***\n");
-    sl->backend->step(sl);
+    return sl->backend->step(sl);
 }
 
 int stlink_current_mode(stlink_t *sl) {
