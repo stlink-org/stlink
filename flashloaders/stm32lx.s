@@ -34,8 +34,8 @@
     .global write
 
 /*
-    r0 - destination address
-    r1 - source address
+    r0 - source address
+    r1 - destination address
     r2 - count
 */
 
@@ -46,9 +46,9 @@
 
 write_word:
     // Load one word from address in r0, increment by 4
-    ldr.w    ip, [r1], #4
+    ldr.w    ip, [r0], #4
     // Store the word to address in r1, increment by 4
-    str.w    ip, [r0], #4
+    str.w    ip, [r1], #4
     // Increment r3
     adds    r3, #1
 
