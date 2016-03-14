@@ -172,36 +172,48 @@ int main(int ac, char** av)
     {
         printf("invalid command line\n");
         usage();
-        goto on_error;
+        return -1;
     }
 
     if (o.devname != NULL) /* stlinkv1 */
-    {
         sl = stlink_v1_open(o.log_level, 1);
-        if (sl == NULL) goto on_error;
-        sl->verbose = o.log_level;
-    }
     else /* stlinkv2 */
-    {
 	    sl = stlink_open_usb(o.log_level, 1, o.serial);
-        if (sl == NULL) goto on_error;
-        sl->verbose = o.log_level;
-    }
+
+    if (sl == NULL)
+        return -1;
+
+    sl->verbose = o.log_level;
 
     connected_stlink = sl;
     signal(SIGINT, &cleanup);
     signal(SIGTERM, &cleanup);
     signal(SIGSEGV, &cleanup);
 
-    if (stlink_current_mode(sl) == STLINK_DEV_DFU_MODE)
-        stlink_exit_dfu_mode(sl);
+    if (stlink_current_mode(sl) == STLINK_DEV_DFU_MODE) {
+        if (stlink_exit_dfu_mode(sl)) {
+            printf("Failed to exit DFU mode\n");
+            goto on_error;
+        }
+    }
 
-    if (stlink_current_mode(sl) != STLINK_DEV_DEBUG_MODE)
-        stlink_enter_swd_mode(sl);
+    if (stlink_current_mode(sl) != STLINK_DEV_DEBUG_MODE) {
+        if (stlink_enter_swd_mode(sl)) {
+            printf("Failed to enter SWD mode\n");
+            goto on_error;
+        }
+    }
 
     if (o.reset){
-        stlink_jtag_reset(sl,2);
-        stlink_reset(sl);
+        if (stlink_jtag_reset(sl, 2)) {
+            printf("Failed to reset JTAG\n");
+            goto on_error;
+        }
+
+        if (stlink_reset(sl)) {
+            printf("Failed to reset device\n");
+            goto on_error;
+        }
     }
 
     // Disable DMA - Set All DMA CCR Registers to zero. - AKS 1/7/2013
@@ -217,8 +229,15 @@ int main(int ac, char** av)
     }
 
     // Core must be halted to use RAM based flashloaders
-    stlink_force_debug(sl);
-    stlink_status(sl);
+    if (stlink_force_debug(sl)) {
+        printf("Failed to halt the core\n");
+        goto on_error;
+    }
+
+    if (stlink_status(sl)) {
+        printf("Failed to get Core's status\n");
+        goto on_error;
+    }
 
     if (o.cmd == DO_WRITE) /* write */
     {
@@ -236,7 +255,7 @@ int main(int ac, char** av)
             err = stlink_fwrite_sram(sl, o.filename, o.addr);
             if (err == -1)
             {
-                printf("stlink_sram_flash() == -1\n");
+                printf("stlink_fwrite_sram() == -1\n");
                 goto on_error;
             }
         }
@@ -245,7 +264,7 @@ int main(int ac, char** av)
         err = stlink_erase_flash_mass(sl);
         if (err == -1)
         {
-            printf("stlink_fwrite_flash() == -1\n");
+            printf("stlink_erase_flash_mass() == -1\n");
             goto on_error;
         }
     }
@@ -274,11 +293,8 @@ int main(int ac, char** av)
     err = 0;
 
 on_error:
-    if (sl != NULL)
-    {
-        stlink_exit_debug_mode(sl);
-        stlink_close(sl);
-    }
+    stlink_exit_debug_mode(sl);
+    stlink_close(sl);
 
     return err;
 }

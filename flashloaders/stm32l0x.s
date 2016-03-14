@@ -34,31 +34,29 @@
     .global write
 
 /*
-    r0 - destination address
-    r1 - source address
+    r0 - source address
+    r1 - destination address
     r2 - count
 */
 
-    // Set 0 to r3
-    movs    r3, #0
     // Go to compare
-    b.n test_done
+    b test_done
 
 write_word:
     // Load one word from address in r0, increment by 4
-    ldr    r4, [r1]
+    ldr    r4, [r0]
     // Store the word to address in r1, increment by 4
-    str    r4, [r0]
-    // Increment r3
-    adds    r3, #1
+    str    r4, [r1]
+    // Decrement r2
+    subs    r2, #1
 	adds	r1, #4
 	// does not matter, only first addr is important
 	// next 15 bytes are in sequnce RM0367 page 66
 	adds	r0, #4
 
 test_done:
-    // Compare r3 and r2
-    cmp     r3, r2
+    // Test r2
+    cmp     r2, #0
     // Loop if not zero
     bcc.n    write_word
 

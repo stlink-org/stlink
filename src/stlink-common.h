@@ -166,9 +166,18 @@ extern "C" {
     /* Enough space to hold both a V2 command or a V1 command packaged as generic scsi*/
 #define C_BUF_LEN 32
 
+    enum flash_type {
+        FLASH_TYPE_UNKNOWN = 0,
+        FLASH_TYPE_F0,
+        FLASH_TYPE_L0,
+        FLASH_TYPE_F4,
+        FLASH_TYPE_L4,
+    };
+
     typedef struct chip_params_ {
         uint32_t chip_id;
         char* description;
+		enum flash_type flash_type;
         uint32_t flash_size_reg;
         uint32_t flash_pagesize;
         uint32_t sram_size;
@@ -183,6 +192,7 @@ extern "C" {
             //RM0385 and DS10916 document was used to find these paramaters
             .chip_id = STM32_CHIPID_F7,
             .description = "F7 device",
+            .flash_type = FLASH_TYPE_F4,
             .flash_size_reg = 0x1ff0f442,      // section 41.2
             .flash_pagesize = 0x800,           // No flash pages
             .sram_size = 0x50000,              // "SRAM" byte size in hex from DS Fig 18
@@ -192,6 +202,7 @@ extern "C" {
         { // table 2, PM0063
             .chip_id = STM32_CHIPID_F1_MEDIUM,
             .description = "F1 Medium-density device",
+            .flash_type = FLASH_TYPE_F0,
             .flash_size_reg = 0x1ffff7e0,
             .flash_pagesize = 0x400,
             .sram_size = 0x5000,
@@ -201,6 +212,7 @@ extern "C" {
         {  // table 1, PM0059
             .chip_id = STM32_CHIPID_F2,
             .description = "F2 device",
+            .flash_type = FLASH_TYPE_F4,
             .flash_size_reg = 0x1fff7a22, /* As in RM0033 Rev 5*/
             .flash_pagesize = 0x20000,
             .sram_size = 0x20000,
@@ -210,6 +222,7 @@ extern "C" {
         { // PM0063
             .chip_id = STM32_CHIPID_F1_LOW,
             .description = "F1 Low-density device",
+            .flash_type = FLASH_TYPE_F0,
             .flash_size_reg = 0x1ffff7e0,
             .flash_pagesize = 0x400,
             .sram_size = 0x2800,
@@ -219,6 +232,7 @@ extern "C" {
         {
             .chip_id = STM32_CHIPID_F4,
             .description = "F4 device",
+            .flash_type = FLASH_TYPE_F4,
             .flash_size_reg = 0x1FFF7A22,  /* As in rm0090 since Rev 2*/
             .flash_pagesize = 0x4000,
             .sram_size = 0x30000,
@@ -228,6 +242,7 @@ extern "C" {
         {
             .chip_id = STM32_CHIPID_F4_DSI,
             .description = "F46x and F47x device",
+            .flash_type = FLASH_TYPE_F4,
             .flash_size_reg = 0x1FFF7A22,  /* As in rm0090 since Rev 2*/
             .flash_pagesize = 0x4000,
             .sram_size = 0x40000,
@@ -237,6 +252,7 @@ extern "C" {
         {
             .chip_id = STM32_CHIPID_F4_HD,
             .description = "F42x and F43x device",
+            .flash_type = FLASH_TYPE_F4,
             .flash_size_reg = 0x1FFF7A22,  /* As in rm0090 since Rev 2*/
             .flash_pagesize = 0x4000,
             .sram_size = 0x40000,
@@ -246,6 +262,7 @@ extern "C" {
         {
             .chip_id = STM32_CHIPID_F4_LP,
             .description = "F4 device (low power)",
+            .flash_type = FLASH_TYPE_F4,
             .flash_size_reg = 0x1FFF7A22,
             .flash_pagesize = 0x4000,
             .sram_size = 0x10000,
@@ -255,6 +272,7 @@ extern "C" {
         {
             .chip_id = STM32_CHIPID_F411RE,
             .description = "F4 device (low power) - stm32f411re",
+            .flash_type = FLASH_TYPE_F4,
             .flash_size_reg = 0x1FFF7A22,
             .flash_pagesize = 0x4000,
             .sram_size = 0x20000,
@@ -264,6 +282,7 @@ extern "C" {
         {
             .chip_id = STM32_CHIPID_F4_DE,
             .description = "F4 device (Dynamic Efficency)",
+            .flash_type = FLASH_TYPE_F4,
             .flash_size_reg = 0x1FFF7A22,
             .flash_pagesize = 0x4000,
             .sram_size = 0x18000,
@@ -273,6 +292,7 @@ extern "C" {
         {
             .chip_id = STM32_CHIPID_F1_HIGH,
             .description = "F1 High-density device",
+            .flash_type = FLASH_TYPE_F0,
             .flash_size_reg = 0x1ffff7e0,
             .flash_pagesize = 0x800,
             .sram_size = 0x10000,
@@ -284,6 +304,7 @@ extern "C" {
             // not the sector write protection...)
             .chip_id = STM32_CHIPID_L1_MEDIUM,
             .description = "L1 Med-density device",
+            .flash_type = FLASH_TYPE_L0,
             .flash_size_reg = 0x1ff8004c,
             .flash_pagesize = 0x100,
             .sram_size = 0x4000,
@@ -293,6 +314,7 @@ extern "C" {
         {
             .chip_id = STM32_CHIPID_L1_CAT2,
             .description = "L1 Cat.2 device",
+            .flash_type = FLASH_TYPE_L0,
             .flash_size_reg = 0x1ff8004c,
             .flash_pagesize = 0x100,
             .sram_size = 0x8000,
@@ -302,6 +324,7 @@ extern "C" {
         {
             .chip_id = STM32_CHIPID_L1_MEDIUM_PLUS,
             .description = "L1 Medium-Plus-density device",
+            .flash_type = FLASH_TYPE_L0,
             .flash_size_reg = 0x1ff800cc,
             .flash_pagesize = 0x100,
             .sram_size = 0x8000,/*Not completely clear if there are some with 48K*/
@@ -311,6 +334,7 @@ extern "C" {
         {
             .chip_id = STM32_CHIPID_L1_HIGH,
             .description = "L1 High-density device",
+            .flash_type = FLASH_TYPE_L0,
             .flash_size_reg = 0x1ff800cc,
             .flash_pagesize = 0x100,
             .sram_size = 0xC000, /*Not completely clear if there are some with 32K*/
@@ -320,6 +344,7 @@ extern "C" {
         {
             .chip_id = STM32_CHIPID_L152_RE,
             .description = "L152RE",
+            .flash_type = FLASH_TYPE_L0,
             .flash_size_reg = 0x1ff800cc,
             .flash_pagesize = 0x100,
             .sram_size = 0x14000, /*Not completely clear if there are some with 32K*/
@@ -329,6 +354,7 @@ extern "C" {
         {
             .chip_id = STM32_CHIPID_F1_CONN,
             .description = "F1 Connectivity line device",
+            .flash_type = FLASH_TYPE_F0,
             .flash_size_reg = 0x1ffff7e0,
             .flash_pagesize = 0x800,
             .sram_size = 0x10000,
@@ -338,6 +364,7 @@ extern "C" {
         {//Low and Medium density VL have same chipid. RM0041 25.6.1
             .chip_id = STM32_CHIPID_F1_VL_MEDIUM_LOW,
             .description = "F1 Medium/Low-density Value Line device",
+            .flash_type = FLASH_TYPE_F0,
             .flash_size_reg = 0x1ffff7e0,
             .flash_pagesize = 0x400,
             .sram_size = 0x2000,//0x1000 for low density devices
@@ -348,6 +375,7 @@ extern "C" {
             // STM32F446x family. Support based on DM00135183.pdf (RM0390) document.
             .chip_id = STM32_CHIPID_F446,
             .description = "F446 device",
+            .flash_type = FLASH_TYPE_F4,
             .flash_size_reg = 0x1fff7a22,
             .flash_pagesize = 0x20000,
             .sram_size = 0x20000,
@@ -359,6 +387,7 @@ extern "C" {
             // Support based on DM00043574.pdf (RM0316) document.
             .chip_id = STM32_CHIPID_F3,
             .description = "F3 device",
+            .flash_type = FLASH_TYPE_F0,
             .flash_size_reg = 0x1ffff7cc,
             .flash_pagesize = 0x800,
             .sram_size = 0xa000,
@@ -370,6 +399,7 @@ extern "C" {
             // Support based on 303 above (37x and 30x have same memory map)
             .chip_id = STM32_CHIPID_F37x,
             .description = "F3 device",
+            .flash_type = FLASH_TYPE_F0,
             .flash_size_reg = 0x1ffff7cc,
             .flash_pagesize = 0x800,
             .sram_size = 0xa000,
@@ -379,6 +409,7 @@ extern "C" {
         {
             .chip_id = STM32_CHIPID_F1_VL_HIGH,
             .description = "F1 High-density value line device",
+            .flash_type = FLASH_TYPE_F0,
             .flash_size_reg = 0x1ffff7e0,
             .flash_pagesize = 0x800,
             .sram_size = 0x8000,
@@ -388,6 +419,7 @@ extern "C" {
         {
             .chip_id = STM32_CHIPID_F1_XL,
             .description = "F1 XL-density device",
+            .flash_type = FLASH_TYPE_F0,
             .flash_size_reg = 0x1ffff7e0,
             .flash_pagesize = 0x800,
             .sram_size = 0x18000,
@@ -399,6 +431,7 @@ extern "C" {
             //RM0091 document was used to find these paramaters
             .chip_id = STM32_CHIPID_F0_CAN,
             .description = "F07x device",
+            .flash_type = FLASH_TYPE_F0,
             .flash_size_reg = 0x1ffff7cc,      // "Flash size data register" (pg735)
             .flash_pagesize = 0x800,           // Page sizes listed in Table 4
             .sram_size = 0x4000,               // "SRAM" byte size in hex from Table 2
@@ -410,6 +443,7 @@ extern "C" {
             //RM0091 document was used to find these paramaters
             .chip_id = STM32_CHIPID_F0,
             .description = "F0 device",
+            .flash_type = FLASH_TYPE_F0,
             .flash_size_reg = 0x1ffff7cc,	// "Flash size data register" (pg735)
             .flash_pagesize = 0x400,		// Page sizes listed in Table 4
             .sram_size = 0x2000,		// "SRAM" byte size in hex from Table 2
@@ -419,6 +453,7 @@ extern "C" {
 	{
             .chip_id = STM32_CHIPID_F09X,
             .description = "F09X device",
+            .flash_type = FLASH_TYPE_F0,
             .flash_size_reg = 0x1ffff7cc,	// "Flash size data register" (pg735)
             .flash_pagesize = 0x800,		// Page sizes listed in Table 4 (pg 56)
             .sram_size = 0x8000,		// "SRAM" byte size in hex from Table 2 (pg 50)
@@ -430,6 +465,7 @@ extern "C" {
             //RM0091 document was used to find these paramaters
             .chip_id = STM32_CHIPID_F04,
             .description = "F04x device",
+            .flash_type = FLASH_TYPE_F0,
             .flash_size_reg = 0x1ffff7cc,	// "Flash size data register" (pg735)
             .flash_pagesize = 0x400,		// Page sizes listed in Table 4
             .sram_size = 0x1800,		// "SRAM" byte size in hex from Table 2
@@ -441,6 +477,7 @@ extern "C" {
             //RM0091 document was used to find these paramaters
             .chip_id = STM32_CHIPID_F0_SMALL,
             .description = "F0 small device",
+            .flash_type = FLASH_TYPE_F0,
             .flash_size_reg = 0x1ffff7cc,	// "Flash size data register" (pg735)
             .flash_pagesize = 0x400,		// Page sizes listed in Table 4
             .sram_size = 0x1000,		// "SRAM" byte size in hex from Table 2
@@ -451,6 +488,7 @@ extern "C" {
             // STM32F30x
             .chip_id = STM32_CHIPID_F3_SMALL,
             .description = "F3 small device",
+            .flash_type = FLASH_TYPE_F0,
             .flash_size_reg = 0x1ffff7cc,
             .flash_pagesize = 0x800,
             .sram_size = 0xa000,
@@ -462,6 +500,7 @@ extern "C" {
             // RM0367,RM0377 documents was used to find these parameters
             .chip_id = STM32_CHIPID_L0,
             .description = "L0x3 device",
+            .flash_type = FLASH_TYPE_L0,
             .flash_size_reg = 0x1ff8007c,
             .flash_pagesize = 0x80,
             .sram_size = 0x2000,
@@ -473,6 +512,7 @@ extern "C" {
             // RM0364 document was used to find these parameters
             .chip_id = STM32_CHIPID_F334,
             .description = "F334 device",
+            .flash_type = FLASH_TYPE_F0,
             .flash_size_reg = 0x1ffff7cc,
             .flash_pagesize = 0x800,
             .sram_size = 0x3000,
@@ -484,6 +524,7 @@ extern "C" {
             // Support based on DM00043574.pdf (RM0316) document rev 5.
             .chip_id = STM32_CHIPID_F303_HIGH,
             .description = "F303 high density device",
+            .flash_type = FLASH_TYPE_F0,
             .flash_size_reg = 0x1ffff7cc,    // 34.2.1 Flash size data register
             .flash_pagesize = 0x800,         // 4.2.1 Flash memory organization
             .sram_size = 0x10000,            // 3.3 Embedded SRAM
@@ -495,6 +536,7 @@ extern "C" {
             // From RM0351.
             .chip_id = STM32_CHIPID_L4,
             .description = "L4 device",
+            .flash_type = FLASH_TYPE_L4,
             .flash_size_reg = 0x1fff75e0,    // "Flash size data register" (sec 45.2, page 1671)
             .flash_pagesize = 0x800,         // 2K (sec 3.2, page 78; also appears in sec 3.3.1 and tables 4-6 on pages 79-81)
             // SRAM1 is "up to" 96k in the standard Cortex-M memory map;
@@ -556,30 +598,30 @@ extern "C" {
 
     typedef struct _stlink_backend {
         void (*close) (stlink_t * sl);
-        void (*exit_debug_mode) (stlink_t * sl);
-        void (*enter_swd_mode) (stlink_t * sl);
-        void (*enter_jtag_mode) (stlink_t * stl);
-        void (*exit_dfu_mode) (stlink_t * stl);
-        void (*core_id) (stlink_t * stl);
-        void (*reset) (stlink_t * stl);
-        void (*jtag_reset) (stlink_t * stl, int value);
-        void (*run) (stlink_t * stl);
-        void (*status) (stlink_t * stl);
-        void (*version) (stlink_t *sl);
-        uint32_t (*read_debug32) (stlink_t *sl, uint32_t addr);
-        void (*read_mem32) (stlink_t *sl, uint32_t addr, uint16_t len);
-        void (*write_debug32) (stlink_t *sl, uint32_t addr, uint32_t data);
-        void (*write_mem32) (stlink_t *sl, uint32_t addr, uint16_t len);
-        void (*write_mem8) (stlink_t *sl, uint32_t addr, uint16_t len);
-        void (*read_all_regs) (stlink_t *sl, reg * regp);
-        void (*read_reg) (stlink_t *sl, int r_idx, reg * regp);
-        void (*read_all_unsupported_regs) (stlink_t *sl, reg *regp);
-        void (*read_unsupported_reg) (stlink_t *sl, int r_idx, reg *regp);
-        void (*write_unsupported_reg) (stlink_t *sl, uint32_t value, int idx, reg *regp);
-        void (*write_reg) (stlink_t *sl, uint32_t reg, int idx);
-        void (*step) (stlink_t * stl);
+        int (*exit_debug_mode) (stlink_t * sl);
+        int (*enter_swd_mode) (stlink_t * sl);
+        int (*enter_jtag_mode) (stlink_t * stl);
+        int (*exit_dfu_mode) (stlink_t * stl);
+        int (*core_id) (stlink_t * stl);
+        int (*reset) (stlink_t * stl);
+        int (*jtag_reset) (stlink_t * stl, int value);
+        int (*run) (stlink_t * stl);
+        int (*status) (stlink_t * stl);
+        int (*version) (stlink_t *sl);
+        int (*read_debug32) (stlink_t *sl, uint32_t addr, uint32_t *data);
+        int (*read_mem32) (stlink_t *sl, uint32_t addr, uint16_t len);
+        int (*write_debug32) (stlink_t *sl, uint32_t addr, uint32_t data);
+        int (*write_mem32) (stlink_t *sl, uint32_t addr, uint16_t len);
+        int (*write_mem8) (stlink_t *sl, uint32_t addr, uint16_t len);
+        int (*read_all_regs) (stlink_t *sl, reg * regp);
+        int (*read_reg) (stlink_t *sl, int r_idx, reg * regp);
+        int (*read_all_unsupported_regs) (stlink_t *sl, reg *regp);
+        int (*read_unsupported_reg) (stlink_t *sl, int r_idx, reg *regp);
+        int (*write_unsupported_reg) (stlink_t *sl, uint32_t value, int idx, reg *regp);
+        int (*write_reg) (stlink_t *sl, uint32_t reg, int idx);
+        int (*step) (stlink_t * stl);
         int (*current_mode) (stlink_t * stl);
-        void (*force_debug) (stlink_t *sl);
+        int (*force_debug) (stlink_t *sl);
         int32_t (*target_voltage) (stlink_t *sl);
     } stlink_backend_t;
 
@@ -605,6 +647,7 @@ extern "C" {
 #define STM32F4_FLASH_PGSZ 16384
 #define STM32F4_FLASH_SIZE (128 * 1024 * 8)
 
+        enum flash_type flash_type;
         stm32_addr_t flash_base;
         size_t flash_size;
         size_t flash_pgsz;
@@ -625,31 +668,31 @@ extern "C" {
     //stlink_t* stlink_quirk_open(const char *dev_name, const int verbose);
 
     // delegated functions...
-    void stlink_enter_swd_mode(stlink_t *sl);
-    void stlink_enter_jtag_mode(stlink_t *sl);
-    void stlink_exit_debug_mode(stlink_t *sl);
-    void stlink_exit_dfu_mode(stlink_t *sl);
+    int stlink_enter_swd_mode(stlink_t *sl);
+    int stlink_enter_jtag_mode(stlink_t *sl);
+    int stlink_exit_debug_mode(stlink_t *sl);
+    int stlink_exit_dfu_mode(stlink_t *sl);
     void stlink_close(stlink_t *sl);
-    uint32_t stlink_core_id(stlink_t *sl);
-    void stlink_reset(stlink_t *sl);
-    void stlink_jtag_reset(stlink_t *sl, int value);
-    void stlink_run(stlink_t *sl);
-    void stlink_status(stlink_t *sl);
-    void stlink_version(stlink_t *sl);
-    uint32_t stlink_read_debug32(stlink_t *sl, uint32_t addr);
-    void stlink_read_mem32(stlink_t *sl, uint32_t addr, uint16_t len);
-    void stlink_write_debug32(stlink_t *sl, uint32_t addr, uint32_t data);
-    void stlink_write_mem32(stlink_t *sl, uint32_t addr, uint16_t len);
-    void stlink_write_mem8(stlink_t *sl, uint32_t addr, uint16_t len);
-    void stlink_read_all_regs(stlink_t *sl, reg *regp);
-    void stlink_read_all_unsupported_regs(stlink_t *sl, reg *regp);
-    void stlink_read_reg(stlink_t *sl, int r_idx, reg *regp);
-    void stlink_read_unsupported_reg(stlink_t *sl, int r_idx, reg *regp);
-    void stlink_write_unsupported_reg(stlink_t *sl, uint32_t value, int r_idx, reg *regp);
-    void stlink_write_reg(stlink_t *sl, uint32_t reg, int idx);
-    void stlink_step(stlink_t *sl);
+    int stlink_core_id(stlink_t *sl);
+    int stlink_reset(stlink_t *sl);
+    int stlink_jtag_reset(stlink_t *sl, int value);
+    int stlink_run(stlink_t *sl);
+    int stlink_status(stlink_t *sl);
+    int stlink_version(stlink_t *sl);
+    int stlink_read_debug32(stlink_t *sl, uint32_t addr, uint32_t *data);
+    int stlink_read_mem32(stlink_t *sl, uint32_t addr, uint16_t len);
+    int stlink_write_debug32(stlink_t *sl, uint32_t addr, uint32_t data);
+    int stlink_write_mem32(stlink_t *sl, uint32_t addr, uint16_t len);
+    int stlink_write_mem8(stlink_t *sl, uint32_t addr, uint16_t len);
+    int stlink_read_all_regs(stlink_t *sl, reg *regp);
+    int stlink_read_all_unsupported_regs(stlink_t *sl, reg *regp);
+    int stlink_read_reg(stlink_t *sl, int r_idx, reg *regp);
+    int stlink_read_unsupported_reg(stlink_t *sl, int r_idx, reg *regp);
+    int stlink_write_unsupported_reg(stlink_t *sl, uint32_t value, int r_idx, reg *regp);
+    int stlink_write_reg(stlink_t *sl, uint32_t reg, int idx);
+    int stlink_step(stlink_t *sl);
     int stlink_current_mode(stlink_t *sl);
-    void stlink_force_debug(stlink_t *sl);
+    int stlink_force_debug(stlink_t *sl);
     int stlink_target_voltage(stlink_t *sl);
 
 
@@ -661,8 +704,8 @@ extern "C" {
     int stlink_verify_write_flash(stlink_t *sl, stm32_addr_t address, uint8_t *data, uint32_t length);
 
     // PUBLIC
-    uint32_t stlink_chip_id(stlink_t *sl);
-    void stlink_cpu_id(stlink_t *sl, cortex_m3_cpuid_t *cpuid);
+    int stlink_chip_id(stlink_t *sl, uint32_t *chip_id);
+    int stlink_cpu_id(stlink_t *sl, cortex_m3_cpuid_t *cpuid);
 
     // privates, publics, the rest....
     // TODO sort what is private, and what is not

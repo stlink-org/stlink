@@ -488,11 +488,13 @@ struct code_hw_watchpoint {
 struct code_hw_watchpoint data_watches[DATA_WATCH_NUM];
 
 static void init_data_watchpoints(stlink_t *sl) {
+    uint32_t data;
     DLOG("init watchpoints\n");
 
+    stlink_read_debug32(sl, 0xE000EDFC, &data);
+    data |= 1<<24;
     // set trcena in debug command to turn on dwt unit
-    stlink_write_debug32(sl, 0xE000EDFC,
-            stlink_read_debug32(sl, 0xE000EDFC) | (1<<24));
+    stlink_write_debug32(sl, 0xE000EDFC, data);
 
     // make sure all watchpoints are cleared
     for(int i = 0; i < DATA_WATCH_NUM; i++) {
@@ -504,7 +506,7 @@ static void init_data_watchpoints(stlink_t *sl) {
 static int add_data_watchpoint(stlink_t *sl, enum watchfun wf,
                                stm32_addr_t addr, unsigned int len) {
     int i = 0;
-    uint32_t mask;
+    uint32_t mask, dummy;
 
     // computer mask
     // find a free watchpoint
@@ -537,7 +539,7 @@ static int add_data_watchpoint(stlink_t *sl, enum watchfun wf,
                 stlink_write_debug32(sl, 0xE0001028 + i * 16, wf);
 
                 // just to make sure the matched bit is clear !
-                stlink_read_debug32(sl,  0xE0001028 + i * 16);
+                stlink_read_debug32(sl,  0xE0001028 + i * 16, &dummy);
                 return 0;
             }
         }
@@ -581,9 +583,10 @@ struct code_hw_breakpoint {
 struct code_hw_breakpoint code_breaks[CODE_BREAK_NUM_MAX];
 
 static void init_code_breakpoints(stlink_t *sl) {
+    unsigned int val;
     memset(sl->q_buf, 0, 4);
     stlink_write_debug32(sl, CM3_REG_FP_CTRL, 0x03 /*KEY | ENABLE4*/);
-    unsigned int val = stlink_read_debug32(sl, CM3_REG_FP_CTRL);
+    stlink_read_debug32(sl, CM3_REG_FP_CTRL, &val);
     code_break_num = ((val >> 4) & 0xf);
     code_lit_num = ((val >> 8) & 0xf);
 
@@ -821,7 +824,8 @@ static void read_cache_level_desc(stlink_t *sl, struct cache_level_desc *desc)
 {
   unsigned int ccsidr;
   unsigned int log2_nsets;
-  ccsidr = stlink_read_debug32(sl, CCSIDR);
+
+  stlink_read_debug32(sl, CCSIDR, &ccsidr);
   desc->nsets = ((ccsidr >> 13) & 0x3fff) + 1;
   desc->nways = ((ccsidr >> 3) & 0x1ff) + 1;
   desc->log2_nways = ceil_log2 (desc->nways);
@@ -841,9 +845,9 @@ static void init_cache (stlink_t *sl) {
   if(sl->chip_id!=STM32_CHIPID_F7)
     return;
 
-  clidr = stlink_read_debug32(sl, CLIDR);
-  ccr = stlink_read_debug32(sl, CCR);
-  ctr = stlink_read_debug32(sl, CTR);
+  stlink_read_debug32(sl, CLIDR, &clidr);
+  stlink_read_debug32(sl, CCR, &ccr);
+  stlink_read_debug32(sl, CTR, &ctr);
   cache_desc.dminline = 4 << ((ctr >> 16) & 0x0f);
   cache_desc.iminline = 4 << (ctr & 0x0f);
   cache_desc.louu = (clidr >> 27) & 7;
@@ -925,7 +929,7 @@ static void cache_sync(stlink_t *sl)
     return;
   cache_modified = 0;
 
-  ccr = stlink_read_debug32(sl, CCR);
+  stlink_read_debug32(sl, CCR, &ccr);
   if (ccr & (CCR_IC | CCR_DC))
     cache_flush(sl, ccr);
 }
