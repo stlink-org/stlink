@@ -2064,7 +2064,9 @@ int stlink_fwrite_flash(stlink_t *sl, const char* path, stm32_addr_t addr) {
 int run_flash_loader(stlink_t *sl, flash_loader_t* fl, stm32_addr_t target, const uint8_t* buf, size_t size) {
 
     reg rr;
-    int i = 0;
+    int target_reg, source_reg, i = 0;
+    size_t count;
+
     DLOG("Running flash loader, write address:%#x, size: %zd\n", target, size);
     // FIXME This can never return -1
     if (write_buffer_to_sram(sl, fl, buf, size) == -1) {
@@ -2074,45 +2076,38 @@ int run_flash_loader(stlink_t *sl, flash_loader_t* fl, stm32_addr_t target, cons
     }
 
     if (sl->flash_type == FLASH_TYPE_L0) {
-
-        size_t count = size / sizeof(uint32_t);
-        if (size % sizeof(uint32_t)) ++count;
-
-        /* setup core */
-        stlink_write_reg(sl, target, 0); /* target */
-        stlink_write_reg(sl, fl->buf_addr, 1); /* source */
-        stlink_write_reg(sl, count, 2); /* count (32 bits words) */
-        stlink_write_reg(sl, fl->loader_addr, 15); /* pc register */
-
+        count = size / sizeof(uint32_t);
+        if (size % sizeof(uint32_t))
+            ++count;
+        target_reg = 0;
+        source_reg = 1;
     } else if (sl->flash_type == FLASH_TYPE_F0) {
-
-        size_t count = size / sizeof(uint16_t);
-        if (size % sizeof(uint16_t)) ++count;
-
-        /* setup core */
-        stlink_write_reg(sl, fl->buf_addr, 0); /* source */
-        stlink_write_reg(sl, target, 1); /* target */
-        stlink_write_reg(sl, count, 2); /* count (16 bits half words) */
-        stlink_write_reg(sl, 0, 3); /* flash bank 0 (input) */
-        stlink_write_reg(sl, fl->loader_addr, 15); /* pc register */
-
+        count = size / sizeof(uint16_t);
+        if (size % sizeof(uint16_t))
+            ++count;
+        target_reg = 1;
+        source_reg = 0;
     } else if (sl->flash_type == FLASH_TYPE_F4 || sl->flash_type == FLASH_TYPE_L4) {
-        size_t count = size / sizeof(uint32_t);
-        if (size % sizeof(uint32_t)) ++count;
+        count = size / sizeof(uint32_t);
+        if (size % sizeof(uint32_t))
+            ++count;
         if (sl->chip_id == STM32_CHIPID_L4) {
-            if (count % 2) ++count;
+            if (count % 2)
+                ++count;
         }
-
-        /* setup core */
-        stlink_write_reg(sl, fl->buf_addr, 0); /* source */
-        stlink_write_reg(sl, target, 1); /* target */
-        stlink_write_reg(sl, count, 2); /* count (32 bits words) */
-        stlink_write_reg(sl, fl->loader_addr, 15); /* pc register */
-
+        target_reg = 1;
+        source_reg = 0;
     } else {
         fprintf(stderr, "unknown coreid 0x%x, don't know what flash loader to use\n", sl->core_id);
         return -1;
     }
+
+    /* setup core */
+    stlink_write_reg(sl, fl->buf_addr, source_reg); /* source */
+    stlink_write_reg(sl, target, target_reg); /* target */
+    stlink_write_reg(sl, count, 2); /* count */
+    stlink_write_reg(sl, 0, 3); /* flash bank 0 (input), only used on F0, but armless fopr others */
+    stlink_write_reg(sl, fl->loader_addr, 15); /* pc register */
 
     /* run loader */
     stlink_run(sl);
@@ -2130,36 +2125,19 @@ int run_flash_loader(stlink_t *sl, flash_loader_t* fl, stm32_addr_t target, cons
         return -1;
     }
 
+    stlink_read_all_regs(sl, &rr);
+
     /* check written byte count */
     if (sl->flash_type == FLASH_TYPE_L0) {
-        size_t count = size / sizeof(uint32_t);
-        if (size % sizeof(uint32_t)) ++count;
-
-        stlink_read_reg(sl, 3, &rr);
         if (rr.r[3] != count) {
             fprintf(stderr, "write error, count == %u\n", rr.r[3]);
             return -1;
         }
-
-    } else if (sl->flash_type == FLASH_TYPE_F0) {
-        stlink_read_reg(sl, 2, &rr);
-        if (rr.r[2] != 0) {
-            fprintf(stderr, "write error, count == %u\n", rr.r[2]);
-            return -1;
-        }
-
-    } else if (sl->flash_type == FLASH_TYPE_F4 || sl->flash_type == FLASH_TYPE_L4) {
-        stlink_read_reg(sl, 2, &rr);
-        if (rr.r[2] != 0) {
-            fprintf(stderr, "write error, count == %u\n", rr.r[2]);
-            return -1;
-        }
-
     } else {
-
-        fprintf(stderr, "unknown coreid 0x%x, can't check written byte count\n", sl->core_id);
-        return -1;
-
+        if (rr.r[2] != 0) {
+            fprintf(stderr, "write error, count == %u\n", rr.r[2]);
+            return -1;
+        }
     }
 
     return 0;
