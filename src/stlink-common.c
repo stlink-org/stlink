@@ -1504,17 +1504,16 @@ int write_loader_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* size) {
            r0, input, source addr
            r1, input, dest addr
            r2, input, word count
-           r3, output, word count
+           r2, output, remaining word count
            */
 
-        0x00, 0x23,
         0x04, 0xe0,
 
         0x50, 0xf8, 0x04, 0xcb,
         0x41, 0xf8, 0x04, 0xcb,
-        0x01, 0x33,
+        0x01, 0x3a,
 
-        0x93, 0x42,
+        0x00, 0x2a,
         0xf8, 0xd3,
         0x00, 0xbe
     };
@@ -1525,19 +1524,18 @@ int write_loader_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* size) {
            r0, input, source addr
            r1, input, dest addr
            r2, input, word count
-           r3, output, word count
+           r2, output, remaining word count
          */
 
-        0x00, 0x23,
         0x04, 0xe0,
 
         0x04, 0x68,
         0x0c, 0x60,
-        0x01, 0x33,
+        0x01, 0x3a,
         0x04, 0x31,
         0x04, 0x30,
 
-        0x93, 0x42,
+        0x00, 0x2a,
         0xf8, 0xd3,
         0x00, 0xbe
     };
@@ -2117,19 +2115,11 @@ int run_flash_loader(stlink_t *sl, flash_loader_t* fl, stm32_addr_t target, cons
         return -1;
     }
 
-    stlink_read_all_regs(sl, &rr);
-
     /* check written byte count */
-    if (sl->flash_type == FLASH_TYPE_L0) {
-        if (rr.r[3] != count) {
-            fprintf(stderr, "write error, count == %u\n", rr.r[3]);
-            return -1;
-        }
-    } else {
-        if (rr.r[2] != 0) {
-            fprintf(stderr, "write error, count == %u\n", rr.r[2]);
-            return -1;
-        }
+    stlink_read_all_regs(sl, &rr);
+    if (rr.r[2] != 0) {
+        fprintf(stderr, "write error, count == %u\n", rr.r[2]);
+        return -1;
     }
 
     return 0;

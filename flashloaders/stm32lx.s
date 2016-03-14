@@ -39,22 +39,20 @@
     r2 - count
 */
 
-    // Set 0 to r3
-    movs    r3, #0
     // Go to compare
-    b.n test_done
+    b test_done
 
 write_word:
     // Load one word from address in r0, increment by 4
     ldr.w    ip, [r0], #4
     // Store the word to address in r1, increment by 4
     str.w    ip, [r1], #4
-    // Increment r3
-    adds    r3, #1
+    // Decrement r2
+    subs    r2, #1
 
 test_done:
-    // Compare r3 and r2
-    cmp     r3, r2
+    // Test r2
+    cmp     r2, #0
     // Loop if not zero
     bcc.n    write_word
 
