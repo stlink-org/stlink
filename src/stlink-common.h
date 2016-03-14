@@ -167,6 +167,7 @@ extern "C" {
 #define C_BUF_LEN 32
 
     enum flash_type {
+        FLASH_TYPE_UNKNOWN = 0,
         FLASH_TYPE_F0,
         FLASH_TYPE_L0,
         FLASH_TYPE_F4,

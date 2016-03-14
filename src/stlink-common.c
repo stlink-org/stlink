@@ -591,6 +591,12 @@ int stlink_load_device_params(stlink_t *sl) {
         return -1;
     }
 
+    if (params->flash_type == FLASH_TYPE_UNKNOWN) {
+        WLOG("Invalid flash type, please check device declaration\n");
+        return -1;
+    }
+
+
     // These are fixed...
     sl->flash_base = STM32_FLASH_BASE;
     sl->sram_base = STM32_SRAM_BASE;
@@ -2063,7 +2069,7 @@ int run_flash_loader(stlink_t *sl, flash_loader_t* fl, stm32_addr_t target, cons
 
     reg rr;
     int i = 0;
-    size_t count;
+    size_t count = 0;
 
     DLOG("Running flash loader, write address:%#x, size: %zd\n", target, size);
     // FIXME This can never return -1
@@ -2085,9 +2091,6 @@ int run_flash_loader(stlink_t *sl, flash_loader_t* fl, stm32_addr_t target, cons
         count = size / sizeof(uint64_t);
         if (size % sizeof(uint64_t))
             ++count;
-    } else {
-        fprintf(stderr, "unknown coreid 0x%x, don't know what flash loader to use\n", sl->core_id);
-        return -1;
     }
 
     /* setup core */
