@@ -28,7 +28,7 @@ wait:
 
     add     r0, #8
     add     r1, #8
-    sub     r2, #2
+    sub     r2, #1
     b       next
 done:
     bkpt

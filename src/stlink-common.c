@@ -1598,7 +1598,7 @@ int write_loader_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* size) {
         0xfb, 0xd1,             //        bne.n <wait>
         0x00, 0xf1, 0x08, 0x00, //        add.w r0, r0, #8
         0x01, 0xf1, 0x08, 0x01, //        add.w r1, r1, #8
-        0xa2, 0xf1, 0x02, 0x02, //        add.w r2, r2, #2
+        0xa2, 0xf1, 0x01, 0x02, //        sub.w r2, r2, #1
         0xef, 0xe7,             //        b.n   <next>
         0x00, 0xbe,             // done:  bkpt  0x0000
         0x00, 0x20, 0x02, 0x40  // flash_base:  .word 0x40022000
@@ -2077,16 +2077,14 @@ int run_flash_loader(stlink_t *sl, flash_loader_t* fl, stm32_addr_t target, cons
         count = size / sizeof(uint16_t);
         if (size % sizeof(uint16_t))
             ++count;
-    } else if (sl->flash_type == FLASH_TYPE_F4 ||
-            sl->flash_type == FLASH_TYPE_L4 ||
-            sl->flash_type == FLASH_TYPE_L0) {
+    } else if (sl->flash_type == FLASH_TYPE_F4 || sl->flash_type == FLASH_TYPE_L0) {
         count = size / sizeof(uint32_t);
         if (size % sizeof(uint32_t))
             ++count;
-        if (sl->chip_id == STM32_CHIPID_L4) {
-            if (count % 2)
-                ++count;
-        }
+    } else if (sl->flash_type == FLASH_TYPE_L4) {
+        count = size / sizeof(uint64_t);
+        if (size % sizeof(uint64_t))
+            ++count;
     } else {
         fprintf(stderr, "unknown coreid 0x%x, don't know what flash loader to use\n", sl->core_id);
         return -1;
@@ -2116,7 +2114,7 @@ int run_flash_loader(stlink_t *sl, flash_loader_t* fl, stm32_addr_t target, cons
     }
 
     /* check written byte count */
-    stlink_read_all_regs(sl, &rr);
+    stlink_read_reg(sl, 2, &rr);
     if (rr.r[2] != 0) {
         fprintf(stderr, "write error, count == %u\n", rr.r[2]);
         return -1;
