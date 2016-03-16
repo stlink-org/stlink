@@ -708,7 +708,7 @@ int stlink_version(stlink_t *sl) {
         DLOG("    notice: the firmware doesn't support a swim interface\n");
     }
 
-    return -1;
+    return 0;
 }
 
 int stlink_target_voltage(stlink_t *sl) {
