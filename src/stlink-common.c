@@ -534,7 +534,7 @@ int stlink_chip_id(stlink_t *sl, uint32_t *chip_id) {
     if (ret == -1)
         return ret;
 
-    if (chip_id == 0)
+    if (*chip_id == 0)
         ret = stlink_read_debug32(sl, 0x40015800, chip_id);    //Try Corex M0 DBGMCU_IDCODE register address
 
     return ret;
