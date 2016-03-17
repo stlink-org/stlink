@@ -251,7 +251,7 @@ static void lock_flash(stlink_t *sl) {
 
     if (sl->flash_type == FLASH_TYPE_F4) {
         cr_reg = FLASH_F4_CR;
-        cr_lock_shift = STM32L4_FLASH_CR_LOCK;
+        cr_lock_shift = FLASH_F4_CR_LOCK;
     } else if (sl->flash_type == FLASH_TYPE_L4) {
         cr_reg = STM32L4_FLASH_CR;
         cr_lock_shift = STM32L4_FLASH_CR_LOCK;
