@@ -720,8 +720,8 @@ stlink_t* stlink_open_usb(const int verbose, int reset, char *p_usb_iserial) {
 
     sl = malloc(sizeof (stlink_t));
     slu = malloc(sizeof (struct stlink_libusb));
-    if (sl == NULL) goto on_error;
-    if (slu == NULL) goto on_error;
+    if (sl == NULL) goto on_malloc_error;
+    if (slu == NULL) goto on_malloc_error;
     memset(sl, 0, sizeof (stlink_t));
     memset(slu, 0, sizeof (struct stlink_libusb));
 
@@ -867,6 +867,7 @@ on_libusb_error:
 on_error:
     if( slu->libusb_ctx)
         libusb_exit(slu->libusb_ctx);
+on_malloc_error:
     if (sl != NULL) free(sl);
     if (slu != NULL) free(slu);
     return NULL;
