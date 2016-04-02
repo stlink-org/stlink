@@ -732,7 +732,7 @@ int stlink_read_debug32(stlink_t *sl, uint32_t addr, uint32_t *data) {
 
     ret = sl->backend->read_debug32(sl, addr, data);
     if (!ret)
-	    DLOG("*** stlink_read_debug32 %x is %#x\n", data, addr);
+	    DLOG("*** stlink_read_debug32 %x is %#x\n", *data, addr);
 
 	return ret;
 }
