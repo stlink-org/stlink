@@ -1197,7 +1197,7 @@ uint32_t calculate_L4_page(stlink_t *sl, uint32_t flashaddr) {
     flashaddr -= STM32_FLASH_BASE;
     if (flashopt & (1lu << STM32L4_FLASH_OPTR_DUALBANK)) {
         uint32_t banksize = sl->flash_size / 2;
-        if (flashaddr > banksize) {
+        if (flashaddr >= banksize) {
             flashaddr -= banksize;
             bker = 0x100;
         }
@@ -1248,19 +1248,21 @@ int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr)
             // calculate the actual bank+page from the address
             uint32_t page = calculate_L4_page(sl, flashaddr);
 
+            fprintf(stderr, "EraseFlash - Page:0x%x Size:0x%x ", page, stlink_calculate_pagesize(sl, flashaddr));
+
             write_flash_cr_bker_pnb(sl, page);
         } else if (sl->chip_id == STM32_CHIPID_F7) {
             // calculate the actual page from the address
             uint32_t sector=calculate_F7_sectornum(flashaddr);
 
-            fprintf(stderr, "EraseFlash - Sector:0x%x Size:0x%x\n", sector, stlink_calculate_pagesize(sl, flashaddr));
+            fprintf(stderr, "EraseFlash - Sector:0x%x Size:0x%x ", sector, stlink_calculate_pagesize(sl, flashaddr));
 
             write_flash_cr_snb(sl, sector);
         } else {
             // calculate the actual page from the address
             uint32_t sector=calculate_F4_sectornum(flashaddr);
 
-            fprintf(stderr, "EraseFlash - Sector:0x%x Size:0x%x\n", sector, stlink_calculate_pagesize(sl, flashaddr));
+            fprintf(stderr, "EraseFlash - Sector:0x%x Size:0x%x ", sector, stlink_calculate_pagesize(sl, flashaddr));
         
             //the SNB values for flash sectors in the second bank do not directly follow the values for the first bank on 2mb devices...
             if (sector >= 12) sector += 4;
@@ -1390,7 +1392,7 @@ int stlink_erase_flash_mass(stlink_t *sl) {
                 WLOG("Failed to erase_flash_page(%#zx) == -1\n", addr);
                 return -1;
             }
-            fprintf(stdout,"\rFlash page at %5d/%5d erased", i, num_pages);
+            fprintf(stdout,"-> Flash page at %5d/%5d erased\n", i, num_pages);
             fflush(stdout);
         }
         fprintf(stdout, "\n");
