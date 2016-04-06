@@ -5,9 +5,9 @@ SUBDIRS = . $(MAYBE_GUI)
 AUTOMAKE_OPTIONS = subdir-objects
 
 if MINGW
-bin_PROGRAMS = st-flash st-util st-info
+bin_PROGRAMS = st-flash st-util st-info st-probe
 else
-bin_PROGRAMS = st-flash st-util st-term st-info
+bin_PROGRAMS = st-flash st-util st-term st-info st-probe
 endif
 
 noinst_LIBRARIES      = libstlink.a
@@ -15,6 +15,7 @@ noinst_LIBRARIES      = libstlink.a
 st_flash_SOURCES = flash/main.c
 st_term_SOURCES = src/st-term.c
 st_info_SOURCES = src/st-info.c
+st_probe_SOURCES = src/st-probe.c
 st_util_SOURCES = gdbserver/gdb-remote.c gdbserver/gdb-remote.h gdbserver/gdb-server.c mingw/mingw.c mingw/mingw.h
 
 CFILES = \
@@ -52,6 +53,7 @@ st_term_CPPFLAGS        = -std=gnu99 -Wall -Wextra -O2 -I$(top_srcdir)/src -I$(t
 st_info_LDADD   =       libstlink.a
 st_info_CPPFLAGS        = -std=gnu99 -Wall -Wextra -O2 -I$(top_srcdir)/src -I$(top_srcdir)/mingw
 
+st_probe_LDADD   =       libstlink.a
+st_probe_CPPFLAGS       = -std=gnu99 -Wall -Wextra -O2 -I$(top_srcdir)/src -I$(top_srcdir)/mingw
 
 EXTRA_DIST = autogen.sh
-

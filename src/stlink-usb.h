@@ -29,7 +29,8 @@ extern "C" {
     };
 
     stlink_t* stlink_open_usb(const int verbose, int reset, char *p_usb_iserial);
-
+    size_t stlink_probe_usb(stlink_t **stdevs[]);
+    void stlink_probe_usb_free(stlink_t **stdevs[], size_t size);
 
 #ifdef	__cplusplus
 }
