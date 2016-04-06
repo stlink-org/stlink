@@ -41,7 +41,10 @@ target_link_libraries(st-util stlink)
 add_executable(st-info src/st-info.c)
 target_link_libraries(st-info stlink)
 
-install(TARGETS  stlink st-flash st-util st-info
+add_executable(st-probe src/st-probe.c)
+target_link_libraries(st-probe stlink)
+
+install(TARGETS  stlink st-flash st-util st-info st-probe
         RUNTIME DESTINATION bin
         ARCHIVE DESTINATION lib)
 

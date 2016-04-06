@@ -363,7 +363,7 @@ int _stlink_usb_reset(stlink_t * sl) {
         return size;
     }
 
-	return 0;
+    return 0;
 }
 
 
@@ -718,12 +718,10 @@ stlink_t* stlink_open_usb(const int verbose, int reset, char *p_usb_iserial) {
     int error = -1;
     int config;
 
-    sl = malloc(sizeof (stlink_t));
-    slu = malloc(sizeof (struct stlink_libusb));
+    sl = calloc(1, sizeof (stlink_t));
+    slu = calloc(1, sizeof (struct stlink_libusb));
     if (sl == NULL) goto on_malloc_error;
     if (slu == NULL) goto on_malloc_error;
-    memset(sl, 0, sizeof (stlink_t));
-    memset(slu, 0, sizeof (struct stlink_libusb));
 
     ugly_init(verbose);
     sl->backend = &_stlink_usb_backend;
@@ -760,12 +758,11 @@ stlink_t* stlink_open_usb(const int verbose, int reset, char *p_usb_iserial) {
             if ((libusb_get_bus_number(list[cnt])!=devBus) || (libusb_get_device_address(list[cnt])!=devAddr)) continue;
         if ( (desc.idProduct == USB_STLINK_32L_PID) || (desc.idProduct == USB_STLINK_NUCLEO_PID) ){
             if ((p_usb_iserial != NULL)){
-                unsigned char buffer[13];
                 struct libusb_device_handle* handle;
                 libusb_open(list[cnt], &handle);
-                libusb_get_string_descriptor_ascii(handle, desc.iSerialNumber, buffer, 13);
+                libusb_get_string_descriptor_ascii(handle, desc.iSerialNumber, (unsigned char *)sl->serial, sizeof(sl->serial));
                 libusb_close(handle);
-                if (memcmp(p_usb_iserial,&buffer,12) == 0){
+                if (memcmp(p_usb_iserial,&sl->serial, sizeof(sl->serial) - 1) == 0){
                     break;
                 }else{
                     continue;
@@ -787,7 +784,7 @@ stlink_t* stlink_open_usb(const int verbose, int reset, char *p_usb_iserial) {
         int error = libusb_open(list[cnt], &slu->usb_handle);
         if( error !=0 ) {
             WLOG("Error %d (%s) opening ST-Link/V2 device %03d:%03d\n", 
-		error, strerror (errno), libusb_get_bus_number(list[cnt]), libusb_get_device_address(list[cnt]));
+        error, strerror (errno), libusb_get_bus_number(list[cnt]), libusb_get_device_address(list[cnt]));
             goto on_error;
         }
     }
@@ -873,3 +870,102 @@ on_malloc_error:
     return NULL;
 }
 
+static size_t stlink_probe_usb_devs(libusb_device **devs, stlink_t **sldevs[]) {
+    stlink_t **_sldevs;
+    libusb_device *dev;
+    int i = 0;
+    size_t slcnt = 0;
+    size_t slcur = 0;
+
+    /* Count stlink */
+    while ((dev = devs[i++]) != NULL) {
+        struct libusb_device_descriptor desc;
+        int r = libusb_get_device_descriptor(dev, &desc);
+        if (r < 0) {
+            fprintf(stderr, "failed to get device descriptor");
+            break;
+        }
+
+        if (desc.idProduct != USB_STLINK_32L_PID &&
+            desc.idProduct != USB_STLINK_NUCLEO_PID)
+            continue;
+
+        slcnt++;
+    }
+
+    /* Allocate list of pointers */
+    _sldevs = calloc(slcnt, sizeof(stlink_t *));
+    if (!_sldevs) {
+        *sldevs = NULL;
+        return 0;
+    }
+
+    /* Open stlinks and attach to list */
+    i = 0;
+    while ((dev = devs[i++]) != NULL) {
+        struct libusb_device_descriptor desc;
+        int r = libusb_get_device_descriptor(dev, &desc);
+        if (r < 0) {
+            fprintf(stderr, "failed to get device descriptor");
+            break;
+        }
+
+        if (desc.idProduct != USB_STLINK_32L_PID &&
+            desc.idProduct != USB_STLINK_NUCLEO_PID)
+            continue;
+
+        struct libusb_device_handle* handle;
+        char serial[13];
+        memset(serial, 0, sizeof(serial));
+
+        libusb_open(dev, &handle);
+        libusb_get_string_descriptor_ascii(handle, desc.iSerialNumber, (unsigned char *)&serial, sizeof(serial));
+        libusb_close(handle);
+
+        stlink_t *sl = NULL;
+        sl = stlink_open_usb(0, 1, serial);
+        if (!sl)
+            continue;
+
+        _sldevs[slcur] = sl;
+        slcur++;
+    }
+
+    *sldevs = _sldevs;
+    return slcnt;
+}
+
+size_t stlink_probe_usb(stlink_t **stdevs[]) {
+    libusb_device **devs;
+    stlink_t **sldevs;
+
+    size_t slcnt = 0;
+    int r;
+    ssize_t cnt;
+
+    r = libusb_init(NULL);
+    if (r < 0)
+        return 0;
+
+    cnt = libusb_get_device_list(NULL, &devs);
+    if (cnt < 0)
+        return 0;
+
+    slcnt = stlink_probe_usb_devs(devs, &sldevs);
+    libusb_free_device_list(devs, 1);
+
+    libusb_exit(NULL);
+
+    *stdevs = sldevs;
+    return slcnt;
+}
+
+void stlink_probe_usb_free(stlink_t ***stdevs, size_t size) {
+    if (stdevs == NULL || *stdevs == NULL || size == 0)
+        return;
+
+    for (size_t n = 0; n < size; n++)
+        stlink_close((*stdevs)[n]);
+    free(*stdevs);
+    *stdevs = NULL;
+}
