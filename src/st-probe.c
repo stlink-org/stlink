@@ -8,6 +8,9 @@ void stlink_print_info(stlink_t *sl)
 {
 	const chip_params_t *params = NULL;
 
+	if (!sl)
+		return;
+
 	for (size_t n = 0; n < sizeof(sl->serial); n++)
 		printf("%02x", sl->serial[n]);
 	printf("\n");
