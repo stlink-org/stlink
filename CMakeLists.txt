@@ -1,5 +1,5 @@
-cmake_minimum_required(VERSION 2.8.11)
 project(stlink C)
+cmake_minimum_required(VERSION 2.8.7)
 
 include(CheckCCompilerFlag)
 find_package(PkgConfig)

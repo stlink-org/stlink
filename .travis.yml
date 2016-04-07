@@ -1,0 +1,12 @@
+sudo: true
+language: c
+script:
+  - ./.travis.sh
+matrix:
+  include:
+    - os: osx
+      compiler: clang
+    - os: linux
+      compiler: gcc
+    - os: linux
+      compiler: clang
