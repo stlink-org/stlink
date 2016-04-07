@@ -15,6 +15,9 @@
 enum SCSI_Generic_Direction {SG_DXFER_TO_DEV=0, SG_DXFER_FROM_DEV=0x80};
 
 void _stlink_usb_close(stlink_t* sl) {
+    if (!sl)
+        return;
+
     struct stlink_libusb * const handle = sl->backend_data;
     // maybe we couldn't even get the usb device?
     if (handle != NULL) {

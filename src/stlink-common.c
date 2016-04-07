@@ -481,6 +481,8 @@ static inline void write_flash_cr_bker_pnb(stlink_t *sl, uint32_t n) {
 
 void stlink_close(stlink_t *sl) {
     DLOG("*** stlink_close ***\n");
+    if (!sl)
+         return;
     sl->backend->close(sl);
     free(sl);
 }
