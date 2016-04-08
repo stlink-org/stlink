@@ -1,4 +1,5 @@
 from: marco.cassinerio@gmail.com
+
 to: texane@gmail.com
 
 Hi,
@@ -14,9 +15,9 @@ version as well.
 
 Attached to this mail you'll find the osx folder with the source code of the driver, both drivers (for
 10.6.x and 10.7.x), an install.sh script and the modified Makefile, i only added a line at the end which
-invoke the install.sh.
+invoke the `install.sh`.
 
-First, unpack the osx.tar.gz contents:
+First, unpack the `osx.tar.gz` contents:
 ```bash
 tar xzvf osx.tar.gz
 ```
@@ -35,7 +36,9 @@ P.S. If error `OS X version not supported` occurs. For the latest versions of Ma
 > ISOSXLION=$(sw_vers -productVersion | sed -e 's:.[[:digit:]]*$::')
 ```
 
-FOR OS X 10.10 Yosemite you must force the system to load unsigned kernelextensions
+### OS X 10.10 Yosemite
+
+For OS X 10.10 Yosemite you must force the system to load unsigned kernelextensions
 
 ```bash
 sudo nvram boot-args="kext-dev-mode=1“
@@ -43,4 +46,8 @@ sudo nvram boot-args="kext-dev-mode=1“
 
 reboot the system!
 
-(Update from another user) FOR OS X 10.11 El Capitan: the Yosemite kext works for my 10.11.4.
+### OS X 10.11 El Capitan
+
+(Update from another user)
+
+For OS X 10.11 El Capitan: the Yosemite kext seems to work (tested on 10.11.04).
