@@ -756,29 +756,34 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, bool reset, char serial[16
         ILOG("bus %03d dev %03d\n",devBus, devAddr);
     }
 
-    while (cnt--){
+    while (cnt--) {
         libusb_get_device_descriptor( list[cnt], &desc );
         if (desc.idVendor != USB_ST_VID)
             continue;
 
-        if (devBus && devAddr)
-            if ((libusb_get_bus_number(list[cnt])!=devBus) || (libusb_get_device_address(list[cnt])!=devAddr))
+        if (devBus && devAddr) {
+            if ((libusb_get_bus_number(list[cnt]) != devBus)
+                || (libusb_get_device_address(list[cnt]) != devAddr)) {
                 continue;
-
-        if ( (desc.idProduct == USB_STLINK_32L_PID) || (desc.idProduct == USB_STLINK_NUCLEO_PID) ) {
-            if ((serial != NULL)) {
-                struct libusb_device_handle *handle;
-
-                libusb_open(list[cnt], &handle);
-                sl->serial_size = libusb_get_string_descriptor_ascii(handle, desc.iSerialNumber, (unsigned char *)sl->serial, sizeof(sl->serial));
-                libusb_close(handle);
-                if (sl->serial_size < 0)
-                    continue;
-                else if (memcmp(serial, &sl->serial, sl->serial_size) == 0)
-                    break;
-            } else {
-                break;
             }
+        }
+
+        if ((desc.idProduct == USB_STLINK_32L_PID) || (desc.idProduct == USB_STLINK_NUCLEO_PID)) {
+            struct libusb_device_handle *handle;
+
+            libusb_open(list[cnt], &handle);
+            sl->serial_size = libusb_get_string_descriptor_ascii(handle, desc.iSerialNumber,
+                                                                 (unsigned char *)sl->serial, sizeof(sl->serial));
+            libusb_close(handle);
+
+            if (sl->serial_size < 0)
+                 continue;
+            if (serial == NULL)
+                 break;
+            if (memcmp(serial, &sl->serial, sl->serial_size) == 0)
+                 break;
+
+            continue;
         }
 
         if (desc.idProduct == USB_STLINK_PID) {
