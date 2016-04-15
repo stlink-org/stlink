@@ -35,6 +35,7 @@ add_cflag_if_supported("-Wshorten-64-to-32")
 add_cflag_if_supported("-Wimplicit-function-declaration")
 add_cflag_if_supported("-Wredundant-decls")
 add_cflag_if_supported("-Wundef")
+add_cflag_if_supported("-fPIC")
 
 if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
     include(CTest)
@@ -54,7 +55,7 @@ set(CFILES src/stlink-common.c
            src/stlink-usb.c
            src/stlink-sg.c
            src/uglylogging.c
-           src/st-info.c)
+           )
 
 include_directories(${libusb_INCLUDE_DIRS})
 include_directories(src)
