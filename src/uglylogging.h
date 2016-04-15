@@ -9,14 +9,16 @@
 extern "C" {
 #endif
 
-#define UDEBUG 90
-#define UINFO  50
-#define UWARN  30
-#define UERROR 20
-#define UFATAL 10
+enum ugly_loglevel {
+	UDEBUG = 90,
+	UINFO  = 50,
+	UWARN  = 30,
+	UERROR = 20,
+	UFATAL = 10
+};
 
-    int ugly_init(int maximum_threshold);
-    int ugly_log(int level, const char *tag, const char *format, ...);
+int ugly_init(int maximum_threshold);
+int ugly_log(int level, const char *tag, const char *format, ...);
 
 #define DLOG(format, args...)   ugly_log(UDEBUG, __FILE__, format, ## args)
 #define ILOG(format, args...)   ugly_log(UINFO, __FILE__, format, ## args)

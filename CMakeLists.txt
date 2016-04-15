@@ -72,16 +72,13 @@ target_link_libraries(st-flash ${PROJECT_NAME})
 add_executable(st-info src/st-info.c)
 target_link_libraries(st-info ${PROJECT_NAME})
 
-add_executable(st-probe src/st-probe.c)
-target_link_libraries(st-probe ${PROJECT_NAME})
-
 add_executable(st-util gdbserver/gdb-remote.c
                        gdbserver/gdb-remote.h
                        gdbserver/gdb-server.c
                        gdbserver/gdb-server.h)
 target_link_libraries(st-util ${PROJECT_NAME})
 
-install(TARGETS ${PROJECT_NAME} st-flash st-util st-info st-probe
+install(TARGETS ${PROJECT_NAME} st-flash st-util st-info
         RUNTIME DESTINATION bin
         ARCHIVE DESTINATION lib
 )
