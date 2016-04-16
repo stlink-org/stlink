@@ -877,6 +877,7 @@ static size_t stlink_probe_usb_devs(libusb_device **devs, stlink_t **sldevs[]) {
     stlink_t **_sldevs;
     libusb_device *dev;
     int i = 0;
+    int ret = 0;
     size_t slcnt = 0;
     size_t slcur = 0;
 
@@ -885,7 +886,7 @@ static size_t stlink_probe_usb_devs(libusb_device **devs, stlink_t **sldevs[]) {
         struct libusb_device_descriptor desc;
         int r = libusb_get_device_descriptor(dev, &desc);
         if (r < 0) {
-            fprintf(stderr, "failed to get device descriptor");
+            WLOG("failed to get libusb device descriptor\n");
             break;
         }
 
@@ -907,9 +908,9 @@ static size_t stlink_probe_usb_devs(libusb_device **devs, stlink_t **sldevs[]) {
     i = 0;
     while ((dev = devs[i++]) != NULL) {
         struct libusb_device_descriptor desc;
-        int r = libusb_get_device_descriptor(dev, &desc);
-        if (r < 0) {
-            fprintf(stderr, "failed to get device descriptor");
+        ret = libusb_get_device_descriptor(dev, &desc);
+        if (ret < 0) {
+            WLOG("failed to get libusb device descriptor\n");
             break;
         }
 
@@ -921,7 +922,11 @@ static size_t stlink_probe_usb_devs(libusb_device **devs, stlink_t **sldevs[]) {
         char serial[13];
         memset(serial, 0, sizeof(serial));
 
-        libusb_open(dev, &handle);
+        ret = libusb_open(dev, &handle);
+        if (ret < 0) {
+            WLOG("failed to get libusb device descriptor\n");
+            break;
+        }
         libusb_get_string_descriptor_ascii(handle, desc.iSerialNumber, (unsigned char *)&serial, sizeof(serial));
         libusb_close(handle);
 
@@ -932,6 +937,13 @@ static size_t stlink_probe_usb_devs(libusb_device **devs, stlink_t **sldevs[]) {
 
         _sldevs[slcur] = sl;
         slcur++;
+    }
+
+    /* Something went wrong */
+    if (ret < 0) {
+        free(_sldevs);
+        *sldevs = NULL;
+        return 0;
     }
 
     *sldevs = _sldevs;
