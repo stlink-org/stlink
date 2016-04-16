@@ -641,7 +641,8 @@ extern "C" {
         uint32_t chip_id;
         int core_stat;
 
-        char serial[13];
+        char serial[16];
+        int serial_size;
 
 #define STM32_FLASH_PGSZ 1024
 #define STM32L_FLASH_PGSZ 256

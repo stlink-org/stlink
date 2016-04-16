@@ -10,7 +10,6 @@
 
 #include "stlink-common.h"
 #include "stlink-usb.h"
-#include "uglylogging.h"
 
 enum SCSI_Generic_Direction {SG_DXFER_TO_DEV=0, SG_DXFER_FROM_DEV=0x80};
 
@@ -714,17 +713,19 @@ stlink_backend_t _stlink_usb_backend = {
     _stlink_usb_target_voltage
 };
 
-
-stlink_t* stlink_open_usb(const int verbose, int reset, char *p_usb_iserial) {
+stlink_t *stlink_open_usb(enum ugly_loglevel verbose, bool reset, char serial[16])
+{
     stlink_t* sl = NULL;
     struct stlink_libusb* slu = NULL;
-    int error = -1;
+    int ret = -1;
     int config;
 
     sl = calloc(1, sizeof (stlink_t));
     slu = calloc(1, sizeof (struct stlink_libusb));
-    if (sl == NULL) goto on_malloc_error;
-    if (slu == NULL) goto on_malloc_error;
+    if (sl == NULL)
+        goto on_malloc_error;
+    if (slu == NULL)
+        goto on_malloc_error;
 
     ugly_init(verbose);
     sl->backend = &_stlink_usb_backend;
@@ -754,26 +755,37 @@ stlink_t* stlink_open_usb(const int verbose, int reset, char *p_usb_iserial) {
         devAddr=atoi(c);
         ILOG("bus %03d dev %03d\n",devBus, devAddr);
     }
-    while (cnt--){
+
+    while (cnt--) {
         libusb_get_device_descriptor( list[cnt], &desc );
-        if (desc.idVendor!=USB_ST_VID) continue;
-        if (devBus && devAddr)
-            if ((libusb_get_bus_number(list[cnt])!=devBus) || (libusb_get_device_address(list[cnt])!=devAddr)) continue;
-        if ( (desc.idProduct == USB_STLINK_32L_PID) || (desc.idProduct == USB_STLINK_NUCLEO_PID) ){
-            if ((p_usb_iserial != NULL)){
-                struct libusb_device_handle* handle;
-                libusb_open(list[cnt], &handle);
-                libusb_get_string_descriptor_ascii(handle, desc.iSerialNumber, (unsigned char *)sl->serial, sizeof(sl->serial));
-                libusb_close(handle);
-                if (memcmp(p_usb_iserial,&sl->serial, sizeof(sl->serial) - 1) == 0){
-                    break;
-                }else{
-                    continue;
-                }
-            }else{
-                break;
+        if (desc.idVendor != USB_ST_VID)
+            continue;
+
+        if (devBus && devAddr) {
+            if ((libusb_get_bus_number(list[cnt]) != devBus)
+                || (libusb_get_device_address(list[cnt]) != devAddr)) {
+                continue;
             }
         }
+
+        if ((desc.idProduct == USB_STLINK_32L_PID) || (desc.idProduct == USB_STLINK_NUCLEO_PID)) {
+            struct libusb_device_handle *handle;
+
+            libusb_open(list[cnt], &handle);
+            sl->serial_size = libusb_get_string_descriptor_ascii(handle, desc.iSerialNumber,
+                                                                 (unsigned char *)sl->serial, sizeof(sl->serial));
+            libusb_close(handle);
+
+            if (sl->serial_size < 0)
+                 continue;
+            if (serial == NULL)
+                 break;
+            if (memcmp(serial, &sl->serial, sl->serial_size) == 0)
+                 break;
+
+            continue;
+        }
+
         if (desc.idProduct == USB_STLINK_PID) {
             slu->protocoll = 1;
             break;
@@ -784,23 +796,20 @@ stlink_t* stlink_open_usb(const int verbose, int reset, char *p_usb_iserial) {
         WLOG ("Couldn't find %s ST-Link/V2 devices\n",(devBus && devAddr)?"matched":"any");
         goto on_error;
     } else {
-        int error = libusb_open(list[cnt], &slu->usb_handle);
-        if( error !=0 ) {
-            WLOG("Error %d (%s) opening ST-Link/V2 device %03d:%03d\n", 
-        error, strerror (errno), libusb_get_bus_number(list[cnt]), libusb_get_device_address(list[cnt]));
+        ret = libusb_open(list[cnt], &slu->usb_handle);
+        if (ret != 0) {
+            WLOG("Error %d (%s) opening ST-Link/V2 device %03d:%03d\n",
+                 ret, strerror (errno), libusb_get_bus_number(list[cnt]), libusb_get_device_address(list[cnt]));
             goto on_error;
         }
     }
 
     libusb_free_device_list(list, 1);
 
-
     if (libusb_kernel_driver_active(slu->usb_handle, 0) == 1) {
-        int r;
-
-        r = libusb_detach_kernel_driver(slu->usb_handle, 0);
-        if (r<0) {
-            WLOG("libusb_detach_kernel_driver(() error %s\n", strerror(-r));
+        ret = libusb_detach_kernel_driver(slu->usb_handle, 0);
+        if (ret < 0) {
+            WLOG("libusb_detach_kernel_driver(() error %s\n", strerror(-ret));
             goto on_libusb_error;
         }
     }
@@ -837,8 +846,6 @@ stlink_t* stlink_open_usb(const int verbose, int reset, char *p_usb_iserial) {
     // TODO - never used at the moment, always CMD_SIZE
     slu->cmd_len = (slu->protocoll == 1)? STLINK_SG_SIZE: STLINK_CMD_SIZE;
 
-    /* success */
-
     if (stlink_current_mode(sl) == STLINK_DEV_DFU_MODE) {
         ILOG("-- exit_dfu_mode\n");
         stlink_exit_dfu_mode(sl);
@@ -852,24 +859,28 @@ stlink_t* stlink_open_usb(const int verbose, int reset, char *p_usb_iserial) {
         stlink_reset(sl);
         usleep(10000);
     }
+
     stlink_version(sl);
-    error = stlink_load_device_params(sl);
+    ret = stlink_load_device_params(sl);
 
 on_libusb_error:
-    if (error == -1) {
+    if (ret == -1) {
         stlink_close(sl);
         return NULL;
     }
 
-    /* success */
     return sl;
 
 on_error:
-    if( slu->libusb_ctx)
+    if (slu->libusb_ctx)
         libusb_exit(slu->libusb_ctx);
+
 on_malloc_error:
-    if (sl != NULL) free(sl);
-    if (slu != NULL) free(slu);
+    if (sl != NULL)
+        free(sl);
+    if (slu != NULL)
+        free(slu);
+
     return NULL;
 }
 

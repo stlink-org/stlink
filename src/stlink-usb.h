@@ -6,14 +6,17 @@
  */
 
 #ifndef STLINK_USB_H
-#define	STLINK_USB_H
+#define STLINK_USB_H
 
-#ifdef	__cplusplus
+#include <stdbool.h>
+#include <libusb.h>
+
+#include "stlink-common.h"
+#include "uglylogging.h"
+
+#ifdef __cplusplus
 extern "C" {
 #endif
-
-#include <libusb.h>
-#include "stlink-common.h"
 
 #define STLINK_SG_SIZE 31
 #define STLINK_CMD_SIZE 16
@@ -28,13 +31,21 @@ extern "C" {
         unsigned int cmd_len;
     };
 
-    stlink_t* stlink_open_usb(const int verbose, int reset, char *p_usb_iserial);
+    /**
+     * Open a stlink
+     * @param verbose Verbosity loglevel
+     * @param reset   Reset stlink programmer
+     * @param serial  Serial number to search for, when NULL the first stlink found is opened (binary format)
+     * @retval NULL   Error while opening the stlink
+     * @retval !NULL  Stlink found and ready to use
+     */
+    stlink_t *stlink_open_usb(enum ugly_loglevel verbose, bool reset, char serial[16]);
     size_t stlink_probe_usb(stlink_t **stdevs[]);
     void stlink_probe_usb_free(stlink_t **stdevs[], size_t size);
 
-#ifdef	__cplusplus
+#ifdef __cplusplus
 }
 #endif
 
-#endif	/* STLINK_USB_H */
+#endif /* STLINK_USB_H */
 
