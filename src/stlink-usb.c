@@ -776,10 +776,12 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, bool reset, char serial[16
                                                                  (unsigned char *)sl->serial, sizeof(sl->serial));
             libusb_close(handle);
 
-            if (sl->serial_size < 0)
-                 continue;
-            if (serial == NULL)
+            if ((serial == NULL) || (*serial == 0))
                  break;
+
+            if (sl->serial_size < 0)
+	         continue;
+
             if (memcmp(serial, &sl->serial, sl->serial_size) == 0)
                  break;
 
@@ -938,7 +940,9 @@ static size_t stlink_probe_usb_devs(libusb_device **devs, stlink_t **sldevs[]) {
             WLOG("failed to get libusb device descriptor\n");
             break;
         }
-        libusb_get_string_descriptor_ascii(handle, desc.iSerialNumber, (unsigned char *)&serial, sizeof(serial));
+        ret = libusb_get_string_descriptor_ascii(handle, desc.iSerialNumber, (unsigned char *)&serial, sizeof(serial));
+	if (ret < 0) *serial = 0;
+
         libusb_close(handle);
 
         stlink_t *sl = NULL;
