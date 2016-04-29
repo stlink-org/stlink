@@ -13,7 +13,28 @@ static void usage(void)
     puts("st-info --pagesize");
     puts("st-info --chipid");
     puts("st-info --serial");
+    puts("st-info --hla-serial");
     puts("st-info --probe");
+}
+
+/* Print normal or OpenOCD hla_serial with newline */
+static void stlink_print_serial(stlink_t *sl, bool openocd)
+{
+    const char *fmt;
+
+    if (openocd) {
+       printf("\"");
+       fmt = "\\x%02x";
+    } else {
+       fmt = "%02x";
+    }
+
+    for (int n = 0; n < sl->serial_size; n++)
+        printf(fmt, sl->serial[n]);
+
+    if (openocd)
+       printf("\"");
+    printf("\n");
 }
 
 static void stlink_print_info(stlink_t *sl)
@@ -23,13 +44,14 @@ static void stlink_print_info(stlink_t *sl)
     if (!sl)
         return;
 
-    for (int n = 0; n < sl->serial_size; n++)
-        printf("%02x", sl->serial[n]);
-    printf("\n");
+    printf(" serial: ");
+    stlink_print_serial(sl, false);
+    printf("openocd: ");
+    stlink_print_serial(sl, true);
 
-    printf("\t flash: %zu (pagesize: %zu)\n", sl->flash_size, sl->flash_pgsz);
-    printf("\t  sram: %zu\n",       sl->sram_size);
-    printf("\tchipid: 0x%.4x\n",    sl->chip_id);
+    printf("  flash: %zu (pagesize: %zu)\n", sl->flash_size, sl->flash_pgsz);
+    printf("   sram: %zu\n",       sl->sram_size);
+    printf(" chipid: 0x%.4x\n",    sl->chip_id);
 
     for (size_t i = 0; i < sizeof(devices) / sizeof(devices[0]); i++) {
         if (devices[i].chip_id == sl->chip_id) {
@@ -39,7 +61,7 @@ static void stlink_print_info(stlink_t *sl)
     }
 
     if (params)
-        printf("\t descr: %s\n", params->description);
+        printf(" descr: %s\n", params->description);
 }
 
 static void stlink_probe(void)
@@ -59,7 +81,6 @@ static void stlink_probe(void)
 
 static int print_data(stlink_t *sl, char **av)
 {
-    int ret = 0;
     if (strcmp(av[1], "--flash") == 0)
         printf("0x%zx\n", sl->flash_size);
     else if (strcmp(av[1], "--sram") == 0)
@@ -70,11 +91,11 @@ static int print_data(stlink_t *sl, char **av)
         printf("0x%.4x\n", sl->chip_id);
     else if (strcmp(av[1], "--probe") == 0)
         stlink_probe();
-    else if (strcmp(av[1], "--serial") == 0) {
-        for (int n = 0; n < sl->serial_size; n++)
-            printf("%02x", sl->serial[n]);
-        printf("\n");
-    } else if (strcmp(av[1], "--descr") == 0) {
+    else if (strcmp(av[1], "--serial") == 0)
+        stlink_print_serial(sl, false);
+    else if (strcmp(av[1], "--hla-serial") == 0)
+        stlink_print_serial(sl, true);
+    else if (strcmp(av[1], "--descr") == 0) {
         const chip_params_t *params = NULL;
         for (size_t i = 0; i < sizeof(devices) / sizeof(devices[0]); i++) {
             if(devices[i].chip_id == sl->chip_id) {
@@ -87,7 +108,8 @@ static int print_data(stlink_t *sl, char **av)
         }
         printf("%s\n", params->description);
     }
-    return ret;
+
+    return 0;
 }
 
 
@@ -115,7 +137,9 @@ int main(int ac, char** av)
     if (sl == NULL) {
         return -1;
     }
-    sl->verbose=0;
+
+    sl->verbose = 0;
+
     if (stlink_current_mode(sl) == STLINK_DEV_DFU_MODE)
         stlink_exit_dfu_mode(sl);
 
