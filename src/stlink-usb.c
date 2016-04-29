@@ -940,8 +940,10 @@ static size_t stlink_probe_usb_devs(libusb_device **devs, stlink_t **sldevs[]) {
             WLOG("failed to get libusb device descriptor\n");
             break;
         }
+
         ret = libusb_get_string_descriptor_ascii(handle, desc.iSerialNumber, (unsigned char *)&serial, sizeof(serial));
-	if (ret < 0) *serial = 0;
+        if (ret < 0)
+          *serial = NULL;
 
         libusb_close(handle);
 
