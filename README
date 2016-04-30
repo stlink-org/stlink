@@ -1,5 +1,5 @@
-STMicroelectronics Stlink Tools
-===============================
+Open source version of the STMicroelectronics Stlink Tools
+==========================================================
 
 [![Build Status](https://travis-ci.org/texane/stlink.svg?branch=travis)](https://travis-ci.org/texane/stlink)
 
