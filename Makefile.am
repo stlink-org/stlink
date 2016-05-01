@@ -51,7 +51,4 @@ st_term_CPPFLAGS        = -std=gnu99 -Wall -Wextra -O2 -I$(top_srcdir)/src -I$(t
 st_info_LDADD   =       libstlink.a
 st_info_CPPFLAGS        = -std=gnu99 -Wall -Wextra -O2 -I$(top_srcdir)/src -I$(top_srcdir)/mingw
 
-st_probe_LDADD   =       libstlink.a
-st_probe_CPPFLAGS       = -std=gnu99 -Wall -Wextra -O2 -I$(top_srcdir)/src -I$(top_srcdir)/mingw
-
 EXTRA_DIST = autogen.sh
