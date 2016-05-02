@@ -743,6 +743,10 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, bool reset, char serial[16
     int devBus =0;
     int devAddr=0;
 
+    /* @TODO: Reading a environment variable in a usb open function is not very nice, this
+      should be refactored and moved into the CLI tools, and instead of giving USB_BUS:USB_ADDR a real stlink
+      serial string should be passed to this function. Probably people are using this but this is very odd because
+      as programmer can change to multiple busses and it is better to detect them based on serial.  */
     char *device = getenv("STLINK_DEVICE");
     if (device) {
         char *c = strchr(device,':');
