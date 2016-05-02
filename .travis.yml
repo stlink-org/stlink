@@ -6,7 +6,19 @@ matrix:
   include:
     - os: osx
       compiler: clang
+      env: "BUILD_SYSTEM=cmake"
+    - os: osx
+      compiler: clang
+      env: "BUILD_SYSTEM=autotools"
     - os: linux
       compiler: gcc
+      env: "BUILD_SYSTEM=cmake"
     - os: linux
       compiler: clang
+      env: "BUILD_SYSTEM=cmake"
+    - os: linux
+      compiler: gcc
+      env: "BUILD_SYSTEM=autotools"
+    - os: linux
+      compiler: clang
+      env: "BUILD_SYSTEM=autotools"

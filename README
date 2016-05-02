@@ -1,7 +1,7 @@
 Open source version of the STMicroelectronics Stlink Tools
 ==========================================================
 
-[![Build Status](https://travis-ci.org/texane/stlink.svg?branch=travis)](https://travis-ci.org/texane/stlink)
+[![Build Status](https://travis-ci.org/texane/stlink.svg?branch=master)](https://travis-ci.org/texane/stlink)
 
 ## HOWTO
 
@@ -19,9 +19,8 @@ Two different transport layers are used:
 
 ## Common requirements
 
-. libusb-1.0  (You probably already have this, but you'll need the
-development version to compile)
-. pkg-config
+* `pkg-config`
+* `libusb-1.0` (plus development headers for building, on debian based distros `libusb-1.0.0-dev` package)
 
 ## For STLINKv1
 
@@ -31,10 +30,10 @@ is tell your operating system to completely ignore it.
 Options (do one of these before you plug it in)
 
 * `modprobe -r usb-storage && modprobe usb-storage quirks=483:3744:i`
-* or *)1. add "options usb-storage quirks=483:3744:i" to /etc/modprobe.conf
-*   *)2. modprobe -r usb-storage && modprobe usb-storage
-* or *)1. cp stlink_v1.modprobe.conf /etc/modprobe.d
-*   *)2. modprobe -r usb-storage && modprobe usb-storage
+* or 1. `echo "options usb-storage quirks=483:3744:i" >> /etc/modprobe.conf`
+*    2. `modprobe -r usb-storage && modprobe usb-storage`
+* or 1. `cp stlink_v1.modprobe.conf /etc/modprobe.d`
+*    2. `modprobe -r usb-storage && modprobe usb-storage`
 
 ## For STLINKv2
 
