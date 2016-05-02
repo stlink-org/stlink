@@ -6,7 +6,13 @@ else
 	brew install libusb
 fi
 
-mkdir build
-cd build
-cmake ..
-make
+if [ "$BUILD_SYSTEM" == "cmake" ]; then
+	mkdir build
+	cd build
+	cmake ..
+	make
+else
+	./autogen.sh
+	./configure
+	make
+fi
