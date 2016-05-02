@@ -61,7 +61,7 @@ static void stlink_print_info(stlink_t *sl)
     }
 
     if (params)
-        printf(" descr: %s\n", params->description);
+        printf("  descr: %s\n", params->description);
 }
 
 static void stlink_probe(void)
@@ -79,8 +79,40 @@ static void stlink_probe(void)
     stlink_probe_usb_free(&stdevs, size);
 }
 
-static int print_data(stlink_t *sl, char **av)
+static stlink_t *stlink_open_first(void)
 {
+    stlink_t* sl = NULL;
+    sl = stlink_v1_open(0, 1);
+    if (sl == NULL)
+        sl = stlink_open_usb(0, 1, NULL);
+
+    return sl;
+}
+
+static int print_data(char **av)
+{
+    stlink_t* sl = NULL;
+
+    // Probe needs all devices unclaimed
+    if (strcmp(av[1], "--probe") == 0) {
+        stlink_probe();
+        return 0;
+    }
+
+    sl = stlink_open_first();
+
+    if (sl == NULL) {
+        return -1;
+    }
+
+    sl->verbose = 0;
+
+    if (stlink_current_mode(sl) == STLINK_DEV_DFU_MODE)
+        stlink_exit_dfu_mode(sl);
+
+    if (stlink_current_mode(sl) != STLINK_DEV_DEBUG_MODE)
+        stlink_enter_swd_mode(sl);
+
     if (strcmp(av[1], "--flash") == 0)
         printf("0x%zx\n", sl->flash_size);
     else if (strcmp(av[1], "--sram") == 0)
@@ -89,8 +121,6 @@ static int print_data(stlink_t *sl, char **av)
         printf("0x%zx\n", sl->flash_pgsz);
     else if (strcmp(av[1], "--chipid") == 0)
         printf("0x%.4x\n", sl->chip_id);
-    else if (strcmp(av[1], "--probe") == 0)
-        stlink_probe();
     else if (strcmp(av[1], "--serial") == 0)
         stlink_print_serial(sl, false);
     else if (strcmp(av[1], "--hla-serial") == 0)
@@ -109,50 +139,24 @@ static int print_data(stlink_t *sl, char **av)
         printf("%s\n", params->description);
     }
 
+    if (sl)
+    {
+        stlink_exit_debug_mode(sl);
+        stlink_close(sl);
+    }
+
     return 0;
 }
 
-
-stlink_t* open_sl(void)
-{
-    stlink_t* sl;
-    sl = stlink_v1_open(0, 1);
-    if (sl == NULL)
-        sl = stlink_open_usb(0, 1, NULL);
-    return sl;
-}
-
-
 int main(int ac, char** av)
 {
-    stlink_t* sl = NULL;
     int err = -1;
     if (ac < 2) {
         usage();
         return -1;
     }
 
-    sl = open_sl();
-
-    if (sl == NULL) {
-        return -1;
-    }
-
-    sl->verbose = 0;
-
-    if (stlink_current_mode(sl) == STLINK_DEV_DFU_MODE)
-        stlink_exit_dfu_mode(sl);
-
-    if (stlink_current_mode(sl) != STLINK_DEV_DEBUG_MODE)
-        stlink_enter_swd_mode(sl);
-
-    err = print_data(sl, av);
-
-    if (sl != NULL)
-    {
-        stlink_exit_debug_mode(sl);
-        stlink_close(sl);
-    }
+    err = print_data(av);
 
     return err;
 }
