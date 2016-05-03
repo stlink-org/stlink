@@ -12,5 +12,5 @@ When submitting a feature request, try to reuse the list and add/remove what is 
 
 A as-detailed description possible of the problem with debug output when available.
 
-Thanks you,
-Stlink project maintainers
+Thank you,
+The stlink project maintainers
