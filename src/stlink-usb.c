@@ -836,7 +836,7 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, bool reset, char serial[16
     }
 
     if (libusb_claim_interface(slu->usb_handle, 0)) {
-        WLOG("libusb_claim_interface() failed\n");
+        WLOG("Stlink usb device found, but unable to claim (probably already in use?)\n");
         goto on_libusb_error;
     }
 
