@@ -9,10 +9,10 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include "mmap.h"
 
-#include "stlink-common.h"
-#include "uglylogging.h"
+#include "stlink.h"
+#include "stlink/mmap.h"
+#include "stlink/logging.h"
 
 #ifndef _WIN32
 #define O_BINARY 0

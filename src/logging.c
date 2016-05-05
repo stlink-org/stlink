@@ -3,14 +3,13 @@
  * rest of our code pretty enough.
  *
  */
-
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <time.h>
 
-#include "uglylogging.h"
+#include "stlink/logging.h"
 
 static int max_level;
 

@@ -82,9 +82,8 @@
 #include <stdlib.h>
 #include <sys/types.h>
 
-#include "stlink-common.h"
-#include "stlink-sg.h"
-#include "uglylogging.h"
+#include "stlink.h"
+#include "stlink/logging.h"
 
 static void clear_cdb(struct stlink_libsg *sl) {
     for (size_t i = 0; i < sizeof (sl->cdb_cmd_blk); i++)

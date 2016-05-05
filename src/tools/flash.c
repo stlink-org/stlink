@@ -8,7 +8,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
-#include "stlink-common.h"
+
+#include <stlink.h>
 
 #define DEBUG_LOG_LEVEL 100
 #define STND_LOG_LEVEL  50

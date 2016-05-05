@@ -9,7 +9,8 @@
 #include <termios.h>
 #include <fcntl.h>
 #include <signal.h>
-#include "stlink-common.h"
+
+#include <stlink.h>
 
 /* STLinky structure on STM chip
 

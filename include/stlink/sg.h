@@ -1,5 +1,5 @@
 /*
- * File:   stlink-sg.h
+ * File:   stlink/sg.h
  * Author: karl
  *
  * Created on October 1, 2011, 11:29 PM
@@ -8,12 +8,12 @@
 #ifndef STLINK_SG_H
 #define	STLINK_SG_H
 
+#include <libusb.h>
+#include "stlink.h"
+
 #ifdef	__cplusplus
 extern "C" {
 #endif
-
-#include <libusb.h>
-#include "stlink-common.h"
 
     // device access
 #define RDWR		0

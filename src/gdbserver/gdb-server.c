@@ -19,8 +19,8 @@
 #include <arpa/inet.h>
 #endif
 
-#include <stlink-common.h>
-#include <uglylogging.h>
+#include <stlink.h>
+#include <stlink/logging.h>
 
 #include "gdb-remote.h"
 #include "gdb-server.h"

@@ -1,20 +1,17 @@
 /*
- * File:   stlink-common.h
- * Bulk import from stlink-hw.h
+ * File:   stlink.h
  *
  * This should contain all the common top level stlink interfaces, regardless
  * of how the backend does the work....
  */
-
-#ifndef STLINK_COMMON_H
-#define STLINK_COMMON_H
-
-#ifdef	__cplusplus
-extern "C" {
-#endif
+#ifndef STLINK_H
+#define STLINK_H
 
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
     // Max data transfer size.
     // 6kB = max mem32_read block, 8kB sram
     //#define Q_BUF_LEN	96
@@ -728,15 +725,11 @@ extern "C" {
     int run_flash_loader(stlink_t *sl, flash_loader_t* fl, stm32_addr_t target, const uint8_t* buf, size_t size);
     int stlink_load_device_params(stlink_t *sl);
 
+#include "stlink/sg.h"
+#include "stlink/usb.h"
 
-
-#include "stlink-sg.h"
-#include "stlink-usb.h"
-
-
-
-#ifdef	__cplusplus
+#ifdef __cplusplus
 }
 #endif
 
-#endif	/* STLINK_COMMON_H */
+#endif /* STLINK_H */

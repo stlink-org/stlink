@@ -3,7 +3,7 @@
 #include <string.h>
 #include <sys/types.h>
 
-#include <stlink-common.h>
+#include <stlink.h>
 
 static void usage(void)
 {

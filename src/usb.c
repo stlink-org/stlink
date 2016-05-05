@@ -8,8 +8,7 @@
 #include <errno.h>
 #include <unistd.h>
 
-#include "stlink-common.h"
-#include "stlink-usb.h"
+#include "stlink.h"
 
 enum SCSI_Generic_Direction {SG_DXFER_TO_DEV=0, SG_DXFER_FROM_DEV=0x80};
 
