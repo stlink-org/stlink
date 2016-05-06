@@ -34,25 +34,27 @@
     .global write
 
 /*
-    r0 - source address
-    r1 - destination address
+    r0 - destination address
+    r1 - source address
     r2 - count
 */
 
+    // Set 0 to r3
+    movs    r3, #0
     // Go to compare
-    b test_done
+    b.n test_done
 
 write_word:
     // Load one word from address in r0, increment by 4
-    ldr.w    ip, [r0], #4
+    ldr.w    ip, [r1], #4
     // Store the word to address in r1, increment by 4
-    str.w    ip, [r1], #4
-    // Decrement r2
-    subs    r2, #1
+    str.w    ip, [r0], #4
+    // Increment r3
+    adds    r3, #1
 
 test_done:
-    // Test r2
-    cmp     r2, #0
+    // Compare r3 and r2
+    cmp     r3, r2
     // Loop if not zero
     bcc.n    write_word
 
