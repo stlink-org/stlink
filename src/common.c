@@ -593,6 +593,12 @@ int stlink_load_device_params(stlink_t *sl) {
         return -1;
     }
 
+    if (params->flash_type == FLASH_TYPE_UNKNOWN) {
+        WLOG("Invalid flash type, please check device declaration\n");
+        return -1;
+    }
+
+
     // These are fixed...
     sl->flash_base = STM32_FLASH_BASE;
     sl->sram_base = STM32_SRAM_BASE;
@@ -1505,43 +1511,42 @@ int write_loader_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* size) {
     static const uint8_t loader_code_stm32l[] = {
 
         /* openocd.git/contrib/loaders/flash/stm32lx.S
-           r0, input, dest addr
-           r1, input, source addr
+           r0, input, source addr
+           r1, input, dest addr
            r2, input, word count
-           r3, output, word count
+           r2, output, remaining word count
            */
 
-        0x00, 0x23,
         0x04, 0xe0,
 
-        0x51, 0xf8, 0x04, 0xcb,
-        0x40, 0xf8, 0x04, 0xcb,
-        0x01, 0x33,
+        0x50, 0xf8, 0x04, 0xcb,
+        0x41, 0xf8, 0x04, 0xcb,
+        0x01, 0x3a,
 
-        0x93, 0x42,
-        0xf8, 0xd3,
-        0x00, 0xbe
+        0x00, 0x2a,
+        0xf8, 0xd8,
+        0x00, 0xbe,
+        0x00, 0x00
     };
 
     static const uint8_t loader_code_stm32l0[] = {
 
         /*
-           r0, input, dest addr
-           r1, input, source addr
+           r0, input, source addr
+           r1, input, dest addr
            r2, input, word count
-           r3, output, word count
+           r2, output, remaining word count
          */
 
-        0x00, 0x23,
         0x04, 0xe0,
 
-        0x0c, 0x68,
-        0x04, 0x60,
-        0x01, 0x33,
+        0x04, 0x68,
+        0x0c, 0x60,
+        0x01, 0x3a,
         0x04, 0x31,
         0x04, 0x30,
 
-        0x93, 0x42,
+        0x00, 0x2a,
         0xf8, 0xd3,
         0x00, 0xbe
     };
@@ -1604,7 +1609,7 @@ int write_loader_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* size) {
         0xfb, 0xd1,             //        bne.n <wait>
         0x00, 0xf1, 0x08, 0x00, //        add.w r0, r0, #8
         0x01, 0xf1, 0x08, 0x01, //        add.w r1, r1, #8
-        0xa2, 0xf1, 0x02, 0x02, //        add.w r2, r2, #2
+        0xa2, 0xf1, 0x01, 0x02, //        sub.w r2, r2, #1
         0xef, 0xe7,             //        b.n   <next>
         0x00, 0xbe,             // done:  bkpt  0x0000
         0x00, 0x20, 0x02, 0x40  // flash_base:  .word 0x40022000
@@ -2068,8 +2073,8 @@ int stlink_fwrite_flash(stlink_t *sl, const char* path, stm32_addr_t addr) {
 int run_flash_loader(stlink_t *sl, flash_loader_t* fl, stm32_addr_t target, const uint8_t* buf, size_t size) {
 
     reg rr;
-    int target_reg, source_reg, i = 0;
-    size_t count;
+    int i = 0;
+    size_t count = 0;
 
     DLOG("Running flash loader, write address:%#x, size: %zd\n", target, size);
     // FIXME This can never return -1
@@ -2079,36 +2084,23 @@ int run_flash_loader(stlink_t *sl, flash_loader_t* fl, stm32_addr_t target, cons
         return -1;
     }
 
-    if (sl->flash_type == FLASH_TYPE_L0) {
-        count = size / sizeof(uint32_t);
-        if (size % sizeof(uint32_t))
-            ++count;
-        target_reg = 0;
-        source_reg = 1;
-    } else if (sl->flash_type == FLASH_TYPE_F0) {
+    if (sl->flash_type == FLASH_TYPE_F0) {
         count = size / sizeof(uint16_t);
         if (size % sizeof(uint16_t))
             ++count;
-        target_reg = 1;
-        source_reg = 0;
-    } else if (sl->flash_type == FLASH_TYPE_F4 || sl->flash_type == FLASH_TYPE_L4) {
+    } else if (sl->flash_type == FLASH_TYPE_F4 || sl->flash_type == FLASH_TYPE_L0) {
         count = size / sizeof(uint32_t);
         if (size % sizeof(uint32_t))
             ++count;
-        if (sl->chip_id == STM32_CHIPID_L4) {
-            if (count % 2)
-                ++count;
-        }
-        target_reg = 1;
-        source_reg = 0;
-    } else {
-        fprintf(stderr, "unknown coreid 0x%x, don't know what flash loader to use\n", sl->core_id);
-        return -1;
+    } else if (sl->flash_type == FLASH_TYPE_L4) {
+        count = size / sizeof(uint64_t);
+        if (size % sizeof(uint64_t))
+            ++count;
     }
 
     /* setup core */
-    stlink_write_reg(sl, fl->buf_addr, source_reg); /* source */
-    stlink_write_reg(sl, target, target_reg); /* target */
+    stlink_write_reg(sl, fl->buf_addr, 0); /* source */
+    stlink_write_reg(sl, target, 1); /* target */
     stlink_write_reg(sl, count, 2); /* count */
     stlink_write_reg(sl, 0, 3); /* flash bank 0 (input), only used on F0, but armless fopr others */
     stlink_write_reg(sl, fl->loader_addr, 15); /* pc register */
@@ -2129,19 +2121,11 @@ int run_flash_loader(stlink_t *sl, flash_loader_t* fl, stm32_addr_t target, cons
         return -1;
     }
 
-    stlink_read_all_regs(sl, &rr);
-
     /* check written byte count */
-    if (sl->flash_type == FLASH_TYPE_L0) {
-        if (rr.r[3] != count) {
-            fprintf(stderr, "write error, count == %u\n", rr.r[3]);
-            return -1;
-        }
-    } else {
-        if (rr.r[2] != 0) {
-            fprintf(stderr, "write error, count == %u\n", rr.r[2]);
-            return -1;
-        }
+    stlink_read_reg(sl, 2, &rr);
+    if (rr.r[2] != 0) {
+        fprintf(stderr, "write error, count == %u\n", rr.r[2]);
+        return -1;
     }
 
     return 0;
