@@ -137,6 +137,7 @@ extern "C" {
 #define STM32_CHIPID_F04            0x445
 
 #define STM32_CHIPID_F303_HIGH      0x446
+#define STM32_CHIPID_L0_CAT5        0x447
 
 #define STM32_CHIPID_F0_CAN         0x448
 
@@ -503,6 +504,18 @@ extern "C" {
             .sram_size = 0x2000,
             .bootrom_base = 0x1ff0000,
             .bootrom_size = 0x1000
+        },
+        {
+            // STM32L0x Category 5
+            // RM0367,RM0377 documents was used to find these parameters
+            .chip_id = STM32_CHIPID_L0_CAT5,
+            .description = "L0x Category 5 device",
+            .flash_type = FLASH_TYPE_L0,
+            .flash_size_reg = 0x1ff8007c,
+            .flash_pagesize = 0x80,
+            .sram_size = 0x5000,
+            .bootrom_base = 0x1ff0000,
+            .bootrom_size = 0x2000
         },
         {
             // STM32F334
