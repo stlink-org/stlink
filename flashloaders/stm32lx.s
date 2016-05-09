@@ -25,7 +25,7 @@
  ***************************************************************************/
 
 
-// Build : arm-eabi-gcc -c stm32lx.S
+// Build : arm-eabi-gcc -c stm32lx.s
     .text
     .syntax unified
     .cpu cortex-m3
@@ -36,7 +36,7 @@
 /*
     r0 - source address
     r1 - destination address
-    r2 - count
+    r2 - output, remaining word count
 */
 
     // Go to compare
