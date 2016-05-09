@@ -1510,27 +1510,7 @@ int write_loader_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* size) {
 
     static const uint8_t loader_code_stm32l[] = {
 
-        /* openocd.git/contrib/loaders/flash/stm32lx.S
-           r0, input, source addr
-           r1, input, dest addr
-           r2, input, word count
-           r2, output, remaining word count
-           */
-
-        0x04, 0xe0,
-
-        0x50, 0xf8, 0x04, 0xcb,
-        0x41, 0xf8, 0x04, 0xcb,
-        0x01, 0x3a,
-
-        0x00, 0x2a,
-        0xf8, 0xd3,
-        0x00, 0xbe
-    };
-
-    static const uint8_t loader_code_stm32l0[] = {
-
-        /*
+       /* based on openocd.git/contrib/loaders/flash/stm32lx.S
            r0, input, source addr
            r1, input, dest addr
            r2, input, word count
@@ -1637,7 +1617,8 @@ int write_loader_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* size) {
 
     if (sl->chip_id == STM32_CHIPID_L1_MEDIUM || sl->chip_id == STM32_CHIPID_L1_CAT2
             || sl->chip_id == STM32_CHIPID_L1_MEDIUM_PLUS || sl->chip_id == STM32_CHIPID_L1_HIGH
-            || sl->chip_id == STM32_CHIPID_L152_RE) { /* stm32l */
+            || sl->chip_id == STM32_CHIPID_L152_RE
+            || sl->chip_id == STM32_CHIPID_L0 || sl->chip_id == STM32_CHIPID_L0_CAT5) { /* stm32l */
         loader_code = loader_code_stm32l;
         loader_size = sizeof(loader_code_stm32l);
     } else if (sl->core_id == STM32VL_CORE_ID 
@@ -1668,9 +1649,6 @@ int write_loader_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* size) {
     } else if (sl->chip_id == STM32_CHIPID_F0 || sl->chip_id == STM32_CHIPID_F04 || sl->chip_id == STM32_CHIPID_F0_CAN || sl->chip_id == STM32_CHIPID_F0_SMALL || sl->chip_id == STM32_CHIPID_F09X) {
         loader_code = loader_code_stm32f0;
         loader_size = sizeof(loader_code_stm32f0);
-    } else if (sl->chip_id == STM32_CHIPID_L0 || sl->chip_id == STM32_CHIPID_L0_CAT5) {
-        loader_code = loader_code_stm32l0;
-        loader_size = sizeof(loader_code_stm32l0);
     } else if (sl->chip_id == STM32_CHIPID_L4) {
         loader_code = loader_code_stm32l4;
         loader_size = sizeof(loader_code_stm32l4);
