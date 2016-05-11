@@ -19,7 +19,12 @@ Two different transport layers are used:
 
 ## Common requirements
 
+* Debian based distros (debian, ubuntu)
+  * `build-essential`
+
 * `pkg-config`
+* `intltool`
+* `cmake` or (`autoconf` && `automake && `autogen`)
 * `libusb-1.0` (plus development headers for building, on debian based distros `libusb-1.0.0-dev` package)
 * (optional) for `stlink-gui` we need libgtk-3-dev
 
