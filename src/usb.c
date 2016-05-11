@@ -946,7 +946,7 @@ static size_t stlink_probe_usb_devs(libusb_device **devs, stlink_t **sldevs[]) {
 
         ret = libusb_get_string_descriptor_ascii(handle, desc.iSerialNumber, (unsigned char *)&serial, sizeof(serial));
         if (ret < 0)
-          *serial = NULL;
+          *serial = 0;
 
         libusb_close(handle);
 
