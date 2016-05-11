@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.61)
-AC_INIT([stlink],[0.5.6],[davem@devkitpro.org])
+AC_INIT([stlink],[1.2.0],[davem@devkitpro.org])
 AC_CONFIG_SRCDIR([src/common.c])
 AC_CONFIG_LIBOBJ_DIR([src])
 AM_INIT_AUTOMAKE([1.10])
@@ -44,15 +44,15 @@ case "${host}" in
 		AM_CONDITIONAL(MINGW, false)
 esac
 
-MAYBE_GUI=
-AC_ARG_WITH([gtk], AS_HELP_STRING([--with-gtk], [enable GTK+ gui]))
-if test "x$with_gtk" = "xyes"; then
-      PKG_CHECK_MODULES([GTK], [gtk+-3.0])
+STLINK_HAS_GUI=
+AC_ARG_WITH([gtk_gui], AS_HELP_STRING([--with-gtk-gui], [enable GTK3+ gui]))
+if test "x$with_gtk_gui" = "xyes"; then
+      PKG_CHECK_MODULES([GTK3], [gtk+-3.0])
       PKG_CHECK_MODULES([GLIB], [glib-2.0 > 2.32.0])
-      MAYBE_GUI=gui
-      AC_CONFIG_FILES([gui/Makefile])
+      STLINK_HAS_GUI=src/tools/gui
+      AC_CONFIG_FILES([src/tools/gui/Makefile])
 fi
-AC_SUBST([MAYBE_GUI])
+AC_SUBST([STLINK_HAS_GUI])
 
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT

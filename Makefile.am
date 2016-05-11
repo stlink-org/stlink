@@ -1,6 +1,6 @@
 # Makefile.am -- Process this file with automake to produce Makefile.in
 
-SUBDIRS = . $(MAYBE_GUI)
+SUBDIRS = . $(STLINK_HAS_GUI)
 
 AUTOMAKE_OPTIONS = subdir-objects
 

@@ -97,8 +97,8 @@ endif()
 
 if(gtk_FOUND)
   include_directories(${gtk_INCLUDE_DIRS})
-  set(GUI_SOURCES gui/stlink-gui.c
-                  gui/stlink-gui.h)
+  set(GUI_SOURCES src/tools/gui/stlink-gui.c
+                  src/tools/gui/stlink-gui.h)
 
   add_executable(stlink-gui-local ${GUI_SOURCES})
   set_target_properties(stlink-gui-local PROPERTIES
@@ -113,6 +113,6 @@ if(gtk_FOUND)
 
   install(TARGETS stlink-gui
           RUNTIME DESTINATION bin)
-  install(FILES gui/stlink-gui.ui
+  install(FILES src/tools/gui/stlink-gui.ui
           DESTINATION ${INSTALLED_UI_DIR})
 endif()

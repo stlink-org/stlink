@@ -5,10 +5,10 @@ stlink_gui_SOURCES = \
 	stlink-gui.h
 
 stlink_gui_CPPFLAGS = \
-	-I$(top_srcdir) \
+	-I$(top_srcdir)/include \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/src \
-	@GTK_CFLAGS@
+	@GTK3_CFLAGS@
 
 stlink_gui_CFLAGS = \
 	$(WARN_CFLAGS) \
@@ -21,7 +21,7 @@ stlink_gui_LDFLAGS =  \
 stlink_gui_LDADD = \
 	$(INTLLIBS) \
 	$(top_builddir)/libstlink.a \
-	@GTK_LIBS@
+	@GTK3_LIBS@
 
 uidir = $(pkgdatadir)/ui
 ui_DATA = stlink-gui.ui
