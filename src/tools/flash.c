@@ -120,6 +120,8 @@ static int get_opts(struct opts* o, int ac, char** av)
             o->devname = av[1];
             i = 1;
         }
+
+        return 0;
     }
     else {
         if (ac < 3) return -1;
