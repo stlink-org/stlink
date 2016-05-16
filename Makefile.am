@@ -18,6 +18,7 @@ st_info_SOURCES = src/tools/info.c
 st_util_SOURCES = src/gdbserver/gdb-remote.c src/gdbserver/gdb-remote.h src/gdbserver/gdb-server.c src/mingw/mingw.c src/mingw/mingw.h
 
 CFILES = \
+	src/chipid.c \
 	src/common.c \
 	src/usb.c \
 	src/sg.c \
@@ -29,6 +30,7 @@ endif
 
 HFILES	= \
 	include/stlink.h \
+	include/stlink/chipid.h \
 	include/stlink/usb.h \
 	include/stlink/sg.h \
 	include/stlink/logging.h \

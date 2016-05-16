@@ -567,7 +567,7 @@ int stlink_cpu_id(stlink_t *sl, cortex_m3_cpuid_t *cpuid) {
  */
 int stlink_load_device_params(stlink_t *sl) {
     ILOG("Loading device parameters....\n");
-    const chip_params_t *params = NULL;
+    struct stlink_chipid_params *params = NULL;
     stlink_core_id(sl);
     uint32_t chip_id;
     uint32_t flash_size;
@@ -582,12 +582,7 @@ int stlink_load_device_params(stlink_t *sl) {
             sl->chip_id = 0x413;
     }
 
-    for (size_t i = 0; i < sizeof(devices) / sizeof(devices[0]); i++) {
-        if(devices[i].chip_id == sl->chip_id) {
-            params = &devices[i];
-            break;
-        }
-    }
+    params = stlink_chipid_get_params(sl->chip_id);
     if (params == NULL) {
         WLOG("unknown chip id! %#x\n", chip_id);
         return -1;
@@ -598,7 +593,6 @@ int stlink_load_device_params(stlink_t *sl) {
         return -1;
     }
 
-
     // These are fixed...
     sl->flash_base = STM32_FLASH_BASE;
     sl->sram_base = STM32_SRAM_BASE;
@@ -607,11 +601,11 @@ int stlink_load_device_params(stlink_t *sl) {
         flash_size = flash_size >>16;
     flash_size = flash_size & 0xffff;
 
-    if ((sl->chip_id == STM32_CHIPID_L1_MEDIUM || sl->chip_id == STM32_CHIPID_L1_MEDIUM_PLUS) && ( flash_size == 0 )) {
+    if ((sl->chip_id == STLINK_CHIPID_STM32_L1_MEDIUM || sl->chip_id == STLINK_CHIPID_STM32_L1_MEDIUM_PLUS) && ( flash_size == 0 )) {
         sl->flash_size = 128 * 1024;
-    } else if (sl->chip_id == STM32_CHIPID_L1_CAT2) {
+    } else if (sl->chip_id == STLINK_CHIPID_STM32_L1_CAT2) {
         sl->flash_size = (flash_size & 0xff) * 1024;
-    } else if ((sl->chip_id & 0xFFF) == STM32_CHIPID_L1_HIGH) {
+    } else if ((sl->chip_id & 0xFFF) == STLINK_CHIPID_STM32_L1_HIGH) {
         // 0 is 384k and 1 is 256k
         if ( flash_size == 0 ) {
             sl->flash_size = 384 * 1024;
@@ -629,7 +623,7 @@ int stlink_load_device_params(stlink_t *sl) {
 
     //medium and low devices have the same chipid. ram size depends on flash size.
     //STM32F100xx datasheet Doc ID 16455 Table 2
-    if(sl->chip_id == STM32_CHIPID_F1_VL_MEDIUM_LOW && sl->flash_size < 64 * 1024){
+    if(sl->chip_id == STLINK_CHIPID_STM32_F1_VL_MEDIUM_LOW && sl->flash_size < 64 * 1024){
         sl->sram_size = 0x1000;
     }
 
@@ -1210,9 +1204,9 @@ uint32_t calculate_L4_page(stlink_t *sl, uint32_t flashaddr) {
 }
 
 uint32_t stlink_calculate_pagesize(stlink_t *sl, uint32_t flashaddr){
-    if ((sl->chip_id == STM32_CHIPID_F2) || (sl->chip_id == STM32_CHIPID_F4) || (sl->chip_id == STM32_CHIPID_F4_DE) ||
-            (sl->chip_id == STM32_CHIPID_F4_LP) || (sl->chip_id == STM32_CHIPID_F4_HD) || (sl->chip_id == STM32_CHIPID_F411RE) ||
-            (sl->chip_id == STM32_CHIPID_F446) || (sl->chip_id == STM32_CHIPID_F4_DSI)) {
+    if ((sl->chip_id == STLINK_CHIPID_STM32_F2) || (sl->chip_id == STLINK_CHIPID_STM32_F4) || (sl->chip_id == STLINK_CHIPID_STM32_F4_DE) ||
+            (sl->chip_id == STLINK_CHIPID_STM32_F4_LP) || (sl->chip_id == STLINK_CHIPID_STM32_F4_HD) || (sl->chip_id == STLINK_CHIPID_STM32_F411RE) ||
+            (sl->chip_id == STLINK_CHIPID_STM32_F446) || (sl->chip_id == STLINK_CHIPID_STM32_F4_DSI)) {
         uint32_t sector=calculate_F4_sectornum(flashaddr);
         if (sector>= 12) {
             sector -= 12;
@@ -1221,7 +1215,7 @@ uint32_t stlink_calculate_pagesize(stlink_t *sl, uint32_t flashaddr){
         else if(sector<5) sl->flash_pgsz=0x10000;
         else sl->flash_pgsz=0x20000;
     }
-    else if (sl->chip_id == STM32_CHIPID_F7) {
+    else if (sl->chip_id == STLINK_CHIPID_STM32_F7) {
         uint32_t sector=calculate_F7_sectornum(flashaddr);
         if (sector<4) sl->flash_pgsz=0x8000;
         else if(sector<5) sl->flash_pgsz=0x20000;
@@ -1246,14 +1240,14 @@ int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr)
         unlock_flash_if(sl);
 
         /* select the page to erase */
-        if (sl->chip_id == STM32_CHIPID_L4) {
+        if (sl->chip_id == STLINK_CHIPID_STM32_L4) {
             // calculate the actual bank+page from the address
             uint32_t page = calculate_L4_page(sl, flashaddr);
 
             fprintf(stderr, "EraseFlash - Page:0x%x Size:0x%x ", page, stlink_calculate_pagesize(sl, flashaddr));
 
             write_flash_cr_bker_pnb(sl, page);
-        } else if (sl->chip_id == STM32_CHIPID_F7) {
+        } else if (sl->chip_id == STLINK_CHIPID_STM32_F7) {
             // calculate the actual page from the address
             uint32_t sector=calculate_F7_sectornum(flashaddr);
 
@@ -1288,7 +1282,7 @@ int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr)
 
         uint32_t val;
         uint32_t flash_regs_base;
-        if (sl->chip_id == STM32_CHIPID_L0 || sl->chip_id == STM32_CHIPID_L0_CAT5 || sl->chip_id == STM32_CHIPID_L0_CAT2) {
+        if (sl->chip_id == STLINK_CHIPID_STM32_L0 || sl->chip_id == STLINK_CHIPID_STM32_L0_CAT5 || sl->chip_id == STLINK_CHIPID_STM32_L0_CAT2) {
             flash_regs_base = STM32L0_FLASH_REGS_ADDR;
         } else {
             flash_regs_base = STM32L_FLASH_REGS_ADDR;
@@ -1609,23 +1603,23 @@ int write_loader_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* size) {
     const uint8_t* loader_code;
     size_t loader_size;
 
-    if (sl->chip_id == STM32_CHIPID_L1_MEDIUM || sl->chip_id == STM32_CHIPID_L1_CAT2
-            || sl->chip_id == STM32_CHIPID_L1_MEDIUM_PLUS || sl->chip_id == STM32_CHIPID_L1_HIGH
-            || sl->chip_id == STM32_CHIPID_L152_RE
-            || sl->chip_id == STM32_CHIPID_L0 || sl->chip_id == STM32_CHIPID_L0_CAT5 || sl->chip_id == STM32_CHIPID_L0_CAT2) { /* stm32l */
+    if (sl->chip_id == STLINK_CHIPID_STM32_L1_MEDIUM || sl->chip_id == STLINK_CHIPID_STM32_L1_CAT2
+            || sl->chip_id == STLINK_CHIPID_STM32_L1_MEDIUM_PLUS || sl->chip_id == STLINK_CHIPID_STM32_L1_HIGH
+            || sl->chip_id == STLINK_CHIPID_STM32_L152_RE
+            || sl->chip_id == STLINK_CHIPID_STM32_L0 || sl->chip_id == STLINK_CHIPID_STM32_L0_CAT5 || sl->chip_id == STLINK_CHIPID_STM32_L0_CAT2) { /* stm32l */
         loader_code = loader_code_stm32l;
         loader_size = sizeof(loader_code_stm32l);
     } else if (sl->core_id == STM32VL_CORE_ID 
-            || sl->chip_id == STM32_CHIPID_F3
-            || sl->chip_id == STM32_CHIPID_F3_SMALL
-            || sl->chip_id == STM32_CHIPID_F303_HIGH
-            || sl->chip_id == STM32_CHIPID_F37x
-            || sl->chip_id == STM32_CHIPID_F334) {
+            || sl->chip_id == STLINK_CHIPID_STM32_F3
+            || sl->chip_id == STLINK_CHIPID_STM32_F3_SMALL
+            || sl->chip_id == STLINK_CHIPID_STM32_F303_HIGH
+            || sl->chip_id == STLINK_CHIPID_STM32_F37x
+            || sl->chip_id == STLINK_CHIPID_STM32_F334) {
         loader_code = loader_code_stm32vl;
         loader_size = sizeof(loader_code_stm32vl);
-    } else if (sl->chip_id == STM32_CHIPID_F2 || sl->chip_id == STM32_CHIPID_F4 || (sl->chip_id == STM32_CHIPID_F4_DE) ||
-            sl->chip_id == STM32_CHIPID_F4_LP || sl->chip_id == STM32_CHIPID_F4_HD || (sl->chip_id == STM32_CHIPID_F411RE) ||
-            (sl->chip_id == STM32_CHIPID_F446) || (sl->chip_id == STM32_CHIPID_F4_DSI)){
+    } else if (sl->chip_id == STLINK_CHIPID_STM32_F2 || sl->chip_id == STLINK_CHIPID_STM32_F4 || (sl->chip_id == STLINK_CHIPID_STM32_F4_DE) ||
+            sl->chip_id == STLINK_CHIPID_STM32_F4_LP || sl->chip_id == STLINK_CHIPID_STM32_F4_HD || (sl->chip_id == STLINK_CHIPID_STM32_F411RE) ||
+            (sl->chip_id == STLINK_CHIPID_STM32_F446) || (sl->chip_id == STLINK_CHIPID_STM32_F4_DSI)){
         int voltage = stlink_target_voltage(sl);
         if (voltage == -1) {
             printf("Failed to read Target voltage\n");
@@ -1637,13 +1631,13 @@ int write_loader_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* size) {
             loader_code = loader_code_stm32f4_lv;
             loader_size = sizeof(loader_code_stm32f4_lv);
         }
-    } else if (sl->chip_id == STM32_CHIPID_F7){
+    } else if (sl->chip_id == STLINK_CHIPID_STM32_F7){
         loader_code = loader_code_stm32f7;
         loader_size = sizeof(loader_code_stm32f7);
-    } else if (sl->chip_id == STM32_CHIPID_F0 || sl->chip_id == STM32_CHIPID_F04 || sl->chip_id == STM32_CHIPID_F0_CAN || sl->chip_id == STM32_CHIPID_F0_SMALL || sl->chip_id == STM32_CHIPID_F09X) {
+    } else if (sl->chip_id == STLINK_CHIPID_STM32_F0 || sl->chip_id == STLINK_CHIPID_STM32_F04 || sl->chip_id == STLINK_CHIPID_STM32_F0_CAN || sl->chip_id == STLINK_CHIPID_STM32_F0_SMALL || sl->chip_id == STLINK_CHIPID_STM32_F09X) {
         loader_code = loader_code_stm32f0;
         loader_size = sizeof(loader_code_stm32f0);
-    } else if (sl->chip_id == STM32_CHIPID_L4) {
+    } else if (sl->chip_id == STLINK_CHIPID_STM32_L4) {
         loader_code = loader_code_stm32l4;
         loader_size = sizeof(loader_code_stm32l4);
     } else {
@@ -1720,7 +1714,7 @@ int stm32l1_write_half_pages(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uin
     uint32_t flash_regs_base;
     flash_loader_t fl;
 
-    if (sl->chip_id == STM32_CHIPID_L0 || sl->chip_id == STM32_CHIPID_L0_CAT5 || sl->chip_id == STM32_CHIPID_L0_CAT2) {
+    if (sl->chip_id == STLINK_CHIPID_STM32_L0 || sl->chip_id == STLINK_CHIPID_STM32_L0_CAT5 || sl->chip_id == STLINK_CHIPID_STM32_L0_CAT2) {
         flash_regs_base = STM32L0_FLASH_REGS_ADDR;
     } else {
         flash_regs_base = STM32L_FLASH_REGS_ADDR;
@@ -1835,7 +1829,7 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uint32_t 
         unlock_flash_if(sl);
 
         /* TODO: Check that Voltage range is 2.7 - 3.6 V */
-        if (sl->chip_id != STM32_CHIPID_L4) {
+        if (sl->chip_id != STLINK_CHIPID_STM32_L4) {
             /* set parallelisim to 32 bit*/
             int voltage = stlink_target_voltage(sl);
             if (voltage == -1) {
@@ -1887,7 +1881,7 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uint32_t 
         uint32_t flash_regs_base;
         uint32_t pagesize;
 
-        if (sl->chip_id == STM32_CHIPID_L0 || sl->chip_id == STM32_CHIPID_L0_CAT5 || sl->chip_id == STM32_CHIPID_L0_CAT2) {
+        if (sl->chip_id == STLINK_CHIPID_STM32_L0 || sl->chip_id == STLINK_CHIPID_STM32_L0_CAT5 || sl->chip_id == STLINK_CHIPID_STM32_L0_CAT2) {
             flash_regs_base = STM32L0_FLASH_REGS_ADDR;
             pagesize = L0_WRITE_BLOCK_SIZE;
         } else {

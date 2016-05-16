@@ -39,7 +39,7 @@ static void stlink_print_serial(stlink_t *sl, bool openocd)
 
 static void stlink_print_info(stlink_t *sl)
 {
-    const chip_params_t *params = NULL;
+    const struct stlink_chipid_params *params = NULL;
 
     if (!sl)
         return;
@@ -53,15 +53,9 @@ static void stlink_print_info(stlink_t *sl)
     printf("   sram: %zu\n",       sl->sram_size);
     printf(" chipid: 0x%.4x\n",    sl->chip_id);
 
-    for (size_t i = 0; i < sizeof(devices) / sizeof(devices[0]); i++) {
-        if (devices[i].chip_id == sl->chip_id) {
-            params = &devices[i];
-            break;
-        }
-    }
-
-    if (params)
-        printf("  descr: %s\n", params->description);
+	params = stlink_chipid_get_params(sl->chip_id);
+	if (params)
+		printf("  descr: %s\n", params->description);
 }
 
 static void stlink_probe(void)
@@ -126,16 +120,9 @@ static int print_data(char **av)
     else if (strcmp(av[1], "--hla-serial") == 0)
         stlink_print_serial(sl, true);
     else if (strcmp(av[1], "--descr") == 0) {
-        const chip_params_t *params = NULL;
-        for (size_t i = 0; i < sizeof(devices) / sizeof(devices[0]); i++) {
-            if(devices[i].chip_id == sl->chip_id) {
-                params = &devices[i];
-                break;
-            }
-        }
-        if (params == NULL) {
+        const struct stlink_chipid_params *params = stlink_chipid_get_params(sl->chip_id);
+        if (params == NULL)
             return -1;
-        }
         printf("%s\n", params->description);
     }
 

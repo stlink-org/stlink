@@ -40,24 +40,28 @@ add_cflag_if_supported("-Wundef")
 add_cflag_if_supported("-fPIC")
 
 if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
-    include(CTest)
-    add_cflag_if_supported("-ggdb")
-    add_cflag_if_supported("-O0")
+	include(CTest)
+	add_cflag_if_supported("-ggdb")
+	add_cflag_if_supported("-O0")
 elseif()
-    add_cflag_if_supported("-O2")
+	add_cflag_if_supported("-O2")
 endif()
 
-set(STLINK_HEADERS include/stlink.h
-           include/stlink/usb.h
-           include/stlink/sg.h
-           include/stlink/logging.h
-           include/stlink/mmap.h
+set(STLINK_HEADERS
+	include/stlink.h
+	include/stlink/usb.h
+	include/stlink/sg.h
+	include/stlink/logging.h
+	include/stlink/mmap.h
+	include/stlink/chipid.h
 )
 
-set(STLINK_SOURCE src/common.c
-           src/usb.c
-           src/sg.c
-           src/logging.c
+set(STLINK_SOURCE
+	src/chipid.c
+	src/common.c
+	src/usb.c
+	src/sg.c
+	src/logging.c
 )
 
 include_directories(${LIBUSB_INCLUDE_DIR})
