@@ -1,5 +1,6 @@
 #include <string.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <errno.h>
 #include <gtk/gtk.h>
 
@@ -183,14 +184,14 @@ hexstr_to_guint32 (const gchar *str, GError **err)
                 g_quark_from_string ("hextou32"),
                 1,
                 "Invalid hexstring");
-        return LONG_MAX;
+        return UINT32_MAX;
     }
     if (end_ptr == str) {
         g_set_error (err,
                 g_quark_from_string ("hextou32"),
                 2,
                 "Invalid hexstring");
-        return LONG_MAX;
+        return UINT32_MAX;
     }
     return val;
 }
