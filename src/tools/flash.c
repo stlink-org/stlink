@@ -218,7 +218,7 @@ int main(int ac, char** av)
     }
 
     // Disable DMA - Set All DMA CCR Registers to zero. - AKS 1/7/2013
-    if (sl->chip_id == STM32_CHIPID_F4)
+    if (sl->chip_id == STLINK_CHIPID_STM32_F4)
     {
         memset(sl->q_buf,0,4);
         for (int i=0;i<8;i++) {

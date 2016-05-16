@@ -434,19 +434,19 @@ char* make_memory_map(stlink_t *sl) {
     char* map = malloc(4096);
     map[0] = '\0';
 
-    if(sl->chip_id==STM32_CHIPID_F4 || sl->chip_id==STM32_CHIPID_F446) {
+    if(sl->chip_id==STLINK_CHIPID_STM32_F4 || sl->chip_id==STLINK_CHIPID_STM32_F446) {
         strcpy(map, memory_map_template_F4);
-    } else if(sl->chip_id==STM32_CHIPID_F4 || sl->chip_id==STM32_CHIPID_F7) {
+    } else if(sl->chip_id==STLINK_CHIPID_STM32_F4 || sl->chip_id==STLINK_CHIPID_STM32_F7) {
         strcpy(map, memory_map_template_F7);
-    } else if(sl->chip_id==STM32_CHIPID_F4_HD) {
+    } else if(sl->chip_id==STLINK_CHIPID_STM32_F4_HD) {
         strcpy(map, memory_map_template_F4_HD);
-    } else if(sl->chip_id==STM32_CHIPID_F2) {
+    } else if(sl->chip_id==STLINK_CHIPID_STM32_F2) {
         snprintf(map, 4096, memory_map_template_F2,
                 sl->flash_size,
                 sl->sram_size,
                 sl->flash_size - 0x20000,
                 sl->sys_base, sl->sys_size);
-    } else if(sl->chip_id==STM32_CHIPID_L4) {
+    } else if(sl->chip_id==STLINK_CHIPID_STM32_L4) {
         snprintf(map, 4096, memory_map_template_L4,
                 sl->flash_size, sl->flash_size);
     } else {
@@ -608,7 +608,7 @@ static int update_code_breakpoint(stlink_t *sl, stm32_addr_t addr, int set) {
         return -1;
     }
 
-	if (sl->chip_id==STM32_CHIPID_F7) {
+	if (sl->chip_id==STLINK_CHIPID_STM32_F7) {
 		fpb_addr = addr;
 	} else {
 		fpb_addr = addr & ~0x3;
@@ -632,7 +632,7 @@ static int update_code_breakpoint(stlink_t *sl, stm32_addr_t addr, int set) {
 
     brk->addr = fpb_addr;
 
-	if (sl->chip_id==STM32_CHIPID_F7) {
+	if (sl->chip_id==STLINK_CHIPID_STM32_F7) {
 		if(set) brk->type = type;
 		else	brk->type = 0;
 
@@ -842,7 +842,7 @@ static void init_cache (stlink_t *sl) {
   int i;
 
   /* Assume only F7 has a cache.  */
-  if(sl->chip_id!=STM32_CHIPID_F7)
+  if(sl->chip_id!=STLINK_CHIPID_STM32_F7)
     return;
 
   stlink_read_debug32(sl, CLIDR, &clidr);
@@ -923,7 +923,7 @@ static void cache_sync(stlink_t *sl)
 {
   unsigned ccr;
 
-  if(sl->chip_id!=STM32_CHIPID_F7)
+  if(sl->chip_id!=STLINK_CHIPID_STM32_F7)
     return;
   if (!cache_modified)
     return;
@@ -1024,9 +1024,9 @@ int serve(stlink_t *sl, st_state_t *st) {
                 DLOG("query: %s;%s\n", queryName, params);
 
                 if(!strcmp(queryName, "Supported")) {
-                    if(sl->chip_id==STM32_CHIPID_F4
-		       || sl->chip_id==STM32_CHIPID_F4_HD
-		       || sl->chip_id==STM32_CHIPID_F7) {
+                    if(sl->chip_id==STLINK_CHIPID_STM32_F4
+		       || sl->chip_id==STLINK_CHIPID_STM32_F4_HD
+		       || sl->chip_id==STLINK_CHIPID_STM32_F7) {
                         reply = strdup("PacketSize=3fff;qXfer:memory-map:read+;qXfer:features:read+");
                     }
                     else {

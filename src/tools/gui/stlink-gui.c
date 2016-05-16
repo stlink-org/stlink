@@ -446,14 +446,14 @@ filemem_jmp_cb (GtkWidget *widget, gpointer data)
 static gchar *
 dev_format_chip_id (guint32 chip_id)
 {
+    const struct stlink_chipid_params *params;
     gint i;
 
-    for (i = 0; i < sizeof (devices) / sizeof (devices[0]); i++) {
-        if (chip_id == devices[i].chip_id) {
-            return g_strdup (devices[i].description);
-        }
-    }
-    return g_strdup_printf ("0x%x", chip_id);
+    params = stlink_chipid_get_params(chip_id);
+    if (!params)
+        return g_strdup_printf ("0x%x", chip_id);
+
+    return g_strdup (params->description);
 }
 
 static gchar *
@@ -544,7 +544,7 @@ connect_button_cb (GtkWidget *widget, gpointer data)
         stlink_enter_swd_mode(gui->sl);
 
     /* Disable DMA - Set All DMA CCR Registers to zero. - AKS 1/7/2013 */
-    if (gui->sl->chip_id == STM32_CHIPID_F4) {
+    if (gui->sl->chip_id == STLINK_CHIPID_STM32_F4) {
         memset(gui->sl->q_buf, 0, 4);
         for (i = 0; i < 8; i++) {
             stlink_write_mem32(gui->sl, 0x40026000 + 0x10 + 0x18 * i, 4);
