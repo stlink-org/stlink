@@ -24,7 +24,7 @@ Two different transport layers are used:
 
 * `pkg-config`
 * `intltool`
-* `cmake` or (`autoconf` && `automake && `autogen`)
+* `cmake` or (`autoconf` && `automake` && `autogen`)
 * `libusb-1.0` (plus development headers for building, on debian based distros `libusb-1.0.0-dev` package)
 * (optional) for `stlink-gui` we need libgtk-3-dev
 
@@ -168,7 +168,6 @@ If you would link your executable to 0x08000000 and then do
 (gdb) load firmware.elf
 then it would be written to the memory.
 
-
 ## FAQ
 
 Q: My breakpoints do not work at all or only work once.
@@ -236,6 +235,12 @@ STLink v2-1 (as found on the Nucleo boards), known working targets:
 * STM32L053R8 (STM32 Nucleo-L053R8 board)
 
 Please report any and all known working combinations so I can update this!
+
+## Contributing and versioning
+
+* The semantic versioning scheme is used. Read more at [semver.org](http://semver.org)
+* When creating a pull request, please open first a issue for discussion of new features
+* TODO: Enforcement of coding style (linux codestyle + checkpatch)
 
 ## License
 
