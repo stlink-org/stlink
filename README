@@ -210,7 +210,7 @@ STLink v2 (as found on the 32L and F4 Discovery boards), known working targets:
 * STM32F100xx (Medium Density VL, as on the 32VL Discovery board)
 * STM32L1xx (STM32L Discovery board)
 * STM32F103VC, STM32F107RC, STM32L151RB, STM32F205RE and STM32F405RE on custom boards
-  (https://github.com/UweBonnes/wiki_fuer_alex/layout/usps...)
+  from [UweBonnes/wiki_fuer_alex](https://github.com/UweBonnes/wiki_fuer_alex/tree/master/layout)
 * STM32F103VET6 (HY-STM32 board)
 * STM32F105RCT6 (DecaWave EVB1000 board)
 * STM32F303xx (STM32F3 Discovery board)
