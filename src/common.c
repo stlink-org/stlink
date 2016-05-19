@@ -567,7 +567,7 @@ int stlink_cpu_id(stlink_t *sl, cortex_m3_cpuid_t *cpuid) {
  */
 int stlink_load_device_params(stlink_t *sl) {
     ILOG("Loading device parameters....\n");
-    struct stlink_chipid_params *params = NULL;
+    const struct stlink_chipid_params *params = NULL;
     stlink_core_id(sl);
     uint32_t chip_id;
     uint32_t flash_size;
