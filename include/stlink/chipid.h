@@ -51,7 +51,8 @@ enum stlink_stm32_chipids {
 	STLINK_CHIPID_STM32_F303_HIGH        = 0x446,
 	STLINK_CHIPID_STM32_L0_CAT5          = 0x447,
 	STLINK_CHIPID_STM32_F0_CAN           = 0x448,
-	STLINK_CHIPID_STM32_F7               = 0x449
+	STLINK_CHIPID_STM32_F7               = 0x449,
+	STLINK_CHIPID_STM32_F410             = 0x458
 };
 
 /**

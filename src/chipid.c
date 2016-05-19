@@ -197,6 +197,17 @@ static const struct stlink_chipid_params devices[] = {
             .bootrom_size = 0x7800
         },
         {
+            // STM32F410 MCUs. Support based on DM00180366.pdf (RM0401) document.
+            .chip_id = STLINK_CHIPID_STM32_F410,
+            .description = "F410 device",
+            .flash_type = FLASH_TYPE_F4,
+            .flash_size_reg = 0x1fff7a22,
+            .flash_pagesize = 0x4000,
+            .sram_size = 0x8000,
+            .bootrom_base = 0x1fff0000,
+            .bootrom_size = 0x7800
+        },
+        {
             // This is STK32F303VCT6 device from STM32 F3 Discovery board.
             // Support based on DM00043574.pdf (RM0316) document.
             .chip_id = STLINK_CHIPID_STM32_F3,
