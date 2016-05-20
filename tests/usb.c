@@ -1,14 +1,13 @@
 #include <stdio.h>
-#include "stlink-common.h"
+#include <stlink.h>
 
+int main(int ac, char** av)
+{
+	(void)ac;
+	(void)av;
 
-int main(int ac, char** av) {
     stlink_t* sl;
     reg regs;
-
-    /* unused */
-    ac = ac;
-    av = av;
 
     sl = stlink_open_usb(10, 1, NULL);
     if (sl != NULL) {
@@ -36,13 +35,13 @@ int main(int ac, char** av) {
         printf("cpuid:part = %#x, rev = %#x\n", cpuid.part, cpuid.revision);
 
         printf("-- read_sram\n");
-        static const uint32_t sram_base = 0x8000000;
+        static const uint32_t sram_base = STM32_SRAM_BASE;
         uint32_t off;
         for (off = 0; off < 16; off += 4)
             stlink_read_mem32(sl, sram_base + off, 4);
 
         printf("FP_CTRL\n");
-        stlink_read_mem32(sl, CM3_REG_FP_CTRL, 4);
+        stlink_read_mem32(sl, STLINK_REG_CM3_FP_CTRL, 4);
 
         // no idea what reg this is..  */
         //     stlink_read_mem32(sl, 0xe000ed90, 4);

@@ -129,3 +129,5 @@ if(gtk_FOUND)
   install(FILES src/tools/gui/stlink-gui.ui
           DESTINATION ${INSTALLED_UI_DIR})
 endif()
+
+add_subdirectory(tests)
