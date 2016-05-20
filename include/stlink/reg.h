@@ -5,4 +5,11 @@
 #define STLINK_REG_CM3_FP_CTRL  0xE0002000
 #define STLINK_REG_CM3_FP_COMP0 0xE0002008
 
+/* Cortex™-M3 Technical Reference Manual */
+/* Debug Halting Control and Status Register */
+#define STLINK_REG_DHCSR        0xe000edf0
+#define STLINK_REG_DHCSR_DBGKEY 0xa05f0000
+#define STLINK_REG_DCRSR        0xe000edf4
+#define STLINK_REG_DCRDR        0xe000edf8
+
 #endif /* STLINK_REG_H_ */

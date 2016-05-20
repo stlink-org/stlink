@@ -567,11 +567,11 @@ int _stlink_usb_read_unsupported_reg(stlink_t *sl, int r_idx, reg *regp) {
         sl->q_buf[i] = 0;
     }
 
-    ret = _stlink_usb_write_mem32(sl, DCRSR, 4);
+    ret = _stlink_usb_write_mem32(sl, STLINK_REG_DCRSR, 4);
     if (ret == -1)
         return ret;
 
-    _stlink_usb_read_mem32(sl, DCRDR, 4);
+    _stlink_usb_read_mem32(sl, STLINK_REG_DCRDR, 4);
     if (ret == -1)
         return ret;
 
@@ -648,7 +648,7 @@ int _stlink_usb_write_unsupported_reg(stlink_t *sl, uint32_t val, int r_idx, reg
 
     write_uint32(sl->q_buf, val);
 
-    ret = _stlink_usb_write_mem32(sl, DCRDR, 4);
+    ret = _stlink_usb_write_mem32(sl, STLINK_REG_DCRDR, 4);
     if (ret == -1)
         return ret;
 
@@ -657,7 +657,7 @@ int _stlink_usb_write_unsupported_reg(stlink_t *sl, uint32_t val, int r_idx, reg
     sl->q_buf[2] = 0x01;
     sl->q_buf[3] = 0;
 
-    return _stlink_usb_write_mem32(sl, DCRSR, 4);
+    return _stlink_usb_write_mem32(sl, STLINK_REG_DCRSR, 4);
 }
 
 int _stlink_usb_write_reg(stlink_t *sl, uint32_t reg, int idx) {

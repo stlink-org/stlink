@@ -51,30 +51,20 @@ extern "C" {
     /* cortex core ids */
     // TODO clean this up...
 #define STM32VL_CORE_ID 0x1ba01477
-#define CORE_M3_R1 0x1BA00477
-#define CORE_M3_R2 0x4BA00477
-#define CORE_M4_R0 0x2BA01477
 
     // Constant STM32 memory map figures
 #define STM32_FLASH_BASE 0x08000000
 #define STM32_SRAM_BASE 0x20000000
 
-    /* Cortex™-M3 Technical Reference Manual */
-    /* Debug Halting Control and Status Register */
-#define DHCSR 0xe000edf0
-#define DCRSR 0xe000edf4
-#define DCRDR 0xe000edf8
-#define DBGKEY 0xa05f0000
-
     /* Enough space to hold both a V2 command or a V1 command packaged as generic scsi*/
 #define C_BUF_LEN 32
 
-    enum flash_type {
-        FLASH_TYPE_UNKNOWN = 0,
-        FLASH_TYPE_F0,
-        FLASH_TYPE_L0,
-        FLASH_TYPE_F4,
-        FLASH_TYPE_L4,
+    enum stlink_flash_type {
+        STLINK_FLASH_TYPE_UNKNOWN = 0,
+        STLINK_FLASH_TYPE_F0,
+        STLINK_FLASH_TYPE_L0,
+        STLINK_FLASH_TYPE_F4,
+        STLINK_FLASH_TYPE_L4
     };
 
     typedef struct {
@@ -123,34 +113,7 @@ typedef struct flash_loader {
 
     typedef struct _stlink stlink_t;
 
-    typedef struct _stlink_backend {
-        void (*close) (stlink_t * sl);
-        int (*exit_debug_mode) (stlink_t * sl);
-        int (*enter_swd_mode) (stlink_t * sl);
-        int (*enter_jtag_mode) (stlink_t * stl);
-        int (*exit_dfu_mode) (stlink_t * stl);
-        int (*core_id) (stlink_t * stl);
-        int (*reset) (stlink_t * stl);
-        int (*jtag_reset) (stlink_t * stl, int value);
-        int (*run) (stlink_t * stl);
-        int (*status) (stlink_t * stl);
-        int (*version) (stlink_t *sl);
-        int (*read_debug32) (stlink_t *sl, uint32_t addr, uint32_t *data);
-        int (*read_mem32) (stlink_t *sl, uint32_t addr, uint16_t len);
-        int (*write_debug32) (stlink_t *sl, uint32_t addr, uint32_t data);
-        int (*write_mem32) (stlink_t *sl, uint32_t addr, uint16_t len);
-        int (*write_mem8) (stlink_t *sl, uint32_t addr, uint16_t len);
-        int (*read_all_regs) (stlink_t *sl, reg * regp);
-        int (*read_reg) (stlink_t *sl, int r_idx, reg * regp);
-        int (*read_all_unsupported_regs) (stlink_t *sl, reg *regp);
-        int (*read_unsupported_reg) (stlink_t *sl, int r_idx, reg *regp);
-        int (*write_unsupported_reg) (stlink_t *sl, uint32_t value, int idx, reg *regp);
-        int (*write_reg) (stlink_t *sl, uint32_t reg, int idx);
-        int (*step) (stlink_t * stl);
-        int (*current_mode) (stlink_t * stl);
-        int (*force_debug) (stlink_t *sl);
-        int32_t (*target_voltage) (stlink_t *sl);
-    } stlink_backend_t;
+#include "stlink/backend.h"
 
     struct _stlink {
         struct _stlink_backend *backend;
@@ -171,20 +134,12 @@ typedef struct flash_loader {
         char serial[16];
         int serial_size;
 
-#define STM32_FLASH_PGSZ 1024
-#define STM32L_FLASH_PGSZ 256
-
-#define STM32F4_FLASH_PGSZ 16384
-#define STM32F4_FLASH_SIZE (128 * 1024 * 8)
-
-        enum flash_type flash_type;
+        enum stlink_flash_type flash_type;
         stm32_addr_t flash_base;
         size_t flash_size;
         size_t flash_pgsz;
 
         /* sram settings */
-#define STM32_SRAM_SIZE (8 * 1024)
-#define STM32L_SRAM_SIZE (16 * 1024)
         stm32_addr_t sram_base;
         size_t sram_size;
 
@@ -195,9 +150,6 @@ typedef struct flash_loader {
         struct stlink_version_ version;
     };
 
-    //stlink_t* stlink_quirk_open(const char *dev_name, const int verbose);
-
-    // delegated functions...
     int stlink_enter_swd_mode(stlink_t *sl);
     int stlink_enter_jtag_mode(stlink_t *sl);
     int stlink_exit_debug_mode(stlink_t *sl);
@@ -225,8 +177,6 @@ typedef struct flash_loader {
     int stlink_force_debug(stlink_t *sl);
     int stlink_target_voltage(stlink_t *sl);
 
-
-    // unprocessed
     int stlink_erase_flash_mass(stlink_t* sl);
     int stlink_write_flash(stlink_t* sl, stm32_addr_t address, uint8_t* data, uint32_t length, uint8_t eraseonly);
     int stlink_fwrite_flash(stlink_t *sl, const char* path, stm32_addr_t addr);
@@ -249,7 +199,6 @@ typedef struct flash_loader {
     int write_buffer_to_sram(stlink_t *sl, flash_loader_t* fl, const uint8_t* buf, size_t size);
     int write_loader_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* size);
     int stlink_fread(stlink_t* sl, const char* path, stm32_addr_t addr, size_t size);
-    int run_flash_loader(stlink_t *sl, flash_loader_t* fl, stm32_addr_t target, const uint8_t* buf, size_t size);
     int stlink_load_device_params(stlink_t *sl);
 
 #include "stlink/sg.h"
