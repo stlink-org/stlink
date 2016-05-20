@@ -761,7 +761,7 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, bool reset, char serial[16
 
     while (cnt--) {
         libusb_get_device_descriptor( list[cnt], &desc );
-        if (desc.idVendor != USB_ST_VID)
+        if (desc.idVendor != STLINK_USB_VID_ST)
             continue;
 
         if (devBus && devAddr) {
@@ -771,7 +771,7 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, bool reset, char serial[16
             }
         }
 
-        if ((desc.idProduct == USB_STLINK_32L_PID) || (desc.idProduct == USB_STLINK_NUCLEO_PID)) {
+        if ((desc.idProduct == STLINK_USB_PID_STLINK_32L) || (desc.idProduct == STLINK_USB_PID_STLINK_NUCLEO)) {
             struct libusb_device_handle *handle;
 
             libusb_open(list[cnt], &handle);
@@ -791,7 +791,7 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, bool reset, char serial[16
             continue;
         }
 
-        if (desc.idProduct == USB_STLINK_PID) {
+        if (desc.idProduct == STLINK_USB_PID_STLINK) {
             slu->protocoll = 1;
             break;
         }
@@ -841,7 +841,7 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, bool reset, char serial[16
 
     // TODO - could use the scanning techniq from stm8 code here...
     slu->ep_rep = 1 /* ep rep */ | LIBUSB_ENDPOINT_IN;
-    if (desc.idProduct == USB_STLINK_NUCLEO_PID) {
+    if (desc.idProduct == STLINK_USB_PID_STLINK_NUCLEO) {
         slu->ep_req = 1 /* ep req */ | LIBUSB_ENDPOINT_OUT;
     } else {
         slu->ep_req = 2 /* ep req */ | LIBUSB_ENDPOINT_OUT;
@@ -906,8 +906,8 @@ static size_t stlink_probe_usb_devs(libusb_device **devs, stlink_t **sldevs[]) {
             break;
         }
 
-        if (desc.idProduct != USB_STLINK_32L_PID &&
-            desc.idProduct != USB_STLINK_NUCLEO_PID)
+        if (desc.idProduct != STLINK_USB_PID_STLINK_32L &&
+            desc.idProduct != STLINK_USB_PID_STLINK_NUCLEO)
             continue;
 
         slcnt++;
@@ -930,8 +930,8 @@ static size_t stlink_probe_usb_devs(libusb_device **devs, stlink_t **sldevs[]) {
             break;
         }
 
-        if (desc.idProduct != USB_STLINK_32L_PID &&
-            desc.idProduct != USB_STLINK_NUCLEO_PID)
+        if (desc.idProduct != STLINK_USB_PID_STLINK_32L &&
+            desc.idProduct != STLINK_USB_PID_STLINK_NUCLEO)
             continue;
 
         struct libusb_device_handle* handle;

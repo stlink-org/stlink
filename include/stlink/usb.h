@@ -18,6 +18,11 @@
 extern "C" {
 #endif
 
+#define STLINK_USB_VID_ST            0x0483
+#define STLINK_USB_PID_STLINK        0x3744
+#define STLINK_USB_PID_STLINK_32L    0x3748
+#define STLINK_USB_PID_STLINK_NUCLEO 0x374b
+
 #define STLINK_SG_SIZE 31
 #define STLINK_CMD_SIZE 16
 

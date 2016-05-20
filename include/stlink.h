@@ -9,6 +9,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include <stdbool.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -21,15 +22,7 @@ extern "C" {
     //#define Q_BUF_LEN	96
 #define Q_BUF_LEN			(1024 * 100)
 
-    // st-link vendor cmd's
-#define USB_ST_VID			0x0483
-#define USB_STLINK_PID			0x3744
-#define USB_STLINK_32L_PID		0x3748
-#define USB_STLINK_NUCLEO_PID	0x374b
-
     // STLINK_DEBUG_RESETSYS, etc:
-#define STLINK_OK			0x80
-#define STLINK_FALSE			0x81
 #define STLINK_CORE_RUNNING		0x80
 #define STLINK_CORE_HALTED		0x81
 #define STLINK_CORE_STAT_UNKNOWN	-1
@@ -41,7 +34,6 @@ extern "C" {
 #define STLINK_DEBUG_COMMAND		0xF2
 #define STLINK_DFU_COMMAND		0xF3
 #define STLINK_DFU_EXIT		0x07
-    // enter dfu could be 0x08?
 
     // STLINK_GET_CURRENT_MODE
 #define STLINK_DEV_DFU_MODE		0x00
@@ -55,20 +47,10 @@ extern "C" {
 #define STLINK_JTAG_WRITEDEBUG_32BIT 0x35
 #define STLINK_JTAG_READDEBUG_32BIT 0x36
 #define STLINK_JTAG_DRIVE_NRST 0x3c
-#define STLINK_JTAG_DRIVE_NRST 0x3c
-
-    // cortex m3 technical reference manual
-#define CM3_REG_CPUID 0xE000ED00
-#define CM3_REG_FP_CTRL 0xE0002000
-#define CM3_REG_FP_COMP0 0xE0002008
 
     /* cortex core ids */
     // TODO clean this up...
 #define STM32VL_CORE_ID 0x1ba01477
-#define STM32L_CORE_ID 0x2ba01477
-#define STM32F3_CORE_ID 0x2ba01477
-#define STM32F4_CORE_ID 0x2ba01477
-#define STM32F0_CORE_ID 0xbb11477
 #define CORE_M3_R1 0x1BA00477
 #define CORE_M3_R2 0x4BA00477
 #define CORE_M4_R0 0x2BA01477
@@ -251,12 +233,9 @@ typedef struct flash_loader {
     int stlink_fwrite_sram(stlink_t *sl, const char* path, stm32_addr_t addr);
     int stlink_verify_write_flash(stlink_t *sl, stm32_addr_t address, uint8_t *data, uint32_t length);
 
-    // PUBLIC
     int stlink_chip_id(stlink_t *sl, uint32_t *chip_id);
     int stlink_cpu_id(stlink_t *sl, cortex_m3_cpuid_t *cpuid);
 
-    // privates, publics, the rest....
-    // TODO sort what is private, and what is not
     int stlink_erase_flash_page(stlink_t* sl, stm32_addr_t flashaddr);
     uint32_t stlink_calculate_pagesize(stlink_t *sl, uint32_t flashaddr);
     uint16_t read_uint16(const unsigned char *c, const int pt);
@@ -266,7 +245,7 @@ typedef struct flash_loader {
     uint32_t read_uint32(const unsigned char *c, const int pt);
     void write_uint32(unsigned char* buf, uint32_t ui);
     void write_uint16(unsigned char* buf, uint16_t ui);
-    unsigned int is_core_halted(stlink_t *sl);
+    bool stlink_is_core_halted(stlink_t *sl);
     int write_buffer_to_sram(stlink_t *sl, flash_loader_t* fl, const uint8_t* buf, size_t size);
     int write_loader_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* size);
     int stlink_fread(stlink_t* sl, const char* path, stm32_addr_t addr, size_t size);
@@ -275,6 +254,7 @@ typedef struct flash_loader {
 
 #include "stlink/sg.h"
 #include "stlink/usb.h"
+#include "stlink/reg.h"
 #include "stlink/commands.h"
 #include "stlink/chipid.h"
 #include "stlink/flash_loader.h"

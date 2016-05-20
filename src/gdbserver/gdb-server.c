@@ -585,8 +585,8 @@ struct code_hw_breakpoint code_breaks[CODE_BREAK_NUM_MAX];
 static void init_code_breakpoints(stlink_t *sl) {
     unsigned int val;
     memset(sl->q_buf, 0, 4);
-    stlink_write_debug32(sl, CM3_REG_FP_CTRL, 0x03 /*KEY | ENABLE4*/);
-    stlink_read_debug32(sl, CM3_REG_FP_CTRL, &val);
+    stlink_write_debug32(sl, STLINK_REG_CM3_FP_CTRL, 0x03 /*KEY | ENABLE4*/);
+    stlink_read_debug32(sl, STLINK_REG_CM3_FP_CTRL, &val);
     code_break_num = ((val >> 4) & 0xf);
     code_lit_num = ((val >> 8) & 0xf);
 
@@ -594,7 +594,7 @@ static void init_code_breakpoints(stlink_t *sl) {
 
     for(int i = 0; i < code_break_num; i++) {
         code_breaks[i].type = 0;
-        stlink_write_debug32(sl, CM3_REG_FP_COMP0 + i * 4, 0);
+        stlink_write_debug32(sl, STLINK_REG_CM3_FP_COMP0 + i * 4, 0);
     }
 }
 

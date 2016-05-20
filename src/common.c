@@ -550,7 +550,7 @@ int stlink_chip_id(stlink_t *sl, uint32_t *chip_id) {
 int stlink_cpu_id(stlink_t *sl, cortex_m3_cpuid_t *cpuid) {
     uint32_t raw;
 
-    if (stlink_read_debug32(sl, CM3_REG_CPUID, &raw))
+    if (stlink_read_debug32(sl, STLINK_REG_CM3_CPUID, &raw))
         return -1;
 
     cpuid->implementer_id = (raw >> 24) & 0x7f;
@@ -692,7 +692,7 @@ int stlink_version(stlink_t *sl) {
 
     _parse_version(sl, &sl->version);
 
-    DLOG("st vid         = 0x%04x (expect 0x%04x)\n", sl->version.st_vid, USB_ST_VID);
+    DLOG("st vid         = 0x%04x (expect 0x%04x)\n", sl->version.st_vid, STLINK_USB_VID_ST);
     DLOG("stlink pid     = 0x%04x\n", sl->version.stlink_pid);
     DLOG("stlink version = 0x%x\n", sl->version.stlink_v);
     DLOG("jtag version   = 0x%x\n", sl->version.jtag_v);
@@ -836,10 +836,15 @@ int stlink_write_unsupported_reg(stlink_t *sl, uint32_t val, int r_idx, reg *reg
     return sl->backend->write_unsupported_reg(sl, val, r_convert, regp);
 }
 
-unsigned int is_core_halted(stlink_t *sl) {
-    /* return non zero if core is halted */
-    stlink_status(sl);
-    return sl->q_buf[0] == STLINK_CORE_HALTED;
+bool stlink_is_core_halted(stlink_t *sl)
+{
+	bool ret = false;
+
+	stlink_status(sl);
+	if (sl->q_buf[0] == STLINK_CORE_HALTED)
+		ret = true;
+
+	return ret;
 }
 
 int stlink_step(stlink_t *sl) {
@@ -900,7 +905,7 @@ void stlink_run_at(stlink_t *sl, stm32_addr_t addr) {
 
     stlink_run(sl);
 
-    while (is_core_halted(sl) == 0)
+    while (stlink_is_core_halted(sl))
         usleep(3000000);
 }
 

@@ -293,7 +293,7 @@ int stlink_flash_loader_run(stlink_t *sl, flash_loader_t* fl, stm32_addr_t targe
     /* wait until done (reaches breakpoint) */
     for (i = 0; i < WAIT_ROUNDS; i++) {
         usleep(10);
-        if (is_core_halted(sl))
+        if (stlink_is_core_halted(sl))
             break;
     }
 
