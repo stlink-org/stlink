@@ -1617,9 +1617,16 @@ int write_loader_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* size) {
             || sl->chip_id == STLINK_CHIPID_STM32_F334) {
         loader_code = loader_code_stm32vl;
         loader_size = sizeof(loader_code_stm32vl);
-    } else if (sl->chip_id == STLINK_CHIPID_STM32_F2 || sl->chip_id == STLINK_CHIPID_STM32_F4 || (sl->chip_id == STLINK_CHIPID_STM32_F4_DE) ||
-            sl->chip_id == STLINK_CHIPID_STM32_F4_LP || sl->chip_id == STLINK_CHIPID_STM32_F4_HD || (sl->chip_id == STLINK_CHIPID_STM32_F411RE) ||
-            (sl->chip_id == STLINK_CHIPID_STM32_F446) || (sl->chip_id == STLINK_CHIPID_STM32_F4_DSI)){
+    } else if (sl->chip_id == STLINK_CHIPID_STM32_F2      ||
+		sl->chip_id == STLINK_CHIPID_STM32_F4     ||
+		sl->chip_id == STLINK_CHIPID_STM32_F4_DE  ||
+		sl->chip_id == STLINK_CHIPID_STM32_F4_LP  ||
+		sl->chip_id == STLINK_CHIPID_STM32_F4_HD  ||
+		sl->chip_id == STLINK_CHIPID_STM32_F4_DSI ||
+		sl->chip_id == STLINK_CHIPID_STM32_F410   ||
+		sl->chip_id == STLINK_CHIPID_STM32_F411RE ||
+		sl->chip_id == STLINK_CHIPID_STM32_F446
+		) {
         int voltage = stlink_target_voltage(sl);
         if (voltage == -1) {
             printf("Failed to read Target voltage\n");
