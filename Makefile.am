@@ -22,7 +22,8 @@ CFILES = \
 	src/common.c \
 	src/usb.c \
 	src/sg.c \
-	src/logging.c
+	src/logging.c \
+	src/flash_loader.c
 
 if !MINGW
 CFILES += src/tools/term.c
@@ -32,6 +33,8 @@ HFILES	= \
 	include/stlink.h \
 	include/stlink/chipid.h \
 	include/stlink/usb.h \
+	include/stlink/flash_loader.h \
+	include/stlink/commands.h \
 	include/stlink/sg.h \
 	include/stlink/logging.h \
 	include/stlink/mmap.h

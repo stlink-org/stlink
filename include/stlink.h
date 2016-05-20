@@ -49,27 +49,6 @@ extern "C" {
 #define STLINK_DEV_DEBUG_MODE		0x02
 #define STLINK_DEV_UNKNOWN_MODE	-1
 
-    // jtag mode cmds
-#define STLINK_DEBUG_ENTER		0x20
-#define STLINK_DEBUG_EXIT		0x21
-#define STLINK_DEBUG_READCOREID	0x22
-#define STLINK_DEBUG_GETSTATUS		0x01
-#define STLINK_DEBUG_FORCEDEBUG	0x02
-#define STLINK_DEBUG_RESETSYS		0x03
-#define STLINK_DEBUG_READALLREGS	0x04
-#define STLINK_DEBUG_READREG		0x05
-#define STLINK_DEBUG_WRITEREG		0x06
-#define STLINK_DEBUG_READMEM_32BIT	0x07
-#define STLINK_DEBUG_WRITEMEM_32BIT	0x08
-#define STLINK_DEBUG_RUNCORE		0x09
-#define STLINK_DEBUG_STEPCORE		0x0a
-#define STLINK_DEBUG_SETFP		0x0b
-#define STLINK_DEBUG_WRITEMEM_8BIT	0x0d
-#define STLINK_DEBUG_CLEARFP		0x0e
-#define STLINK_DEBUG_WRITEDEBUGREG	0x0f
-#define STLINK_DEBUG_ENTER_SWD		0xa3
-#define STLINK_DEBUG_ENTER_JTAG	0x00
-
     // TODO - possible poor names...
 #define STLINK_SWD_ENTER 0x30
 #define STLINK_SWD_READCOREID 0x32  // TBD
@@ -116,8 +95,6 @@ extern "C" {
         FLASH_TYPE_L4,
     };
 
-#include "stlink/chipid.h"
-
     typedef struct {
         uint32_t r[16];
         uint32_t s[32];
@@ -135,6 +112,11 @@ extern "C" {
 
     typedef uint32_t stm32_addr_t;
 
+typedef struct flash_loader {
+	stm32_addr_t loader_addr; /* loader sram adddr */
+	stm32_addr_t buf_addr; /* buffer sram address */
+} flash_loader_t;
+
     typedef struct _cortex_m3_cpuid_ {
         uint16_t implementer_id;
         uint16_t variant;
@@ -149,11 +131,6 @@ extern "C" {
         uint32_t st_vid;
         uint32_t stlink_pid;
     } stlink_version_t;
-
-    typedef struct flash_loader {
-        stm32_addr_t loader_addr; /* loader sram adddr */
-        stm32_addr_t buf_addr; /* buffer sram address */
-    } flash_loader_t;
 
     enum transport_type {
         TRANSPORT_TYPE_ZERO = 0,
@@ -298,6 +275,9 @@ extern "C" {
 
 #include "stlink/sg.h"
 #include "stlink/usb.h"
+#include "stlink/commands.h"
+#include "stlink/chipid.h"
+#include "stlink/flash_loader.h"
 
 #ifdef __cplusplus
 }

@@ -54,6 +54,7 @@ set(STLINK_HEADERS
 	include/stlink/logging.h
 	include/stlink/mmap.h
 	include/stlink/chipid.h
+	include/stlink/flash_loader.h
 )
 
 set(STLINK_SOURCE
@@ -62,6 +63,7 @@ set(STLINK_SOURCE
 	src/usb.c
 	src/sg.c
 	src/logging.c
+	src/flash_loader.c
 )
 
 include_directories(${LIBUSB_INCLUDE_DIR})
