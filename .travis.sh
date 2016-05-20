@@ -1,4 +1,10 @@
 #!/bin/bash
+echo "-- C compilers available"
+ls -1 /usr/bin/gcc*
+ls -1 /usr/bin/clang*
+ls -1 /usr/bin/scan-build*
+echo "----"
+
 if [ "$TRAVIS_OS_NAME" != "osx" ]; then
 	sudo apt-get update -qq || true
 	sudo apt-get install -qq -y --no-install-recommends libusb-1.0.0-dev libgtk-3-dev
