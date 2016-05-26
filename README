@@ -236,6 +236,21 @@ STLink v2-1 (as found on the Nucleo boards), known working targets:
 
 Please report any and all known working combinations so I can update this!
 
+## Known bugs
+
+### Sometimes flashing only works after a mass erase
+
+There is seen a problem sometimes where a flash loader run error occurs and is resolved after mass-erase
+of the flash:
+
+```
+2015-12-09T22:01:57 INFO src/stlink-common.c: Successfully loaded flash loader in sram
+2015-12-09T22:02:18 ERROR src/stlink-common.c: flash loader run error
+2015-12-09T22:02:18 ERROR src/stlink-common.c: run_flash_loader(0x8000000) failed! == -1
+```
+
+Issue(s): [#356](https://github.com/texane/stlink/issues/356)
+
 ## Contributing and versioning
 
 * The semantic versioning scheme is used. Read more at [semver.org](http://semver.org)
