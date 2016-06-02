@@ -7,7 +7,7 @@ int main(int ac, char** av)
 	(void)av;
 
     stlink_t* sl;
-    reg regs;
+    struct stlink_reg regs;
 
     sl = stlink_open_usb(10, 1, NULL);
     if (sl != NULL) {

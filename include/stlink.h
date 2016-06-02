@@ -67,7 +67,7 @@ extern "C" {
         STLINK_FLASH_TYPE_L4
     };
 
-    typedef struct {
+    struct stlink_reg {
         uint32_t r[16];
         uint32_t s[32];
         uint32_t xpsr;
@@ -80,7 +80,7 @@ extern "C" {
         uint8_t basepri;
         uint8_t primask;
         uint32_t fpscr;
-    } reg;
+    };
 
     typedef uint32_t stm32_addr_t;
 
@@ -166,11 +166,11 @@ typedef struct flash_loader {
     int stlink_write_debug32(stlink_t *sl, uint32_t addr, uint32_t data);
     int stlink_write_mem32(stlink_t *sl, uint32_t addr, uint16_t len);
     int stlink_write_mem8(stlink_t *sl, uint32_t addr, uint16_t len);
-    int stlink_read_all_regs(stlink_t *sl, reg *regp);
-    int stlink_read_all_unsupported_regs(stlink_t *sl, reg *regp);
-    int stlink_read_reg(stlink_t *sl, int r_idx, reg *regp);
-    int stlink_read_unsupported_reg(stlink_t *sl, int r_idx, reg *regp);
-    int stlink_write_unsupported_reg(stlink_t *sl, uint32_t value, int r_idx, reg *regp);
+    int stlink_read_all_regs(stlink_t *sl, struct stlink_reg *regp);
+    int stlink_read_all_unsupported_regs(stlink_t *sl, struct stlink_reg *regp);
+    int stlink_read_reg(stlink_t *sl, int r_idx, struct stlink_reg *regp);
+    int stlink_read_unsupported_reg(stlink_t *sl, int r_idx, struct stlink_reg *regp);
+    int stlink_write_unsupported_reg(stlink_t *sl, uint32_t value, int r_idx, struct stlink_reg *regp);
     int stlink_write_reg(stlink_t *sl, uint32_t reg, int idx);
     int stlink_step(stlink_t *sl);
     int stlink_current_mode(stlink_t *sl);

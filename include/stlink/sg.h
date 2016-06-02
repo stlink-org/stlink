@@ -60,7 +60,7 @@ extern "C" {
         // obsolete, this was fed to the scsi tools
         unsigned char sense_buf[SENSE_BUF_LEN];
 
-        reg reg;
+        struct stlink_reg reg;
     };
 
     stlink_t* stlink_v1_open(const int verbose, int reset);

@@ -170,18 +170,6 @@ static uint32_t __attribute__((unused)) read_flash_rdp(stlink_t *sl) {
     return rdp & 0xff;
 }
 
-static inline uint32_t read_flash_wrpr(stlink_t *sl) {
-    uint32_t wrpr;
-    stlink_read_debug32(sl, FLASH_WRPR, &wrpr);
-    return wrpr;
-}
-
-static inline uint32_t read_flash_obr(stlink_t *sl) {
-    uint32_t obr;
-    stlink_read_debug32(sl, FLASH_OBR, &obr);
-    return obr;
-}
-
 static inline uint32_t read_flash_cr(stlink_t *sl) {
     uint32_t reg, res;
 
@@ -364,12 +352,6 @@ static void set_flash_cr_strt(stlink_t *sl) {
     stlink_read_debug32(sl, cr_reg, &val);
     val |= cr_strt;
     stlink_write_debug32(sl, cr_reg, val);
-}
-
-static inline uint32_t read_flash_acr(stlink_t *sl) {
-    uint32_t acr;
-    stlink_read_debug32(sl, FLASH_ACR, &acr);
-    return acr;
 }
 
 static inline uint32_t read_flash_sr(stlink_t *sl) {
@@ -767,12 +749,12 @@ int stlink_write_mem8(stlink_t *sl, uint32_t addr, uint16_t len) {
     return sl->backend->write_mem8(sl, addr, len);
 }
 
-int stlink_read_all_regs(stlink_t *sl, reg *regp) {
+int stlink_read_all_regs(stlink_t *sl, struct stlink_reg *regp) {
     DLOG("*** stlink_read_all_regs ***\n");
     return sl->backend->read_all_regs(sl, regp);
 }
 
-int stlink_read_all_unsupported_regs(stlink_t *sl, reg *regp) {
+int stlink_read_all_unsupported_regs(stlink_t *sl, struct stlink_reg *regp) {
     DLOG("*** stlink_read_all_unsupported_regs ***\n");
     return sl->backend->read_all_unsupported_regs(sl, regp);
 }
@@ -782,7 +764,7 @@ int stlink_write_reg(stlink_t *sl, uint32_t reg, int idx) {
     return sl->backend->write_reg(sl, reg, idx);
 }
 
-int stlink_read_reg(stlink_t *sl, int r_idx, reg *regp) {
+int stlink_read_reg(stlink_t *sl, int r_idx, struct stlink_reg *regp) {
     DLOG("*** stlink_read_reg\n");
     DLOG(" (%d) ***\n", r_idx);
 
@@ -794,7 +776,7 @@ int stlink_read_reg(stlink_t *sl, int r_idx, reg *regp) {
     return sl->backend->read_reg(sl, r_idx, regp);
 }
 
-int stlink_read_unsupported_reg(stlink_t *sl, int r_idx, reg *regp) {
+int stlink_read_unsupported_reg(stlink_t *sl, int r_idx, struct stlink_reg *regp) {
     int r_convert;
 
     DLOG("*** stlink_read_unsupported_reg\n");
@@ -815,7 +797,7 @@ int stlink_read_unsupported_reg(stlink_t *sl, int r_idx, reg *regp) {
     return sl->backend->read_unsupported_reg(sl, r_convert, regp);
 }
 
-int stlink_write_unsupported_reg(stlink_t *sl, uint32_t val, int r_idx, reg *regp) {
+int stlink_write_unsupported_reg(stlink_t *sl, uint32_t val, int r_idx, struct stlink_reg *regp) {
     int r_convert;
 
     DLOG("*** stlink_write_unsupported_reg\n");
@@ -1016,7 +998,7 @@ static int check_file(stlink_t* sl, mapped_file_t* mf, stm32_addr_t addr) {
         if (aligned_size & (4 - 1))
             aligned_size = (cmp_size + 4) & ~(4 - 1);
 
-        stlink_read_mem32(sl, addr + off, aligned_size);
+        stlink_read_mem32(sl, addr + (uint32_t) off, aligned_size);
 
         if (memcmp(sl->q_buf, mf->base + off, cmp_size))
             return -1;
@@ -1075,12 +1057,12 @@ int stlink_fwrite_sram
         if (size & 3)
             size += 2;
 
-        stlink_write_mem32(sl, addr + off, size);
+        stlink_write_mem32(sl, addr + (uint32_t) off, size);
     }
 
     if(mf.len > len) {
         memcpy(sl->q_buf, mf.base + len, mf.len - len);
-        stlink_write_mem8(sl, addr + len, mf.len - len);
+        stlink_write_mem8(sl, addr + (uint32_t) len, mf.len - len);
     }
 
     /* check the file ha been written */
@@ -1134,7 +1116,7 @@ int stlink_fread(stlink_t* sl, const char* path, stm32_addr_t addr, size_t size)
         if (aligned_size & (4 - 1))
             aligned_size = (cmp_size + 4) & ~(4 - 1);
 
-        stlink_read_mem32(sl, addr + off, aligned_size);
+        stlink_read_mem32(sl, addr + (uint32_t) off, aligned_size);
 
         if (write(fd, sl->q_buf, sl->q_len) != (ssize_t) aligned_size) {
             fprintf(stderr, "write() != aligned_size\n");
@@ -1161,7 +1143,7 @@ int write_buffer_to_sram(stlink_t *sl, flash_loader_t* fl, const uint8_t* buf, s
     }
     if (rem) {
         memcpy(sl->q_buf, buf+chunk, rem);
-        stlink_write_mem8(sl, (fl->buf_addr)+chunk, rem);
+        stlink_write_mem8(sl, (fl->buf_addr) + (uint32_t) chunk, rem);
     }
     return 0;
 }
@@ -1197,7 +1179,7 @@ uint32_t calculate_L4_page(stlink_t *sl, uint32_t flashaddr) {
     stlink_read_debug32(sl, STM32L4_FLASH_OPTR, &flashopt);
     flashaddr -= STM32_FLASH_BASE;
     if (flashopt & (1lu << STM32L4_FLASH_OPTR_DUALBANK)) {
-        uint32_t banksize = sl->flash_size / 2;
+        uint32_t banksize = (uint32_t) sl->flash_size / 2;
         if (flashaddr >= banksize) {
             flashaddr -= banksize;
             bker = 0x100;
@@ -1226,7 +1208,7 @@ uint32_t stlink_calculate_pagesize(stlink_t *sl, uint32_t flashaddr){
         else if(sector<5) sl->flash_pgsz=0x20000;
         else sl->flash_pgsz=0x40000;
     }
-    return (sl->flash_pgsz);
+    return (uint32_t) sl->flash_pgsz;
 }
 
 /**
@@ -1385,10 +1367,10 @@ int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr)
 int stlink_erase_flash_mass(stlink_t *sl) {
     if (sl->flash_type == STLINK_FLASH_TYPE_L0) {
         /* erase each page */
-        int i = 0, num_pages = sl->flash_size/sl->flash_pgsz;
+        int i = 0, num_pages = (int) sl->flash_size/sl->flash_pgsz;
         for (i = 0; i < num_pages; i++) {
             /* addr must be an addr inside the page */
-            stm32_addr_t addr = sl->flash_base + i * sl->flash_pgsz;
+            stm32_addr_t addr = (stm32_addr_t) sl->flash_base + i * (stm32_addr_t) sl->flash_pgsz;
             if (stlink_erase_flash_page(sl, addr) == -1) {
                 WLOG("Failed to erase_flash_page(%#zx) == -1\n", addr);
                 return -1;
@@ -1460,7 +1442,7 @@ int stlink_verify_write_flash(stlink_t *sl, stm32_addr_t address, uint8_t *data,
         if (aligned_size & (4 - 1))
             aligned_size = (cmp_size + 4) & ~(4 - 1);
 
-        stlink_read_mem32(sl, address + off, aligned_size);
+        stlink_read_mem32(sl, address + (uint32_t) off, aligned_size);
 
         if (memcmp(sl->q_buf, data + off, cmp_size)) {
             ELOG("Verification of flash failed at offset: %zd\n", off);
@@ -1563,9 +1545,9 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uint32_t 
     stlink_core_id(sl);
     /* erase each page */
     int page_count = 0;
-    for (off = 0; off < len; off += stlink_calculate_pagesize(sl, addr + off)) {
+    for (off = 0; off < len; off += stlink_calculate_pagesize(sl, addr + (uint32_t) off)) {
         /* addr must be an addr inside the page */
-        if (stlink_erase_flash_page(sl, addr + off) == -1) {
+        if (stlink_erase_flash_page(sl, addr + (uint32_t) off) == -1) {
             ELOG("Failed to erase_flash_page(%#zx) == -1\n", addr + off);
             return -1;
         }
@@ -1628,7 +1610,7 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uint32_t 
 
             printf("size: %zu\n", size);
 
-            if (stlink_flash_loader_run(sl, &fl, addr + off, base + off, size) == -1) {
+            if (stlink_flash_loader_run(sl, &fl, addr + (uint32_t) off, base + off, size) == -1) {
                 ELOG("stlink_flash_loader_run(%#zx) failed! == -1\n", addr + off);
                 return -1;
             }
@@ -1701,7 +1683,7 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uint32_t 
             }
 
             write_uint32((unsigned char*) &data, *(uint32_t*) (base + off));
-            stlink_write_debug32(sl, addr + off, data);
+            stlink_write_debug32(sl, addr + (uint32_t) off, data);
 
             /* wait for sr.busy to be cleared */
             do {
@@ -1734,7 +1716,7 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uint32_t 
             unlock_flash_if(sl);
             set_flash_cr_pg(sl);
             DLOG("Finished setting flash cr pg, running loader!\n");
-            if (stlink_flash_loader_run(sl, &fl, addr + off, base + off, size) == -1) {
+            if (stlink_flash_loader_run(sl, &fl, addr + (uint32_t) off, base + off, size) == -1) {
                 ELOG("stlink_flash_loader_run(%#zx) failed! == -1\n", addr + off);
                 return -1;
             }
@@ -1779,7 +1761,7 @@ int stlink_fwrite_flash(stlink_t *sl, const char* path, stm32_addr_t addr) {
     else
         erased_pattern = 0xff;
 
-    index = mf.len;
+    index = (unsigned int) mf.len;
     for(num_empty = 0; num_empty != mf.len; ++num_empty) {
         if (mf.base[--index] != erased_pattern) {
             break;
@@ -1790,7 +1772,7 @@ int stlink_fwrite_flash(stlink_t *sl, const char* path, stm32_addr_t addr) {
     if(num_empty != 0) {
         ILOG("Ignoring %d bytes of 0x%02x at end of file\n", num_empty, erased_pattern);
     }
-    err = stlink_write_flash(sl, addr, mf.base, num_empty == mf.len? mf.len : mf.len - num_empty, num_empty == mf.len);
+    err = stlink_write_flash(sl, addr, mf.base, (num_empty == mf.len) ? (uint32_t) mf.len : (uint32_t) mf.len - num_empty, num_empty == mf.len);
     /* set stack*/
     stlink_read_debug32(sl, addr, &val);
     stlink_write_reg(sl, val, 13);

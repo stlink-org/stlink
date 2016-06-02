@@ -584,7 +584,7 @@ int _stlink_sg_force_debug(stlink_t *sl) {
 
 // Read all arm-core registers.
 
-int _stlink_sg_read_all_regs(stlink_t *sl, reg *regp) {
+int _stlink_sg_read_all_regs(stlink_t *sl, struct stlink_reg *regp) {
     struct stlink_libsg *sg = sl->backend_data;
 
     clear_cdb(sg);
@@ -626,7 +626,7 @@ int _stlink_sg_read_all_regs(stlink_t *sl, reg *regp) {
 //  0  |  1  | ... |  15   |  16   |   17    |   18       |  19   |  20
 // r0  | r1  | ... | r15   | xpsr  | main_sp | process_sp | rw    | rw2
 
-int _stlink_sg_read_reg(stlink_t *sl, int r_idx, reg *regp) {
+int _stlink_sg_read_reg(stlink_t *sl, int r_idx, struct stlink_reg *regp) {
     struct stlink_libsg *sg = sl->backend_data;
     clear_cdb(sg);
     sg->cdb_cmd_blk[1] = STLINK_DEBUG_READREG;
@@ -907,7 +907,7 @@ int _stlink_sg_exit_debug_mode(stlink_t *stl)
 // 4) the device driver is now ready for a switch to jtag/swd mode
 // TODO thinking, better error handling, wait until the kernel driver stops reseting the plugged-in device
 
-stlink_backend_t _stlink_sg_backend = {
+static stlink_backend_t _stlink_sg_backend = {
     _stlink_sg_close,
     _stlink_sg_exit_debug_mode,
     _stlink_sg_enter_swd_mode,

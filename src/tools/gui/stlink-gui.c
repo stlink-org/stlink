@@ -178,8 +178,8 @@ hexstr_to_guint32 (const gchar *str, GError **err)
     guint32  val;
     gchar   *end_ptr;
 
-    val = strtoul (str, &end_ptr, 16);
-    if ((errno == ERANGE && val == LONG_MAX) || (errno != 0 && val == 0)) {
+    val = (guint32) strtoul (str, &end_ptr, 16);
+    if ((errno == ERANGE && val == UINT_MAX) || (errno != 0 && val == 0)) {
         g_set_error (err,
                 g_quark_from_string ("hextou32"),
                 1,
@@ -208,7 +208,7 @@ stlink_gui_update_mem_view (STlinkGUI *gui, struct mem_t *mem, GtkTreeView *view
             &iter,
             mem->base,
             mem->memory,
-            mem->size);
+            (gint) mem->size);
 
     gtk_widget_hide (GTK_WIDGET (gui->progress.bar));
     gtk_progress_bar_set_fraction (gui->progress.bar, 0);
@@ -245,7 +245,7 @@ stlink_gui_populate_devmem_view (STlinkGUI *gui)
         guint   n_read = MEM_READ_SIZE;
 
         if (off + MEM_READ_SIZE > gui->sl->flash_size) {
-            n_read = gui->sl->flash_size - off;
+            n_read = (guint) gui->sl->flash_size - off;
 
             /* align if needed */
             if (n_read & 3) {
@@ -316,11 +316,11 @@ stlink_gui_populate_filemem_view (STlinkGUI *gui)
     gui->file_mem.size   = g_file_info_get_size (file_info);
     gui->file_mem.memory = g_malloc (gui->file_mem.size);
 
-    for (off = 0; off < gui->file_mem.size; off += MEM_READ_SIZE) {
+    for (off = 0; off < (gint) gui->file_mem.size; off += MEM_READ_SIZE) {
         guint   n_read = MEM_READ_SIZE;
 
-        if (off + MEM_READ_SIZE > gui->file_mem.size) {
-            n_read = gui->file_mem.size - off;
+        if (off + MEM_READ_SIZE > (gint) gui->file_mem.size) {
+            n_read = (guint) gui->file_mem.size - off;
         }
 
         if (g_input_stream_read (G_INPUT_STREAM (input_stream),
@@ -373,12 +373,11 @@ static void mem_jmp (GtkTreeView *view,
         do {
             guint32 addr;
             GValue  value = G_VALUE_INIT;
-            GError *err   = NULL;
 
             gtk_tree_model_get_value (model, &iter, 0, &value);
             if (G_VALUE_HOLDS_STRING (&value)) {
-                addr = hexstr_to_guint32 (g_value_get_string (&value), &err);
-                if (!err) {
+                addr = hexstr_to_guint32 (g_value_get_string (&value), err);
+                if (!*err) {
                     if (addr == (jmp_addr & 0xFFFFFFF0)) {
                         GtkTreeSelection *selection;
                         GtkTreePath      *path;
@@ -407,6 +406,7 @@ devmem_jmp_cb (GtkWidget *widget, gpointer data)
 {
     STlinkGUI *gui;
     GError    *err = NULL;
+    (void) widget;
 
     gui = STLINK_GUI (data);
 
@@ -427,6 +427,7 @@ filemem_jmp_cb (GtkWidget *widget, gpointer data)
 {
     STlinkGUI *gui;
     GError    *err = NULL;
+    (void) widget;
 
     gui = STLINK_GUI (data);
 
@@ -448,7 +449,6 @@ static gchar *
 dev_format_chip_id (guint32 chip_id)
 {
     const struct stlink_chipid_params *params;
-    gint i;
 
     params = stlink_chipid_get_params(chip_id);
     if (!params)
@@ -460,7 +460,7 @@ dev_format_chip_id (guint32 chip_id)
 static gchar *
 dev_format_mem_size (gsize flash_size)
 {
-    return g_strdup_printf ("%u kB", flash_size / 1024);
+    return g_strdup_printf ("%zu kB", flash_size / 1024);
 }
 
 
@@ -522,6 +522,7 @@ connect_button_cb (GtkWidget *widget, gpointer data)
 {
     STlinkGUI *gui;
     gint       i;
+    (void) widget;
 
     gui = STLINK_GUI (data);
 
@@ -573,6 +574,7 @@ static void
 disconnect_button_cb (GtkWidget *widget, gpointer data)
 {
     STlinkGUI *gui;
+    (void) widget;
 
     gui = STLINK_GUI (data);
 
@@ -595,8 +597,8 @@ stlink_gui_open_file (STlinkGUI *gui)
     dialog = gtk_file_chooser_dialog_new ("Open file",
             gui->window,
             GTK_FILE_CHOOSER_ACTION_OPEN,
-            GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
-            GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT,
+            "_Cancel", GTK_RESPONSE_CANCEL,
+            "_Open", GTK_RESPONSE_ACCEPT,
             NULL);
 
     if (gtk_dialog_run (GTK_DIALOG (dialog)) == GTK_RESPONSE_ACCEPT) {
@@ -621,6 +623,7 @@ static void
 open_button_cb (GtkWidget *widget, gpointer data)
 {
     STlinkGUI    *gui;
+    (void) widget;
 
     gui = STLINK_GUI (data);
 
@@ -658,6 +661,7 @@ flash_button_cb (GtkWidget *widget, gpointer data)
     guint32    address;
     gint       result;
     GError    *err = NULL;
+    (void) widget;
 
     gui = STLINK_GUI (data);
     g_return_if_fail (gui->sl != NULL);
@@ -712,6 +716,8 @@ notebook_switch_page_cb (GtkNotebook *notebook,
                          gpointer     data)
 {
     STlinkGUI *gui;
+    (void) notebook;
+    (void) widget;
 
     gui = STLINK_GUI (data);
 
@@ -738,6 +744,9 @@ dnd_received_cb (GtkWidget *widget,
     STlinkGUI    *gui = STLINK_GUI (data);
     GtkListStore *store;
     GtkTreeIter   iter;
+    (void) widget;
+    (void) x;
+    (void) y;
 
     if (selection_data != NULL &&
             gtk_selection_data_get_length (selection_data) > 0) {
@@ -837,7 +846,6 @@ stlink_gui_build_ui (STlinkGUI *gui) {
 
     gui->devmem_treeview =
         GTK_TREE_VIEW (gtk_builder_get_object (builder, "devmem_treeview"));
-    gtk_tree_view_set_rules_hint (gui->devmem_treeview, TRUE);
     mem_view_init_headers (gui->devmem_treeview);
     devmem_store = gtk_list_store_new (5,
             G_TYPE_STRING,
@@ -850,7 +858,6 @@ stlink_gui_build_ui (STlinkGUI *gui) {
 
     gui->filemem_treeview =
         GTK_TREE_VIEW (gtk_builder_get_object (builder, "filemem_treeview"));
-    gtk_tree_view_set_rules_hint (gui->filemem_treeview, TRUE);
     mem_view_init_headers (gui->filemem_treeview);
     filemem_store = gtk_list_store_new (5,
             G_TYPE_STRING,
@@ -910,7 +917,7 @@ stlink_gui_build_ui (STlinkGUI *gui) {
 
     gui->infobar =
         GTK_INFO_BAR (gtk_builder_get_object (builder, "infobar"));
-    gtk_info_bar_add_button (gui->infobar, GTK_STOCK_OK, GTK_RESPONSE_OK);
+    gtk_info_bar_add_button (gui->infobar, "_OK", GTK_RESPONSE_OK);
     gui->infolabel = GTK_LABEL (gtk_label_new (""));
     gtk_container_add (GTK_CONTAINER (gtk_info_bar_get_content_area (gui->infobar)),
             GTK_WIDGET (gui->infolabel));

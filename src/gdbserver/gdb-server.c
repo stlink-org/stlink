@@ -30,7 +30,7 @@
 //Allways update the FLASH_PAGE before each use, by calling stlink_calculate_pagesize
 #define FLASH_PAGE (sl->flash_pgsz)
 
-stlink_t *connected_stlink = NULL;
+static stlink_t *connected_stlink = NULL;
 
 static const char hex[] = "0123456789abcdef";
 
@@ -485,7 +485,7 @@ struct code_hw_watchpoint {
     enum watchfun fun;
 };
 
-struct code_hw_watchpoint data_watches[DATA_WATCH_NUM];
+static struct code_hw_watchpoint data_watches[DATA_WATCH_NUM];
 
 static void init_data_watchpoints(stlink_t *sl) {
     uint32_t data;
@@ -569,8 +569,8 @@ static int delete_data_watchpoint(stlink_t *sl, stm32_addr_t addr)
     return -1;
 }
 
-int code_break_num;
-int code_lit_num;
+static int code_break_num;
+static int code_lit_num;
 #define CODE_BREAK_NUM_MAX	15
 #define CODE_BREAK_LOW	0x01
 #define CODE_BREAK_HIGH	0x02
@@ -580,7 +580,7 @@ struct code_hw_breakpoint {
     int          type;
 };
 
-struct code_hw_breakpoint code_breaks[CODE_BREAK_NUM_MAX];
+static struct code_hw_breakpoint code_breaks[CODE_BREAK_NUM_MAX];
 
 static void init_code_breakpoints(stlink_t *sl) {
     unsigned int val;
@@ -753,7 +753,7 @@ static int flash_go(stlink_t *sl) {
             stlink_calculate_pagesize(sl, page);
 
             DLOG("flash_do: page %08x\n", page);
-            unsigned send = length > FLASH_PAGE ? FLASH_PAGE : length;
+            unsigned send = (length > FLASH_PAGE) ? (unsigned) FLASH_PAGE : length;
             if(stlink_write_flash(sl, page, fb->data + (page - fb->addr),
                         send, 0) < 0)
                 goto error;
@@ -1001,7 +1001,7 @@ int serve(stlink_t *sl, st_state_t *st) {
         DLOG("recv: %s\n", packet);
 
         char* reply = NULL;
-        reg regp;
+        struct stlink_reg regp;
 
         switch(packet[0]) {
             case 'q': {
@@ -1017,7 +1017,7 @@ int serve(stlink_t *sl, st_state_t *st) {
                     params = separator + 1;
                 }
 
-                unsigned queryNameLength = (separator - &packet[1]);
+                unsigned queryNameLength = (unsigned) (separator - &packet[1]);
                 char* queryName = calloc(queryNameLength + 1, 1);
                 strncpy(queryName, &packet[1], queryNameLength);
 
@@ -1043,8 +1043,8 @@ int serve(stlink_t *sl, st_state_t *st) {
                     __s_addr   = strsep(&tok, ",");
                     s_length = tok;
 
-                    unsigned addr = strtoul(__s_addr, NULL, 16),
-                             length = strtoul(s_length, NULL, 16);
+                    unsigned addr = (unsigned) strtoul(__s_addr, NULL, 16),
+                             length = (unsigned) strtoul(s_length, NULL, 16);
 
                     DLOG("Xfer: type:%s;op:%s;annex:%s;addr:%d;length:%d\n",
                                 type, op, annex, addr, length);
@@ -1058,7 +1058,7 @@ int serve(stlink_t *sl, st_state_t *st) {
                         data = target_description_F4;
 
                     if(data) {
-                        unsigned data_length = strlen(data);
+                        unsigned data_length = (unsigned) strlen(data);
                         if(addr + length > data_length)
                             length = data_length - addr;
 
@@ -1072,7 +1072,8 @@ int serve(stlink_t *sl, st_state_t *st) {
                     }
                 } else if(!strncmp(queryName, "Rcmd,",4)) {
                     // Rcmd uses the wrong separator
-                    char *separator = strstr(packet, ","), *params = "";
+                    separator = strstr(packet, ",");
+                    params = "";
                     if(separator == NULL) {
                         separator = packet + strlen(packet);
                     } else {
@@ -1136,8 +1137,8 @@ int serve(stlink_t *sl, st_state_t *st) {
                     __s_addr   = strsep(&tok, ",");
                     s_length = tok;
 
-                    unsigned addr = strtoul(__s_addr, NULL, 16),
-                             length = strtoul(s_length, NULL, 16);
+                    unsigned addr = (unsigned) strtoul(__s_addr, NULL, 16),
+                             length = (unsigned) strtoul(s_length, NULL, 16);
 
                     DLOG("FlashErase: addr:%08x,len:%04x\n",
                                 addr, length);
@@ -1154,8 +1155,8 @@ int serve(stlink_t *sl, st_state_t *st) {
                     __s_addr = strsep(&tok, ":");
                     data   = tok;
 
-                    unsigned addr = strtoul(__s_addr, NULL, 16);
-                    unsigned data_length = status - (data - packet);
+                    unsigned addr = (unsigned) strtoul(__s_addr, NULL, 16);
+                    unsigned data_length = status - (unsigned) (data - packet);
 
                     // Length of decoded data cannot be more than
                     // encoded, as escapes are removed.
@@ -1205,7 +1206,7 @@ int serve(stlink_t *sl, st_state_t *st) {
                 stlink_run(sl);
 
                 while(1) {
-                    int status = gdb_check_for_interrupt(client);
+                    status = gdb_check_for_interrupt(client);
                     if(status < 0) {
                         ELOG("cannot check for int: %d\n", status);
 #ifdef __MINGW32__
@@ -1256,7 +1257,7 @@ int serve(stlink_t *sl, st_state_t *st) {
                 break;
 
             case 'p': {
-                unsigned id = strtoul(&packet[1], NULL, 16);
+                unsigned id = (unsigned) strtoul(&packet[1], NULL, 16);
                 unsigned myreg = 0xDEADDEAD;
 
                 if(id < 16) {
@@ -1303,8 +1304,8 @@ int serve(stlink_t *sl, st_state_t *st) {
                 char* s_reg = &packet[1];
                 char* s_value = strstr(&packet[1], "=") + 1;
 
-                unsigned reg   = strtoul(s_reg,   NULL, 16);
-                unsigned value = strtoul(s_value, NULL, 16);
+                unsigned reg   = (unsigned) strtoul(s_reg,   NULL, 16);
+                unsigned value = (unsigned) strtoul(s_value, NULL, 16);
 
                 if(reg < 16) {
                     stlink_write_reg(sl, ntohl(value), reg);
@@ -1341,7 +1342,7 @@ int serve(stlink_t *sl, st_state_t *st) {
                 for(int i = 0; i < 16; i++) {
                     char str[9] = {0};
                     strncpy(str, &packet[1 + i * 8], 8);
-                    uint32_t reg = strtoul(str, NULL, 16);
+                    uint32_t reg = (uint32_t) strtoul(str, NULL, 16);
                     stlink_write_reg(sl, ntohl(reg), i);
                 }
 
@@ -1352,13 +1353,13 @@ int serve(stlink_t *sl, st_state_t *st) {
                 char* s_start = &packet[1];
                 char* s_count = strstr(&packet[1], ",") + 1;
 
-                stm32_addr_t start = strtoul(s_start, NULL, 16);
-                unsigned     count = strtoul(s_count, NULL, 16);
+                stm32_addr_t start = (stm32_addr_t) strtoul(s_start, NULL, 16);
+                unsigned     count = (unsigned) strtoul(s_count, NULL, 16);
 
                 unsigned adj_start = start % 4;
                 unsigned count_rnd = (count + adj_start + 4 - 1) / 4 * 4;
                 if (count_rnd > sl->flash_pgsz)
-                    count_rnd = sl->flash_pgsz;
+                    count_rnd = (unsigned) sl->flash_pgsz;
                 if (count_rnd > 0x1800)
                     count_rnd = 0x1800;
                 if (count_rnd < count)
@@ -1380,15 +1381,15 @@ int serve(stlink_t *sl, st_state_t *st) {
                 char* s_count = strstr(&packet[1], ",") + 1;
                 char* hexdata = strstr(packet, ":") + 1;
 
-                stm32_addr_t start = strtoul(s_start, NULL, 16);
-                unsigned     count = strtoul(s_count, NULL, 16);
+                stm32_addr_t start = (stm32_addr_t) strtoul(s_start, NULL, 16);
+                unsigned     count = (unsigned) strtoul(s_count, NULL, 16);
 
                 if(start % 4) {
                     unsigned align_count = 4 - start % 4;
                     if (align_count > count) align_count = count;
                     for(unsigned int i = 0; i < align_count; i ++) {
-                        char hex[3] = { hexdata[i*2], hexdata[i*2+1], 0 };
-                        uint8_t byte = strtoul(hex, NULL, 16);
+                        char hextmp[3] = { hexdata[i*2], hexdata[i*2+1], 0 };
+                        uint8_t byte = strtoul(hextmp, NULL, 16);
                         sl->q_buf[i] = byte;
                     }
                     stlink_write_mem8(sl, start, align_count);
@@ -1402,8 +1403,8 @@ int serve(stlink_t *sl, st_state_t *st) {
                     unsigned aligned_count = count - count % 4;
 
                     for(unsigned int i = 0; i < aligned_count; i ++) {
-                        char hex[3] = { hexdata[i*2], hexdata[i*2+1], 0 };
-                        uint8_t byte = strtoul(hex, NULL, 16);
+                        char hextmp[3] = { hexdata[i*2], hexdata[i*2+1], 0 };
+                        uint8_t byte = strtoul(hextmp, NULL, 16);
                         sl->q_buf[i] = byte;
                     }
                     stlink_write_mem32(sl, start, aligned_count);
@@ -1415,8 +1416,8 @@ int serve(stlink_t *sl, st_state_t *st) {
 
                 if(count) {
                     for(unsigned int i = 0; i < count; i ++) {
-                        char hex[3] = { hexdata[i*2], hexdata[i*2+1], 0 };
-                        uint8_t byte = strtoul(hex, NULL, 16);
+                        char hextmp[3] = { hexdata[i*2], hexdata[i*2+1], 0 };
+                        uint8_t byte = strtoul(hextmp, NULL, 16);
                         sl->q_buf[i] = byte;
                     }
                     stlink_write_mem8(sl, start, count);
@@ -1428,8 +1429,8 @@ int serve(stlink_t *sl, st_state_t *st) {
 
             case 'Z': {
                 char *endptr;
-                stm32_addr_t addr = strtoul(&packet[3], &endptr, 16);
-                stm32_addr_t len  = strtoul(&endptr[1], NULL, 16);
+                stm32_addr_t addr = (stm32_addr_t) strtoul(&packet[3], &endptr, 16);
+                stm32_addr_t len  = (stm32_addr_t) strtoul(&endptr[1], NULL, 16);
 
                 switch (packet[1]) {
                     case '1':
@@ -1467,7 +1468,7 @@ int serve(stlink_t *sl, st_state_t *st) {
             }
             case 'z': {
                 char *endptr;
-                stm32_addr_t addr = strtoul(&packet[3], &endptr, 16);
+                stm32_addr_t addr = (stm32_addr_t) strtoul(&packet[3], &endptr, 16);
                 //stm32_addr_t len  = strtoul(&endptr[1], NULL, 16);
 
                 switch (packet[1]) {

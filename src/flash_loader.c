@@ -1,5 +1,9 @@
 #include "stlink.h"
 
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
+
 /* from openocd, contrib/loaders/flash/stm32.s */
 static const uint8_t loader_code_stm32vl[] = {
         0x08, 0x4c, /* ldr	r4, STM32_FLASH_BASE */
@@ -181,7 +185,7 @@ int stlink_flash_loader_init(stlink_t *sl, flash_loader_t *fl)
 	}
 
 	/* allocate a one page buffer in sram right after loader */
-	fl->buf_addr = fl->loader_addr + size;
+	fl->buf_addr = fl->loader_addr + (uint32_t) size;
 	ILOG("Successfully loaded flash loader in sram\n");
 
 	return 0;
@@ -253,7 +257,7 @@ int stlink_flash_loader_write_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* 
 
 int stlink_flash_loader_run(stlink_t *sl, flash_loader_t* fl, stm32_addr_t target, const uint8_t* buf, size_t size)
 {
-    reg rr;
+    struct stlink_reg rr;
     int i = 0;
     size_t count = 0;
 
@@ -282,7 +286,7 @@ int stlink_flash_loader_run(stlink_t *sl, flash_loader_t* fl, stm32_addr_t targe
     /* setup core */
     stlink_write_reg(sl, fl->buf_addr, 0); /* source */
     stlink_write_reg(sl, target, 1); /* target */
-    stlink_write_reg(sl, count, 2); /* count */
+    stlink_write_reg(sl, (uint32_t) count, 2); /* count */
     stlink_write_reg(sl, 0, 3); /* flash bank 0 (input), only used on F0, but armless fopr others */
     stlink_write_reg(sl, fl->loader_addr, 15); /* pc register */
 
