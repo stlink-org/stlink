@@ -41,8 +41,8 @@ struct stlinky {
                                           | buf[2] << 16   \
                                           | buf[3] << 24))
 
-static stlink_t* sl;
-sigset_t sig_mask;
+static stlink_t* gsl;
+static sigset_t sig_mask;
 
 struct stlinky {
     stlink_t *sl;
@@ -53,11 +53,11 @@ struct stlinky {
 void nonblock(int state);
 
 static void cleanup(int signal __attribute__((unused))) {
-    if (sl) {
+    if (gsl) {
         /* Switch back to mass storage mode before closing. */
-        stlink_run(sl);
-        stlink_exit_debug_mode(sl);
-        stlink_close(sl);
+        stlink_run(gsl);
+        stlink_exit_debug_mode(gsl);
+        stlink_close(gsl);
     }
 
     printf("\n");
@@ -158,7 +158,7 @@ size_t stlinky_rx(struct stlinky *st, char* buffer)
         stlinky_read_buff(st, st->off + RX_BUFF_OFFSET + tail, head - tail, buffer);
         size_read += head - tail;
     } else if(head < tail){
-        stlinky_read_buff(st, st->off + RX_BUFF_OFFSET + tail, st->bufsize - tail, buffer);
+        stlinky_read_buff(st, st->off + RX_BUFF_OFFSET + tail, (uint32_t) st->bufsize - tail, buffer);
         size_read += st->bufsize - tail;
 
         stlinky_read_buff(st, st->off + RX_BUFF_OFFSET, head, buffer + size_read);
@@ -193,17 +193,17 @@ size_t stlinky_tx(struct stlinky *st, char* buffer, size_t siz)
         return 0;
 
     //copy in data (take care of possible split)
-    int first_chunk = head + siz >= st->bufsize ? st->bufsize - head : siz;
-    int second_chunk = siz - first_chunk;
+    int first_chunk = (head + siz >= st->bufsize) ? (int) st->bufsize - (int) head : (int) siz;
+    int second_chunk = (int) siz - first_chunk;
 
     //copy data
-    stlinky_write_buf(st, st->off + TX_BUFF_OFFSET(st->bufsize) + head, first_chunk, buffer);
+    stlinky_write_buf(st, st->off + (uint32_t) TX_BUFF_OFFSET(st->bufsize) + head, first_chunk, buffer);
     if (second_chunk > 0)
-        stlinky_write_buf(st, st->off + TX_BUFF_OFFSET(st->bufsize),
+        stlinky_write_buf(st, st->off + (uint32_t) TX_BUFF_OFFSET(st->bufsize),
                                         second_chunk, buffer + first_chunk);
 
     //increment head pointer
-    head = (head + siz) % st->bufsize;
+    head = (head + siz) % (uint32_t) st->bufsize;
     memcpy(st->sl->q_buf, &head, sizeof(head));
     stlink_write_mem32(st->sl, st->off + TX_Q_OFFSET + sizeof(tail), sizeof(head));
 
@@ -252,37 +252,37 @@ int main(int ac, char** av) {
 
     sig_init();
 
-    sl = stlink_open_usb(10, 1, NULL);
-    if (sl != NULL) {
+    gsl = stlink_open_usb(10, 1, NULL);
+    if (gsl != NULL) {
         printf("ST-Linky proof-of-concept terminal :: Created by Necromant for lulz\n");
-        stlink_version(sl);
-        stlink_enter_swd_mode(sl);
-        printf("chip id: %#x\n", sl->chip_id);
-        printf("core_id: %#x\n", sl->core_id);
+        stlink_version(gsl);
+        stlink_enter_swd_mode(gsl);
+        printf("chip id: %#x\n", gsl->chip_id);
+        printf("core_id: %#x\n", gsl->core_id);
 
         cortex_m3_cpuid_t cpuid;
-        stlink_cpu_id(sl, &cpuid);
+        stlink_cpu_id(gsl, &cpuid);
         printf("cpuid:impl_id = %0#x, variant = %#x\n", cpuid.implementer_id, cpuid.variant);
         printf("cpuid:part = %#x, rev = %#x\n", cpuid.part, cpuid.revision);
 
-        stlink_reset(sl);
-        stlink_force_debug(sl);
-        stlink_run(sl);
-        stlink_status(sl);
+        stlink_reset(gsl);
+        stlink_force_debug(gsl);
+        stlink_run(gsl);
+        stlink_status(gsl);
 
         /* wait for device to boot */
         /* TODO: Make timeout adjustable via command line */
         sleep(1);
 
         if(ac == 1){
-            st = stlinky_detect(sl);
+            st = stlinky_detect(gsl);
         }else if(ac == 2){
             st = malloc(sizeof(struct stlinky));
-            st->sl = sl;
+            st->sl = gsl;
             st->off = (int)strtol(av[1], NULL, 16);
             printf("using stlinky at 0x%x\n", st->off);
-            stlink_read_mem32(sl, st->off + 4, 4);
-            st->bufsize = READ_UINT32_LE(sl->q_buf);
+            stlink_read_mem32(gsl, st->off + 4, 4);
+            st->bufsize = READ_UINT32_LE(gsl->q_buf);
             printf("stlinky buffer size 0x%zu \n", st->bufsize);
         }else{
             cleanup(0);

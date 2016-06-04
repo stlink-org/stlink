@@ -18,7 +18,7 @@
 static const char hex[] = "0123456789abcdef";
 
 int gdb_send_packet(int fd, char* data) {
-    unsigned int data_length = strlen(data);
+    unsigned int data_length = (unsigned int) strlen(data);
     int length = data_length + 4;
     char* packet = malloc(length); /* '$' data (hex) '#' cksum (hex) */
 

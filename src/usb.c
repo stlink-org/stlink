@@ -36,7 +36,7 @@ ssize_t send_recv(struct stlink_libusb* handle, int terminate,
 
     if (libusb_bulk_transfer(handle->usb_handle, handle->ep_req,
             txbuf,
-            txsize,
+            (int) txsize,
             &res,
             3000))
         return -1;
@@ -44,7 +44,7 @@ ssize_t send_recv(struct stlink_libusb* handle, int terminate,
     if (rxsize != 0) {
         if (libusb_bulk_transfer(handle->usb_handle, handle->ep_rep,
                 rxbuf,
-                rxsize,
+                (int) rxsize,
                 &res,
                 3000))
             return -1;
@@ -69,7 +69,7 @@ ssize_t send_recv(struct stlink_libusb* handle, int terminate,
 static inline int send_only
 (struct stlink_libusb* handle, int terminate,
  unsigned char* txbuf, size_t txsize) {
-    return send_recv(handle, terminate, txbuf, txsize, NULL, 0);
+    return (int) send_recv(handle, terminate, txbuf, txsize, NULL, 0);
 }
 
 
@@ -107,7 +107,7 @@ int _stlink_usb_version(stlink_t *sl) {
     size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len);
     if (size == -1) {
         printf("[!] send_recv\n");
-        return size;
+        return (int) size;
     }
 
     return 0;
@@ -155,7 +155,7 @@ int _stlink_usb_read_debug32(stlink_t *sl, uint32_t addr, uint32_t *data) {
     size = send_recv(slu, 1, cmd, slu->cmd_len, rdata, rep_len);
     if (size == -1) {
         printf("[!] send_recv\n");
-        return size;
+        return (int) size;
     }
     *data = read_uint32(rdata, 4);
     return 0;
@@ -176,7 +176,7 @@ int _stlink_usb_write_debug32(stlink_t *sl, uint32_t addr, uint32_t data) {
     size = send_recv(slu, 1, cmd, slu->cmd_len, rdata, rep_len);
     if (size == -1) {
         printf("[!] send_recv\n");
-        return size;
+        return (int) size;
     }
 
     return 0;
@@ -279,9 +279,9 @@ int _stlink_usb_status(stlink_t * sl) {
     size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len);
     if (size == -1) {
         printf("[!] send_recv\n");
-        return size;
+        return (int) size;
     }
-    sl->q_len = (size_t) size;
+    sl->q_len = (int) size;
 
     return 0;
 }
@@ -299,7 +299,7 @@ int _stlink_usb_force_debug(stlink_t *sl) {
     size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len);
     if (size == -1) {
         printf("[!] send_recv\n");
-        return size;
+        return (int) size;
     }
 
     return 0;
@@ -319,7 +319,7 @@ int _stlink_usb_enter_swd_mode(stlink_t * sl) {
     size = send_only(slu, 1, cmd, slu->cmd_len);
     if (size == -1) {
         printf("[!] send_recv\n");
-        return size;
+        return (int) size;
     }
 
     return 0;
@@ -337,7 +337,7 @@ int _stlink_usb_exit_dfu_mode(stlink_t* sl) {
     size = send_only(slu, 1, cmd, slu->cmd_len);
     if (size == -1) {
         printf("[!] send_recv\n");
-        return size;
+        return (int) size;
     }
 
     return 0;
@@ -361,7 +361,7 @@ int _stlink_usb_reset(stlink_t * sl) {
     size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len);
     if (size == -1) {
         printf("[!] send_recv\n");
-        return size;
+        return (int) size;
     }
 
     return 0;
@@ -383,7 +383,7 @@ int _stlink_usb_jtag_reset(stlink_t * sl, int value) {
     size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len);
     if (size == -1) {
         printf("[!] send_recv\n");
-        return size;
+        return (int) size;
     }
 
     return 0;
@@ -404,7 +404,7 @@ int _stlink_usb_step(stlink_t* sl) {
     size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len);
     if (size == -1) {
         printf("[!] send_recv\n");
-        return size;
+        return (int) size;
     }
 
     return 0;
@@ -428,7 +428,7 @@ int _stlink_usb_run(stlink_t* sl) {
     size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len);
     if (size == -1) {
         printf("[!] send_recv\n");
-        return size;
+        return (int) size;
     }
 
     return 0;
@@ -446,7 +446,7 @@ int _stlink_usb_exit_debug_mode(stlink_t *sl) {
     size = send_only(slu, 1, cmd, slu->cmd_len);
     if (size == -1) {
         printf("[!] send_only\n");
-        return size;
+        return (int) size;
     }
 
     return 0;
@@ -467,16 +467,16 @@ int _stlink_usb_read_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
     size = send_recv(slu, 1, cmd, slu->cmd_len, data, len);
     if (size == -1) {
         printf("[!] send_recv\n");
-        return size;
+        return (int) size;
     }
 
-    sl->q_len = (size_t) size;
+    sl->q_len = (int) size;
 
     stlink_print_data(sl);
     return 0;
 }
 
-int _stlink_usb_read_all_regs(stlink_t *sl, reg *regp) {
+int _stlink_usb_read_all_regs(stlink_t *sl, struct stlink_reg *regp) {
     struct stlink_libusb * const slu = sl->backend_data;
     unsigned char* const cmd = sl->c_buf;
     unsigned char* const data = sl->q_buf;
@@ -489,9 +489,9 @@ int _stlink_usb_read_all_regs(stlink_t *sl, reg *regp) {
     size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len);
     if (size == -1) {
         printf("[!] send_recv\n");
-        return size;
+        return (int) size;
     }
-    sl->q_len = (size_t) size;
+    sl->q_len = (int) size;
     stlink_print_data(sl);
     for(i=0; i<16; i++)
         regp->r[i]= read_uint32(sl->q_buf, i*4);
@@ -512,7 +512,7 @@ int _stlink_usb_read_all_regs(stlink_t *sl, reg *regp) {
     return 0;
 }
 
-int _stlink_usb_read_reg(stlink_t *sl, int r_idx, reg *regp) {
+int _stlink_usb_read_reg(stlink_t *sl, int r_idx, struct stlink_reg *regp) {
     struct stlink_libusb * const slu = sl->backend_data;
     unsigned char* const data = sl->q_buf;
     unsigned char* const cmd  = sl->c_buf;
@@ -527,9 +527,9 @@ int _stlink_usb_read_reg(stlink_t *sl, int r_idx, reg *regp) {
     size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len);
     if (size == -1) {
         printf("[!] send_recv\n");
-        return size;
+        return (int) size;
     }
-    sl->q_len = (size_t) size;
+    sl->q_len = (int) size;
     stlink_print_data(sl);
     r = read_uint32(sl->q_buf, 0);
     DLOG("r_idx (%2d) = 0x%08x\n", r_idx, r);
@@ -558,7 +558,7 @@ int _stlink_usb_read_reg(stlink_t *sl, int r_idx, reg *regp) {
 }
 
 /* See section C1.6 of the ARMv7-M Architecture Reference Manual */
-int _stlink_usb_read_unsupported_reg(stlink_t *sl, int r_idx, reg *regp) {
+int _stlink_usb_read_unsupported_reg(stlink_t *sl, int r_idx, struct stlink_reg *regp) {
     uint32_t r;
     int ret;
 
@@ -596,7 +596,7 @@ int _stlink_usb_read_unsupported_reg(stlink_t *sl, int r_idx, reg *regp) {
     return 0;
 }
 
-int _stlink_usb_read_all_unsupported_regs(stlink_t *sl, reg *regp) {
+int _stlink_usb_read_all_unsupported_regs(stlink_t *sl, struct stlink_reg *regp) {
     int ret;
 
     ret = _stlink_usb_read_unsupported_reg(sl, 0x14, regp);
@@ -617,7 +617,7 @@ int _stlink_usb_read_all_unsupported_regs(stlink_t *sl, reg *regp) {
 }
 
 /* See section C1.6 of the ARMv7-M Architecture Reference Manual */
-int _stlink_usb_write_unsupported_reg(stlink_t *sl, uint32_t val, int r_idx, reg *regp) {
+int _stlink_usb_write_unsupported_reg(stlink_t *sl, uint32_t val, int r_idx, struct stlink_reg *regp) {
     int ret;
 
     if (r_idx >= 0x1C && r_idx <= 0x1F) { /* primask, basepri, faultmask, or control */
@@ -675,15 +675,15 @@ int _stlink_usb_write_reg(stlink_t *sl, uint32_t reg, int idx) {
     size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len);
     if (size == -1) {
         printf("[!] send_recv\n");
-        return size;
+        return (int) size;
     }
-    sl->q_len = (size_t) size;
+sl->q_len = (int) size;
     stlink_print_data(sl);
 
     return 0;
 }
 
-stlink_backend_t _stlink_usb_backend = {
+static stlink_backend_t _stlink_usb_backend = {
     _stlink_usb_close,
     _stlink_usb_exit_debug_mode,
     _stlink_usb_enter_swd_mode,
@@ -737,7 +737,8 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, bool reset, char serial[16
     }
 
     libusb_device **list;
-    int cnt = libusb_get_device_list(slu->libusb_ctx, &list);
+    /** @todo We should use ssize_t and use it as a counter if > 0. As per libusb API: ssize_t libusb_get_device_list (libusb_context *ctx, libusb_device ***list) */
+    int cnt = (int) libusb_get_device_list(slu->libusb_ctx, &list);
     struct libusb_device_descriptor desc;
     int devBus =0;
     int devAddr=0;

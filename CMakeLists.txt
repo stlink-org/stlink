@@ -109,7 +109,7 @@ if(NOT MINGW)
 endif()
 
 if(gtk_FOUND)
-  include_directories(${gtk_INCLUDE_DIRS})
+  include_directories(SYSTEM ${gtk_INCLUDE_DIRS})
   set(GUI_SOURCES src/tools/gui/stlink-gui.c
                   src/tools/gui/stlink-gui.h)
 

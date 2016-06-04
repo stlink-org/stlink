@@ -14,7 +14,7 @@
 #define DEBUG_LOG_LEVEL 100
 #define STND_LOG_LEVEL  50
 
-stlink_t *connected_stlink = NULL;
+static stlink_t *connected_stlink = NULL;
 
 static void cleanup(int signal __attribute__((unused))) {
     if (connected_stlink) {
@@ -84,18 +84,19 @@ static int get_opts(struct opts* o, int ac, char** av)
     {
         ac--;
         av++;
-	    int i=strlen(av[0]);
-	    if(i%2 != 0){
+            /** @todo This is not really portable, as strlen really returns size_t we need to obey and not cast it to a signed type. */
+	    int j = (int) strlen(av[0]);
+	    if(j%2 != 0){
 		    puts("no valid hex value, length must be multiple of 2\n");
 		    return -1;
 	    }
-	    int j=0;
-	    while(i>=0 && j<=13){
+	    int k=0;
+	    while(j>=0 && k<=13){
 		    char buffer[3]={0};
-		    memcpy(buffer,&av[0][i],2);
-		    o->serial[12-j] = (char)strtol((const char*)buffer,NULL, 16);
-		    j++;
-		    i-=2;
+		    memcpy(buffer,&av[0][j],2);
+		    o->serial[12-k] = (char)strtol((const char*)buffer,NULL, 16);
+		    k++;
+		    j-=2;
 	    }
         ac--;
         av++;
@@ -154,7 +155,8 @@ static int get_opts(struct opts* o, int ac, char** av)
     }
 
     o->filename = av[i + 1];
-    o->addr = strtoul(av[i + 2], NULL, 16);
+    /** @todo This is a little evil as strtoul could return 0 and is of type unsigned long int */
+    o->addr = (uint32_t) strtoul(av[i + 2], NULL, 16);
 
     return 0;
 }
