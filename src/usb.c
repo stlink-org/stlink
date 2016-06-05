@@ -33,32 +33,47 @@ ssize_t send_recv(struct stlink_libusb* handle, int terminate,
         unsigned char* rxbuf, size_t rxsize) {
     /* note: txbuf and rxbuf can point to the same area */
     int res = 0;
+    int t;
 
-    if (libusb_bulk_transfer(handle->usb_handle, handle->ep_req,
+    t = libusb_bulk_transfer(handle->usb_handle, handle->ep_req,
             txbuf,
             (int) txsize,
             &res,
-            3000))
+            3000);
+    if (t) {
+        printf("[!] send_recv send request failed: %s\n", libusb_error_name(t));
         return -1;
+    } else if ((size_t)res != txsize) {
+        printf("[!] send_recv send request wrote %d bytes (instead of %d).\n",
+                res, txsize);
+    }
 
     if (rxsize != 0) {
-        if (libusb_bulk_transfer(handle->usb_handle, handle->ep_rep,
+        t = libusb_bulk_transfer(handle->usb_handle, handle->ep_rep,
                 rxbuf,
                 (int) rxsize,
                 &res,
-                3000))
+                3000);
+        if (t) {
+            printf("[!] send_recv read reply failed: %s\n",
+                    libusb_error_name(t));
             return -1;
+        }
     }
 
     if ((handle->protocoll == 1) && terminate) {
         /* Read the SG reply */
         unsigned char sg_buf[13];
-        if (libusb_bulk_transfer(handle->usb_handle, handle->ep_rep,
+        t = libusb_bulk_transfer(handle->usb_handle, handle->ep_rep,
                 sg_buf,
                 13,
                 &res,
-                3000))
+                3000);
+        if (t) {
+            printf("[!] send_recv read storage failed: %s\n",
+                    libusb_error_name(t));
             return -1;
+        }
         /* The STLink doesn't seem to evaluate the sequence number */
         handle->sg_transfer_idx++;
     }
@@ -106,7 +121,7 @@ int _stlink_usb_version(stlink_t *sl) {
 
     size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len);
     if (size == -1) {
-        printf("[!] send_recv\n");
+        printf("[!] send_recv STLINK_GET_VERSION\n");
         return (int) size;
     }
 
@@ -127,10 +142,10 @@ int32_t _stlink_usb_target_voltage(stlink_t *sl) {
 
     size = send_recv(slu, 1, cmd, slu->cmd_len, rdata, rep_len);
     if (size == -1) {
-        printf("[!] send_recv\n");
+        printf("[!] send_recv STLINK_GET_TARGET_VOLTAGE\n");
         return -1;
     } else if (size != 8) {
-        printf("[!] wrong length\n");
+        printf("[!] wrong length STLINK_GET_TARGET_VOLTAGE\n");
         return -1;
     }
 
@@ -154,7 +169,7 @@ int _stlink_usb_read_debug32(stlink_t *sl, uint32_t addr, uint32_t *data) {
     write_uint32(&cmd[i], addr);
     size = send_recv(slu, 1, cmd, slu->cmd_len, rdata, rep_len);
     if (size == -1) {
-        printf("[!] send_recv\n");
+        printf("[!] send_recv STLINK_JTAG_READDEBUG_32BIT\n");
         return (int) size;
     }
     *data = read_uint32(rdata, 4);
@@ -175,7 +190,7 @@ int _stlink_usb_write_debug32(stlink_t *sl, uint32_t addr, uint32_t data) {
     write_uint32(&cmd[i + 4], data);
     size = send_recv(slu, 1, cmd, slu->cmd_len, rdata, rep_len);
     if (size == -1) {
-        printf("[!] send_recv\n");
+        printf("[!] send_recv STLINK_JTAG_WRITEDEBUG_32BIT\n");
         return (int) size;
     }
 
@@ -238,7 +253,7 @@ int _stlink_usb_current_mode(stlink_t * sl) {
     cmd[i++] = STLINK_GET_CURRENT_MODE;
     size = send_recv(slu, 1, cmd,  slu->cmd_len, data, rep_len);
     if (size == -1) {
-        printf("[!] send_recv\n");
+        printf("[!] send_recv STLINK_GET_CURRENT_MODE\n");
         return -1;
     }
     return sl->q_buf[0];
@@ -257,7 +272,7 @@ int _stlink_usb_core_id(stlink_t * sl) {
 
     size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len);
     if (size == -1) {
-        printf("[!] send_recv\n");
+        printf("[!] send_recv STLINK_DEBUG_READCOREID\n");
         return -1;
     }
 
@@ -278,7 +293,7 @@ int _stlink_usb_status(stlink_t * sl) {
 
     size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len);
     if (size == -1) {
-        printf("[!] send_recv\n");
+        printf("[!] send_recv STLINK_DEBUG_GETSTATUS\n");
         return (int) size;
     }
     sl->q_len = (int) size;
@@ -298,7 +313,7 @@ int _stlink_usb_force_debug(stlink_t *sl) {
     cmd[i++] = STLINK_DEBUG_FORCEDEBUG;
     size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len);
     if (size == -1) {
-        printf("[!] send_recv\n");
+        printf("[!] send_recv STLINK_DEBUG_FORCEDEBUG\n");
         return (int) size;
     }
 
@@ -318,7 +333,7 @@ int _stlink_usb_enter_swd_mode(stlink_t * sl) {
 
     size = send_only(slu, 1, cmd, slu->cmd_len);
     if (size == -1) {
-        printf("[!] send_recv\n");
+        printf("[!] send_recv STLINK_DEBUG_ENTER\n");
         return (int) size;
     }
 
@@ -336,7 +351,7 @@ int _stlink_usb_exit_dfu_mode(stlink_t* sl) {
 
     size = send_only(slu, 1, cmd, slu->cmd_len);
     if (size == -1) {
-        printf("[!] send_recv\n");
+        printf("[!] send_recv STLINK_DFU_EXIT\n");
         return (int) size;
     }
 
@@ -360,7 +375,7 @@ int _stlink_usb_reset(stlink_t * sl) {
 
     size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len);
     if (size == -1) {
-        printf("[!] send_recv\n");
+        printf("[!] send_recv STLINK_DEBUG_RESETSYS\n");
         return (int) size;
     }
 
@@ -382,7 +397,7 @@ int _stlink_usb_jtag_reset(stlink_t * sl, int value) {
 
     size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len);
     if (size == -1) {
-        printf("[!] send_recv\n");
+        printf("[!] send_recv STLINK_JTAG_DRIVE_NRST\n");
         return (int) size;
     }
 
@@ -403,7 +418,7 @@ int _stlink_usb_step(stlink_t* sl) {
 
     size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len);
     if (size == -1) {
-        printf("[!] send_recv\n");
+        printf("[!] send_recv STLINK_DEBUG_STEPCORE\n");
         return (int) size;
     }
 
@@ -427,7 +442,7 @@ int _stlink_usb_run(stlink_t* sl) {
 
     size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len);
     if (size == -1) {
-        printf("[!] send_recv\n");
+        printf("[!] send_recv STLINK_DEBUG_RUNCORE\n");
         return (int) size;
     }
 
@@ -445,7 +460,7 @@ int _stlink_usb_exit_debug_mode(stlink_t *sl) {
 
     size = send_only(slu, 1, cmd, slu->cmd_len);
     if (size == -1) {
-        printf("[!] send_only\n");
+        printf("[!] send_only STLINK_DEBUG_EXIT\n");
         return (int) size;
     }
 
@@ -466,7 +481,7 @@ int _stlink_usb_read_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
 
     size = send_recv(slu, 1, cmd, slu->cmd_len, data, len);
     if (size == -1) {
-        printf("[!] send_recv\n");
+        printf("[!] send_recv STLINK_DEBUG_READMEM_32BIT\n");
         return (int) size;
     }
 
@@ -488,7 +503,7 @@ int _stlink_usb_read_all_regs(stlink_t *sl, struct stlink_reg *regp) {
     cmd[i++] = STLINK_DEBUG_READALLREGS;
     size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len);
     if (size == -1) {
-        printf("[!] send_recv\n");
+        printf("[!] send_recv STLINK_DEBUG_READALLREGS\n");
         return (int) size;
     }
     sl->q_len = (int) size;
@@ -526,7 +541,7 @@ int _stlink_usb_read_reg(stlink_t *sl, int r_idx, struct stlink_reg *regp) {
     cmd[i++] = (uint8_t) r_idx;
     size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len);
     if (size == -1) {
-        printf("[!] send_recv\n");
+        printf("[!] send_recv STLINK_DEBUG_READREG\n");
         return (int) size;
     }
     sl->q_len = (int) size;
@@ -674,7 +689,7 @@ int _stlink_usb_write_reg(stlink_t *sl, uint32_t reg, int idx) {
     write_uint32(&cmd[i], reg);
     size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len);
     if (size == -1) {
-        printf("[!] send_recv\n");
+        printf("[!] send_recv STLINK_DEBUG_WRITEREG\n");
         return (int) size;
     }
 sl->q_len = (int) size;
