@@ -159,8 +159,6 @@ int parse_options(int argc, char** argv, st_state_t *st) {
 
 
 int main(int argc, char** argv) {
-    int32_t voltage;
-
     stlink_t *sl = NULL;
 
     st_state_t state;
@@ -192,11 +190,6 @@ int main(int argc, char** argv) {
     }
 
     ILOG("Chip ID is %08x, Core ID is  %08x.\n", sl->chip_id, sl->core_id);
-
-    voltage = stlink_target_voltage(sl);
-    if (voltage != -1) {
-        ILOG("Target voltage is %d mV.\n", voltage);
-    }
 
     sl->verbose=0;
 
