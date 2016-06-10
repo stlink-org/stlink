@@ -790,7 +790,10 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, bool reset, char serial[16
         if ((desc.idProduct == STLINK_USB_PID_STLINK_32L) || (desc.idProduct == STLINK_USB_PID_STLINK_NUCLEO)) {
             struct libusb_device_handle *handle;
 
-            libusb_open(list[cnt], &handle);
+            ret = libusb_open(list[cnt], &handle);
+            if (ret)
+		continue;
+
             sl->serial_size = libusb_get_string_descriptor_ascii(handle, desc.iSerialNumber,
                                                                  (unsigned char *)sl->serial, sizeof(sl->serial));
             libusb_close(handle);
