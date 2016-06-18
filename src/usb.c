@@ -45,7 +45,7 @@ ssize_t send_recv(struct stlink_libusb* handle, int terminate,
         return -1;
     } else if ((size_t)res != txsize) {
         printf("[!] send_recv send request wrote %u bytes (instead of %u).\n",
-	       (unsigned int)res, (unsigned int)txsize);
+       (unsigned int)res, (unsigned int)txsize);
     }
 
     if (rxsize != 0) {
