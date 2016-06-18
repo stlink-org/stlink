@@ -51,6 +51,7 @@ extern "C" {
     /* cortex core ids */
     // TODO clean this up...
 #define STM32VL_CORE_ID 0x1ba01477
+#define STM32F7_CORE_ID 0x5ba02477
 
     // Constant STM32 memory map figures
 #define STM32_FLASH_BASE 0x08000000
