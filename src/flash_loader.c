@@ -231,7 +231,8 @@ int stlink_flash_loader_write_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* 
             loader_code = loader_code_stm32f4_lv;
             loader_size = sizeof(loader_code_stm32f4_lv);
         }
-    } else if (sl->chip_id == STLINK_CHIPID_STM32_F7){
+    } else if (sl->chip_id == STLINK_CHIPID_STM32_F7 ||
+               sl->chip_id == STLINK_CHIPID_STM32_F7XXXX) {
         loader_code = loader_code_stm32f7;
         loader_size = sizeof(loader_code_stm32f7);
     } else if (sl->chip_id == STLINK_CHIPID_STM32_F0 || sl->chip_id == STLINK_CHIPID_STM32_F04 || sl->chip_id == STLINK_CHIPID_STM32_F0_CAN || sl->chip_id == STLINK_CHIPID_STM32_F0_SMALL || sl->chip_id == STLINK_CHIPID_STM32_F09X) {
