@@ -103,7 +103,7 @@ struct stlinky*  stlinky_detect(stlink_t* sl)
             st->off = sram_base + off;
             stlink_read_mem32(sl, st->off + 4, 4);
             st->bufsize = READ_UINT32_LE(sl->q_buf);
-            printf("stlinky buffer size 0x%zu \n", st->bufsize);
+            printf("stlinky buffer size 0x%u \n", (unsigned int)st->bufsize);
             multiple++;
         }
     }
@@ -283,7 +283,7 @@ int main(int ac, char** av) {
             printf("using stlinky at 0x%x\n", st->off);
             stlink_read_mem32(gsl, st->off + 4, 4);
             st->bufsize = READ_UINT32_LE(gsl->q_buf);
-            printf("stlinky buffer size 0x%zu \n", st->bufsize);
+            printf("stlinky buffer size 0x%u \n", (unsigned int)st->bufsize);
         }else{
             cleanup(0);
         }

@@ -611,9 +611,9 @@ int stlink_load_device_params(stlink_t *sl) {
 
     ILOG("Device connected is: %s, id %#x\n", params->description, chip_id);
     // TODO make note of variable page size here.....
-    ILOG("SRAM size: %#x bytes (%d KiB), Flash: %#x bytes (%d KiB) in pages of %zd bytes\n",
+    ILOG("SRAM size: %#x bytes (%d KiB), Flash: %#x bytes (%d KiB) in pages of %u bytes\n",
             sl->sram_size, sl->sram_size / 1024, sl->flash_size, sl->flash_size / 1024,
-            sl->flash_pgsz);
+	 (unsigned int)sl->flash_pgsz);
     return 0;
 }
 
@@ -1445,7 +1445,7 @@ int stlink_verify_write_flash(stlink_t *sl, stm32_addr_t address, uint8_t *data,
         stlink_read_mem32(sl, address + (uint32_t) off, aligned_size);
 
         if (memcmp(sl->q_buf, data + off, cmp_size)) {
-            ELOG("Verification of flash failed at offset: %zd\n", off);
+	  ELOG("Verification of flash failed at offset: %u\n", (unsigned int)off);
             return -1;
         }
     }
@@ -1608,7 +1608,7 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uint32_t 
         for(off = 0; off < len;) {
             size_t size = len - off > 0x8000 ? 0x8000 : len - off;
 
-            printf("size: %zu\n", size);
+            printf("size: %u\n", (unsigned int)size);
 
             if (stlink_flash_loader_run(sl, &fl, addr + (uint32_t) off, base + off, size) == -1) {
                 ELOG("stlink_flash_loader_run(%#zx) failed! == -1\n", addr + off);
@@ -1677,8 +1677,9 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uint32_t 
                 fprintf(stdout, "\r");
 
             if ((off % sl->flash_pgsz) > (sl->flash_pgsz -5)) {
-                fprintf(stdout, "\r%3zd/%3zd pages written",
-                        off/sl->flash_pgsz, len/sl->flash_pgsz);
+                fprintf(stdout, "\r%3u/%3u pages written",
+                        (unsigned int)(off/sl->flash_pgsz),
+			(unsigned int)(len/sl->flash_pgsz));
                 fflush(stdout);
             }
 

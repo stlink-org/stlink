@@ -460,7 +460,7 @@ dev_format_chip_id (guint32 chip_id)
 static gchar *
 dev_format_mem_size (gsize flash_size)
 {
-    return g_strdup_printf ("%zu kB", flash_size / 1024);
+  return g_strdup_printf ("%u kB", (unsigned int)(flash_size / 1024));
 }
 
 

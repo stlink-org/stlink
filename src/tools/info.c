@@ -49,8 +49,10 @@ static void stlink_print_info(stlink_t *sl)
     printf("openocd: ");
     stlink_print_serial(sl, true);
 
-    printf("  flash: %zu (pagesize: %zu)\n", sl->flash_size, sl->flash_pgsz);
-    printf("   sram: %zu\n",       sl->sram_size);
+    printf("  flash: %u (pagesize: %u)\n",
+	   (unsigned int)sl->flash_size, (unsigned int)sl->flash_pgsz);
+
+    printf("   sram: %u\n",       (unsigned int)sl->sram_size);
     printf(" chipid: 0x%.4x\n",    sl->chip_id);
 
 	params = stlink_chipid_get_params(sl->chip_id);
@@ -65,7 +67,7 @@ static void stlink_probe(void)
 
     size = stlink_probe_usb(&stdevs);
 
-    printf("Found %zu stlink programmers\n", size);
+    printf("Found %u stlink programmers\n", (unsigned int)size);
 
     for (size_t n = 0; n < size; n++)
         stlink_print_info(stdevs[n]);

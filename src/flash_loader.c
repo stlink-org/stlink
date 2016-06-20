@@ -263,7 +263,7 @@ int stlink_flash_loader_run(stlink_t *sl, flash_loader_t* fl, stm32_addr_t targe
     int i = 0;
     size_t count = 0;
 
-    DLOG("Running flash loader, write address:%#x, size: %zd\n", target, size);
+    DLOG("Running flash loader, write address:%#x, size: %u\n", target, (unsigned int)size);
     // FIXME This can never return -1
     if (write_buffer_to_sram(sl, fl, buf, size) == -1) {
         // IMPOSSIBLE!
