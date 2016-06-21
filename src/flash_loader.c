@@ -220,16 +220,23 @@ int stlink_flash_loader_write_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* 
 		sl->chip_id == STLINK_CHIPID_STM32_F411RE ||
 		sl->chip_id == STLINK_CHIPID_STM32_F446
 		) {
-        int voltage = stlink_target_voltage(sl);
-        if (voltage == -1) {
-            printf("Failed to read Target voltage\n");
-            return voltage;
-        } else if (voltage > 2700) {
+        if( sl->version.stlink_v == 1 ) {
+            printf("STLINK V1 cannot read voltage, defaulting to 32-bit writes on F4 devices\n");
             loader_code = loader_code_stm32f4;
             loader_size = sizeof(loader_code_stm32f4);
-        } else {
-            loader_code = loader_code_stm32f4_lv;
-            loader_size = sizeof(loader_code_stm32f4_lv);
+        }
+        else {
+            int voltage = stlink_target_voltage(sl);
+            if (voltage == -1) {
+                printf("Failed to read Target voltage\n");
+                return voltage;
+            } else if (voltage > 2700) {
+                loader_code = loader_code_stm32f4;
+                loader_size = sizeof(loader_code_stm32f4);
+            } else {
+                loader_code = loader_code_stm32f4_lv;
+                loader_size = sizeof(loader_code_stm32f4_lv);
+            }
         }
     } else if (sl->core_id == STM32F7_CORE_ID ||
                sl->chip_id == STLINK_CHIPID_STM32_F7 ||
