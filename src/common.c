@@ -1578,17 +1578,23 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uint32_t 
 
         /* TODO: Check that Voltage range is 2.7 - 3.6 V */
         if (sl->chip_id != STLINK_CHIPID_STM32_L4) {
-            /* set parallelisim to 32 bit*/
-            int voltage = stlink_target_voltage(sl);
-            if (voltage == -1) {
-                printf("Failed to read Target voltage\n");
-                return voltage;
-            } else if (voltage > 2700) {
-                printf("enabling 32-bit flash writes\n");
+            if( sl->version.stlink_v == 1 ) {
+                printf("STLINK V1 cannot read voltage, defaulting to 32-bit writes on F4 devices\n");
                 write_flash_cr_psiz(sl, 2);
-            } else {
-                printf("Target voltage (%d mV) too low for 32-bit flash, using 8-bit flash writes\n", voltage);
-                write_flash_cr_psiz(sl, 0);
+            }
+            else {
+                /* set parallelisim to 32 bit*/
+                int voltage = stlink_target_voltage(sl);
+                if (voltage == -1) {
+                    printf("Failed to read Target voltage\n");
+                    return voltage;
+                } else if (voltage > 2700) {
+                    printf("enabling 32-bit flash writes\n");
+                    write_flash_cr_psiz(sl, 2);
+                } else {
+                    printf("Target voltage (%d mV) too low for 32-bit flash, using 8-bit flash writes\n", voltage);
+                    write_flash_cr_psiz(sl, 0);
+                }
             }
         } else {
             /* L4 does not have a byte-write mode */
