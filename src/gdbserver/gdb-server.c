@@ -429,7 +429,7 @@ char* make_memory_map(stlink_t *sl) {
 
     if(sl->chip_id==STLINK_CHIPID_STM32_F4 || sl->chip_id==STLINK_CHIPID_STM32_F446) {
         strcpy(map, memory_map_template_F4);
-    } else if(sl->chip_id==STLINK_CHIPID_STM32_F4 || sl->chip_id==STLINK_CHIPID_STM32_F7) {
+    } else if(sl->chip_id==STLINK_CHIPID_STM32_F4 || sl->core_id==STM32F7_CORE_ID) {
         strcpy(map, memory_map_template_F7);
     } else if(sl->chip_id==STLINK_CHIPID_STM32_F4_HD) {
         strcpy(map, memory_map_template_F4_HD);
@@ -601,7 +601,7 @@ static int update_code_breakpoint(stlink_t *sl, stm32_addr_t addr, int set) {
         return -1;
     }
 
-	if (sl->chip_id==STLINK_CHIPID_STM32_F7) {
+	if (sl->core_id==STM32F7_CORE_ID) {
 		fpb_addr = addr;
 	} else {
 		fpb_addr = addr & ~0x3;
@@ -625,7 +625,7 @@ static int update_code_breakpoint(stlink_t *sl, stm32_addr_t addr, int set) {
 
     brk->addr = fpb_addr;
 
-	if (sl->chip_id==STLINK_CHIPID_STM32_F7) {
+	if (sl->core_id==STM32F7_CORE_ID) {
 		if(set) brk->type = type;
 		else	brk->type = 0;
 
@@ -751,7 +751,7 @@ static int flash_go(stlink_t *sl) {
                         send, 0) < 0)
                 goto error;
             length -= send;
-            
+
         }
     }
 
@@ -835,7 +835,7 @@ static void init_cache (stlink_t *sl) {
   int i;
 
   /* Assume only F7 has a cache.  */
-  if(sl->chip_id!=STLINK_CHIPID_STM32_F7)
+  if(sl->core_id!=STM32F7_CORE_ID)
     return;
 
   stlink_read_debug32(sl, CLIDR, &clidr);
@@ -916,7 +916,7 @@ static void cache_sync(stlink_t *sl)
 {
   unsigned ccr;
 
-  if(sl->chip_id!=STLINK_CHIPID_STM32_F7)
+  if(sl->core_id!=STM32F7_CORE_ID)
     return;
   if (!cache_modified)
     return;
@@ -1019,7 +1019,7 @@ int serve(stlink_t *sl, st_state_t *st) {
                 if(!strcmp(queryName, "Supported")) {
                     if(sl->chip_id==STLINK_CHIPID_STM32_F4
 		       || sl->chip_id==STLINK_CHIPID_STM32_F4_HD
-		       || sl->chip_id==STLINK_CHIPID_STM32_F7) {
+                       || sl->core_id==STM32F7_CORE_ID) {
                         reply = strdup("PacketSize=3fff;qXfer:memory-map:read+;qXfer:features:read+");
                     }
                     else {

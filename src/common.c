@@ -1163,7 +1163,7 @@ uint32_t calculate_F4_sectornum(uint32_t flashaddr){
     if (flashaddr >= 0x100000) {
         offset = 12;
         flashaddr -= 0x100000;
-    } 
+    }
     if (flashaddr<0x4000) return (offset + 0);
     else if(flashaddr<0x8000) return(offset + 1);
     else if(flashaddr<0xc000) return(offset + 2);
@@ -1211,7 +1211,7 @@ uint32_t stlink_calculate_pagesize(stlink_t *sl, uint32_t flashaddr){
         else if(sector<5) sl->flash_pgsz=0x10000;
         else sl->flash_pgsz=0x20000;
     }
-    else if (sl->chip_id == STLINK_CHIPID_STM32_F7) {
+    else if (sl->chip_id == STLINK_CHIPID_STM32_F7 || sl->chip_id == STLINK_CHIPID_STM32_F7XXXX) {
         uint32_t sector=calculate_F7_sectornum(flashaddr);
         if (sector<4) sl->flash_pgsz=0x8000;
         else if(sector<5) sl->flash_pgsz=0x20000;
@@ -1243,7 +1243,7 @@ int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr)
             fprintf(stderr, "EraseFlash - Page:0x%x Size:0x%x ", page, stlink_calculate_pagesize(sl, flashaddr));
 
             write_flash_cr_bker_pnb(sl, page);
-        } else if (sl->chip_id == STLINK_CHIPID_STM32_F7) {
+        } else if (sl->chip_id == STLINK_CHIPID_STM32_F7 || sl->chip_id == STLINK_CHIPID_STM32_F7XXXX) {
             // calculate the actual page from the address
             uint32_t sector=calculate_F7_sectornum(flashaddr);
 
@@ -1255,7 +1255,7 @@ int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr)
             uint32_t sector=calculate_F4_sectornum(flashaddr);
 
             fprintf(stderr, "EraseFlash - Sector:0x%x Size:0x%x ", sector, stlink_calculate_pagesize(sl, flashaddr));
-        
+
             //the SNB values for flash sectors in the second bank do not directly follow the values for the first bank on 2mb devices...
             if (sector >= 12) sector += 4;
 
