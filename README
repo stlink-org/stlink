@@ -137,7 +137,7 @@ for GDB.
 ## Setting up udev rules
 
 For convenience, you may install udev rules file, 49-stlinkv*.rules, located
-in the root of repository. You will need to copy it to /etc/udev/rules.d,
+in etc/udev/rules.d (from root of repository). You will need to copy it to /etc/udev/rules.d,
 and then either reboot or execute
 
 ```
