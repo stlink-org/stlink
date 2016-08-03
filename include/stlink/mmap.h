@@ -1,7 +1,7 @@
 #ifndef STLINK_MMAP_H
 #define STLINK_MMAP_H
 
-#ifdef HAVE_SYS_MMAN_H
+#ifdef STLINK_HAVE_SYS_MMAN_H
 #include <sys/mman.h>
 #else
 

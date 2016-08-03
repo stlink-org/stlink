@@ -2,6 +2,7 @@ project(stlink C)
 cmake_minimum_required(VERSION 2.8.7)
 
 include(CheckCCompilerFlag)
+include(CheckIncludeFile)
 find_package(PkgConfig)
 
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_SOURCE_DIR}/cmake/modules")
@@ -45,6 +46,11 @@ if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
 	add_cflag_if_supported("-O0")
 elseif()
 	add_cflag_if_supported("-O2")
+endif()
+
+CHECK_INCLUDE_FILE(sys/mman.h STLINK_HAVE_SYS_MMAN_H)
+if (STLINK_HAVE_SYS_MMAN_H)
+	add_definitions(-DSTLINK_HAVE_SYS_MMAN_H)
 endif()
 
 set(STLINK_HEADERS
