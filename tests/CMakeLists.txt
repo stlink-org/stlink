@@ -1,5 +1,6 @@
 set(TESTS
 	usb
+	sg
 )
 
 foreach(test ${TESTS})

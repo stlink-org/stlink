@@ -7,8 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "stlink-common.h"
-#include "uglylogging.h"
+#include <stlink.h>
 
 static void __attribute__((unused)) mark_buf(stlink_t *sl) {
     memset(sl->q_buf, 0, sizeof(sl->q_buf));
@@ -164,15 +163,6 @@ int main(int argc, char *argv[]) {
     stlink_write_mem32(sl, 0x20000000, 1024 * 8); //8kB
     stlink_read_mem32(sl, 0x20000000, 1024 * 6);
     stlink_read_mem32(sl, 0x20000000 + 1024 * 6, 1024 * 2);
-#endif
-#if 1
-    reg regs;
-    stlink_read_all_regs(sl, &regs);
-    stlink_step(sl);
-    fputs("++++++++++ write r0 = 0x12345678\n", stderr);
-    stlink_write_reg(sl, 0x12345678, 0);
-    stlink_read_reg(sl, 0, &regs);
-    stlink_read_all_regs(sl, &regs);
 #endif
 #if 0
     stlink_run(sl);
