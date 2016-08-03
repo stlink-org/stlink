@@ -15,7 +15,7 @@
 #include "stlink/logging.h"
 
 #ifndef _WIN32
-#define O_BINARY 0
+#define O_BINARY 0 //! @todo get rid of this OH MY (@xor-gate)
 #endif
 
 /* todo: stm32l15xxx flash memory, pm0062 manual */

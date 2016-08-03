@@ -1,6 +1,15 @@
 Stlink ChangeLog
 ================
 
+v2.0.0
+======
+
+Ongoing development
+
+Major changes:
+
+* Deprecation of autotools (autoconf, automake)
+
 v1.2.0
 ======
 

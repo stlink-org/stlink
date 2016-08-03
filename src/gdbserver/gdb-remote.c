@@ -7,11 +7,11 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <stdint.h>
 #ifdef __MINGW32__
-#include "mingw.h"
+#include <mingw.h>
 #else
+#include <unistd.h>
 #include <sys/poll.h>
 #endif
 
