@@ -927,6 +927,21 @@ static void cache_sync(stlink_t *sl)
     cache_flush(sl, ccr);
 }
 
+static size_t unhexify(const char *in, char *out, size_t out_count)
+{
+    size_t i;
+    unsigned int c;
+
+    for (i = 0; i < out_count; i++) {
+        if (sscanf(in + (2 * i), "%02x", &c) != 1) {
+            return i;
+        }
+        out[i] = (char)c;
+    }
+
+    return i;
+}
+
 int serve(stlink_t *sl, st_state_t *st) {
     int sock = socket(AF_INET, SOCK_STREAM, 0);
     if(sock < 0) {
@@ -1073,20 +1088,34 @@ int serve(stlink_t *sl, st_state_t *st) {
                         params = separator + 1;
                     }
 
+                    size_t hex_len = strlen(params);
+                    size_t alloc_size = (hex_len / 2) + 1;
+                    size_t cmd_len;
+                    char *cmd = malloc(alloc_size);
 
-                    if (!strncmp(params,"726573756d65",12)) {// resume
+                    if (cmd == NULL) {
+                        DLOG("Rcmd unhexify allocation error\n");
+                        break;
+                    }
+
+                    cmd_len = unhexify(params, cmd, alloc_size - 1);
+                    cmd[cmd_len] = 0;
+
+                    DLOG("unhexified Rcmd: '%s'\n", cmd);
+
+                    if (!strncmp(cmd, "resume", 6)) {// resume
                         DLOG("Rcmd: resume\n");
                         cache_sync(sl);
                         stlink_run(sl);
 
                         reply = strdup("OK");
-                    } else if (!strncmp(params,"68616c74",8)) { //halt
+                    } else if (!strncmp(cmd, "halt", 4)) { //halt
                         reply = strdup("OK");
 
                         stlink_force_debug(sl);
 
                         DLOG("Rcmd: halt\n");
-                    } else if (!strncmp(params,"6a7461675f7265736574",20)) { //jtag_reset
+                    } else if (!strncmp(cmd, "jtag_reset", 10)) { //jtag_reset
                         reply = strdup("OK");
 
                         stlink_jtag_reset(sl, 0);
@@ -1094,7 +1123,7 @@ int serve(stlink_t *sl, st_state_t *st) {
                         stlink_force_debug(sl);
 
                         DLOG("Rcmd: jtag_reset\n");
-                    } else if (!strncmp(params,"7265736574",10)) { //reset
+                    } else if (!strncmp(cmd, "reset", 5)) { //reset
                         reply = strdup("OK");
 
                         stlink_force_debug(sl);
@@ -1104,9 +1133,9 @@ int serve(stlink_t *sl, st_state_t *st) {
 
                         DLOG("Rcmd: reset\n");
                     } else {
-                        DLOG("Rcmd: %s\n", params);
+                        DLOG("Rcmd: %s\n", cmd);
                     }
-
+                    free(cmd);
                 }
 
                 if(reply == NULL)
