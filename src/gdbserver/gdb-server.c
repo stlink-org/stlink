@@ -24,13 +24,18 @@
 
 #include "gdb-remote.h"
 #include "gdb-server.h"
+#include "semihosting.h"
 
 #define FLASH_BASE 0x08000000
+
+/* Semihosting doesn't have a short option, we define a value to identify it */
+#define SEMIHOSTING_OPTION 128
 
 //Allways update the FLASH_PAGE before each use, by calling stlink_calculate_pagesize
 #define FLASH_PAGE (sl->flash_pgsz)
 
 static stlink_t *connected_stlink = NULL;
+bool semihosting = false;
 
 static const char hex[] = "0123456789abcdef";
 
@@ -72,6 +77,7 @@ int parse_options(int argc, char** argv, st_state_t *st) {
         {"listen_port", required_argument, NULL, 'p'},
         {"multi", optional_argument, NULL, 'm'},
         {"no-reset", optional_argument, NULL, 'n'},
+        {"semihosting", no_argument, NULL, SEMIHOSTING_OPTION},
         {0, 0, 0, 0},
     };
     const char * help_str = "%s - usage:\n\n"
@@ -89,6 +95,8 @@ int parse_options(int argc, char** argv, st_state_t *st) {
         "\t\t\tst-util will continue listening for connections after disconnect.\n"
         "  -n, --no-reset\n"
         "\t\t\tDo not reset board on connection.\n"
+        "  --semihosting\n"
+        "\t\t\tEnable semihosting support.\n"
         "\n"
         "The STLINKv2 device to use can be specified in the environment\n"
         "variable STLINK_DEVICE on the format <USB_BUS>:<USB_ADDR>.\n"
@@ -144,6 +152,9 @@ int parse_options(int argc, char** argv, st_state_t *st) {
                 break;
             case 'n':
                 st->reset = 0;
+                break;
+            case SEMIHOSTING_OPTION:
+                semihosting = true;
                 break;
         }
     }
@@ -589,6 +600,16 @@ static void init_code_breakpoints(stlink_t *sl) {
         code_breaks[i].type = 0;
         stlink_write_debug32(sl, STLINK_REG_CM3_FP_COMP0 + i * 4, 0);
     }
+}
+
+static int has_breakpoint(stm32_addr_t addr)
+{
+    for(int i = 0; i < code_break_num; i++) {
+        if (code_breaks[i].addr == addr) {
+            return 1;
+        }
+    }
+    return 0;
 }
 
 static int update_code_breakpoint(stlink_t *sl, stm32_addr_t addr, int set) {
@@ -1132,6 +1153,28 @@ int serve(stlink_t *sl, st_state_t *st) {
                         init_data_watchpoints(sl);
 
                         DLOG("Rcmd: reset\n");
+                    } else if (!strncmp(cmd, "semihosting ", 12)) {
+                        DLOG("Rcmd: got semihosting cmd '%s'", cmd);
+                        char *arg = cmd + 12;
+
+                        /* Skip whitespaces */
+                        while (isspace(*arg)) {
+                            arg++;
+                        }
+
+                        if (!strncmp(arg, "enable", 6)
+                            || !strncmp(arg, "1", 1))
+                        {
+                            semihosting = true;
+                            reply = strdup("OK");
+                        } else if (!strncmp(arg, "disable", 7)
+                            || !strncmp(arg, "0", 1))
+                        {
+                            semihosting = false;
+                            reply = strdup("OK");
+                        } else {
+                            DLOG("Rcmd: unknown semihosting arg: '%s'\n", arg);
+                        }
                     } else {
                         DLOG("Rcmd: %s\n", cmd);
                     }
@@ -1244,7 +1287,53 @@ int serve(stlink_t *sl, st_state_t *st) {
 
                     stlink_status(sl);
                     if(sl->core_stat == STLINK_CORE_HALTED) {
-                        break;
+                        struct stlink_reg reg;
+                        int ret;
+                        stm32_addr_t pc;
+                        stm32_addr_t addr;
+                        int offset = 0;
+                        uint16_t insn;
+
+                        if (!semihosting) {
+                            break;
+                        }
+
+                        stlink_read_all_regs (sl, &reg);
+
+                        /* Read PC */
+                        pc = reg.r[15];
+
+                        /* Compute aligned value */
+                        offset = pc % 4;
+                        addr = pc - offset;
+
+                        /* Read instructions (address and length must be
+                         * aligned).
+                         */
+                        ret = stlink_read_mem32(sl, addr, (offset > 2 ? 8 : 4));
+
+                        if (ret != 0) {
+                            DLOG("Semihost: cannot read instructions at: "
+                                 "0x%08x\n", addr);
+                            break;
+                        }
+
+                        memcpy(&insn, &sl->q_buf[offset], sizeof(insn));
+
+                        if (insn == 0xBEAB && !has_breakpoint(addr)) {
+                            DLOG("Do semihosting...\n");
+
+                            do_semihosting (sl, reg.r[0], reg.r[1], &reg.r[0]);
+
+                            /* Jump over the break instruction */
+                            stlink_write_reg(sl, reg.r[15] + 2, 15);
+
+                            /* continue execution */
+                            cache_sync(sl);
+                            stlink_run(sl);
+                        } else {
+                            break;
+                        }
                     }
 
                     usleep(100000);
