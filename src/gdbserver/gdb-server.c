@@ -1321,9 +1321,11 @@ int serve(stlink_t *sl, st_state_t *st) {
                         memcpy(&insn, &sl->q_buf[offset], sizeof(insn));
 
                         if (insn == 0xBEAB && !has_breakpoint(addr)) {
-                            DLOG("Do semihosting...\n");
 
                             do_semihosting (sl, reg.r[0], reg.r[1], &reg.r[0]);
+
+                            /* Write return value */
+                            stlink_write_reg(sl, reg.r[0], 0);
 
                             /* Jump over the break instruction */
                             stlink_write_reg(sl, reg.r[15] + 2, 15);
