@@ -416,7 +416,7 @@ static const char* const memory_map_template_F7 =
     "<memory-map>"
     "  <memory type=\"ram\" start=\"0x00000000\" length=\"0x4000\"/>"       // ITCM ram 16kB
     "  <memory type=\"rom\" start=\"0x00200000\" length=\"0x100000\"/>"     // ITCM flash
-    "  <memory type=\"ram\" start=\"0x20000000\" length=\"0x50000\"/>"      // sram
+    "  <memory type=\"ram\" start=\"0x20000000\" length=\"0x%zx\"/>"      // sram
     "  <memory type=\"flash\" start=\"0x08000000\" length=\"0x20000\">"     // Sectors 0..3
     "    <property name=\"blocksize\">0x8000</property>"                    // 32kB
     "  </memory>"
@@ -435,26 +435,28 @@ static const char* const memory_map_template_F7 =
 
 char* make_memory_map(stlink_t *sl) {
     /* This will be freed in serve() */
-    char* map = malloc(4096);
+    const size_t sz = 4096;
+    char* map = malloc(sz);
     map[0] = '\0';
 
     if(sl->chip_id==STLINK_CHIPID_STM32_F4 || sl->chip_id==STLINK_CHIPID_STM32_F446) {
         strcpy(map, memory_map_template_F4);
-    } else if(sl->chip_id==STLINK_CHIPID_STM32_F4 || sl->core_id==STM32F7_CORE_ID) {
-        strcpy(map, memory_map_template_F7);
+    } else if(sl->core_id==STM32F7_CORE_ID) {
+        snprintf(map, sz, memory_map_template_F7,
+                sl->sram_size);
     } else if(sl->chip_id==STLINK_CHIPID_STM32_F4_HD) {
         strcpy(map, memory_map_template_F4_HD);
     } else if(sl->chip_id==STLINK_CHIPID_STM32_F2) {
-        snprintf(map, 4096, memory_map_template_F2,
+        snprintf(map, sz, memory_map_template_F2,
                 sl->flash_size,
                 sl->sram_size,
                 sl->flash_size - 0x20000,
                 sl->sys_base, sl->sys_size);
     } else if(sl->chip_id==STLINK_CHIPID_STM32_L4) {
-        snprintf(map, 4096, memory_map_template_L4,
+        snprintf(map, sz, memory_map_template_L4,
                 sl->flash_size, sl->flash_size);
     } else {
-        snprintf(map, 4096, memory_map_template,
+        snprintf(map, sz, memory_map_template,
                 sl->flash_size,
                 sl->sram_size,
                 sl->flash_size, sl->flash_pgsz,
@@ -1054,7 +1056,7 @@ int serve(stlink_t *sl, st_state_t *st) {
 
                 if(!strcmp(queryName, "Supported")) {
                     if(sl->chip_id==STLINK_CHIPID_STM32_F4
-		       || sl->chip_id==STLINK_CHIPID_STM32_F4_HD
+                       || sl->chip_id==STLINK_CHIPID_STM32_F4_HD
                        || sl->core_id==STM32F7_CORE_ID) {
                         reply = strdup("PacketSize=3fff;qXfer:memory-map:read+;qXfer:features:read+");
                     }
