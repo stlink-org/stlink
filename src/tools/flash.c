@@ -34,6 +34,7 @@ struct opts
     const char* devname;
 	char *serial;
     const char* filename;
+	bool is_ihex;
     stm32_addr_t addr;
     size_t size;
     int reset;
@@ -157,6 +158,7 @@ static int get_opts(struct opts* o, int ac, char** av)
     o->filename = av[i + 1];
     /** @todo This is a little evil as strtoul could return 0 and is of type unsigned long int */
     o->addr = (uint32_t) strtoul(av[i + 2], NULL, 16);
+	o->is_ihex = (0 == strcmp(".hex", o->filename + (strlen(o->filename) - 4))); // ends with .hex
 
     return 0;
 }
@@ -246,7 +248,7 @@ int main(int ac, char** av)
     {
         if ((o.addr >= sl->flash_base) &&
                 (o.addr < sl->flash_base + sl->flash_size)) {
-            err = stlink_fwrite_flash(sl, o.filename, o.addr);
+            err = stlink_fwrite_flash(sl, o.filename, o.is_ihex, o.addr);
             if (err == -1)
             {
                 printf("stlink_fwrite_flash() == -1\n");

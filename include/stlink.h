@@ -180,7 +180,9 @@ typedef struct flash_loader {
 
     int stlink_erase_flash_mass(stlink_t* sl);
     int stlink_write_flash(stlink_t* sl, stm32_addr_t address, uint8_t* data, uint32_t length, uint8_t eraseonly);
-    int stlink_fwrite_flash(stlink_t *sl, const char* path, stm32_addr_t addr);
+		uint8_t stlink_parse_hex(const char* hex);
+		int stlink_parse_ihex(const char* path, uint8_t erased_pattern, uint8_t * * mem, size_t * size, uint32_t * begin);
+    int stlink_fwrite_flash(stlink_t *sl, const char* path, bool is_ihex, stm32_addr_t addr);
     int stlink_fwrite_sram(stlink_t *sl, const char* path, stm32_addr_t addr);
     int stlink_verify_write_flash(stlink_t *sl, stm32_addr_t address, uint8_t *data, uint32_t length);
 

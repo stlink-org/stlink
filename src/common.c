@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <errno.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/types.h>
@@ -1753,6 +1754,173 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uint32_t 
     return stlink_verify_write_flash(sl, addr, base, len);
 }
 
+// note: length not checked
+uint8_t stlink_parse_hex(const char* hex) {
+	uint8_t d[2];
+	for(int i = 0; i < 2; ++i) {
+		char c = *(hex + i);
+		if(c >= '0' && c <= '9') d[i] = c - '0';
+		else if(c >= 'A' && c <= 'F') d[i] = c - 'A' + 10;
+		else if(c >= 'a' && c <= 'f') d[i] = c - 'a' + 10;
+		else return 0; // error
+	}
+	return (d[0] << 4) | (d[1]);
+}
+
+int stlink_parse_ihex(const char* path, uint8_t erased_pattern, uint8_t * * mem, size_t * size, uint32_t * begin) {
+	int res = 0;
+	*begin = UINT32_MAX;
+	uint8_t* data = NULL;
+	uint32_t end = 0;
+	bool eof_found = false;
+
+	for(int scan = 0; (res == 0) && (scan < 2); ++scan) { // parse file two times - first to find memory range, second - to fill it
+		if(scan == 1) {
+			if(!eof_found) {
+				ELOG("No EoF recond\n");
+				res = -1;
+				break;
+			}
+
+			if(*begin >= end) {
+				ELOG("No data found in file\n");
+				res = -1;
+				break;
+			}
+
+			*size = (end - *begin) + 1;
+			data = calloc(*size, 1); // use calloc to get NULL if out of memory
+			if(!data) {
+				ELOG("Cannot allocate %d bytes\n", *size);
+				res = -1;
+				break;
+			}
+
+			memset(data, erased_pattern, *size);
+		}
+
+		FILE* file = fopen(path, "r");
+		if(!file) {
+			ELOG("Cannot open file\n");
+			res = -1;
+			break;
+		}
+
+		uint32_t lba = 0;
+
+		char line[1 + 5*2 + 255*2 + 2];
+		while(fgets(line, sizeof(line), file)) {
+			if(line[0] == '\n' || line[0] == '\r') continue; // skip empty lines
+			if(line[0] != ':') { // no marker - wrong file format
+				ELOG("Wrong file format - no marker\n");
+				res = -1;
+				break;
+			}
+
+			size_t l = strlen(line);
+			while(l > 0 && (line[l-1] == '\n' || line[l-1] == '\r')) --l; // trim EoL
+			if((l < 11) || (l == (sizeof(line)-1))) { // line too short or long - wrong file format
+				ELOG("Wrong file format - wrong line length\n");
+				res = -1;
+				break;
+			}
+
+			// check sum
+			uint8_t chksum = 0;
+			for(size_t i = 1; i < l; i += 2) {
+				chksum += stlink_parse_hex(line + i);
+			}
+			if(chksum != 0) {
+				ELOG("Wrong file format - checksum mismatch\n");
+				res = -1;
+				break;
+			}
+
+			uint8_t reclen = stlink_parse_hex(line + 1);
+			if(((uint32_t)reclen + 5)*2 + 1 != l) {
+				ELOG("Wrong file format - record length mismatch\n");
+				res = -1;
+				break;
+			}
+
+			uint16_t offset  = ((uint16_t)stlink_parse_hex(line + 3) << 8) | ((uint16_t)stlink_parse_hex(line + 5));
+			uint8_t  rectype = stlink_parse_hex(line + 7);
+
+			switch(rectype) {
+				case 0: // data
+					if(scan == 0) {
+						uint32_t b = lba + offset;
+						uint32_t e = b + reclen - 1;
+						if(b < *begin) *begin = b;
+						if(e > end) end = e;
+					}
+					else {
+						for(size_t i = 0; i < reclen; ++i) {
+							uint8_t b = stlink_parse_hex(line + 9 + i*2);
+							uint32_t addr = lba + offset + i;
+							if(addr >= *begin && addr <= end) {
+								data[addr - *begin] = b;
+							}
+						}
+					}
+					break;
+
+				case 1: // EoF
+					eof_found = true;
+					break;
+
+				case 2: // Extended Segment Address, unexpected
+					res = -1;
+					break;
+
+				case 3: // Start Segment Address, unexpected
+					res = -1;
+					break;
+
+				case 4: // Extended Linear Address
+					if(reclen == 2) {
+						lba = ((uint32_t)stlink_parse_hex(line + 9) << 24) | ((uint32_t)stlink_parse_hex(line + 11) << 16);
+					}
+					else {
+						ELOG("Wrong file format - wrong LBA length\n");
+						res = -1;
+					}
+					break;
+
+				case 5: // Start Linear Address - expected, but ignore
+					break;
+
+				default:
+					ELOG("Wrong file format - unexpected record type %d\n", rectype);
+					res = -1;
+			}
+			if(res != 0) break;
+		}
+
+		fclose(file);
+	}
+
+	if(res == 0) {
+		*mem = data;
+	}
+	else {
+		free(data);
+	}
+
+	return res;
+}
+
+// FIXME remove
+void dumpMem(uint8_t const * mem, size_t len) {
+	for(size_t i = 0; i < len; ++i) {
+		if(i > 0 && i % 16 == 0) printf("\n");
+		else if(i > 0 && i % 8 == 0) printf(" ");
+		if(i % 16 == 0) printf("%08zx  ", i);
+		printf("%02x ", mem[i]);
+	}
+	printf("\n");
+}
+
 /**
  * Write the given binary file into flash at address "addr"
  * @param sl
@@ -1760,35 +1928,49 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uint32_t 
  * @param addr where to start writing
  * @return 0 on success, -ve on failure.
  */
-int stlink_fwrite_flash(stlink_t *sl, const char* path, stm32_addr_t addr) {
+int stlink_fwrite_flash(stlink_t *sl, const char* path, bool is_ihex, stm32_addr_t addr) {
     /* write the file in flash at addr */
     int err;
     unsigned int num_empty, index, val;
     unsigned char erased_pattern;
     mapped_file_t mf = MAPPED_FILE_INITIALIZER;
-
-    if (map_file(&mf, path) == -1) {
-        ELOG("map_file() == -1\n");
-        return -1;
-    }
+		uint8_t * mem;
+		size_t size;
+		bool eraseonly = false;
 
     if (sl->flash_type == STLINK_FLASH_TYPE_L0)
         erased_pattern = 0x00;
     else
         erased_pattern = 0xff;
 
-    index = (unsigned int) mf.len;
-    for(num_empty = 0; num_empty != mf.len; ++num_empty) {
-        if (mf.base[--index] != erased_pattern) {
-            break;
-        }
-    }
-    /* Round down to words */
-    num_empty -= (num_empty & 3);
-    if(num_empty != 0) {
-        ILOG("Ignoring %d bytes of 0x%02x at end of file\n", num_empty, erased_pattern);
-    }
-    err = stlink_write_flash(sl, addr, mf.base, (num_empty == mf.len) ? (uint32_t) mf.len : (uint32_t) mf.len - num_empty, num_empty == mf.len);
+		if(is_ihex) {
+			uint32_t begin;
+			if(0 != stlink_parse_ihex(path, 0xFF, &mem, &size, &begin))
+				return -1;
+			addr = begin;
+		}
+		else {
+			if (map_file(&mf, path) == -1) {
+					ELOG("map_file() == -1\n");
+					return -1;
+			}
+
+			index = (unsigned int) mf.len;
+			for(num_empty = 0; num_empty != mf.len; ++num_empty) {
+					if (mf.base[--index] != erased_pattern) {
+							break;
+					}
+			}
+			/* Round down to words */
+			num_empty -= (num_empty & 3);
+			if(num_empty != 0) {
+					ILOG("Ignoring %d bytes of 0x%02x at end of file\n", num_empty, erased_pattern);
+			}
+			mem = mf.base;
+			size = (num_empty == mf.len) ? (uint32_t) mf.len : (uint32_t) mf.len - num_empty;
+			eraseonly = (num_empty == mf.len);
+		}
+		err = stlink_write_flash(sl, addr, mem, size, eraseonly);
     /* set stack*/
     stlink_read_debug32(sl, addr, &val);
     stlink_write_reg(sl, val, 13);
@@ -1796,6 +1978,9 @@ int stlink_fwrite_flash(stlink_t *sl, const char* path, stm32_addr_t addr) {
     stlink_read_debug32(sl, addr + 4, &val);
     stlink_write_reg(sl, val, 15);
     stlink_run(sl);
-    unmap_file(&mf);
+		if(is_ihex)
+			free(mem);
+		else
+			unmap_file(&mf);
     return err;
 }
