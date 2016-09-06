@@ -10,9 +10,7 @@
 #include <sys/types.h>
 
 #include <stlink.h>
-
-#define DEBUG_LOG_LEVEL 100
-#define STND_LOG_LEVEL  50
+#include <stlink/tools/flash.h>
 
 static stlink_t *connected_stlink = NULL;
 
@@ -27,153 +25,24 @@ static void cleanup(int signal __attribute__((unused))) {
     exit(1);
 }
 
-enum st_cmds {DO_WRITE = 0, DO_READ = 1, DO_ERASE = 2};
-struct opts
-{
-    enum st_cmds cmd;
-    const char* devname;
-	char *serial;
-    const char* filename;
-	bool is_ihex;
-    stm32_addr_t addr;
-    size_t size;
-    int reset;
-    int log_level;
-};
-
 static void usage(void)
 {
-    puts("stlinkv1 command line: ./st-flash [--debug] [--reset] [--serial <iSerial>] {read|write} /dev/sgX path addr <size>");
+    puts("stlinkv1 command line: ./st-flash [--debug] [--reset] [--format <format>] {read|write} /dev/sgX <path> <addr> <size>");
     puts("stlinkv1 command line: ./st-flash [--debug] /dev/sgX erase");
-    puts("stlinkv2 command line: ./st-flash [--debug] [--reset] [--serial <iSerial>] {read|write} path addr <size>");
-    puts("stlinkv2 command line: ./st-flash [--debug] [--serial <iSerial>] erase");
-    puts("                       use hex format for addr, <iSerial> and <size>");
+    puts("stlinkv2 command line: ./st-flash [--debug] [--reset] [--serial <serial>] [--format <format>] {read|write} <path> <addr> <size>");
+    puts("stlinkv2 command line: ./st-flash [--debug] [--serial <serial>] erase");
+    puts("                       Use hex format for addr, <serial> and <size>.");
+    puts("                       Format may be 'binary' (default) or 'ihex', although <addr> must be specified for binary format only.");
 }
-
-static int get_opts(struct opts* o, int ac, char** av)
-{
-    /* stlinkv1 command line: ./st-flash {read|write} /dev/sgX path addr <size> */
-    /* stlinkv2 command line: ./st-flash {read|write} path addr <size> */
-
-    unsigned int i = 0;
-
-    if (ac < 1) return -1;
-
-    if (strcmp(av[0], "--debug") == 0)
-    {
-        o->log_level = DEBUG_LOG_LEVEL;
-        ac--;
-        av++;
-    }
-    else
-    {
-        o->log_level = STND_LOG_LEVEL;
-    }
-
-    if (strcmp(av[0], "--reset") == 0)
-    {
-        o->reset = 1;
-        ac--;
-        av++;
-    }
-    else
-    {
-        o->reset = 0;
-    }
-
-    if (strcmp(av[0], "--serial") == 0)
-    {
-        ac--;
-        av++;
-            /** @todo This is not really portable, as strlen really returns size_t we need to obey and not cast it to a signed type. */
-	    int j = (int) strlen(av[0]);
-	    if(j%2 != 0){
-		    puts("no valid hex value, length must be multiple of 2\n");
-		    return -1;
-	    }
-	    int k=0;
-	    while(j>=0 && k<=13){
-		    char buffer[3]={0};
-		    memcpy(buffer,&av[0][j],2);
-		    o->serial[12-k] = (char)strtol((const char*)buffer,NULL, 16);
-		    k++;
-		    j-=2;
-	    }
-        ac--;
-        av++;
-    }
-    else
-    {
-        o->serial = NULL;
-    }
-
-    if (ac < 1) return -1;
-
-    /* stlinkv2 */
-    o->devname = NULL;
-
-    if (strcmp(av[0], "erase") == 0)
-    {
-        o->cmd = DO_ERASE;
-
-        /* stlinkv1 mode */
-        if (ac == 2)
-        {
-            o->devname = av[1];
-            i = 1;
-        }
-    }
-    else {
-        if (ac < 3) return -1;
-        if (strcmp(av[0], "read") == 0)
-        {
-            o->cmd = DO_READ;
-
-            /* stlinkv1 mode */
-            if (ac == 5)
-            {
-                o->devname = av[1];
-                i = 1;
-            }
-            if (ac > 3)
-                o->size = strtoul(av[i + 3], NULL, 16);
-        }
-        else if (strcmp(av[0], "write") == 0)
-        {
-            o->cmd = DO_WRITE;
-
-            /* stlinkv1 mode */
-            if (ac == 4)
-            {
-                o->devname = av[1];
-                i = 1;
-            }
-        }
-        else
-        {
-            return -1;
-        }
-    }
-
-    o->filename = av[i + 1];
-    /** @todo This is a little evil as strtoul could return 0 and is of type unsigned long int */
-    o->addr = (uint32_t) strtoul(av[i + 2], NULL, 16);
-	o->is_ihex = (0 == strcmp(".hex", o->filename + (strlen(o->filename) - 4))); // ends with .hex
-
-    return 0;
-}
-
 
 int main(int ac, char** av)
 {
     stlink_t* sl = NULL;
-    struct opts o;
-    char serial_buffer[13] = {0};
-    o.serial = serial_buffer;
+    struct flash_opts o;
     int err = -1;
 
     o.size = 0;
-    if (get_opts(&o, ac - 1, av + 1) == -1)
+    if (flash_get_opts(&o, ac - 1, av + 1) == -1)
     {
         printf("invalid command line\n");
         usage();
@@ -183,7 +52,7 @@ int main(int ac, char** av)
     if (o.devname != NULL) /* stlinkv1 */
         sl = stlink_v1_open(o.log_level, 1);
     else /* stlinkv2 */
-	    sl = stlink_open_usb(o.log_level, 1, o.serial);
+        sl = stlink_open_usb(o.log_level, 1, (char *)o.serial);
 
     if (sl == NULL)
         return -1;
@@ -244,11 +113,25 @@ int main(int ac, char** av)
         goto on_error;
     }
 
-    if (o.cmd == DO_WRITE) /* write */
+    if (o.cmd == FLASH_CMD_WRITE) /* write */
     {
+        uint8_t * mem = NULL;
+        size_t size = 0;
+
+        if(o.format == FLASH_FORMAT_IHEX) {
+            err = stlink_parse_ihex(o.filename, stlink_get_erased_pattern(sl), &mem, &size, &o.addr);
+            if (err == -1) {
+                printf("Cannot parse %s as Intel-HEX file\n", o.filename);
+                goto on_error;
+            }
+        }
+
         if ((o.addr >= sl->flash_base) &&
                 (o.addr < sl->flash_base + sl->flash_size)) {
-            err = stlink_fwrite_flash(sl, o.filename, o.is_ihex, o.addr);
+            if(o.format == FLASH_FORMAT_IHEX)
+                err = stlink_mwrite_flash(sl, mem, size, o.addr);
+            else
+                err = stlink_fwrite_flash(sl, o.filename, o.addr);
             if (err == -1)
             {
                 printf("stlink_fwrite_flash() == -1\n");
@@ -264,7 +147,7 @@ int main(int ac, char** av)
                 goto on_error;
             }
         }
-    } else if (o.cmd == DO_ERASE)
+    } else if (o.cmd == FLASH_CMD_ERASE)
     {
         err = stlink_erase_flash_mass(sl);
         if (err == -1)
@@ -281,7 +164,7 @@ int main(int ac, char** av)
         else if ((o.addr >= sl->sram_base) && (o.size == 0) &&
                 (o.addr < sl->sram_base + sl->sram_size))
             o.size = sl->sram_size;
-        err = stlink_fread(sl, o.filename, o.addr, o.size);
+        err = stlink_fread(sl, o.filename, o.format == FLASH_FORMAT_IHEX, o.addr, o.size);
         if (err == -1)
         {
             printf("stlink_fread() == -1\n");

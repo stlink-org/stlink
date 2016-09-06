@@ -180,9 +180,10 @@ typedef struct flash_loader {
 
     int stlink_erase_flash_mass(stlink_t* sl);
     int stlink_write_flash(stlink_t* sl, stm32_addr_t address, uint8_t* data, uint32_t length, uint8_t eraseonly);
-		uint8_t stlink_parse_hex(const char* hex);
-		int stlink_parse_ihex(const char* path, uint8_t erased_pattern, uint8_t * * mem, size_t * size, uint32_t * begin);
-    int stlink_fwrite_flash(stlink_t *sl, const char* path, bool is_ihex, stm32_addr_t addr);
+    int stlink_parse_ihex(const char* path, uint8_t erased_pattern, uint8_t * * mem, size_t * size, uint32_t * begin);
+    uint8_t stlink_get_erased_pattern(stlink_t *sl);
+    int stlink_mwrite_flash(stlink_t *sl, uint8_t* data, uint32_t length, stm32_addr_t addr);
+    int stlink_fwrite_flash(stlink_t *sl, const char* path, stm32_addr_t addr);
     int stlink_fwrite_sram(stlink_t *sl, const char* path, stm32_addr_t addr);
     int stlink_verify_write_flash(stlink_t *sl, stm32_addr_t address, uint8_t *data, uint32_t length);
 
@@ -201,7 +202,7 @@ typedef struct flash_loader {
     bool stlink_is_core_halted(stlink_t *sl);
     int write_buffer_to_sram(stlink_t *sl, flash_loader_t* fl, const uint8_t* buf, size_t size);
     int write_loader_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* size);
-    int stlink_fread(stlink_t* sl, const char* path, stm32_addr_t addr, size_t size);
+    int stlink_fread(stlink_t* sl, const char* path, bool is_ihex, stm32_addr_t addr, size_t size);
     int stlink_load_device_params(stlink_t *sl);
 
 #include "stlink/sg.h"
