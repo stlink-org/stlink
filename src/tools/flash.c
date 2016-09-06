@@ -40,6 +40,7 @@ int main(int ac, char** av)
     stlink_t* sl = NULL;
     struct flash_opts o;
     int err = -1;
+    uint8_t * mem = NULL;
 
     o.size = 0;
     if (flash_get_opts(&o, ac - 1, av + 1) == -1)
@@ -115,7 +116,6 @@ int main(int ac, char** av)
 
     if (o.cmd == FLASH_CMD_WRITE) /* write */
     {
-        uint8_t * mem = NULL;
         size_t size = 0;
 
         if(o.format == FLASH_FORMAT_IHEX) {
@@ -140,12 +140,20 @@ int main(int ac, char** av)
         }
         else if ((o.addr >= sl->sram_base) &&
                 (o.addr < sl->sram_base + sl->sram_size)) {
-            err = stlink_fwrite_sram(sl, o.filename, o.addr);
+            if(o.format == FLASH_FORMAT_IHEX)
+                err = stlink_mwrite_sram(sl, mem, size, o.addr);
+            else
+                err = stlink_fwrite_sram(sl, o.filename, o.addr);
             if (err == -1)
             {
                 printf("stlink_fwrite_sram() == -1\n");
                 goto on_error;
             }
+        }
+        else {
+            err = -1;
+            printf("Unknown memory region\n");
+            goto on_error;
         }
     } else if (o.cmd == FLASH_CMD_ERASE)
     {
@@ -183,6 +191,7 @@ int main(int ac, char** av)
 on_error:
     stlink_exit_debug_mode(sl);
     stlink_close(sl);
+    free(mem);
 
     return err;
 }

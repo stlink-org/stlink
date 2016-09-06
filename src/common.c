@@ -1017,16 +1017,81 @@ static int check_file(stlink_t* sl, mapped_file_t* mf, stm32_addr_t addr) {
     return 0;
 }
 
-int stlink_fwrite_sram
-(stlink_t * sl, const char* path, stm32_addr_t addr) {
+static void stlink_fwrite_finalize(stlink_t *sl, stm32_addr_t addr) {
+    unsigned int val;
+    /* set stack*/
+    stlink_read_debug32(sl, addr, &val);
+    stlink_write_reg(sl, val, 13);
+    /* Set PC to the reset routine*/
+    stlink_read_debug32(sl, addr + 4, &val);
+    stlink_write_reg(sl, val, 15);
+    stlink_run(sl);
+}
+
+int stlink_mwrite_sram(stlink_t * sl, uint8_t* data, uint32_t length, stm32_addr_t addr) {
+    /* write the file in sram at addr */
+
+    int error = -1;
+    size_t off;
+    size_t len;
+
+    /* check addr range is inside the sram */
+    if (addr < sl->sram_base) {
+        fprintf(stderr, "addr too low\n");
+        goto on_error;
+    } else if ((addr + length) < addr) {
+        fprintf(stderr, "addr overruns\n");
+        goto on_error;
+    } else if ((addr + length) > (sl->sram_base + sl->sram_size)) {
+        fprintf(stderr, "addr too high\n");
+        goto on_error;
+    } else if (addr & 3) {
+        /* todo */
+        fprintf(stderr, "unaligned addr\n");
+        goto on_error;
+    }
+
+    len = length;
+
+    if(len & 3) {
+      len -= len & 3;
+    }
+
+    /* do the copy by 1k blocks */
+    for (off = 0; off < len; off += 1024) {
+        size_t size = 1024;
+        if ((off + size) > len)
+            size = len - off;
+
+        memcpy(sl->q_buf, data + off, size);
+
+        /* round size if needed */
+        if (size & 3)
+            size += 2;
+
+        stlink_write_mem32(sl, addr + (uint32_t) off, size);
+    }
+
+    if(length > len) {
+        memcpy(sl->q_buf, data + len, length - len);
+        stlink_write_mem8(sl, addr + (uint32_t) len, length - len);
+    }
+
+    /* success */
+    error = 0;
+    stlink_fwrite_finalize(sl, addr);
+
+on_error:
+    return error;
+}
+
+int stlink_fwrite_sram(stlink_t * sl, const char* path, stm32_addr_t addr) {
     /* write the file in sram at addr */
 
     int error = -1;
     size_t off;
     size_t len;
     mapped_file_t mf = MAPPED_FILE_INITIALIZER;
-    uint32_t val;
-
 
     if (map_file(&mf, path) == -1) {
         fprintf(stderr, "map_file() == -1\n");
@@ -1083,13 +1148,7 @@ int stlink_fwrite_sram
 
     /* success */
     error = 0;
-    /* set stack*/
-    stlink_read_debug32(sl, addr, &val);
-    stlink_write_reg(sl, val, 13);
-    /* Set PC to the reset routine*/
-    stlink_read_debug32(sl, addr + 4, &val);
-    stlink_write_reg(sl, val, 15);
-    stlink_run(sl);
+    stlink_fwrite_finalize(sl, addr);
 
 on_error:
     unmap_file(&mf);
@@ -2029,17 +2088,6 @@ int stlink_parse_ihex(const char* path, uint8_t erased_pattern, uint8_t * * mem,
     }
 
     return res;
-}
-
-static void stlink_fwrite_finalize(stlink_t *sl, stm32_addr_t addr) {
-    unsigned int val;
-    /* set stack*/
-    stlink_read_debug32(sl, addr, &val);
-    stlink_write_reg(sl, val, 13);
-    /* Set PC to the reset routine*/
-    stlink_read_debug32(sl, addr + 4, &val);
-    stlink_write_reg(sl, val, 15);
-    stlink_run(sl);
 }
 
 uint8_t stlink_get_erased_pattern(stlink_t *sl) {

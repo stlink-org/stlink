@@ -184,6 +184,7 @@ typedef struct flash_loader {
     uint8_t stlink_get_erased_pattern(stlink_t *sl);
     int stlink_mwrite_flash(stlink_t *sl, uint8_t* data, uint32_t length, stm32_addr_t addr);
     int stlink_fwrite_flash(stlink_t *sl, const char* path, stm32_addr_t addr);
+    int stlink_mwrite_sram(stlink_t *sl, uint8_t* data, uint32_t length, stm32_addr_t addr);
     int stlink_fwrite_sram(stlink_t *sl, const char* path, stm32_addr_t addr);
     int stlink_verify_write_flash(stlink_t *sl, stm32_addr_t address, uint8_t *data, uint32_t length);
 
