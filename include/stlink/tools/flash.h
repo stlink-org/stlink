@@ -22,6 +22,10 @@ struct flash_opts
     enum flash_format format;
 };
 
+
+#define FLASH_OPTS_INITIALIZER {0, }
+
+
 int flash_get_opts(struct flash_opts* o, int ac, char** av);
 
 #endif // STLINK_FLASH_H_
