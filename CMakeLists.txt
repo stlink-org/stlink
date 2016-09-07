@@ -145,8 +145,11 @@ if (APPLE)
 	target_link_libraries(${PROJECT_NAME} ${CoreFoundation} ${IOKit} ${ObjC})
 endif ()
 
+add_library(stflash STATIC
+            src/tools/flash_opts.c)
+target_link_libraries(${PROJECT_NAME} ${LIBUSB_LIBRARY})
 add_executable(st-flash src/tools/flash.c)
-target_link_libraries(st-flash ${PROJECT_NAME})
+target_link_libraries(st-flash ${PROJECT_NAME} stflash)
 
 add_executable(st-info src/tools/info.c)
 target_link_libraries(st-info ${PROJECT_NAME})

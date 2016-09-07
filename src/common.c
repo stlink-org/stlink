@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <errno.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/types.h>
@@ -1016,16 +1017,81 @@ static int check_file(stlink_t* sl, mapped_file_t* mf, stm32_addr_t addr) {
     return 0;
 }
 
-int stlink_fwrite_sram
-(stlink_t * sl, const char* path, stm32_addr_t addr) {
+static void stlink_fwrite_finalize(stlink_t *sl, stm32_addr_t addr) {
+    unsigned int val;
+    /* set stack*/
+    stlink_read_debug32(sl, addr, &val);
+    stlink_write_reg(sl, val, 13);
+    /* Set PC to the reset routine*/
+    stlink_read_debug32(sl, addr + 4, &val);
+    stlink_write_reg(sl, val, 15);
+    stlink_run(sl);
+}
+
+int stlink_mwrite_sram(stlink_t * sl, uint8_t* data, uint32_t length, stm32_addr_t addr) {
+    /* write the file in sram at addr */
+
+    int error = -1;
+    size_t off;
+    size_t len;
+
+    /* check addr range is inside the sram */
+    if (addr < sl->sram_base) {
+        fprintf(stderr, "addr too low\n");
+        goto on_error;
+    } else if ((addr + length) < addr) {
+        fprintf(stderr, "addr overruns\n");
+        goto on_error;
+    } else if ((addr + length) > (sl->sram_base + sl->sram_size)) {
+        fprintf(stderr, "addr too high\n");
+        goto on_error;
+    } else if (addr & 3) {
+        /* todo */
+        fprintf(stderr, "unaligned addr\n");
+        goto on_error;
+    }
+
+    len = length;
+
+    if(len & 3) {
+      len -= len & 3;
+    }
+
+    /* do the copy by 1k blocks */
+    for (off = 0; off < len; off += 1024) {
+        size_t size = 1024;
+        if ((off + size) > len)
+            size = len - off;
+
+        memcpy(sl->q_buf, data + off, size);
+
+        /* round size if needed */
+        if (size & 3)
+            size += 2;
+
+        stlink_write_mem32(sl, addr + (uint32_t) off, size);
+    }
+
+    if(length > len) {
+        memcpy(sl->q_buf, data + len, length - len);
+        stlink_write_mem8(sl, addr + (uint32_t) len, length - len);
+    }
+
+    /* success */
+    error = 0;
+    stlink_fwrite_finalize(sl, addr);
+
+on_error:
+    return error;
+}
+
+int stlink_fwrite_sram(stlink_t * sl, const char* path, stm32_addr_t addr) {
     /* write the file in sram at addr */
 
     int error = -1;
     size_t off;
     size_t len;
     mapped_file_t mf = MAPPED_FILE_INITIALIZER;
-    uint32_t val;
-
 
     if (map_file(&mf, path) == -1) {
         fprintf(stderr, "map_file() == -1\n");
@@ -1082,30 +1148,18 @@ int stlink_fwrite_sram
 
     /* success */
     error = 0;
-    /* set stack*/
-    stlink_read_debug32(sl, addr, &val);
-    stlink_write_reg(sl, val, 13);
-    /* Set PC to the reset routine*/
-    stlink_read_debug32(sl, addr + 4, &val);
-    stlink_write_reg(sl, val, 15);
-    stlink_run(sl);
+    stlink_fwrite_finalize(sl, addr);
 
 on_error:
     unmap_file(&mf);
     return error;
 }
 
-int stlink_fread(stlink_t* sl, const char* path, stm32_addr_t addr, size_t size) {
-    /* read size bytes from addr to file */
+typedef bool (*save_block_fn)(void* arg, uint8_t* block, ssize_t len);
+
+static int stlink_read(stlink_t* sl, stm32_addr_t addr, size_t size, save_block_fn fn, void* fn_arg) {
 
     int error = -1;
-    size_t off;
-
-    const int fd = open(path, O_RDWR | O_TRUNC | O_CREAT, 00700);
-    if (fd == -1) {
-        fprintf(stderr, "open(%s) == -1\n", path);
-        return -1;
-    }
 
     if (size <1)
         size = sl->flash_size;
@@ -1114,7 +1168,7 @@ int stlink_fread(stlink_t* sl, const char* path, stm32_addr_t addr, size_t size)
         size = sl->flash_size;
 
     size_t cmp_size = (sl->flash_pgsz > 0x1800)? 0x1800:sl->flash_pgsz;
-    for (off = 0; off < size; off += cmp_size) {
+    for (size_t off = 0; off < size; off += cmp_size) {
         size_t aligned_size;
 
         /* adjust last page size */
@@ -1127,8 +1181,7 @@ int stlink_fread(stlink_t* sl, const char* path, stm32_addr_t addr, size_t size)
 
         stlink_read_mem32(sl, addr + (uint32_t) off, aligned_size);
 
-        if (write(fd, sl->q_buf, sl->q_len) != (ssize_t) aligned_size) {
-            fprintf(stderr, "write() != aligned_size\n");
+        if (!fn(fn_arg, sl->q_buf, aligned_size)) {
             goto on_error;
         }
     }
@@ -1137,6 +1190,134 @@ int stlink_fread(stlink_t* sl, const char* path, stm32_addr_t addr, size_t size)
     error = 0;
 
 on_error:
+    return error;
+}
+
+struct stlink_fread_worker_arg {
+    int fd;
+};
+
+static bool stlink_fread_worker(void* arg, uint8_t* block, ssize_t len) {
+    struct stlink_fread_worker_arg* the_arg = (struct stlink_fread_worker_arg*)arg;
+    if (write(the_arg->fd, block, len) != len) {
+        fprintf(stderr, "write() != aligned_size\n");
+        return false;
+    }
+    else {
+        return true;
+    }
+}
+
+struct stlink_fread_ihex_worker_arg {
+    FILE* file;
+    uint32_t addr;
+    uint32_t lba;
+    uint8_t buf[16];
+    uint8_t buf_pos;
+};
+
+static bool stlink_fread_ihex_newsegment(struct stlink_fread_ihex_worker_arg* the_arg) {
+    uint32_t addr = the_arg->addr;
+    uint8_t sum = 2 + 4 + (uint8_t)((addr & 0xFF000000) >> 24) + (uint8_t)((addr & 0x00FF0000) >> 16);
+    if(17 != fprintf(the_arg->file, ":02000004%04X%02X\r\n", (addr & 0xFFFF0000) >> 16, (uint8_t)(0x100 - sum)))
+        return false;
+
+    the_arg->lba = (addr & 0xFFFF0000);
+
+    return true;
+}
+
+static bool stlink_fread_ihex_writeline(struct stlink_fread_ihex_worker_arg* the_arg) {
+    uint8_t count = the_arg->buf_pos;
+    if(count == 0) return true;
+
+    uint32_t addr = the_arg->addr;
+
+    if(the_arg->lba != (addr & 0xFFFF0000)) { // segment changed
+        if(!stlink_fread_ihex_newsegment(the_arg)) return false;
+    }
+
+    uint8_t sum = count + (uint8_t)((addr & 0x0000FF00) >> 8) + (uint8_t)(addr & 0x000000FF);
+    if(9 != fprintf(the_arg->file, ":%02X%04X00", count, (addr & 0x0000FFFF)))
+        return false;
+
+    for(uint8_t i = 0; i < count; ++i) {
+        uint8_t b = the_arg->buf[i];
+        sum += b;
+        if(2 != fprintf(the_arg->file, "%02X", b))
+            return false;
+    }
+
+    if(4 != fprintf(the_arg->file, "%02X\r\n", (uint8_t)(0x100 - sum)))
+        return false;
+
+    the_arg->addr += count;
+    the_arg->buf_pos = 0;
+
+    return true;
+}
+
+static bool stlink_fread_ihex_init(struct stlink_fread_ihex_worker_arg* the_arg, int fd, stm32_addr_t addr) {
+    the_arg->file    = fdopen(fd, "w");
+    the_arg->addr    = addr;
+    the_arg->lba     = 0;
+    the_arg->buf_pos = 0;
+
+    return (the_arg->file != NULL);
+}
+
+static bool stlink_fread_ihex_worker(void* arg, uint8_t* block, ssize_t len) {
+    struct stlink_fread_ihex_worker_arg* the_arg = (struct stlink_fread_ihex_worker_arg*)arg;
+
+    for(ssize_t i = 0; i < len; ++i) {
+        if(the_arg->buf_pos == sizeof(the_arg->buf)) { // line is full
+            if(!stlink_fread_ihex_writeline(the_arg)) return false;
+        }
+
+        the_arg->buf[the_arg->buf_pos++] = block[i];
+    }
+
+    return true;
+}
+
+static bool stlink_fread_ihex_finalize(struct stlink_fread_ihex_worker_arg* the_arg) {
+    if(!stlink_fread_ihex_writeline(the_arg)) return false;
+
+    // FIXME do we need the Start Linear Address?
+
+    if(13 != fprintf(the_arg->file, ":00000001FF\r\n")) // EoF
+        return false;
+
+    return (0 == fclose(the_arg->file));
+}
+
+int stlink_fread(stlink_t* sl, const char* path, bool is_ihex, stm32_addr_t addr, size_t size) {
+    /* read size bytes from addr to file */
+
+    int error;
+
+    int fd = open(path, O_RDWR | O_TRUNC | O_CREAT, 00700);
+    if (fd == -1) {
+        fprintf(stderr, "open(%s) == -1\n", path);
+        return -1;
+    }
+
+    if(is_ihex) {
+        struct stlink_fread_ihex_worker_arg arg;
+        if(stlink_fread_ihex_init(&arg, fd, addr)) {
+            error = stlink_read(sl, addr, size, &stlink_fread_ihex_worker, &arg);
+            if(!stlink_fread_ihex_finalize(&arg))
+                error = -1;
+        }
+        else {
+            error = -1;
+        }
+    }
+    else {
+        struct stlink_fread_worker_arg arg = { fd };
+        error = stlink_read(sl, addr, size, &stlink_fread_worker, &arg);
+    }
+
     close(fd);
 
     return error;
@@ -1753,6 +1934,191 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uint32_t 
     return stlink_verify_write_flash(sl, addr, base, len);
 }
 
+// note: length not checked
+static uint8_t stlink_parse_hex(const char* hex) {
+    uint8_t d[2];
+    for(int i = 0; i < 2; ++i) {
+        char c = *(hex + i);
+        if(c >= '0' && c <= '9') d[i] = c - '0';
+        else if(c >= 'A' && c <= 'F') d[i] = c - 'A' + 10;
+        else if(c >= 'a' && c <= 'f') d[i] = c - 'a' + 10;
+        else return 0; // error
+    }
+    return (d[0] << 4) | (d[1]);
+}
+
+int stlink_parse_ihex(const char* path, uint8_t erased_pattern, uint8_t * * mem, size_t * size, uint32_t * begin) {
+    int res = 0;
+    *begin = UINT32_MAX;
+    uint8_t* data = NULL;
+    uint32_t end = 0;
+    bool eof_found = false;
+
+    for(int scan = 0; (res == 0) && (scan < 2); ++scan) { // parse file two times - first to find memory range, second - to fill it
+        if(scan == 1) {
+            if(!eof_found) {
+                ELOG("No EoF recond\n");
+                res = -1;
+                break;
+            }
+
+            if(*begin >= end) {
+                ELOG("No data found in file\n");
+                res = -1;
+                break;
+            }
+
+            *size = (end - *begin) + 1;
+            data = calloc(*size, 1); // use calloc to get NULL if out of memory
+            if(!data) {
+                ELOG("Cannot allocate %d bytes\n", *size);
+                res = -1;
+                break;
+            }
+
+            memset(data, erased_pattern, *size);
+        }
+
+        FILE* file = fopen(path, "r");
+        if(!file) {
+            ELOG("Cannot open file\n");
+            res = -1;
+            break;
+        }
+
+        uint32_t lba = 0;
+
+        char line[1 + 5*2 + 255*2 + 2];
+        while(fgets(line, sizeof(line), file)) {
+            if(line[0] == '\n' || line[0] == '\r') continue; // skip empty lines
+            if(line[0] != ':') { // no marker - wrong file format
+                ELOG("Wrong file format - no marker\n");
+                res = -1;
+                break;
+            }
+
+            size_t l = strlen(line);
+            while(l > 0 && (line[l-1] == '\n' || line[l-1] == '\r')) --l; // trim EoL
+            if((l < 11) || (l == (sizeof(line)-1))) { // line too short or long - wrong file format
+                ELOG("Wrong file format - wrong line length\n");
+                res = -1;
+                break;
+            }
+
+            // check sum
+            uint8_t chksum = 0;
+            for(size_t i = 1; i < l; i += 2) {
+                chksum += stlink_parse_hex(line + i);
+            }
+            if(chksum != 0) {
+                ELOG("Wrong file format - checksum mismatch\n");
+                res = -1;
+                break;
+            }
+
+            uint8_t reclen = stlink_parse_hex(line + 1);
+            if(((uint32_t)reclen + 5)*2 + 1 != l) {
+                ELOG("Wrong file format - record length mismatch\n");
+                res = -1;
+                break;
+            }
+
+            uint16_t offset  = ((uint16_t)stlink_parse_hex(line + 3) << 8) | ((uint16_t)stlink_parse_hex(line + 5));
+            uint8_t  rectype = stlink_parse_hex(line + 7);
+
+            switch(rectype) {
+                case 0: // data
+                    if(scan == 0) {
+                        uint32_t b = lba + offset;
+                        uint32_t e = b + reclen - 1;
+                        if(b < *begin) *begin = b;
+                        if(e > end) end = e;
+                    }
+                    else {
+                        for(size_t i = 0; i < reclen; ++i) {
+                            uint8_t b = stlink_parse_hex(line + 9 + i*2);
+                            uint32_t addr = lba + offset + i;
+                            if(addr >= *begin && addr <= end) {
+                                data[addr - *begin] = b;
+                            }
+                        }
+                    }
+                    break;
+
+                case 1: // EoF
+                    eof_found = true;
+                    break;
+
+                case 2: // Extended Segment Address, unexpected
+                    res = -1;
+                    break;
+
+                case 3: // Start Segment Address, unexpected
+                    res = -1;
+                    break;
+
+                case 4: // Extended Linear Address
+                    if(reclen == 2) {
+                        lba = ((uint32_t)stlink_parse_hex(line + 9) << 24) | ((uint32_t)stlink_parse_hex(line + 11) << 16);
+                    }
+                    else {
+                        ELOG("Wrong file format - wrong LBA length\n");
+                        res = -1;
+                    }
+                    break;
+
+                case 5: // Start Linear Address - expected, but ignore
+                    break;
+
+                default:
+                    ELOG("Wrong file format - unexpected record type %d\n", rectype);
+                    res = -1;
+            }
+            if(res != 0) break;
+        }
+
+        fclose(file);
+    }
+
+    if(res == 0) {
+        *mem = data;
+    }
+    else {
+        free(data);
+    }
+
+    return res;
+}
+
+uint8_t stlink_get_erased_pattern(stlink_t *sl) {
+    if (sl->flash_type == STLINK_FLASH_TYPE_L0)
+        return 0x00;
+    else
+        return 0xff;
+}
+
+int stlink_mwrite_flash(stlink_t *sl, uint8_t* data, uint32_t length, stm32_addr_t addr) {
+    /* write the block in flash at addr */
+    int err;
+    unsigned int num_empty, index;
+    uint8_t erased_pattern = stlink_get_erased_pattern(sl);
+
+    index = (unsigned int)length;
+    for(num_empty = 0; num_empty != length; ++num_empty) {
+        if (data[--index] != erased_pattern) {
+            break;
+        }
+    }
+    /* Round down to words */
+    num_empty -= (num_empty & 3);
+    if(num_empty != 0) {
+        ILOG("Ignoring %d bytes of 0x%02x at end of file\n", num_empty, erased_pattern);
+    }
+    err = stlink_write_flash(sl, addr, data, (num_empty == length) ? (uint32_t) length : (uint32_t) length - num_empty, num_empty == length);
+    stlink_fwrite_finalize(sl, addr);
+    return err;
+}
+
 /**
  * Write the given binary file into flash at address "addr"
  * @param sl
@@ -1763,19 +2129,14 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uint32_t 
 int stlink_fwrite_flash(stlink_t *sl, const char* path, stm32_addr_t addr) {
     /* write the file in flash at addr */
     int err;
-    unsigned int num_empty, index, val;
-    unsigned char erased_pattern;
+    unsigned int num_empty, index;
+    uint8_t erased_pattern = stlink_get_erased_pattern(sl);
     mapped_file_t mf = MAPPED_FILE_INITIALIZER;
 
     if (map_file(&mf, path) == -1) {
         ELOG("map_file() == -1\n");
         return -1;
     }
-
-    if (sl->flash_type == STLINK_FLASH_TYPE_L0)
-        erased_pattern = 0x00;
-    else
-        erased_pattern = 0xff;
 
     index = (unsigned int) mf.len;
     for(num_empty = 0; num_empty != mf.len; ++num_empty) {
@@ -1789,13 +2150,7 @@ int stlink_fwrite_flash(stlink_t *sl, const char* path, stm32_addr_t addr) {
         ILOG("Ignoring %d bytes of 0x%02x at end of file\n", num_empty, erased_pattern);
     }
     err = stlink_write_flash(sl, addr, mf.base, (num_empty == mf.len) ? (uint32_t) mf.len : (uint32_t) mf.len - num_empty, num_empty == mf.len);
-    /* set stack*/
-    stlink_read_debug32(sl, addr, &val);
-    stlink_write_reg(sl, val, 13);
-    /* Set PC to the reset routine*/
-    stlink_read_debug32(sl, addr + 4, &val);
-    stlink_write_reg(sl, val, 15);
-    stlink_run(sl);
+    stlink_fwrite_finalize(sl, addr);
     unmap_file(&mf);
     return err;
 }
