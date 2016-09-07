@@ -433,6 +433,30 @@ static const char* const memory_map_template_F7 =
     "  <memory type=\"rom\" start=\"0x1fff0000\" length=\"0x20\"/>"         // option byte area
     "</memory-map>";
 
+
+static const char* const memory_map_template_F4_DE =
+    "<?xml version=\"1.0\"?>"
+    "<!DOCTYPE memory-map PUBLIC \"+//IDN gnu.org//DTD GDB Memory Map V1.0//EN\""
+    "     \"http://sourceware.org/gdb/gdb-memory-map.dtd\">"
+    "<memory-map>"
+    "  <memory type=\"rom\" start=\"0x00000000\" length=\"0x80000\"/>"      // code = sram, bootrom or flash; flash is bigger
+    "  <memory type=\"ram\" start=\"0x20000000\" length=\"0x18000\"/>"      // sram
+    "  <memory type=\"flash\" start=\"0x08000000\" length=\"0x10000\">"     //Sectors 0..3
+    "    <property name=\"blocksize\">0x4000</property>"                    //16kB
+    "  </memory>"
+    "  <memory type=\"flash\" start=\"0x08010000\" length=\"0x10000\">"     //Sector 4
+    "    <property name=\"blocksize\">0x10000</property>"                   //64kB
+    "  </memory>"
+    "  <memory type=\"flash\" start=\"0x08020000\" length=\"0x60000\">"     //Sectors 5..7
+    "    <property name=\"blocksize\">0x20000</property>"                   //128kB
+    "  </memory>"
+    "  <memory type=\"ram\" start=\"0x40000000\" length=\"0x1fffffff\"/>"   // peripheral regs
+    "  <memory type=\"ram\" start=\"0xe0000000\" length=\"0x1fffffff\"/>"   // cortex regs
+    "  <memory type=\"rom\" start=\"0x1fff0000\" length=\"0x7800\"/>"       // bootrom
+    "  <memory type=\"rom\" start=\"0x1fff7800\" length=\"0x210\"/>"        // otp
+    "  <memory type=\"rom\" start=\"0x1fffc000\" length=\"0x10\"/>"         // option byte area
+    "</memory-map>";
+
 char* make_memory_map(stlink_t *sl) {
     /* This will be freed in serve() */
     const size_t sz = 4096;
@@ -441,6 +465,8 @@ char* make_memory_map(stlink_t *sl) {
 
     if(sl->chip_id==STLINK_CHIPID_STM32_F4 || sl->chip_id==STLINK_CHIPID_STM32_F446) {
         strcpy(map, memory_map_template_F4);
+    } else if(sl->chip_id==STLINK_CHIPID_STM32_F4_DE) {
+        strcpy(map, memory_map_template_F4_DE);
     } else if(sl->core_id==STM32F7_CORE_ID) {
         snprintf(map, sz, memory_map_template_F7,
                 sl->sram_size);
