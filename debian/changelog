@@ -1,0 +1,5 @@
+libstlink (1.2.1) unstable; urgency=low
+
+  * Initial Debian-Packaged Release.
+
+ -- Andrew 'Necromant' Andrianov <andrew@ncrmnt.org>  Sat, 09 Jul 2016 23:16:07 +0300
