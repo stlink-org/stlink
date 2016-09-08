@@ -14,7 +14,9 @@
 
 static stlink_t *connected_stlink = NULL;
 
-static void cleanup(int signal __attribute__((unused))) {
+static void cleanup(int signum) {
+    (void)signum;
+
     if (connected_stlink) {
         /* Switch back to mass storage mode before closing. */
         stlink_run(connected_stlink);

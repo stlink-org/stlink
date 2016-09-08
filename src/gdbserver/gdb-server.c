@@ -3,7 +3,7 @@
  * Use of this source code is governed by a BSD-style
  * license that can be found in the LICENSE file.
  */
-
+#include <ctype.h>
 #include <getopt.h>
 #include <signal.h>
 #include <stdio.h>
@@ -55,7 +55,9 @@ int serve(stlink_t *sl, st_state_t *st);
 char* make_memory_map(stlink_t *sl);
 static void init_cache (stlink_t *sl);
 
-static void cleanup(int signal __attribute__((unused))) {
+static void cleanup(int signum) {
+	(void)signum;
+
     if (connected_stlink) {
         /* Switch back to mass storage mode before closing. */
         stlink_run(connected_stlink);
@@ -670,29 +672,29 @@ static int update_code_breakpoint(stlink_t *sl, stm32_addr_t addr, int set) {
         else	return 0;  // Breakpoint is already removed
     }
 
-    struct code_hw_breakpoint* brk = &code_breaks[id];
+    struct code_hw_breakpoint* bp = &code_breaks[id];
 
-    brk->addr = fpb_addr;
+    bp->addr = fpb_addr;
 
 	if (sl->core_id==STM32F7_CORE_ID) {
-		if(set) brk->type = type;
-		else	brk->type = 0;
+		if(set) bp->type = type;
+		else	bp->type = 0;
 
-		mask = (brk->addr) | 1;
+		mask = (bp->addr) | 1;
 	} else {
-		if(set) brk->type |= type;
-		else	brk->type &= ~type;
+		if(set) bp->type |= type;
+		else	bp->type &= ~type;
 
-		mask = (brk->addr) | 1 | (brk->type << 30);
+		mask = (bp->addr) | 1 | (bp->type << 30);
 	}
 
-    if(brk->type == 0) {
+    if(bp->type == 0) {
         DLOG("clearing hw break %d\n", id);
 
         stlink_write_debug32(sl, 0xe0002008 + id * 4, 0);
     } else {
         DLOG("setting hw break %d at %08x (%d)\n",
-                    id, brk->addr, brk->type);
+                    id, bp->addr, bp->type);
         DLOG("reg %08x \n",
                     mask);
 
@@ -795,12 +797,11 @@ static int flash_go(stlink_t *sl) {
             stlink_calculate_pagesize(sl, page);
 
             DLOG("flash_do: page %08x\n", page);
-            unsigned send = (length > FLASH_PAGE) ? (unsigned) FLASH_PAGE : length;
-            if(stlink_write_flash(sl, page, fb->data + (page - fb->addr),
-                        send, 0) < 0)
+            unsigned len = (length > FLASH_PAGE) ? (unsigned) FLASH_PAGE : length;
+            int ret = stlink_write_flash(sl, page, fb->data + (page - fb->addr), len, 0);
+            if (ret < 0)
                 goto error;
-            length -= send;
-
+            length -= len;
         }
     }
 

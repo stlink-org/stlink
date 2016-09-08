@@ -871,7 +871,7 @@ int stlink_current_mode(stlink_t *sl) {
 // const int i = 1;
 // #define is_bigendian() ( (*(char*)&i) == 0 )
 
-inline unsigned int is_bigendian(void) {
+unsigned int is_bigendian(void) {
     static volatile const unsigned int i = 1;
     return *(volatile const char*) &i == 0;
 }
@@ -2100,12 +2100,12 @@ uint8_t stlink_get_erased_pattern(stlink_t *sl) {
 int stlink_mwrite_flash(stlink_t *sl, uint8_t* data, uint32_t length, stm32_addr_t addr) {
     /* write the block in flash at addr */
     int err;
-    unsigned int num_empty, index;
+    unsigned int num_empty, idx;
     uint8_t erased_pattern = stlink_get_erased_pattern(sl);
 
-    index = (unsigned int)length;
+    idx = (unsigned int)length;
     for(num_empty = 0; num_empty != length; ++num_empty) {
-        if (data[--index] != erased_pattern) {
+        if (data[--idx] != erased_pattern) {
             break;
         }
     }
@@ -2129,7 +2129,7 @@ int stlink_mwrite_flash(stlink_t *sl, uint8_t* data, uint32_t length, stm32_addr
 int stlink_fwrite_flash(stlink_t *sl, const char* path, stm32_addr_t addr) {
     /* write the file in flash at addr */
     int err;
-    unsigned int num_empty, index;
+    unsigned int num_empty, idx;
     uint8_t erased_pattern = stlink_get_erased_pattern(sl);
     mapped_file_t mf = MAPPED_FILE_INITIALIZER;
 
@@ -2138,9 +2138,9 @@ int stlink_fwrite_flash(stlink_t *sl, const char* path, stm32_addr_t addr) {
         return -1;
     }
 
-    index = (unsigned int) mf.len;
+    idx = (unsigned int) mf.len;
     for(num_empty = 0; num_empty != mf.len; ++num_empty) {
-        if (mf.base[--index] != erased_pattern) {
+        if (mf.base[--idx] != erased_pattern) {
             break;
         }
     }

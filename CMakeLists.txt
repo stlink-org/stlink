@@ -14,6 +14,8 @@ endif ()
 
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_SOURCE_DIR}/cmake/modules")
 
+message(STATUS "Building on ${CMAKE_SYSTEM_NAME}")
+
 # Determine package version.
 find_package (Git QUIET)
 if (DEFINED ENV{TRAVIS_TAG} AND NOT "$ENV{TRAVIS_TAG}" STREQUAL "")
@@ -95,7 +97,16 @@ add_cflag_if_supported("-Wmaybe-uninitialized")
 add_cflag_if_supported("-Wmissing-variable-declarations")
 add_cflag_if_supported("-Wshorten-64-to-32")
 add_cflag_if_supported("-Wimplicit-function-declaration")
-add_cflag_if_supported("-Wredundant-decls")
+
+##
+# On OpenBSD the system headers suck so we need to disable redundant declaration check
+# /usr/include/unistd.h:429: warning: redundant redeclaration of 'truncate'
+# /usr/include/sys/types.h:218: warning: previous declaration of 'truncate' was here
+##
+if (NOT CMAKE_SYSTEM_NAME STREQUAL "OpenBSD")
+	add_cflag_if_supported("-Wredundant-decls")
+endif ()
+
 add_cflag_if_supported("-Wundef")
 if (NOT MSYS OR MINGW)
 	add_cflag_if_supported("-fPIC")
@@ -106,10 +117,9 @@ if (CMAKE_BUILD_TYPE STREQUAL "")
 endif ()
 
 if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
-	include(CTest)
 	add_cflag_if_supported("-ggdb")
 	add_cflag_if_supported("-O0")
-	#set (STLINK_PACKAGE_VERSION "${STLINK_PACKAGE_VERSION}-debug")
+	include(CTest)
 elseif()
 	add_cflag_if_supported("-O2")
 endif()

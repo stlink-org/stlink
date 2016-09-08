@@ -1,10 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
-/* According to POSIX.1-2001 */
 #include <sys/select.h>
 #include <string.h>
 #include <sys/time.h>
-#include <sys/types.h>
 #include <unistd.h>
 #include <termios.h>
 #include <fcntl.h>
@@ -52,7 +50,9 @@ struct stlinky {
 
 void nonblock(int state);
 
-static void cleanup(int signal __attribute__((unused))) {
+static void cleanup(int signum) {
+	(void)signum;
+
     if (gsl) {
         /* Switch back to mass storage mode before closing. */
         stlink_run(gsl);
