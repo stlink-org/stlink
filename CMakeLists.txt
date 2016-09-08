@@ -251,15 +251,6 @@ if (NOT APPLE AND NOT WIN32)
        	DESTINATION lib/${CMAKE_LIBRARY_PATH}/pkgconfig/)
 endif()
 
-if(NOT MINGW)
-  list(APPEND STLINK_SOURCE src/tools/term.c)
-  add_executable(st-term src/tools/term.c)
-  target_link_libraries(st-term ${PROJECT_NAME})
-
-  install(TARGETS st-term
-          RUNTIME DESTINATION bin)
-endif()
-
 if (NOT APPLE AND gtk_FOUND)
   include_directories(SYSTEM ${gtk_INCLUDE_DIRS})
   set(GUI_SOURCES src/tools/gui/stlink-gui.c
