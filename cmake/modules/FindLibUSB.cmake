@@ -31,7 +31,7 @@ find_path(LIBUSB_INCLUDE_DIR NAMES libusb.h
 	/usr/local
 	/opt
 	${LIBUSB_WIN_OUTPUT_FOLDER}/include
-	PATH_SUFFIXES libusb-1.0
+#	PATH_SUFFIXES libusb-1.0
 )
 
 if (APPLE)
@@ -41,7 +41,7 @@ elseif(MSYS OR MINGW)
 elseif(WIN32)
 	set(LIBUSB_NAME libusb-1.0.lib)
 else()
-	set(LIBUSB_NAME usb-1.0)
+	set(LIBUSB_NAME usb)
 endif()
 
 if (MSYS OR MINGW)
