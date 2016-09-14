@@ -1,14 +1,31 @@
 Stlink ChangeLog
 ================
 
-v2.0.0
+v1.3.0
 ======
 
-Ongoing development
+Release date: ongoing
 
 Major changes:
 
-* Deprecation of autotools (autoconf, automake)
+* Deprecation of autotools (autoconf, automake) (Jerry Jacobs)
+* Removal of undocumented `st-term` utility, which is now replaced by `st-util` ARM semihosting feature (Jerry Jacobs)
+* Add debian packaging (nekromant)
+* Add intel hex file reading for `st-flash` (pull-request #459) (dev26th)
+
+Chip support added for:
+
+* STM32F410 (Jerry Jacobs)
+* L0x Category 5 devices (gluedig)
+* Add L0 Category 2 device (chip id: 0x425) (Áron RADICS)
+
+Updates and fixes:
+
+* Fix memory map for STM32F4 (zulusw)
+* Fix STM32L-problem with flash loader (issue #390) (Tom de Boer)
+* `st-util` don't read target voltage on startup as it crashes STM32F100 (probably stlink/v1) (Greg Alexander)
+* Do a JTAG reset prior to reading CPU information when processor is in deep sleep (andyg24)
+* Redesign of `st-flash` commandline options parsing (pull-request #459) (dev26th)
 
 v1.2.0
 ======
