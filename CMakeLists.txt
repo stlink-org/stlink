@@ -232,7 +232,7 @@ if (NOT APPLE AND NOT WIN32)
     	"\${prefix}/include/\${deb_host_multiarch}/${PROJECT_NAME}-${STLINK_PACKAGE_VERSION}"
 	)
 	set(PKG_CONFIG_LIBS
-    	"-L\${libdir} -l:libstlink.so.${STLINK_PACKAGE_VERSION}"
+    	"-L\${libdir} -l:libstlink.so.${STLINK_PACKAGE_VERSION_MAJOR}"
 	)
 	set(PKG_CONFIG_CFLAGS
     	"-I\${includedir}"
