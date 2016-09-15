@@ -150,6 +150,11 @@ set(STLINK_SOURCE
 	src/flash_loader.c
 )
 
+set(STLINK_MANPAGES
+	doc/man/stlink.1
+)
+
+
 if (WIN32 OR MSYS OR MINGW)
 	set (STLINK_SOURCE "${STLINK_SOURCE};src/mmap.c;src/mingw/mingw.c") # TODO
 endif ()
@@ -223,6 +228,9 @@ install(FILES ${CMAKE_SOURCE_DIR}/include/stlink.h
 
 install(FILES ${STLINK_HEADERS}
 	DESTINATION include/${CMAKE_LIBRARY_PATH}/stlink-${STLINK_PACKAGE_VERSION}/stlink)
+
+install(FILES ${STLINK_MANPAGES}
+	DESTINATION share/man/man1)
 
 if (NOT APPLE AND NOT WIN32)
 	set(PKG_CONFIG_LIBDIR
