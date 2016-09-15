@@ -151,7 +151,7 @@ set(STLINK_SOURCE
 )
 
 set(STLINK_MANPAGES
-	doc/man/stlink.1
+	doc/man/st-util.1
 )
 
 
