@@ -2,6 +2,7 @@ set(MANPAGES
 	st-util
 	st-flash
 	st-info
+	st-term
 )
 
 # Only generate manpages with pandoc in Debug builds
