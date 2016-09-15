@@ -11,6 +11,9 @@ addons:
       - g++-5
       - gcc-5
 script:
+  - git fetch --tags
+  - printenv
+  - cmake --version
   - ./.travis.sh
 matrix:
   include:
@@ -19,7 +22,6 @@ matrix:
 #    - os: linux
 #      compiler: clang-3.8
     - os: linux
-      compiler: gcc-5
       compiler: gcc-5
 #    - os: linux
 #      compiler: clang-3.8

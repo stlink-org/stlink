@@ -52,6 +52,8 @@ int main(int ac, char** av)
         return -1;
     }
 
+    printf("st-flash %s (%s)\n", STLINK_VERSION);
+
     if (o.devname != NULL) /* stlinkv1 */
         sl = stlink_v1_open(o.log_level, 1);
     else /* stlinkv2 */

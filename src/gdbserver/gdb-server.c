@@ -176,12 +176,16 @@ int main(int argc, char** argv) {
 
     st_state_t state;
     memset(&state, 0, sizeof(state));
+
+    printf("st-util %s (%s)\n", STLINK_VERSION);
+
     // set defaults...
     state.stlink_version = 2;
     state.logging_level = DEFAULT_LOGGING_LEVEL;
     state.listen_port = DEFAULT_GDB_LISTEN_PORT;
     state.reset = 1;    /* By default, reset board */
     parse_options(argc, argv, &state);
+
     switch (state.stlink_version) {
         case 2:
             sl = stlink_open_usb(state.logging_level, state.reset, NULL);
@@ -205,7 +209,6 @@ int main(int argc, char** argv) {
     ILOG("Chip ID is %08x, Core ID is  %08x.\n", sl->chip_id, sl->core_id);
 
     sl->verbose=0;
-
     current_memory_map = make_memory_map(sl);
 
 #ifdef __MINGW32__

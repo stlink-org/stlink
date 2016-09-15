@@ -145,6 +145,7 @@ int main(int ac, char** av)
         return -1;
     }
 
+    printf("st-info %s (%s)\n", STLINK_VERSION);
     err = print_data(av);
 
     return err;
