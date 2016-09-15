@@ -1,6 +1,7 @@
 MAN1 =
 MAN1 += st-util.md
 MAN1 += st-flash.md
+MAN1 += st-info.md
 
 all: $(patsubst %.md, %.1, $(MAN1))
 
