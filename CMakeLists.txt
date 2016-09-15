@@ -188,7 +188,12 @@ if (APPLE)
 	target_link_libraries(${PROJECT_NAME} ${CoreFoundation} ${IOKit} ${ObjC})
 endif ()
 
-target_link_libraries(${PROJECT_NAME} ${LIBUSB_LIBRARY})
+if(WIN32 OR MSYS OR MINGW)
+	target_link_libraries(${PROJECT_NAME} ${LIBUSB_LIBRARY} wsock32 ws2_32)
+else()
+	target_link_libraries(${PROJECT_NAME} ${LIBUSB_LIBRARY})
+endif()
+
 add_executable(st-flash src/tools/flash.c src/tools/flash_opts.c)
 target_link_libraries(st-flash ${PROJECT_NAME})
 
@@ -201,11 +206,8 @@ add_executable(st-util src/gdbserver/gdb-remote.c
                        src/gdbserver/gdb-server.h
                        src/gdbserver/semihosting.c
                        src/gdbserver/semihosting.h)
-if (WIN32 OR MSYS OR MINGW)
-	target_link_libraries(st-util ${PROJECT_NAME} wsock32 ws2_32)
-else ()
-	target_link_libraries(st-util ${PROJECT_NAME})
-endif ()
+
+target_link_libraries(st-util ${PROJECT_NAME})
 
 install(TARGETS ${PROJECT_NAME} ${STLINK_LIB_STATIC} st-flash st-util st-info
         RUNTIME DESTINATION bin
