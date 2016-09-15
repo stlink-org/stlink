@@ -20,7 +20,7 @@ default **4242** port will be used.
 
 Stlink version 2 is used by default unless the option **--stlinkv1** is given.
 
-The STLINKv2 device to use can be specified in the environment
+The STLinkV2 device to use can be specified in the environment
 variable STLINK_DEVICE on the format <USB_BUS>:<USB_ADDR>.
 
 

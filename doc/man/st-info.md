@@ -4,7 +4,7 @@
 
 
 # NAME
-st-info - Provides information about connected STLINK and STM32 devices
+st-info - Provides information about connected STLink and STM32 devices
 
 
 # SYNOPSIS
@@ -12,7 +12,7 @@ st-info - Provides information about connected STLINK and STM32 devices
 
 
 # DESCRIPTION
-Provides information about connected STLINK programmers and STM32 devices:
+Provides information about connected STLink programmers and STM32 devices:
 Serial code, openocd, flash, sram, page size, chipid, description.
 
 
