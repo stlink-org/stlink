@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 2.8.7)
 project(stlink C)
 set(PROJECT_DESCRIPTION "Open source version of the STMicroelectronics Stlink Tools")
 
-project(stlink C)
 include(CheckCCompilerFlag)
 include(CheckIncludeFile)
 find_package(PkgConfig)
@@ -108,7 +107,7 @@ if (NOT CMAKE_SYSTEM_NAME STREQUAL "OpenBSD")
 endif ()
 
 add_cflag_if_supported("-Wundef")
-if (NOT MSYS OR MINGW)
+if (NOT WIN32)
 	add_cflag_if_supported("-fPIC")
 endif ()
 
