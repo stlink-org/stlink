@@ -43,8 +43,8 @@
 include(CMakeParseArguments)
 
 if(NOT EXISTS ${PANDOC_EXECUTABLE})
-    #find_program(PANDOC_EXECUTABLE pandoc)
-    #mark_as_advanced(PANDOC_EXECUTABLE)
+    find_program(PANDOC_EXECUTABLE pandoc)
+    mark_as_advanced(PANDOC_EXECUTABLE)
 endif()
 
 ###############################################################################
