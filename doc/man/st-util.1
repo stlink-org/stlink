@@ -1,3 +1,5 @@
+.TH ST-UTIL 1 "Sep 2016" "Open Source STMicroelectronics Stlink Tools" "STLINK"
+.SH NAME
 .PP
 st-util - Run GDB server to interact with STM32 device
 .SH SYNOPSIS
@@ -14,12 +16,17 @@ option, the default \f[B]4242\f[] port will be used.
 Stlink version 2 is used by default unless the option
 \f[B]--stlinkv1\f[] is given.
 .PP
-The STLINKv2 device to use can be specified in the environment variable
+The STLinkV2 device to use can be specified in the environment variable
 STLINK_DEVICE on the format :.
 .SH OPTIONS
 .TP
 .B -h, --help
 Print this message.
+.RS
+.RE
+.TP
+.B --version
+Print version information
 .RS
 .RE
 .TP
