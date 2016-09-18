@@ -35,6 +35,9 @@ erase
 
 # OPTIONS
 
+--version
+:   Print version information
+
 --debug
 :   TODO
 

@@ -18,6 +18,9 @@ Serial code, openocd, flash, sram, page size, chipid, description.
 
 # OPTIONS
 
+--version
+:   Print version information
+
 --flash
 :   Display amount of flash memory available in the device
 

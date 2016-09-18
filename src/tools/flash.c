@@ -35,6 +35,7 @@ static void usage(void)
     puts("stlinkv2 command line: ./st-flash [--debug] [--serial <serial>] erase");
     puts("                       Use hex format for addr, <serial> and <size>.");
     puts("                       Format may be 'binary' (default) or 'ihex', although <addr> must be specified for binary format only.");
+    puts("                       ./st-flash [--version]");
 }
 
 int main(int ac, char** av)
@@ -52,7 +53,7 @@ int main(int ac, char** av)
         return -1;
     }
 
-    printf("st-flash %s (%s)\n", STLINK_VERSION);
+    printf("st-flash %s\n", STLINK_VERSION);
 
     if (o.devname != NULL) /* stlinkv1 */
         sl = stlink_v1_open(o.log_level, 1);

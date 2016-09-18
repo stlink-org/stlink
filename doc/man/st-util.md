@@ -29,6 +29,9 @@ variable STLINK_DEVICE on the format <USB_BUS>:<USB_ADDR>.
 -h, --help
 :   Print this message.
 
+--version
+:   Print version information
+
 -v *XX*, --verbose=XX
 :   Specify a specific verbosity level (0..99)
 
