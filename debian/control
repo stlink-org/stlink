@@ -4,7 +4,7 @@ Maintainer: Andrew 'Necromant' Andrianov <andrew@ncrmnt.org>
 Build-Depends: debhelper (>= 9), cmake, libusb-1.0-0-dev, libgtk-3-dev
 Standards-Version: 3.9.5
 Section: libs
-Homepage: <insert the upstream URL, if relevant>
+Homepage: https://github.com/texane/stlink
 Vcs-Git: https://github.com/texane/stlink.git
 Vcs-Browser: https://github.com/texane/stlink
 
@@ -24,11 +24,11 @@ Description: OpenSource ST-Link tools replacement. Shared library.
 Package: stlink-tools
 Section: libdevel
 Architecture: any
-Depends: libstlink (= ${binary:Version}), ${misc:Depends}
+Depends: libstlink (= ${binary:Version}), ${shlibs:Depends}, ${misc:Depends}
 Description: OpenSource ST-Link tools replacement. Commandline Utilities.
 
 Package: stlink-gui
 Section: libdevel
 Architecture: any
-Depends: libstlink (= ${binary:Version}), ${misc:Depends}
+Depends: libstlink (= ${binary:Version}), ${shlibs:Depends}, ${misc:Depends}
 Description: OpenSource ST-Link tools replacement. GUI Tool.

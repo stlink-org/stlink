@@ -56,6 +56,14 @@ $ cmake -DCMAKE_BUILD_TYPE=Debug ..
 $ make
 ```
 
+### Build Debian Package
+To build debian package you need debuild.
+
+```
+$ git archive --prefix=$(git describe)/ HEAD | bzip2 --stdout > ../libstlink_$(sed -En -e "s/.*\((.*)\).*/\1/" -e "1,1 p" debian/changelog).orig.tar.bz2
+$ debuild -uc -us
+```
+
 ## Using the gdb server
 
 To run the gdb server: (you do not need sudo if you have set up

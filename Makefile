@@ -4,7 +4,7 @@
 ##
 MAKEFLAGS += -s
 
-all: debug
+all: release
 ci: lint debug release test
 
 help:
@@ -27,16 +27,16 @@ release: build/Release
 	@echo "[RELEASE]"
 	@$(MAKE) -C build/Release
 
-test: build/Debug
+test: debug
 	@$(MAKE) -C build/Debug test
 
 build/Debug:
 	@mkdir -p $@
-	@cd $@ && cmake -DCMAKE_BUILD_TYPE=Debug ../../
+	@cd $@ && cmake -DCMAKE_BUILD_TYPE=Debug $(CMAKEFLAGS) ../../
 
 build/Release:
 	@mkdir -p $@
-	@cd $@ && cmake -Wno-dev -DCMAKE_BUILD_TYPE=Release ../../
+	@cd $@ && cmake -Wno-dev -DCMAKE_BUILD_TYPE=Release $(CMAKEFLAGS) ../../
 
 clean:
 	@echo "[CLEAN]"
