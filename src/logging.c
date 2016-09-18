@@ -11,7 +11,7 @@
 
 #include "stlink/logging.h"
 
-static int max_level;
+static int max_level = UINFO;
 
 int ugly_init(int maximum_threshold) {
     max_level = maximum_threshold;

@@ -16,16 +16,21 @@ if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
 			PANDOC_DIRECTIVES -s -t man
 			PRODUCT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 		)
-
-		install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${manpage}.1
-			DESTINATION share/man/man1
-		)
-	endforeach()
-else()
-	# TODO(xor-gate): we should generate a install list for Release and Debug targets
-	foreach(manpage ${MANPAGES})
-		install(FILES ${manpage}.1
-			DESTINATION share/man/man1
-		)
 	endforeach()
 endif()
+
+# Install from output folder or this folder
+foreach(manpage ${MANPAGES})
+	if(EXISTS ${CMAKE_CURRENT_BINARY_DIR}/${manpage}.1)
+		set(f "${CMAKE_CURRENT_BINARY_DIR}/${manpage}.1")
+	elseif(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${manpage}.1")
+		set(f "${CMAKE_CURRENT_SOURCE_DIR}/${manpage}.1")
+	else()
+		message(AUTHOR_WARNING "Manpage ${manpage} not generated")
+	endif()
+
+	if (f)
+		install(FILES ${f} DESTINATION ${CMAKE_INSTALL_PREFIX}/share/man/man1)
+		unset(f)
+	endif()
+endforeach()
