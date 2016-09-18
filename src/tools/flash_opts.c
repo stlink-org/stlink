@@ -23,7 +23,11 @@ int flash_get_opts(struct flash_opts* o, int ac, char** av)
     // options
 
     while(ac >= 1) {
-        if (strcmp(av[0], "--debug") == 0) {
+        if (strcmp(av[0], "--version") == 0) {
+            printf("v%s\n", STLINK_VERSION);
+            exit(EXIT_SUCCESS);
+        }
+        else if (strcmp(av[0], "--debug") == 0) {
             o->log_level = DEBUG_LOG_LEVEL;
         }
         else if (strcmp(av[0], "--reset") == 0) {

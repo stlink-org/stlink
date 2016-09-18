@@ -35,7 +35,7 @@
 #define FLASH_PAGE (sl->flash_pgsz)
 
 static stlink_t *connected_stlink = NULL;
-bool semihosting = false;
+static bool semihosting = false;
 
 static const char hex[] = "0123456789abcdef";
 
@@ -79,11 +79,13 @@ int parse_options(int argc, char** argv, st_state_t *st) {
         {"listen_port", required_argument, NULL, 'p'},
         {"multi", optional_argument, NULL, 'm'},
         {"no-reset", optional_argument, NULL, 'n'},
+        {"version", no_argument, NULL, 'V'},
         {"semihosting", no_argument, NULL, SEMIHOSTING_OPTION},
         {0, 0, 0, 0},
     };
     const char * help_str = "%s - usage:\n\n"
         "  -h, --help\t\tPrint this help\n"
+        "  -V, --version\t\tPrint the version\n"
         "  -vXX, --verbose=XX\tSpecify a specific verbosity level (0..99)\n"
         "  -v, --verbose\t\tSpecify generally verbose logging\n"
         "  -s X, --stlink_version=X\n"
@@ -112,12 +114,6 @@ int parse_options(int argc, char** argv, st_state_t *st) {
     while ((c = getopt_long(argc, argv, "hv::s:1p:mn", long_options, &option_index)) != -1) {
         switch (c) {
             case 0:
-                printf("XXXXX Shouldn't really normally come here, only if there's no corresponding option\n");
-                printf("option %s", long_options[option_index].name);
-                if (optarg) {
-                    printf(" with arg %s", optarg);
-                }
-                printf("\n");
                 break;
             case 'h':
                 printf(help_str, argv[0]);
@@ -155,6 +151,9 @@ int parse_options(int argc, char** argv, st_state_t *st) {
             case 'n':
                 st->reset = 0;
                 break;
+            case 'V':
+                printf("v%s\n", STLINK_VERSION);
+                exit(EXIT_SUCCESS);
             case SEMIHOSTING_OPTION:
                 semihosting = true;
                 break;
@@ -170,14 +169,10 @@ int parse_options(int argc, char** argv, st_state_t *st) {
     return 0;
 }
 
-
 int main(int argc, char** argv) {
     stlink_t *sl = NULL;
-
     st_state_t state;
     memset(&state, 0, sizeof(state));
-
-    printf("st-util %s (%s)\n", STLINK_VERSION);
 
     // set defaults...
     state.stlink_version = 2;
@@ -185,6 +180,8 @@ int main(int argc, char** argv) {
     state.listen_port = DEFAULT_GDB_LISTEN_PORT;
     state.reset = 1;    /* By default, reset board */
     parse_options(argc, argv, &state);
+
+    printf("st-util %s\n", STLINK_VERSION);
 
     switch (state.stlink_version) {
         case 2:
@@ -205,6 +202,8 @@ int main(int argc, char** argv) {
     if (state.reset) {
         stlink_reset(sl);
     }
+
+
 
     ILOG("Chip ID is %08x, Core ID is  %08x.\n", sl->chip_id, sl->core_id);
 
