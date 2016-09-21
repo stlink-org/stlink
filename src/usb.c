@@ -880,7 +880,7 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, bool reset, char serial[16
     }
 
     if (reset) {
-        stlink_jtag_reset(sl, 2);
+        if( sl->version.stlink_v > 1 ) stlink_jtag_reset(sl, 2);
         stlink_reset(sl);
         usleep(10000);
     }
