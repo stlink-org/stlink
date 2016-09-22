@@ -1,8 +1,8 @@
 Open source version of the STMicroelectronics Stlink Tools
 ==========================================================
 
-[![GitHub release](https://img.shields.io/github/release/texane/stlink.svg?maxAge=2592000)](https://github.com/texane/stlink/releases/latest)
-[![GitHub commits](https://img.shields.io/github/commits-since/texane/stlink/1.2.0.svg?maxAge=2592000)](https://github.com/texane/stlink/compare/1.2.0...master)
+[![GitHub release](https://img.shields.io/github/release/texane/stlink.svg)](https://github.com/texane/stlink/releases/latest)
+[![GitHub commits](https://img.shields.io/github/commits-since/texane/stlink/1.2.0.svg)](https://github.com/texane/stlink/compare/1.2.0...master)
 [![Linux Status](https://img.shields.io/travis/texane/stlink/master.svg?label=linux)](https://travis-ci.org/texane/stlink)
 [![Build Status](https://jenkins.ncrmnt.org/buildStatus/icon?job=GithubCI/stlink)](https://jenkins.ncrmnt.org/job/GithubCI/job/stlink/)
 [![Build status](https://ci.appveyor.com/api/projects/status/wrcie05d4jmut0te?svg=true)](https://ci.appveyor.com/project/xor-gate/stlink)
