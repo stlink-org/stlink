@@ -22,12 +22,7 @@ include /usr/share/dpkg/default.mk
 	dh $@
 
 
-OUTDIR=build/Release
 ROOTDIR=debian/tmp
-DSTDIR=$(ROOTDIR)/usr
-BINDIR=$(DSTDIR)/bin
-SHAREDIR=$(DSTDIR)/share/stlink
-LIBDIR=$(DSTDIR)/lib/$(if $(DEB_TARGET_MULTIARCH),$(DEB_TARGET_MULTIARCH),$(DEB_BUILD_MULTIARCH))
 UDEVDIR=$(ROOTDIR)/lib/udev/rules.d/
 MODDIR=$(ROOTDIR)/lib/modprobe.d/
 
@@ -38,20 +33,12 @@ export CMAKEFLAGS = \
 
 override_dh_auto_configure:
 
+override_dh_auto_test:
+
 override_dh_auto_install:
-	install -d $(DSTDIR)/include/stlink/tools
-	install -d $(LIBDIR)/pkgconfig
-	install -d $(BINDIR)
-	install -d $(SHAREDIR)
+	dh_auto_install
 	install -d $(UDEVDIR)
 	install -d $(MODDIR)
-	install -m644 $(wildcard include/*.h) $(DSTDIR)/include
-	install -m644 $(wildcard include/stlink/*.h) $(DSTDIR)/include/stlink
-	install -m644 $(wildcard include/stlink/tools/*.h) $(DSTDIR)/include/stlink/tools
-	install -m755 $(wildcard $(OUTDIR)/st-* $(OUTDIR)/src/gdbserver/st-* $(OUTDIR)/src/tools/gui/stlink-gui*) $(BINDIR)
-	cp -d $(wildcard $(OUTDIR)/libstlink.*) $(LIBDIR)
-	install -m644 $(OUTDIR)/usr/lib/pkgconfig/stlink.pc $(LIBDIR)/pkgconfig
-	install -m644 src/tools/gui/stlink-gui.ui $(SHAREDIR)
 	install -m644 etc/udev/rules.d/*.rules $(UDEVDIR)
 	install -m644 etc/modprobe.d/*.conf $(MODDIR)
 
