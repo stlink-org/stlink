@@ -6,6 +6,7 @@ MAKEFLAGS += -s
 
 all: release
 ci: lint debug release test
+install: install_release
 
 help:
 	@echo "      release: Run a release build"
@@ -41,5 +42,11 @@ build/Release:
 clean:
 	@echo "[CLEAN]"
 	@rm -Rf build
+
+install_release: release
+	@$(MAKE) -C build/Release install
+
+install_debug: debug
+	@$(MAKE) -C build/Debug install
 
 .PHONY: clean
