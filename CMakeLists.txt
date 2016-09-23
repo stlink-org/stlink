@@ -127,6 +127,14 @@ install(TARGETS st-flash st-info
 	RUNTIME DESTINATION bin
 )
 
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+	file(GLOB RULES_FILES etc/udev/rules.d/*.rules)
+	install(FILES etc/modprobe.d/stlink_v1.conf
+	DESTINATION /etc)
+	install(FILES ${RULES_FILES}
+	DESTINATION /lib/udev/rules.d/)
+endif()
+
 add_subdirectory(src/gdbserver)
 add_subdirectory(src/tools/gui)
 

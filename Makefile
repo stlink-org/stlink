@@ -27,6 +27,10 @@ release: build/Release
 	@echo "[RELEASE]"
 	@$(MAKE) -C build/Release
 
+package: build/Release
+	@echo "[PACKAGE] Release"
+	@$(MAKE) -C build/Release package
+
 test: debug
 	@$(MAKE) -C build/Debug test
 

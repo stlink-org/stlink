@@ -1,2 +1,2 @@
 /usr/bin/stlink-gui*
-/usr/share/*
+/usr/share/stlink/stlink-gui.ui
