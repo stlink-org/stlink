@@ -134,9 +134,9 @@ for GDB.
 
 ## Setting up udev rules
 
-For convenience, you may install udev rules file, 49-stlinkv*.rules, located
-in the root of repository. You will need to copy it to /etc/udev/rules.d,
-and then either reboot or execute
+For convenience, you may install udev rule files, located
+in the `etc/udev/rules.d` directory. You will need to copy it to /etc/udev/rules.d,
+and then either execute as root (or reboot your machine):
 
 ```
 $ udevadm control --reload-rules
@@ -144,8 +144,6 @@ $ udevadm trigger
 ```
 
 Udev will now create a /dev/stlinkv2_XX or /dev/stlinkv1_XX file, with the appropriate permissions.
-This is currently all the device is for, (only one stlink of each version is supported at 
-any time presently)
 
 ## Running programs from SRAM
 
