@@ -19,24 +19,22 @@ include /usr/share/dpkg/default.mk
 
 # main packaging script based on dh7 syntax
 %:
-	dh $@
+	dh $@ --buildsystem cmake
 
 
 ROOTDIR=debian/tmp
 UDEVDIR=$(ROOTDIR)/lib/udev/rules.d/
 MODDIR=$(ROOTDIR)/lib/modprobe.d/
 
-export CMAKEFLAGS = \
-	-DCMAKE_LIBRARY_PATH=$(DEB_HOST_MULTIARCH) \
-	-DCMAKE_INSTALL_PREFIX=/usr \
-
 
 override_dh_auto_configure:
+	dh_auto_configure --buildsystem cmake -- \
+		-DCMAKE_LIBRARY_PATH=$(DEB_HOST_MULTIARCH)
 
 override_dh_auto_test:
 
 override_dh_auto_install:
-	dh_auto_install
+	dh_auto_install --buildsystem cmake
 	install -d $(UDEVDIR)
 	install -d $(MODDIR)
 	install -m644 etc/udev/rules.d/*.rules $(UDEVDIR)
