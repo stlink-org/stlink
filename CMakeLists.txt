@@ -128,11 +128,14 @@ install(TARGETS st-flash st-info
 )
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
-	file(GLOB RULES_FILES etc/udev/rules.d/*.rules)
-	install(FILES etc/modprobe.d/stlink_v1.conf
-	DESTINATION /etc)
-	install(FILES ${RULES_FILES}
-	DESTINATION /lib/udev/rules.d/)
+	option( INSTALL_STLINK_MODPROBE_RULES "Installs udev rules to /etc/modprobe.d" On )
+	if( INSTALL_STLINK_MODPROBE_RULES )
+		file(GLOB RULES_FILES etc/udev/rules.d/*.rules)
+		install(FILES etc/modprobe.d/stlink_v1.conf
+		DESTINATION /etc)
+		install(FILES ${RULES_FILES}
+		DESTINATION /lib/udev/rules.d/)
+	endif()
 endif()
 
 add_subdirectory(src/gdbserver)
