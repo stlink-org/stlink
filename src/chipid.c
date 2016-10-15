@@ -406,6 +406,22 @@ static const struct stlink_chipid_params devices[] = {
             .bootrom_base = 0x1fff0000,      // Tables 4-6, pages 80-81 (Bank 1 system memory)
             .bootrom_size = 0x7000           // 28k (per bank), same source as base
         },
+	        {
+            // 	STLINK_CHIPID_STM32_L43X   
+            // From RM0392.
+ 	    .chip_id = STLINK_CHIPID_STM32_L43X,   
+            .description = "L43x device",
+            .flash_type = STLINK_FLASH_TYPE_L4,
+            .flash_size_reg = 0x1fff75e0,    // "Flash size data register" (sec 43.2, page 1410)
+            .flash_pagesize = 0x800,         // 2K (sec 3.2, page 74; also appears in sec 3.3.1 and tables 7-8 on pages 75-76)
+            // SRAM1 is "up to" 64k in the standard Cortex-M memory map;
+            // SRAM2 is 16k mapped at at 0x10000000 (sec 2.3, page 73 for
+            // sizes; table 2, page 74 for SRAM2 location)
+            .sram_size = 0xc000,
+            .bootrom_base = 0x1fff0000,      // Tables 4-6, pages 80-81 (Bank 1 system memory)
+            .bootrom_size = 0x7000           // 28k (per bank), same source as base
+        },
+
 
  };
 
