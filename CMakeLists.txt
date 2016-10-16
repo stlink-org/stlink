@@ -131,7 +131,7 @@ install(TARGETS st-flash st-info
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
 	file(GLOB RULES_FILES etc/udev/rules.d/*.rules)
 	install(FILES etc/modprobe.d/stlink_v1.conf
-	DESTINATION /etc)
+	DESTINATION /etc/modprobe.d/)
 	install(FILES ${RULES_FILES}
 	DESTINATION /lib/udev/rules.d/)
 endif()
