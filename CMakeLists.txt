@@ -132,7 +132,7 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
 	install(FILES etc/modprobe.d/stlink_v1.conf
 	DESTINATION /etc/modprobe.d/)
 	install(FILES ${RULES_FILES}
-	DESTINATION /lib/udev/rules.d/)
+	DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/udev/rules.d/)
 endif()
 
 add_subdirectory(src/gdbserver)
