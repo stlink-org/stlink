@@ -99,6 +99,10 @@ int flash_get_opts(struct flash_opts* o, int ac, char** av)
             if (o->cmd != FLASH_CMD_NONE) return -1;
             o->cmd = FLASH_CMD_WRITE;
         }
+        else if (strcmp(av[0], "reset") == 0) {
+            if (o->cmd != FLASH_CMD_NONE) return -1;
+            o->cmd = CMD_RESET;
+        }
         else if(starts_with(av[0], "/dev/")) {
             if (o->devname) return -1;
             o->devname = av[0];

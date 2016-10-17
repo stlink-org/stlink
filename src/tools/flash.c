@@ -33,6 +33,7 @@ static void usage(void)
     puts("stlinkv1 command line: ./st-flash [--debug] /dev/sgX erase");
     puts("stlinkv2 command line: ./st-flash [--debug] [--reset] [--serial <serial>] [--format <format>] {read|write} <path> <addr> <size>");
     puts("stlinkv2 command line: ./st-flash [--debug] [--serial <serial>] erase");
+    puts("stlinkv2 command line: ./st-flash [--debug] [--serial <serial>] reset");
     puts("                       Use hex format for addr, <serial> and <size>.");
     puts("                       Format may be 'binary' (default) or 'ihex', although <addr> must be specified for binary format only.");
     puts("                       ./st-flash [--version]");
@@ -166,6 +167,17 @@ int main(int ac, char** av)
         if (err == -1)
         {
             printf("stlink_erase_flash_mass() == -1\n");
+            goto on_error;
+        }
+    } else if (o.cmd == CMD_RESET)
+    {
+        if (stlink_jtag_reset(sl, 2)) {
+            printf("Failed to reset JTAG\n");
+            goto on_error;
+        }
+
+        if (stlink_reset(sl)) {
+            printf("Failed to reset device\n");
             goto on_error;
         }
     }
