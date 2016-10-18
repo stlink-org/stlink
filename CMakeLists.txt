@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 2.8.7)
 project(stlink C)
 set(PROJECT_DESCRIPTION "Open source version of the STMicroelectronics Stlink Tools")
+set(STLINK_UDEV_RULES_DIR "/etc/udev/rules.d" CACHE PATH "Udev rules directory")
+set(STLINK_MODPROBED_DIR "/etc/modprobe.d" CACHE PATH "modprobe.d directory")
 
 include(CheckIncludeFile)
 
@@ -130,9 +132,9 @@ install(TARGETS st-flash st-info
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
 	file(GLOB RULES_FILES etc/udev/rules.d/*.rules)
 	install(FILES etc/modprobe.d/stlink_v1.conf
-	DESTINATION /etc/modprobe.d/)
+	DESTINATION ${STLINK_MODPROBED_DIR}/)
 	install(FILES ${RULES_FILES}
-	DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/udev/rules.d/)
+	DESTINATION ${STLINK_UDEV_RULES_DIR}/)
 endif()
 
 add_subdirectory(src/gdbserver)
