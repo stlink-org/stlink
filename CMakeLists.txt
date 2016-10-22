@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.7)
 project(stlink C)
 set(PROJECT_DESCRIPTION "Open source version of the STMicroelectronics Stlink Tools")
 
-include(CheckIncludeFile)
+option(STLINK_GENERATE_MANPAGES "Generate manpages with pandoc" OFF)
 
 if (POLICY CMP0042)
 	# Newer cmake on MacOS should use @rpath
@@ -22,6 +22,7 @@ if (NOT APPLE AND NOT WIN32)
 	pkg_check_modules(gtk gtk+-3.0)
 endif ()
 
+include(CheckIncludeFile)
 CHECK_INCLUDE_FILE(sys/mman.h STLINK_HAVE_SYS_MMAN_H)
 if (STLINK_HAVE_SYS_MMAN_H)
 	add_definitions(-DSTLINK_HAVE_SYS_MMAN_H)
@@ -95,7 +96,7 @@ else()
 endif()
 
 install(TARGETS ${PROJECT_NAME}
-	LIBRARY DESTINATION lib/${CMAKE_LIBRARY_PATH}
+	DESTINATION lib/${CMAKE_LIBRARY_PATH}
 )
 
 ###

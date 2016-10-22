@@ -5,7 +5,7 @@ set(MANPAGES
 )
 
 # Only generate manpages with pandoc in Debug builds
-if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
+if(${STLINK_GENERATE_MANPAGES})
 	include(pandocology)
 
 	foreach(manpage ${MANPAGES})
@@ -16,6 +16,8 @@ if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
 			PRODUCT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 		)
 	endforeach()
+else()
+	message(STATUS "Manpage generation disabled")
 endif()
 
 # Install from output folder or this folder

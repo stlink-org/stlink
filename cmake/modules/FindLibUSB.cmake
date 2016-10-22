@@ -44,8 +44,6 @@ else ()
 	)
 endif()
 
-message(STATUS "LIBUSB_INCLUDE_DIR: ${LIBUSB_INCLUDE_DIR}")
-
 if (APPLE)
 	set(LIBUSB_NAME libusb-1.0.a)
 elseif(MSYS OR MINGW)
