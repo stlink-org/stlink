@@ -22,52 +22,27 @@ Two different transport layers are used:
 * STLINKv1 uses SCSI passthru commands over USB
 * STLINKv2 uses raw USB commands.
 
-## Common requirements
+## Installation
 
-* Debian based distros (debian, ubuntu)
-  * `build-essential`
+Currently there are no binaries for windows available.
+ It is known to compile and work with MinGW/Cygwin.
 
-* `cmake`
-* `libusb-1.0` (plus development headers for building, on debian based distros `libusb-1.0.0-dev` package)
-* (optional) for `stlink-gui` we need libgtk-3-dev
+For debian linux based distros there is also no package available
+ in the standard repositories so you need to compile yourself.
 
-## For STLINKv1
+Arch Linux users can install from the [repository](https://www.archlinux.org/packages/community/x86_64/stlink)
 
-The STLINKv1's SCSI emulation is very broken, so the best thing to do
-is tell your operating system to completely ignore it.
+FreeBSD users can install from [freshports](https://www.freshports.org/devel/stlink)
 
-Options (do one of these before you plug it in)
+**Compilation from source (advanced users)**
 
-* `modprobe -r usb-storage && modprobe usb-storage quirks=483:3744:i`
-* or 1. `echo "options usb-storage quirks=483:3744:i" >> /etc/modprobe.conf`
-*    2. `modprobe -r usb-storage && modprobe usb-storage`
-* or 1. `cp stlink_v1.modprobe.conf /etc/modprobe.d`
-*    2. `modprobe -r usb-storage && modprobe usb-storage`
-
-## For STLINKv2
-
-You're ready to go :)
-
-## Build from sources
-
-```
-$ mkdir build && cd build
-$ cmake -DCMAKE_BUILD_TYPE=Debug ..
-$ make
-```
-
-### Build Debian Package
-To build debian package you need debuild.
-
-```
-$ git archive --prefix=$(git describe)/ HEAD | bzip2 --stdout > ../libstlink_$(sed -En -e "s/.*\((.*)\).*/\1/" -e "1,1 p" debian/changelog).orig.tar.bz2
-$ debuild -uc -us
-```
+When there is no executable available for your platform or you need the latest
+ (possible unstable) version you need to compile yourself. This is explained in
+ the [compiling manual](doc/compiling.md).
 
 ## Using the gdb server
 
-To run the gdb server: (you do not need sudo if you have set up
-permissions correctly)
+To run the gdb server:
 
 ```
 $ make && [sudo] ./st-util
@@ -92,7 +67,7 @@ There are a few options:
 ```
 
 The STLINKv2 device to use can be specified in the environment
-variable STLINK_DEVICE on the format `<USB_BUS>:<USB_ADDR>`.
+variable `STLINK_DEVICE` on the format `<USB_BUS>:<USB_ADDR>`.
 
 Then, in your project directory, someting like this...
 (remember, you need to run an _ARM_ gdb, not an x86 gdb)
@@ -112,8 +87,6 @@ Transfer rate: 1 KB/sec, 560 bytes/write.
 (gdb) continue
 ```
 
-Have fun!
-
 ## Resetting the chip from GDB
 
 You may reset the chip using GDB if you want. You'll need to use `target
@@ -132,19 +105,6 @@ Starting program: /home/whitequark/ST/apps/bally/firmware.elf
 Remember that you can shorten the commands. `tar ext :4242' is good enough
 for GDB.
 
-## Setting up udev rules
-
-For convenience, you may install udev rule files, located
-in the `etc/udev/rules.d` directory. You will need to copy it to /etc/udev/rules.d,
-and then either execute as root (or reboot your machine):
-
-```
-$ udevadm control --reload-rules
-$ udevadm trigger
-```
-
-Udev will now create a /dev/stlinkv2_XX or /dev/stlinkv1_XX file, with the appropriate permissions.
-
 ## Running programs from SRAM
 
 You can run your firmware directly from SRAM if you want to. Just link
@@ -160,8 +120,12 @@ code, if it is linked correctly (i.e. ELF has correct entry point).
 ## Writing to flash
 
 The GDB stub ships with a correct memory map, including the flash area.
-If you would link your executable to 0x08000000 and then do
+If you would link your executable to `0x08000000` and then do
+
+```
 (gdb) load firmware.elf
+```
+
 then it would be written to the memory.
 
 ## FAQ
