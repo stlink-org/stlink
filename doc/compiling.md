@@ -2,8 +2,6 @@
 
 ## Build from sources
 
-
-
 * CMake
 * C compiler (gcc, clang, mingw)
 * Libusb 1.0
@@ -63,3 +61,21 @@ To build debian package you need debuild.
 $ git archive --prefix=$(git describe)/ HEAD | bzip2 --stdout > ../libstlink_$(sed -En -e "s/.*\((.*)\).*/\1/" -e "1,1 p" debian/changelog).orig.tar.bz2
 $ debuild -uc -us
 ```
+
+## Mac OS X
+
+When compiling on a mac you need the following:
+
+* A compiler toolchain (XCode)
+* CMake
+* Libusb 1.0
+
+The best way is to install [homebrew](http://brew.sh) which is a package manager
+ for opensource software which is missing from the Apple App Store. Then install
+ the dependencies:
+
+```
+brew install libusb cmake
+```
+
+Compile as described in the first section of this document.
