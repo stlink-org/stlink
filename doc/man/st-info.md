@@ -53,7 +53,7 @@ Display information about connected programmers and devices
 
 
 # SEE ALSO
-st-util(1), st-flash(1), st-term(1)
+st-util(1), st-flash(1)
 
 
 # COPYRIGHT

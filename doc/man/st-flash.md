@@ -65,7 +65,7 @@ Erase firmware from device
 
 
 # SEE ALSO
-st-util(1), st-info(1), st-term(1)
+st-util(1), st-info(1)
 
 
 # COPYRIGHT

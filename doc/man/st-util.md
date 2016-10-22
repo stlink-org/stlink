@@ -63,7 +63,7 @@ Run GDB server on port 4500 and connect to it
 
 
 # SEE ALSO
-st-flash(1), st-info(1), st-term(1)
+st-flash(1), st-info(1)
 
 
 # COPYRIGHT
