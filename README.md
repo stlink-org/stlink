@@ -34,6 +34,8 @@ Arch Linux users can install from the [repository](https://www.archlinux.org/pac
 
 FreeBSD users can install from [freshports](https://www.freshports.org/devel/stlink)
 
+Mac OS X users can install from [homebrew](http://brewformulas.org/Stlink)
+
 **Compilation from source (advanced users)**
 
 When there is no executable available for your platform or you need the latest
