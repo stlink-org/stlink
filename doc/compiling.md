@@ -79,3 +79,13 @@ brew install libusb cmake
 ```
 
 Compile as described in the first section of this document.
+
+## Build using different directories for udev and modprobe
+
+To put the udev or the modprobe configuration files into a different directory
+during installation you can use the following cmake options:
+
+```
+$ cmake -DSTLINK_UDEV_RULES_DIR="/usr/lib/udev/rules.d" \
+        -DSTLINK_MODPROBED_DIR="/usr/lib/modprobe.d" ..
+```
