@@ -199,6 +199,13 @@ STLink v2-1 (as found on the Nucleo boards), known working targets:
 
 Please report any and all known working combinations so I can update this!
 
+## Missing features
+
+* Control programming speed (See [#462](https://github.com/texane/stlink/issues/462))
+* OTP area programming (See [#202](https://github.com/texane/stlink/issues/202))
+* EEPROM area programming (See [#318](https://github.com/texane/stlink/issues/218))
+* Protection bits area reading (See [#346](https://github.com/texane/stlink/issues/346))
+
 ## Known bugs
 
 ### Sometimes flashing only works after a mass erase
