@@ -23,6 +23,10 @@ $ make
 * `libusb-1.0` (plus development headers for building, on debian based distros `libusb-1.0.0-dev` package)
 * (optional) for `stlink-gui` we need libgtk-3-dev
 
+### Fixing cannot open shared object file
+
+When installing system-wide (`sudo make install`) the dynamic library cache needs to be updated with the command `ldconfig`.
+
 ## Permissions with udev
 
 Make sure you install udev files which are necessary to run the tools without root
