@@ -7,10 +7,33 @@
 * Libusb 1.0
 * (optional) pandoc for generating manpages from markdown
 
+Run from the root of the source directory:
+
+```
+$ make release
+$ make debug
+```
+
+The debug target should only be necessary for people who want
+ to modify the sources and run under a debugger.
+The top level Makefile is just a handy wrapper for:
+
 ```
 $ mkdir build && cd build
 $ cmake -DCMAKE_BUILD_TYPE=Debug ..
 $ make
+```
+
+You could install to a user folder e.g `$HOME`:
+
+```
+$ cd release; make install DESTDIR=$HOME
+```
+
+Or system wide:
+
+```
+$ cd release; sudo make install
 ```
 
 ## Linux
