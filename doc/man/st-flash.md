@@ -32,6 +32,8 @@ read *FILE* *ADDR* *SIZE*
 erase
 :   Perform a mass erasing of the device firmware
 
+reset
+:   Reset the target
 
 # OPTIONS
 
