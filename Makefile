@@ -5,7 +5,7 @@
 MAKEFLAGS += -s
 
 all: release
-ci: lint debug release test
+ci: debug release test
 
 help:
 	@echo "      release: Run a release build"
