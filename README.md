@@ -183,6 +183,7 @@ STLink v2 (as found on the 32L and F4 Discovery boards), known working targets:
 * STM32L151CB (custom board)
 * STM32L152RB (STM32L-Discovery board, custom board)
 * STM32F051R8T6 (STM320518-EVAL board)
+* STM32F411E-DISCO (STM32F4 Discovery board with gyro, audio)
 
 STLink v2-1 (as found on the Nucleo boards), known working targets:
 
