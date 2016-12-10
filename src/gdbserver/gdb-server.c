@@ -69,6 +69,19 @@ static void cleanup(int signum) {
 }
 
 
+static stlink_t* do_connect(st_state_t *st) {
+    stlink_t *ret = NULL;
+    switch (st->stlink_version) {
+        case 2:
+            ret = stlink_open_usb(st->logging_level, st->reset, NULL);
+            break;
+        case 1:
+            ret = stlink_v1_open(st->logging_level, st->reset);
+            break;
+    }
+    return ret;
+}
+
 
 int parse_options(int argc, char** argv, st_state_t *st) {
     static struct option long_options[] = {
@@ -183,16 +196,8 @@ int main(int argc, char** argv) {
 
     printf("st-util %s\n", STLINK_VERSION);
 
-    switch (state.stlink_version) {
-        case 2:
-            sl = stlink_open_usb(state.logging_level, state.reset, NULL);
-            if(sl == NULL) return 1;
-            break;
-        case 1:
-            sl = stlink_v1_open(state.logging_level, state.reset);
-            if(sl == NULL) return 1;
-            break;
-    }
+    sl = do_connect(&state);
+    if(sl == NULL) return 1;
 
     connected_stlink = sl;
     signal(SIGINT, &cleanup);
@@ -223,6 +228,9 @@ int main(int argc, char** argv) {
         if (serve(sl, &state)) {
 	  sleep (1); // don't go bezurk if serve returns with error
 	}
+
+        /* in case serve() changed the connection */
+        sl = connected_stlink;
 
         /* Continue */
         stlink_run(sl);
@@ -1667,6 +1675,27 @@ int serve(stlink_t *sl, st_state_t *st) {
 
                 break;
             }
+            case 'k':
+                /* Kill request - reset the connection itself */
+                stlink_run(sl);
+                stlink_exit_debug_mode(sl);
+                stlink_close(sl);
+
+                sl = do_connect(st);
+                if(sl == NULL) cleanup(0);
+                connected_stlink = sl;
+
+                if (st->reset) {
+                    stlink_reset(sl);
+                }
+                stlink_force_debug(sl);
+                init_cache(sl);
+                init_code_breakpoints(sl);
+                init_data_watchpoints(sl);
+
+                reply = NULL;		/* no response */
+
+                break;
 
             default:
                 reply = strdup("");
