@@ -1509,7 +1509,10 @@ int serve(stlink_t *sl, st_state_t *st) {
                 if (count_rnd < count)
                     count = count_rnd;
 
-                stlink_read_mem32(sl, start - adj_start, count_rnd);
+                if (stlink_read_mem32(sl, start - adj_start, count_rnd) != 0) {
+                    /* read failed somehow, don't return stale buffer */
+                    count = 0;
+                }
 
                 reply = calloc(count * 2 + 1, 1);
                 for(unsigned int i = 0; i < count; i++) {
@@ -1527,6 +1530,7 @@ int serve(stlink_t *sl, st_state_t *st) {
 
                 stm32_addr_t start = (stm32_addr_t) strtoul(s_start, NULL, 16);
                 unsigned     count = (unsigned) strtoul(s_count, NULL, 16);
+                int err = 0;
 
                 if(start % 4) {
                     unsigned align_count = 4 - start % 4;
@@ -1536,7 +1540,7 @@ int serve(stlink_t *sl, st_state_t *st) {
                         uint8_t byte = strtoul(hextmp, NULL, 16);
                         sl->q_buf[i] = byte;
                     }
-                    stlink_write_mem8(sl, start, align_count);
+                    err |= stlink_write_mem8(sl, start, align_count);
                     cache_change(start, align_count);
                     start += align_count;
                     count -= align_count;
@@ -1551,7 +1555,7 @@ int serve(stlink_t *sl, st_state_t *st) {
                         uint8_t byte = strtoul(hextmp, NULL, 16);
                         sl->q_buf[i] = byte;
                     }
-                    stlink_write_mem32(sl, start, aligned_count);
+                    err |= stlink_write_mem32(sl, start, aligned_count);
                     cache_change(start, aligned_count);
                     count -= aligned_count;
                     start += aligned_count;
@@ -1564,10 +1568,10 @@ int serve(stlink_t *sl, st_state_t *st) {
                         uint8_t byte = strtoul(hextmp, NULL, 16);
                         sl->q_buf[i] = byte;
                     }
-                    stlink_write_mem8(sl, start, count);
+                    err |= stlink_write_mem8(sl, start, count);
                     cache_change(start, count);
                 }
-                reply = strdup("OK");
+                reply = strdup(err ? "E00" : "OK");
                 break;
             }
 
