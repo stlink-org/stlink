@@ -153,6 +153,8 @@ int flash_get_opts(struct flash_opts* o, int ac, char** av)
                 return -1;
             }
             break;
+
+       default: break ;
     }
 
     // some constistence checks

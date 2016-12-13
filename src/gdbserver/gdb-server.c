@@ -69,6 +69,19 @@ static void cleanup(int signum) {
 }
 
 
+static stlink_t* do_connect(st_state_t *st) {
+    stlink_t *ret = NULL;
+    switch (st->stlink_version) {
+        case 2:
+            ret = stlink_open_usb(st->logging_level, st->reset, NULL);
+            break;
+        case 1:
+            ret = stlink_v1_open(st->logging_level, st->reset);
+            break;
+    }
+    return ret;
+}
+
 
 int parse_options(int argc, char** argv, st_state_t *st) {
     static struct option long_options[] = {
@@ -183,16 +196,8 @@ int main(int argc, char** argv) {
 
     printf("st-util %s\n", STLINK_VERSION);
 
-    switch (state.stlink_version) {
-        case 2:
-            sl = stlink_open_usb(state.logging_level, state.reset, NULL);
-            if(sl == NULL) return 1;
-            break;
-        case 1:
-            sl = stlink_v1_open(state.logging_level, state.reset);
-            if(sl == NULL) return 1;
-            break;
-    }
+    sl = do_connect(&state);
+    if(sl == NULL) return 1;
 
     connected_stlink = sl;
     signal(SIGINT, &cleanup);
@@ -223,6 +228,9 @@ int main(int argc, char** argv) {
         if (serve(sl, &state)) {
 	  sleep (1); // don't go bezurk if serve returns with error
 	}
+
+        /* in case serve() changed the connection */
+        sl = connected_stlink;
 
         /* Continue */
         stlink_run(sl);
@@ -1509,7 +1517,10 @@ int serve(stlink_t *sl, st_state_t *st) {
                 if (count_rnd < count)
                     count = count_rnd;
 
-                stlink_read_mem32(sl, start - adj_start, count_rnd);
+                if (stlink_read_mem32(sl, start - adj_start, count_rnd) != 0) {
+                    /* read failed somehow, don't return stale buffer */
+                    count = 0;
+                }
 
                 reply = calloc(count * 2 + 1, 1);
                 for(unsigned int i = 0; i < count; i++) {
@@ -1527,6 +1538,7 @@ int serve(stlink_t *sl, st_state_t *st) {
 
                 stm32_addr_t start = (stm32_addr_t) strtoul(s_start, NULL, 16);
                 unsigned     count = (unsigned) strtoul(s_count, NULL, 16);
+                int err = 0;
 
                 if(start % 4) {
                     unsigned align_count = 4 - start % 4;
@@ -1536,7 +1548,7 @@ int serve(stlink_t *sl, st_state_t *st) {
                         uint8_t byte = strtoul(hextmp, NULL, 16);
                         sl->q_buf[i] = byte;
                     }
-                    stlink_write_mem8(sl, start, align_count);
+                    err |= stlink_write_mem8(sl, start, align_count);
                     cache_change(start, align_count);
                     start += align_count;
                     count -= align_count;
@@ -1551,7 +1563,7 @@ int serve(stlink_t *sl, st_state_t *st) {
                         uint8_t byte = strtoul(hextmp, NULL, 16);
                         sl->q_buf[i] = byte;
                     }
-                    stlink_write_mem32(sl, start, aligned_count);
+                    err |= stlink_write_mem32(sl, start, aligned_count);
                     cache_change(start, aligned_count);
                     count -= aligned_count;
                     start += aligned_count;
@@ -1564,10 +1576,10 @@ int serve(stlink_t *sl, st_state_t *st) {
                         uint8_t byte = strtoul(hextmp, NULL, 16);
                         sl->q_buf[i] = byte;
                     }
-                    stlink_write_mem8(sl, start, count);
+                    err |= stlink_write_mem8(sl, start, count);
                     cache_change(start, count);
                 }
-                reply = strdup("OK");
+                reply = strdup(err ? "E00" : "OK");
                 break;
             }
 
@@ -1667,6 +1679,27 @@ int serve(stlink_t *sl, st_state_t *st) {
 
                 break;
             }
+            case 'k':
+                /* Kill request - reset the connection itself */
+                stlink_run(sl);
+                stlink_exit_debug_mode(sl);
+                stlink_close(sl);
+
+                sl = do_connect(st);
+                if(sl == NULL) cleanup(0);
+                connected_stlink = sl;
+
+                if (st->reset) {
+                    stlink_reset(sl);
+                }
+                stlink_force_debug(sl);
+                init_cache(sl);
+                init_code_breakpoints(sl);
+                init_data_watchpoints(sl);
+
+                reply = NULL;		/* no response */
+
+                break;
 
             default:
                 reply = strdup("");

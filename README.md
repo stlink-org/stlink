@@ -12,7 +12,7 @@ Open source version of the STMicroelectronics Stlink Tools
 
 First, you have to know there are several boards supported by the software.
 Those boards use a chip to translate from USB to JTAG commands. The chip is
-called stlink and there are 2 versions:
+called stlink and there are two versions:
 
 * STLINKv1, present on STM32VL discovery kits,
 * STLINKv2, present on STM32L discovery and later kits.
@@ -24,10 +24,10 @@ Two different transport layers are used:
 
 ## Installation
 
-Currently there are no binaries for windows available.
+Currently there are no binaries for Windows available.
  It is known to compile and work with MinGW/Cygwin.
 
-For debian linux based distros there is also no package available
+For Debian Linux based distributions there is also no package available
  in the standard repositories so you need to compile yourself.
 
 Arch Linux users can install from the [repository](https://www.archlinux.org/packages/community/x86_64/stlink)
@@ -69,7 +69,7 @@ There are a few options:
 ```
 
 The STLINKv2 device to use can be specified in the environment
-variable `STLINK_DEVICE` on the format `<USB_BUS>:<USB_ADDR>`.
+variable `STLINK_DEVICE` in the format `<USB_BUS>:<USB_ADDR>`.
 
 Then, in your project directory, someting like this...
 (remember, you need to run an _ARM_ gdb, not an x86 gdb)
@@ -183,6 +183,7 @@ STLink v2 (as found on the 32L and F4 Discovery boards), known working targets:
 * STM32L151CB (custom board)
 * STM32L152RB (STM32L-Discovery board, custom board)
 * STM32F051R8T6 (STM320518-EVAL board)
+* STM32F411E-DISCO (STM32F4 Discovery board with gyro, audio)
 
 STLink v2-1 (as found on the Nucleo boards), known working targets:
 
