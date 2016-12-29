@@ -48,6 +48,8 @@ extern "C" {
 #define STLINK_JTAG_READDEBUG_32BIT 0x36
 #define STLINK_JTAG_DRIVE_NRST 0x3c
 
+#define STLINK_DEBUG_APIV2_SWD_SET_FREQ    0x43
+
     /* cortex core ids */
     // TODO clean this up...
 #define STM32VL_CORE_ID 0x1ba01477
@@ -56,6 +58,22 @@ extern "C" {
     // Constant STM32 memory map figures
 #define STM32_FLASH_BASE 0x08000000
 #define STM32_SRAM_BASE 0x20000000
+
+// Baud rate divisors for SWDCLK
+#define STLINK_SWDCLK_4MHZ_DIVISOR		0
+#define STLINK_SWDCLK_1P8MHZ_DIVISOR	1
+#define STLINK_SWDCLK_1P2MHZ_DIVISOR	2
+#define STLINK_SWDCLK_950KHZ_DIVISOR	3
+#define STLINK_SWDCLK_480KHZ_DIVISOR	7
+#define STLINK_SWDCLK_240KHZ_DIVISOR	15
+#define STLINK_SWDCLK_125KHZ_DIVISOR	31
+#define STLINK_SWDCLK_100KHZ_DIVISOR	40
+#define STLINK_SWDCLK_50KHZ_DIVISOR		79
+#define STLINK_SWDCLK_25KHZ_DIVISOR		158
+#define STLINK_SWDCLK_15KHZ_DIVISOR		265
+#define STLINK_SWDCLK_5KHZ_DIVISOR		798
+
+
 
     /* Enough space to hold both a V2 command or a V1 command packaged as generic scsi*/
 #define C_BUF_LEN 32
@@ -177,6 +195,7 @@ typedef struct flash_loader {
     int stlink_current_mode(stlink_t *sl);
     int stlink_force_debug(stlink_t *sl);
     int stlink_target_voltage(stlink_t *sl);
+	int stlink_set_swdclk(stlink_t *sl, uint16_t divisor);
 
     int stlink_erase_flash_mass(stlink_t* sl);
     int stlink_write_flash(stlink_t* sl, stm32_addr_t address, uint8_t* data, uint32_t length, uint8_t eraseonly);
