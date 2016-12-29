@@ -195,7 +195,7 @@ typedef struct flash_loader {
     int stlink_current_mode(stlink_t *sl);
     int stlink_force_debug(stlink_t *sl);
     int stlink_target_voltage(stlink_t *sl);
-	int stlink_set_swdclk(stlink_t *sl, uint16_t divisor);
+    int stlink_set_swdclk(stlink_t *sl, uint16_t divisor);
 
     int stlink_erase_flash_mass(stlink_t* sl);
     int stlink_write_flash(stlink_t* sl, stm32_addr_t address, uint8_t* data, uint32_t length, uint8_t eraseonly);
