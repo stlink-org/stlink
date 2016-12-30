@@ -298,7 +298,7 @@ static void __attribute__((unused)) clear_flash_cr_per(stlink_t *sl) {
     stlink_write_debug32(sl, FLASH_CR, n);
 }
 
-static void set_flash_cr_mer(stlink_t *sl) {
+static void set_flash_cr_mer(stlink_t *sl, bool v) {
     uint32_t val, cr_reg, cr_mer, cr_pg;
 
     if (sl->flash_type == STLINK_FLASH_TYPE_F4) {
@@ -322,7 +322,10 @@ static void set_flash_cr_mer(stlink_t *sl) {
         stlink_write_debug32(sl, cr_reg, val);
     }
 
-    val |= cr_mer;
+    if(v)
+        val |= cr_mer;
+    else
+        val &= ~cr_mer;
     stlink_write_debug32(sl, cr_reg, val);
 }
 
@@ -1582,7 +1585,7 @@ int stlink_erase_flash_mass(stlink_t *sl) {
         unlock_flash_if(sl);
 
         /* set the mass erase bit */
-        set_flash_cr_mer(sl);
+        set_flash_cr_mer(sl,1);
 
         /* start erase operation, reset by hw with bsy bit */
         set_flash_cr_strt(sl);
@@ -1592,6 +1595,9 @@ int stlink_erase_flash_mass(stlink_t *sl) {
 
         /* relock the flash */
         lock_flash(sl);
+
+        /* reset the mass erase bit */
+        set_flash_cr_mer(sl,0);
 
         /* todo: verify the erased memory */
     }
