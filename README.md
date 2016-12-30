@@ -197,6 +197,7 @@ STLink v2-1 (as found on the Nucleo boards), known working targets:
 * STM32F756NGHx (STMF7 evaluation board)
 * STM32L053R8 (STM32 Nucleo-L053R8 board)
 * STM32F769NI (STM32F7 discovery board)
+* Nucleo-L152RE board
 
 Please report any and all known working combinations so I can update this!
 
