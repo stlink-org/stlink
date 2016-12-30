@@ -642,6 +642,11 @@ int stlink_run(stlink_t *sl) {
     return sl->backend->run(sl);
 }
 
+int stlink_set_swdclk(stlink_t *sl, uint16_t divisor) {
+    DLOG("*** set_swdclk ***\n");
+    return sl->backend->set_swdclk(sl, divisor);
+}
+
 int stlink_status(stlink_t *sl) {
     int ret;
 

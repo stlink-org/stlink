@@ -449,6 +449,36 @@ int _stlink_usb_run(stlink_t* sl) {
     return 0;
 }
 
+
+int _stlink_usb_set_swdclk(stlink_t* sl, uint16_t clk_divisor) {
+    struct stlink_libusb * const slu = sl->backend_data;
+    unsigned char* const data = sl->q_buf;
+    unsigned char* const cmd = sl->c_buf;
+    ssize_t size;
+    int rep_len = 2;
+    int i;
+    
+    // clock speed only supported by stlink/v2 and for firmware >= 22
+    if (sl->version.stlink_v >= 2 && sl->version.jtag_v >= 22) {
+        i = fill_command(sl, SG_DXFER_FROM_DEV, rep_len);
+
+        cmd[i++] = STLINK_DEBUG_COMMAND;
+        cmd[i++] = STLINK_DEBUG_APIV2_SWD_SET_FREQ;
+        cmd[i++] = clk_divisor & 0xFF;
+        cmd[i++] = (clk_divisor >> 8) & 0xFF;
+
+        size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len);
+        if (size == -1) {
+            printf("[!] send_recv STLINK_DEBUG_APIV2_SWD_SET_FREQ\n");
+            return (int) size;
+        }
+
+        return 0;
+    } else {
+        return -1;
+    }
+}
+
 int _stlink_usb_exit_debug_mode(stlink_t *sl) {
     struct stlink_libusb * const slu = sl->backend_data;
     unsigned char* const cmd = sl->c_buf;
@@ -724,7 +754,8 @@ static stlink_backend_t _stlink_usb_backend = {
     _stlink_usb_step,
     _stlink_usb_current_mode,
     _stlink_usb_force_debug,
-    _stlink_usb_target_voltage
+    _stlink_usb_target_voltage,
+    _stlink_usb_set_swdclk
 };
 
 stlink_t *stlink_open_usb(enum ugly_loglevel verbose, bool reset, char serial[16])
@@ -878,6 +909,9 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, bool reset, char serial[16
     if (stlink_current_mode(sl) != STLINK_DEV_DEBUG_MODE) {
         stlink_enter_swd_mode(sl);
     }
+	
+    // Initialize stlink version (sl->version)	
+    stlink_version(sl);	
 
     if (reset) {
         if( sl->version.stlink_v > 1 ) stlink_jtag_reset(sl, 2);
@@ -885,8 +919,10 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, bool reset, char serial[16
         usleep(10000);
     }
 
-    stlink_version(sl);
     ret = stlink_load_device_params(sl);
+
+    // Set the stlink clock speed (default is 1800kHz)
+    stlink_set_swdclk(sl, STLINK_SWDCLK_1P8MHZ_DIVISOR);    
 
 on_libusb_error:
     if (ret == -1) {
