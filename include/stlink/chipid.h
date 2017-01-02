@@ -46,6 +46,7 @@ enum stlink_stm32_chipids {
 	STLINK_CHIPID_STM32_F334             = 0x438,
 	STLINK_CHIPID_STM32_F3_SMALL         = 0x439,
 	STLINK_CHIPID_STM32_F0               = 0x440,
+	STLINK_CHIPID_STM32_F412             = 0x441,
 	STLINK_CHIPID_STM32_F09X             = 0x442,
 	STLINK_CHIPID_STM32_F0_SMALL         = 0x444,
 	STLINK_CHIPID_STM32_F04              = 0x445,
