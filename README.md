@@ -24,7 +24,7 @@ Two different transport layers are used:
 
 ## Installation
 
-Currently there are no binaries for Windows available.
+Currently there are no binaries for Windows available (see issue [#166](https://github.com/texane/stlink/issues/166)).
  It is known to compile and work with MinGW/Cygwin.
 
 For Debian Linux based distributions there is also no package available
