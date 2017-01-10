@@ -30,12 +30,15 @@
 
 /* Semihosting doesn't have a short option, we define a value to identify it */
 #define SEMIHOSTING_OPTION 128
+#define SERIAL_OPTION 127
 
 //Allways update the FLASH_PAGE before each use, by calling stlink_calculate_pagesize
 #define FLASH_PAGE (sl->flash_pgsz)
 
 static stlink_t *connected_stlink = NULL;
 static bool semihosting = false;
+static bool serial_specified = false;
+static char serialnumber[28] = {0};
 
 static const char hex[] = "0123456789abcdef";
 
@@ -73,7 +76,12 @@ static stlink_t* do_connect(st_state_t *st) {
     stlink_t *ret = NULL;
     switch (st->stlink_version) {
         case 2:
-            ret = stlink_open_usb(st->logging_level, st->reset, NULL);
+            if(serial_specified){
+                ret = stlink_open_usb(st->logging_level, st->reset, serialnumber);
+            }
+            else{
+                ret = stlink_open_usb(st->logging_level, st->reset, NULL);
+            }
             break;
         case 1:
             ret = stlink_v1_open(st->logging_level, st->reset);
@@ -94,6 +102,7 @@ int parse_options(int argc, char** argv, st_state_t *st) {
         {"no-reset", optional_argument, NULL, 'n'},
         {"version", no_argument, NULL, 'V'},
         {"semihosting", no_argument, NULL, SEMIHOSTING_OPTION},
+	  {"serial", required_argument, NULL, SERIAL_OPTION},
         {0, 0, 0, 0},
     };
     const char * help_str = "%s - usage:\n\n"
@@ -114,6 +123,8 @@ int parse_options(int argc, char** argv, st_state_t *st) {
         "\t\t\tDo not reset board on connection.\n"
         "  --semihosting\n"
         "\t\t\tEnable semihosting support.\n"
+        "  --serial <serial>\n"
+        "\t\t\tUse a specific serial number.\n"
         "\n"
         "The STLINKv2 device to use can be specified in the environment\n"
         "variable STLINK_DEVICE on the format <USB_BUS>:<USB_ADDR>.\n"
@@ -169,6 +180,19 @@ int parse_options(int argc, char** argv, st_state_t *st) {
                 exit(EXIT_SUCCESS);
             case SEMIHOSTING_OPTION:
                 semihosting = true;
+                break;
+            case SERIAL_OPTION:
+                printf("use serial %s\n",optarg);
+                            /** @todo This is not really portable, as strlen really returns size_t we need to obey and not cast it to a signed type. */
+                int j = (int)strlen(optarg);
+                int length = j / 2;  //the length of the destination-array
+                if(j % 2 != 0) return -1;
+                for(size_t k = 0; j >= 0 && k < sizeof(serialnumber); ++k, j -= 2) {
+                    char buffer[3] = {0};
+                    memcpy(buffer, optarg + j, 2);
+                    serialnumber[length - k] = (uint8_t)strtol(buffer, NULL, 16);
+                }
+                serial_specified = true;
                 break;
         }
     }
