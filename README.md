@@ -20,15 +20,15 @@ called stlink and there are two versions:
 Two different transport layers are used:
 
 * STLINKv1 uses SCSI passthru commands over USB
-* STLINKv2 uses raw USB commands.
+* STLINKv2 and STLINKv2-1 (seen on nucleo boards) uses raw USB commands.
 
 ## Installation
 
 Currently there are no binaries for Windows available (see issue [#166](https://github.com/texane/stlink/issues/166)).
- It is known to compile and work with MinGW/Cygwin.
+ It is known to compile and work with MinGW(64)/Cygwin environment. Building with Visual Studio is not supported because the project uses POSIX APIs and probably will never change.
 
-For Debian Linux based distributions there is also no package available
- in the standard repositories so you need to compile yourself.
+For Debian Linux based distributions there is no package available
+ in the standard repositories so you need to install [from source](doc/compiling.md) yourself.
 
 Arch Linux users can install from the [repository](https://www.archlinux.org/packages/community/x86_64/stlink)
 
@@ -36,7 +36,9 @@ FreeBSD users can install from [freshports](https://www.freshports.org/devel/stl
 
 Mac OS X users can install from [homebrew](http://brewformulas.org/Stlink)
 
-**Compilation from source (advanced users)**
+OpenBSD users need to install [from source](doc/compiling.md).
+
+## Installation from source (advanced users)
 
 When there is no executable available for your platform or you need the latest
  (possible unstable) version you need to compile yourself. This is explained in
@@ -156,13 +158,19 @@ GDB. Memory map parsing thus fail. Use --enable-expat.
 
 See [doc/tested-boards.md](doc/tested-boards.md)
 
-## Missing features
+## Known missing features
+
+Some features are missing from the `texane/stlink` project and we would like you to
+ help us out if you want to get involved:
 
 * Control programming speed (See [#462](https://github.com/texane/stlink/issues/462))
 * OTP area programming (See [#202](https://github.com/texane/stlink/issues/202))
 * EEPROM area programming (See [#318](https://github.com/texane/stlink/issues/218))
 * Protection bits area reading (See [#346](https://github.com/texane/stlink/issues/346))
 * MCU hotplug (See [#449](https://github.com/texane/stlink/issues/449))
+* Writing options bytes (region) (See [#458](https://github.com/texane/stlink/issues/458))
+* Instrumentation Trace Macro (ITM) Cell (See [#136](https://github.com/texane/stlink/issues/136))
+* Writing external memory connected to an STM32 controller (e.g Quad SPI NOR flash) (See [#412](https://github.com/texane/stlink/issues/412))
 
 ## Known bugs
 
@@ -177,15 +185,14 @@ of the flash:
 2015-12-09T22:02:18 ERROR src/stlink-common.c: run_flash_loader(0x8000000) failed! == -1
 ```
 
-Issue(s): [#356](https://github.com/texane/stlink/issues/356)
+Issue related to this bug: [#356](https://github.com/texane/stlink/issues/356)
 
 ## Contributing and versioning
 
 * The semantic versioning scheme is used. Read more at [semver.org](http://semver.org)
-* When creating a pull request, please open first a issue for discussion of new features
-* TODO: Enforcement of coding style (linux codestyle + checkpatch)
+* When creating a pull request, please open first a issue for discussion of new features. Bugfixes don't need a discussion.
 
 ## License
 
 The stlink library and tools are licensed under the [BSD license](LICENSE). With
-some exceptions on external components.
+some exceptions on external components (e.g flashloaders).
