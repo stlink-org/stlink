@@ -162,6 +162,7 @@ See [doc/tested-boards.md](doc/tested-boards.md)
 * OTP area programming (See [#202](https://github.com/texane/stlink/issues/202))
 * EEPROM area programming (See [#318](https://github.com/texane/stlink/issues/218))
 * Protection bits area reading (See [#346](https://github.com/texane/stlink/issues/346))
+* MCU hotplug (See [#449](https://github.com/texane/stlink/issues/449))
 
 ## Known bugs
 
