@@ -187,6 +187,37 @@ of the flash:
 
 Issue related to this bug: [#356](https://github.com/texane/stlink/issues/356)
 
+### Flash size is detected as zero bytes size
+
+It is possible that the STM32 flash is write protected, the st-flash tool will show something like this:
+
+```
+st-flash write prog.bin 0x8000000
+2017-01-24T18:44:14 INFO src/stlink-common.c: Loading device parameters....
+2017-01-24T18:44:14 INFO src/stlink-common.c: Device connected is: F1 High-density device, id 0x10036414
+2017-01-24T18:44:14 INFO src/stlink-common.c: SRAM size: 0x10000 bytes (64 KiB), Flash: 0 bytes (0 KiB) in pages of 2048 bytes
+```
+
+As you can see, it gives out something unexpected like
+```
+Flash: 0 bytes (0 KiB) in pages of 2048 bytes
+```
+
+```
+st-info --probe
+Found 1 stlink programmers
+ serial: 303030303030303030303031
+openocd: "\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x31"
+  flash: 0 (pagesize: 2048)
+   sram: 65536
+ chipid: 0x0414
+  descr: F1 High-density device
+```
+
+Try to remove the write protection (probably only possible with ST Link Utility from ST itself).
+
+Issue related to this bug: [#545](https://github.com/texane/stlink/issues/545)
+
 ## Contributing and versioning
 
 * The semantic versioning scheme is used. Read more at [semver.org](http://semver.org)
