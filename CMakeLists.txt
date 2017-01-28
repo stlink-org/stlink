@@ -58,7 +58,7 @@ set(STLINK_SOURCE
 )
 
 if (WIN32 OR MSYS OR MINGW)
-	set (STLINK_SOURCE "${STLINK_SOURCE};src/mmap.c;src/mingw/mingw.c") # TODO
+	set (STLINK_SOURCE "${STLINK_SOURCE};src/mmap.c;src/mingw/mingw.c")
 endif ()
 
 include_directories(${LIBUSB_INCLUDE_DIR})
@@ -94,9 +94,8 @@ if (APPLE)
 	find_library(CoreFoundation CoreFoundation)
 	find_library(IOKit IOKit)
 	target_link_libraries(${STLINK_LIB_SHARED} ${CoreFoundation} ${IOKit} ${ObjC})
-endif ()
+endif()
 
-# Link 
 if (WIN32 OR MSYS OR MINGW)
 	target_link_libraries(${STLINK_LIB_SHARED} ${LIBUSB_LIBRARY} wsock32 ws2_32)
 else()
@@ -117,15 +116,19 @@ add_library(${STLINK_LIB_STATIC} STATIC
 	${STLINK_SOURCE}
 )
 
-target_link_libraries(${STLINK_LIB_STATIC} ${LIBUSB_LIBRARY})
-
 # Link shared library with apple OS libraries
 if (APPLE)
 	find_library(ObjC objc)
 	find_library(CoreFoundation CoreFoundation)
 	find_library(IOKit IOKit)
 	target_link_libraries(${STLINK_LIB_STATIC} ${CoreFoundation} ${IOKit} ${ObjC})
-endif ()
+endif()
+	
+if (WIN32 OR MSYS OR MINGW)
+	target_link_libraries(${STLINK_LIB_STATIC} ${LIBUSB_LIBRARY} wsock32 ws2_32)
+else()
+	target_link_libraries(${STLINK_LIB_STATIC} ${LIBUSB_LIBRARY})
+endif()
 
 set_target_properties(${STLINK_LIB_STATIC} PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
 
