@@ -33,31 +33,30 @@ identical.
 Before continuing, the following dependencies must be met:
 
 -   libusb-1.0
--   pkg-config
--   autotools
+-   cmake
 
 STLINK should run on any system meeting the above constraints. 
 
 The STLINK software source code is retrieved using:
 
 ```
-$> git clone https://github.com/texane/stlink stlink.git
+$> git clone https://github.com/texane/stlink.git
 ```
 
 Everything can be built from the top directory:
 
 ```
-$> cd stlink.git
-$> ./autogen.sh 
-$> ./configure
+$> cd stlink
 $> make
+$> cd build/Release && make install DESTDIR=_install
 ```
 
 It includes:
 
--   a communication library (stlink.git/libstlink.a),
--   a GDB server (stlink.git/st-util),
--   a flash manipulation tool (stlink.git/st-flash).
+- a communication library (libstlink.a),
+- a GDB server (st-util),
+- a flash manipulation tool (st-flash).
+- a programmer and chip information tool (st-info)
 
 Using the GDB server
 ====================
@@ -134,18 +133,23 @@ memory, or read arbitary addresses of memory out to a binary file, use
 the st-flash tool, as shown below:
 
 ```
-
 # stlinkv1 command to read 4096 from flash into out.bin
-$> ./st-flash read v1 out.bin 0x8000000 4096
+$> ./st-flash read out.bin 0x8000000 4096
 
 # stlinkv2 command
 $> ./st-flash read out.bin 0x8000000 4096
 
 # stlinkv1 command to write the file in.bin into flash
-$> ./st-flash write v1 in.bin 0x8000000
+$> ./st-flash write in.bin 0x8000000
 
 # stlinkv2 command
 $> ./st-flash write in.bin 0x8000000
+```
+
+It is also possible to write a hexfile which is more convinient:
+
+```
+$> ./st-flash --format ihex write myapp.hex
 ```
 
 #### 
