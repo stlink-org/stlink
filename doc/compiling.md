@@ -2,9 +2,9 @@
 
 ## Build from sources
 
-* CMake
+* CMake (minimal v2.8.7)
 * C compiler (gcc, clang, mingw)
-* Libusb 1.0
+* Libusb 1.0 (minimal v1.0.9)
 * (optional) pandoc for generating manpages from markdown
 
 Run from the root of the source directory:
