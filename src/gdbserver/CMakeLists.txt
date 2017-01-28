@@ -4,7 +4,12 @@ add_executable(st-util gdb-remote.c
                        gdb-server.h
                        semihosting.c
                        semihosting.h)
-target_link_libraries(st-util ${PROJECT_NAME})
+if (WIN32 OR APPLE)
+	target_link_libraries(st-util ${STLINK_LIB_STATIC})
+else()
+	target_link_libraries(st-util ${STLINK_LIB_SHARED})
+endif()
+
 install(TARGETS st-util
 	RUNTIME DESTINATION bin
 )
