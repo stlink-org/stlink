@@ -25,8 +25,9 @@ Two different transport layers are used:
 
 ## Installation
 
-Currently there are no binaries for Windows available (see issue [#166](https://github.com/texane/stlink/issues/166)).
- It is known to compile and work with MinGW(64)/Cygwin environment. Building with Visual Studio is not supported because the project uses POSIX APIs and probably will never change.
+Windows users can [download v1.3.0](https://github.com/texane/stlink/releases/tag/1.3.0) from the releases page.
+
+Mac OS X users can install from [homebrew](http://brewformulas.org/Stlink) or [download v1.3.0](https://github.com/texane/stlink/releases/tag/1.3.0) from the releases page.
 
 For Debian Linux based distributions there is no package available
  in the standard repositories so you need to install [from source](doc/compiling.md) yourself.
@@ -34,8 +35,6 @@ For Debian Linux based distributions there is no package available
 Arch Linux users can install from the [repository](https://www.archlinux.org/packages/community/x86_64/stlink)
 
 FreeBSD users can install from [freshports](https://www.freshports.org/devel/stlink)
-
-Mac OS X users can install from [homebrew](http://brewformulas.org/Stlink)
 
 OpenBSD users need to install [from source](doc/compiling.md).
 
