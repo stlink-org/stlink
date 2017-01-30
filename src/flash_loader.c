@@ -219,7 +219,8 @@ int stlink_flash_loader_write_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* 
 		sl->chip_id == STLINK_CHIPID_STM32_F410   ||
 		sl->chip_id == STLINK_CHIPID_STM32_F411RE ||
 		sl->chip_id == STLINK_CHIPID_STM32_F412   ||
-		sl->chip_id == STLINK_CHIPID_STM32_F446
+        sl->chip_id == STLINK_CHIPID_STM32_F413   ||
+        sl->chip_id == STLINK_CHIPID_STM32_F446
 		) {
         if( sl->version.stlink_v == 1 ) {
             printf("STLINK V1 cannot read voltage, defaulting to 32-bit writes on F4 devices\n");
