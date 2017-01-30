@@ -56,7 +56,7 @@ enum stlink_stm32_chipids {
 	STLINK_CHIPID_STM32_F7               = 0x449,
 	STLINK_CHIPID_STM32_F7XXXX           = 0x451,
 	STLINK_CHIPID_STM32_F410             = 0x458,
-	STLINK_CHIPID_STM32_F413			 = 0x463
+	STLINK_CHIPID_STM32_F413             = 0x463
 };
 
 /**
