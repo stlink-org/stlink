@@ -457,6 +457,12 @@ int do_semihosting (stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret) {
         }
         break;
     }
+    case SYS_READC:
+    {
+        uint8_t c = getchar();
+        *ret = c;
+        break;
+    }
     case SYS_WRITE0:
     {
         uint8_t buf[WRITE0_BUFFER_SIZE];
