@@ -7,7 +7,6 @@ Open source version of the STMicroelectronics Stlink Tools
 [![Downloads](https://img.shields.io/github/downloads/texane/stlink/total.svg)](https://github.com/texane/stlink/releases)
 [![Linux Status](https://img.shields.io/travis/texane/stlink/master.svg?label=linux)](https://travis-ci.org/texane/stlink)
 [![Build Status](https://jenkins.ncrmnt.org/buildStatus/icon?job=GithubCI/stlink)](https://jenkins.ncrmnt.org/job/GithubCI/job/stlink/)
-[![Build status](https://ci.appveyor.com/api/projects/status/wrcie05d4jmut0te?svg=true)](https://ci.appveyor.com/project/xor-gate/stlink)
 
 ## HOWTO
 
