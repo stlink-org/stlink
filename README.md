@@ -33,6 +33,8 @@ For Debian Linux based distributions there is no package available
 
 Arch Linux users can install from the [repository](https://www.archlinux.org/packages/community/x86_64/stlink)
 
+Alpine Linux users can install from the [repository](https://pkgs.alpinelinux.org/packages?name=stlink)
+
 FreeBSD users can install from [freshports](https://www.freshports.org/devel/stlink)
 
 Mac OS X users can install from [homebrew](http://brewformulas.org/Stlink)
