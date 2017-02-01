@@ -7,7 +7,6 @@ Open source version of the STMicroelectronics Stlink Tools
 [![Downloads](https://img.shields.io/github/downloads/texane/stlink/total.svg)](https://github.com/texane/stlink/releases)
 [![Linux Status](https://img.shields.io/travis/texane/stlink/master.svg?label=linux)](https://travis-ci.org/texane/stlink)
 [![Build Status](https://jenkins.ncrmnt.org/buildStatus/icon?job=GithubCI/stlink)](https://jenkins.ncrmnt.org/job/GithubCI/job/stlink/)
-[![Build status](https://ci.appveyor.com/api/projects/status/wrcie05d4jmut0te?svg=true)](https://ci.appveyor.com/project/xor-gate/stlink)
 
 ## HOWTO
 
@@ -25,8 +24,9 @@ Two different transport layers are used:
 
 ## Installation
 
-Currently there are no binaries for Windows available (see issue [#166](https://github.com/texane/stlink/issues/166)).
- It is known to compile and work with MinGW(64)/Cygwin environment. Building with Visual Studio is not supported because the project uses POSIX APIs and probably will never change.
+Windows users can [download v1.3.0](https://github.com/texane/stlink/releases/tag/1.3.0) from the releases page.
+
+Mac OS X users can install from [homebrew](http://brewformulas.org/Stlink) or [download v1.3.0](https://github.com/texane/stlink/releases/tag/1.3.0) from the releases page.
 
 For Debian Linux based distributions there is no package available
  in the standard repositories so you need to install [from source](doc/compiling.md) yourself.
@@ -36,8 +36,6 @@ Arch Linux users can install from the [repository](https://www.archlinux.org/pac
 Alpine Linux users can install from the [repository](https://pkgs.alpinelinux.org/packages?name=stlink)
 
 FreeBSD users can install from [freshports](https://www.freshports.org/devel/stlink)
-
-Mac OS X users can install from [homebrew](http://brewformulas.org/Stlink)
 
 OpenBSD users need to install [from source](doc/compiling.md).
 
