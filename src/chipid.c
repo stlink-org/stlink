@@ -286,7 +286,31 @@ static const struct stlink_chipid_params devices[] = {
             .bootrom_base = 0x1fffec00,		// "System memory" starting address from Table 2
             .bootrom_size = 0xC00 		// "System memory" byte size in hex from Table 2
         },
-	{
+        {
+            // RM0402 document was used to find these parameters
+            // Table 4.
+            .chip_id = STLINK_CHIPID_STM32_F412,
+            .description = "F4 device",
+            .flash_type = STLINK_FLASH_TYPE_F4,
+            .flash_size_reg = 0x1FFF7A22,   // "Flash size data register" (pg1135)
+            .flash_pagesize = 0x4000,        // Table 5. Flash module organization ?
+            .sram_size = 0x40000,        // "SRAM" byte size in hex from Table 4
+            .bootrom_base = 0x1FFF0000,     // "System memory" starting address from Table 4
+            .bootrom_size = 0x7800       // "System memory" byte size in hex from Table 4
+        },
+        {
+            // RM0430 DocID029473 Rev 2 document was used to find these parameters
+            // Figure 2, Table 4, Table 5, Section 35.2
+            .chip_id = STLINK_CHIPID_STM32_F413,
+            .description = "F4 device",
+            .flash_type = STLINK_FLASH_TYPE_F4,
+            .flash_size_reg = 0x1FFF7A22,   // "Flash size data register" Section 35.2
+            .flash_pagesize = 0x4000,        // Table 5. Flash module organization (variable sector sizes, but 0x4000 is smallest)
+            .sram_size = 0x50000,        // "SRAM" byte size in hex from Figure 2 (Table 4 only says 0x40000)
+            .bootrom_base = 0x1FFF0000,     // "System memory" starting address from Table 4
+            .bootrom_size = 0x7800       // "System memory" byte size in hex from Table 4
+        },
+        {
             .chip_id = STLINK_CHIPID_STM32_F09X,
             .description = "F09X device",
             .flash_type = STLINK_FLASH_TYPE_F0,

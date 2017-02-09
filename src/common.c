@@ -298,7 +298,7 @@ static void __attribute__((unused)) clear_flash_cr_per(stlink_t *sl) {
     stlink_write_debug32(sl, FLASH_CR, n);
 }
 
-static void set_flash_cr_mer(stlink_t *sl) {
+static void set_flash_cr_mer(stlink_t *sl, bool v) {
     uint32_t val, cr_reg, cr_mer, cr_pg;
 
     if (sl->flash_type == STLINK_FLASH_TYPE_F4) {
@@ -322,7 +322,10 @@ static void set_flash_cr_mer(stlink_t *sl) {
         stlink_write_debug32(sl, cr_reg, val);
     }
 
-    val |= cr_mer;
+    if(v)
+        val |= cr_mer;
+    else
+        val &= ~cr_mer;
     stlink_write_debug32(sl, cr_reg, val);
 }
 
@@ -640,6 +643,11 @@ int stlink_jtag_reset(stlink_t *sl, int value) {
 int stlink_run(stlink_t *sl) {
     DLOG("*** stlink_run ***\n");
     return sl->backend->run(sl);
+}
+
+int stlink_set_swdclk(stlink_t *sl, uint16_t divisor) {
+    DLOG("*** set_swdclk ***\n");
+    return sl->backend->set_swdclk(sl, divisor);
 }
 
 int stlink_status(stlink_t *sl) {
@@ -1577,7 +1585,7 @@ int stlink_erase_flash_mass(stlink_t *sl) {
         unlock_flash_if(sl);
 
         /* set the mass erase bit */
-        set_flash_cr_mer(sl);
+        set_flash_cr_mer(sl,1);
 
         /* start erase operation, reset by hw with bsy bit */
         set_flash_cr_strt(sl);
@@ -1587,6 +1595,9 @@ int stlink_erase_flash_mass(stlink_t *sl) {
 
         /* relock the flash */
         lock_flash(sl);
+
+        /* reset the mass erase bit */
+        set_flash_cr_mer(sl,0);
 
         /* todo: verify the erased memory */
     }
@@ -2037,7 +2048,7 @@ int stlink_parse_ihex(const char* path, uint8_t erased_pattern, uint8_t * * mem,
                         if(e > end) end = e;
                     }
                     else {
-                        for(size_t i = 0; i < reclen; ++i) {
+                        for(uint8_t i = 0; i < reclen; ++i) {
                             uint8_t b = stlink_parse_hex(line + 9 + i*2);
                             uint32_t addr = lba + offset + i;
                             if(addr >= *begin && addr <= end) {

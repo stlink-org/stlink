@@ -135,7 +135,7 @@ int main(int ac, char** av)
         if ((o.addr >= sl->flash_base) &&
                 (o.addr < sl->flash_base + sl->flash_size)) {
             if(o.format == FLASH_FORMAT_IHEX)
-                err = stlink_mwrite_flash(sl, mem, size, o.addr);
+                err = stlink_mwrite_flash(sl, mem, (uint32_t)size, o.addr);
             else
                 err = stlink_fwrite_flash(sl, o.filename, o.addr);
             if (err == -1)
@@ -147,7 +147,7 @@ int main(int ac, char** av)
         else if ((o.addr >= sl->sram_base) &&
                 (o.addr < sl->sram_base + sl->sram_size)) {
             if(o.format == FLASH_FORMAT_IHEX)
-                err = stlink_mwrite_sram(sl, mem, size, o.addr);
+                err = stlink_mwrite_sram(sl, mem, (uint32_t)size, o.addr);
             else
                 err = stlink_fwrite_sram(sl, o.filename, o.addr);
             if (err == -1)

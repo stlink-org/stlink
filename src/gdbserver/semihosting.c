@@ -247,7 +247,7 @@ int do_semihosting (stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret) {
         uint32_t args[3];
         uint32_t buffer_address;
         int      fd;
-        size_t   buffer_len;
+        uint32_t buffer_len;
         void    *buffer;
 
         if (mem_read(sl, r1, args, sizeof (args)) != 0 ) {
@@ -259,7 +259,7 @@ int do_semihosting (stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret) {
 
         fd             = (int)args[0];
         buffer_address = args[1];
-        buffer_len     = (size_t)args[2];
+        buffer_len     = args[2];
 
         if (buffer_len > MAX_BUFFER_SIZE) {
             DLOG("Semihosting SYS_WRITE error: buffer size is too big %d\n",
@@ -305,7 +305,7 @@ int do_semihosting (stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret) {
         uint32_t args[3];
         uint32_t buffer_address;
         int      fd;
-        size_t   buffer_len;
+        uint32_t buffer_len;
         void    *buffer;
 
         if (mem_read(sl, r1, args, sizeof (args)) != 0 ) {
@@ -317,7 +317,7 @@ int do_semihosting (stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret) {
 
         fd             = (int)args[0];
         buffer_address = args[1];
-        buffer_len     = (size_t)args[2];
+        buffer_len     = args[2];
 
         if (buffer_len > MAX_BUFFER_SIZE) {
             DLOG("Semihosting SYS_READ error: buffer size is too big %d\n",
@@ -455,6 +455,12 @@ int do_semihosting (stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret) {
             DLOG("Semihosting WRITEC: "
                  "cannot read target memory at 0x%08x\n", r1);
         }
+        break;
+    }
+    case SYS_READC:
+    {
+        uint8_t c = getchar();
+        *ret = c;
         break;
     }
     case SYS_WRITE0:

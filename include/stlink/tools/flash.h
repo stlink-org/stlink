@@ -22,9 +22,7 @@ struct flash_opts
     enum flash_format format;
 };
 
-
-#define FLASH_OPTS_INITIALIZER {0, }
-
+#define FLASH_OPTS_INITIALIZER {0, NULL, {}, NULL, 0, 0, 0, 0, 0 }
 
 int flash_get_opts(struct flash_opts* o, int ac, char** av);
 

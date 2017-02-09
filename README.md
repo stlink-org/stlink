@@ -2,11 +2,11 @@ Open source version of the STMicroelectronics Stlink Tools
 ==========================================================
 
 [![GitHub release](https://img.shields.io/github/release/texane/stlink.svg)](https://github.com/texane/stlink/releases/latest)
-[![GitHub commits](https://img.shields.io/github/commits-since/texane/stlink/1.2.0.svg)](https://github.com/texane/stlink/compare/1.2.0...master)
+[![BSD licensed](https://img.shields.io/badge/license-BSD-blue.svg)](https://raw.githubusercontent.com/hyperium/hyper/master/LICENSE)
+[![GitHub commits](https://img.shields.io/github/commits-since/texane/stlink/1.3.0.svg)](https://github.com/texane/stlink/compare/1.3.0...master)
+[![Downloads](https://img.shields.io/github/downloads/texane/stlink/total.svg)](https://github.com/texane/stlink/releases)
 [![Linux Status](https://img.shields.io/travis/texane/stlink/master.svg?label=linux)](https://travis-ci.org/texane/stlink)
 [![Build Status](https://jenkins.ncrmnt.org/buildStatus/icon?job=GithubCI/stlink)](https://jenkins.ncrmnt.org/job/GithubCI/job/stlink/)
-[![Build status](https://ci.appveyor.com/api/projects/status/wrcie05d4jmut0te?svg=true)](https://ci.appveyor.com/project/xor-gate/stlink)
-[![BSD licensed](https://img.shields.io/badge/license-BSD-blue.svg)](https://raw.githubusercontent.com/hyperium/hyper/master/LICENSE)
 
 ## HOWTO
 
@@ -20,23 +20,26 @@ called stlink and there are two versions:
 Two different transport layers are used:
 
 * STLINKv1 uses SCSI passthru commands over USB
-* STLINKv2 uses raw USB commands.
+* STLINKv2 and STLINKv2-1 (seen on nucleo boards) uses raw USB commands.
 
 ## Installation
 
-Currently there are no binaries for Windows available.
- It is known to compile and work with MinGW/Cygwin.
+Windows users can [download v1.3.0](https://github.com/texane/stlink/releases/tag/1.3.0) from the releases page.
 
-For Debian Linux based distributions there is also no package available
- in the standard repositories so you need to compile yourself.
+Mac OS X users can install from [homebrew](http://brewformulas.org/Stlink) or [download v1.3.0](https://github.com/texane/stlink/releases/tag/1.3.0) from the releases page.
+
+For Debian Linux based distributions there is no package available
+ in the standard repositories so you need to install [from source](doc/compiling.md) yourself.
 
 Arch Linux users can install from the [repository](https://www.archlinux.org/packages/community/x86_64/stlink)
 
+Alpine Linux users can install from the [repository](https://pkgs.alpinelinux.org/packages?name=stlink)
+
 FreeBSD users can install from [freshports](https://www.freshports.org/devel/stlink)
 
-Mac OS X users can install from [homebrew](http://brewformulas.org/Stlink)
+OpenBSD users need to install [from source](doc/compiling.md).
 
-**Compilation from source (advanced users)**
+## Installation from source (advanced users)
 
 When there is no executable available for your platform or you need the latest
  (possible unstable) version you need to compile yourself. This is explained in
@@ -154,58 +157,21 @@ GDB. Memory map parsing thus fail. Use --enable-expat.
 
 ## Currently known working combinations of programmer and target
 
-STLink v1 (as found on the 32VL Discovery board)
+See [doc/tested-boards.md](doc/tested-boards.md)
 
-Known working targets:
+## Known missing features
 
-* STM32F100xx (Medium Density VL)
-* STM32F103 (according to jpa- on ##stm32)
-
-No information:
-
-* everything else!
-
-STLink v2 (as found on the 32L and F4 Discovery boards), known working targets:
-
-* STM32F030F4P6 (custom board)
-* STM32F0Discovery (STM32F0 Discovery board)
-* STM32F100xx (Medium Density VL, as on the 32VL Discovery board)
-* STM32L1xx (STM32L Discovery board)
-* STM32F103VC, STM32F107RC, STM32L151RB, STM32F205RE and STM32F405RE on custom boards
-  from [UweBonnes/wiki_fuer_alex](https://github.com/UweBonnes/wiki_fuer_alex/tree/master/layout)
-* STM32F103VET6 (HY-STM32 board)
-* STM32F105RCT6 (DecaWave EVB1000 board)
-* STM32F303xx (STM32F3 Discovery board)
-* STM32F407xx (STM32F4 Discovery board)
-* STM32F429I-DISCO (STM32F4 Discovery board with LCD)
-* STM32F439VIT6 (discovery board reseated CPU)
-* STM32L052K8T6 (custom board)
-* STM32L151CB (custom board)
-* STM32L152RB (STM32L-Discovery board, custom board)
-* STM32F051R8T6 (STM320518-EVAL board)
-* STM32F411E-DISCO (STM32F4 Discovery board with gyro, audio)
-
-STLink v2-1 (as found on the Nucleo boards), known working targets:
-
-* STM32F401xx (STM32 Nucleo-F401RE board) 
-* STM32F030R8T6 (STM32 Nucleo-F030R8 board)
-* STM32F072RBT6 (STM32 Nucleo-F072RB board)
-* STM32F103RB (STM32 Nucleo-F103RB board)
-* STM32F303RET6 (STM32 Nucleo-F303RE board)
-* STM32F334R8 (STM32 Nucleo-F334R8 board)
-* STM32F411RET6 (STM32 Nucleo-F411RE board)
-* STM32F756NGHx (STMF7 evaluation board)
-* STM32L053R8 (STM32 Nucleo-L053R8 board)
-* STM32F769NI (STM32F7 discovery board)
-
-Please report any and all known working combinations so I can update this!
-
-## Missing features
+Some features are missing from the `texane/stlink` project and we would like you to
+ help us out if you want to get involved:
 
 * Control programming speed (See [#462](https://github.com/texane/stlink/issues/462))
 * OTP area programming (See [#202](https://github.com/texane/stlink/issues/202))
 * EEPROM area programming (See [#318](https://github.com/texane/stlink/issues/218))
 * Protection bits area reading (See [#346](https://github.com/texane/stlink/issues/346))
+* MCU hotplug (See [#449](https://github.com/texane/stlink/issues/449))
+* Writing options bytes (region) (See [#458](https://github.com/texane/stlink/issues/458))
+* Instrumentation Trace Macro (ITM) Cell (See [#136](https://github.com/texane/stlink/issues/136))
+* Writing external memory connected to an STM32 controller (e.g Quad SPI NOR flash) (See [#412](https://github.com/texane/stlink/issues/412))
 
 ## Known bugs
 
@@ -220,15 +186,45 @@ of the flash:
 2015-12-09T22:02:18 ERROR src/stlink-common.c: run_flash_loader(0x8000000) failed! == -1
 ```
 
-Issue(s): [#356](https://github.com/texane/stlink/issues/356)
+Issue related to this bug: [#356](https://github.com/texane/stlink/issues/356)
+
+### Flash size is detected as zero bytes size
+
+It is possible that the STM32 flash is write protected, the st-flash tool will show something like this:
+
+```
+st-flash write prog.bin 0x8000000
+2017-01-24T18:44:14 INFO src/stlink-common.c: Loading device parameters....
+2017-01-24T18:44:14 INFO src/stlink-common.c: Device connected is: F1 High-density device, id 0x10036414
+2017-01-24T18:44:14 INFO src/stlink-common.c: SRAM size: 0x10000 bytes (64 KiB), Flash: 0 bytes (0 KiB) in pages of 2048 bytes
+```
+
+As you can see, it gives out something unexpected like
+```
+Flash: 0 bytes (0 KiB) in pages of 2048 bytes
+```
+
+```
+st-info --probe
+Found 1 stlink programmers
+ serial: 303030303030303030303031
+openocd: "\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x31"
+  flash: 0 (pagesize: 2048)
+   sram: 65536
+ chipid: 0x0414
+  descr: F1 High-density device
+```
+
+Try to remove the write protection (probably only possible with ST Link Utility from ST itself).
+
+Issue related to this bug: [#545](https://github.com/texane/stlink/issues/545)
 
 ## Contributing and versioning
 
 * The semantic versioning scheme is used. Read more at [semver.org](http://semver.org)
-* When creating a pull request, please open first a issue for discussion of new features
-* TODO: Enforcement of coding style (linux codestyle + checkpatch)
+* When creating a pull request, please open first a issue for discussion of new features. Bugfixes don't need a discussion.
 
 ## License
 
 The stlink library and tools are licensed under the [BSD license](LICENSE). With
-some exceptions on external components.
+some exceptions on external components (e.g flashloaders).

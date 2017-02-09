@@ -30,7 +30,7 @@ foreach(manpage ${MANPAGES})
 		message(AUTHOR_WARNING "Manpage ${manpage} not generated")
 	endif()
 
-	if (f)
+	if (f AND NOT WIN32)
 		install(FILES ${f} DESTINATION ${CMAKE_INSTALL_PREFIX}/share/man/man1)
 		unset(f)
 	endif()

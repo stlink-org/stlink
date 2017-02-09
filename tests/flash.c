@@ -59,7 +59,7 @@ static bool execute_test(const struct Test * test) {
     return ret;
 }
 
-struct Test tests[] = {
+static struct Test tests[] = {
     { "", -1, FLASH_OPTS_INITIALIZER },
     { "--debug --reset read /dev/sg0 test.bin 0x80000000 0x1000", 0,
         { .cmd = FLASH_CMD_READ, .devname = "/dev/sg0", .serial = {}, .filename = "test.bin",
