@@ -445,6 +445,17 @@ static const struct stlink_chipid_params devices[] = {
             .bootrom_base = 0x1fff0000,      // Tables 4-6, pages 80-81 (Bank 1 system memory)
             .bootrom_size = 0x7000           // 28k (per bank), same source as base
         },
+        {
+            // STM32L011
+            .chip_id = STLINK_CHIPID_STM32_L011,
+            .description = "L011 device",
+            .flash_type = STLINK_FLASH_TYPE_L0,
+            .flash_size_reg = 0x1ff8007c,
+            .flash_pagesize = 0x80,
+            .sram_size = 0x4000,
+            .bootrom_base = 0x1ff0000,
+            .bootrom_size = 0x1000
+        },
 
 
  };
