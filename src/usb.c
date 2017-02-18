@@ -777,37 +777,47 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, bool reset, char serial[16
 
     while (cnt--) {
         libusb_get_device_descriptor( list[cnt], &desc );
-        if (desc.idVendor != STLINK_USB_VID_ST)
-            continue;
-
         if (devBus && devAddr) {
             if ((libusb_get_bus_number(list[cnt]) != devBus)
                 || (libusb_get_device_address(list[cnt]) != devAddr)) {
                 continue;
             }
+            if (desc.idVendor != STLINK_USB_VID_ST) {
+                WLOG("Supported only vendor %04x for STLINK_DEVICE. Choosen device has vendor %04x\n", STLINK_USB_VID_ST, desc.idVendor);
+                goto on_error;
+            }
+        } else {
+            if (desc.idVendor != STLINK_USB_VID_ST)
+                continue;
         }
 
         if ((desc.idProduct == STLINK_USB_PID_STLINK_32L) || (desc.idProduct == STLINK_USB_PID_STLINK_NUCLEO)) {
             struct libusb_device_handle *handle;
 
             ret = libusb_open(list[cnt], &handle);
-            if (ret)
-		continue;
+            if (ret) {
+                WLOG("Cannot open device %04x:%04x on %03d:%03d. %s\n", desc.idVendor, desc.idProduct,
+                        libusb_get_bus_number(list[cnt]), libusb_get_device_address(list[cnt]),
+                        strerror(errno));
+                if (devBus && devAddr) goto on_error;
+                continue;
+            }
 
             sl->serial_size = libusb_get_string_descriptor_ascii(handle, desc.iSerialNumber,
                                                                  (unsigned char *)sl->serial, sizeof(sl->serial));
             libusb_close(handle);
 
             if ((serial == NULL) || (*serial == 0))
-                 break;
+                break;
 
             if (sl->serial_size < 0)
-	         continue;
+                continue;
 
             if (memcmp(serial, &sl->serial, sl->serial_size) == 0)
-                 break;
+                break;
 
-            continue;
+            if (devBus && devAddr) goto on_error;
+            else continue;
         }
 
         if (desc.idProduct == STLINK_USB_PID_STLINK) {
