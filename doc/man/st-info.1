@@ -1,0 +1,76 @@
+.TH ST-INFO 1 "Sep 2016" "Open Source STMicroelectronics Stlink Tools" "STLINK"
+.SH NAME
+.PP
+st-info - Provides information about connected STLink and STM32 devices
+.SH SYNOPSIS
+.PP
+\f[I]st-info\f[] [\f[I]OPTIONS\f[]]
+.SH DESCRIPTION
+.PP
+Provides information about connected STLink programmers and STM32
+devices: Serial code, openocd, flash, sram, page size, chipid,
+description.
+.SH OPTIONS
+.TP
+.B --version
+Print version information
+.RS
+.RE
+.TP
+.B --flash
+Display amount of flash memory available in the device
+.RS
+.RE
+.TP
+.B --sram
+Display amount of sram memory available in device
+.RS
+.RE
+.TP
+.B --descr
+Display textual description of the device
+.RS
+.RE
+.TP
+.B --pagesize
+Display the page size of the device
+.RS
+.RE
+.TP
+.B --chipid
+Display the chip ID of the device
+.RS
+.RE
+.TP
+.B --serial
+Display the serial code of the device
+.RS
+.RE
+.TP
+.B --hla-serial
+Display the hex escaped serial code of the device
+.RS
+.RE
+.TP
+.B --probe
+Display the summarized information of the connected programmers and
+devices
+.RS
+.RE
+.SH EXAMPLES
+.PP
+Display information about connected programmers and devices
+.IP
+.nf
+\f[C]
+$\ st-info\ --probe
+\f[]
+.fi
+.SH SEE ALSO
+.PP
+st-util(1), st-flash(1), st-term(1)
+.SH COPYRIGHT
+.PP
+This work is copyrighted.
+Stlink contributors.
+See \f[I]LICENSE\f[] file in the stlink source distribution.

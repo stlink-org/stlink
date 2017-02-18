@@ -1,0 +1,87 @@
+.TH ST-UTIL 1 "Sep 2016" "Open Source STMicroelectronics Stlink Tools" "STLINK"
+.SH NAME
+.PP
+st-util - Run GDB server to interact with STM32 device
+.SH SYNOPSIS
+.PP
+\f[I]st-util\f[] [<ARGS>...]
+.SH DESCRIPTION
+.PP
+Start a GDB server to interact with a STM32 device Run the main binary
+of the local package (src/main.rs).
+.PP
+If a port number is not specified using the \f[B]--listen_port\f[]
+option, the default \f[B]4242\f[] port will be used.
+.PP
+Stlink version 2 is used by default unless the option
+\f[B]--stlinkv1\f[] is given.
+.PP
+The STLinkV2 device to use can be specified in the environment variable
+STLINK_DEVICE on the format :.
+.SH OPTIONS
+.TP
+.B -h, --help
+Print this message.
+.RS
+.RE
+.TP
+.B --version
+Print version information
+.RS
+.RE
+.TP
+.B -v \f[I]XX\f[], --verbose=XX
+Specify a specific verbosity level (0..99)
+.RS
+.RE
+.TP
+.B -v, --verbose
+Specify generally verbose logging
+.RS
+.RE
+.TP
+.B -s \f[I]X\f[], --stlink_version=X
+Choose what version of stlink to use, (defaults to 2)
+.RS
+.RE
+.TP
+.B -1, --stlinkv1
+Force stlink version 1
+.RS
+.RE
+.TP
+.B -p \f[I]4242\f[], --listen_port=1234
+Set the gdb server listen port.
+(default port: 4242)
+.RS
+.RE
+.TP
+.B -m, --multi
+Set gdb server to extended mode.
+st-util will continue listening for connections after disconnect.
+.RS
+.RE
+.TP
+.B -n, --no-reset
+Do not reset board on connection.
+.RS
+.RE
+.SH EXAMPLES
+.PP
+Run GDB server on port 4500 and connect to it
+.IP
+.nf
+\f[C]
+$\ st-util\ -p\ 4500
+$\ gdb
+(gdb)\ target\ extended-remote\ localhost:4500
+\f[]
+.fi
+.SH SEE ALSO
+.PP
+st-flash(1), st-info(1), st-term(1)
+.SH COPYRIGHT
+.PP
+This work is copyrighted.
+Stlink contributors.
+See \f[I]LICENSE\f[] file in the stlink source distribution.

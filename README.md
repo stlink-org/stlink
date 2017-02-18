@@ -1,16 +1,18 @@
 Open source version of the STMicroelectronics Stlink Tools
 ==========================================================
 
-[![GitHub release](https://img.shields.io/github/release/texane/stlink.svg?maxAge=2592000)](https://github.com/texane/stlink/releases/latest)
-[![GitHub commits](https://img.shields.io/github/commits-since/texane/stlink/1.2.0.svg?maxAge=2592000)](https://github.com/texane/stlink/compare/1.2.0...master)
-[![Linux Status](https://img.shields.io/travis/texane/stlink/master.svg?label=linux)](https://travis-ci.org/texane/stlink)
+[![GitHub release](https://img.shields.io/github/release/texane/stlink.svg)](https://github.com/texane/stlink/releases/latest)
 [![BSD licensed](https://img.shields.io/badge/license-BSD-blue.svg)](https://raw.githubusercontent.com/hyperium/hyper/master/LICENSE)
+[![GitHub commits](https://img.shields.io/github/commits-since/texane/stlink/1.3.0.svg)](https://github.com/texane/stlink/compare/1.3.0...master)
+[![Downloads](https://img.shields.io/github/downloads/texane/stlink/total.svg)](https://github.com/texane/stlink/releases)
+[![Linux Status](https://img.shields.io/travis/texane/stlink/master.svg?label=linux)](https://travis-ci.org/texane/stlink)
+[![Build Status](https://jenkins.ncrmnt.org/buildStatus/icon?job=GithubCI/stlink)](https://jenkins.ncrmnt.org/job/GithubCI/job/stlink/)
 
 ## HOWTO
 
 First, you have to know there are several boards supported by the software.
 Those boards use a chip to translate from USB to JTAG commands. The chip is
-called stlink and there are 2 versions:
+called stlink and there are two versions:
 
 * STLINKv1, present on STM32VL discovery kits,
 * STLINKv2, present on STM32L discovery and later kits.
@@ -18,46 +20,34 @@ called stlink and there are 2 versions:
 Two different transport layers are used:
 
 * STLINKv1 uses SCSI passthru commands over USB
-* STLINKv2 uses raw USB commands.
+* STLINKv2 and STLINKv2-1 (seen on nucleo boards) uses raw USB commands.
 
-## Common requirements
+## Installation
 
-* Debian based distros (debian, ubuntu)
-  * `build-essential`
+Windows users can [download v1.3.0](https://github.com/texane/stlink/releases/tag/1.3.0) from the releases page.
 
-* `cmake`
-* `libusb-1.0` (plus development headers for building, on debian based distros `libusb-1.0.0-dev` package)
-* (optional) for `stlink-gui` we need libgtk-3-dev
+Mac OS X users can install from [homebrew](http://brewformulas.org/Stlink) or [download v1.3.0](https://github.com/texane/stlink/releases/tag/1.3.0) from the releases page.
 
-## For STLINKv1
+For Debian Linux based distributions there is no package available
+ in the standard repositories so you need to install [from source](doc/compiling.md) yourself.
 
-The STLINKv1's SCSI emulation is very broken, so the best thing to do
-is tell your operating system to completely ignore it.
+Arch Linux users can install from the [repository](https://www.archlinux.org/packages/community/x86_64/stlink)
 
-Options (do one of these before you plug it in)
+Alpine Linux users can install from the [repository](https://pkgs.alpinelinux.org/packages?name=stlink)
 
-* `modprobe -r usb-storage && modprobe usb-storage quirks=483:3744:i`
-* or 1. `echo "options usb-storage quirks=483:3744:i" >> /etc/modprobe.conf`
-*    2. `modprobe -r usb-storage && modprobe usb-storage`
-* or 1. `cp stlink_v1.modprobe.conf /etc/modprobe.d`
-*    2. `modprobe -r usb-storage && modprobe usb-storage`
+FreeBSD users can install from [freshports](https://www.freshports.org/devel/stlink)
 
-## For STLINKv2
+OpenBSD users need to install [from source](doc/compiling.md).
 
-You're ready to go :)
+## Installation from source (advanced users)
 
-## Build from sources
-
-```
-$ mkdir build && cd build
-$ cmake -DCMAKE_BUILD_TYPE=Debug ..
-$ make
-```
+When there is no executable available for your platform or you need the latest
+ (possible unstable) version you need to compile yourself. This is explained in
+ the [compiling manual](doc/compiling.md).
 
 ## Using the gdb server
 
-To run the gdb server: (you do not need sudo if you have set up
-permissions correctly)
+To run the gdb server:
 
 ```
 $ make && [sudo] ./st-util
@@ -82,7 +72,7 @@ There are a few options:
 ```
 
 The STLINKv2 device to use can be specified in the environment
-variable STLINK_DEVICE on the format `<USB_BUS>:<USB_ADDR>`.
+variable `STLINK_DEVICE` in the format `<USB_BUS>:<USB_ADDR>`.
 
 Then, in your project directory, someting like this...
 (remember, you need to run an _ARM_ gdb, not an x86 gdb)
@@ -102,8 +92,6 @@ Transfer rate: 1 KB/sec, 560 bytes/write.
 (gdb) continue
 ```
 
-Have fun!
-
 ## Resetting the chip from GDB
 
 You may reset the chip using GDB if you want. You'll need to use `target
@@ -122,21 +110,6 @@ Starting program: /home/whitequark/ST/apps/bally/firmware.elf
 Remember that you can shorten the commands. `tar ext :4242' is good enough
 for GDB.
 
-## Setting up udev rules
-
-For convenience, you may install udev rules file, 49-stlinkv*.rules, located
-in the root of repository. You will need to copy it to /etc/udev/rules.d,
-and then either reboot or execute
-
-```
-$ udevadm control --reload-rules
-$ udevadm trigger
-```
-
-Udev will now create a /dev/stlinkv2_XX or /dev/stlinkv1_XX file, with the appropriate permissions.
-This is currently all the device is for, (only one stlink of each version is supported at 
-any time presently)
-
 ## Running programs from SRAM
 
 You can run your firmware directly from SRAM if you want to. Just link
@@ -152,8 +125,12 @@ code, if it is linked correctly (i.e. ELF has correct entry point).
 ## Writing to flash
 
 The GDB stub ships with a correct memory map, including the flash area.
-If you would link your executable to 0x08000000 and then do
+If you would link your executable to `0x08000000` and then do
+
+```
 (gdb) load firmware.elf
+```
+
 then it would be written to the memory.
 
 ## FAQ
@@ -180,50 +157,21 @@ GDB. Memory map parsing thus fail. Use --enable-expat.
 
 ## Currently known working combinations of programmer and target
 
-STLink v1 (as found on the 32VL Discovery board)
+See [doc/tested-boards.md](doc/tested-boards.md)
 
-Known working targets:
+## Known missing features
 
-* STM32F100xx (Medium Density VL)
-* STM32F103 (according to jpa- on ##stm32)
+Some features are missing from the `texane/stlink` project and we would like you to
+ help us out if you want to get involved:
 
-No information:
-
-* everything else!
-
-STLink v2 (as found on the 32L and F4 Discovery boards), known working targets:
-
-* STM32F030F4P6 (custom board)
-* STM32F0Discovery (STM32F0 Discovery board)
-* STM32F100xx (Medium Density VL, as on the 32VL Discovery board)
-* STM32L1xx (STM32L Discovery board)
-* STM32F103VC, STM32F107RC, STM32L151RB, STM32F205RE and STM32F405RE on custom boards
-  from [UweBonnes/wiki_fuer_alex](https://github.com/UweBonnes/wiki_fuer_alex/tree/master/layout)
-* STM32F103VET6 (HY-STM32 board)
-* STM32F105RCT6 (DecaWave EVB1000 board)
-* STM32F303xx (STM32F3 Discovery board)
-* STM32F407xx (STM32F4 Discovery board)
-* STM32F429I-DISCO (STM32F4 Discovery board with LCD)
-* STM32F439VIT6 (discovery board reseated CPU)
-* STM32L052K8T6 (custom board)
-* STM32L151CB (custom board)
-* STM32L152RB (STM32L-Discovery board, custom board)
-* STM32F051R8T6 (STM320518-EVAL board)
-
-STLink v2-1 (as found on the Nucleo boards), known working targets:
-
-* STM32F401xx (STM32 Nucleo-F401RE board) 
-* STM32F030R8T6 (STM32 Nucleo-F030R8 board)
-* STM32F072RBT6 (STM32 Nucleo-F072RB board)
-* STM32F103RB (STM32 Nucleo-F103RB board)
-* STM32F303RET6 (STM32 Nucleo-F303RE board)
-* STM32F334R8 (STM32 Nucleo-F334R8 board)
-* STM32F411RET6 (STM32 Nucleo-F411RE board)
-* STM32F756NGHx (STMF7 evaluation board)
-* STM32L053R8 (STM32 Nucleo-L053R8 board)
-* STM32F769NI (STM32F7 discovery board)
-
-Please report any and all known working combinations so I can update this!
+* Control programming speed (See [#462](https://github.com/texane/stlink/issues/462))
+* OTP area programming (See [#202](https://github.com/texane/stlink/issues/202))
+* EEPROM area programming (See [#318](https://github.com/texane/stlink/issues/218))
+* Protection bits area reading (See [#346](https://github.com/texane/stlink/issues/346))
+* MCU hotplug (See [#449](https://github.com/texane/stlink/issues/449))
+* Writing options bytes (region) (See [#458](https://github.com/texane/stlink/issues/458))
+* Instrumentation Trace Macro (ITM) Cell (See [#136](https://github.com/texane/stlink/issues/136))
+* Writing external memory connected to an STM32 controller (e.g Quad SPI NOR flash) (See [#412](https://github.com/texane/stlink/issues/412))
 
 ## Known bugs
 
@@ -238,15 +186,45 @@ of the flash:
 2015-12-09T22:02:18 ERROR src/stlink-common.c: run_flash_loader(0x8000000) failed! == -1
 ```
 
-Issue(s): [#356](https://github.com/texane/stlink/issues/356)
+Issue related to this bug: [#356](https://github.com/texane/stlink/issues/356)
+
+### Flash size is detected as zero bytes size
+
+It is possible that the STM32 flash is write protected, the st-flash tool will show something like this:
+
+```
+st-flash write prog.bin 0x8000000
+2017-01-24T18:44:14 INFO src/stlink-common.c: Loading device parameters....
+2017-01-24T18:44:14 INFO src/stlink-common.c: Device connected is: F1 High-density device, id 0x10036414
+2017-01-24T18:44:14 INFO src/stlink-common.c: SRAM size: 0x10000 bytes (64 KiB), Flash: 0 bytes (0 KiB) in pages of 2048 bytes
+```
+
+As you can see, it gives out something unexpected like
+```
+Flash: 0 bytes (0 KiB) in pages of 2048 bytes
+```
+
+```
+st-info --probe
+Found 1 stlink programmers
+ serial: 303030303030303030303031
+openocd: "\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x31"
+  flash: 0 (pagesize: 2048)
+   sram: 65536
+ chipid: 0x0414
+  descr: F1 High-density device
+```
+
+Try to remove the write protection (probably only possible with ST Link Utility from ST itself).
+
+Issue related to this bug: [#545](https://github.com/texane/stlink/issues/545)
 
 ## Contributing and versioning
 
 * The semantic versioning scheme is used. Read more at [semver.org](http://semver.org)
-* When creating a pull request, please open first a issue for discussion of new features
-* TODO: Enforcement of coding style (linux codestyle + checkpatch)
+* When creating a pull request, please open first a issue for discussion of new features. Bugfixes don't need a discussion.
 
 ## License
 
 The stlink library and tools are licensed under the [BSD license](LICENSE). With
-some exceptions on external components.
+some exceptions on external components (e.g flashloaders).

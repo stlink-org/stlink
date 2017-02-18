@@ -1,0 +1,12 @@
+Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: libstlink
+Upstream-Contact: Andrew 'Necromant' Andrianov <andrew@ncrmnt.org>
+Source: https://github.com/texane/stlink
+
+Files: *
+Copyright: (c) 2011 The stlink project (github.com/texane/stlink) contributors.
+License: BSD-3-clause
+
+Files: *
+Copyright: (c) 2011 The "Capt'ns Missing Link" Authors. All rights reserved.
+License: BSD-3-clause

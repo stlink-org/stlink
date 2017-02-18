@@ -25,13 +25,11 @@ static void __attribute__((unused)) mark_buf(stlink_t *sl) {
 }
 
 
-int main(int argc, char *argv[]) {
+int main(void)
+{
     /* Avoid unused parameter warning */
-    (void)argv;
     // set scpi lib debug level: 0 for no debug info, 10 for lots
 
-    switch (argc) {
-    case 1:
         fputs(
                 "\nUsage: stlink-access-test [anything at all] ...\n"
                 "\n*** Notice: The stlink firmware violates the USB standard.\n"
@@ -40,14 +38,10 @@ int main(int argc, char *argv[]) {
                 "*** Unplug the stlink and execute once as root:\n"
                 "modprobe -r usb-storage && modprobe usb-storage quirks=483:3744:i\n\n",
                 stderr);
-        return EXIT_FAILURE;
-    default:
-        break;
-    }
 
     stlink_t *sl = stlink_v1_open(99, 1);
     if (sl == NULL)
-        return EXIT_FAILURE;
+        return 0;
 
     // we are in mass mode, go to swd
     stlink_enter_swd_mode(sl);

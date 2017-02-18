@@ -13,7 +13,7 @@ else
 fi
 
 echo "=== Building Debug"
-mkdir -p build/Debug && cd build/Debug && cmake -DCMAKE_BUILD_TYPE=Debug ../../ && make && make package && cd -
+mkdir -p build/Debug && cd build/Debug && cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=$PWD/_install ../../ && make && make package && cd -
 
 echo "=== Building Release"
-mkdir -p build/Release && cd build/Release && cmake -DCMAKE_BUILD_TYPE=Release ../../ && make && make package && cd -
+mkdir -p build/Release && cd build/Release && cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$PWD/_install ../../ && make && make package && cd -

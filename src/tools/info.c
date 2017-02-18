@@ -7,6 +7,7 @@
 
 static void usage(void)
 {
+    puts("st-info --version");
     puts("st-info --flash");
     puts("st-info --sram");
     puts("st-info --descr");
@@ -92,6 +93,9 @@ static int print_data(char **av)
     // Probe needs all devices unclaimed
     if (strcmp(av[1], "--probe") == 0) {
         stlink_probe();
+        return 0;
+    } else if (strcmp(av[1], "--version") == 0) {
+        printf("v%s\n", STLINK_VERSION);
         return 0;
     }
 

@@ -1,0 +1,3 @@
+usr/lib/*/lib*.so.*
+lib/udev/rules.d/*.rules
+etc/modprobe.d/*.conf
