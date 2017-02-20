@@ -27,13 +27,13 @@ $ make
 You could install to a user folder e.g `$HOME`:
 
 ```
-$ cd release; make install DESTDIR=$HOME
+$ cd build/Release; make install DESTDIR=$HOME
 ```
 
 Or system wide:
 
 ```
-$ cd release; sudo make install
+$ cd build/Release; sudo make install
 ```
 
 ## Linux
