@@ -9,13 +9,13 @@ include_directories(SYSTEM ${gtk_INCLUDE_DIRS})
 
 add_executable(stlink-gui-local ${GUI_SOURCES})
 set_target_properties(stlink-gui-local PROPERTIES
-                      COMPILE_FLAGS -DSTLINK_UI_DIR=\\"${CMAKE_CURRENT_SOURCE_DIR}/gui\\")
+                      COMPILE_DEFINITIONS STLINK_UI_DIR="${CMAKE_CURRENT_SOURCE_DIR}/gui")
 target_link_libraries(stlink-gui-local ${STLINK_LIB_STATIC} ${gtk_LDFLAGS})
 
 
 add_executable(stlink-gui ${GUI_SOURCES})
 set_target_properties(stlink-gui PROPERTIES
-                      COMPILE_FLAGS -DSTLINK_UI_DIR=\\"${CMAKE_INSTALL_PREFIX}/${INSTALLED_UI_DIR}\\")
+                      COMPILE_DEFINITIONS STLINK_UI_DIR="${CMAKE_INSTALL_PREFIX}/${INSTALLED_UI_DIR}")
 target_link_libraries(stlink-gui ${STLINK_LIB_STATIC} ${gtk_LDFLAGS})
 
 install(TARGETS stlink-gui
