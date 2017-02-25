@@ -1,6 +1,24 @@
 Stlink ChangeLog
 ================
 
+v1.3.1
+======
+
+Release date: 2017-02-25
+
+Major changes and added features:
+
+* Add preliminary support for STM32L011 to see it after probe (chipid `0x457`) (@xor-gate)
+* Strip full paths to source files in log (commit [#2c0ab7f](https://github.com/texane/stlink/commit/2c0ab7f0eb6cfda5cfbdc08bb9f6760d27c2b667))
+* Add support for STM32F413 target ([#549](https://github.com/texane/stlink/pull/549))
+* Add support for Semihosting `SYS_READC` ([#546](https://github.com/texane/stlink/pull/546))
+
+Updates and fixes:
+
+* Update documentation markdown files
+* Compilation fixes ([#552](https://github.com/texane/stlink/pull/552))
+* Fix compilation when path includes spaces ([#561](https://github.com/texane/stlink/pull/561))
+
 v1.3.0
 ======
 
