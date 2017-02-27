@@ -826,10 +826,10 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, bool reset, char serial[16
             struct libusb_device_handle *handle;
 
             ret = libusb_open(list[cnt], &handle);
-            if (ret) {
+            if (ret != 0) {
                 WLOG("Cannot open device %04x:%04x on %03d:%03d. %s\n", desc.idVendor, desc.idProduct,
                         libusb_get_bus_number(list[cnt]), libusb_get_device_address(list[cnt]),
-                        strerror(errno));
+                        libusb_strerror(ret));
                 if (devBus && devAddr) goto on_error;
                 continue;
             }
@@ -864,7 +864,7 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, bool reset, char serial[16
         ret = libusb_open(list[cnt], &slu->usb_handle);
         if (ret != 0) {
             WLOG("Error %d (%s) opening ST-Link/V2 device %03d:%03d\n",
-                 ret, strerror (errno), libusb_get_bus_number(list[cnt]), libusb_get_device_address(list[cnt]));
+                 ret, libusb_strerror (ret), libusb_get_bus_number(list[cnt]), libusb_get_device_address(list[cnt]));
             goto on_error;
         }
     }
