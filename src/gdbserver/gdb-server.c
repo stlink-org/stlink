@@ -38,7 +38,7 @@
 static stlink_t *connected_stlink = NULL;
 static bool semihosting = false;
 static bool serial_specified = false;
-static char serialnumber[28] = {0};
+static uint8_t serialnumber[STLINK_SERIAL_SIZE] = {0}; // XXX? Why was size 28?
 
 static const char hex[] = "0123456789abcdef";
 
@@ -102,7 +102,7 @@ int parse_options(int argc, char** argv, st_state_t *st) {
         {"no-reset", optional_argument, NULL, 'n'},
         {"version", no_argument, NULL, 'V'},
         {"semihosting", no_argument, NULL, SEMIHOSTING_OPTION},
-	  {"serial", required_argument, NULL, SERIAL_OPTION},
+        {"serial", required_argument, NULL, SERIAL_OPTION},
         {0, 0, 0, 0},
     };
     const char * help_str = "%s - usage:\n\n"
@@ -182,17 +182,15 @@ int parse_options(int argc, char** argv, st_state_t *st) {
                 semihosting = true;
                 break;
             case SERIAL_OPTION:
-                printf("use serial %s\n",optarg);
-                            /** @todo This is not really portable, as strlen really returns size_t we need to obey and not cast it to a signed type. */
-                int j = (int)strlen(optarg);
-                int length = j / 2;  //the length of the destination-array
-                if(j % 2 != 0) return -1;
-                for(size_t k = 0; j >= 0 && k < sizeof(serialnumber); ++k, j -= 2) {
-                    char buffer[3] = {0};
-                    memcpy(buffer, optarg + j, 2);
-                    serialnumber[length - k] = (uint8_t)strtol(buffer, NULL, 16);
+                if (stlink_parse_serial(optarg, serialnumber) == 0) {
+                    /* XXX? Will it be correctly to set serial number direct
+                       into st->serial instead of global var serialnumber? */
+                    printf("use serial %s\n",optarg);
+                    serial_specified = true;
+                } else {
+                    fprintf(stderr, "Can't set serial %s\n", optarg);
+                    exit(EXIT_FAILURE);
                 }
-                serial_specified = true;
                 break;
         }
     }

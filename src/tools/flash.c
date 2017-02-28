@@ -59,7 +59,7 @@ int main(int ac, char** av)
     if (o.devname != NULL) /* stlinkv1 */
         sl = stlink_v1_open(o.log_level, 1);
     else /* stlinkv2 */
-        sl = stlink_open_usb(o.log_level, 1, (char *)o.serial);
+        sl = stlink_open_usb(o.log_level, 1, (uint8_t*)o.serial);
 
     if (sl == NULL)
         return -1;

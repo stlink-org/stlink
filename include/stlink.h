@@ -74,6 +74,9 @@ extern "C" {
 #define STLINK_SWDCLK_5KHZ_DIVISOR		798
 
 
+#define STLINK_SERIAL_SIZE 16
+
+
 
     /* Enough space to hold both a V2 command or a V1 command packaged as generic scsi*/
 #define C_BUF_LEN 32
@@ -150,7 +153,7 @@ typedef struct flash_loader {
         uint32_t chip_id;
         int core_stat;
 
-        char serial[16];
+        uint8_t serial[STLINK_SERIAL_SIZE];
         int serial_size;
 
         enum stlink_flash_type flash_type;
@@ -224,6 +227,8 @@ typedef struct flash_loader {
     int write_loader_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* size);
     int stlink_fread(stlink_t* sl, const char* path, bool is_ihex, stm32_addr_t addr, size_t size);
     int stlink_load_device_params(stlink_t *sl);
+
+    int stlink_parse_serial(const char *serial, uint8_t *outserial);
 
 #include "stlink/sg.h"
 #include "stlink/usb.h"
