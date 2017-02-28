@@ -865,7 +865,8 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, bool reset, uint8_t serial
                 continue;
             }
             if (desc.idVendor != STLINK_USB_VID_ST) {
-                WLOG("Supported only vendor %04x for STLINK_DEVICE. Choosen device has vendor %04x\n", STLINK_USB_VID_ST, desc.idVendor);
+                ugly_init(UWARN); /* Don't be silent when error is occured */
+                WLOG("Supported only vendor %04x in STLINK_DEVICE. Choosen device has vendor %04x\n", STLINK_USB_VID_ST, desc.idVendor);
                 goto on_error;
             }
         } else {
@@ -878,9 +879,10 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, bool reset, uint8_t serial
 
             ret = libusb_open(list[cnt], &handle);
             if (ret < 0) {
-                WLOG("Cannot open device %04x:%04x on %03d:%03d: %s(%d) %s\n", desc.idVendor, desc.idProduct,
+                ugly_init(UERROR); /* Don't be silent when error is occured */
+                ELOG("Cannot open device %04x:%04x on %03d:%03d: %s(%d)\n", desc.idVendor, desc.idProduct,
                         libusb_get_bus_number(list[cnt]), libusb_get_device_address(list[cnt]),
-                        libusb_error_name(ret), ret, libusb_strerror(ret));
+                        libusb_error_name(ret), ret);
                 if (susm->devBus && susm->devAddr) goto on_error;
                 continue;
             }
@@ -889,18 +891,17 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, bool reset, uint8_t serial
                                                                  (unsigned char *)sl->serial, sizeof(sl->serial));
             libusb_close(handle);
 
-            // Match user's serial
-            if ((susm->serial != NULL) && (*susm->serial != 0)
-                && (memcmp(sl->serial, susm->serial, sl->serial_size) != 0))
-                continue;
-
-            if ((serial == NULL) || (*serial == 0))
-                break;
-
             if (sl->serial_size < 0)
                 continue;
 
-            if (memcmp(serial, &sl->serial, sl->serial_size) == 0)
+            // Match user's serial
+            if (*susm->serial) {
+                if (memcmp(susm->serial, sl->serial, sl->serial_size) == 0)
+                    break;
+            } else if ((serial == NULL) || (*serial == 0))
+                break;
+
+            if (serial && memcmp(serial, &sl->serial, sl->serial_size) == 0)
                 break;
 
             if (susm->devBus && susm->devAddr) goto on_error;
@@ -914,14 +915,16 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, bool reset, uint8_t serial
     }
 
     if (cnt < 0) {
-        WLOG ("Couldn't find %s ST-Link/V2 devices\n", (susm->devBus && susm->devAddr)?"matched":"any");
+        ugly_init(UWARN); /* Don't be silent when error is occured */
+        WLOG ("Couldn't find %s ST-Link/V2 devices\n", ((susm->devBus && susm->devAddr) || (*susm->serial))?"matched":"any");
         goto on_error;
     } else {
         ret = libusb_open(list[cnt], &slu->usb_handle);
         if (ret < 0) {
-            WLOG("Cannot open ST-Link/V2 device on %03d:%03d: %s(%d) %s\n",
+            ugly_init(UERROR); /* Don't be silent when error is occured */
+            ELOG ("Cannot open ST-Link/V2 device on %03d:%03d: %s(%d)\n",
                  libusb_get_bus_number(list[cnt]), libusb_get_device_address(list[cnt]),
-                 libusb_error_name(ret), ret, libusb_strerror(ret));
+                 libusb_error_name(ret), ret);
             goto on_error;
         }
     }
@@ -931,7 +934,7 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, bool reset, uint8_t serial
     if (libusb_kernel_driver_active(slu->usb_handle, 0) == 1) {
         ret = libusb_detach_kernel_driver(slu->usb_handle, 0);
         if (ret < 0) {
-            WLOG("libusb_detach_kernel_driver(() error %s\n", libusb_strerror(ret));
+            WLOG("libusb_detach_kernel_driver(() error %s\n", libusb_error_name(ret));
             goto on_libusb_error;
         }
     }
