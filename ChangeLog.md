@@ -1,6 +1,15 @@
 Stlink ChangeLog
 ================
 
+v1.3.2
+======
+
+Release date: ongoing
+
+Updates and fixes:
+
+* Update libusb to 1.0.21 for Windows ([#562](https://github.com/texane/stlink/pull/562))
+
 v1.3.1
 ======
 
