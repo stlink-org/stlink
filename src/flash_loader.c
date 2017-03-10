@@ -216,7 +216,7 @@ int stlink_flash_loader_init(stlink_t *sl, flash_loader_t *fl)
 	return 0;
 }
 
-void loader_voltage_dependent_assignment(stlink_t *sl, 
+static int loader_v_dependent_assignment(stlink_t *sl, 
                                          const uint8_t **loader_code, size_t *loader_size,
                                          const uint8_t *high_v_loader, size_t high_v_loader_size,
                                          const uint8_t *low_v_loader, size_t low_v_loader_size)
@@ -224,7 +224,7 @@ void loader_voltage_dependent_assignment(stlink_t *sl,
     int retval = 0;
 
     if( sl->version.stlink_v == 1 ) {
-        printf("STLINK V1 cannot read voltage, defaulting to 32-bit writes on F7 devices\n");
+        printf("STLINK V1 cannot read voltage, defaulting to 32-bit writes\n");
         *loader_code = high_v_loader;
         *loader_size = high_v_loader_size;
     }
@@ -234,14 +234,13 @@ void loader_voltage_dependent_assignment(stlink_t *sl,
             retval = -1;
             printf("Failed to read Target voltage\n");
         } 
-
-        if (retval == 0) {
+        else {
             if (voltage > 2700) {
-                loader_code = loader_code_stm32f7;
-                loader_size = sizeof(loader_code_stm32f7);
+                *loader_code = high_v_loader;
+                *loader_size = high_v_loader_size;
             } else {
-                loader_code = loader_code_stm32f7_lv;
-                loader_size = sizeof(loader_code_stm32f7_lv);
+                *loader_code = low_v_loader;
+                *loader_size = low_v_loader_size;
             }
         }
     }
@@ -277,44 +276,24 @@ int stlink_flash_loader_write_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* 
 		sl->chip_id == STLINK_CHIPID_STM32_F411RE ||
 		sl->chip_id == STLINK_CHIPID_STM32_F446
 		) {
-        if( sl->version.stlink_v == 1 ) {
-            printf("STLINK V1 cannot read voltage, defaulting to 32-bit writes on F4 devices\n");
-            loader_code = loader_code_stm32f4;
-            loader_size = sizeof(loader_code_stm32f4);
-        }
-        else {
-            int voltage = stlink_target_voltage(sl);
-            if (voltage == -1) {
-                printf("Failed to read Target voltage\n");
-                return voltage;
-            } else if (voltage > 2700) {
-                loader_code = loader_code_stm32f4;
-                loader_size = sizeof(loader_code_stm32f4);
-            } else {
-                loader_code = loader_code_stm32f4_lv;
-                loader_size = sizeof(loader_code_stm32f4_lv);
-            }
+        int retval;
+        retval = loader_v_dependent_assignment(sl,
+                                               &loader_code, &loader_size,
+                                               loader_code_stm32f4, sizeof(loader_code_stm32f4),
+                                               loader_code_stm32f4_lv, sizeof(loader_code_stm32f4_lv));
+        if (retval == -1) {
+            return retval;
         }
     } else if (sl->core_id == STM32F7_CORE_ID ||
                sl->chip_id == STLINK_CHIPID_STM32_F7 ||
                sl->chip_id == STLINK_CHIPID_STM32_F7XXXX) {
-        if( sl->version.stlink_v == 1 ) {
-            printf("STLINK V1 cannot read voltage, defaulting to 32-bit writes on F7 devices\n");
-            loader_code = loader_code_stm32f7;
-            loader_size = sizeof(loader_code_stm32f7);
-        }
-        else {
-            int voltage = stlink_target_voltage(sl);
-            if (voltage == -1) {
-                printf("Failed to read Target voltage\n");
-                return voltage;
-            } else if (voltage > 2700) {
-                loader_code = loader_code_stm32f7;
-                loader_size = sizeof(loader_code_stm32f7);
-            } else {
-                loader_code = loader_code_stm32f7_lv;
-                loader_size = sizeof(loader_code_stm32f7_lv);
-            }
+        int retval;
+        retval = loader_v_dependent_assignment(sl,
+                                               &loader_code, &loader_size,
+                                               loader_code_stm32f7, sizeof(loader_code_stm32f7),
+                                               loader_code_stm32f7_lv, sizeof(loader_code_stm32f7_lv));
+        if (retval == -1) {
+            return retval;
         }
     } else if (sl->chip_id == STLINK_CHIPID_STM32_F0 || sl->chip_id == STLINK_CHIPID_STM32_F04 || sl->chip_id == STLINK_CHIPID_STM32_F0_CAN || sl->chip_id == STLINK_CHIPID_STM32_F0_SMALL || sl->chip_id == STLINK_CHIPID_STM32_F09X) {
         loader_code = loader_code_stm32f0;
