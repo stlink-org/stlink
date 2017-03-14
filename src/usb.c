@@ -758,7 +758,69 @@ static stlink_backend_t _stlink_usb_backend = {
     _stlink_usb_set_swdclk
 };
 
-stlink_t *stlink_open_usb(enum ugly_loglevel verbose, bool reset, char serial[16])
+/* unsafe outserial length */
+int stlink_parse_serial(const char *serial, uint8_t *outserial)
+{
+    /** @todo This is not really portable, as strlen really returns size_t we need to obey and not cast it to a signed type. */
+    int j = (int)strlen(serial);
+    int length = j / 2;  //the length of the destination-array
+    if ((j % 2 != 0) || (length > STLINK_SERIAL_SIZE)) return -1;
+
+    for(size_t k = 0; j >= 0 && k < STLINK_SERIAL_SIZE; ++k, j -= 2) {
+        // Usage memcpy here is overhead
+        char buffer[3] = { serial[j], serial[j+1], 0 };
+        outserial[length - k] = (uint8_t)strtoul(buffer, NULL, 16);
+    }
+
+    return 0;
+}
+
+struct stlink_usr_match_t {
+    int devBus;
+    int devAddr;
+    uint8_t serial[STLINK_SERIAL_SIZE];
+};
+
+/* @todo Ready to move out from stlink_open_usb. See comment in stlink_open_usb */
+static const
+struct stlink_usr_match_t* _stlink_get_usr_match() {
+    static struct stlink_usr_match_t susm;
+    const char *device, *serial;
+
+    susm.devBus = 0;
+    susm.devAddr = 0;
+    memset(susm.serial, 0x0, sizeof(susm.serial));
+
+    device = getenv("STLINK_DEVICE");
+    serial = getenv("STLINK_SERIAL");
+
+    if (device) {
+        for (const char *devvrf=device; *devvrf != '\0'; ++devvrf) {
+            if (*devvrf != ':' && ! (*devvrf>='0' && *devvrf<='9')) {
+                WLOG("STLINK_DEVICE should match pattern '[0-9]\\+:[0-9]\\+'\n");
+                return NULL;
+            }
+        }
+        char *c = strchr(device,':');
+        if (c==NULL) {
+            WLOG("STLINK_DEVICE must be <USB_BUS>:<USB_ADDR> format\n");
+            return NULL;
+        }
+        susm.devBus=atoi(device);
+        *c++=0;
+        susm.devAddr=atoi(c);
+        ILOG("bus %03d dev %03d\n", susm.devBus, susm.devAddr);
+    }
+
+    if (serial) {
+        if (stlink_parse_serial(serial, susm.serial) == -1)
+            return NULL;
+    }
+
+    return &susm;
+}
+
+stlink_t *stlink_open_usb(enum ugly_loglevel verbose, bool reset, uint8_t serial[STLINK_SERIAL_SIZE])
 {
     stlink_t* sl = NULL;
     struct stlink_libusb* slu = NULL;
@@ -786,59 +848,64 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, bool reset, char serial[16
     /** @todo We should use ssize_t and use it as a counter if > 0. As per libusb API: ssize_t libusb_get_device_list (libusb_context *ctx, libusb_device ***list) */
     int cnt = (int) libusb_get_device_list(slu->libusb_ctx, &list);
     struct libusb_device_descriptor desc;
-    int devBus =0;
-    int devAddr=0;
 
     /* @TODO: Reading a environment variable in a usb open function is not very nice, this
       should be refactored and moved into the CLI tools, and instead of giving USB_BUS:USB_ADDR a real stlink
       serial string should be passed to this function. Probably people are using this but this is very odd because
       as programmer can change to multiple busses and it is better to detect them based on serial.  */
-    char *device = getenv("STLINK_DEVICE");
-    if (device) {
-        char *c = strchr(device,':');
-        if (c==NULL) {
-            WLOG("STLINK_DEVICE must be <USB_BUS>:<USB_ADDR> format\n");
-            goto on_error;
-        }
-        devBus=atoi(device);
-        *c++=0;
-        devAddr=atoi(c);
-        ILOG("bus %03d dev %03d\n",devBus, devAddr);
-    }
+    const struct stlink_usr_match_t *susm = _stlink_get_usr_match();
+    if (susm == NULL)
+        goto on_error;
 
     while (cnt--) {
         libusb_get_device_descriptor( list[cnt], &desc );
-        if (desc.idVendor != STLINK_USB_VID_ST)
-            continue;
-
-        if (devBus && devAddr) {
-            if ((libusb_get_bus_number(list[cnt]) != devBus)
-                || (libusb_get_device_address(list[cnt]) != devAddr)) {
+        if (susm->devBus && susm->devAddr) {
+            if ((libusb_get_bus_number(list[cnt]) != susm->devBus)
+                || (libusb_get_device_address(list[cnt]) != susm->devAddr)) {
                 continue;
             }
+            if (desc.idVendor != STLINK_USB_VID_ST) {
+                ugly_init(UWARN); /* Don't be silent when error is occured */
+                WLOG("Supported only vendor %04x in STLINK_DEVICE. Choosen device has vendor %04x\n", STLINK_USB_VID_ST, desc.idVendor);
+                goto on_error;
+            }
+        } else {
+            if (desc.idVendor != STLINK_USB_VID_ST)
+                continue;
         }
 
         if ((desc.idProduct == STLINK_USB_PID_STLINK_32L) || (desc.idProduct == STLINK_USB_PID_STLINK_NUCLEO)) {
             struct libusb_device_handle *handle;
 
             ret = libusb_open(list[cnt], &handle);
-            if (ret)
-		continue;
+            if (ret < 0) {
+                ugly_init(UERROR); /* Don't be silent when error is occured */
+                ELOG("Cannot open device %04x:%04x on %03d:%03d: %s(%d)\n", desc.idVendor, desc.idProduct,
+                        libusb_get_bus_number(list[cnt]), libusb_get_device_address(list[cnt]),
+                        libusb_error_name(ret), ret);
+                if (susm->devBus && susm->devAddr) goto on_error;
+                continue;
+            }
 
             sl->serial_size = libusb_get_string_descriptor_ascii(handle, desc.iSerialNumber,
                                                                  (unsigned char *)sl->serial, sizeof(sl->serial));
             libusb_close(handle);
 
-            if ((serial == NULL) || (*serial == 0))
-                 break;
-
             if (sl->serial_size < 0)
-	         continue;
+                continue;
 
-            if (memcmp(serial, &sl->serial, sl->serial_size) == 0)
-                 break;
+            // Match user's serial
+            if (*susm->serial) {
+                if (memcmp(susm->serial, sl->serial, sl->serial_size) == 0)
+                    break;
+            } else if ((serial == NULL) || (*serial == 0))
+                break;
 
-            continue;
+            if (serial && memcmp(serial, &sl->serial, sl->serial_size) == 0)
+                break;
+
+            if (susm->devBus && susm->devAddr) goto on_error;
+            else continue;
         }
 
         if (desc.idProduct == STLINK_USB_PID_STLINK) {
@@ -848,13 +915,16 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, bool reset, char serial[16
     }
 
     if (cnt < 0) {
-        WLOG ("Couldn't find %s ST-Link/V2 devices\n",(devBus && devAddr)?"matched":"any");
+        ugly_init(UWARN); /* Don't be silent when error is occured */
+        WLOG ("Couldn't find %s ST-Link/V2 devices\n", ((susm->devBus && susm->devAddr) || (*susm->serial))?"matched":"any");
         goto on_error;
     } else {
         ret = libusb_open(list[cnt], &slu->usb_handle);
-        if (ret != 0) {
-            WLOG("Error %d (%s) opening ST-Link/V2 device %03d:%03d\n",
-                 ret, strerror (errno), libusb_get_bus_number(list[cnt]), libusb_get_device_address(list[cnt]));
+        if (ret < 0) {
+            ugly_init(UERROR); /* Don't be silent when error is occured */
+            ELOG ("Cannot open ST-Link/V2 device on %03d:%03d: %s(%d)\n",
+                 libusb_get_bus_number(list[cnt]), libusb_get_device_address(list[cnt]),
+                 libusb_error_name(ret), ret);
             goto on_error;
         }
     }
@@ -864,7 +934,7 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, bool reset, char serial[16
     if (libusb_kernel_driver_active(slu->usb_handle, 0) == 1) {
         ret = libusb_detach_kernel_driver(slu->usb_handle, 0);
         if (ret < 0) {
-            WLOG("libusb_detach_kernel_driver(() error %s\n", strerror(-ret));
+            WLOG("libusb_detach_kernel_driver(() error %s\n", libusb_error_name(ret));
             goto on_libusb_error;
         }
     }
@@ -991,7 +1061,7 @@ static size_t stlink_probe_usb_devs(libusb_device **devs, stlink_t **sldevs[]) {
             continue;
 
         struct libusb_device_handle* handle;
-        char serial[13];
+        uint8_t serial[STLINK_SERIAL_SIZE];
         memset(serial, 0, sizeof(serial));
 
         ret = libusb_open(dev, &handle);
