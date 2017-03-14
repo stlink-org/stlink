@@ -393,20 +393,20 @@ static const char* const memory_map_template_F2 =
     "<!DOCTYPE memory-map PUBLIC \"+//IDN gnu.org//DTD GDB Memory Map V1.0//EN\""
     "     \"http://sourceware.org/gdb/gdb-memory-map.dtd\">"
     "<memory-map>"
-    "  <memory type=\"rom\" start=\"0x00000000\" length=\"0x%zx\"/>"        // code = sram, bootrom or flash; flash is bigger
-    "  <memory type=\"ram\" start=\"0x20000000\" length=\"0x%zx\"/>"        // sram
+    "  <memory type=\"rom\" start=\"0x00000000\" length=\"0x%x\"/>"        // code = sram, bootrom or flash; flash is bigger
+    "  <memory type=\"ram\" start=\"0x20000000\" length=\"0x%x\"/>"        // sram
     "  <memory type=\"flash\" start=\"0x08000000\" length=\"0x10000\">"     //Sectors 0..3
     "    <property name=\"blocksize\">0x4000</property>"                    //16kB
     "  </memory>"
     "  <memory type=\"flash\" start=\"0x08010000\" length=\"0x10000\">"     //Sector 4
     "    <property name=\"blocksize\">0x10000</property>"                   //64kB
     "  </memory>"
-    "  <memory type=\"flash\" start=\"0x08020000\" length=\"0x%zx\">"       //Sectors 5..
+    "  <memory type=\"flash\" start=\"0x08020000\" length=\"0x%x\">"       //Sectors 5..
     "    <property name=\"blocksize\">0x20000</property>"                   //128kB
     "  </memory>"
     "  <memory type=\"ram\" start=\"0x40000000\" length=\"0x1fffffff\"/>"   // peripheral regs
     "  <memory type=\"ram\" start=\"0xe0000000\" length=\"0x1fffffff\"/>"   // cortex regs
-    "  <memory type=\"rom\" start=\"0x%08x\" length=\"0x%zx\"/>"            // bootrom
+    "  <memory type=\"rom\" start=\"0x%08x\" length=\"0x%x\"/>"            // bootrom
     "  <memory type=\"rom\" start=\"0x1fffc000\" length=\"0x10\"/>"         // option byte area
     "</memory-map>";
 
@@ -415,10 +415,10 @@ static const char* const memory_map_template_L4 =
     "<!DOCTYPE memory-map PUBLIC \"+//IDN gnu.org//DTD GDB Memory Map V1.0//EN\""
     "     \"http://sourceware.org/gdb/gdb-memory-map.dtd\">"
     "<memory-map>"
-    "  <memory type=\"rom\" start=\"0x00000000\" length=\"0x%zx\"/>"        // code = sram, bootrom or flash; flash is bigger
+    "  <memory type=\"rom\" start=\"0x00000000\" length=\"0x%x\"/>"        // code = sram, bootrom or flash; flash is bigger
     "  <memory type=\"ram\" start=\"0x10000000\" length=\"0x8000\"/>"       // SRAM2 (32 KB)
     "  <memory type=\"ram\" start=\"0x20000000\" length=\"0x18000\"/>"      // SRAM1 (96 KB)
-    "  <memory type=\"flash\" start=\"0x08000000\" length=\"0x%zx\">"
+    "  <memory type=\"flash\" start=\"0x08000000\" length=\"0x%x\">"
     "    <property name=\"blocksize\">0x800</property>"
     "  </memory>"
     "  <memory type=\"ram\" start=\"0x40000000\" length=\"0x1fffffff\"/>"   // peripheral regs
@@ -434,14 +434,14 @@ static const char* const memory_map_template =
     "<!DOCTYPE memory-map PUBLIC \"+//IDN gnu.org//DTD GDB Memory Map V1.0//EN\""
     "     \"http://sourceware.org/gdb/gdb-memory-map.dtd\">"
     "<memory-map>"
-    "  <memory type=\"rom\" start=\"0x00000000\" length=\"0x%zx\"/>"        // code = sram, bootrom or flash; flash is bigger
-    "  <memory type=\"ram\" start=\"0x20000000\" length=\"0x%zx\"/>"        // sram 8k
-    "  <memory type=\"flash\" start=\"0x08000000\" length=\"0x%zx\">"
-    "    <property name=\"blocksize\">0x%zx</property>"
+    "  <memory type=\"rom\" start=\"0x00000000\" length=\"0x%x\"/>"        // code = sram, bootrom or flash; flash is bigger
+    "  <memory type=\"ram\" start=\"0x20000000\" length=\"0x%x\"/>"        // sram 8k
+    "  <memory type=\"flash\" start=\"0x08000000\" length=\"0x%x\">"
+    "    <property name=\"blocksize\">0x%x</property>"
     "  </memory>"
     "  <memory type=\"ram\" start=\"0x40000000\" length=\"0x1fffffff\"/>"   // peripheral regs
     "  <memory type=\"ram\" start=\"0xe0000000\" length=\"0x1fffffff\"/>"   // cortex regs
-    "  <memory type=\"rom\" start=\"0x%08x\" length=\"0x%zx\"/>"            // bootrom
+    "  <memory type=\"rom\" start=\"0x%08x\" length=\"0x%x\"/>"            // bootrom
     "  <memory type=\"rom\" start=\"0x1ffff800\" length=\"0x10\"/>"         // option byte area
     "</memory-map>";
 
@@ -452,7 +452,7 @@ static const char* const memory_map_template_F7 =
     "<memory-map>"
     "  <memory type=\"ram\" start=\"0x00000000\" length=\"0x4000\"/>"       // ITCM ram 16kB
     "  <memory type=\"rom\" start=\"0x00200000\" length=\"0x100000\"/>"     // ITCM flash
-    "  <memory type=\"ram\" start=\"0x20000000\" length=\"0x%zx\"/>"      // sram
+    "  <memory type=\"ram\" start=\"0x20000000\" length=\"0x%x\"/>"      // sram
     "  <memory type=\"flash\" start=\"0x08000000\" length=\"0x20000\">"     // Sectors 0..3
     "    <property name=\"blocksize\">0x8000</property>"                    // 32kB
     "  </memory>"
