@@ -855,6 +855,7 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, bool reset, char serial[16
         if (ret != 0) {
             WLOG("Error %d (%s) opening ST-Link/V2 device %03d:%03d\n",
                  ret, strerror (errno), libusb_get_bus_number(list[cnt]), libusb_get_device_address(list[cnt]));
+            libusb_free_device_list(list, 1);
             goto on_error;
         }
     }
