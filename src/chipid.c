@@ -452,9 +452,9 @@ static const struct stlink_chipid_params devices[] = {
             .flash_type = STLINK_FLASH_TYPE_L0,
             .flash_size_reg = 0x1ff8007c,
             .flash_pagesize = 0x80,
-            .sram_size = 0x4000,
-            .bootrom_base = 0x1ff0000,
-            .bootrom_size = 0x1000
+            .sram_size = 0x2000,
+            .bootrom_base = 0x1ff00000,
+            .bootrom_size = 0x2000
         },
 
 
