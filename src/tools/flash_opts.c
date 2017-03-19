@@ -77,7 +77,12 @@ int flash_get_opts(struct flash_opts* o, int ac, char** av)
             else
                 return -1;
         }
-        else {
+	else if ( starts_with(av[0], "--chipid=") ) {
+		const char *arg = av[0] + strlen("--chipid=");
+
+		o->chipid = (enum stlink_stm32_chipids)strtol(arg,0,0);
+        }
+	else {
             break;  // non-option found
         }
 

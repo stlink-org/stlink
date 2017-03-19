@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include <stlink.h>
 
+#include <stlink/chipid.h>
+
 #define DEBUG_LOG_LEVEL 100
 #define STND_LOG_LEVEL  50
 
@@ -20,9 +22,10 @@ struct flash_opts
     int reset;
     int log_level;
     enum flash_format format;
+    enum stlink_stm32_chipids chipid;
 };
 
-#define FLASH_OPTS_INITIALIZER {0, NULL, {}, NULL, 0, 0, 0, 0, 0 }
+#define FLASH_OPTS_INITIALIZER {0, NULL, {}, NULL, 0, 0, 0, 0, 0, 0 }
 
 int flash_get_opts(struct flash_opts* o, int ac, char** av);
 

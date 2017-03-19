@@ -29,14 +29,18 @@ static void cleanup(int signum) {
 
 static void usage(void)
 {
-    puts("stlinkv1 command line: ./st-flash [--debug] [--reset] [--format <format>] {read|write} /dev/sgX <path> <addr> <size>");
-    puts("stlinkv1 command line: ./st-flash [--debug] /dev/sgX erase");
-    puts("stlinkv2 command line: ./st-flash [--debug] [--reset] [--serial <serial>] [--format <format>] {read|write} <path> <addr> <size>");
-    puts("stlinkv2 command line: ./st-flash [--debug] [--serial <serial>] erase");
-    puts("stlinkv2 command line: ./st-flash [--debug] [--serial <serial>] reset");
-    puts("                       Use hex format for addr, <serial> and <size>.");
+    puts("stlinkv1 command line: ./st-flash [--debug] [--reset] [--format <format>] [--chipid <chipid>] {read|write} /dev/sgX <path> <addr> <size>");
+    puts("stlinkv1 command line: ./st-flash [--debug] [--chipid <chipid>] /dev/sgX erase");
+    puts("stlinkv2 command line: ./st-flash [--debug] [--reset] [--serial <serial>] [--format <format>] [--chipid <chipid>] {read|write} <path> <addr> <size>");
+    puts("stlinkv2 command line: ./st-flash [--debug] [--serial <serial>] [--chipid <chipid>] erase");
+    puts("stlinkv2 command line: ./st-flash [--debug] [--serial <serial>] [--chipid <chipid>] reset");
+    puts("                       Use hex format for addr, <serial>, <chipid> and <size>.");
     puts("                       Format may be 'binary' (default) or 'ihex', although <addr> must be specified for binary format only.");
     puts("                       ./st-flash [--version]");
+    puts("Note:");
+    printf("    --chipid=0x%04X is F1 medium density, 0x%04X is F1 high density\n",
+        STLINK_CHIPID_STM32_F1_MEDIUM,
+        STLINK_CHIPID_STM32_F1_HIGH);
 }
 
 int main(int ac, char** av)
@@ -63,6 +67,12 @@ int main(int ac, char** av)
 
     if (sl == NULL)
         return -1;
+
+    if ( (int)o.chipid != 0 ) {
+        if ( o.chipid == STLINK_CHIPID_STM32_F1_HIGH )
+            sl->flash_size = 128 * 1024;
+        printf("Forcing chipid 0x%04X with %uk flash.\n",o.chipid,(unsigned)(sl->flash_size)/1024u);
+    }
 
     sl->verbose = o.log_level;
 
