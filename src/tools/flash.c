@@ -29,18 +29,15 @@ static void cleanup(int signum) {
 
 static void usage(void)
 {
-    puts("stlinkv1 command line: ./st-flash [--debug] [--reset] [--format <format>] [--chipid <chipid>] {read|write} /dev/sgX <path> <addr> <size>");
-    puts("stlinkv1 command line: ./st-flash [--debug] [--chipid <chipid>] /dev/sgX erase");
-    puts("stlinkv2 command line: ./st-flash [--debug] [--reset] [--serial <serial>] [--format <format>] [--chipid <chipid>] {read|write} <path> <addr> <size>");
-    puts("stlinkv2 command line: ./st-flash [--debug] [--serial <serial>] [--chipid <chipid>] erase");
-    puts("stlinkv2 command line: ./st-flash [--debug] [--serial <serial>] [--chipid <chipid>] reset");
+    puts("stlinkv1 command line: ./st-flash [--debug] [--reset] [--format <format>] [--flash=<fsize>] {read|write} /dev/sgX <path> <addr> <size>");
+    puts("stlinkv1 command line: ./st-flash [--debug] /dev/sgX erase");
+    puts("stlinkv2 command line: ./st-flash [--debug] [--reset] [--serial <serial>] [--format <format>] [--flash=<fsize>] {read|write} <path> <addr> <size>");
+    puts("stlinkv2 command line: ./st-flash [--debug] [--serial <serial>] erase");
+    puts("stlinkv2 command line: ./st-flash [--debug] [--serial <serial>] reset");
     puts("                       Use hex format for addr, <serial>, <chipid> and <size>.");
+    puts("                       fsize: Use decimal, octal or hex by prefix 0xXXX for hex, optionally followed by k=KB, or m=MB (eg. --flash=128k)");
     puts("                       Format may be 'binary' (default) or 'ihex', although <addr> must be specified for binary format only.");
     puts("                       ./st-flash [--version]");
-    puts("Note:");
-    printf("    --chipid=0x%04X is F1 medium density, 0x%04X is F1 high density\n",
-        STLINK_CHIPID_STM32_F1_MEDIUM,
-        STLINK_CHIPID_STM32_F1_HIGH);
 }
 
 int main(int ac, char** av)
@@ -68,10 +65,9 @@ int main(int ac, char** av)
     if (sl == NULL)
         return -1;
 
-    if ( (int)o.chipid != 0 ) {
-        if ( o.chipid == STLINK_CHIPID_STM32_F1_HIGH )
-            sl->flash_size = 128 * 1024;
-        printf("Forcing chipid 0x%04X with %uk flash.\n",o.chipid,(unsigned)(sl->flash_size)/1024u);
+    if ( o.flash_size != 0u && o.flash_size != sl->flash_size ) {
+        sl->flash_size = o.flash_size;
+        printf("Forcing flash size: --flash=0x%08zX\n",sl->flash_size);
     }
 
     sl->verbose = o.log_level;
