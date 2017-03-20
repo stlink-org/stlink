@@ -22,7 +22,7 @@ struct flash_opts
     int reset;
     int log_level;
     enum flash_format format;
-    enum stlink_stm32_chipids chipid;
+    uint32_t flash_size;	/* --flash=n[k][m] */
 };
 
 #define FLASH_OPTS_INITIALIZER {0, NULL, {}, NULL, 0, 0, 0, 0, 0, 0 }
