@@ -1,5 +1,8 @@
 sudo: true
 language: c
+compiler:
+  - gcc
+  - clang
 addons:
   apt:
     sources:
@@ -16,15 +19,3 @@ script:
   - printenv
   - cmake --version
   - ./.travis.sh
-matrix:
-  include:
-    - os: linux
-      compiler: clang
-#    - os: linux
-#      compiler: clang-3.8
-    - os: linux
-      compiler: gcc-5
-#    - os: linux
-#      compiler: clang-3.8
-    - os: osx
-      compiler: clang
