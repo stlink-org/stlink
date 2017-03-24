@@ -3,6 +3,9 @@ language: c
 compiler:
   - gcc
   - clang
+os:
+  - linux
+  - osx
 addons:
   apt:
     sources:
