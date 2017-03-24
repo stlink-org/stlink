@@ -53,6 +53,14 @@ TODO
 TODO
 .RS
 .RE
+.TP
+.B --flash=\f[I]size\f[]
+Override the device's normal flash size, where size is the flash size in bytes. 
+It can be specified in decimal, octal or hexadecimal.
+The size argument can optionally be followed by 'k' for KB or 'm' for MB.
+Examples --flash=128k or --flash=0x080k.
+.RS
+.RE
 .SH EXAMPLES
 .PP
 Flash \f[C]firmware.bin\f[] to device
