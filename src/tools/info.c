@@ -114,11 +114,11 @@ static int print_data(char **av)
         stlink_enter_swd_mode(sl);
 
     if (strcmp(av[1], "--flash") == 0)
-        printf("0x%zx\n", sl->flash_size);
+        printf("0x%x\n", (unsigned int)sl->flash_size);
     else if (strcmp(av[1], "--sram") == 0)
-        printf("0x%zx\n", sl->sram_size);
+        printf("0x%x\n", (unsigned int)sl->sram_size);
     else if (strcmp(av[1], "--pagesize") == 0)
-        printf("0x%zx\n", sl->flash_pgsz);
+        printf("0x%x\n", (unsigned int)sl->flash_pgsz);
     else if (strcmp(av[1], "--chipid") == 0)
         printf("0x%.4x\n", sl->chip_id);
     else if (strcmp(av[1], "--serial") == 0)

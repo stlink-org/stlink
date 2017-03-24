@@ -393,20 +393,20 @@ static const char* const memory_map_template_F2 =
     "<!DOCTYPE memory-map PUBLIC \"+//IDN gnu.org//DTD GDB Memory Map V1.0//EN\""
     "     \"http://sourceware.org/gdb/gdb-memory-map.dtd\">"
     "<memory-map>"
-    "  <memory type=\"rom\" start=\"0x00000000\" length=\"0x%zx\"/>"        // code = sram, bootrom or flash; flash is bigger
-    "  <memory type=\"ram\" start=\"0x20000000\" length=\"0x%zx\"/>"        // sram
+    "  <memory type=\"rom\" start=\"0x00000000\" length=\"0x%x\"/>"        // code = sram, bootrom or flash; flash is bigger
+    "  <memory type=\"ram\" start=\"0x20000000\" length=\"0x%x\"/>"        // sram
     "  <memory type=\"flash\" start=\"0x08000000\" length=\"0x10000\">"     //Sectors 0..3
     "    <property name=\"blocksize\">0x4000</property>"                    //16kB
     "  </memory>"
     "  <memory type=\"flash\" start=\"0x08010000\" length=\"0x10000\">"     //Sector 4
     "    <property name=\"blocksize\">0x10000</property>"                   //64kB
     "  </memory>"
-    "  <memory type=\"flash\" start=\"0x08020000\" length=\"0x%zx\">"       //Sectors 5..
+    "  <memory type=\"flash\" start=\"0x08020000\" length=\"0x%x\">"       //Sectors 5..
     "    <property name=\"blocksize\">0x20000</property>"                   //128kB
     "  </memory>"
     "  <memory type=\"ram\" start=\"0x40000000\" length=\"0x1fffffff\"/>"   // peripheral regs
     "  <memory type=\"ram\" start=\"0xe0000000\" length=\"0x1fffffff\"/>"   // cortex regs
-    "  <memory type=\"rom\" start=\"0x%08x\" length=\"0x%zx\"/>"            // bootrom
+    "  <memory type=\"rom\" start=\"0x%08x\" length=\"0x%x\"/>"            // bootrom
     "  <memory type=\"rom\" start=\"0x1fffc000\" length=\"0x10\"/>"         // option byte area
     "</memory-map>";
 
@@ -415,10 +415,10 @@ static const char* const memory_map_template_L4 =
     "<!DOCTYPE memory-map PUBLIC \"+//IDN gnu.org//DTD GDB Memory Map V1.0//EN\""
     "     \"http://sourceware.org/gdb/gdb-memory-map.dtd\">"
     "<memory-map>"
-    "  <memory type=\"rom\" start=\"0x00000000\" length=\"0x%zx\"/>"        // code = sram, bootrom or flash; flash is bigger
+    "  <memory type=\"rom\" start=\"0x00000000\" length=\"0x%x\"/>"        // code = sram, bootrom or flash; flash is bigger
     "  <memory type=\"ram\" start=\"0x10000000\" length=\"0x8000\"/>"       // SRAM2 (32 KB)
     "  <memory type=\"ram\" start=\"0x20000000\" length=\"0x18000\"/>"      // SRAM1 (96 KB)
-    "  <memory type=\"flash\" start=\"0x08000000\" length=\"0x%zx\">"
+    "  <memory type=\"flash\" start=\"0x08000000\" length=\"0x%x\">"
     "    <property name=\"blocksize\">0x800</property>"
     "  </memory>"
     "  <memory type=\"ram\" start=\"0x40000000\" length=\"0x1fffffff\"/>"   // peripheral regs
@@ -434,14 +434,14 @@ static const char* const memory_map_template =
     "<!DOCTYPE memory-map PUBLIC \"+//IDN gnu.org//DTD GDB Memory Map V1.0//EN\""
     "     \"http://sourceware.org/gdb/gdb-memory-map.dtd\">"
     "<memory-map>"
-    "  <memory type=\"rom\" start=\"0x00000000\" length=\"0x%zx\"/>"        // code = sram, bootrom or flash; flash is bigger
-    "  <memory type=\"ram\" start=\"0x20000000\" length=\"0x%zx\"/>"        // sram 8k
-    "  <memory type=\"flash\" start=\"0x08000000\" length=\"0x%zx\">"
-    "    <property name=\"blocksize\">0x%zx</property>"
+    "  <memory type=\"rom\" start=\"0x00000000\" length=\"0x%x\"/>"        // code = sram, bootrom or flash; flash is bigger
+    "  <memory type=\"ram\" start=\"0x20000000\" length=\"0x%x\"/>"        // sram 8k
+    "  <memory type=\"flash\" start=\"0x08000000\" length=\"0x%x\">"
+    "    <property name=\"blocksize\">0x%x</property>"
     "  </memory>"
     "  <memory type=\"ram\" start=\"0x40000000\" length=\"0x1fffffff\"/>"   // peripheral regs
     "  <memory type=\"ram\" start=\"0xe0000000\" length=\"0x1fffffff\"/>"   // cortex regs
-    "  <memory type=\"rom\" start=\"0x%08x\" length=\"0x%zx\"/>"            // bootrom
+    "  <memory type=\"rom\" start=\"0x%08x\" length=\"0x%x\"/>"            // bootrom
     "  <memory type=\"rom\" start=\"0x1ffff800\" length=\"0x10\"/>"         // option byte area
     "</memory-map>";
 
@@ -452,7 +452,7 @@ static const char* const memory_map_template_F7 =
     "<memory-map>"
     "  <memory type=\"ram\" start=\"0x00000000\" length=\"0x4000\"/>"       // ITCM ram 16kB
     "  <memory type=\"rom\" start=\"0x00200000\" length=\"0x100000\"/>"     // ITCM flash
-    "  <memory type=\"ram\" start=\"0x20000000\" length=\"0x%zx\"/>"      // sram
+    "  <memory type=\"ram\" start=\"0x20000000\" length=\"0x%x\"/>"      // sram
     "  <memory type=\"flash\" start=\"0x08000000\" length=\"0x20000\">"     // Sectors 0..3
     "    <property name=\"blocksize\">0x8000</property>"                    // 32kB
     "  </memory>"
@@ -505,24 +505,24 @@ char* make_memory_map(stlink_t *sl) {
         strcpy(map, memory_map_template_F4_DE);
     } else if(sl->core_id==STM32F7_CORE_ID) {
         snprintf(map, sz, memory_map_template_F7,
-                sl->sram_size);
+                (unsigned int)sl->sram_size);
     } else if(sl->chip_id==STLINK_CHIPID_STM32_F4_HD) {
         strcpy(map, memory_map_template_F4_HD);
     } else if(sl->chip_id==STLINK_CHIPID_STM32_F2) {
         snprintf(map, sz, memory_map_template_F2,
-                sl->flash_size,
-                sl->sram_size,
-                sl->flash_size - 0x20000,
-                sl->sys_base, sl->sys_size);
+                (unsigned int)sl->flash_size,
+                (unsigned int)sl->sram_size,
+                (unsigned int)sl->flash_size - 0x20000,
+                (unsigned int)sl->sys_base, (unsigned int)sl->sys_size);
     } else if(sl->chip_id==STLINK_CHIPID_STM32_L4) {
         snprintf(map, sz, memory_map_template_L4,
-                sl->flash_size, sl->flash_size);
+                (unsigned int)sl->flash_size, (unsigned int)sl->flash_size);
     } else {
         snprintf(map, sz, memory_map_template,
-                sl->flash_size,
-                sl->sram_size,
-                sl->flash_size, sl->flash_pgsz,
-                sl->sys_base, sl->sys_size);
+                (unsigned int)sl->flash_size,
+                (unsigned int)sl->sram_size,
+                (unsigned int)sl->flash_size, (unsigned int)sl->flash_pgsz,
+                (unsigned int)sl->sys_base, (unsigned int)sl->sys_size);
     }
     return map;
 }
@@ -831,7 +831,7 @@ static int flash_go(stlink_t *sl) {
             stlink_calculate_pagesize(sl, page);
 
             DLOG("flash_do: page %08x\n", page);
-            unsigned len = (length > FLASH_PAGE) ? (unsigned) FLASH_PAGE : length;
+            unsigned len = (length > FLASH_PAGE) ? (unsigned int) FLASH_PAGE : length;
             int ret = stlink_write_flash(sl, page, fb->data + (page - fb->addr), len, 0);
             if (ret < 0)
                 goto error;
@@ -1109,7 +1109,7 @@ int serve(stlink_t *sl, st_state_t *st) {
                     params = separator + 1;
                 }
 
-                unsigned queryNameLength = (unsigned) (separator - &packet[1]);
+                unsigned queryNameLength = (unsigned int) (separator - &packet[1]);
                 char* queryName = calloc(queryNameLength + 1, 1);
                 strncpy(queryName, &packet[1], queryNameLength);
 
@@ -1135,8 +1135,8 @@ int serve(stlink_t *sl, st_state_t *st) {
                     __s_addr   = strsep(&tok, ",");
                     s_length = tok;
 
-                    unsigned addr = (unsigned) strtoul(__s_addr, NULL, 16),
-                             length = (unsigned) strtoul(s_length, NULL, 16);
+                    unsigned addr = (unsigned int) strtoul(__s_addr, NULL, 16),
+                             length = (unsigned int) strtoul(s_length, NULL, 16);
 
                     DLOG("Xfer: type:%s;op:%s;annex:%s;addr:%d;length:%d\n",
                                 type, op, annex, addr, length);
@@ -1150,7 +1150,7 @@ int serve(stlink_t *sl, st_state_t *st) {
                         data = target_description_F4;
 
                     if(data) {
-                        unsigned data_length = (unsigned) strlen(data);
+                        unsigned data_length = (unsigned int) strlen(data);
                         if(addr + length > data_length)
                             length = data_length - addr;
 
@@ -1265,8 +1265,8 @@ int serve(stlink_t *sl, st_state_t *st) {
                     __s_addr   = strsep(&tok, ",");
                     s_length = tok;
 
-                    unsigned addr = (unsigned) strtoul(__s_addr, NULL, 16),
-                             length = (unsigned) strtoul(s_length, NULL, 16);
+                    unsigned addr = (unsigned int) strtoul(__s_addr, NULL, 16),
+                             length = (unsigned int) strtoul(s_length, NULL, 16);
 
                     DLOG("FlashErase: addr:%08x,len:%04x\n",
                                 addr, length);
@@ -1283,8 +1283,8 @@ int serve(stlink_t *sl, st_state_t *st) {
                     __s_addr = strsep(&tok, ":");
                     data   = tok;
 
-                    unsigned addr = (unsigned) strtoul(__s_addr, NULL, 16);
-                    unsigned data_length = status - (unsigned) (data - packet);
+                    unsigned addr = (unsigned int) strtoul(__s_addr, NULL, 16);
+                    unsigned data_length = status - (unsigned int) (data - packet);
 
                     // Length of decoded data cannot be more than
                     // encoded, as escapes are removed.
@@ -1433,7 +1433,7 @@ int serve(stlink_t *sl, st_state_t *st) {
                 break;
 
             case 'p': {
-                unsigned id = (unsigned) strtoul(&packet[1], NULL, 16);
+                unsigned id = (unsigned int) strtoul(&packet[1], NULL, 16);
                 unsigned myreg = 0xDEADDEAD;
 
                 if(id < 16) {
@@ -1480,8 +1480,8 @@ int serve(stlink_t *sl, st_state_t *st) {
                 char* s_reg = &packet[1];
                 char* s_value = strstr(&packet[1], "=") + 1;
 
-                unsigned reg   = (unsigned) strtoul(s_reg,   NULL, 16);
-                unsigned value = (unsigned) strtoul(s_value, NULL, 16);
+                unsigned reg   = (unsigned int) strtoul(s_reg,   NULL, 16);
+                unsigned value = (unsigned int) strtoul(s_value, NULL, 16);
 
                 if(reg < 16) {
                     stlink_write_reg(sl, ntohl(value), reg);
@@ -1530,12 +1530,12 @@ int serve(stlink_t *sl, st_state_t *st) {
                 char* s_count = strstr(&packet[1], ",") + 1;
 
                 stm32_addr_t start = (stm32_addr_t) strtoul(s_start, NULL, 16);
-                unsigned     count = (unsigned) strtoul(s_count, NULL, 16);
+                unsigned     count = (unsigned int) strtoul(s_count, NULL, 16);
 
                 unsigned adj_start = start % 4;
                 unsigned count_rnd = (count + adj_start + 4 - 1) / 4 * 4;
                 if (count_rnd > sl->flash_pgsz)
-                    count_rnd = (unsigned) sl->flash_pgsz;
+                    count_rnd = (unsigned int) sl->flash_pgsz;
                 if (count_rnd > 0x1800)
                     count_rnd = 0x1800;
                 if (count_rnd < count)
@@ -1561,7 +1561,7 @@ int serve(stlink_t *sl, st_state_t *st) {
                 char* hexdata = strstr(packet, ":") + 1;
 
                 stm32_addr_t start = (stm32_addr_t) strtoul(s_start, NULL, 16);
-                unsigned     count = (unsigned) strtoul(s_count, NULL, 16);
+                unsigned     count = (unsigned int) strtoul(s_count, NULL, 16);
                 int err = 0;
 
                 if(start % 4) {
