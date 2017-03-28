@@ -735,7 +735,7 @@ dnd_received_cb (GtkWidget *widget,
                  gint y,
                  GtkSelectionData *selection_data,
                  guint target_type,
-                 guint time,
+                 guint timestamp,
                  gpointer data)
 {
     GFile        *file_uri;
@@ -783,7 +783,7 @@ dnd_received_cb (GtkWidget *widget,
     gtk_drag_finish (context,
                      TRUE,
                      gdk_drag_context_get_suggested_action (context) == GDK_ACTION_MOVE,
-                     time);
+                     timestamp);
 }
 
 void
