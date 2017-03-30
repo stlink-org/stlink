@@ -3,6 +3,7 @@ project(stlink C)
 set(PROJECT_DESCRIPTION "Open source version of the STMicroelectronics Stlink Tools")
 set(STLINK_UDEV_RULES_DIR "/etc/udev/rules.d" CACHE PATH "Udev rules directory")
 set(STLINK_MODPROBED_DIR "/etc/modprobe.d" CACHE PATH "modprobe.d directory")
+set(STLINK_LIBRARY_PATH "lib/${CMAKE_LIBRARY_PATH}" CACHE PATH "Target lib directory")
 
 option(STLINK_GENERATE_MANPAGES "Generate manpages with pandoc" OFF)
 
@@ -108,7 +109,7 @@ else()
 endif()
 
 install(TARGETS ${STLINK_LIB_SHARED}
-	DESTINATION lib/${CMAKE_LIBRARY_PATH}
+	DESTINATION ${STLINK_LIBRARY_PATH}
 )
 
 ###
@@ -138,7 +139,7 @@ endif()
 set_target_properties(${STLINK_LIB_STATIC} PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
 
 install(TARGETS ${STLINK_LIB_STATIC}
-	ARCHIVE DESTINATION lib/${CMAKE_LIBRARY_PATH}
+	ARCHIVE DESTINATION ${STLINK_LIBRARY_PATH}
 )
 
 ###
