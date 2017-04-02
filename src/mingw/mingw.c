@@ -265,6 +265,18 @@ char *win32_strsep (char **stringp, const char *delim)
     /* NOTREACHED */
 }
 
+void usleep(DWORD waitTime)
+{
+    LARGE_INTEGER perf_cnt, start, now;
+
+    QueryPerformanceFrequency(&perf_cnt);
+    QueryPerformanceCounter(&start);
+
+    do {
+        QueryPerformanceCounter((LARGE_INTEGER*) &now);
+    } while ((now.QuadPart - start.QuadPart) / (float)perf_cnt.QuadPart * 1000 * 1000 < waitTime);
+}
+
 #endif
 
 
