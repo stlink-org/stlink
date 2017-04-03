@@ -67,7 +67,7 @@ int main(int ac, char** av)
 
     if ( o.flash_size != 0u && o.flash_size != sl->flash_size ) {
         sl->flash_size = o.flash_size;
-        printf("Forcing flash size: --flash=0x%08zX\n",sl->flash_size);
+        printf("Forcing flash size: --flash=0x%08X\n",(unsigned int)sl->flash_size);
     }
 
     sl->verbose = o.log_level;
