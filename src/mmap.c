@@ -19,15 +19,17 @@ void *mmap (void *addr, size_t len, int prot, int flags, int fd, long long  offs
 
     count = read(fd, buf, len);
 
-    if (count != len) {
+    if (count != (ssize_t)len) {
         free (buf);
         return MAP_FAILED;
     }
 
     return buf;
+    (void)flags;
 }
 
 int munmap (void *addr, size_t len) {
     free (addr);
     return 0;
+    (void)len;
 }
