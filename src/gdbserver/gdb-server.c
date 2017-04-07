@@ -1428,7 +1428,7 @@ int serve(stlink_t *sl, st_state_t *st) {
 
                 reply = calloc(8 * 16 + 1, 1);
                 for(int i = 0; i < 16; i++)
-                    sprintf(&reply[i * 8], "%08x", htonl(regp.r[i]));
+                    sprintf(&reply[i * 8], "%08x", (uint32_t)htonl(regp.r[i]));
 
                 break;
 
