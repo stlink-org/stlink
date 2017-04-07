@@ -157,7 +157,7 @@ int do_semihosting (stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret) {
     DLOG("Do semihosting R0=0x%08x R1=0x%08x\n", r0, r1);
 
     switch (r0) {
-    case SYS_OPEN:
+    case SEMIHOST_SYS_OPEN:
     {
         uint32_t args[3];
         uint32_t name_address;
@@ -220,7 +220,7 @@ int do_semihosting (stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret) {
         free(name);
         break;
     }
-    case SYS_CLOSE:
+    case SEMIHOST_SYS_CLOSE:
     {
         uint32_t args[1];
         int      fd;
@@ -242,7 +242,7 @@ int do_semihosting (stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret) {
         DLOG("Semihosting: return %d\n", *ret);
         break;
     }
-    case SYS_WRITE:
+    case SEMIHOST_SYS_WRITE:
     {
         uint32_t args[3];
         uint32_t buffer_address;
@@ -300,7 +300,7 @@ int do_semihosting (stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret) {
         free(buffer);
         break;
     }
-    case SYS_READ:
+    case SEMIHOST_SYS_READ:
     {
         uint32_t args[3];
         uint32_t buffer_address;
@@ -358,13 +358,13 @@ int do_semihosting (stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret) {
         free(buffer);
         break;
     }
-    case SYS_ERRNO:
+    case SEMIHOST_SYS_ERRNO:
     {
         *ret = (uint32_t)saved_errno;
         DLOG("Semihosting: Errno return %d\n", *ret);
         break;
     }
-    case SYS_REMOVE:
+    case SEMIHOST_SYS_REMOVE:
     {
         uint32_t args[2];
         uint32_t name_address;
@@ -418,7 +418,7 @@ int do_semihosting (stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret) {
         free(name);
         break;
     }
-    case SYS_SEEK:
+    case SEMIHOST_SYS_SEEK:
     {
         uint32_t args[2];
         int      fd;
@@ -446,7 +446,7 @@ int do_semihosting (stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret) {
         DLOG("Semihosting: return %d\n", *ret);
         break;
     }
-    case SYS_WRITEC:
+    case SEMIHOST_SYS_WRITEC:
     {
         uint8_t c;
         if (mem_read_u8(sl, r1, &c) == 0) {
@@ -457,13 +457,13 @@ int do_semihosting (stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret) {
         }
         break;
     }
-    case SYS_READC:
+    case SEMIHOST_SYS_READC:
     {
         uint8_t c = getchar();
         *ret = c;
         break;
     }
-    case SYS_WRITE0:
+    case SEMIHOST_SYS_WRITE0:
     {
         uint8_t buf[WRITE0_BUFFER_SIZE];
 
