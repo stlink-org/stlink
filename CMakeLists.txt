@@ -1,5 +1,12 @@
 cmake_minimum_required(VERSION 2.8.7)
 project(stlink C)
+
+option( INSTALL_STLINK_WITH_RPATH "Keep rpath in binaries/libraries after installing.  Useful for local installs to non-system paths." OFF )
+mark_as_advanced( INSTALL_STLINK_WITH_RPATH )
+if( INSTALL_STLINK_WITH_RPATH )
+  set( CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/lib )
+endif()
+
 set(PROJECT_DESCRIPTION "Open source version of the STMicroelectronics Stlink Tools")
 set(STLINK_UDEV_RULES_DIR "/etc/udev/rules.d" CACHE PATH "Udev rules directory")
 set(STLINK_MODPROBED_DIR "/etc/modprobe.d" CACHE PATH "modprobe.d directory")
