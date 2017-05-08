@@ -1640,6 +1640,7 @@ int serve(stlink_t *sl, st_state_t *st) {
                             break;
                         }
                     }
+                    break;
 
                     default:
                         reply = strdup("");
@@ -1662,6 +1663,7 @@ int serve(stlink_t *sl, st_state_t *st) {
                     case '4' : // remove access watchpoint
                         if(delete_data_watchpoint(sl, addr) < 0) {
                             reply = strdup("E00");
+                            break;
                         } else {
                             reply = strdup("OK");
                             break;
