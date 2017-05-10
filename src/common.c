@@ -35,6 +35,13 @@
 #define FLASH_OBR (FLASH_REGS_ADDR + 0x1c)
 #define FLASH_WRPR (FLASH_REGS_ADDR + 0x20)
 
+// STM32F10x_XL has two flash memory banks with separate registers to control the second bank.
+#define FLASH_KEYR2 (FLASH_REGS_ADDR + 0x44)
+#define FLASH_SR2 (FLASH_REGS_ADDR + 0x4c)
+#define FLASH_CR2 (FLASH_REGS_ADDR + 0x50)
+#define FLASH_AR2 (FLASH_REGS_ADDR + 0x54)
+#define FLASH_BANK2_START_ADDR 0x08080000
+
 // For STM32F05x, the RDPTR_KEY may be wrong, but as it is not used anywhere...
 #define FLASH_RDPTR_KEY 0x00a5
 #define FLASH_KEY1 0x45670123
@@ -189,6 +196,15 @@ static inline uint32_t read_flash_cr(stlink_t *sl) {
     return res;
 }
 
+static inline uint32_t read_flash_cr2(stlink_t *sl) {
+    uint32_t res;
+    stlink_read_debug32(sl, FLASH_CR2, &res);
+#if DEBUG_FLASH
+    fprintf(stdout, "CR2:0x%x\n", res);
+#endif
+    return res;
+}
+
 static inline unsigned int is_flash_locked(stlink_t *sl) {
     /* return non zero for true */
     uint32_t cr_lock_shift, cr = read_flash_cr(sl);
@@ -219,6 +235,11 @@ static void unlock_flash(stlink_t *sl) {
 
     stlink_write_debug32(sl, key_reg, FLASH_KEY1);
     stlink_write_debug32(sl, key_reg, FLASH_KEY2);
+
+    if (sl->flash_type == STLINK_FLASH_TYPE_F1_XL) {
+        stlink_write_debug32(sl, FLASH_KEYR2, FLASH_KEY1);
+        stlink_write_debug32(sl, FLASH_KEYR2, FLASH_KEY2);
+    }
 }
 
 static int unlock_flash_if(stlink_t *sl) {
@@ -251,6 +272,11 @@ static void lock_flash(stlink_t *sl) {
 
     n = read_flash_cr(sl) | (1 << cr_lock_shift);
     stlink_write_debug32(sl, cr_reg, n);
+
+    if (sl->flash_type == STLINK_FLASH_TYPE_F1_XL) {
+        n = read_flash_cr2(sl) | (1 << cr_lock_shift);
+        stlink_write_debug32(sl, FLASH_CR2, n);
+    }
 }
 
 
@@ -291,6 +317,11 @@ static void __attribute__((unused)) clear_flash_cr_pg(stlink_t *sl) {
 static void set_flash_cr_per(stlink_t *sl) {
     const uint32_t n = 1 << FLASH_CR_PER;
     stlink_write_debug32(sl, FLASH_CR, n);
+}
+
+static void set_flash_cr2_per(stlink_t *sl) {
+    const uint32_t n = 1 << FLASH_CR_PER;
+    stlink_write_debug32(sl, FLASH_CR2, n);
 }
 
 static void __attribute__((unused)) clear_flash_cr_per(stlink_t *sl) {
@@ -367,6 +398,14 @@ static void set_flash_cr_strt(stlink_t *sl) {
     stlink_write_debug32(sl, cr_reg, val);
 }
 
+static void set_flash_cr2_strt(stlink_t *sl) {
+    uint32_t val;
+
+    stlink_read_debug32(sl, FLASH_CR2, &val);
+    val |= 1 << FLASH_CR_STRT;
+    stlink_write_debug32(sl, FLASH_CR2, val);
+}
+
 static inline uint32_t read_flash_sr(stlink_t *sl) {
     uint32_t res, sr_reg;
 
@@ -382,8 +421,15 @@ static inline uint32_t read_flash_sr(stlink_t *sl) {
     return res;
 }
 
+static inline uint32_t read_flash_sr2(stlink_t *sl) {
+    uint32_t res;
+    stlink_read_debug32(sl, FLASH_SR2, &res);
+    return res;
+}
+
 static inline unsigned int is_flash_busy(stlink_t *sl) {
     uint32_t sr_busy_shift;
+    unsigned int res;
 
     if (sl->flash_type == STLINK_FLASH_TYPE_F4)
         sr_busy_shift = FLASH_F4_SR_BSY;
@@ -392,7 +438,13 @@ static inline unsigned int is_flash_busy(stlink_t *sl) {
     else
         sr_busy_shift = FLASH_SR_BSY;
 
-    return read_flash_sr(sl) & (1 << sr_busy_shift);
+    res = read_flash_sr(sl) & (1 << sr_busy_shift);
+
+    if (sl->flash_type == STLINK_FLASH_TYPE_F1_XL) {
+        res |= read_flash_sr2(sl) & (1 << sr_busy_shift);
+    }
+
+    return res;
 }
 
 static void wait_flash_busy(stlink_t *sl) {
@@ -433,6 +485,10 @@ static void __attribute__((unused)) wait_flash_eop(stlink_t *sl) {
 
 static inline void write_flash_ar(stlink_t *sl, uint32_t n) {
     stlink_write_debug32(sl, FLASH_AR, n);
+}
+
+static inline void write_flash_ar2(stlink_t *sl, uint32_t n) {
+    stlink_write_debug32(sl, FLASH_AR2, n);
 }
 
 static inline void write_flash_cr_psiz(stlink_t *sl, uint32_t n) {
@@ -1531,7 +1587,7 @@ int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr)
         stlink_read_debug32(sl, flash_regs_base + FLASH_PECR_OFF, &val);
         val |= (1 << 0) | (1 << 1) | (1 << 2);
         stlink_write_debug32(sl, flash_regs_base + FLASH_PECR_OFF, val);
-    } else if (sl->flash_type == STLINK_FLASH_TYPE_F0)  {
+    } else if ((sl->flash_type == STLINK_FLASH_TYPE_F0) || ((sl->flash_type == STLINK_FLASH_TYPE_F1_XL) && (flashaddr < FLASH_BANK2_START_ADDR))) {
         /* wait for ongoing op to finish */
         wait_flash_busy(sl);
 
@@ -1546,6 +1602,27 @@ int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr)
 
         /* start erase operation, reset by hw with bsy bit */
         set_flash_cr_strt(sl);
+
+        /* wait for completion */
+        wait_flash_busy(sl);
+
+        /* relock the flash */
+        lock_flash(sl);
+    } else if ((sl->flash_type == STLINK_FLASH_TYPE_F1_XL) && (flashaddr >= FLASH_BANK2_START_ADDR)) {
+        /* wait for ongoing op to finish */
+        wait_flash_busy(sl);
+
+        /* unlock if locked */
+        unlock_flash_if(sl);
+
+        /* set the page erase bit */
+        set_flash_cr2_per(sl);
+
+        /* select the page to erase */
+        write_flash_ar2(sl, flashaddr);
+
+        /* start erase operation, reset by hw with bsy bit */
+        set_flash_cr2_strt(sl);
 
         /* wait for completion */
         wait_flash_busy(sl);
@@ -1908,8 +1985,8 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uint32_t 
         stlink_read_debug32(sl, flash_regs_base + FLASH_PECR_OFF, &val);
         val |= (1 << 0) | (1 << 1) | (1 << 2);
         stlink_write_debug32(sl, flash_regs_base + FLASH_PECR_OFF, val);
-    } else if (sl->flash_type == STLINK_FLASH_TYPE_F0) {
-        ILOG("Starting Flash write for VL/F0/F3 core id\n");
+    } else if ((sl->flash_type == STLINK_FLASH_TYPE_F0) || (sl->flash_type == STLINK_FLASH_TYPE_F1_XL)) {
+        ILOG("Starting Flash write for VL/F0/F3/F1_XL core id\n");
         /* flash loader initialization */
         if (stlink_flash_loader_init(sl, &fl) == -1) {
             ELOG("stlink_flash_loader_init() == -1\n");
@@ -1924,8 +2001,7 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uint32_t 
 
             /* unlock and set programming mode */
             unlock_flash_if(sl);
-            set_flash_cr_pg(sl);
-            DLOG("Finished setting flash cr pg, running loader!\n");
+            DLOG("Finished unlocking flash, running loader!\n");
             if (stlink_flash_loader_run(sl, &fl, addr + (uint32_t) off, base + off, size) == -1) {
                 ELOG("stlink_flash_loader_run(%#zx) failed! == -1\n", addr + off);
                 return -1;
