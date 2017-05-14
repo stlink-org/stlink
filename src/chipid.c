@@ -255,7 +255,7 @@ static const struct stlink_chipid_params devices[] = {
         {
             .chip_id = STLINK_CHIPID_STM32_F1_XL,
             .description = "F1 XL-density device",
-            .flash_type = STLINK_FLASH_TYPE_F0,
+            .flash_type = STLINK_FLASH_TYPE_F1_XL,
             .flash_size_reg = 0x1ffff7e0,
             .flash_pagesize = 0x800,
             .sram_size = 0x18000,

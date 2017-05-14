@@ -4,6 +4,9 @@
 #include <string.h>
 #include <unistd.h>
 
+#define FLASH_REGS_BANK2_OFS 0x40
+#define FLASH_BANK2_START_ADDR 0x08080000
+
 /* from openocd, contrib/loaders/flash/stm32.s */
 static const uint8_t loader_code_stm32vl[] = {
         0x08, 0x4c, /* ldr	r4, STM32_FLASH_BASE */
@@ -325,6 +328,7 @@ int stlink_flash_loader_run(stlink_t *sl, flash_loader_t* fl, stm32_addr_t targe
     struct stlink_reg rr;
     int i = 0;
     size_t count = 0;
+    uint32_t flash_base = 0;
 
     DLOG("Running flash loader, write address:%#x, size: %u\n", target, (unsigned int)size);
     // FIXME This can never return -1
@@ -334,7 +338,7 @@ int stlink_flash_loader_run(stlink_t *sl, flash_loader_t* fl, stm32_addr_t targe
         return -1;
     }
 
-    if (sl->flash_type == STLINK_FLASH_TYPE_F0) {
+    if ((sl->flash_type == STLINK_FLASH_TYPE_F0) || (sl->flash_type == STLINK_FLASH_TYPE_F1_XL)) {
         count = size / sizeof(uint16_t);
         if (size % sizeof(uint16_t))
             ++count;
@@ -348,11 +352,15 @@ int stlink_flash_loader_run(stlink_t *sl, flash_loader_t* fl, stm32_addr_t targe
             ++count;
     }
 
+    if ((sl->flash_type == STLINK_FLASH_TYPE_F1_XL) && (target >= FLASH_BANK2_START_ADDR)) {
+        flash_base = FLASH_REGS_BANK2_OFS;
+    }
+
     /* setup core */
     stlink_write_reg(sl, fl->buf_addr, 0); /* source */
     stlink_write_reg(sl, target, 1); /* target */
     stlink_write_reg(sl, (uint32_t) count, 2); /* count */
-    stlink_write_reg(sl, 0, 3); /* flash bank 0 (input), only used on F0, but armless fopr others */
+    stlink_write_reg(sl, flash_base, 3); /* flash register base, only used on VL/F1_XL, but harmless for others */
     stlink_write_reg(sl, fl->loader_addr, 15); /* pc register */
 
     /* run loader */
