@@ -2001,6 +2001,9 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uint32_t 
 
             /* unlock and set programming mode */
             unlock_flash_if(sl);
+            if (sl->flash_type != STLINK_FLASH_TYPE_F1_XL) {
+                set_flash_cr_pg(sl);
+            }
             DLOG("Finished unlocking flash, running loader!\n");
             if (stlink_flash_loader_run(sl, &fl, addr + (uint32_t) off, base + off, size) == -1) {
                 ELOG("stlink_flash_loader_run(%#zx) failed! == -1\n", addr + off);
