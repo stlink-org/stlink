@@ -9,6 +9,10 @@
 #include <string.h>
 #include <stlink.h>
 
+#if defined(_MSC_VER)
+#define __attribute__(x)
+#endif
+
 static void __attribute__((unused)) mark_buf(stlink_t *sl) {
     memset(sl->q_buf, 0, sizeof(sl->q_buf));
     sl->q_buf[0] = 0xaa;

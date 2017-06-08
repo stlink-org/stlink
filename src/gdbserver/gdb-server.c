@@ -10,7 +10,11 @@
 #include <string.h>
 #include <stdlib.h>
 #include <sys/types.h>
-#ifdef __MINGW32__
+#if defined(_MSC_VER)
+#include <stdbool.h>
+#define __attribute__(x)
+#endif
+#if defined(__MINGW32__) || defined(_MSC_VER)
 #include <mingw.h>
 #else
 #include <unistd.h>
@@ -239,7 +243,7 @@ int main(int argc, char** argv) {
     sl->verbose=0;
     current_memory_map = make_memory_map(sl);
 
-#ifdef __MINGW32__
+#if defined(__MINGW32__) || defined(_MSC_VER)
     WSADATA	wsadata;
     if (WSAStartup(MAKEWORD(2,2),&wsadata) !=0 ) {
         goto winsock_error;
@@ -260,7 +264,7 @@ int main(int argc, char** argv) {
         stlink_run(sl);
     } while (state.persistent);
 
-#ifdef __MINGW32__
+#if defined(__MINGW32__) || defined(_MSC_VER)
 winsock_error:
     WSACleanup();
 #endif
@@ -1084,7 +1088,7 @@ int serve(stlink_t *sl, st_state_t *st) {
         int status = gdb_recv_packet(client, &packet);
         if(status < 0) {
             ELOG("cannot recv: %d\n", status);
-#ifdef __MINGW32__
+#if defined(__MINGW32__) || defined(_MSC_VER)
             win32_close_socket(sock);
 #endif
             return 1;
@@ -1337,7 +1341,7 @@ int serve(stlink_t *sl, st_state_t *st) {
                     status = gdb_check_for_interrupt(client);
                     if(status < 0) {
                         ELOG("cannot check for int: %d\n", status);
-#ifdef __MINGW32__
+#if defined(__MINGW32__) || defined(_MSC_VER)
                         win32_close_socket(sock);
 #endif
                         return 1;
@@ -1739,7 +1743,7 @@ int serve(stlink_t *sl, st_state_t *st) {
                 ELOG("cannot send: %d\n", result);
                 free(reply);
                 free(packet);
-#ifdef __MINGW32__
+#if defined(__MINGW32__) || defined(_MSC_VER)
                 win32_close_socket(sock);
 #endif
                 return 1;
@@ -1751,7 +1755,7 @@ int serve(stlink_t *sl, st_state_t *st) {
         free(packet);
     }
 
-#ifdef __MINGW32__
+#if defined(__MINGW32__) || defined(_MSC_VER)
     win32_close_socket(sock);
 #endif
 

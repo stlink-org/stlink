@@ -23,7 +23,7 @@ struct flash_opts
     size_t flash_size;	/* --flash=n[k][m] */
 };
 
-#define FLASH_OPTS_INITIALIZER {0, NULL, {}, NULL, 0, 0, 0, 0, 0, 0 }
+#define FLASH_OPTS_INITIALIZER {0, NULL, { 0 }, NULL, 0, 0, 0, 0, 0, 0 }
 
 int flash_get_opts(struct flash_opts* o, int ac, char** av);
 

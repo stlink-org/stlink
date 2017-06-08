@@ -18,6 +18,9 @@
 #ifndef _WIN32
 #define O_BINARY 0 //! @todo get rid of this OH MY (@xor-gate)
 #endif
+#ifdef _MSC_VER
+#define __attribute__(x)
+#endif
 
 /* todo: stm32l15xxx flash memory, pm0062 manual */
 

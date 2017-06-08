@@ -8,7 +8,15 @@
 #ifndef STLINK_SG_H
 #define	STLINK_SG_H
 
+#if defined(_MSC_VER)
+#pragma warning(push)
+#pragma warning(disable: 4200 4255 4668 4820)
 #include <libusb.h>
+#pragma warning(pop)
+#else
+#include <libusb.h>
+#endif
+
 #include "stlink.h"
 
 #ifdef	__cplusplus
