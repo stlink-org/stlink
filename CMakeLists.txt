@@ -71,6 +71,10 @@ include_directories(${LIBUSB_INCLUDE_DIR})
 include_directories(include)
 include_directories(${PROJECT_BINARY_DIR}/include)
 include_directories(src/mingw)
+if (WIN32)
+    include_directories(src/win32)
+	include_directories(src/getopt)
+endif ()
 
 ###
 # Shared library
