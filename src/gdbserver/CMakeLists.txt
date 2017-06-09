@@ -6,7 +6,7 @@ set(STUTIL_SOURCE
     semihosting.c
     semihosting.h)
 
-if (WIN32)
+if (MSVC)
     # We need a getopt from somewhere... these come with the libusb source
     set(STUTIL_SOURCE "${STUTIL_SOURCE};../getopt/getopt.c;../getopt/getopt1.c")
     # Use string.h rather than strings.h and disable annoying warnings

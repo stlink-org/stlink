@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 2.8.7)
+set(CMAKE_USER_MAKE_RULES_OVERRIDE cmake/c_flag_overrides.cmake)
 project(stlink C)
 set(PROJECT_DESCRIPTION "Open source version of the STMicroelectronics Stlink Tools")
 set(STLINK_UDEV_RULES_DIR "/etc/udev/rules.d" CACHE PATH "Udev rules directory")
@@ -71,9 +72,9 @@ include_directories(${LIBUSB_INCLUDE_DIR})
 include_directories(include)
 include_directories(${PROJECT_BINARY_DIR}/include)
 include_directories(src/mingw)
-if (WIN32)
+if (MSVC)
     include_directories(src/win32)
-	include_directories(src/getopt)
+    include_directories(src/getopt)
 endif ()
 
 ###
