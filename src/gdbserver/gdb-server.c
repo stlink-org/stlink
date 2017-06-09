@@ -1065,7 +1065,11 @@ int serve(stlink_t *sl, st_state_t *st) {
         return 1;
     }
 
-    close(sock);
+#if defined(__MINGW32__) || defined(_MSC_VER)
+	win32_close_socket(sock);
+#else
+	close(sock);
+#endif
 
     stlink_force_debug(sl);
     if (st->reset) {
@@ -1089,7 +1093,7 @@ int serve(stlink_t *sl, st_state_t *st) {
         if(status < 0) {
             ELOG("cannot recv: %d\n", status);
 #if defined(__MINGW32__) || defined(_MSC_VER)
-            win32_close_socket(sock);
+            win32_close_socket(client);
 #endif
             return 1;
         }
@@ -1342,7 +1346,7 @@ int serve(stlink_t *sl, st_state_t *st) {
                     if(status < 0) {
                         ELOG("cannot check for int: %d\n", status);
 #if defined(__MINGW32__) || defined(_MSC_VER)
-                        win32_close_socket(sock);
+                        win32_close_socket(client);
 #endif
                         return 1;
                     }
@@ -1744,7 +1748,7 @@ int serve(stlink_t *sl, st_state_t *st) {
                 free(reply);
                 free(packet);
 #if defined(__MINGW32__) || defined(_MSC_VER)
-                win32_close_socket(sock);
+                win32_close_socket(client);
 #endif
                 return 1;
             }
@@ -1756,7 +1760,7 @@ int serve(stlink_t *sl, st_state_t *st) {
     }
 
 #if defined(__MINGW32__) || defined(_MSC_VER)
-    win32_close_socket(sock);
+    win32_close_socket(client);
 #endif
 
     return 0;
