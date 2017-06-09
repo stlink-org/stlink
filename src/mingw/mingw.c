@@ -273,6 +273,24 @@ char *win32_strsep (char **stringp, const char *delim)
 
 void usleep(DWORD waitTime)
 {
+#ifdef _MSC_VER
+	if (waitTime >= 1000)
+	{
+		// Don't do long busy-waits.
+		// However much it seems like the QPC code would be more accurate,
+		// you can and probably will lose your time slice at any point during the wait,
+		// so we might as well voluntarily give up the CPU with a WaitForSingleObject.
+		HANDLE timer;
+		LARGE_INTEGER dueTime;
+		dueTime.QuadPart = -10 * (LONGLONG)waitTime;
+
+		timer = CreateWaitableTimer(NULL, TRUE, NULL);
+		SetWaitableTimer(timer, &dueTime, 0, NULL, NULL, 0);
+		WaitForSingleObject(timer, INFINITE);
+		CloseHandle(timer);
+		return;
+	}
+#endif
     LARGE_INTEGER perf_cnt, start, now;
 
     QueryPerformanceFrequency(&perf_cnt);
