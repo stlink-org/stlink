@@ -8,7 +8,7 @@ set(STUTIL_SOURCE
 
 if (MSVC)
     # We need a getopt from somewhere... these come with the libusb source
-    set(STUTIL_SOURCE "${STUTIL_SOURCE};../getopt/getopt.c;../getopt/getopt1.c")
+    set(STUTIL_SOURCE "${STUTIL_SOURCE};../getopt/getopt.c")
     # Use string.h rather than strings.h and disable annoying warnings
     add_definitions(-DHAVE_STRING_H -D_CRT_SECURE_NO_WARNINGS /wd4996 /wd4710)
 endif()
