@@ -7,10 +7,10 @@ set(STUTIL_SOURCE
     semihosting.h)
 
 if (MSVC)
-    # We need a getopt from somewhere... these come with the libusb source
+    # We need a getopt from somewhere...
     set(STUTIL_SOURCE "${STUTIL_SOURCE};../getopt/getopt.c")
     # Use string.h rather than strings.h and disable annoying warnings
-    add_definitions(-DHAVE_STRING_H -D_CRT_SECURE_NO_WARNINGS /wd4996 /wd4710)
+    add_definitions(-DHAVE_STRING_H -D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_WARNINGS /wd4710)
 endif()
 
 add_executable(st-util ${STUTIL_SOURCE})
