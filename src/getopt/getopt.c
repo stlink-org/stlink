@@ -3,9 +3,11 @@
 #include <stddef.h>
 #include <string.h>
 
+#if !defined(_MSC_VER)
 const int no_argument = 0;
 const int required_argument = 1;
 const int optional_argument = 2;
+#endif
 
 char* optarg;
 int optopt;

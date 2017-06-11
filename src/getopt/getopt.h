@@ -5,9 +5,16 @@
 extern "C" {
 #endif
 
+#if defined(_MSC_VER)
+// These may be used to initialize structures and it fails with MSVC
+#define no_argument 0
+#define required_argument  1
+#define optional_argument  2
+#else
 extern const int no_argument;
 extern const int required_argument;
 extern const int optional_argument;
+#endif
 
 extern char* optarg;
 extern int optind, opterr, optopt;
