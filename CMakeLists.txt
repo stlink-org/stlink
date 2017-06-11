@@ -75,6 +75,8 @@ include_directories(src/mingw)
 if (MSVC)
     include_directories(src/win32)
     include_directories(src/getopt)
+    # Use string.h rather than strings.h and disable annoying warnings
+    add_definitions(-DHAVE_STRING_H -D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_WARNINGS /wd4710)
 endif ()
 
 ###
