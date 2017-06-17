@@ -1,16 +1,28 @@
-#ifdef __MINGW32__
-
-#include <io.h>
+#if defined(__MINGW32__) || defined(_MSC_VER)
 
 #define _USE_W32_SOCKETS 1
-#include <windows.h>
 
+#if defined(_MSC_VER)
+#pragma warning(push)
+#pragma warning(disable: 4255 4668 4820)
+#endif
+
+#include <io.h>
+#include <WinSock2.h>
+#pragma comment(lib, "ws2_32.lib")
+#include <unistd.h>
+
+#if defined(_MSC_VER)
+#pragma warning(pop)
+#endif
 
 /* winsock doesn't feature poll(), so there is a version implemented
  * in terms of select() in mingw.c. The following definitions
  * are copied from linux man pages. A poll() macro is defined to
  * call the version in mingw.c.
  */
+#if !defined(_WIN32_WINNT) || (_WIN32_WINNT < 0x0600)
+
 #define POLLIN      0x0001    /* There is data to read */
 #define POLLPRI     0x0002    /* There is urgent data to read */
 #define POLLOUT     0x0004    /* Writing now will not block */
@@ -22,6 +34,7 @@ struct pollfd {
     short events;     /* requested events */
     short revents;    /* returned events */
 };
+#endif
 #define poll(x, y, z)        win32_poll(x, y, z)
 
 /* These wrappers do nothing special except set the global errno variable if

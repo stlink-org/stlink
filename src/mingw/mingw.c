@@ -1,4 +1,4 @@
-#ifdef __MINGW32__
+#if defined(__MINGW32__) || defined(_MSC_VER)
 
 #include "mingw.h"
 
@@ -18,6 +18,9 @@ int win32_poll(struct pollfd *fds, unsigned int nfds, int timo)
     unsigned int i, rc;
 
     /* Set up the file-descriptor sets in ifds, ofds and efds. */
+#ifdef _MSC_VER
+#pragma warning(disable: 4548)
+#endif
     FD_ZERO(&ifds);
     FD_ZERO(&ofds);
     FD_ZERO(&efds);
@@ -33,6 +36,9 @@ int win32_poll(struct pollfd *fds, unsigned int nfds, int timo)
         }
         FD_SET(fds[i].fd, &efds);
     } 
+#ifdef _MSC_VER
+#pragma warning(default: 4548)
+#endif
 
     /* Set up the timeval structure for the timeout parameter */
     if(timo < 0) {
@@ -143,7 +149,7 @@ win32_accept(SOCKET fd, struct sockaddr *addr, socklen_t *addr_len)
     SOCKET newfd = accept(fd, addr, addr_len);
     if(newfd == INVALID_SOCKET) {
         set_socket_errno(WSAGetLastError());
-        newfd = -1;
+        newfd = (SOCKET)-1;
     }
     return newfd;
 }
@@ -267,6 +273,24 @@ char *win32_strsep (char **stringp, const char *delim)
 
 void usleep(DWORD waitTime)
 {
+#ifdef _MSC_VER
+	if (waitTime >= 1000)
+	{
+		// Don't do long busy-waits.
+		// However much it seems like the QPC code would be more accurate,
+		// you can and probably will lose your time slice at any point during the wait,
+		// so we might as well voluntarily give up the CPU with a WaitForSingleObject.
+		HANDLE timer;
+		LARGE_INTEGER dueTime;
+		dueTime.QuadPart = -10 * (LONGLONG)waitTime;
+
+		timer = CreateWaitableTimer(NULL, TRUE, NULL);
+		SetWaitableTimer(timer, &dueTime, 0, NULL, NULL, 0);
+		WaitForSingleObject(timer, INFINITE);
+		CloseHandle(timer);
+		return;
+	}
+#endif
     LARGE_INTEGER perf_cnt, start, now;
 
     QueryPerformanceFrequency(&perf_cnt);

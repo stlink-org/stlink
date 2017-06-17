@@ -4,6 +4,9 @@
 
 #include <stlink.h>
 #include <stlink/tools/flash.h>
+#if defined(_MSC_VER)
+#include <malloc.h>
+#endif
 
 struct Test {
     const char * cmd_line;
@@ -26,7 +29,11 @@ static bool execute_test(const struct Test * test) {
     char* av[32];
 
     // parse (tokenize) the test command line
+#if defined(_MSC_VER)
+    char *cmd_line = alloca(strlen(test->cmd_line));
+#else
     char cmd_line[strlen(test->cmd_line)];
+#endif
     strcpy(cmd_line, test->cmd_line);
 
     for(char * tok = strtok(cmd_line, " "); tok; tok = strtok(NULL, " ")) {
@@ -62,26 +69,26 @@ static bool execute_test(const struct Test * test) {
 static struct Test tests[] = {
     { "", -1, FLASH_OPTS_INITIALIZER },
     { "--debug --reset read /dev/sg0 test.bin 0x80000000 0x1000", 0,
-        { .cmd = FLASH_CMD_READ, .devname = "/dev/sg0", .serial = {}, .filename = "test.bin",
+        { .cmd = FLASH_CMD_READ, .devname = "/dev/sg0", .serial = { 0 }, .filename = "test.bin",
           .addr = 0x80000000, .size = 0x1000, .reset = 1, .log_level = DEBUG_LOG_LEVEL, .format = FLASH_FORMAT_BINARY } },
     { "--debug --reset write /dev/sg0 test.bin 0x80000000", 0,
-        { .cmd = FLASH_CMD_WRITE, .devname = "/dev/sg0", .serial = {}, .filename = "test.bin",
+        { .cmd = FLASH_CMD_WRITE, .devname = "/dev/sg0", .serial = { 0 }, .filename = "test.bin",
           .addr = 0x80000000, .size = 0, .reset = 1, .log_level = DEBUG_LOG_LEVEL, .format = FLASH_FORMAT_BINARY } },
     { "--serial A1020304 /dev/sg0 erase", -1, FLASH_OPTS_INITIALIZER },
     { "/dev/sg0 erase", 0,
-        { .cmd = FLASH_CMD_ERASE, .devname = "/dev/sg0", .serial = {}, .filename = NULL,
+        { .cmd = FLASH_CMD_ERASE, .devname = "/dev/sg0", .serial = { 0 }, .filename = NULL,
           .addr = 0, .size = 0, .reset = 0, .log_level = STND_LOG_LEVEL, .format = FLASH_FORMAT_BINARY } },
     { "--debug --reset read test.bin 0x80000000 0x1000", 0,
-        { .cmd = FLASH_CMD_READ, .devname = NULL, .serial = {}, .filename = "test.bin",
+        { .cmd = FLASH_CMD_READ, .devname = NULL, .serial = { 0 }, .filename = "test.bin",
           .addr = 0x80000000, .size = 0x1000, .reset = 1, .log_level = DEBUG_LOG_LEVEL, .format = FLASH_FORMAT_BINARY } },
     { "--debug --reset write test.bin 0x80000000", 0,
-        { .cmd = FLASH_CMD_WRITE, .devname = NULL, .serial = {}, .filename = "test.bin",
+        { .cmd = FLASH_CMD_WRITE, .devname = NULL, .serial = { 0 }, .filename = "test.bin",
           .addr = 0x80000000, .size = 0, .reset = 1, .log_level = DEBUG_LOG_LEVEL, .format = FLASH_FORMAT_BINARY } },
     { "erase", 0,
-        { .cmd = FLASH_CMD_ERASE, .devname = NULL, .serial = {}, .filename = NULL,
+        { .cmd = FLASH_CMD_ERASE, .devname = NULL, .serial = { 0 }, .filename = NULL,
           .addr = 0, .size = 0, .reset = 0, .log_level = STND_LOG_LEVEL, .format = FLASH_FORMAT_BINARY } },
     { "--debug --reset --format=ihex write test.hex", 0,
-        { .cmd = FLASH_CMD_WRITE, .devname = NULL, .serial = {}, .filename = "test.hex",
+        { .cmd = FLASH_CMD_WRITE, .devname = NULL, .serial = { 0 }, .filename = "test.hex",
           .addr = 0, .size = 0, .reset = 1, .log_level = DEBUG_LOG_LEVEL, .format = FLASH_FORMAT_IHEX } },
     { "--debug --reset --format=binary write test.hex", -1, FLASH_OPTS_INITIALIZER },
     { "--debug --reset --format=ihex write test.hex 0x80000000", -1, FLASH_OPTS_INITIALIZER },

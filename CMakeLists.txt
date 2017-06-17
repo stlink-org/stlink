@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 2.8.7)
+set(CMAKE_USER_MAKE_RULES_OVERRIDE cmake/c_flag_overrides.cmake)
 project(stlink C)
 set(PROJECT_DESCRIPTION "Open source version of the STMicroelectronics Stlink Tools")
 set(STLINK_UDEV_RULES_DIR "/etc/udev/rules.d" CACHE PATH "Udev rules directory")
@@ -71,6 +72,12 @@ include_directories(${LIBUSB_INCLUDE_DIR})
 include_directories(include)
 include_directories(${PROJECT_BINARY_DIR}/include)
 include_directories(src/mingw)
+if (MSVC)
+    include_directories(src/win32)
+    include_directories(src/getopt)
+    # Use string.h rather than strings.h and disable annoying warnings
+    add_definitions(-DHAVE_STRING_H -D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_WARNINGS /wd4710)
+endif ()
 
 ###
 # Shared library

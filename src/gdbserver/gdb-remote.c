@@ -8,7 +8,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdint.h>
-#ifdef __MINGW32__
+#if defined(__MINGW32__) || defined(_MSC_VER)
 #include <mingw.h>
 #else
 #include <unistd.h>
