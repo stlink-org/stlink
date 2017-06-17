@@ -2016,7 +2016,7 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uint32_t 
             if (sl->verbose >= 1) {
                 /* show progress. writing procedure is slow
                    and previous errors are misleading */
-                fprintf(stdout, "\r%3u/%lu pages written", write_block_count++, (unsigned long)(len/sl->flash_pgsz));
+                fprintf(stdout, "\r%3u/%lu pages written", ++write_block_count, (unsigned long)((len+sl->flash_pgsz-1)/sl->flash_pgsz));
                 fflush(stdout);
             }
         }
