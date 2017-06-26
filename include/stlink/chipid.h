@@ -34,7 +34,12 @@ enum stlink_stm32_chipids {
 	STLINK_CHIPID_STM32_F37x             = 0x432,
 	STLINK_CHIPID_STM32_F4_DE            = 0x433,
 	STLINK_CHIPID_STM32_F4_DSI           = 0x434,
+	/*
+	* 0x435 covers STM32L43xxx and STM32L44xxx devices
+	* 0x462 covers STM32L45xxx and STM32L46xxx devices
+	*/
 	STLINK_CHIPID_STM32_L43X             = 0x435,
+	STLINK_CHIPID_STM32_L46X             = 0x462,
 	/*
 	* 0x436 is actually assigned to some L1 chips that are called "Medium-Plus"
 	* and some that are called "High".  0x427 is assigned to the other "Medium-

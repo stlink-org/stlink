@@ -430,19 +430,33 @@ static const struct stlink_chipid_params devices[] = {
             .bootrom_base = 0x1fff0000,      // Tables 4-6, pages 80-81 (Bank 1 system memory)
             .bootrom_size = 0x7000           // 28k (per bank), same source as base
         },
-	        {
-            // 	STLINK_CHIPID_STM32_L43X   
+        {
+            // STLINK_CHIPID_STM32_L43X
             // From RM0392.
- 	    .chip_id = STLINK_CHIPID_STM32_L43X,   
-            .description = "L43x device",
+            .chip_id = STLINK_CHIPID_STM32_L43X,
+            .description = "L43x/L44x device",
             .flash_type = STLINK_FLASH_TYPE_L4,
             .flash_size_reg = 0x1fff75e0,    // "Flash size data register" (sec 43.2, page 1410)
             .flash_pagesize = 0x800,         // 2K (sec 3.2, page 74; also appears in sec 3.3.1 and tables 7-8 on pages 75-76)
             // SRAM1 is "up to" 64k in the standard Cortex-M memory map;
-            // SRAM2 is 16k mapped at at 0x10000000 (sec 2.3, page 73 for
+            // SRAM2 is 16k mapped at 0x10000000 (sec 2.3, page 73 for
             // sizes; table 2, page 74 for SRAM2 location)
             .sram_size = 0xc000,
             .bootrom_base = 0x1fff0000,      // Tables 4-6, pages 80-81 (Bank 1 system memory)
+            .bootrom_size = 0x7000           // 28k (per bank), same source as base
+        },
+        {
+            // STLINK_CHIPID_STM32_L46X
+            // From RM0394 (updated version of RM0392?).
+            .chip_id = STLINK_CHIPID_STM32_L46X,
+            .description = "L45x/46x device",
+            .flash_type = STLINK_FLASH_TYPE_L4,
+            .flash_size_reg = 0x1fff75e0,    // "Flash size data register" (sec 45.2, page 1463)
+            .flash_pagesize = 0x800,         // 2K (sec 3.2, page 73; also appears in sec 3.3.1 and tables 7 on pages 73-74)
+            // SRAM1 is 128k at 0x20000000;
+            // SRAM2 is 32k mapped at 0x10000000 (sec 2.4.2, table 3-4, page 68, also fig 2 on page 63)
+            .sram_size = 0x20000,
+            .bootrom_base = 0x1fff0000,      // Tables 6, pages 71-72 (Bank 1 system memory, also fig 2 on page 63)
             .bootrom_size = 0x7000           // 28k (per bank), same source as base
         },
         {

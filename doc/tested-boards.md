@@ -34,7 +34,7 @@ STLink v2 (as found on the 32L and F4 Discovery boards), known working targets:
 
 STLink v2-1 (as found on the Nucleo boards), known working targets:
 
-* STM32F401xx (STM32 Nucleo-F401RE board) 
+* STM32F401xx (STM32 Nucleo-F401RE board)
 * STM32F030R8T6 (STM32 Nucleo-F030R8 board)
 * STM32F072RBT6 (STM32 Nucleo-F072RB board)
 * STM32F103RB (STM32 Nucleo-F103RB board)
@@ -46,6 +46,7 @@ STLink v2-1 (as found on the Nucleo boards), known working targets:
 * STM32F769NI (STM32F7 discovery board)
 * Nucleo-L152RE board
 * [Nucleo-L476RG board](http://www.st.com/en/evaluation-tools/nucleo-l476rg.html)
+* STM32L452RET6 (STM32 Nucleo-L452RE board)
 
 Please report any and all known working combinations so I can update this!
 
