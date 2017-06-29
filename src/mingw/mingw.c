@@ -271,9 +271,9 @@ char *win32_strsep (char **stringp, const char *delim)
     /* NOTREACHED */
 }
 
+#ifdef STLINK_HAVE_SYS_MMAN_H
 void usleep(DWORD waitTime)
 {
-#ifdef _MSC_VER
 	if (waitTime >= 1000)
 	{
 		// Don't do long busy-waits.
@@ -290,7 +290,6 @@ void usleep(DWORD waitTime)
 		CloseHandle(timer);
 		return;
 	}
-#endif
     LARGE_INTEGER perf_cnt, start, now;
 
     QueryPerformanceFrequency(&perf_cnt);
@@ -300,6 +299,7 @@ void usleep(DWORD waitTime)
         QueryPerformanceCounter((LARGE_INTEGER*) &now);
     } while ((now.QuadPart - start.QuadPart) / (float)perf_cnt.QuadPart * 1000 * 1000 < waitTime);
 }
+#endif
 
 #endif
 

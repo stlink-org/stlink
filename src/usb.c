@@ -6,8 +6,8 @@
 #include <sys/time.h>
 #endif
 #include <sys/types.h>
-#if defined(_MSC_VER)
 #include <mingw.h>
+#if defined(_MSC_VER)
 #pragma warning(push)
 #pragma warning(disable: 4200 4255 4668 4820)
 #include <libusb.h>

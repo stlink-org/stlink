@@ -9,7 +9,9 @@
 
 #include <io.h>
 #include <WinSock2.h>
+#if defined(_MSC_VER)
 #pragma comment(lib, "ws2_32.lib")
+#endif
 #include <unistd.h>
 
 #if defined(_MSC_VER)
@@ -69,7 +71,9 @@ char *win32_strsep(char **stringp, const char *delim);
 ssize_t win32_read_socket(SOCKET fd, void *buf, int n);
 ssize_t win32_write_socket(SOCKET fd, void *buf, int n);
 
+#ifdef STLINK_HAVE_SYS_MMAN_H
 static inline void sleep(unsigned ms) { Sleep(ms); }
 void usleep(DWORD waitTime);
-
 #endif
+
+#endif //defined(__MINGW32__) || defined(_MSC_VER)

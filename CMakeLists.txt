@@ -32,6 +32,11 @@ if (STLINK_HAVE_SYS_MMAN_H)
 	add_definitions(-DSTLINK_HAVE_SYS_MMAN_H)
 endif()
 
+CHECK_INCLUDE_FILE(unistd.h STLINK_HAVE_UNISTD_H)
+if (STLINK_HAVE_UNISTD_H)
+	add_definitions(-DSTLINK_HAVE_UNISTD_H)
+endif()
+
 if (CMAKE_BUILD_TYPE STREQUAL "")
 	set(CMAKE_BUILD_TYPE "Debug")
 endif()
@@ -73,10 +78,10 @@ include_directories(include)
 include_directories(${PROJECT_BINARY_DIR}/include)
 include_directories(src/mingw)
 if (MSVC)
-    include_directories(src/win32)
-    include_directories(src/getopt)
-    # Use string.h rather than strings.h and disable annoying warnings
-    add_definitions(-DHAVE_STRING_H -D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_WARNINGS /wd4710)
+	include_directories(src/win32)
+	include_directories(src/getopt)
+	# Use string.h rather than strings.h and disable annoying warnings
+	add_definitions(-DHAVE_STRING_H -D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_WARNINGS /wd4710)
 endif ()
 
 ###
