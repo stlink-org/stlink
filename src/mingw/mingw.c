@@ -271,7 +271,7 @@ char *win32_strsep (char **stringp, const char *delim)
     /* NOTREACHED */
 }
 
-#ifdef STLINK_HAVE_SYS_MMAN_H
+#ifndef STLINK_HAVE_UNISTD_H
 void usleep(DWORD waitTime)
 {
 	if (waitTime >= 1000)
