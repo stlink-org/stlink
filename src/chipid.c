@@ -446,6 +446,20 @@ static const struct stlink_chipid_params devices[] = {
             .bootrom_size = 0x7000           // 28k (per bank), same source as base
         },
         {
+            // STLINK_CHIPID_STM32_L496X
+            // Support based on en.DM00083560.pdf (RM0351) document rev 5.
+            .chip_id = STLINK_CHIPID_STM32_L496X,
+            .description = "L496x/L4A6x device",
+            .flash_type = STLINK_FLASH_TYPE_L4,
+            .flash_size_reg = 0x1fff75e0,    // "Flash size data register" (sec 49.2, page 1809)
+            .flash_pagesize = 0x800,         // Page erase (2 Kbyte) (sec 3.2, page 93)
+            // SRAM1 is 256k at 0x20000000
+            // SRAM2 is 64k at 0x20040000 (sec 2.2.1, fig 2, page 74)
+            .sram_size = 0x40000,            // Embedded SRAM (sec 2.4, page 84)
+            .bootrom_base = 0x1fff0000,      // System Memory (Bank 1) (sec 3.3.1)
+            .bootrom_size = 0x7000           // 28k (per bank), same source as base
+        },
+        {
             // STLINK_CHIPID_STM32_L46X
             // From RM0394 (updated version of RM0392?).
             .chip_id = STLINK_CHIPID_STM32_L46X,
