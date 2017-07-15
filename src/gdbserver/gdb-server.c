@@ -518,7 +518,10 @@ char* make_memory_map(stlink_t *sl) {
                 (unsigned int)sl->sram_size,
                 (unsigned int)sl->flash_size - 0x20000,
                 (unsigned int)sl->sys_base, (unsigned int)sl->sys_size);
-    } else if(sl->chip_id==STLINK_CHIPID_STM32_L4) {
+    } else if((sl->chip_id==STLINK_CHIPID_STM32_L4) ||
+              (sl->chip_id==STLINK_CHIPID_STM32_L43X) ||
+              (sl->chip_id==STLINK_CHIPID_STM32_L46X) ||
+              (sl->chip_id==STLINK_CHIPID_STM32_L496X)) {
         snprintf(map, sz, memory_map_template_L4,
                 (unsigned int)sl->flash_size, (unsigned int)sl->flash_size);
     } else {
