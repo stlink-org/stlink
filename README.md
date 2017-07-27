@@ -35,6 +35,8 @@ Arch Linux users can install from the [repository](https://www.archlinux.org/pac
 
 Alpine Linux users can install from the [repository](https://pkgs.alpinelinux.org/packages?name=stlink)
 
+Gentoo Linux users can install from the official portage [repository](https://packages.gentoo.org/packages/dev-embedded/stlink)
+
 FreeBSD users can install from [freshports](https://www.freshports.org/devel/stlink)
 
 OpenBSD users need to install [from source](doc/compiling.md).
