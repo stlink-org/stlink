@@ -48,7 +48,6 @@ endif()
 # fixup __FILE__ absolute paths in logging module
 # see: https://cmake.org/pipermail/cmake-developers/2015-January/024202.html
 string(LENGTH "${CMAKE_SOURCE_DIR}/" CMAKE_SOURCE_DIR_LENGTH)
-add_definitions(-DCMAKE_SOURCE_DIR_LENGTH=${CMAKE_SOURCE_DIR_LENGTH})
 
 set(STLINK_HEADERS
 	include/stlink.h
@@ -68,6 +67,8 @@ set(STLINK_SOURCE
 	src/logging.c
 	src/flash_loader.c
 )
+
+set_source_files_properties( src/logging.c PROPERTIES COMPILE_FLAGS "-DCMAKE_SOURCE_DIR=\"${CMAKE_SOURCE_DIR}\" -DCMAKE_BINARY_DIR=\"${CMAKE_BINARY_DIR}\"")
 
 if (WIN32 OR MSYS OR MINGW)
 	set (STLINK_SOURCE "${STLINK_SOURCE};src/mmap.c;src/mingw/mingw.c")

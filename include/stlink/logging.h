@@ -23,7 +23,7 @@ int ugly_log(int level, const char *tag, const char *format, ...);
 #ifndef CMAKE_SOURCE_DIR_LENGTH
 #define CMAKE_SOURCE_DIR_LENGTH 0
 #endif
-#define UGLY_LOG_FILE (__FILE__+CMAKE_SOURCE_DIR_LENGTH)
+#define UGLY_LOG_FILE __FILE__
 
 /** @todo we need to write this in a more generic way, for now this should compile
  on visual studio (See http://stackoverflow.com/a/8673872/1836746) */
