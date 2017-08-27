@@ -148,9 +148,9 @@ enough unused registers. In my experience, -O3 causes that frequently.
 
 Q: At some point I use GDB command `next', and it hangs.
 
-A: Sometimes when you will try to use GDB `next' command to skip a loop,
+A: Sometimes when you will try to use GDB `next` command to skip a loop,
 it will use a rather inefficient single-stepping way of doing that.
-Set up a breakpoint manually in that case and do `continue'.
+Set up a breakpoint manually in that case and do `continue`.
 
 Q: Load command does not work in GDB.
 
