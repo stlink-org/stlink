@@ -35,6 +35,10 @@ Arch Linux users can install from the [repository](https://www.archlinux.org/pac
 
 Alpine Linux users can install from the [repository](https://pkgs.alpinelinux.org/packages?name=stlink)
 
+Fedora users can install from [repository](https://src.fedoraproject.org/rpms/stlink)
+
+RedHat/CentOS 7 users can install from EPEL [repository](https://src.fedoraproject.org/rpms/stlink/branch/epel7)
+
 Gentoo Linux users can install from the official portage [repository](https://packages.gentoo.org/packages/dev-embedded/stlink)
 
 FreeBSD users can install from [freshports](https://www.freshports.org/devel/stlink)
