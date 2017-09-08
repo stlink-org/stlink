@@ -118,6 +118,15 @@ $ cmake -DSTLINK_UDEV_RULES_DIR="/usr/lib/udev/rules.d" \
         -DSTLINK_MODPROBED_DIR="/usr/lib/modprobe.d" ..
 ```
 
+## Build using different directory for shared libs
+
+To put the compiled shared libs into a different directory during installation
+you can use the following cmake option:
+
+```
+$ cmake -DLIB_INSTALL_DIR:PATH="/usr/lib64"  ..
+```
+
 ## Windows (MinGW64) 
 
 ### Prequistes
