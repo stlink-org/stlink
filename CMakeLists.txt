@@ -4,7 +4,8 @@ project(stlink C)
 set(PROJECT_DESCRIPTION "Open source version of the STMicroelectronics Stlink Tools")
 set(STLINK_UDEV_RULES_DIR "/etc/udev/rules.d" CACHE PATH "Udev rules directory")
 set(STLINK_MODPROBED_DIR "/etc/modprobe.d" CACHE PATH "modprobe.d directory")
-set(STLINK_LIBRARY_PATH "lib/${CMAKE_LIBRARY_PATH}" CACHE PATH "Target lib directory")
+set(LIB_INSTALL_DIR "lib" CACHE PATH "Main library directory")
+set(STLINK_LIBRARY_PATH "${LIB_INSTALL_DIR}/${CMAKE_LIBRARY_PATH}" CACHE PATH "Target lib directory")
 
 option(STLINK_GENERATE_MANPAGES "Generate manpages with pandoc" OFF)
 
