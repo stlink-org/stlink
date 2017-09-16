@@ -1899,8 +1899,9 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uint32_t 
         /* set programming mode */
         set_flash_cr_pg(sl);
 
+		size_t buf_size = (sl->sram_size > 0x8000) ? 0x8000 : 0x4000;
         for(off = 0; off < len;) {
-            size_t size = len - off > 0x8000 ? 0x8000 : len - off;
+            size_t size = len - off > buf_size ? buf_size : len - off;
 
             printf("size: %u\n", (unsigned int)size);
 
