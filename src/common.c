@@ -644,7 +644,8 @@ int stlink_load_device_params(stlink_t *sl) {
 
     if (params->flash_type == STLINK_FLASH_TYPE_UNKNOWN) {
         WLOG("Invalid flash type, please check device declaration\n");
-        return -1;
+        sl->flash_size = 0;
+        return 0;
     }
 
     // These are fixed...
