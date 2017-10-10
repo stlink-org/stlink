@@ -11,6 +11,8 @@ extern "C" {
  * stm32 chipids, only lower 12 bits..
  */
 enum stlink_stm32_chipids {
+	STLINK_CHIPID_UNKNOWN                = 0x000,
+
 	STLINK_CHIPID_STM32_F1_MEDIUM        = 0x410,
 	STLINK_CHIPID_STM32_F2               = 0x411,
 	STLINK_CHIPID_STM32_F1_LOW           = 0x412,

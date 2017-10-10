@@ -484,6 +484,17 @@ static const struct stlink_chipid_params devices[] = {
             .bootrom_base = 0x1ff00000,
             .bootrom_size = 0x2000
         },
+        {
+            // unknown
+            .chip_id = STLINK_CHIPID_UNKNOWN,
+            .description = "unknown device",
+            .flash_type = STLINK_FLASH_TYPE_UNKNOWN,
+            .flash_size_reg = 0x0,
+            .flash_pagesize = 0x0,
+            .sram_size = 0x0,
+            .bootrom_base = 0x0,
+            .bootrom_size = 0x0
+        },
 
 
  };
