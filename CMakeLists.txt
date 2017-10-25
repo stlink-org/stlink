@@ -46,11 +46,6 @@ if (${CMAKE_BUILD_TYPE} MATCHES "Debug")
 	include(CTest)
 endif()
 
-# fixup __FILE__ absolute paths in logging module
-# see: https://cmake.org/pipermail/cmake-developers/2015-January/024202.html
-string(LENGTH "${CMAKE_SOURCE_DIR}/" CMAKE_SOURCE_DIR_LENGTH)
-add_definitions(-DCMAKE_SOURCE_DIR_LENGTH=${CMAKE_SOURCE_DIR_LENGTH})
-
 set(STLINK_HEADERS
 	include/stlink.h
 	include/stlink/usb.h
