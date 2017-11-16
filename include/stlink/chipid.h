@@ -62,8 +62,9 @@ enum stlink_stm32_chipids {
 	STLINK_CHIPID_STM32_F303_HIGH        = 0x446,
 	STLINK_CHIPID_STM32_L0_CAT5          = 0x447,
 	STLINK_CHIPID_STM32_F0_CAN           = 0x448,
-	STLINK_CHIPID_STM32_F7               = 0x449,
+	STLINK_CHIPID_STM32_F7               = 0x449,	/* This ID is found on the NucleoF746ZG board */
 	STLINK_CHIPID_STM32_F7XXXX           = 0x451,
+	STLINK_CHIPID_STM32_F72XXX           = 0x452,	/* This ID is found on the NucleoF722ZE board */
 	STLINK_CHIPID_STM32_L011             = 0x457,
 	STLINK_CHIPID_STM32_F410             = 0x458,
 	STLINK_CHIPID_STM32_F413             = 0x463

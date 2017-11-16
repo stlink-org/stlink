@@ -24,6 +24,17 @@ static const struct stlink_chipid_params devices[] = {
             .bootrom_base = 0x00100000,        // "System memory" starting address from DS Fig 18
             .bootrom_size = 0xEDC0             // "System memory" byte size in hex from DS Fig 18
         },
+        {
+            //RM0431 and DS document was used to find these paramaters
+            .chip_id = STLINK_CHIPID_STM32_F72XXX,
+            .description = "F72 device",
+            .flash_type = STLINK_FLASH_TYPE_F4,
+            .flash_size_reg = 0x1ff07a22,      // section 35.2
+            .flash_pagesize = 0x800,           // No flash pages
+            .sram_size = 0x40000,              // "SRAM" byte size in hex from DS Fig 24
+            .bootrom_base = 0x00100000,        // "System memory" starting address from DS Fig 24
+            .bootrom_size = 0xEDC0             // "System memory" byte size in hex from DS Fig 24
+        },
         { // table 2, PM0063
             .chip_id = STLINK_CHIPID_STM32_F1_MEDIUM,
             .description = "F1 Medium-density device",
