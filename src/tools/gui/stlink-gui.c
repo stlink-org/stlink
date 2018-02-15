@@ -224,10 +224,13 @@ stlink_gui_update_devmem_view (STlinkGUI *gui)
 
 
 static void
-stlink_gui_populate_devmem_view (STlinkGUI *gui)
+stlink_gui_populate_devmem_view (gpointer data)
 {
     guint            off;
     stm32_addr_t     addr;
+
+    g_return_if_fail (STLINK_IS_GUI (data));
+    STlinkGUI *gui = (STlinkGUI *)data;
 
     g_return_if_fail (gui != NULL);
     g_return_if_fail (gui->sl != NULL);
