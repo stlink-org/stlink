@@ -223,6 +223,7 @@ stlink_gui_update_devmem_view (STlinkGUI *gui)
 }
 
 
+
 static gpointer
 stlink_gui_populate_devmem_view (gpointer data)
 {
