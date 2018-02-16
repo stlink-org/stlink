@@ -223,17 +223,18 @@ stlink_gui_update_devmem_view (STlinkGUI *gui)
 }
 
 
-static void
+
+static gpointer
 stlink_gui_populate_devmem_view (gpointer data)
 {
     guint            off;
     stm32_addr_t     addr;
 
-    g_return_if_fail (STLINK_IS_GUI (data));
+    g_return_val_if_fail (STLINK_IS_GUI (data), NULL);
     STlinkGUI *gui = (STlinkGUI *)data;
 
-    g_return_if_fail (gui != NULL);
-    g_return_if_fail (gui->sl != NULL);
+    g_return_val_if_fail ((gui != NULL), NULL);
+    g_return_val_if_fail ((gui->sl != NULL), NULL);
 
     addr = gui->sl->flash_base;
 
@@ -261,12 +262,14 @@ stlink_gui_populate_devmem_view (gpointer data)
             stlink_gui_set_info_error_message (gui, "Failed to read memory");
             g_free (gui->flash_mem.memory);
             gui->flash_mem.memory = NULL;
-            return;
+            return NULL;
         }
         memcpy (gui->flash_mem.memory + off, gui->sl->q_buf, n_read);
         gui->progress.fraction = (gdouble) (off + n_read) / gui->sl->flash_size;
     }
     g_idle_add ((GSourceFunc) stlink_gui_update_devmem_view, gui);
+
+    return NULL;
 }
 
 static gboolean
@@ -286,7 +289,7 @@ stlink_gui_update_filemem_view (STlinkGUI *gui)
 }
 
 static gpointer
-stlink_gui_populate_filemem_view (STlinkGUI *gui)
+stlink_gui_populate_filemem_view (gpointer data)
 {
     guchar        buffer[MEM_READ_SIZE];
     GFile        *file;
@@ -294,6 +297,9 @@ stlink_gui_populate_filemem_view (STlinkGUI *gui)
     GInputStream *input_stream;
     gint          off;
     GError       *err = NULL;
+
+    g_return_val_if_fail (STLINK_IS_GUI (data), NULL);
+    STlinkGUI *gui = (STlinkGUI *)data;
 
     g_return_val_if_fail (gui != NULL, NULL);
     g_return_val_if_fail (gui->filename != NULL, NULL);
@@ -643,17 +649,21 @@ stlink_gui_write_flash_update (STlinkGUI *gui)
     return FALSE;
 }
 
-static void
-stlink_gui_write_flash (STlinkGUI *gui)
+static gpointer
+stlink_gui_write_flash (gpointer data)
 {
-    g_return_if_fail (gui->sl != NULL);
-    g_return_if_fail (gui->filename != NULL);
+    g_return_val_if_fail (STLINK_IS_GUI (data), NULL);
+    STlinkGUI *gui = (STlinkGUI *)data;
+
+    g_return_val_if_fail ((gui->sl != NULL), NULL);
+    g_return_val_if_fail ((gui->filename != NULL), NULL);
 
     if (stlink_fwrite_flash(gui->sl, gui->filename, gui->sl->flash_base) < 0) {
         stlink_gui_set_info_error_message (gui, "Failed to write to flash");
     }
 
     g_idle_add ((GSourceFunc) stlink_gui_write_flash_update, gui);
+    return NULL;
 }
 
 static void
