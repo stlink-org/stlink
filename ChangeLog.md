@@ -1,6 +1,24 @@
 Stlink ChangeLog
 ================
 
+v1.5.0
+======
+
+Release date: 2018-02-16
+
+Major changes and added features:
+
+* STM32F72xx73xx support ([#1969148](https://github.com/texane/stlink/commit/19691485359afef1a256964afcbb8dcf4b733209))
+* Add support of STM32L496xx/4A6xx devices ([#615](https://github.com/texane/stlink/pull/615))
+
+Fixes:
+
+* Fix memory map for stm32l496xx boards ([#639](https://github.com/texane/stlink/pull/639))
+* Fix write for microcontroler with RAM size less or equal to 32K ([#637](https://github.com/texane/stlink/pull/637))
+* Added LIB_INSTALL_DIR to correct libs install on 64-bit systems ([#636](https://github.com/texane/stlink/pull/636))
+* Fix verification of flash error for STM32L496x device ([#618](https://github.com/texane/stlink/pull/618))
+* Fix build on Fedora with GCC 8 ([#666](https://github.com/texane/stlink/pull/668))
+
 v1.4.0
 ======
 
