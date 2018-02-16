@@ -295,7 +295,7 @@ stlink_gui_populate_filemem_view (gpointer data)
     gint          off;
     GError       *err = NULL;
 
-    g_return_if_fail (STLINK_IS_GUI (data));
+    g_return_val_if_fail (STLINK_IS_GUI (data), NULL);
     STlinkGUI *gui = (STlinkGUI *)data;
 
     g_return_val_if_fail (gui != NULL, NULL);
