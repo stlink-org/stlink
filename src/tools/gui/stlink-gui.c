@@ -651,7 +651,7 @@ stlink_gui_write_flash_update (STlinkGUI *gui)
 static gpointer
 stlink_gui_write_flash (gpointer data)
 {
-    g_return_if_fail (STLINK_IS_GUI (data));
+    g_return_val_if_fail (STLINK_IS_GUI (data), NULL);
     STlinkGUI *gui = (STlinkGUI *)data;
 
     g_return_val_if_fail ((gui->sl != NULL), NULL);
