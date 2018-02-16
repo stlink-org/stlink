@@ -286,7 +286,7 @@ stlink_gui_update_filemem_view (STlinkGUI *gui)
 }
 
 static gpointer
-stlink_gui_populate_filemem_view (STlinkGUI *gui)
+stlink_gui_populate_filemem_view (gpointer data)
 {
     guchar        buffer[MEM_READ_SIZE];
     GFile        *file;
@@ -294,6 +294,9 @@ stlink_gui_populate_filemem_view (STlinkGUI *gui)
     GInputStream *input_stream;
     gint          off;
     GError       *err = NULL;
+
+    g_return_if_fail (STLINK_IS_GUI (data));
+    STlinkGUI *gui = (STlinkGUI *)data;
 
     g_return_val_if_fail (gui != NULL, NULL);
     g_return_val_if_fail (gui->filename != NULL, NULL);
@@ -644,8 +647,11 @@ stlink_gui_write_flash_update (STlinkGUI *gui)
 }
 
 static void
-stlink_gui_write_flash (STlinkGUI *gui)
+stlink_gui_write_flash (gpointer data)
 {
+    g_return_if_fail (STLINK_IS_GUI (data));
+    STlinkGUI *gui = (STlinkGUI *)data;
+
     g_return_if_fail (gui->sl != NULL);
     g_return_if_fail (gui->filename != NULL);
 
