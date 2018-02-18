@@ -47,6 +47,7 @@ STLink v2-1 (as found on the Nucleo boards), known working targets:
 * Nucleo-L152RE board
 * [Nucleo-L476RG board](http://www.st.com/en/evaluation-tools/nucleo-l476rg.html)
 * STM32L452RET6 (STM32 Nucleo-L452RE board)
+* STM32F042K6 (STM32 Nucleo-32 Board)
 
 Please report any and all known working combinations so I can update this!
 
