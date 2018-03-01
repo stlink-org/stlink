@@ -23,50 +23,55 @@ The STLinkV2 device to use can be specified in the environment variable
 STLINK_DEVICE on the format :.
 .SH OPTIONS
 .TP
-.B \-h, \[en]help
+.B \-h, \f[C]\-\-help\f[]
 Print this message.
 .RS
 .RE
 .TP
-.B \[en]version
+.B \f[C]\-\-version\f[]
 Print version information
 .RS
 .RE
 .TP
-.B \-v \f[I]XX\f[], \[en]verbose=XX
+.B \-v \f[I]XX\f[], \f[C]\-\-verbose=XX\f[]
 Specify a specific verbosity level (0..99)
 .RS
 .RE
 .TP
-.B \-v, \[en]verbose
+.B \-v, \f[C]\-\-verbose\f[]
 Specify generally verbose logging
 .RS
 .RE
 .TP
-.B \-s \f[I]X\f[], \[en]stlink_version=X
+.B \-s \f[I]X\f[], \f[C]\-\-stlink_version=X\f[]
 Choose what version of stlink to use, (defaults to 2)
 .RS
 .RE
 .TP
-.B \-1, \[en]stlinkv1
+.B \-1, \f[C]\-\-stlinkv1\f[]
 Force stlink version 1
 .RS
 .RE
 .TP
-.B \-p \f[I]4242\f[], \[en]listen_port=1234
+.B \-p \f[I]4242\f[], \f[C]\-\-listen_port=1234\f[]
 Set the gdb server listen port.
 (default port: 4242)
 .RS
 .RE
 .TP
-.B \-m, \[en]multi
+.B \-m, \f[C]\-\-multi\f[]
 Set gdb server to extended mode.
 st\-util will continue listening for connections after disconnect.
 .RS
 .RE
 .TP
-.B \-n, \[en]no\-reset
+.B \-n, \f[C]\-\-no\-reset\f[]
 Do not reset board on connection.
+.RS
+.RE
+.TP
+.B \f[C]\-\-semihosting\f[]
+Enable ARM Semihosting output on stdout
 .RS
 .RE
 .SH EXAMPLES
