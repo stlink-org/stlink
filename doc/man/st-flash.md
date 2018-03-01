@@ -1,6 +1,6 @@
-% ST-FLASH(1) Open Source STMicroelectronics Stlink Tools  | STLINK
+% st-flash(1) Open Source STMicroelectronics Stlink Tools  | stlink
 %
-% Sep 2016
+% Feb 2018
 
 
 # NAME

@@ -1,6 +1,6 @@
-% ST-UTIL(1) Open Source STMicroelectronics Stlink Tools  | STLINK
+% st-util(1) Open Source STMicroelectronics Stlink Tools  | stlink
 %
-% Sep 2016
+% Feb 2018
 
 
 # NAME
