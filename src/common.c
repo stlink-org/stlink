@@ -992,7 +992,7 @@ void stlink_print_data(stlink_t * sl) {
     if (sl->q_len <= 0 || sl->verbose < UDEBUG)
         return;
     if (sl->verbose > 2)
-        fprintf(stdout, "data_len = %d 0x%x\n", sl->q_len, sl->q_len);
+        fprintf(stdout, "data_len = %u 0x%x\n", (unsigned int) sl->q_len, (unsigned int) sl->q_len);
 
     size_t i;
     for (i = 0; i < sl->q_len; i++) {
@@ -1224,7 +1224,7 @@ on_error:
     return error;
 }
 
-typedef bool (*save_block_fn)(void* arg, uint8_t* block, ssize_t len);
+typedef bool (*save_block_fn)(void* arg, uint8_t* block, size_t len);
 
 static int stlink_read(stlink_t* sl, stm32_addr_t addr, size_t size, save_block_fn fn, void* fn_arg) {
 
@@ -1267,7 +1267,7 @@ struct stlink_fread_worker_arg {
     int fd;
 };
 
-static bool stlink_fread_worker(void* arg, uint8_t* block, ssize_t len) {
+static bool stlink_fread_worker(void* arg, uint8_t* block, size_t len) {
     struct stlink_fread_worker_arg* the_arg = (struct stlink_fread_worker_arg*)arg;
     if (write(the_arg->fd, block, len) != len) {
         fprintf(stderr, "write() != aligned_size\n");
@@ -1337,7 +1337,7 @@ static bool stlink_fread_ihex_init(struct stlink_fread_ihex_worker_arg* the_arg,
     return (the_arg->file != NULL);
 }
 
-static bool stlink_fread_ihex_worker(void* arg, uint8_t* block, ssize_t len) {
+static bool stlink_fread_ihex_worker(void* arg, uint8_t* block, size_t len) {
     struct stlink_fread_ihex_worker_arg* the_arg = (struct stlink_fread_ihex_worker_arg*)arg;
 
     size_t i;
