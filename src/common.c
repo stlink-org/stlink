@@ -2144,7 +2144,6 @@ int stlink_parse_ihex(const char* path, uint8_t erased_pattern, uint8_t * * mem,
                         if(e > end) end = e;
                     }
                     else {
-                        size_t i;
                         for(i = 0; i < reclen; ++i) {
                             uint8_t b = stlink_parse_hex(line + 9 + i*2);
                             uint32_t addr = lba + offset + i;
