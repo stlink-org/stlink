@@ -30,7 +30,7 @@ static void stlink_print_serial(stlink_t *sl, bool openocd)
        fmt = "%02x";
     }
 
-    int n;
+    size_t n;
     for (n = 0; n < sl->serial_size; n++)
         printf(fmt, sl->serial[n]);
 
