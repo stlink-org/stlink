@@ -89,7 +89,8 @@
 #define STLINK_FALSE 0x81
 
 static void clear_cdb(struct stlink_libsg *sl) {
-    for (size_t i = 0; i < sizeof (sl->cdb_cmd_blk); i++)
+    size_t i;
+    for (i = 0; i < sizeof (sl->cdb_cmd_blk); i++)
         sl->cdb_cmd_blk[i] = 0;
     // set default
     sl->cdb_cmd_blk[0] = STLINK_DEBUG_COMMAND;
@@ -150,7 +151,8 @@ static int dump_CDB_command(uint8_t *cdb, uint8_t cdb_len) {
     char dbugblah[100];
     char *dbugp = dbugblah;
     dbugp += sprintf(dbugp, "Sending CDB [");
-    for (uint8_t i = 0; i < cdb_len; i++) {
+    uint8_t i;
+    for (i = 0; i < cdb_len; i++) {
         dbugp += sprintf(dbugp, " %#02x", (unsigned int) cdb[i]);
     }
     sprintf(dbugp, "]\n");
@@ -600,7 +602,8 @@ int _stlink_sg_read_all_regs(stlink_t *sl, struct stlink_reg *regp) {
 
     // 0-3 | 4-7 | ... | 60-63 | 64-67 | 68-71   | 72-75      | 76-79 | 80-83
     // r0  | r1  | ... | r15   | xpsr  | main_sp | process_sp | rw    | rw2
-    for (int i = 0; i < 16; i++) {
+    int i;
+    for (i = 0; i < 16; i++) {
         regp->r[i] = read_uint32(sl->q_buf, 4 * i);
         if (sl->verbose > 1)
             DLOG("r%2d = 0x%08x\n", i, regp->r[i]);
