@@ -1269,7 +1269,7 @@ struct stlink_fread_worker_arg {
 
 static bool stlink_fread_worker(void* arg, uint8_t* block, size_t len) {
     struct stlink_fread_worker_arg* the_arg = (struct stlink_fread_worker_arg*)arg;
-    if (write(the_arg->fd, block, len) != len) {
+    if (write(the_arg->fd, block, len) != (ssize_t)len) {
         fprintf(stderr, "write() != aligned_size\n");
         return false;
     }
