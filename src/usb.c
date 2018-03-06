@@ -1002,7 +1002,7 @@ static size_t stlink_probe_usb_devs(libusb_device **devs, stlink_t **sldevs[]) {
             continue;
 
         struct libusb_device_handle* handle;
-        char serial[13];
+        char serial[16];
         memset(serial, 0, sizeof(serial));
 
         ret = libusb_open(dev, &handle);
