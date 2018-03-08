@@ -618,7 +618,8 @@ int _stlink_usb_read_unsupported_reg(stlink_t *sl, int r_idx, struct stlink_reg 
     int ret;
 
     sl->q_buf[0] = (unsigned char) r_idx;
-    for (int i = 1; i < 4; i++) {
+    size_t i;
+    for (i = 1; i < 4; i++) {
         sl->q_buf[i] = 0;
     }
 
@@ -662,7 +663,8 @@ int _stlink_usb_read_all_unsupported_regs(stlink_t *sl, struct stlink_reg *regp)
     if (ret == -1)
         return ret;
 
-    for (int i = 0; i < 32; i++) {
+    size_t i;
+    for (i = 0; i < 32; i++) {
         ret = _stlink_usb_read_unsupported_reg(sl, 0x40+i, regp);
         if (ret == -1)
             return ret;
@@ -1066,7 +1068,8 @@ void stlink_probe_usb_free(stlink_t ***stdevs, size_t size) {
     if (stdevs == NULL || *stdevs == NULL || size == 0)
         return;
 
-    for (size_t n = 0; n < size; n++)
+    size_t n;
+    for (n = 0; n < size; n++)
         stlink_close((*stdevs)[n]);
     free(*stdevs);
     *stdevs = NULL;

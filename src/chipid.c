@@ -514,7 +514,8 @@ const struct stlink_chipid_params *stlink_chipid_get_params(uint32_t chipid)
 {
 	const struct stlink_chipid_params *params = NULL;
 
-	for (size_t n = 0; n < STLINK_ARRAY_SIZE(devices); n++) {
+	size_t n;
+	for (n = 0; n < STLINK_ARRAY_SIZE(devices); n++) {
 		if (devices[n].chip_id == chipid) {
 			params = &devices[n];
 			break;

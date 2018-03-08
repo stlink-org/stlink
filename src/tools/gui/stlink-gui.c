@@ -257,8 +257,7 @@ stlink_gui_populate_devmem_view (gpointer data)
             }
         }
         /* reads to sl->q_buf */
-        stlink_read_mem32(gui->sl, addr + off, n_read);
-        if (gui->sl->q_len < 0) {
+        if (stlink_read_mem32(gui->sl, addr + off, n_read) != 0) {
             stlink_gui_set_info_error_message (gui, "Failed to read memory");
             g_free (gui->flash_mem.memory);
             gui->flash_mem.memory = NULL;

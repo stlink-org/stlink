@@ -992,9 +992,10 @@ void stlink_print_data(stlink_t * sl) {
     if (sl->q_len <= 0 || sl->verbose < UDEBUG)
         return;
     if (sl->verbose > 2)
-        fprintf(stdout, "data_len = %d 0x%x\n", sl->q_len, sl->q_len);
+        fprintf(stdout, "data_len = %u 0x%x\n", (unsigned int) sl->q_len, (unsigned int) sl->q_len);
 
-    for (int i = 0; i < sl->q_len; i++) {
+    size_t i;
+    for (i = 0; i < sl->q_len; i++) {
         if (i % 16 == 0) {
             /*
                if (sl->q_data_dir == Q_DATA_OUT)
@@ -1223,7 +1224,7 @@ on_error:
     return error;
 }
 
-typedef bool (*save_block_fn)(void* arg, uint8_t* block, ssize_t len);
+typedef bool (*save_block_fn)(void* arg, uint8_t* block, size_t len);
 
 static int stlink_read(stlink_t* sl, stm32_addr_t addr, size_t size, save_block_fn fn, void* fn_arg) {
 
@@ -1236,7 +1237,8 @@ static int stlink_read(stlink_t* sl, stm32_addr_t addr, size_t size, save_block_
         size = sl->flash_size;
 
     size_t cmp_size = (sl->flash_pgsz > 0x1800)? 0x1800:sl->flash_pgsz;
-    for (size_t off = 0; off < size; off += cmp_size) {
+    size_t off;
+    for (off = 0; off < size; off += cmp_size) {
         size_t aligned_size;
 
         /* adjust last page size */
@@ -1265,9 +1267,9 @@ struct stlink_fread_worker_arg {
     int fd;
 };
 
-static bool stlink_fread_worker(void* arg, uint8_t* block, ssize_t len) {
+static bool stlink_fread_worker(void* arg, uint8_t* block, size_t len) {
     struct stlink_fread_worker_arg* the_arg = (struct stlink_fread_worker_arg*)arg;
-    if (write(the_arg->fd, block, len) != len) {
+    if (write(the_arg->fd, block, len) != (ssize_t)len) {
         fprintf(stderr, "write() != aligned_size\n");
         return false;
     }
@@ -1309,7 +1311,8 @@ static bool stlink_fread_ihex_writeline(struct stlink_fread_ihex_worker_arg* the
     if(9 != fprintf(the_arg->file, ":%02X%04X00", count, (addr & 0x0000FFFF)))
         return false;
 
-    for(uint8_t i = 0; i < count; ++i) {
+    size_t i;
+    for(i = 0; i < count; ++i) {
         uint8_t b = the_arg->buf[i];
         sum += b;
         if(2 != fprintf(the_arg->file, "%02X", b))
@@ -1334,10 +1337,11 @@ static bool stlink_fread_ihex_init(struct stlink_fread_ihex_worker_arg* the_arg,
     return (the_arg->file != NULL);
 }
 
-static bool stlink_fread_ihex_worker(void* arg, uint8_t* block, ssize_t len) {
+static bool stlink_fread_ihex_worker(void* arg, uint8_t* block, size_t len) {
     struct stlink_fread_ihex_worker_arg* the_arg = (struct stlink_fread_ihex_worker_arg*)arg;
 
-    for(ssize_t i = 0; i < len; ++i) {
+    size_t i;
+    for(i = 0; i < len; ++i) {
         if(the_arg->buf_pos == sizeof(the_arg->buf)) { // line is full
             if(!stlink_fread_ihex_writeline(the_arg)) return false;
         }
@@ -2039,7 +2043,8 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uint32_t 
 // note: length not checked
 static uint8_t stlink_parse_hex(const char* hex) {
     uint8_t d[2];
-    for(int i = 0; i < 2; ++i) {
+    size_t i;
+    for(i = 0; i < 2; ++i) {
         char c = *(hex + i);
         if(c >= '0' && c <= '9') d[i] = c - '0';
         else if(c >= 'A' && c <= 'F') d[i] = c - 'A' + 10;
@@ -2056,7 +2061,8 @@ int stlink_parse_ihex(const char* path, uint8_t erased_pattern, uint8_t * * mem,
     uint32_t end = 0;
     bool eof_found = false;
 
-    for(int scan = 0; (res == 0) && (scan < 2); ++scan) { // parse file two times - first to find memory range, second - to fill it
+    size_t scan;
+    for(scan = 0; (res == 0) && (scan < 2); ++scan) { // parse file two times - first to find memory range, second - to fill it
         if(scan == 1) {
             if(!eof_found) {
                 ELOG("No EoF recond\n");
@@ -2109,7 +2115,8 @@ int stlink_parse_ihex(const char* path, uint8_t erased_pattern, uint8_t * * mem,
 
             // check sum
             uint8_t chksum = 0;
-            for(size_t i = 1; i < l; i += 2) {
+            size_t i;
+            for(i = 1; i < l; i += 2) {
                 chksum += stlink_parse_hex(line + i);
             }
             if(chksum != 0) {
@@ -2137,7 +2144,7 @@ int stlink_parse_ihex(const char* path, uint8_t erased_pattern, uint8_t * * mem,
                         if(e > end) end = e;
                     }
                     else {
-                        for(uint8_t i = 0; i < reclen; ++i) {
+                        for(i = 0; i < reclen; ++i) {
                             uint8_t b = stlink_parse_hex(line + 9 + i*2);
                             uint32_t addr = lba + offset + i;
                             if(addr >= *begin && addr <= end) {

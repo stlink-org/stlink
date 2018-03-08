@@ -143,7 +143,7 @@ typedef struct flash_loader {
         unsigned char c_buf[C_BUF_LEN];
         // Data transferred from or to device
         unsigned char q_buf[Q_BUF_LEN];
-        int q_len;
+        size_t q_len;
 
         // transport layer verboseness: 0 for no debug info, 10 for lots
         int verbose;

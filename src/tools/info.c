@@ -30,7 +30,8 @@ static void stlink_print_serial(stlink_t *sl, bool openocd)
        fmt = "%02x";
     }
 
-    for (int n = 0; n < sl->serial_size; n++)
+    int n;
+    for (n = 0; n < sl->serial_size; n++)
         printf(fmt, sl->serial[n]);
 
     if (openocd)
@@ -70,7 +71,8 @@ static void stlink_probe(void)
 
     printf("Found %u stlink programmers\n", (unsigned int)size);
 
-    for (size_t n = 0; n < size; n++)
+    size_t n;
+    for (n = 0; n < size; n++)
         stlink_print_info(stdevs[n]);
 
     stlink_probe_usb_free(&stdevs, size);

@@ -50,7 +50,8 @@ int flash_get_opts(struct flash_opts* o, int ac, char** av)
             int length = j / 2;  //the length of the destination-array
             if(j % 2 != 0) return -1;
  
-            for(size_t k = 0; j >= 0 && k < sizeof(o->serial); ++k, j -= 2) {
+            size_t k;
+            for(k = 0; j >= 0 && k < sizeof(o->serial); ++k, j -= 2) {
                 char buffer[3] = {0};
                 memcpy(buffer, serial + j, 2);
                 o->serial[length - k] = (uint8_t)strtol(buffer, NULL, 16);
