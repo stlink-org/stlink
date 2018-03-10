@@ -1,5 +1,5 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
-Upstream-Name: libstlink
+Upstream-Name: stlink
 Upstream-Contact: Andrew 'Necromant' Andrianov <andrew@ncrmnt.org>
 Source: https://github.com/texane/stlink
 

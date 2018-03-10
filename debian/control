@@ -1,4 +1,4 @@
-Source: libstlink
+Source: stlink
 Priority: optional
 Maintainer: Andrew 'Necromant' Andrianov <andrew@ncrmnt.org>
 Build-Depends: debhelper (>= 9), cmake, libusb-1.0-0-dev, libgtk-3-dev
