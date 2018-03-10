@@ -11,14 +11,14 @@ Vcs-Browser: https://github.com/texane/stlink
 Package: libstlink-dev
 Section: libdevel
 Architecture: any
-Depends: libstlink (= ${binary:Version}), ${misc:Depends}
+Depends: libstlink1 (= ${binary:Version}), ${misc:Depends}
 Description: OpenSource ST-Link tools replacement.
  Flashing tools for STMicroelectronics STM32VL and STM32L. The transport layers
  STLINKv1 and STLINKv2 are supported.
  .
  This package contains the development files for stlink.
 
-Package: libstlink
+Package: libstlink1
 Section: libs
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
@@ -30,7 +30,7 @@ Description: OpenSource ST-Link tools replacement.
 
 Package: stlink-tools
 Architecture: any
-Depends: libstlink (= ${binary:Version}), ${shlibs:Depends}, ${misc:Depends}
+Depends: libstlink1 (= ${binary:Version}), ${shlibs:Depends}, ${misc:Depends}
 Description: OpenSource ST-Link tools replacement.
  Flashing tools for STMicroelectronics STM32VL and STM32L. The transport layers
  STLINKv1 and STLINKv2 are supported.
@@ -39,7 +39,7 @@ Description: OpenSource ST-Link tools replacement.
 
 Package: stlink-gui
 Architecture: any
-Depends: libstlink (= ${binary:Version}), ${shlibs:Depends}, ${misc:Depends}
+Depends: libstlink1 (= ${binary:Version}), ${shlibs:Depends}, ${misc:Depends}
 Description: OpenSource ST-Link tools replacement.
  Flashing tools for STMicroelectronics STM32VL and STM32L. The transport layers
  STLINKv1 and STLINKv2 are supported.
