@@ -12,22 +12,36 @@ Package: libstlink-dev
 Section: libdevel
 Architecture: any
 Depends: libstlink (= ${binary:Version}), ${misc:Depends}
-Description: OpenSource ST-Link tools replacement. Development headers.
-    This package contains development headers for libstlink.
+Description: OpenSource ST-Link tools replacement.
+ Flashing tools for STMicroelectronics STM32VL and STM32L. The transport layers
+ STLINKv1 and STLINKv2 are supported.
+ .
+ This package contains the development files for stlink.
 
 Package: libstlink
 Section: libs
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: OpenSource ST-Link tools replacement. Shared library.
-    This package libstlink shared library.
+Description: OpenSource ST-Link tools replacement.
+ Flashing tools for STMicroelectronics STM32VL and STM32L. The transport layers
+ STLINKv1 and STLINKv2 are supported.
+ .
+ This package contains the shared library for stlink.
 
 Package: stlink-tools
 Architecture: any
 Depends: libstlink (= ${binary:Version}), ${shlibs:Depends}, ${misc:Depends}
-Description: OpenSource ST-Link tools replacement. Commandline Utilities.
+Description: OpenSource ST-Link tools replacement.
+ Flashing tools for STMicroelectronics STM32VL and STM32L. The transport layers
+ STLINKv1 and STLINKv2 are supported.
+ .
+ This package contains commandline utilities for stlink.
 
 Package: stlink-gui
 Architecture: any
 Depends: libstlink (= ${binary:Version}), ${shlibs:Depends}, ${misc:Depends}
-Description: OpenSource ST-Link tools replacement. GUI Tool.
+Description: OpenSource ST-Link tools replacement.
+ Flashing tools for STMicroelectronics STM32VL and STM32L. The transport layers
+ STLINKv1 and STLINKv2 are supported.
+ .
+ This package contains a GUI tool for stlink.
