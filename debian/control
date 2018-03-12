@@ -37,11 +37,13 @@ Description: OpenSource ST-Link tools replacement.
  Flashing tools for STMicroelectronics STM32VL and STM32L. The transport layers
  STLINKv1 and STLINKv2 are supported.
  .
- This package contains commandline utilities for stlink.
+ This package contains commandline utilities for stlink, and modprobe and
+ udev rules.
 
 Package: stlink-gui
 Architecture: any
-Depends: libstlink1 (= ${binary:Version}), ${shlibs:Depends}, ${misc:Depends}
+Depends: libstlink1 (= ${binary:Version}), stlink-tools (= ${binary:Version}),
+ ${shlibs:Depends}, ${misc:Depends}
 Description: OpenSource ST-Link tools replacement.
  Flashing tools for STMicroelectronics STM32VL and STM32L. The transport layers
  STLINKv1 and STLINKv2 are supported.
