@@ -232,5 +232,5 @@ Issue related to this bug: [#545](https://github.com/texane/stlink/issues/545)
 
 ## License
 
-The stlink library and tools are licensed under the [BSD license](LICENSE). With
-some exceptions on external components (e.g flashloaders).
+The stlink library and tools are licensed under the [BSD license](LICENSE).
+The flashloaders/stm32l0x.s and flashloaders/stm32lx.s source files are licensed under the GPL-2+.
