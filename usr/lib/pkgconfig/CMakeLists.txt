@@ -1,5 +1,5 @@
 set(PKG_CONFIG_LIBDIR     "\${prefix}/lib/\${deb_host_multiarch}")
-set(PKG_CONFIG_INCLUDEDIR "\${prefix}/include/\${deb_host_multiarch}/${PROJECT_NAME}-${PROJECT_VERSION}")
+set(PKG_CONFIG_INCLUDEDIR "\${prefix}/include/\${deb_host_multiarch}/${PROJECT_NAME}")
 set(PKG_CONFIG_LIBS       "-L\${libdir} -l:libstlink.so.${PROJECT_VERSION_MAJOR}")
 set(PKG_CONFIG_CFLAGS     "-I\${includedir}")
 set(PKG_CONFIG_REQUIRES   "libusb-1.0")
