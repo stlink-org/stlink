@@ -1,3 +1,9 @@
+stlink (1.5.0-1) UNRELEASED; urgency=medium
+
+  * Upload to unstable. (Closes: #869421)
+
+ -- Luca Boccassi <bluca@debian.org>  Tue, 13 Mar 2018 00:26:52 +0000
+
 stlink (1.5.0) unstable; urgency=medium
 
   [ Jerry Jacobs ]
