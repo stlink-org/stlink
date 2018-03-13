@@ -1,0 +1,3 @@
+version=3
+opts=filenamemangle=s/.+\/v?(\d\S+)\.tar\.gz/<project>-$1\.tar\.gz/ \
+  https://github.com/texane/stlink/tags .*/v?(\d\S+)\.tar\.gz
