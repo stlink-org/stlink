@@ -1,12 +1,174 @@
-Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
-Upstream-Name: libstlink
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: stlink
 Upstream-Contact: Andrew 'Necromant' Andrianov <andrew@ncrmnt.org>
 Source: https://github.com/texane/stlink
 
 Files: *
-Copyright: (c) 2011 The stlink project (github.com/texane/stlink) contributors.
+Copyright: 2011-2018 agpanarin <agpanarin@gmail.com>
+           2011-2018 Alexey Cherevatenko <alecher@mail.ru>
+           2011-2018 Anatoli <dev@26th.net>
+           2011-2018 Andrea Mucignat <andrea@zulusw.com>
+           2011-2018 Andrew 'Necromant' Andrianov <andrew@ncrmnt.org>
+           2011-2018 Andrey Yurovsky <yurovsky@gmail.com>
+           2011-2018 Andy Isaacson <adi@onbeep.com>
+           2011-2018 Áron RADICS <raronkonektor@gmail.com>
+           2011-2018 A Sheaff <sheaff@traveler.eece.maine.edu>
+           2011-2018 Björn Hauffe <hauffe@gmail.com>
+           2011-2018 bob <bob@eleks.com>
+           2011-2018 Breton M. Saunders <bms20@camvine.com>
+           2011-2018 Bruno Dal Bo <bruno.dalbo@hp.com>
+           2011-2018 Burns <burns@fisher.cc>
+           2011-2018 Chris Dew <cmsdew@gmail.com>
+           2011-2018 Chris Hiszpanski <chiszp@gmail.com>
+           2011-2018 Chris Li <chris@tpx.lan>
+           2011-2018 Chris Samuelson <csamuelson@swingpal.com>
+           2011-2018 Christophe Levantis <Christophe.Levantis@cyantechnology.com>
+           2011-2018 Craig Lilley <cralilley@gmail.com>
+           2011-2018 dandev37 <dandev37@gmail.com>
+           2011-2018 Dan Hepler <dan.hepler@bionic-power.com>
+           2011-2018 Daniel Campoverde [alx741] <alx@sillybytes.net>
+           2011-2018 Daniel O'Connor <doconnor@gsoft.com.au>
+           2011-2018 Dave Flogeras <dflogeras@gmail.com>
+           2011-2018 Dave Murphy <davem@devkitpro.org>
+           2011-2018 Dave Vandervies <dj3vande@terse.ca>
+           2011-2018 Denis Fokin <foks.ua@gmail.com>
+           2011-2018 Denis Osterland <Denis.Osterland@diehl.com>
+           2011-2018 Dmitry Bravikov <bravikov@gmail.com>
+           2011-2018 Efe Can İçöz <efe@debian>
+           2011-2018 Ethan Zonca <ez@ethanzonca.com>
+           2011-2018 Fabien Chouteau <chouteau@adacore.com>
+           2011-2018 Fabien Le Mentec <texane@gmail.com>
+           2011-2018 fhars <fh+github@hars.de>
+           2011-2018 Friedrich Beckmann <friedrich.beckmann@gmx.de>
+           2011-2018 Geoffrey Brown <geoffreymbrown@gmail.com>
+           2011-2018 George Talusan <george.talusan@gmail.com>
+           2011-2018 Georg von Zengen <vonzengen@ibr.cs.tu-bs.de>
+           2011-2018 giuseppe barba <giuseppe.barba@gmail.com>
+           2011-2018 Greg Alexander <gitgreg@galexander.org>
+           2011-2018 Greg Meiste <w30289@motorola.com>
+           2011-2018 Hakkavélin <hakkavelin@braudrist.lan>
+           2011-2018 htk <htk@vdr.fritz.box>
+           2011-2018 Ian Griffiths <6thimage@gmail.com>
+           2011-2018 Jack Peel <jack.peel@synapse.com>
+           2011-2018 Jakub Tyszkowski <tyszja@gmail.com>
+           2011-2018 Jan Sarenik <janko@Lomidrevo.local>
+           2011-2018 Jean-Luc Béchennec <Jean-Luc.Bechennec@irccyn.ec-nantes.fr>
+           2011-2018 Jean-Marie Lemetayer <jeanmarie.lemetayer@gmail.com>
+           2011-2018 Jeff Kent <jakent@gmail.com>
+           2011-2018 Jeffrey Nelson <nelsonjm@macpod.net>
+           2011-2018 Jens Hoffmann <jehoffma@gmail.com>
+           2011-2018 Jerome Lambourg <lambourg@adacore.com>
+           2011-2018 Jerry Jacobs <jerry.jacobs@xor-gate.org>
+           2011-2018 Jim Paris <jim@jtan.com>
+           2011-2018 Jiří Netolický <netolicky@epos.cd.cz>
+           2011-2018 jnosky <codegrinder69@hotmail.com>
+           2011-2018 jnosky <Jerry@CGS_Office.(none)>
+           2011-2018 JohannesTaelman <johannes.taelman@gmail.com>
+           2011-2018 Jonas Danielsson <jonas.danielsson@lundinova.se>
+           2011-2018 Jonas Norling <jonas.norling@gmail.com>
+           2011-2018 Josh Bialkowski <josh@skyd.io>
+           2011-2018 Karl Palsson <karlp@tweak.net.au>
+           2011-2018 kevin <software@klystron.com>
+           2011-2018 Kyle Manna <kyle@kylemanna.com>
+           2011-2018 Lari Lehtomäki <lari@lehtomaki.fi>
+           2011-2018 le mentec fabien <fabien.lementec@imag.fr>
+           2011-2018 Martin Nowak <code@dawg.eu>
+           2011-2018 Matteo Collina <matteo.collina@gmail.com>
+           2011-2018 Max Chen <trlsmax@gmail.com>
+           2011-2018 Maxime Coquelin <mcoquelin.stm32@gmail.com>
+           2011-2018 Maxime Vincent <maxime.vincent@tass.be>
+           2011-2018 Michael Pratt <michael@pratt.im>
+           2011-2018 Michael Sparmann <theseven@gmx.net>
+           2011-2018 Mike Szczys <mike@jumptuck.com>
+           2011-2018 mlundinse <lundin@mlu.mine.nu>
+           2011-2018 mux <freelancer.c@gmail.com>
+           2011-2018 Ned Konz <ned@bike-nomad.com>
+           2011-2018 Nic McDonald <n.mcdonald83@gmail.com>
+           2011-2018 Nicolas Schodet <nico@ni.fr.eu.org>
+           2011-2018 Nikolay <halt.hammerzeit.at@gmail.com>
+           2011-2018 nullsub <chrisudeussen@gmail.com>
+           2011-2018 Olivier Croquette <olivier.croquette@nanotec.de>
+           2011-2018 Olivier Gay <ogay@logitech.com>
+           2011-2018 Onno Kortmann <onno@gmx.net>
+           2011-2018 orangeudav <orangeudav@gmail.com>
+           2011-2018 Pavel Kirienko <pavel.kirienko@gmail.com>
+           2011-2018 Pekka Nikander <pekka.nikander@senseg.com>
+           2011-2018 Pete <petiepooo@gmail.com>
+           2011-2018 Peter Zotov <whitequark@whitequark.org>
+           2011-2018 Petteri Aimonen <jpa@git.mail.kapsi.fi>
+           2011-2018 Piotr Haber <gluedig@gmail.com>
+           2011-2018 Rene Hopf <renehopf@mac.com>
+           2011-2018 Robin Kreis <r.kreis@uni-bremen.de>
+           2011-2018 Rob Spanton <rspanton@zepler.net>
+           2011-2018 Rytis Karpuska <rytis.karpuska@gmail.com>
+           2011-2018 Sean Simmons <sean.b.simmons@gmail.com>
+           2011-2018 Sergey Alirzaev <zl29ah@gmail.com>
+           2011-2018 Simon Wright <simon@pushface.org>
+           2011-2018 Stany MARCEL <stanypub@gmail.com>
+           2011-2018 Stefan Misik <mail@stefanmisik.eu>
+           2011-2018 Sven Wegener <sven.wegener@stealer.net>
+           2011-2018 Tectu <joel@unormal.org>
+           2011-2018 tekaikko <tuomo.kaikkonen@iki.fi>
+           2011-2018 texane <texane@gmail.com>
+           2011-2018 Theodore A. Roth <troth@openavr.org>
+           2011-2018 Thomas Gärtner <der@thotsch.com>
+           2011-2018 Tobias Badertscher <python@baerospace.ch>
+           2011-2018 Tom de Boer <tom@tomdeboer.nl>
+           2011-2018 Tristan Gingold <gingold@adacore.com>
+           2011-2018 Uli Köhler <ulikoehler@online.de>
+           2011-2018 Uwe Bonnes <bon@elektron.ikp.physik.tu-darmstadt.de>
+           2011-2018 Vadim Kaushan <admin@disasm.info>
+           2011-2018 Vegard Storheil Eriksen <zyp@jvnv.net>
+           2011-2018 Viacheslav Dobromyslov <viacheslav@dobromyslov.ru>
+           2011-2018 Victor Mayoral Vilches <v.mayoralv@gmail.com>
+           2011-2018 Wojciech A. Koszek <wkoszek@freebsd.czest.pl>
+           2011-2018 Woodrow Douglass <wdouglass@carnegierobotics.com>
+           2011-2018 The "Capt'ns Missing Link" Authors.
 License: BSD-3-clause
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions
+ are met:
+ .
+ * Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+ * Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in
+   the documentation and/or other materials provided with the
+   distribution.
+ * Neither the name of Intel Corporation nor the names of its
+   contributors may be used to endorse or promote products derived
+   from this software without specific prior written permission.
+ .
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-Files: *
-Copyright: (c) 2011 The "Capt'ns Missing Link" Authors. All rights reserved.
-License: BSD-3-clause
+Files: flashloaders/stm32l0x.s
+       flashloaders/stm32lx.s
+Copyright: 2010 Spencer Oliver <spen@spen-soft.co.uk>
+           2011 Øyvind Harboe <oyvind.harboe@zylin.com>
+           2011 Clement Burin des Roziers <clement.burin-des-roziers@hikob.com>
+License: GPL-2+
+ This package is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 2 of the License, or
+ (at your option) any later version.
+ .
+ This package is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ .
+ You should have received a copy of the GNU General Public License
+ along with this program. If not, see <http://www.gnu.org/licenses/>
+ .
+ On Debian systems, the complete text of the GNU General
+ Public License version 2 can be found in "/usr/share/common-licenses/GPL-2".

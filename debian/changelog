@@ -1,3 +1,62 @@
+stlink (1.5.0) unstable; urgency=medium
+
+  [ Jerry Jacobs ]
+  * README.md: Update version badge to v1.4.0
+
+  [ Viallard Anthony ]
+  * Add support of STM32L496xx/4A6xx devices (#615)
+
+  [ rdlim ]
+  * Fix verification of flash error for STM32L496x device (#617) (#618)
+
+  [ dflogeras ]
+  * Add note about availability in Gentoo package manager (#622)
+
+  [ yaofei zheng ]
+  * update debian package version (#630)
+
+  [ Lyle Cheatham ]
+  * Minor formatting fix in FAQ section of README.md (#631)
+
+  [ Vasiliy Glazov ]
+  * README.md: Added information about Fedora and RedHat/CentOS packages.
+    (#635)
+  * Added LIB_INSTALL_DIR to correct libs install on 64-bit systems (#636)
+
+  [ Gwenhael Goavec-Merou ]
+  * fix write for microcontroler with RAM size less or equal to 32K (#637)
+
+  [ Mateusz Krawiec ]
+  * Fix memory map for stm32l496xx boards. (#639)
+
+  [ Rüdiger Fortanier ]
+  * Add unknown chip output (#641)
+
+  [ Slyshyk Oleksiy ]
+  * fix __FILE__ base name extraction,  #628 (#648)
+
+  [ texane ]
+  * STM32F72xx73xx support, from bob.feretich@rafresearch.com
+
+  [ Kirill Kolyshkin ]
+  * debian/triggers: add (to run ldconfig) (#664)
+
+  [ Slyshyk Oleksiy ]
+  * Try to fix #666 issue (#667)
+  * Try to fix 666 issue (#668)
+
+  [ Jerry Jacobs ]
+  * Update ChangeLog.md
+  * Update README.md
+
+  [ texane ]
+  * STM32F042K6 Nucleo-32 Board reported to work, by frank@bauernoeppel.de
+
+  [ Anatol Pomozov ]
+  * Update .version file to match release number (#670)
+
+ -- Anatol Pomozov <anatol.pomozov@gmail.com>  Mon, 19 Feb 2018 11:00:29 -0800
+
 libstlink (1.4.0) unstable; urgency=low
 
   * Major changes and added features
