@@ -22,8 +22,6 @@ Package: libstlink1
 Section: libs
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Breaks: libstlink
-Replaces: libstlink
 Description: OpenSource ST-Link tools replacement.
  Flashing tools for STMicroelectronics STM32VL and STM32L. The transport layers
  STLINKv1 and STLINKv2 are supported.
@@ -33,8 +31,6 @@ Description: OpenSource ST-Link tools replacement.
 Package: stlink-tools
 Architecture: any
 Depends: libstlink1 (= ${binary:Version}), ${shlibs:Depends}, ${misc:Depends}
-Breaks: libstlink
-Replaces: libstlink
 Description: OpenSource ST-Link tools replacement.
  Flashing tools for STMicroelectronics STM32VL and STM32L. The transport layers
  STLINKv1 and STLINKv2 are supported.
