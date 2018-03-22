@@ -64,6 +64,7 @@ struct _STlinkGUI
     GtkToolButton  *connect_button;
     GtkToolButton  *disconnect_button;
     GtkToolButton  *flash_button;
+    GtkToolButton  *export_button;
     GtkToolButton  *open_button;
 
     /* flash dialog */
@@ -89,5 +90,6 @@ struct _STlinkGUIClass
 };
 
 GType stlink_gui_get_type (void);
+int export_to_file(const char*filename, const struct mem_t flash_mem);
 
 #endif
