@@ -44,8 +44,6 @@ int ugly_log(int level, const char *tag, const char *format, ...) {
     case UFATAL:
         fprintf(stderr, "FATAL %s: ", tag);
         vfprintf(stderr, format, args);
-        exit(EXIT_FAILURE);
-        // NEVER GETS HERE!!!
         break;
     default:
         fprintf(stderr, "%d %s: ", level, tag);
