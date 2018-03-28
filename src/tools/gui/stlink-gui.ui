@@ -107,6 +107,7 @@
     <property name="title" translatable="yes">STlink GUI</property>
     <property name="default_width">550</property>
     <property name="default_height">480</property>
+    <property name="icon_name">stlink-gui</property>
     <child>
       <object class="GtkGrid" id="maingrid">
         <property name="visible">True</property>
