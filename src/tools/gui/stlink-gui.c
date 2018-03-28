@@ -92,6 +92,8 @@ stlink_gui_set_sensitivity (STlinkGUI *gui, gboolean sensitivity)
 
     if (sensitivity && gui->sl && gui->filename)
         gtk_widget_set_sensitive (GTK_WIDGET (gui->flash_button), sensitivity);
+
+    gtk_widget_set_sensitive (GTK_WIDGET (gui->export_button), sensitivity && (gui->sl != NULL));
 }
 
 static void
@@ -575,6 +577,7 @@ static void stlink_gui_set_disconnected (STlinkGUI *gui)
 
     gtk_widget_set_sensitive (GTK_WIDGET (gui->device_frame), FALSE);
     gtk_widget_set_sensitive (GTK_WIDGET (gui->flash_button), FALSE);
+    gtk_widget_set_sensitive (GTK_WIDGET (gui->export_button), FALSE);
     gtk_widget_set_sensitive (GTK_WIDGET (gui->disconnect_button), FALSE);
     gtk_widget_set_sensitive (GTK_WIDGET (gui->connect_button), TRUE);
 }
@@ -710,6 +713,51 @@ flash_button_cb (GtkWidget *widget, gpointer data)
             }
         }
     }
+}
+
+int export_to_file(const char*filename, const struct mem_t flash_mem)
+{
+    printf("%s\n", filename);
+    FILE * f=fopen(filename, "w");
+    if(f==NULL)
+        return -1;
+    for(gsize i=0;i<flash_mem.size;i++)
+        if(fputc(flash_mem.memory[i], f)==EOF)
+        return -1;
+    fclose(f);
+    return 0;
+}
+
+static void
+export_button_cb (GtkWidget *widget, gpointer data)
+{
+    (void)widget;
+    STlinkGUI * gui = STLINK_GUI (data);
+    GtkWidget *dialog;
+    dialog = gtk_file_chooser_dialog_new ("Save as",
+            gui->window,
+            GTK_FILE_CHOOSER_ACTION_SAVE,
+            "_Cancel",
+            GTK_RESPONSE_CANCEL,
+            "_Open",
+            GTK_RESPONSE_ACCEPT,
+            NULL);
+    GtkFileChooser *chooser = GTK_FILE_CHOOSER (dialog);
+    gtk_file_chooser_set_do_overwrite_confirmation (chooser, TRUE);
+    gint res = gtk_dialog_run (GTK_DIALOG (dialog));
+    if (res == GTK_RESPONSE_ACCEPT)
+    {
+        char *filename;
+
+        filename = gtk_file_chooser_get_filename (chooser);
+        if(export_to_file (filename, gui->flash_mem)!=0)
+            stlink_gui_set_info_error_message(gui, "Failed to export flash");
+        else
+            stlink_gui_set_info_error_message(gui, "Export successful");
+        g_free (filename);
+    }
+
+    gtk_widget_destroy (dialog);
 }
 
 static gboolean
@@ -856,6 +904,11 @@ stlink_gui_build_ui (STlinkGUI *gui) {
         GTK_TOOL_BUTTON (gtk_builder_get_object (builder, "flash_button"));
     g_signal_connect (G_OBJECT (gui->flash_button), "clicked",
             G_CALLBACK (flash_button_cb), gui);
+
+    gui->export_button =
+        GTK_TOOL_BUTTON (gtk_builder_get_object (builder, "export_button"));
+    g_signal_connect (G_OBJECT (gui->export_button), "clicked",
+            G_CALLBACK (export_button_cb), gui);
 
     gui->devmem_treeview =
         GTK_TREE_VIEW (gtk_builder_get_object (builder, "devmem_treeview"));
