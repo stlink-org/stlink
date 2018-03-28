@@ -5,7 +5,17 @@ set(PROJECT_DESCRIPTION "Open source version of the STMicroelectronics Stlink To
 set(STLINK_UDEV_RULES_DIR "/etc/udev/rules.d" CACHE PATH "Udev rules directory")
 set(STLINK_MODPROBED_DIR "/etc/modprobe.d" CACHE PATH "modprobe.d directory")
 set(LIB_INSTALL_DIR "lib" CACHE PATH "Main library directory")
-set(STLINK_LIBRARY_PATH "${LIB_INSTALL_DIR}/${CMAKE_LIBRARY_PATH}" CACHE PATH "Target lib directory")
+
+if(IS_DIRECTORY CMAKE_LIBRARY_PATH)
+else()
+    set(CMAKE_LIBRARY_PATH "lib")
+endif()
+
+if (WIN32)
+    set(STLINK_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} CACHE PATH "Target lib directory")
+else()
+    set(STLINK_LIBRARY_PATH "${LIB_INSTALL_DIR}/${CMAKE_LIBRARY_PATH}" CACHE PATH "Target lib directory")
+endif(WIN32)
 
 option(STLINK_GENERATE_MANPAGES "Generate manpages with pandoc" OFF)
 
@@ -16,7 +26,9 @@ endif ()
 
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_SOURCE_DIR}/cmake/modules")
 include(cmake/Version.cmake)
-include(cmake/CFlags.cmake)
+if(NOT MSVC)
+    include(cmake/CFlags.cmake)
+endif()
 
 ###
 # Dependencies
@@ -119,6 +131,7 @@ if (WIN32 OR MSYS OR MINGW)
 else()
 	target_link_libraries(${STLINK_LIB_SHARED} ${LIBUSB_LIBRARY})
 endif()
+
 
 install(TARGETS ${STLINK_LIB_SHARED}
 	DESTINATION ${STLINK_LIBRARY_PATH}
