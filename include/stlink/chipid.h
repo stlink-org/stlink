@@ -68,7 +68,7 @@ enum stlink_stm32_chipids {
 	STLINK_CHIPID_STM32_L011             = 0x457,
 	STLINK_CHIPID_STM32_F410             = 0x458,
 	STLINK_CHIPID_STM32_F413             = 0x463,
-	STLINK_CHIPID_STM32_L4R9             = 0x470 // taken from the STM32L4R8I-DISCO board
+	STLINK_CHIPID_STM32_L4R9             = 0x470 // taken from the STM32L4R9I-DISCO board
 };
 
 /**

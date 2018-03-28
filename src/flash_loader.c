@@ -219,7 +219,7 @@ int stlink_flash_loader_init(stlink_t *sl, flash_loader_t *fl)
 	return 0;
 }
 
-static int loader_v_dependent_assignment(stlink_t *sl,
+static int loader_v_dependent_assignment(stlink_t *sl, 
                                          const uint8_t **loader_code, size_t *loader_size,
                                          const uint8_t *high_v_loader, size_t high_v_loader_size,
                                          const uint8_t *low_v_loader, size_t low_v_loader_size)
@@ -236,7 +236,7 @@ static int loader_v_dependent_assignment(stlink_t *sl,
         if (voltage == -1) {
             retval = -1;
             printf("Failed to read Target voltage\n");
-        }
+        } 
         else {
             if (voltage > 2700) {
                 *loader_code = high_v_loader;
