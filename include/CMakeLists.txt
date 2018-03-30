@@ -7,8 +7,8 @@ file(GLOB STLINK_HEADERS
 	"${CMAKE_BINARY_DIR}/include/stlink/*.h"
 )
 install(FILES ${CMAKE_SOURCE_DIR}/include/stlink.h
-    DESTINATION ${CMAKE_INSTALL_PREFIX}/include
+    DESTINATION ${STLINK_INCLUDE_PATH}
 )
 install(FILES ${STLINK_HEADERS}
-    DESTINATION include/${CMAKE_INSTALL_PREFIX}/include/stlink
+    DESTINATION ${STLINK_INCLUDE_PATH}/stlink
 )
