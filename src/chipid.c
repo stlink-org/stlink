@@ -10,8 +10,8 @@ static const struct stlink_chipid_params devices[] = {
             .flash_size_reg = 0x1ff0f442,      // section 45.2
             .flash_pagesize = 0x800,           // No flash pages
             .sram_size = 0x80000,              // "SRAM" byte size in hex from
-            .bootrom_base = 0x00200000,        //! "System memory" starting address from 
-            .bootrom_size = 0xEDC0             //! @todo "System memory" byte size in hex from 
+            .bootrom_base = 0x00200000,        //! "System memory" starting address from
+            .bootrom_size = 0xEDC0             //! @todo "System memory" byte size in hex from
         },
         {
             //RM0385 and DS10916 document was used to find these paramaters
@@ -442,10 +442,10 @@ static const struct stlink_chipid_params devices[] = {
             .bootrom_size = 0x7000           // 28k (per bank), same source as base
         },
         {
-            // STM32L4R9 (maybe others in the L4Rx series too)
+            // STM32L4RX
             // From DM00310109.pdf
-            .chip_id = STLINK_CHIPID_STM32_L4R9,
-            .description = "L4R9 device",
+            .chip_id = STLINK_CHIPID_STM32_L4RX,
+            .description = "L4Rx device",
             .flash_type = STLINK_FLASH_TYPE_L4,
             .flash_size_reg = 0x1fff75e0,    // "Flash size data register" (sec 52.2, page 2049)
             .flash_pagesize = 0x1000,        // 4k, section 3.3, pg 97
