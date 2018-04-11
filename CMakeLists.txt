@@ -14,7 +14,7 @@ endif()
 if (WIN32)
     set(STLINK_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} CACHE PATH "Target lib directory")
 else()
-    set(STLINK_LIBRARY_PATH "${LIB_INSTALL_DIR}/${CMAKE_LIBRARY_PATH}" CACHE PATH "Target lib directory")
+    set(STLINK_LIBRARY_PATH "${LIB_INSTALL_DIR}" CACHE PATH "Target lib directory")
 endif(WIN32)
 
 option(STLINK_GENERATE_MANPAGES "Generate manpages with pandoc" OFF)
