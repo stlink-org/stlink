@@ -5,6 +5,7 @@ debhelper-build-stamp
 *.substvars
 libstlink-dev
 libstlink
+libstlink1
 stlink-gui
 stlink-tools
 tmp
