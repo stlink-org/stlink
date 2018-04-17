@@ -19,7 +19,7 @@
    inkscape:export-xdpi="96"
    inkscape:export-ydpi="96"
    inkscape:version="0.92.1 r15371"
-   sodipodi:docname="stlinkgui_icon.svg">
+   sodipodi:docname="stlink-gui_icon.svg">
   <defs
      id="defs4485">
     <linearGradient
@@ -52,16 +52,16 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="5.6"
-     inkscape:cx="38.597054"
-     inkscape:cy="0.13008872"
+     inkscape:cx="-20.331517"
+     inkscape:cy="-1.2984827"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      showgrid="true"
      units="px"
-     inkscape:window-width="1280"
-     inkscape:window-height="987"
-     inkscape:window-x="1280"
-     inkscape:window-y="0"
+     inkscape:window-width="2560"
+     inkscape:window-height="1376"
+     inkscape:window-x="0"
+     inkscape:window-y="27"
      inkscape:window-maximized="1">
     <inkscape:grid
        type="xygrid"
@@ -75,7 +75,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -84,43 +84,47 @@
      inkscape:groupmode="layer"
      id="layer1"
      transform="translate(0,-284.29998)">
-    <rect
-       style="opacity:1;fill:#e6e6e6;fill-opacity:1;stroke:none;stroke-width:2.77128053;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       id="rect4492"
-       width="12.7"
-       height="12.699992"
-       x="-2.220446e-16"
-       y="284.29999" />
-    <rect
-       style="opacity:1;fill:url(#linearGradient5231);fill-opacity:1;stroke:#000000;stroke-width:0.5;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       id="rect5048"
-       width="11.641666"
-       height="11.641666"
-       x="0.52916664"
-       y="284.82913"
-       inkscape:export-xdpi="100.41455"
-       inkscape:export-ydpi="100.41455" />
-    <text
-       xml:space="preserve"
-       style="font-style:normal;font-weight:normal;font-size:10.58333302px;line-height:125%;font-family:Sans;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:#000002;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;"
-       x="1.1090335"
-       y="290.49252"
-       id="text5235"><tspan
-         sodipodi:role="line"
-         id="tspan5233"
-         x="1.1090335"
+    <g
+       id="scalable-icon"
+       inkscape:label="#g3694">
+      <rect
+         y="284.29999"
+         x="-2.220446e-16"
+         height="12.699992"
+         width="12.7"
+         id="rect4492"
+         style="opacity:1;fill:#e6e6e6;fill-opacity:1;stroke:none;stroke-width:2.77128053;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+      <rect
+         inkscape:export-ydpi="100.41455"
+         inkscape:export-xdpi="100.41455"
+         y="284.82913"
+         x="0.52916664"
+         height="11.641666"
+         width="11.641666"
+         id="rect5048"
+         style="opacity:1;fill:url(#linearGradient5231);fill-opacity:1;stroke:#000000;stroke-width:0.5;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+      <text
+         id="text5235"
          y="290.49252"
-         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:7.05555534px;font-family:Sans;-inkscape-font-specification:'Sans Bold';fill:#ffffff;fill-opacity:1;stroke:#000002;stroke-opacity:1">ST</tspan></text>
-    <text
-       xml:space="preserve"
-       style="font-style:normal;font-weight:normal;font-size:10.58333302px;line-height:125%;font-family:Sans;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:#000002;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       x="0.29261956"
-       y="295.71735"
-       id="text5235-5"><tspan
-         sodipodi:role="line"
-         id="tspan5233-6"
-         x="0.29261956"
+         x="1.1090335"
+         style="font-style:normal;font-weight:normal;font-size:10.58333302px;line-height:125%;font-family:Sans;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:#000002;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;"
+         xml:space="preserve"><tspan
+           style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:7.05555534px;font-family:Sans;-inkscape-font-specification:'Sans Bold';fill:#ffffff;fill-opacity:1;stroke:#000002;stroke-opacity:1"
+           y="290.49252"
+           x="1.1090335"
+           id="tspan5233"
+           sodipodi:role="line">ST</tspan></text>
+      <text
+         id="text5235-5"
          y="295.71735"
-         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:5.64444447px;font-family:Sans;-inkscape-font-specification:'Sans Bold';fill:#ffffff;fill-opacity:1;stroke:#000002;stroke-width:0.26458332px;stroke-opacity:1">link</tspan></text>
+         x="0.29261956"
+         style="font-style:normal;font-weight:normal;font-size:10.58333302px;line-height:125%;font-family:Sans;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:#000002;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         xml:space="preserve"><tspan
+           style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:5.64444447px;font-family:Sans;-inkscape-font-specification:'Sans Bold';fill:#ffffff;fill-opacity:1;stroke:#000002;stroke-width:0.26458332px;stroke-opacity:1"
+           y="295.71735"
+           x="0.29261956"
+           id="tspan5233-6"
+           sodipodi:role="line">link</tspan></text>
+    </g>
   </g>
 </svg>
