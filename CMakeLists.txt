@@ -5,6 +5,7 @@ set(PROJECT_DESCRIPTION "Open source version of the STMicroelectronics Stlink To
 set(STLINK_UDEV_RULES_DIR "/etc/udev/rules.d" CACHE PATH "Udev rules directory")
 set(STLINK_MODPROBED_DIR "/etc/modprobe.d" CACHE PATH "modprobe.d directory")
 set(LIB_INSTALL_DIR "lib" CACHE PATH "Main library directory")
+set(STLINK_STATIC_LIB ON CACHE BOOL "Install static lib")
 
 if(IS_DIRECTORY CMAKE_LIBRARY_PATH)
 else()
@@ -163,8 +164,7 @@ endif()
 
 set_target_properties(${STLINK_LIB_STATIC} PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
 
-set(STATIC_LIB_INSTALL ON CACHE BOOL "Install static lib")
-if (STATIC_LIB_INSTALL)
+if (STLINK_STATIC_LIB)
     install(TARGETS ${STLINK_LIB_STATIC}
         ARCHIVE DESTINATION ${STLINK_LIBRARY_PATH}
     )
