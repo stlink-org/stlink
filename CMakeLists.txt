@@ -4,6 +4,7 @@ project(stlink C)
 set(PROJECT_DESCRIPTION "Open source version of the STMicroelectronics Stlink Tools")
 set(STLINK_UDEV_RULES_DIR "/etc/udev/rules.d" CACHE PATH "Udev rules directory")
 set(STLINK_MODPROBED_DIR "/etc/modprobe.d" CACHE PATH "modprobe.d directory")
+set(STLINK_STATIC_LIB ON CACHE BOOL "Install static lib")
 
 if( IS_DIRECTORY ${LIB_INSTALL_DIR})
     set(LIB_INSTALL_DIR ${LIB_INSTALL_DIR} CACHE PATH "Main library directory")
@@ -167,9 +168,11 @@ endif()
 
 set_target_properties(${STLINK_LIB_STATIC} PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
 
-install(TARGETS ${STLINK_LIB_STATIC}
-	ARCHIVE DESTINATION ${STLINK_LIBRARY_PATH}
-)
+if (STLINK_STATIC_LIB)
+    install(TARGETS ${STLINK_LIB_STATIC}
+        ARCHIVE DESTINATION ${STLINK_LIBRARY_PATH}
+    )
+endif()
 
 ###
 # Tools
