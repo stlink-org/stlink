@@ -198,9 +198,6 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
 	DESTINATION ${STLINK_MODPROBED_DIR}/)
 	install(FILES ${RULES_FILES}
 	DESTINATION ${STLINK_UDEV_RULES_DIR}/)
-	#desktop file for linux launcher
-	install(FILES src/tools/gui/stlink.desktop DESTINATION ${CMAKE_INSTALL_PREFIX}/share/applications)
-	install(FILES src/tools/gui/art/stlink-gui_48.png DESTINATION ${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/48x48/apps RENAME stlink-gui.png)
 endif()
 
 add_subdirectory(src/gdbserver)
