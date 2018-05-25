@@ -289,9 +289,11 @@ int stlink_flash_loader_write_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* 
         if (retval == -1) {
             return retval;
         }
-    } else if (sl->core_id == STM32F7_CORE_ID ||
-               sl->chip_id == STLINK_CHIPID_STM32_F7 ||
-               sl->chip_id == STLINK_CHIPID_STM32_F7XXXX) {
+    } else if (sl->core_id == STM32F7_CORE_ID            ||
+               sl->chip_id == STLINK_CHIPID_STM32_F7     ||
+               sl->chip_id == STLINK_CHIPID_STM32_F7XXXX ||
+               sl->chip_id == STLINK_CHIPID_STM32_F72XXX
+               ) {
         int retval;
         retval = loader_v_dependent_assignment(sl,
                                                &loader_code, &loader_size,
