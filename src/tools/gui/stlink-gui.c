@@ -306,49 +306,81 @@ stlink_gui_populate_filemem_view (gpointer data)
     g_return_val_if_fail (gui != NULL, NULL);
     g_return_val_if_fail (gui->filename != NULL, NULL);
 
-    file = g_file_new_for_path (gui->filename);
-    input_stream = G_INPUT_STREAM (g_file_read (file, NULL, &err));
-    if (err) {
-        stlink_gui_set_info_error_message (gui, err->message);
-        g_error_free (err);
-        goto out;
-    }
+	if (g_str_has_suffix (gui->filename, ".hex")) {
+		// If the file has prefix .hex - try to interpret it as Intel-HEX.
+		// It's difficult to merge the world of standard functions and GLib,
+		// so do it simple - load whole file into buffer and copy the data
+		// to the destination afterwards.
+		// We loose meanwhile the displaying of the progress and need
+		// double memory.
 
-    file_info = g_file_input_stream_query_info (G_FILE_INPUT_STREAM (input_stream),
-            G_FILE_ATTRIBUTE_STANDARD_SIZE, NULL, &err);
-    if (err) {
-        stlink_gui_set_info_error_message (gui, err->message);
-        g_error_free (err);
-        goto out_input;
-    }
-    if (gui->file_mem.memory) {
-        g_free (gui->file_mem.memory);
-    }
-    gui->file_mem.size   = g_file_info_get_size (file_info);
-    gui->file_mem.memory = g_malloc (gui->file_mem.size);
+		uint8_t* mem   = NULL;
+		size_t   size  = 0;
+		uint32_t begin = 0;
+		int res = stlink_parse_ihex (gui->filename, 0, &mem, &size, &begin);
 
-    for (off = 0; off < (gint) gui->file_mem.size; off += MEM_READ_SIZE) {
-        guint   n_read = MEM_READ_SIZE;
+		if (res == 0) {
+			if (gui->file_mem.memory) {
+				g_free (gui->file_mem.memory);
+			}
+			gui->file_mem.size   = size;
+			gui->file_mem.memory = g_malloc (size);
+			gui->file_mem.base   = begin;
 
-        if (off + MEM_READ_SIZE > (gint) gui->file_mem.size) {
-            n_read = (guint) gui->file_mem.size - off;
-        }
+			memcpy (gui->file_mem.memory, mem, size);
+		}
+		else {
+			stlink_gui_set_info_error_message (gui, "Cannot interpret the file as Intel-HEX");
+		}
 
-        if (g_input_stream_read (G_INPUT_STREAM (input_stream),
-                    &buffer, n_read, NULL, &err) == -1) {
-            stlink_gui_set_info_error_message (gui, err->message);
-            g_error_free (err);
-            goto out_input;
-        }
-        memcpy (gui->file_mem.memory + off, buffer, n_read);
-        gui->progress.fraction = (gdouble) (off + n_read) / gui->file_mem.size;
-    }
-    g_idle_add ((GSourceFunc) stlink_gui_update_filemem_view, gui);
+		free(mem);
+	}
+	else {
+		file = g_file_new_for_path (gui->filename);
+		input_stream = G_INPUT_STREAM (g_file_read (file, NULL, &err));
+		if (err) {
+			stlink_gui_set_info_error_message (gui, err->message);
+			g_error_free (err);
+			goto out;
+		}
+
+		file_info = g_file_input_stream_query_info (G_FILE_INPUT_STREAM (input_stream),
+				G_FILE_ATTRIBUTE_STANDARD_SIZE, NULL, &err);
+		if (err) {
+			stlink_gui_set_info_error_message (gui, err->message);
+			g_error_free (err);
+			goto out_input;
+		}
+		if (gui->file_mem.memory) {
+			g_free (gui->file_mem.memory);
+		}
+		gui->file_mem.size   = g_file_info_get_size (file_info);
+		gui->file_mem.memory = g_malloc (gui->file_mem.size);
+
+		for (off = 0; off < (gint) gui->file_mem.size; off += MEM_READ_SIZE) {
+			guint   n_read = MEM_READ_SIZE;
+
+			if (off + MEM_READ_SIZE > (gint) gui->file_mem.size) {
+				n_read = (guint) gui->file_mem.size - off;
+			}
+
+			if (g_input_stream_read (G_INPUT_STREAM (input_stream),
+						&buffer, n_read, NULL, &err) == -1) {
+				stlink_gui_set_info_error_message (gui, err->message);
+				g_error_free (err);
+				goto out_input;
+			}
+			memcpy (gui->file_mem.memory + off, buffer, n_read);
+			gui->progress.fraction = (gdouble) (off + n_read) / gui->file_mem.size;
+		}
 
 out_input:
-    g_object_unref (input_stream);
+		g_object_unref (input_stream);
 out:
-    g_object_unref (file);
+		g_object_unref (file);
+	}
+
+	g_idle_add ((GSourceFunc) stlink_gui_update_filemem_view, gui);
     return NULL;
 }
 
