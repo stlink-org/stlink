@@ -693,7 +693,7 @@ stlink_gui_write_flash (gpointer data)
     g_return_val_if_fail ((gui->sl != NULL), NULL);
     g_return_val_if_fail ((gui->filename != NULL), NULL);
 
-    if (stlink_fwrite_flash(gui->sl, gui->filename, gui->sl->flash_base) < 0) {
+    if (stlink_mwrite_flash(gui->sl, gui->file_mem.memory, gui->file_mem.size, gui->sl->flash_base) < 0) {
         stlink_gui_set_info_error_message (gui, "Failed to write to flash");
     }
 
