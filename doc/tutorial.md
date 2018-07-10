@@ -35,6 +35,8 @@ Before continuing, the following dependencies must be met:
 -   libusb-1.0
 -   cmake
 
+Also make sure `gtk+` version 3.0 is installed. (`sudo apt-get install gtk+-3.0` or similiar)
+
 STLINK should run on any system meeting the above constraints. 
 
 The STLINK software source code is retrieved using:
