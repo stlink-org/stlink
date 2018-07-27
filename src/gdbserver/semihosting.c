@@ -91,6 +91,19 @@ static int mem_read(stlink_t *sl, uint32_t addr, void *data, uint16_t len)
 
 static int mem_write(stlink_t *sl, uint32_t addr, void *data, uint16_t len)
 {
+    // Note: this function can write more than it is asked to!
+    // If addr is not an even 32 bit boundary, or len is not a multiple of 4.
+    //
+    // If only 32 bit values can be written to the target,
+    // then this function should read the target memory at the
+    // start and end of the buffer where it will write more that
+    // the requested bytes. (perhaps reading the whole area is faster??).
+    //
+    // If 16 and 8 bit writes are available, then they could be used instead.
+ 
+    // Just return when the length is zero avoiding unneeded work.
+    if (len == 0) return 0;
+
     int offset = addr % 4;
     int write_len = len + offset;
 
