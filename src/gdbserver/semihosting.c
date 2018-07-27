@@ -351,7 +351,7 @@ int do_semihosting (stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret) {
                 *ret = buffer_len;
                 return -1;
             } else {
-                *ret = buffer_len - read_result;
+                *ret = buffer_len - (uint32_t)read_result;
             }
         }
 
