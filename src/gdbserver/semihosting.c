@@ -91,10 +91,6 @@ static int mem_read(stlink_t *sl, uint32_t addr, void *data, uint16_t len)
 
 static int mem_write(stlink_t *sl, uint32_t addr, void *data, uint16_t len)
 {
-    // Note: this function can write more than it is asked to!
-    // If addr is not an even 32 bit boundary.
-    if (len == 0) return 0;	// Don't write anything.
-
     int offset = addr % 4;
     int write_len = len + offset;
 
