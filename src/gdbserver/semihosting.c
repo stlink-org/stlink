@@ -311,7 +311,7 @@ int do_semihosting (stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret) {
         int      fd;
         uint32_t buffer_len;
         void    *buffer;
-	int	 read_result;
+	ssize_t  read_result;
 
         if (mem_read(sl, r1, args, sizeof (args)) != 0 ) {
             DLOG("Semihosting SYS_READ error: "
@@ -342,10 +342,10 @@ int do_semihosting (stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret) {
         DLOG("Semihosting: read(%d, target_addr:0x%08x, %zu)\n", fd,
              buffer_address, buffer_len);
 
-        read_result = (uint32_t)read(fd, buffer, buffer_len);
+        read_result = read(fd, buffer, buffer_len);
         saved_errno = errno;
 
-        if (*ret == (uint32_t)-1) {
+        if (read_result == (uint32_t)-1) {
             *ret = buffer_len;
         } else {
             if (mem_write(sl, buffer_address, buffer, read_result) != 0 ) {
