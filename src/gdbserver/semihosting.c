@@ -341,7 +341,7 @@ int do_semihosting (stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret) {
         read_result = read(fd, buffer, buffer_len);
         saved_errno = errno;
 
-        if (read_result == (uint32_t)-1) {
+        if (read_result == -1) {
             *ret = buffer_len;
         } else {
             if (mem_write(sl, buffer_address, buffer, read_result) != 0 ) {
