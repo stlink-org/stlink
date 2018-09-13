@@ -3,7 +3,7 @@ Open source version of the STMicroelectronics Stlink Tools
 
 [![GitHub release](https://img.shields.io/github/release/texane/stlink.svg)](https://github.com/texane/stlink/releases/latest)
 [![BSD licensed](https://img.shields.io/badge/license-BSD-blue.svg)](https://raw.githubusercontent.com/hyperium/hyper/master/LICENSE)
-[![GitHub commits](https://img.shields.io/github/commits-since/texane/stlink/1.5.0.svg)](https://github.com/texane/stlink/compare/1.4.0...master)
+[![GitHub commits](https://img.shields.io/github/commits-since/texane/stlink/1.5.1.svg)](https://github.com/texane/stlink/compare/1.5.1...master)
 [![Downloads](https://img.shields.io/github/downloads/texane/stlink/total.svg)](https://github.com/texane/stlink/releases)
 [![Linux Status](https://img.shields.io/travis/texane/stlink/master.svg?label=linux)](https://travis-ci.org/texane/stlink)
 [![Build Status](https://jenkins.ncrmnt.org/buildStatus/icon?job=GithubCI/stlink)](https://jenkins.ncrmnt.org/job/GithubCI/job/stlink/)
