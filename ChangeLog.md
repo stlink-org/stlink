@@ -1,6 +1,27 @@
 Stlink ChangeLog
 ================
 
+v1.5.1
+======
+
+Release date: 2018-09-13
+
+Major changes and added features:
+
+* Implement intel hex support for GTK GUI
+* Update libusb to 1.0.22
+* Add memory map for STM32F411RE target
+* Add support for STM32L4R9 target
+
+Fixes:
+
+* FreeBSD define LIBUSB_API_VERSION instead of LIBUSBX_API_VERSION
+* Proper flash page size calculation for F412 target
+* Fix flash memory map for F72xxx target
+* Return correct value on EOF for Semihosting SYS_READ
+
+For a complete list of changes see [the milestone](https://github.com/texane/stlink/milestone/6?closed=1)
+
 v1.5.0
 ======
 
