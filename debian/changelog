@@ -1,3 +1,11 @@
+stlink (1.5.1+ds-1) unstable; urgency=medium
+
+  * Merge tag 'v1.5.1' into debian. See upstream changelog for info:
+    https://github.com/texane/stlink/releases/tag/v1.5.1
+  * Mark packages as linux-any, other systems not supported.
+
+ -- Luca Boccassi <bluca@debian.org>  Fri, 28 Sep 2018 10:26:39 +0100
+
 stlink (1.5.0+ds-1) unstable; urgency=medium
 
   * Upload to unstable. (Closes: #869421)
