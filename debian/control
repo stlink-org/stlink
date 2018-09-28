@@ -10,7 +10,7 @@ Vcs-Browser: https://github.com/bluca/stlink
 
 Package: libstlink-dev
 Section: libdevel
-Architecture: any
+Architecture: linux-any
 Depends: libstlink1 (= ${binary:Version}), ${misc:Depends}
 Description: OpenSource ST-Link tools replacement.
  Flashing tools for STMicroelectronics STM32VL and STM32L. The transport layers
@@ -20,7 +20,7 @@ Description: OpenSource ST-Link tools replacement.
 
 Package: libstlink1
 Section: libs
-Architecture: any
+Architecture: linux-any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: OpenSource ST-Link tools replacement.
  Flashing tools for STMicroelectronics STM32VL and STM32L. The transport layers
@@ -29,7 +29,7 @@ Description: OpenSource ST-Link tools replacement.
  This package contains the shared library for stlink.
 
 Package: stlink-tools
-Architecture: any
+Architecture: linux-any
 Depends: libstlink1 (= ${binary:Version}), ${shlibs:Depends}, ${misc:Depends}
 Description: OpenSource ST-Link tools replacement.
  Flashing tools for STMicroelectronics STM32VL and STM32L. The transport layers
@@ -39,7 +39,7 @@ Description: OpenSource ST-Link tools replacement.
  udev rules.
 
 Package: stlink-gui
-Architecture: any
+Architecture: linux-any
 Depends: libstlink1 (= ${binary:Version}), stlink-tools (= ${binary:Version}),
  ${shlibs:Depends}, ${misc:Depends}
 Description: OpenSource ST-Link tools replacement.
