@@ -4,8 +4,23 @@ project(stlink C)
 set(PROJECT_DESCRIPTION "Open source version of the STMicroelectronics Stlink Tools")
 set(STLINK_UDEV_RULES_DIR "/etc/udev/rules.d" CACHE PATH "Udev rules directory")
 set(STLINK_MODPROBED_DIR "/etc/modprobe.d" CACHE PATH "modprobe.d directory")
-set(LIB_INSTALL_DIR "lib" CACHE PATH "Main library directory")
-set(STLINK_LIBRARY_PATH "${LIB_INSTALL_DIR}/${CMAKE_LIBRARY_PATH}" CACHE PATH "Target lib directory")
+set(STLINK_STATIC_LIB ON CACHE BOOL "Install static lib")
+
+if( IS_DIRECTORY ${LIB_INSTALL_DIR})
+    set(LIB_INSTALL_DIR ${LIB_INSTALL_DIR} CACHE PATH "Main library directory")
+    set(STLINK_LIBRARY_PATH "${LIB_INSTALL_DIR}")
+else()
+    set(LIB_INSTALL_DIR "lib" CACHE PATH "Main library directory")
+    set(STLINK_LIBRARY_PATH "${CMAKE_INSTALL_PREFIX}/${LIB_INSTALL_DIR}" )
+endif()
+
+if( IS_DIRECTORY ${INCLUDE_INSTALL_DIR})
+    set(INCLUDE_INSTALL_DIR ${INCLUDE_INSTALL_DIR} CACHE PATH "Main include directory")
+    set(STLINK_INCLUDE_PATH "${INCLUDE_INSTALL_DIR}" )
+else()
+    set(INCLUDE_INSTALL_DIR "include" CACHE PATH "Main include directory")
+    set(STLINK_INCLUDE_PATH "${CMAKE_INSTALL_PREFIX}/${INCLUDE_INSTALL_DIR}")
+endif()
 
 option(STLINK_GENERATE_MANPAGES "Generate manpages with pandoc" OFF)
 
@@ -16,7 +31,9 @@ endif ()
 
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_SOURCE_DIR}/cmake/modules")
 include(cmake/Version.cmake)
-include(cmake/CFlags.cmake)
+if(NOT MSVC)
+    include(cmake/CFlags.cmake)
+endif()
 
 ###
 # Dependencies
@@ -120,6 +137,7 @@ else()
 	target_link_libraries(${STLINK_LIB_SHARED} ${LIBUSB_LIBRARY})
 endif()
 
+
 install(TARGETS ${STLINK_LIB_SHARED}
 	DESTINATION ${STLINK_LIBRARY_PATH}
 )
@@ -150,9 +168,11 @@ endif()
 
 set_target_properties(${STLINK_LIB_STATIC} PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
 
-install(TARGETS ${STLINK_LIB_STATIC}
-	ARCHIVE DESTINATION ${STLINK_LIBRARY_PATH}
-)
+if (STLINK_STATIC_LIB)
+    install(TARGETS ${STLINK_LIB_STATIC}
+        ARCHIVE DESTINATION ${STLINK_LIBRARY_PATH}
+    )
+endif()
 
 ###
 # Tools

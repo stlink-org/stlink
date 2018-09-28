@@ -219,7 +219,7 @@ int stlink_flash_loader_init(stlink_t *sl, flash_loader_t *fl)
 	return 0;
 }
 
-static int loader_v_dependent_assignment(stlink_t *sl, 
+static int loader_v_dependent_assignment(stlink_t *sl,
                                          const uint8_t **loader_code, size_t *loader_size,
                                          const uint8_t *high_v_loader, size_t high_v_loader_size,
                                          const uint8_t *low_v_loader, size_t low_v_loader_size)
@@ -236,7 +236,7 @@ static int loader_v_dependent_assignment(stlink_t *sl,
         if (voltage == -1) {
             retval = -1;
             printf("Failed to read Target voltage\n");
-        } 
+        }
         else {
             if (voltage > 2700) {
                 *loader_code = high_v_loader;
@@ -289,9 +289,11 @@ int stlink_flash_loader_write_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* 
         if (retval == -1) {
             return retval;
         }
-    } else if (sl->core_id == STM32F7_CORE_ID ||
-               sl->chip_id == STLINK_CHIPID_STM32_F7 ||
-               sl->chip_id == STLINK_CHIPID_STM32_F7XXXX) {
+    } else if (sl->core_id == STM32F7_CORE_ID            ||
+               sl->chip_id == STLINK_CHIPID_STM32_F7     ||
+               sl->chip_id == STLINK_CHIPID_STM32_F7XXXX ||
+               sl->chip_id == STLINK_CHIPID_STM32_F72XXX
+               ) {
         int retval;
         retval = loader_v_dependent_assignment(sl,
                                                &loader_code, &loader_size,
@@ -306,7 +308,8 @@ int stlink_flash_loader_write_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* 
     } else if ((sl->chip_id == STLINK_CHIPID_STM32_L4) ||
               (sl->chip_id == STLINK_CHIPID_STM32_L43X) ||
               (sl->chip_id == STLINK_CHIPID_STM32_L46X) ||
-	       (sl->chip_id == STLINK_CHIPID_STM32_L496X))
+              (sl->chip_id == STLINK_CHIPID_STM32_L4RX) ||
+	            (sl->chip_id == STLINK_CHIPID_STM32_L496X))
       {
         loader_code = loader_code_stm32l4;
         loader_size = sizeof(loader_code_stm32l4);

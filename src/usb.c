@@ -368,10 +368,7 @@ int _stlink_usb_exit_dfu_mode(stlink_t* sl) {
     return 0;
 }
 
-/**
- * TODO - not convinced this does anything...
- * @param sl
- */
+
 int _stlink_usb_reset(stlink_t * sl) {
     struct stlink_libusb * const slu = sl->backend_data;
     unsigned char* const data = sl->q_buf;
@@ -389,7 +386,9 @@ int _stlink_usb_reset(stlink_t * sl) {
         return (int) size;
     }
 
-    return 0;
+    // Reset through AIRCR so NRST does not need to be connected
+    return stlink_write_debug32(sl, STLINK_REG_AIRCR,
+            STLINK_REG_AIRCR_VECTKEY | STLINK_REG_AIRCR_SYSRESETREQ);
 }
 
 

@@ -107,6 +107,7 @@
     <property name="title" translatable="yes">STlink GUI</property>
     <property name="default_width">550</property>
     <property name="default_height">480</property>
+    <property name="icon_name">stlink-gui</property>
     <child>
       <object class="GtkGrid" id="maingrid">
         <property name="visible">True</property>
@@ -167,6 +168,20 @@
                 <property name="label" translatable="yes">Flash</property>
                 <property name="use_underline">True</property>
                 <property name="stock_id">gtk-media-record</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkToolButton" id="export_button">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="tooltip_text" translatable="yes">Export device memory</property>
+                <property name="label" translatable="yes">__glade_unnamed_9</property>
+                <property name="use_underline">True</property>
+                <property name="stock_id">gtk-save</property>
               </object>
               <packing>
                 <property name="expand">False</property>

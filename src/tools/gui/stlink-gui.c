@@ -92,6 +92,8 @@ stlink_gui_set_sensitivity (STlinkGUI *gui, gboolean sensitivity)
 
     if (sensitivity && gui->sl && gui->filename)
         gtk_widget_set_sensitive (GTK_WIDGET (gui->flash_button), sensitivity);
+
+    gtk_widget_set_sensitive (GTK_WIDGET (gui->export_button), sensitivity && (gui->sl != NULL));
 }
 
 static void
@@ -304,49 +306,81 @@ stlink_gui_populate_filemem_view (gpointer data)
     g_return_val_if_fail (gui != NULL, NULL);
     g_return_val_if_fail (gui->filename != NULL, NULL);
 
-    file = g_file_new_for_path (gui->filename);
-    input_stream = G_INPUT_STREAM (g_file_read (file, NULL, &err));
-    if (err) {
-        stlink_gui_set_info_error_message (gui, err->message);
-        g_error_free (err);
-        goto out;
-    }
+	if (g_str_has_suffix (gui->filename, ".hex")) {
+		// If the file has prefix .hex - try to interpret it as Intel-HEX.
+		// It's difficult to merge the world of standard functions and GLib,
+		// so do it simple - load whole file into buffer and copy the data
+		// to the destination afterwards.
+		// We loose meanwhile the displaying of the progress and need
+		// double memory.
 
-    file_info = g_file_input_stream_query_info (G_FILE_INPUT_STREAM (input_stream),
-            G_FILE_ATTRIBUTE_STANDARD_SIZE, NULL, &err);
-    if (err) {
-        stlink_gui_set_info_error_message (gui, err->message);
-        g_error_free (err);
-        goto out_input;
-    }
-    if (gui->file_mem.memory) {
-        g_free (gui->file_mem.memory);
-    }
-    gui->file_mem.size   = g_file_info_get_size (file_info);
-    gui->file_mem.memory = g_malloc (gui->file_mem.size);
+		uint8_t* mem   = NULL;
+		size_t   size  = 0;
+		uint32_t begin = 0;
+		int res = stlink_parse_ihex (gui->filename, 0, &mem, &size, &begin);
 
-    for (off = 0; off < (gint) gui->file_mem.size; off += MEM_READ_SIZE) {
-        guint   n_read = MEM_READ_SIZE;
+		if (res == 0) {
+			if (gui->file_mem.memory) {
+				g_free (gui->file_mem.memory);
+			}
+			gui->file_mem.size   = size;
+			gui->file_mem.memory = g_malloc (size);
+			gui->file_mem.base   = begin;
 
-        if (off + MEM_READ_SIZE > (gint) gui->file_mem.size) {
-            n_read = (guint) gui->file_mem.size - off;
-        }
+			memcpy (gui->file_mem.memory, mem, size);
+		}
+		else {
+			stlink_gui_set_info_error_message (gui, "Cannot interpret the file as Intel-HEX");
+		}
 
-        if (g_input_stream_read (G_INPUT_STREAM (input_stream),
-                    &buffer, n_read, NULL, &err) == -1) {
-            stlink_gui_set_info_error_message (gui, err->message);
-            g_error_free (err);
-            goto out_input;
-        }
-        memcpy (gui->file_mem.memory + off, buffer, n_read);
-        gui->progress.fraction = (gdouble) (off + n_read) / gui->file_mem.size;
-    }
-    g_idle_add ((GSourceFunc) stlink_gui_update_filemem_view, gui);
+		free(mem);
+	}
+	else {
+		file = g_file_new_for_path (gui->filename);
+		input_stream = G_INPUT_STREAM (g_file_read (file, NULL, &err));
+		if (err) {
+			stlink_gui_set_info_error_message (gui, err->message);
+			g_error_free (err);
+			goto out;
+		}
+
+		file_info = g_file_input_stream_query_info (G_FILE_INPUT_STREAM (input_stream),
+				G_FILE_ATTRIBUTE_STANDARD_SIZE, NULL, &err);
+		if (err) {
+			stlink_gui_set_info_error_message (gui, err->message);
+			g_error_free (err);
+			goto out_input;
+		}
+		if (gui->file_mem.memory) {
+			g_free (gui->file_mem.memory);
+		}
+		gui->file_mem.size   = g_file_info_get_size (file_info);
+		gui->file_mem.memory = g_malloc (gui->file_mem.size);
+
+		for (off = 0; off < (gint) gui->file_mem.size; off += MEM_READ_SIZE) {
+			guint   n_read = MEM_READ_SIZE;
+
+			if (off + MEM_READ_SIZE > (gint) gui->file_mem.size) {
+				n_read = (guint) gui->file_mem.size - off;
+			}
+
+			if (g_input_stream_read (G_INPUT_STREAM (input_stream),
+						&buffer, n_read, NULL, &err) == -1) {
+				stlink_gui_set_info_error_message (gui, err->message);
+				g_error_free (err);
+				goto out_input;
+			}
+			memcpy (gui->file_mem.memory + off, buffer, n_read);
+			gui->progress.fraction = (gdouble) (off + n_read) / gui->file_mem.size;
+		}
 
 out_input:
-    g_object_unref (input_stream);
+		g_object_unref (input_stream);
 out:
-    g_object_unref (file);
+		g_object_unref (file);
+	}
+
+	g_idle_add ((GSourceFunc) stlink_gui_update_filemem_view, gui);
     return NULL;
 }
 
@@ -575,6 +609,7 @@ static void stlink_gui_set_disconnected (STlinkGUI *gui)
 
     gtk_widget_set_sensitive (GTK_WIDGET (gui->device_frame), FALSE);
     gtk_widget_set_sensitive (GTK_WIDGET (gui->flash_button), FALSE);
+    gtk_widget_set_sensitive (GTK_WIDGET (gui->export_button), FALSE);
     gtk_widget_set_sensitive (GTK_WIDGET (gui->disconnect_button), FALSE);
     gtk_widget_set_sensitive (GTK_WIDGET (gui->connect_button), TRUE);
 }
@@ -658,7 +693,7 @@ stlink_gui_write_flash (gpointer data)
     g_return_val_if_fail ((gui->sl != NULL), NULL);
     g_return_val_if_fail ((gui->filename != NULL), NULL);
 
-    if (stlink_fwrite_flash(gui->sl, gui->filename, gui->sl->flash_base) < 0) {
+    if (stlink_mwrite_flash(gui->sl, gui->file_mem.memory, (uint32_t)gui->file_mem.size, gui->sl->flash_base) < 0) {
         stlink_gui_set_info_error_message (gui, "Failed to write to flash");
     }
 
@@ -710,6 +745,51 @@ flash_button_cb (GtkWidget *widget, gpointer data)
             }
         }
     }
+}
+
+int export_to_file(const char*filename, const struct mem_t flash_mem)
+{
+    printf("%s\n", filename);
+    FILE * f=fopen(filename, "w");
+    if(f==NULL)
+        return -1;
+    for(gsize i=0;i<flash_mem.size;i++)
+        if(fputc(flash_mem.memory[i], f)==EOF)
+        return -1;
+    fclose(f);
+    return 0;
+}
+
+static void
+export_button_cb (GtkWidget *widget, gpointer data)
+{
+    (void)widget;
+    STlinkGUI * gui = STLINK_GUI (data);
+    GtkWidget *dialog;
+    dialog = gtk_file_chooser_dialog_new ("Save as",
+            gui->window,
+            GTK_FILE_CHOOSER_ACTION_SAVE,
+            "_Cancel",
+            GTK_RESPONSE_CANCEL,
+            "_Open",
+            GTK_RESPONSE_ACCEPT,
+            NULL);
+    GtkFileChooser *chooser = GTK_FILE_CHOOSER (dialog);
+    gtk_file_chooser_set_do_overwrite_confirmation (chooser, TRUE);
+    gint res = gtk_dialog_run (GTK_DIALOG (dialog));
+    if (res == GTK_RESPONSE_ACCEPT)
+    {
+        char *filename;
+
+        filename = gtk_file_chooser_get_filename (chooser);
+        if(export_to_file (filename, gui->flash_mem)!=0)
+            stlink_gui_set_info_error_message(gui, "Failed to export flash");
+        else
+            stlink_gui_set_info_error_message(gui, "Export successful");
+        g_free (filename);
+    }
+
+    gtk_widget_destroy (dialog);
 }
 
 static gboolean
@@ -856,6 +936,11 @@ stlink_gui_build_ui (STlinkGUI *gui) {
         GTK_TOOL_BUTTON (gtk_builder_get_object (builder, "flash_button"));
     g_signal_connect (G_OBJECT (gui->flash_button), "clicked",
             G_CALLBACK (flash_button_cb), gui);
+
+    gui->export_button =
+        GTK_TOOL_BUTTON (gtk_builder_get_object (builder, "export_button"));
+    g_signal_connect (G_OBJECT (gui->export_button), "clicked",
+            G_CALLBACK (export_button_cb), gui);
 
     gui->devmem_treeview =
         GTK_TREE_VIEW (gtk_builder_get_object (builder, "devmem_treeview"));

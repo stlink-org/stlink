@@ -535,6 +535,11 @@ int _stlink_sg_reset(stlink_t *sl) {
     if (stlink_q(sl))
         return -1;
 
+    // Reset through AIRCR so NRST does not need to be connected
+    if (stlink_write_debug32(sl, STLINK_REG_AIRCR,
+                STLINK_REG_AIRCR_VECTKEY | STLINK_REG_AIRCR_SYSRESETREQ))
+        return -1;
+
     stlink_stat(sl, "core reset");
     return 0;
 }
@@ -944,6 +949,10 @@ static stlink_t* stlink_open(const int verbose) {
     struct stlink_libsg *slsg = malloc(sizeof (struct stlink_libsg));
     if (sl == NULL || slsg == NULL) {
         WLOG("Couldn't malloc stlink and stlink_sg structures out of memory!\n");
+        if(sl != NULL)
+            free(sl);
+        if(slsg != NULL)
+            free(slsg);
         return NULL;
     }
 
@@ -954,7 +963,14 @@ static stlink_t* stlink_open(const int verbose) {
         return NULL;
     }
 
+#if defined (__FreeBSD__)
+ #define LIBUSBX_API_VERSION LIBUSB_API_VERSION
+#endif 
+#if LIBUSBX_API_VERSION < 0x01000106
     libusb_set_debug(slsg->libusb_ctx, 3);
+#else
+    libusb_set_option(slsg->libusb_ctx, LIBUSB_OPTION_LOG_LEVEL, 3);
+#endif
 
     slsg->usb_handle = libusb_open_device_with_vid_pid(slsg->libusb_ctx, STLINK_USB_VID_ST, STLINK_USB_PID_STLINK);
     if (slsg->usb_handle == NULL) {
