@@ -20,7 +20,8 @@ int ugly_init(int maximum_threshold);
 int ugly_log(int level, const char *tag, const char *format, ...);
 
 #define UGLY_LOG_FILE (strstr(__FILE__, "/") != NULL ? \
-    strrchr(__FILE__, '/') + 1 : strrchr(__FILE__, '\\') + 1)
+    strrchr(__FILE__, '/')  + 1 : strstr(__FILE__, "\\") != NULL ? \
+    strrchr(__FILE__, '\\') + 1 : __FILE__)
 
 /** @todo we need to write this in a more generic way, for now this should compile
  on visual studio (See http://stackoverflow.com/a/8673872/1836746) */
