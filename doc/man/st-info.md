@@ -17,31 +17,31 @@ Serial code, openocd, flash, sram, page size, chipid, description.
 
 # OPTIONS
 
---version
+\--version
 :   Print version information
 
---flash
+\--flash
 :   Display amount of flash memory available in the device
 
---sram
+\--sram
 :   Display amount of sram memory available in device
 
---descr
+\--descr
 :   Display textual description of the device
 
---pagesize
+\--pagesize
 :   Display the page size of the device
 
---chipid
+\--chipid
 :   Display the chip ID of the device
 
---serial
+\--serial
 :   Display the serial code of the device
 
---hla-serial
+\--hla-serial
 :   Display the hex escaped serial code of the device
 
---probe
+\--probe
 :   Display the summarized information of the connected programmers and devices
 
 
