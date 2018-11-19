@@ -24,34 +24,34 @@ variable STLINK_DEVICE on the format <USB_BUS>:<USB_ADDR>.
 
 # OPTIONS
 
--h, `--help`
+-h, \--help
 :   Print this message.
 
-`--version`
+\--version
 :   Print version information
 
--v *XX*, `--verbose=XX`
+-v *XX*, \--verbose=*XX*
 :   Specify a specific verbosity level (0..99)
 
--v, `--verbose`
+-v, \--verbose
 :   Specify generally verbose logging
 
--s *X*, `--stlink_version=X`
+-s *X*, \--stlink_version=*X*
 :   Choose what version of stlink to use, (defaults to 2)
 
--1, `--stlinkv1`
+-1, \--stlinkv1
 :   Force stlink version 1
 
--p *4242*, `--listen_port=1234`
+-p *4242*, \--listen_port=1234
 :   Set the gdb server listen port. (default port: 4242)
 
--m, `--multi`
+-m, \--multi
 :   Set gdb server to extended mode. st-util will continue listening for connections after disconnect.
 
--n, `--no-reset`
+-n, \--no-reset
 :   Do not reset board on connection.
 
-`--semihosting`
+\--semihosting
 :   Enable ARM Semihosting output on stdout
 
 # EXAMPLES
