@@ -43,7 +43,7 @@ $ cd build/Release; sudo make install
 * Debian based distros (debian, ubuntu)
   * `build-essential`
 * `cmake`
-* `libusb-1.0` (plus development headers for building, on debian based distros `libusb-1.0.0-dev` package)
+* `libusb-1.0` (plus development headers for building, on debian based distros `libusb-1.0-0-dev` package)
 * (optional) for `stlink-gui` we need libgtk-3-dev
 
 ### Fixing cannot open shared object file
