@@ -1436,13 +1436,19 @@ uint32_t calculate_L4_page(stlink_t *sl, uint32_t flashaddr) {
     uint32_t flashopt;
     stlink_read_debug32(sl, STM32L4_FLASH_OPTR, &flashopt);
     flashaddr -= STM32_FLASH_BASE;
-    if (flashopt & (1lu << STM32L4_FLASH_OPTR_DUALBANK)) {
-        uint32_t banksize = (uint32_t) sl->flash_size / 2;
-        if (flashaddr >= banksize) {
-            flashaddr -= banksize;
-            bker = 0x100;
+    if (sl->chip_id == STLINK_CHIPID_STM32_L4 ||
+        sl->chip_id == STLINK_CHIPID_STM32_L496X ||
+        sl->chip_id == STLINK_CHIPID_STM32_L4RX) {
+        // This chip use dual banked flash
+        if (flashopt & (1lu << STM32L4_FLASH_OPTR_DUALBANK)) {
+            uint32_t banksize = (uint32_t) sl->flash_size / 2;
+            if (flashaddr >= banksize) {
+                flashaddr -= banksize;
+                bker = 0x100;
+            }
         }
     }
+
     // For 1MB chips without the dual-bank option set, the page address will
     // overflow into the BKER bit, which gives us the correct bank:page value.
     return bker | flashaddr/sl->flash_pgsz;
