@@ -1364,7 +1364,7 @@ int stlink_fread(stlink_t* sl, const char* path, bool is_ihex, stm32_addr_t addr
 
     int error;
 
-    int fd = open(path, O_RDWR | O_TRUNC | O_CREAT, 00700);
+    int fd = open(path, O_RDWR | O_TRUNC | O_CREAT | O_BINARY, 00700);
     if (fd == -1) {
         fprintf(stderr, "open(%s) == -1\n", path);
         return -1;
