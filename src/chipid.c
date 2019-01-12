@@ -403,10 +403,10 @@ static const struct stlink_chipid_params devices[] = {
             .bootrom_size = 0x1000
         },
         {
-            // STM32F334
-            // RM0364 document was used to find these parameters
+            // STM32F334, STM32F303x6/8, and STM32F328
+            // From RM0364 and RM0316
             .chip_id = STLINK_CHIPID_STM32_F334,
-            .description = "F334 device",
+            .description = "F3xx medium density device", // (RM0316 sec 33.6.1)
             .flash_type = STLINK_FLASH_TYPE_F0,
             .flash_size_reg = 0x1ffff7cc,
             .flash_pagesize = 0x800,
