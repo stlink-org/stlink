@@ -6,7 +6,7 @@ if (GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
 	# Working off a git repo, using git versioning
 	# Check if HEAD is pointing to a tag
 	execute_process (
-		COMMAND             "${GIT_EXECUTABLE}" describe --always
+		COMMAND             "${GIT_EXECUTABLE}" describe --always --tag
 		WORKING_DIRECTORY   "${PROJECT_SOURCE_DIR}"
 		OUTPUT_VARIABLE     PROJECT_VERSION
 		OUTPUT_STRIP_TRAILING_WHITESPACE)
@@ -20,6 +20,9 @@ if (GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
 	if (res EQUAL 1)
 		set (PROJECT_VERSION "${PROJECT_VERSION}-dirty")
 	endif()
+
+	# strip a leading v off of the version as proceeding code expectes just the version numbering.
+	string(REGEX REPLACE "^v" "" PROJECT_VERSION ${PROJECT_VERSION})
 
 	string(REGEX REPLACE "^(0|[1-9][0-9]*)[.](0|[1-9][0-9]*)[.](0|[1-9][0-9]*)(-[.0-9A-Za-z-]+)?([+][.0-9A-Za-z-]+)?$"
 		"\\1;\\2;\\3" PROJECT_VERSION_LIST ${PROJECT_VERSION})
