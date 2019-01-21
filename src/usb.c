@@ -923,6 +923,9 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, bool reset, char serial[16
     // Initialize stlink version (sl->version)	
     stlink_version(sl);	
 
+    // Set the stlink clock speed (default is 1800kHz)
+    stlink_set_swdclk(sl, STLINK_SWDCLK_1P8MHZ_DIVISOR);    
+    
     if (reset) {
         if( sl->version.stlink_v > 1 ) stlink_jtag_reset(sl, 2);
         stlink_reset(sl);
@@ -930,9 +933,6 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, bool reset, char serial[16
     }
 
     ret = stlink_load_device_params(sl);
-
-    // Set the stlink clock speed (default is 1800kHz)
-    stlink_set_swdclk(sl, STLINK_SWDCLK_1P8MHZ_DIVISOR);    
 
 on_libusb_error:
     if (ret == -1) {
