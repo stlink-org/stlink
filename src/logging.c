@@ -22,6 +22,10 @@ int ugly_log(int level, const char *tag, const char *format, ...) {
     if (level > max_level) {
         return 0;
     }
+
+    // Flush to maintain order of streams
+    fflush(stdout);
+
     va_list args;
     va_start(args, format);
     time_t mytt = time(NULL);
@@ -46,6 +50,7 @@ int ugly_log(int level, const char *tag, const char *format, ...) {
         break;
     }
     vfprintf(stderr, format, args);
+    fflush(stderr);
     va_end(args);
     return 1;
 }
