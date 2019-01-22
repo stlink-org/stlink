@@ -1640,8 +1640,8 @@ int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr)
         /* Set the page to erase. */
         uint32_t flash_page = ((flashaddr - STM32_FLASH_BASE) / sl->flash_pgsz);
         stlink_read_debug32(sl, STM32G0_FLASH_CR, &val);
-        // sec 3.7.5 - PNB[5:0] is offset by 3.
-        val |= (flash_page & 0x3F) << 3;
+        // sec 3.7.5 - PNB[5:0] is offset by 3. PER is 0x2.
+        val = ((flash_page & 0x3F) << 3) | (2);
         stlink_write_debug32(sl, STM32G0_FLASH_CR, val);
         /* Set the 'start' bit. */
         stlink_read_debug32(sl, STM32G0_FLASH_CR, &val);
