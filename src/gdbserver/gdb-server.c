@@ -151,7 +151,7 @@ int parse_options(int argc, char** argv, st_state_t *st) {
                 if (optarg) {
                     st->logging_level = atoi(optarg);
                 } else {
-                    st->logging_level = DEFAULT_LOGGING_LEVEL;
+                    st->logging_level = DEBUG_LOGGING_LEVEL;
                 }
                 break;
             case '1':
