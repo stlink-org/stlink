@@ -272,7 +272,7 @@ char *win32_strsep (char **stringp, const char *delim)
 }
 
 #ifndef STLINK_HAVE_UNISTD_H
-void usleep(DWORD waitTime)
+int usleep(unsigned int waitTime)
 {
 	if (waitTime >= 1000)
 	{
@@ -288,7 +288,7 @@ void usleep(DWORD waitTime)
 		SetWaitableTimer(timer, &dueTime, 0, NULL, NULL, 0);
 		WaitForSingleObject(timer, INFINITE);
 		CloseHandle(timer);
-		return;
+        return 0;
 	}
     LARGE_INTEGER perf_cnt, start, now;
 
@@ -298,6 +298,8 @@ void usleep(DWORD waitTime)
     do {
         QueryPerformanceCounter((LARGE_INTEGER*) &now);
     } while ((now.QuadPart - start.QuadPart) / (float)perf_cnt.QuadPart * 1000 * 1000 < waitTime);
+
+    return 0;
 }
 #endif
 

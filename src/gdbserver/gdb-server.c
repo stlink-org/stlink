@@ -254,8 +254,8 @@ int main(int argc, char** argv) {
 
     do {
         if (serve(sl, &state)) {
-	  sleep (1); // don't go bezurk if serve returns with error
-	}
+      usleep (1 * 1000); // don't go bezurk if serve returns with error
+    }
 
         /* in case serve() changed the connection */
         sl = connected_stlink;
