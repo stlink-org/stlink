@@ -380,6 +380,20 @@ static void set_flash_cr_mer(stlink_t *sl, bool v) {
     stlink_write_debug32(sl, cr_reg, val);
 }
 
+static void set_flash_cr2_mer(stlink_t *sl, bool v) {
+    const uint32_t cr_pg = 1 << FLASH_CR_PER;
+    const uint32_t cr_mer = 1 << FLASH_CR_MER;
+    uint32_t val;
+
+    stlink_read_debug32(sl, FLASH_CR2, &val);
+    val &= ~cr_pg;
+    if (v)
+        val |= cr_mer;
+    else
+        val &= ~cr_mer;
+    stlink_write_debug32(sl, FLASH_CR2, val);
+}
+
 static void __attribute__((unused)) clear_flash_cr_mer(stlink_t *sl) {
     uint32_t val, cr_reg, cr_mer;
 
@@ -1740,6 +1754,14 @@ int stlink_erase_flash_mass(stlink_t *sl) {
         /* start erase operation, reset by hw with bsy bit */
         set_flash_cr_strt(sl);
 
+        if (sl->flash_type == STLINK_FLASH_TYPE_F1_XL) {
+            /* set the mass erase bit in bank 2 */
+            set_flash_cr2_mer(sl,1);
+
+            /* start erase operation in bank 2 */
+            set_flash_cr2_strt(sl);
+        }
+
         /* wait for completion */
         wait_flash_busy_progress(sl);
 
@@ -1748,6 +1770,11 @@ int stlink_erase_flash_mass(stlink_t *sl) {
 
         /* reset the mass erase bit */
         set_flash_cr_mer(sl,0);
+
+        if (sl->flash_type == STLINK_FLASH_TYPE_F1_XL) {
+            /* reset the mass erase bit in bank 2 */
+            set_flash_cr2_mer(sl,0);
+        }
 
         /* todo: verify the erased memory */
     }
