@@ -320,7 +320,7 @@ static void set_flash_cr_pg(stlink_t *sl) {
     stlink_write_debug32(sl, cr_reg, x);
 }
 
-static void __attribute__((unused)) clear_flash_cr_pg(stlink_t *sl) {
+static void clear_flash_cr_pg(stlink_t *sl) {
     uint32_t cr_reg, n;
 
     if (sl->flash_type == STLINK_FLASH_TYPE_F4)
@@ -2008,6 +2008,7 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uint32_t 
         }
 
         /* Relock flash */
+        clear_flash_cr_pg(sl);
         lock_flash(sl);
 
     }	//STM32F4END
