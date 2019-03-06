@@ -83,7 +83,7 @@ Options (do one of these before you plug it in)
 
 ### Build Debian Package
 
-To build the debian package you need the following extra packages: `debuild debhelper`.
+To build the debian package you need the following extra packages: `devscripts debhelper`.
 
 ```
 $ git archive --prefix=$(git describe)/ HEAD | bzip2 --stdout > ../libstlink_$(sed -En -e "s/.*\((.*)\).*/\1/" -e "1,1 p" debian/changelog).orig.tar.bz2
