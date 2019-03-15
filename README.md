@@ -117,7 +117,8 @@ Remember that you can shorten the commands. `tar ext :4242` is good enough
 for GDB.
 
 If you need to send a hard reset signal through `NRST` pin, you can use the following command:
-``
+
+```
 (gdb) monitor jtag_reset
 ```
 
