@@ -91,6 +91,20 @@
 #define STM32G0_FLASH_PCROP1BER (STM32G0_FLASH_REGS_ADDR + 0x38)
 #define STM32G0_FLASH_SECR (STM32G0_FLASH_REGS_ADDR + 0x80)
 
+// GO FLASH control register
+#define STM32G0_FLASH_CR_PG          0      /* Program */
+#define STM32G0_FLASH_CR_PER         1      /* Page erase */
+#define STM32G0_FLASH_CR_MER1        2      /* Mass erase */
+#define STM32G0_FLASH_CR_PNB         3      /* Page number (5 bits) */
+#define STM32G0_FLASH_CR_STRT       16      /* Start */
+#define STM32G0_FLASH_CR_OPTSTRT    17      /* Start of modification of option bytes */
+#define STM32G0_FLASH_CR_FSTPG      18      /* Fast programming */
+#define STM32G0_FLASH_CR_EOPIE      24      /* End of operation interrupt enable */
+#define STM32G0_FLASH_CR_ERRIE      25      /* Error interrupt enable */
+#define STM32G0_FLASH_CR_OBL_LAUNCH 27      /* Forces the option byte loading */
+#define STM32G0_FLASH_CR_OPTLOCK    30      /* Options Lock */
+#define STM32G0_FLASH_CR_LOCK       31      /* FLASH_CR Lock*/
+
 //32L4 register base is at FLASH_REGS_ADDR (0x40022000)
 #define STM32L4_FLASH_KEYR      (FLASH_REGS_ADDR + 0x08)
 #define STM32L4_FLASH_SR        (FLASH_REGS_ADDR + 0x10)
@@ -2403,6 +2417,119 @@ int stlink_fwrite_flash(stlink_t *sl, const char* path, stm32_addr_t addr) {
         ILOG("Ignoring %d bytes of 0x%02x at end of file\n", num_empty, erased_pattern);
     }
     err = stlink_write_flash(sl, addr, mf.base, (num_empty == mf.len) ? (uint32_t) mf.len : (uint32_t) mf.len - num_empty, num_empty == mf.len);
+    stlink_fwrite_finalize(sl, addr);
+    unmap_file(&mf);
+    return err;
+}
+
+/**
+ * Write option bytes
+ * @param sl
+ * @param addr of the memory mapped option bytes
+ * @param base option bytes to write
+ * @return 0 on success, -ve on failure.
+ */
+int stlink_write_option_bytes(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uint32_t len) {
+
+    uint32_t val;
+
+    if(len != 4) {
+        ELOG("Wrong length for writting option bytes, must be 4 is %d\n", len);
+        return -1;
+    }
+
+    // Make sure we've loaded the context with the chip details
+    stlink_core_id(sl);
+
+    if((sl->chip_id == STLINK_CHIPID_STM32_G0X1) && (addr == STM32_G0_OPTION_BYTES_BASE)) {
+        /* Unlock flash if necessary (ref manuel page 52) */
+        stlink_read_debug32(sl, STM32G0_FLASH_CR, &val);
+        if ((val & (1 << STM32G0_FLASH_CR_LOCK))) {
+
+            /* disable flash write protection. */
+            stlink_write_debug32(sl, STM32G0_FLASH_KEYR, 0x45670123);
+            stlink_write_debug32(sl, STM32G0_FLASH_KEYR, 0xCDEF89AB);
+
+            // check that the lock is no longer set.
+            stlink_read_debug32(sl, STM32G0_FLASH_CR, &val);
+            if ((val & (1 << STM32G0_FLASH_CR_LOCK))) {
+                ELOG("Flash unlock failed! System reset required to be able to unlock it again!\n");
+                return -1;
+            }
+        }
+
+        /* Unlock option bytes if necessary (ref manuel page 61) */
+        stlink_read_debug32(sl, STM32G0_FLASH_CR, &val);
+        if ((val & (1 << STM32G0_FLASH_CR_OPTLOCK))) {
+
+            /* disable option byte write protection. */
+            stlink_write_debug32(sl, STM32G0_FLASH_OPTKEYR, 0x08192A3B);
+            stlink_write_debug32(sl, STM32G0_FLASH_OPTKEYR, 0x4C5D6E7F);
+
+            /* check that the lock is no longer set. */
+            stlink_read_debug32(sl, STM32G0_FLASH_CR, &val);
+            if ((val & (1 << STM32G0_FLASH_CR_OPTLOCK))) {
+                ELOG("Options bytes unlock failed! System reset required to be able to unlock it again!\n");
+                return -1;
+            }
+        }
+
+        /* Write options bytes */
+        uint32_t data;
+        write_uint32((unsigned char*) &data, *(uint32_t*) (base));
+        WLOG("Writing option bytes 0x%04x\n", data);
+        //stlink_write_debug32(sl, addr, data);
+        stlink_write_debug32(sl, STM32G0_FLASH_OPTR, data);
+
+        /* Set Options Start bit */
+        stlink_read_debug32(sl, STM32G0_FLASH_CR, &val);
+        val |= (1 << STM32G0_FLASH_CR_OPTSTRT);
+        stlink_write_debug32(sl, STM32G0_FLASH_CR, val);
+
+        /* Wait for 'busy' bit in FLASH_SR to clear. */
+        do {
+            stlink_read_debug32(sl, STM32G0_FLASH_SR, &val);
+        } while ((val & (1 << 16)) != 0);
+
+        /* apply options bytes immediate */
+        stlink_read_debug32(sl, STM32G0_FLASH_CR, &val);
+        val |= (1 << STM32G0_FLASH_CR_OBL_LAUNCH);
+        stlink_write_debug32(sl, STM32G0_FLASH_CR, val);
+
+        /* Re-lock option bytes */
+        stlink_read_debug32(sl, STM32G0_FLASH_CR, &val);
+        val |= (1 << STM32G0_FLASH_CR_OPTLOCK);
+        stlink_write_debug32(sl, STM32G0_FLASH_CR, val);
+        /* Re-lock flash. */
+        stlink_read_debug32(sl, STM32G0_FLASH_CR, &val);
+        val |= (1 << STM32G0_FLASH_CR_LOCK);
+        stlink_write_debug32(sl, STM32G0_FLASH_CR, val);
+    } else {
+        ELOG("Option bytes writing is currently only supported for the STM32G0\n");
+        return -1;
+    }
+
+    return 0;
+}
+
+/**
+ * Write the given binary file with option bytes
+ * @param sl
+ * @param path readable file path, should be binary image
+ * @param addr of the memory mapped option bytes
+ * @return 0 on success, -ve on failure.
+ */
+int stlink_fwrite_option_bytes(stlink_t *sl, const char* path, stm32_addr_t addr) {
+    /* write the file in flash at addr */
+    int err;
+    mapped_file_t mf = MAPPED_FILE_INITIALIZER;
+
+    if (map_file(&mf, path) == -1) {
+        ELOG("map_file() == -1\n");
+        return -1;
+    }
+
+    err = stlink_write_option_bytes(sl, addr, mf.base, mf.len);
     stlink_fwrite_finalize(sl, addr);
     unmap_file(&mf);
     return err;

@@ -58,6 +58,7 @@ extern "C" {
     // Constant STM32 memory map figures
 #define STM32_FLASH_BASE 0x08000000
 #define STM32_SRAM_BASE 0x20000000
+#define STM32_G0_OPTION_BYTES_BASE ((uint32_t)0x1FFF7800)
 
 // Baud rate divisors for SWDCLK
 #define STLINK_SWDCLK_4MHZ_DIVISOR		0
@@ -205,6 +206,7 @@ typedef struct flash_loader {
     uint8_t stlink_get_erased_pattern(stlink_t *sl);
     int stlink_mwrite_flash(stlink_t *sl, uint8_t* data, uint32_t length, stm32_addr_t addr);
     int stlink_fwrite_flash(stlink_t *sl, const char* path, stm32_addr_t addr);
+    int stlink_fwrite_option_bytes(stlink_t *sl, const char* path, stm32_addr_t addr);
     int stlink_mwrite_sram(stlink_t *sl, uint8_t* data, uint32_t length, stm32_addr_t addr);
     int stlink_fwrite_sram(stlink_t *sl, const char* path, stm32_addr_t addr);
     int stlink_verify_write_flash(stlink_t *sl, stm32_addr_t address, uint8_t *data, uint32_t length);

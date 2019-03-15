@@ -139,6 +139,12 @@ If you would link your executable to `0x08000000` and then do
 
 then it would be written to the memory.
 
+## Writing Option Bytes
+
+Example to read and write option bytes (currently writing only supported for STM32G0)
+./st-flash --debug --reset --format binary --flash=128k read option_bytes_dump.bin 0x1FFF7800 4
+./st-flash --debug --reset --format binary --flash=128k write option_bytes_dump.bin 0x1FFF7800
+
 ## FAQ
 
 Q: My breakpoints do not work at all or only work once.
