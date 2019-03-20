@@ -162,6 +162,14 @@ int main(int ac, char** av)
                 goto on_error;
             }
         }
+        else if (o.addr == STM32_G0_OPTION_BYTES_BASE) {
+            err = stlink_fwrite_option_bytes(sl, o.filename, o.addr);
+            if (err == -1)
+            {
+                printf("stlink_fwrite_option_bytes() == -1\n");
+                goto on_error;
+            }
+        }
         else {
             err = -1;
             printf("Unknown memory region\n");
