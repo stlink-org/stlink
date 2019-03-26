@@ -105,6 +105,28 @@
 #define STM32G0_FLASH_CR_OPTLOCK    30      /* Options Lock */
 #define STM32G0_FLASH_CR_LOCK       31      /* FLASH_CR Lock*/
 
+// WB (RM0434)
+#define STM32WB_FLASH_REGS_ADDR ((uint32_t)0x58004000)
+#define STM32WB_FLASH_ACR       (STM32WB_FLASH_REGS_ADDR + 0x00)
+#define STM32WB_FLASH_KEYR      (STM32WB_FLASH_REGS_ADDR + 0x08)
+#define STM32WB_FLASH_OPT_KEYR  (STM32WB_FLASH_REGS_ADDR + 0x0C)
+#define STM32WB_FLASH_SR        (STM32WB_FLASH_REGS_ADDR + 0x10)
+#define STM32WB_FLASH_CR        (STM32WB_FLASH_REGS_ADDR + 0x14)
+#define STM32WB_FLASH_ECCR      (STM32WB_FLASH_REGS_ADDR + 0x18)
+#define STM32WB_FLASH_OPTR      (STM32WB_FLASH_REGS_ADDR + 0x20)
+#define STM32WB_FLASH_PCROP1ASR (STM32WB_FLASH_REGS_ADDR + 0x24)
+#define STM32WB_FLASH_PCROP1AER (STM32WB_FLASH_REGS_ADDR + 0x28)
+#define STM32WB_FLASH_WRP1AR    (STM32WB_FLASH_REGS_ADDR + 0x2C)
+#define STM32WB_FLASH_WRP1BR    (STM32WB_FLASH_REGS_ADDR + 0x30)
+#define STM32WB_FLASH_PCROP1BSR (STM32WB_FLASH_REGS_ADDR + 0x34)
+#define STM32WB_FLASH_PCROP1BER (STM32WB_FLASH_REGS_ADDR + 0x38)
+#define STM32WB_FLASH_IPCCBR    (STM32WB_FLASH_REGS_ADDR + 0x3C)
+#define STM32WB_FLASH_C2ACR     (STM32WB_FLASH_REGS_ADDR + 0x5C)
+#define STM32WB_FLASH_C2SR      (STM32WB_FLASH_REGS_ADDR + 0x60)
+#define STM32WB_FLASH_C2CR      (STM32WB_FLASH_REGS_ADDR + 0x64)
+#define STM32WB_FLASH_SFR       (STM32WB_FLASH_REGS_ADDR + 0x80)
+#define STM32WB_FLASH_SRRVR     (STM32WB_FLASH_REGS_ADDR + 0x84)
+
 //32L4 register base is at FLASH_REGS_ADDR (0x40022000)
 #define STM32L4_FLASH_KEYR      (FLASH_REGS_ADDR + 0x08)
 #define STM32L4_FLASH_SR        (FLASH_REGS_ADDR + 0x10)
@@ -1687,6 +1709,49 @@ int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr)
         stlink_read_debug32(sl, STM32G0_FLASH_CR, &val);
         val |= 0x80000000;
         stlink_write_debug32(sl, STM32G0_FLASH_CR, val);
+    } else if (sl->flash_type == STLINK_FLASH_TYPE_WB) {
+        // TODO: So far, this looks identical to the G0 logic, and the
+        // core registers also have the same offsets.
+        uint32_t val;
+        /* check if the locks are set */
+        stlink_read_debug32(sl, STM32WB_FLASH_CR, &val);
+        if ((val & (1<<31))) {
+            /* disable flash write protection. */
+            stlink_write_debug32(sl, STM32WB_FLASH_KEYR, 0x45670123);
+            stlink_write_debug32(sl, STM32WB_FLASH_KEYR, 0xCDEF89AB);
+            /* check that the lock is no longer set. */
+            stlink_read_debug32(sl, STM32WB_FLASH_CR, &val);
+            if ((val & (1 << 31))) {
+                WLOG("pecr.pelock not clear (%#x)\n", val);
+                return -1;
+            }
+        }
+        /* Set PER (erase) bit. */
+        stlink_read_debug32(sl, STM32WB_FLASH_CR, &val);
+        val |= (1 << 1);
+        stlink_write_debug32(sl, STM32WB_FLASH_CR, val);
+        /* Set the page to erase. */
+        uint32_t flash_page = ((flashaddr - STM32_FLASH_BASE) / sl->flash_pgsz);
+        stlink_read_debug32(sl, STM32WB_FLASH_CR, &val);
+        // sec 3.10.5 - PNB[7:0] is offset by 3. PER is 0x2.
+        val = ((flash_page & 0xFF) << 3) | (2);
+        stlink_write_debug32(sl, STM32WB_FLASH_CR, val);
+        /* Set the 'start' bit. */
+        stlink_read_debug32(sl, STM32WB_FLASH_CR, &val);
+        val |= (1 << 16);
+        stlink_write_debug32(sl, STM32WB_FLASH_CR, val);
+        /* Wait for 'busy' bit in FLASH_SR to clear. */
+        do {
+            stlink_read_debug32(sl, STM32WB_FLASH_SR, &val);
+        } while ((val & (1 << 16)) != 0);
+        /* Clear PER ('erase enable') bit. */
+        stlink_read_debug32(sl, STM32WB_FLASH_CR, &val);
+        val &= ~(1 << 1);
+        stlink_write_debug32(sl, STM32WB_FLASH_CR, val);
+        /* Re-lock the flash. */
+        stlink_read_debug32(sl, STM32WB_FLASH_CR, &val);
+        val |= (1 << 31);
+        stlink_write_debug32(sl, STM32WB_FLASH_CR, val);
     } else if ((sl->flash_type == STLINK_FLASH_TYPE_F0) || ((sl->flash_type == STLINK_FLASH_TYPE_F1_XL) && (flashaddr < FLASH_BANK2_START_ADDR))) {
         /* wait for ongoing op to finish */
         wait_flash_busy(sl);
@@ -1755,6 +1820,41 @@ int stlink_erase_flash_mass(stlink_t *sl) {
             fflush(stdout);
         }
         fprintf(stdout, "\n");
+    } else if (sl->flash_type == STLINK_FLASH_TYPE_WB) {
+        uint32_t val;
+        /* check if the locks are set */
+        stlink_read_debug32(sl, STM32WB_FLASH_CR, &val);
+        if ((val & (1<<31))) {
+            /* disable flash write protection. */
+            stlink_write_debug32(sl, STM32WB_FLASH_KEYR, 0x45670123);
+            stlink_write_debug32(sl, STM32WB_FLASH_KEYR, 0xCDEF89AB);
+            /* check that the lock is no longer set. */
+            stlink_read_debug32(sl, STM32WB_FLASH_CR, &val);
+            if ((val & (1 << 31))) {
+                WLOG("pecr.pelock not clear (%#x)\n", val);
+                return -1;
+            }
+        }
+        /* Set MER (mass erase) bit. */
+        stlink_read_debug32(sl, STM32WB_FLASH_CR, &val);
+        val |= (1 << 2);
+        stlink_write_debug32(sl, STM32WB_FLASH_CR, val);
+        /* Set the 'start' bit. */
+        stlink_read_debug32(sl, STM32WB_FLASH_CR, &val);
+        val |= (1 << 16);
+        stlink_write_debug32(sl, STM32WB_FLASH_CR, val);
+        /* Wait for 'busy' bit in FLASH_SR to clear. */
+        do {
+            stlink_read_debug32(sl, STM32WB_FLASH_SR, &val);
+        } while ((val & (1 << 16)) != 0);
+        /* Clear MER bit. */
+        stlink_read_debug32(sl, STM32WB_FLASH_CR, &val);
+        val &= ~(1 << 2);
+        stlink_write_debug32(sl, STM32WB_FLASH_CR, val);
+        /* Re-lock the flash. */
+        stlink_read_debug32(sl, STM32WB_FLASH_CR, &val);
+        val |= (1 << 31);
+        stlink_write_debug32(sl, STM32WB_FLASH_CR, val);
     } else {
         /* wait for ongoing op to finish */
         wait_flash_busy(sl);
@@ -2083,6 +2183,67 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uint32_t 
         stlink_read_debug32(sl, STM32G0_FLASH_CR, &val);
         val |= 0x80000000;
         stlink_write_debug32(sl, STM32G0_FLASH_CR, val);
+    }
+    else if (sl->flash_type == STLINK_FLASH_TYPE_WB) {
+        fprintf(stdout, "Writing\r\n");
+        fflush(stdout);
+        uint32_t val;
+        /* Unlock flash. */
+        stlink_read_debug32(sl, STM32WB_FLASH_CR, &val);
+        if ((val & (1 << 31))) {
+            /* disable flash write protection. */
+            stlink_write_debug32(sl, STM32WB_FLASH_KEYR, 0x45670123);
+            stlink_write_debug32(sl, STM32WB_FLASH_KEYR, 0xCDEF89AB);
+            /* check that the lock is no longer set. */
+            stlink_read_debug32(sl, STM32WB_FLASH_CR, &val);
+            if ((val & (1 << 31))) {
+                WLOG("pecr.pelock not clear (%#x)\n", val);
+                return -1;
+            }
+        }
+        /* Set PG 'allow programming' bit. */
+        stlink_read_debug32(sl, STM32WB_FLASH_CR, &val);
+        val |= (1 << 0);
+        stlink_write_debug32(sl, STM32WB_FLASH_CR, val);
+        /* Write all words. */
+        off = 0;
+        fprintf(stdout, "Starting %3u page write\r\n", (unsigned int)(len/sl->flash_pgsz));
+        fflush(stdout);
+        for ( ; off < len; off += sizeof(uint32_t)) {
+            uint32_t data;
+            if (off > 254)
+                fprintf(stdout, "\r");
+
+            if ((off % sl->flash_pgsz) > (sl->flash_pgsz -5)) {
+                fprintf(stdout, "\r%3u/%3u pages written",
+                        (unsigned int)(off/sl->flash_pgsz),
+                        (unsigned int)(len/sl->flash_pgsz));
+                fflush(stdout);
+            }
+            write_uint32((unsigned char*) &data, *(uint32_t*) (base + off));
+            stlink_write_debug32(sl, addr + (uint32_t) off, data);
+            /* Wait for 'busy' bit in FLASH_SR to clear. */
+            do {
+                stlink_read_debug32(sl, STM32WB_FLASH_SR, &val);
+            } while ((val & (1 << 16)) != 0);
+        }
+        /* (Flash writes happen 2 words at a time.) */
+        if ((off / sizeof(uint32_t)) % 2 != 0) {
+            /* Write a single word of zeros. */
+            stlink_write_debug32(sl, addr + (uint32_t) off, 0);
+            /* Wait for 'busy' bit in FLASH_SR to clear. */
+            do {
+                stlink_read_debug32(sl, STM32WB_FLASH_SR, &val);
+            } while ((val & (1 << 16)) != 0);
+        }
+        /* Reset PG bit. */
+        stlink_read_debug32(sl, STM32WB_FLASH_CR, &val);
+        val &= ~(1 << 0);
+        stlink_write_debug32(sl, STM32WB_FLASH_CR, val);
+        /* Re-lock flash. */
+        stlink_read_debug32(sl, STM32WB_FLASH_CR, &val);
+        val |= (1 << 31);
+        stlink_write_debug32(sl, STM32WB_FLASH_CR, val);
     }
     else if (sl->flash_type == STLINK_FLASH_TYPE_L0) {
         /* use fast word write. todo: half page. */
