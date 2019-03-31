@@ -77,6 +77,7 @@ extern "C" {
         STLINK_FLASH_TYPE_L4,
         STLINK_FLASH_TYPE_F1_XL,
         STLINK_FLASH_TYPE_G0,
+        STLINK_FLASH_TYPE_WB
     };
 
     struct stlink_reg {
