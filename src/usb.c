@@ -827,7 +827,7 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, bool reset, char serial[16
             }
         }
 
-        if ((desc.idProduct == STLINK_USB_PID_STLINK_32L) || (desc.idProduct == STLINK_USB_PID_STLINK_NUCLEO)) {
+        if ((desc.idProduct == STLINK_USB_PID_STLINK_32L) || (desc.idProduct == STLINK_USB_PID_STLINK_NUCLEO) || (desc.idProduct == STLINK_USB_PID_STLINK_32L_AUDIO)) {
             struct libusb_device_handle *handle;
 
             ret = libusb_open(list[cnt], &handle);
@@ -901,7 +901,7 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, bool reset, char serial[16
 
     // TODO - could use the scanning techniq from stm8 code here...
     slu->ep_rep = 1 /* ep rep */ | LIBUSB_ENDPOINT_IN;
-    if (desc.idProduct == STLINK_USB_PID_STLINK_NUCLEO) {
+    if (desc.idProduct == STLINK_USB_PID_STLINK_NUCLEO || desc.idProduct == STLINK_USB_PID_STLINK_32L_AUDIO) {
         slu->ep_req = 1 /* ep req */ | LIBUSB_ENDPOINT_OUT;
     } else {
         slu->ep_req = 2 /* ep req */ | LIBUSB_ENDPOINT_OUT;
@@ -973,6 +973,7 @@ static size_t stlink_probe_usb_devs(libusb_device **devs, stlink_t **sldevs[]) {
         }
 
         if (desc.idProduct != STLINK_USB_PID_STLINK_32L &&
+            desc.idProduct != STLINK_USB_PID_STLINK_32L_AUDIO && 
             desc.idProduct != STLINK_USB_PID_STLINK_NUCLEO)
             continue;
 
@@ -996,7 +997,8 @@ static size_t stlink_probe_usb_devs(libusb_device **devs, stlink_t **sldevs[]) {
             break;
         }
 
-        if (desc.idProduct != STLINK_USB_PID_STLINK_32L &&
+        if (desc.idProduct != STLINK_USB_PID_STLINK_32L && 
+            desc.idProduct != STLINK_USB_PID_STLINK_32L_AUDIO && 
             desc.idProduct != STLINK_USB_PID_STLINK_NUCLEO)
             continue;
 
