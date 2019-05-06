@@ -454,6 +454,20 @@ static const struct stlink_chipid_params devices[] = {
             .bootrom_size = 0x7000           // 28k (per bank), same source as base (pg 99)
         },
         {
+            // STLINK_CHIPID_STM32_L41X
+            // From RM0394 Rev 4 and DS12469 Rev 5
+            .chip_id = STLINK_CHIPID_STM32_L41X,
+            .description = "L41x device",
+            .flash_type = STLINK_FLASH_TYPE_L4,
+            .flash_size_reg = 0x1fff75e0,    // "Flash size data register" (RM0394, sec 47.2, page 1586)
+            .flash_pagesize = 0x800,         // 2K (DS12469, sec 3.4, page 17)
+            // SRAM1 is 32k at 0x20000000
+            // SRAM2 is 8k at 0x10000000 and 0x20008000 (DS12469, sec 3.5, page 18)
+            .sram_size = 0xa000,             // 40K (DS12469, sec 3.5, page 18)
+            .bootrom_base = 0x1fff0000,      // System Memory (RM0394, sec 3.3.1, table 8)
+            .bootrom_size = 0x7000           // 28k, same source as base
+        },
+        {
             // STLINK_CHIPID_STM32_L43X
             // From RM0392.
             .chip_id = STLINK_CHIPID_STM32_L43X,
