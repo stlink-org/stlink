@@ -320,7 +320,7 @@ int do_semihosting (stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret) {
         int      fd;
         uint32_t buffer_len;
         void    *buffer;
-	ssize_t  read_result;
+        ssize_t  read_result;
 
         if (mem_read(sl, r1, args, sizeof (args)) != 0 ) {
             DLOG("Semihosting SYS_READ error: "

@@ -15,7 +15,8 @@ int win32_poll(struct pollfd *fds, unsigned int nfds, int timo)
 {
     struct timeval timeout, *toptr;
     fd_set ifds, ofds, efds, *ip, *op;
-    unsigned int i, rc;
+    unsigned int i;
+    int rc;
 
     /* Set up the file-descriptor sets in ifds, ofds and efds. */
 #ifdef _MSC_VER

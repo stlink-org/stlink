@@ -64,8 +64,12 @@ int gdb_recv_packet(int fd, char** buffer) {
     char* packet_buffer = malloc(packet_size);
     unsigned state;
 
+    if(packet_buffer == NULL)
+        return -2;
+
 start:
     state = 0;
+    packet_idx = 0;
     /*
      * 0: waiting $
      * 1: data, waiting #
@@ -77,6 +81,7 @@ start:
     char c;
     while(state != 4) {
         if(read(fd, &c, 1) != 1) {
+            free(packet_buffer);
             return -2;
         }
 
@@ -98,7 +103,13 @@ start:
 
                 if(packet_idx == packet_size) {
                     packet_size += ALLOC_STEP;
-                    packet_buffer = realloc(packet_buffer, packet_size);
+                    void* p = realloc(packet_buffer, packet_size);
+                    if(p != NULL)
+                        packet_buffer = p;
+                    else {
+                        free(packet_buffer);
+                        return -2;
+                    }
                 }
             }
             break;
@@ -119,6 +130,7 @@ start:
     if(recv_cksum_int != cksum) {
         char nack = '-';
         if(write(fd, &nack, 1) != 1) {
+            free(packet_buffer);
             return -2;
         }
 
@@ -126,6 +138,7 @@ start:
     } else {
         char ack = '+';
         if(write(fd, &ack, 1) != 1) {
+            free(packet_buffer);
             return -2;
         }
     }

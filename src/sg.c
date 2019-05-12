@@ -945,7 +945,6 @@ static stlink_backend_t _stlink_sg_backend = {
 static stlink_t* stlink_open(const int verbose) {
 
     stlink_t *sl = malloc(sizeof (stlink_t));
-    memset(sl, 0, sizeof(stlink_t));
     struct stlink_libsg *slsg = malloc(sizeof (struct stlink_libsg));
     if (sl == NULL || slsg == NULL) {
         WLOG("Couldn't malloc stlink and stlink_sg structures out of memory!\n");
@@ -955,6 +954,7 @@ static stlink_t* stlink_open(const int verbose) {
             free(slsg);
         return NULL;
     }
+    memset(sl, 0, sizeof(stlink_t));
 
     if (libusb_init(&(slsg->libusb_ctx))) {
         WLOG("failed to init libusb context, wrong version of libraries?\n");
