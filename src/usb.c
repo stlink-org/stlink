@@ -625,7 +625,7 @@ int _stlink_usb_read_unsupported_reg(stlink_t *sl, int r_idx, struct stlink_reg 
     if (ret == -1)
         return ret;
 
-    _stlink_usb_read_mem32(sl, STLINK_REG_DCRDR, 4);
+    ret = _stlink_usb_read_mem32(sl, STLINK_REG_DCRDR, 4);
     if (ret == -1)
         return ret;
 

@@ -288,7 +288,7 @@ static inline unsigned int is_flash_locked(stlink_t *sl) {
     else
         cr_lock_shift = FLASH_CR_LOCK;
 
-    return cr & (1 << cr_lock_shift);
+    return cr & (1u << cr_lock_shift);
 }
 
 static void unlock_flash(stlink_t *sl) {
@@ -352,11 +352,11 @@ static void lock_flash(stlink_t *sl) {
         cr_lock_shift = FLASH_CR_LOCK;
     }
 
-    n = read_flash_cr(sl) | (1 << cr_lock_shift);
+    n = read_flash_cr(sl) | (1u << cr_lock_shift);
     stlink_write_debug32(sl, cr_reg, n);
 
     if (sl->flash_type == STLINK_FLASH_TYPE_F1_XL) {
-        n = read_flash_cr2(sl) | (1 << cr_lock_shift);
+        n = read_flash_cr2(sl) | (1u << cr_lock_shift);
         stlink_write_debug32(sl, FLASH_CR2, n);
     }
 }
@@ -2524,7 +2524,7 @@ int stlink_write_option_bytes(stlink_t *sl, stm32_addr_t addr, uint8_t* base, ui
 
     /* Unlock flash if necessary (ref manuel page 52) */
     stlink_read_debug32(sl, STM32G0_FLASH_CR, &val);
-    if ((val & (1 << STM32G0_FLASH_CR_LOCK))) {
+    if ((val & (1u << STM32G0_FLASH_CR_LOCK))) {
 
         /* disable flash write protection. */
         stlink_write_debug32(sl, STM32G0_FLASH_KEYR, 0x45670123);
@@ -2532,7 +2532,7 @@ int stlink_write_option_bytes(stlink_t *sl, stm32_addr_t addr, uint8_t* base, ui
 
         // check that the lock is no longer set.
         stlink_read_debug32(sl, STM32G0_FLASH_CR, &val);
-        if ((val & (1 << STM32G0_FLASH_CR_LOCK))) {
+        if ((val & (1u << STM32G0_FLASH_CR_LOCK))) {
             ELOG("Flash unlock failed! System reset required to be able to unlock it again!\n");
             return -1;
         }
@@ -2578,11 +2578,11 @@ int stlink_write_option_bytes(stlink_t *sl, stm32_addr_t addr, uint8_t* base, ui
 
     /* Re-lock option bytes */
     stlink_read_debug32(sl, STM32G0_FLASH_CR, &val);
-    val |= (1 << STM32G0_FLASH_CR_OPTLOCK);
+    val |= (1u << STM32G0_FLASH_CR_OPTLOCK);
     stlink_write_debug32(sl, STM32G0_FLASH_CR, val);
     /* Re-lock flash. */
     stlink_read_debug32(sl, STM32G0_FLASH_CR, &val);
-    val |= (1 << STM32G0_FLASH_CR_LOCK);
+    val |= (1u << STM32G0_FLASH_CR_LOCK);
     stlink_write_debug32(sl, STM32G0_FLASH_CR, val);
 
     return 0;
