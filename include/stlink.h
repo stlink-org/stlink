@@ -66,6 +66,8 @@ extern "C" {
 #define STLINK_SWDCLK_15KHZ_DIVISOR		265
 #define STLINK_SWDCLK_5KHZ_DIVISOR		798
 
+#define STLINK_SERIAL_MAX_SIZE 64
+
     /* Enough space to hold both a V2 command or a V1 command packaged as generic scsi*/
 #define C_BUF_LEN 32
 
@@ -144,7 +146,7 @@ typedef struct flash_loader {
         uint32_t chip_id;
         int core_stat;
 
-        char serial[16];
+        char serial[STLINK_SERIAL_MAX_SIZE];
         int serial_size;
 
         enum stlink_flash_type flash_type;

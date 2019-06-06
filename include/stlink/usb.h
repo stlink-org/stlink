@@ -45,7 +45,7 @@ extern "C" {
      * @retval NULL   Error while opening the stlink
      * @retval !NULL  Stlink found and ready to use
      */
-    stlink_t *stlink_open_usb(enum ugly_loglevel verbose, bool reset, char serial[16]);
+    stlink_t *stlink_open_usb(enum ugly_loglevel verbose, bool reset, char serial[STLINK_SERIAL_MAX_SIZE]);
     size_t stlink_probe_usb(stlink_t **stdevs[]);
     void stlink_probe_usb_free(stlink_t **stdevs[], size_t size);
 
