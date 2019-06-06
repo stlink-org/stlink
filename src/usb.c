@@ -767,7 +767,7 @@ static stlink_backend_t _stlink_usb_backend = {
     _stlink_usb_set_swdclk
 };
 
-stlink_t *stlink_open_usb(enum ugly_loglevel verbose, bool reset, char serial[16])
+stlink_t *stlink_open_usb(enum ugly_loglevel verbose, bool reset, char serial[STLINK_SERIAL_MAX_SIZE])
 {
     stlink_t* sl = NULL;
     struct stlink_libusb* slu = NULL;
@@ -1003,7 +1003,7 @@ static size_t stlink_probe_usb_devs(libusb_device **devs, stlink_t **sldevs[]) {
             continue;
 
         struct libusb_device_handle* handle;
-        char serial[16];
+        char serial[STLINK_SERIAL_MAX_SIZE];
         memset(serial, 0, sizeof(serial));
 
         ret = libusb_open(dev, &handle);
