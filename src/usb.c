@@ -52,7 +52,7 @@ ssize_t send_recv(struct stlink_libusb* handle, int terminate,
             3000);
     if (t) {
         printf("[!] send_recv send request failed: %s\n", libusb_error_name(t));
-        return -1;
+        exit(1);
     } else if ((size_t)res != txsize) {
         printf("[!] send_recv send request wrote %u bytes (instead of %u).\n",
        (unsigned int)res, (unsigned int)txsize);
