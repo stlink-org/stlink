@@ -179,3 +179,24 @@ NOTES: This solution will link to the dll version of libusb-1.0.  To debug or ru
 be either on the path, or in the same folder as the executable.  It can be copied from here:
 `build\3thparty\libusb-1.0.21\MS32\dll\libusb-1.0.dll`.
 
+## Linux (MinGW64)
+
+### Prequistes
+
+* 7Zip
+* CMake 2.8 or higher
+* MinGW64 GCC toolchain (5.3.0)
+
+### Installation (Debian / Ubuntu)
+
+sudo apt install p7zip mingw-w64
+
+### Building
+
+These instructions are for a 32bit version.
+
+```sh
+cd <source-dir>
+cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=./cmake/linux-mingw32.cmake -S . -B ./build/linux-mingw32
+cmake --build ./build/linux-mingw32 --target all
+```

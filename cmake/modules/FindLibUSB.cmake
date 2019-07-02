@@ -82,28 +82,47 @@ if(NOT LIBUSB_FOUND)
             )
         endif()
         file(MAKE_DIRECTORY ${LIBUSB_WIN_OUTPUT_FOLDER})
-        execute_process(COMMAND ${ZIP_EXECUTABLE} x -y ${LIBUSB_WIN_ARCHIVE_PATH} -o${LIBUSB_WIN_OUTPUT_FOLDER})
+
+        if(${ZIP_EXECUTABLE} MATCHES "p7zip")
+            execute_process(COMMAND ${ZIP_EXECUTABLE} -d --keep -f ${LIBUSB_WIN_ARCHIVE_PATH} WORKING_DIRECTORY ${LIBUSB_WIN_OUTPUT_FOLDER})
+        else()
+            execute_process(COMMAND ${ZIP_EXECUTABLE} x -y ${LIBUSB_WIN_ARCHIVE_PATH} -o${LIBUSB_WIN_OUTPUT_FOLDER})
+        endif()
 
         FIND_PATH(LIBUSB_INCLUDE_DIR NAMES libusb.h
         HINTS ${LIBUSB_WIN_OUTPUT_FOLDER}/include
         PATH_SUFFIXES libusb-1.0
+        NO_DEFAULT_PATH
+        NO_CMAKE_FIND_ROOT_PATH
         )
 
         if (MSYS OR MINGW)
             if (CMAKE_SIZEOF_VOID_P EQUAL 8)
                 find_library(LIBUSB_LIBRARY NAMES ${LIBUSB_NAME}
-                    HINTS ${LIBUSB_WIN_OUTPUT_FOLDER}/MinGW64/static)
+                    HINTS ${LIBUSB_WIN_OUTPUT_FOLDER}/MinGW64/static
+                    NO_DEFAULT_PATH
+                    NO_CMAKE_FIND_ROOT_PATH
+                    )
             else ()
                 find_library(LIBUSB_LIBRARY NAMES ${LIBUSB_NAME}
-                    HINTS ${LIBUSB_WIN_OUTPUT_FOLDER}/MinGW32/static)
+                    HINTS ${LIBUSB_WIN_OUTPUT_FOLDER}/MinGW32/static
+                    NO_DEFAULT_PATH
+                    NO_CMAKE_FIND_ROOT_PATH
+                    )
             endif ()
         elseif(MSVC)
             if (CMAKE_SIZEOF_VOID_P EQUAL 8)
                 find_library(LIBUSB_LIBRARY NAMES ${LIBUSB_NAME}
-                    HINTS ${LIBUSB_WIN_OUTPUT_FOLDER}/MS64/dll)
+                    HINTS ${LIBUSB_WIN_OUTPUT_FOLDER}/MS64/dll
+                    NO_DEFAULT_PATH
+                    NO_CMAKE_FIND_ROOT_PATH
+                    )
             else ()
                 find_library(LIBUSB_LIBRARY NAMES ${LIBUSB_NAME}
-                    HINTS ${LIBUSB_WIN_OUTPUT_FOLDER}/MS32/dll)
+                    HINTS ${LIBUSB_WIN_OUTPUT_FOLDER}/MS32/dll
+                    NO_DEFAULT_PATH
+                    NO_CMAKE_FIND_ROOT_PATH
+                    )
             endif ()
         endif ()
         FIND_PACKAGE_HANDLE_STANDARD_ARGS(Libusb DEFAULT_MSG LIBUSB_LIBRARY LIBUSB_INCLUDE_DIR)
