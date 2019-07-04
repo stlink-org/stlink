@@ -782,7 +782,7 @@ int stlink_load_device_params(stlink_t *sl) {
 
     params = stlink_chipid_get_params(sl->chip_id);
     if (params == NULL) {
-        WLOG("unknown chip id! %#x\n", chip_id);
+        WLOG("unknown chip id! %#x, %#x\n", chip_id, sl->chip_id & 0xfff);
         return -1;
     }
 
@@ -1759,8 +1759,11 @@ int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr)
         if (sl->flash_type == STLINK_FLASH_TYPE_WB) {
             uint32_t flash_page = ((flashaddr - STM32_FLASH_BASE) / sl->flash_pgsz);
             stlink_read_debug32(sl, STM32WB_FLASH_CR, &val);
+            
             // sec 3.10.5 - PNB[7:0] is offset by 3.
+            val &= ~(0xFF << 3); // Clear previously set page number (if any)
             val |= ((flash_page & 0xFF) << 3);
+            
             stlink_write_debug32(sl, STM32WB_FLASH_CR, val);
         } else if (sl->flash_type == STLINK_FLASH_TYPE_G0) {
             uint32_t flash_page = ((flashaddr - STM32_FLASH_BASE) / sl->flash_pgsz);
