@@ -782,7 +782,7 @@ int stlink_load_device_params(stlink_t *sl) {
 
     params = stlink_chipid_get_params(sl->chip_id);
     if (params == NULL) {
-        WLOG("unknown chip id! %#x, %#x\n", chip_id, sl->chip_id & 0xfff);
+        WLOG("unknown chip id! %#x", chip_id);
         return -1;
     }
 
