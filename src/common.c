@@ -2520,7 +2520,7 @@ int stlink_write_option_bytes(stlink_t *sl, stm32_addr_t addr, uint8_t* base, ui
     stlink_core_id(sl);
 
     /* Check if chip is supported and for correct address */
-    if((sl->chip_id != STLINK_CHIPID_STM32_G0X1) || (addr != STM32_G0_OPTION_BYTES_BASE)) {
+    if((sl->chip_id != STLINK_CHIPID_STM32_G0_CAT2 && sl->chip_id != STLINK_CHIPID_STM32_G0_CAT1) || (addr != STM32_G0_OPTION_BYTES_BASE)) {
         ELOG("Option bytes writing is currently only supported for the STM32G0\n");
         return -1;
     }
