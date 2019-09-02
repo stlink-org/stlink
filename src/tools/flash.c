@@ -92,9 +92,11 @@ int main(int ac, char** av)
     }
 
     if (o.reset){
-        if (stlink_jtag_reset(sl, 2)) {
-            printf("Failed to reset JTAG\n");
-            goto on_error;
+        if (sl->version.stlink_v > 1) {
+            if (stlink_jtag_reset(sl, 2)) {
+                printf("Failed to reset JTAG\n");
+                goto on_error;
+            }
         }
 
         if (stlink_reset(sl)) {
@@ -185,9 +187,11 @@ int main(int ac, char** av)
         }
     } else if (o.cmd == CMD_RESET)
     {
-        if (stlink_jtag_reset(sl, 2)) {
-            printf("Failed to reset JTAG\n");
-            goto on_error;
+        if (sl->version.stlink_v > 1) {
+            if (stlink_jtag_reset(sl, 2)) {
+                printf("Failed to reset JTAG\n");
+                goto on_error;
+            }
         }
 
         if (stlink_reset(sl)) {
@@ -212,7 +216,7 @@ int main(int ac, char** av)
     }
 
     if (o.reset){
-        stlink_jtag_reset(sl,2);
+        if (sl->version.stlink_v > 1) stlink_jtag_reset(sl, 2);
         stlink_reset(sl);
     }
 
