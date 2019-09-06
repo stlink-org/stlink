@@ -150,7 +150,7 @@ then it would be written to the memory.
 
 ## Writing Option Bytes
 
-Example to read and write option bytes (currently writing only supported for STM32G0)
+Example to read and write option bytes (currently writing only supported for STM32G0 and STM32L0)
 ```
 ./st-flash --debug --reset --format binary --flash=128k read option_bytes_dump.bin 0x1FFF7800 4
 ./st-flash --debug --reset --format binary --flash=128k write option_bytes_dump.bin 0x1FFF7800
