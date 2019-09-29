@@ -1,0 +1,15 @@
+Author: Helmut Grohne <helmut@subdivi.de>
+Description: do not stop the GUI from being cross-compiled
+Bug-Debian: 941320
+Forwarded: yes
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -39,7 +39,7 @@
+ # Dependencies
+ ###
+ find_package(LibUSB REQUIRED)
+-if (NOT APPLE AND NOT WIN32 AND NOT CMAKE_CROSSCOMPILING)
++if (NOT APPLE AND NOT WIN32)
+ 	find_package(PkgConfig)
+ 	pkg_check_modules(gtk gtk+-3.0)
+ endif ()
