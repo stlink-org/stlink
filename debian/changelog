@@ -1,3 +1,14 @@
+stlink (1.5.1+ds-2) unstable; urgency=medium
+
+  * Mark library packages as Multi-Arch: same.
+  * Apply cross.patch to fix cross-compiling the GUI. Thanks Helmut for
+    the patch! (Closes: #941320)
+  * Vcs-Git: add -b debian
+  * Set Rules-Requires-Root: no
+  * Bump Standards-Version to 4.4.0
+
+ -- Luca Boccassi <bluca@debian.org>  Sun, 29 Sep 2019 12:50:58 +0100
+
 stlink (1.5.1+ds-1) unstable; urgency=medium
 
   * Merge tag 'v1.5.1' into debian. See upstream changelog for info:
