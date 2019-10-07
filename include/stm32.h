@@ -16,5 +16,5 @@
 #define STM32_SRAM_BASE            ((uint32_t)0x20000000)
 #define STM32_G0_OPTION_BYTES_BASE ((uint32_t)0x1FFF7800)
 #define STM32_L0_CAT2_OPTION_BYTES_BASE ((uint32_t)0x1FF80000)
-
+#define STM32_F2_OPTION_BYTES_BASE ((uint32_t)0x1FFFC000)
 #endif /* STM32_H */

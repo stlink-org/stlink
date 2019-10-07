@@ -194,6 +194,23 @@
 #define FLASH_F4_CR_SNB_MASK 0xf8
 #define FLASH_F4_SR_BSY 16
 
+//STM32F2
+#define FLASH_F2_REGS_ADDR ((uint32_t)0x40023c00)
+#define FLASH_F2_KEYR (FLASH_F2_REGS_ADDR + 0x04)
+#define FLASH_F2_OPT_KEYR (FLASH_F2_REGS_ADDR + 0x08)
+#define FLASH_F2_SR (FLASH_F2_REGS_ADDR + 0x0c)
+#define FLASH_F2_CR (FLASH_F2_REGS_ADDR + 0x10)
+#define FLASH_F2_OPT_CR (FLASH_F2_REGS_ADDR + 0x14)
+#define FLASH_F2_OPT_LOCK_BIT (1u << 0)
+#define FLASH_F2_CR_STRT 16
+#define FLASH_F2_CR_LOCK 31
+
+#define FLASH_F2_CR_SER 1
+#define FLASH_F2_CR_SNB 3
+#define FLASH_F2_CR_SNB_MASK 0x78
+#define FLASH_F2_SR_BSY 16
+
+
 #define L1_WRITE_BLOCK_SIZE 0x80
 #define L0_WRITE_BLOCK_SIZE 0x40
 
@@ -2645,6 +2662,56 @@ static int stlink_write_option_bytes_l0_cat2(stlink_t *sl, uint8_t* base, uint32
 /**
  * Write option bytes
  * @param sl
+ * @param option_byte value to write
+ * @return 0 on success, -ve on failure.
+ */
+static int stlink_write_option_bytes_f2(stlink_t *sl, uint32_t option_byte) {
+    uint32_t val;
+
+    stlink_read_debug32(sl, FLASH_F2_OPT_CR, &val);
+    if (val & FLASH_F2_OPT_LOCK_BIT) {
+        WLOG("Unlocking option flash\n");
+        //Unlock the FLASH_OPT_CR register (FLASH Programming manual page 15)
+        //https://www.st.com/resource/en/programming_manual/cd00233952.pdf
+        stlink_write_debug32(sl, FLASH_F2_OPT_KEYR, 0x08192A3B);
+        stlink_write_debug32(sl, FLASH_F2_OPT_KEYR, 0x4C5D6E7F);
+
+        stlink_read_debug32(sl, FLASH_F2_OPT_CR, &val);
+        if (val & FLASH_F2_OPT_LOCK_BIT) {
+            ELOG("Option flash unlock failed! System reset required to be able to unlock it again!\n");
+            return -1;
+        }
+    }
+
+    stlink_read_debug32(sl, FLASH_F2_OPT_CR, &val);
+    WLOG("option bytes CR = %x\n",val);
+
+    stlink_write_debug32(sl, FLASH_F2_OPT_CR, option_byte & 0x0FFFFFFC);
+
+    stlink_write_debug32(sl, FLASH_F2_OPT_CR, (option_byte & 0x0FFFFFFC)|0x00000002);
+
+
+    stlink_read_debug32(sl, FLASH_F2_SR, &val);
+    WLOG("wait BSY flag to be 0\n");
+
+    while(val & 0x00010000){
+        stlink_read_debug32(sl, FLASH_F2_SR, &val);
+    }
+    WLOG("BSY flag is 0\n");
+
+    stlink_read_debug32(sl, FLASH_F2_OPT_CR, &val);
+    WLOG("option bytes CR = %x\n",val);
+    WLOG("Option flash re-lock\n");
+    stlink_write_debug32(sl, FLASH_F2_OPT_CR, val | 0x00000001);
+
+    DLOG("STM32 F2 option bytes are written\n");
+
+	return 0;
+}
+
+/**
+ * Write option bytes
+ * @param sl
  * @param addr of the memory mapped option bytes
  * @param base option bytes to write
  * @return 0 on success, -ve on failure.
@@ -2662,7 +2729,7 @@ int stlink_write_option_bytes(stlink_t *sl, stm32_addr_t addr, uint8_t* base, ui
         return stlink_write_option_bytes_l0_cat2(sl, base, len);
     }
     else {
-        ELOG("Option bytes writing is currently only supported for the STM32G0 and STM32L0\n");
+        ELOG("Option bytes writing is currently only supported for the STM32F2, STM32G0 and STM32L0\n");
         return -1;
     }
 
@@ -2689,4 +2756,22 @@ int stlink_fwrite_option_bytes(stlink_t *sl, const char* path, stm32_addr_t addr
     stlink_fwrite_finalize(sl, addr);
     unmap_file(&mf);
     return err;
+}
+
+/**
+ * Write the given 32-bit value with option byte
+ * @param sl
+ * @param option_byte value to write
+ * @return 0 on success, -ve on failure.
+ */
+int stlink_fwrite_option_bytes_32bit(stlink_t *sl, uint32_t val) {
+
+    if(sl->chip_id == STLINK_CHIPID_STM32_F2){
+        return stlink_write_option_bytes_f2(sl, val);
+    }
+    else
+    {
+        ELOG("Option bytes writing is currently only supported for the STM32F2, STM32G0 and STM32L0\n");
+        return -1;
+    }
 }

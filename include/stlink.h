@@ -200,6 +200,7 @@ typedef struct flash_loader {
     int stlink_mwrite_flash(stlink_t *sl, uint8_t* data, uint32_t length, stm32_addr_t addr);
     int stlink_fwrite_flash(stlink_t *sl, const char* path, stm32_addr_t addr);
     int stlink_fwrite_option_bytes(stlink_t *sl, const char* path, stm32_addr_t addr);
+    int stlink_fwrite_option_bytes_32bit(stlink_t *sl,uint32_t val);
     int stlink_mwrite_sram(stlink_t *sl, uint8_t* data, uint32_t length, stm32_addr_t addr);
     int stlink_fwrite_sram(stlink_t *sl, const char* path, stm32_addr_t addr);
     int stlink_verify_write_flash(stlink_t *sl, stm32_addr_t address, uint8_t *data, uint32_t length);
