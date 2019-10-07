@@ -39,6 +39,7 @@ static void usage(void)
     puts("                       Format may be 'binary' (default) or 'ihex', although <addr> must be specified for binary format only.");
     puts("                       ./st-flash [--version]");
     puts("example write option byte: ./st-flash --debug --reset --area=option write 0xXXXXXXXX");
+    puts("example read option byte: ./st-flash --debug --reset --area=option read > option_byte");
 }
 
 int main(int ac, char** av)
@@ -208,13 +209,25 @@ int main(int ac, char** av)
     }
     else /* read */
     {
-        if ((o.addr >= sl->flash_base) && (o.size == 0) &&
-                (o.addr < sl->flash_base + sl->flash_size))
+        if(o.area == FLASH_OPTION_BYTES){
+            if(sl->chip_id == STLINK_CHIPID_STM32_F2){
+                uint32_t option_byte = 0;
+                err = stlink_read_option_bytes_f2(sl,&option_byte);
+                printf("%x\n",option_byte);
+            }else{
+                printf("This format is available for STM32F2 Only\n");
+            }
+        }
+        else if ((o.addr >= sl->flash_base) && (o.size == 0) &&
+                (o.addr < sl->flash_base + sl->flash_size)){
             o.size = sl->flash_size;
+            err = stlink_fread(sl, o.filename, o.format == FLASH_FORMAT_IHEX, o.addr, o.size);
+        }
         else if ((o.addr >= sl->sram_base) && (o.size == 0) &&
-                (o.addr < sl->sram_base + sl->sram_size))
+                (o.addr < sl->sram_base + sl->sram_size)){
             o.size = sl->sram_size;
-        err = stlink_fread(sl, o.filename, o.format == FLASH_FORMAT_IHEX, o.addr, o.size);
+            err = stlink_fread(sl, o.filename, o.format == FLASH_FORMAT_IHEX, o.addr, o.size);
+        }
         if (err == -1)
         {
             printf("stlink_fread() == -1\n");

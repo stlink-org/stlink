@@ -2710,6 +2710,39 @@ static int stlink_write_option_bytes_f2(stlink_t *sl, uint32_t option_byte) {
 }
 
 /**
+ * Read option bytes
+ * @param sl
+ * @param option_byte value to write
+ * @return 0 on success, -ve on failure.
+ */
+int stlink_read_option_bytes_f2(stlink_t *sl, uint32_t* option_byte) {
+    uint32_t val;
+
+    stlink_read_debug32(sl, FLASH_F2_OPT_CR, &val);
+    if (val & FLASH_F2_OPT_LOCK_BIT) {
+        WLOG("Unlocking option flash\n");
+        //Unlock the FLASH_OPT_CR register (FLASH Programming manual page 15)
+        //https://www.st.com/resource/en/programming_manual/cd00233952.pdf
+        stlink_write_debug32(sl, FLASH_F2_OPT_KEYR, 0x08192A3B);
+        stlink_write_debug32(sl, FLASH_F2_OPT_KEYR, 0x4C5D6E7F);
+
+        stlink_read_debug32(sl, FLASH_F2_OPT_CR, &val);
+        if (val & FLASH_F2_OPT_LOCK_BIT) {
+            ELOG("Option flash unlock failed! System reset required to be able to unlock it again!\n");
+            return -1;
+        }
+    }
+
+    stlink_read_debug32(sl, FLASH_F2_OPT_CR, option_byte);
+    WLOG("option bytes CR = %x\n",option_byte);
+
+    WLOG("Option flash re-lock\n");
+    stlink_write_debug32(sl, FLASH_F2_OPT_CR, val | 0x00000001);
+
+	return 0;
+}
+
+/**
  * Write option bytes
  * @param sl
  * @param addr of the memory mapped option bytes

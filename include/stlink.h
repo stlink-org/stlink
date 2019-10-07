@@ -222,6 +222,7 @@ typedef struct flash_loader {
     int write_loader_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* size);
     int stlink_fread(stlink_t* sl, const char* path, bool is_ihex, stm32_addr_t addr, size_t size);
     int stlink_load_device_params(stlink_t *sl);
+    int stlink_read_option_bytes_f2(stlink_t *sl, uint32_t* option_byte);
 
 #include "stlink/sg.h"
 #include "stlink/usb.h"

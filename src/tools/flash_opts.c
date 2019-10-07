@@ -172,6 +172,7 @@ int flash_get_opts(struct flash_opts* o, int ac, char** av)
             break;
 
         case FLASH_CMD_READ:     // expect filename, addr and size
+            if((o->area == FLASH_OPTION_BYTES) &&(ac == 0)) break;
             if (ac != 3) return -1;
 
             o->filename = av[0];
