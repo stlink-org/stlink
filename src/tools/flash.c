@@ -217,15 +217,15 @@ int main(int ac, char** av)
             }else{
                 printf("This format is available for STM32F2 Only\n");
             }
-        }
-        else if ((o.addr >= sl->flash_base) && (o.size == 0) &&
-                (o.addr < sl->flash_base + sl->flash_size)){
-            o.size = sl->flash_size;
-            err = stlink_fread(sl, o.filename, o.format == FLASH_FORMAT_IHEX, o.addr, o.size);
-        }
-        else if ((o.addr >= sl->sram_base) && (o.size == 0) &&
-                (o.addr < sl->sram_base + sl->sram_size)){
-            o.size = sl->sram_size;
+        }else{
+            if ((o.addr >= sl->flash_base) && (o.size == 0) &&
+                    (o.addr < sl->flash_base + sl->flash_size)){
+                o.size = sl->flash_size;
+            }
+            else if ((o.addr >= sl->sram_base) && (o.size == 0) &&
+                    (o.addr < sl->sram_base + sl->sram_size)){
+                o.size = sl->sram_size;
+            }
             err = stlink_fread(sl, o.filename, o.format == FLASH_FORMAT_IHEX, o.addr, o.size);
         }
         if (err == -1)
