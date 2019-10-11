@@ -1659,7 +1659,8 @@ int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr)
         if ((sl->chip_id == STLINK_CHIPID_STM32_L4) ||
             (sl->chip_id == STLINK_CHIPID_STM32_L43X) ||
             (sl->chip_id == STLINK_CHIPID_STM32_L46X) ||
-            (sl->chip_id == STLINK_CHIPID_STM32_L496X)) {
+            (sl->chip_id == STLINK_CHIPID_STM32_L496X) ||
+            (sl->chip_id == STLINK_CHIPID_STM32_L4RX)) {
             // calculate the actual bank+page from the address
             uint32_t page = calculate_L4_page(sl, flashaddr);
 
@@ -1779,11 +1780,11 @@ int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr)
         if (sl->flash_type == STLINK_FLASH_TYPE_WB) {
             uint32_t flash_page = ((flashaddr - STM32_FLASH_BASE) / sl->flash_pgsz);
             stlink_read_debug32(sl, STM32WB_FLASH_CR, &val);
-            
+
             // sec 3.10.5 - PNB[7:0] is offset by 3.
             val &= ~(0xFF << 3); // Clear previously set page number (if any)
             val |= ((flash_page & 0xFF) << 3);
-            
+
             stlink_write_debug32(sl, STM32WB_FLASH_CR, val);
         } else if (sl->flash_type == STLINK_FLASH_TYPE_G0) {
             uint32_t flash_page = ((flashaddr - STM32_FLASH_BASE) / sl->flash_pgsz);
@@ -2086,7 +2087,8 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uint32_t 
         if ((sl->chip_id != STLINK_CHIPID_STM32_L4) &&
             (sl->chip_id != STLINK_CHIPID_STM32_L43X) &&
             (sl->chip_id != STLINK_CHIPID_STM32_L46X) &&
-            (sl->chip_id != STLINK_CHIPID_STM32_L496X)) {
+            (sl->chip_id != STLINK_CHIPID_STM32_L496X) &&
+            (sl->chip_id != STLINK_CHIPID_STM32_L4RX)) {
 
             if( sl->version.stlink_v == 1 ) {
                 printf("STLINK V1 cannot read voltage, defaulting to 32-bit writes on F4 devices\n");
