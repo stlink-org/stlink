@@ -214,8 +214,12 @@ int main(int ac, char** av)
                 uint32_t option_byte = 0;
                 err = stlink_read_option_bytes_f2(sl,&option_byte);
                 printf("%x\n",option_byte);
+            }else if(sl->chip_id == STLINK_CHIPID_STM32_F446){
+                uint32_t option_byte = 0;
+                err = stlink_read_option_bytes_f4(sl,&option_byte);
+                printf("%x\n",option_byte);
             }else{
-                printf("This format is available for STM32F2 Only\n");
+                printf("This format is available for STM32F2 and STM32F4 Only\n");
             }
         }else{
             if ((o.addr >= sl->flash_base) && (o.size == 0) &&
