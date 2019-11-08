@@ -30,8 +30,9 @@ Windows users can [download v1.3.0](https://github.com/texane/stlink/releases/ta
 
 Mac OS X users can install from [homebrew](http://brewformulas.org/Stlink) or [download v1.3.0](https://github.com/texane/stlink/releases/tag/1.3.0) from the releases page.
 
-For Debian Linux based distributions there is no package available
- in the standard repositories so you need to install [from source](doc/compiling.md) yourself.
+Debian Linux users can install it via the ```stlink-tool``` package [repository](https://packages.debian.org/buster/stlink-tools)
+
+Ubuntu Linux users can install it via the ```stlink-tool``` package [repository](https://packages.ubuntu.com/cosmic/stlink-tools)
 
 Arch Linux users can install from the [repository](https://www.archlinux.org/packages/community/x86_64/stlink)
 
