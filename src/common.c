@@ -2841,7 +2841,8 @@ int stlink_write_option_bytes(stlink_t *sl, stm32_addr_t addr, uint8_t* base, ui
     stlink_core_id(sl);
 
     /* Check if chip is supported and for correct address */
-    if((sl->chip_id == STLINK_CHIPID_STM32_G0X1) && (addr == STM32_G0_OPTION_BYTES_BASE)) {
+    if(((sl->chip_id == STLINK_CHIPID_STM32_G07X) || (sl->chip_id == STLINK_CHIPID_STM32_G03X)) &&
+            (addr == STM32_G0_OPTION_BYTES_BASE)) {
         return stlink_write_option_bytes_g0x1(sl, base, len);
     }
     else if((sl->chip_id == STLINK_CHIPID_STM32_L0_CAT2) && (addr == STM32_L0_CAT2_OPTION_BYTES_BASE)) {
