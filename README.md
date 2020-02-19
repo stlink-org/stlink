@@ -12,7 +12,7 @@ Open source version of the STMicroelectronics Stlink Tools
 
 ## HOWTO
 
-This StLink toolset supports several so called stlink programmer boards (and clones thereof) which use a microcontroller chip to translate commands from USB to JTAG. These programmer boards are available in four versions:
+This stlink toolset supports several so called stlink programmer boards (and clones thereof) which use a microcontroller chip to translate commands from USB to JTAG. These programmer boards are available in four versions:
 
 * **STLINKv1:**
   - transport layer: SCSI passthru commands over USB
@@ -185,7 +185,7 @@ See [doc/tested-boards.md](doc/tested-boards.md)
 
 ## Changelog
 
-The [Changelog](CHANGELOG) for the StLink Tools.
+The [Changelog](CHANGELOG.md) for the StLink Tools.
 
 
 ## Known missing features
@@ -255,6 +255,6 @@ Issue related to this bug: [#545](https://github.com/texane/stlink/issues/545)
 
 ## License
 
-The stlink library and tools are licensed under the [BSD license](LICENSE).
+The stlink library and tools are licensed under the [BSD license](LICENSE.md).
 
 The flashloaders/stm32l0x.s and flashloaders/stm32lx.s source files are licensed under the GPLv2+.
