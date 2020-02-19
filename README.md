@@ -8,7 +8,7 @@ Open source version of the STMicroelectronics Stlink Tools
 [![Linux Status](https://img.shields.io/travis/texane/stlink/master.svg?label=linux)](https://travis-ci.org/texane/stlink)
 [![Build Status](https://jenkins.ncrmnt.org/buildStatus/icon?job=GithubCI/stlink)](https://jenkins.ncrmnt.org/job/GithubCI/job/stlink/)
 
-**NOTICE: The project has currently not an active maintainer. Feel free to contribute and discus in issue [#826](https://github.com/texane/stlink/issues/826)** 
+**NOTICE: The project has currently not an active maintainer. Feel free to contribute and discus in issue [#826](https://github.com/texane/stlink/issues/826)**
 
 ## HOWTO
 
@@ -30,9 +30,9 @@ Windows users can [download v1.3.0](https://github.com/texane/stlink/releases/ta
 
 Mac OS X users can install from [homebrew](http://brewformulas.org/Stlink) or [download v1.3.0](https://github.com/texane/stlink/releases/tag/1.3.0) from the releases page.
 
-Debian Linux users can install it via the ```stlink-tool``` package [repository](https://packages.debian.org/buster/stlink-tools)
+Debian Linux users can install it via the ```stlink-tools``` package [repository](https://packages.debian.org/buster/stlink-tools)
 
-Ubuntu Linux users can install it via the ```stlink-tool``` package [repository](https://packages.ubuntu.com/stlink-tools)
+Ubuntu Linux users can install it via the ```stlink-tools``` package [repository](https://packages.ubuntu.com/stlink-tools)
 
 Arch Linux users can install from the [repository](https://www.archlinux.org/packages/community/x86_64/stlink)
 
