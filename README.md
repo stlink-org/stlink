@@ -32,7 +32,7 @@ Mac OS X users can install from [homebrew](http://brewformulas.org/Stlink) or [d
 
 Debian Linux users can install it via the ```stlink-tool``` package [repository](https://packages.debian.org/buster/stlink-tools)
 
-Ubuntu Linux users can install it via the ```stlink-tool``` package [repository](https://packages.ubuntu.com/cosmic/stlink-tools)
+Ubuntu Linux users can install it via the ```stlink-tool``` package [repository](https://packages.ubuntu.com/stlink-tools)
 
 Arch Linux users can install from the [repository](https://www.archlinux.org/packages/community/x86_64/stlink)
 
