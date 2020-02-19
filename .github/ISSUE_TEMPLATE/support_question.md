@@ -1,8 +1,8 @@
-# Bug Report
+# Support question
 
 Thank you for giving feedback to the stlink project.
 
-In order to allow developers and other contributors to isolate and target your respective issue, please take some time to fill out the check boxes below by setting a 'x' into the checkboxes ( [x] ) and edit each item appropriate to your specific problem.
+In order to allow developers and other contributors to help you with your question, please take some time to fill out the check boxes below by setting a 'x' into the checkboxes ( [x] ) and edit each item appropriate to your specific problem.
 
 - [ ] Programmer/board type: e.g Stlink/v1, Stlink/v2, Stlink/v2-onboard
 - [ ] Programmer firmware version: e.g STSW-LINK007 2.27.15
@@ -24,7 +24,7 @@ Expected/description:
 `short description of the expected value`
 
 
-**NOTICE: The bug report may be closed without notice when not enough information is provided!**
+**NOTICE: This support question may be closed without notice when not enough information is provided!**
 
 
 Thank you for your support.
