@@ -748,6 +748,8 @@ int stlink_core_id(stlink_t *sl) {
     return ret;
 }
 
+// stlink_chip_id() is called by stlink_load_device_params()
+// do not call this procedure directly.
 int stlink_chip_id(stlink_t *sl, uint32_t *chip_id) {
     int ret;
 
@@ -801,7 +803,7 @@ int stlink_load_device_params(stlink_t *sl) {
             sl->chip_id = 0x413;
     }
 
-    params = stlink_chipid_get_params(sl->chip_id);
+    params = stlink_chipid_get_params(sl->chip_id);		// chipid.c
     if (params == NULL) {
         WLOG("unknown chip id! %#x\n", chip_id);
         return -1;
@@ -1134,6 +1136,9 @@ void stlink_run_at(stlink_t *sl, stm32_addr_t addr) {
         usleep(3000000);
 }
 
+
+// this function is called by stlink_status()
+// do not call stlink_core_stat() directly, always use stlink_status()
 void stlink_core_stat(stlink_t *sl) {
     if (sl->q_len <= 0)
         return;
