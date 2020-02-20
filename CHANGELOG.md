@@ -1,6 +1,57 @@
 Stlink ChangeLog
 ================
 
+v1.6.0
+======
+
+Release date: 2020-02-20
+
+Major changes and added features:
+
+* Added O_BINARY option to open file ([#753](https://github.com/texane/stlink/pull/753))
+* Added preliminary support for some STM32G0 chips ([#759](https://github.com/texane/stlink/pull/759)) ([#760](https://github.com/texane/stlink/pull/760))
+* Added support for mass erasing second bank on STM32F10x_XL ([#767](https://github.com/texane/stlink/pull/767))
+* Added call to clear PG bit after writing to flash ([#773](https://github.com/texane/stlink/pull/773))
+* Added howto for sending NRST signal through GDB ([#776](https://github.com/texane/stlink/pull/776))
+* Added support to write option bytes for the STM32G0 ([#778](https://github.com/texane/stlink/pull/778))
+* Added simple read/write support for STM32WB55 chips ([#786](https://github.com/texane/stlink/pull/786))
+* Added STLink V3SET VID:PIDs to the udev rules ([#789](https://github.com/texane/stlink/pull/789))
+* Support for "STM32+Audio" v2-1 firmware ([#790](https://github.com/texane/stlink/pull/790))
+* Initial support for STM32L41X ([#799](https://github.com/texane/stlink/pull/799))
+* Build for Windows under Debian/Ubuntu ([#802](https://github.com/texane/stlink/pull/802))
+* Allow for 64 bytes serials ([#809](https://github.com/texane/stlink/pull/809))
+* Added support to read and write option bytes for STM32F2 series (Orie22)
+* Added full support for STLINK CHIP ID L4RX (Brad Natelborg)
+* Added support to write option bytes to STM32F4 devices (Davey Struijk)
+
+Updates and fixes:
+
+* Make udev rules and modprobe conf installation optional ([#741](https://github.com/texane/stlink/pull/741))
+* Fixed case when __FILE__ don't contain "/" nor "\\". ([#745](https://github.com/texane/stlink/pull/745))
+* Fixed double dash issue in doc/man ([#746](https://github.com/texane/stlink/pull/746))
+* Fixed Debug error on line 123 in CMakeLists.txt (@xor-gate)
+* Only do bank calculation on STM32L4 devices with dual banked flash ([#751](https://github.com/texane/stlink/pull/751))
+* Updated STM32F3xx chip ID that covers a few different devices ([#758](https://github.com/texane/stlink/pull/758))
+* Fixed versioning when compiling from the checked out git-repo ([#762](https://github.com/texane/stlink/pull/762))
+* Fixed "unkown chip id", piped output and st-util -v ([#763](https://github.com/texane/stlink/pull/763))
+* win32: move usleep definition to unistd.h ([#765](https://github.com/texane/stlink/pull/765))
+* Fixed relative path to the UI files needed by stlink-gui-local (GUI) ([#771](https://github.com/texane/stlink/pull/771))
+* Fixed package name "devscripts" in doc/compiling.md ([#775](https://github.com/texane/stlink/pull/775))
+* Fixed apparent STM32G0 flashing issue ([#797](https://github.com/texane/stlink/pull/797))
+* Fixed few potential memory/resource leaks ([#803](https://github.com/texane/stlink/pull/803))
+* Fixed flash verification error on STM32WB55RG ([#810](https://github.com/texane/stlink/pull/810)) ([#816](https://github.com/texane/stlink/pull/816))
+* Do not issue JTAG reset on stlink-v1 (Gwenhael Goavec-Merou)
+* Fixed flash size of STM32 Discovery vl (Gwenhael Goavec-Merou)
+* Added support for writing option bytes on STM32L0 (Adrian Imboden)
+* Updated documentation on software structure ([#851](https://github.com/texane/stlink/pull/851))
+
+General project updates:
+
+* Updated issue templates, README.md and CHANGELOG.md (Nightwalker-87)
+* Added CODE_OF_CONDUCT (Nightwalker-87)
+* Fixed travis build config file (Nightwalker-87)
+* Archived page from github project wiki to doc/wiki_old.md (Nightwalker-87)
+
 v1.5.1
 ======
 
