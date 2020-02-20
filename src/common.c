@@ -2262,7 +2262,10 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uint32_t 
         uint32_t flash_regs_base;
         uint32_t pagesize;
 
-        if (sl->chip_id == STLINK_CHIPID_STM32_L0 || sl->chip_id == STLINK_CHIPID_STM32_L0_CAT5 || sl->chip_id == STLINK_CHIPID_STM32_L0_CAT2 || sl->chip_id == STLINK_CHIPID_STM32_L011) {
+        if (sl->chip_id == STLINK_CHIPID_STM32_L0 ||
+            sl->chip_id == STLINK_CHIPID_STM32_L0_CAT5 ||
+            sl->chip_id == STLINK_CHIPID_STM32_L0_CAT2 ||
+            sl->chip_id == STLINK_CHIPID_STM32_L011) {
             flash_regs_base = STM32L0_FLASH_REGS_ADDR;
             pagesize = L0_WRITE_BLOCK_SIZE;
         } else {
