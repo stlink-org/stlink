@@ -522,8 +522,19 @@ static const struct stlink_chipid_params devices[] = {
             .bootrom_size = 0x2000
         },
         {
+            // STM32G031/041 (from RM0444)
+            .chip_id = STLINK_CHIPID_STM32_G0_CAT1,
+            .description = "G031/G041 device",
+            .flash_type = STLINK_FLASH_TYPE_G0,
+            .flash_size_reg = 0x1FFF75E0,    // Section 38.2
+            .flash_pagesize = 0x800,         // 2K (sec 3.2)
+            .sram_size = 0x2000,             // 8K (sec 2.3)
+            .bootrom_base = 0x1fff0000,
+            .bootrom_size = 0x7800           // 30K (table 3)
+        },
+        {
             // STM32G071/081 (from RM0444)
-            .chip_id = STLINK_CHIPID_STM32_G0X1,
+            .chip_id = STLINK_CHIPID_STM32_G0_CAT2,
             .description = "G071/G081 device",
             .flash_type = STLINK_FLASH_TYPE_G0,
             .flash_size_reg = 0x1FFF75E0,    // Section 38.2
