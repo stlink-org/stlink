@@ -2631,15 +2631,6 @@ static int stlink_write_option_bytes_g0x(stlink_t *sl, uint8_t* base, uint32_t l
         return -1;
     }
 
-    // Make sure we've loaded the context with the chip details
-    stlink_core_id(sl);
-
-    /* Check if chip is supported and for correct address */
-    if((sl->chip_id != STLINK_CHIPID_STM32_G0_CAT2 && sl->chip_id != STLINK_CHIPID_STM32_G0_CAT1) || (addr != STM32_G0_OPTION_BYTES_BASE)) {
-        ELOG("Option bytes writing is currently only supported for the STM32G0\n");
-        return -1;
-    }
-
     /* Unlock flash if necessary (ref manuel page 52) */
     stlink_read_debug32(sl, STM32Gx_FLASH_CR, &val);
     if ((val & (1u << STM32Gx_FLASH_CR_LOCK))) {
