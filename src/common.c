@@ -2617,7 +2617,7 @@ static int stlink_write_option_bytes_g0x(stlink_t *sl, uint8_t* base, uint32_t l
     uint32_t val;
 
     if(len != 4) {
-        ELOG("Wrong length for writting option bytes, must be 4 is %d\n", len);
+        ELOG("Wrong length for writing option bytes, must be 4 is %d\n", len);
         return -1;
     }
 
@@ -2811,7 +2811,7 @@ static int stlink_write_option_bytes_l1(stlink_t *sl, uint8_t* base, stm32_addr_
     if( data != val ) {
         WLOG("Writing option bytes 0x%04x\n", data);
         stlink_write_debug32(sl, addr, data);
-  
+
         stlink_read_debug32(sl, addr, &val);
         WLOG("Option bytes is 0x%08x\n",val);
     }
@@ -2829,11 +2829,11 @@ static int stlink_write_option_bytes_l1(stlink_t *sl, uint8_t* base, stm32_addr_
 	if( data != val ) {
    	    WLOG("Writing 2nd option bytes 0x%04x\n", data);
     	    stlink_write_debug32(sl, addr+4, data);
-    
+
             stlink_read_debug32(sl, addr+4, &val);
             WLOG("2nd option bytes is 0x%08x\n",val);
         }
-    }	
+    }
 
     /* Reload options */
     stlink_read_debug32(sl, STM32L1_FLASH_REGS_ADDR + FLASH_PECR_OFF, &val);
@@ -3116,7 +3116,7 @@ int stlink_write_option_bytes(stlink_t *sl, stm32_addr_t addr, uint8_t* base, ui
     else if((sl->chip_id == STLINK_CHIPID_STM32_L496X) && (addr == STM32_L496X_OPTION_BYTES_BASE)) {
         return stlink_write_option_bytes_l496x(sl, base, len);
     }
-    else if( ( (sl->chip_id == STLINK_CHIPID_STM32_L152_RE) || (sl->chip_id == STLINK_CHIPID_STM32_L1_HIGH) ) 
+    else if( ( (sl->chip_id == STLINK_CHIPID_STM32_L152_RE) || (sl->chip_id == STLINK_CHIPID_STM32_L1_HIGH) )
             && ( (addr == STM32_L1_OPTION_BYTES_BASE) || (addr == STM32_L1_OPTION_BYTES_BASE+4) ) ) {
         return stlink_write_option_bytes_l1(sl, base, addr, len);
     }
