@@ -9,7 +9,7 @@ Release date: 2020-02-20
 Major changes and added features:
 
 * Added O_BINARY option to open file ([#753](https://github.com/texane/stlink/pull/753))
-* Added preliminary support for some STM32G0 chips ([#759](https://github.com/texane/stlink/pull/759)) ([#760](https://github.com/texane/stlink/pull/760))
+* Added preliminary support for some STM32G0 chips ([#759](https://github.com/texane/stlink/pull/759), [#760](https://github.com/texane/stlink/pull/760))
 * Added support for mass erasing second bank on STM32F10x_XL ([#767](https://github.com/texane/stlink/pull/767))
 * Added call to clear PG bit after writing to flash ([#773](https://github.com/texane/stlink/pull/773))
 * Added howto for sending NRST signal through GDB ([#776](https://github.com/texane/stlink/pull/776))
@@ -39,7 +39,7 @@ Updates and fixes:
 * Fixed package name "devscripts" in doc/compiling.md ([#775](https://github.com/texane/stlink/pull/775))
 * Fixed apparent STM32G0 flashing issue ([#797](https://github.com/texane/stlink/pull/797))
 * Fixed few potential memory/resource leaks ([#803](https://github.com/texane/stlink/pull/803))
-* Fixed flash verification error on STM32WB55RG ([#810](https://github.com/texane/stlink/pull/810)) ([#816](https://github.com/texane/stlink/pull/816))
+* Fixed flash verification error on STM32WB55RG ([#810](https://github.com/texane/stlink/pull/810), [#816](https://github.com/texane/stlink/pull/816))
 * Do not issue JTAG reset on stlink-v1 (Gwenhael Goavec-Merou)
 * Fixed flash size of STM32 Discovery vl (Gwenhael Goavec-Merou)
 * Added support for writing option bytes on STM32L0 (Adrian Imboden)
@@ -63,10 +63,10 @@ Major changes and added features:
 * Updated libusb to 1.0.22 ([#695](https://github.com/texane/stlink/pull/695))
 * Added desktop file for linux ([#688](https://github.com/texane/stlink/pull/688))
 * Added icons for stlink GUI ([#697](https://github.com/texane/stlink/pull/697))
-* Added support for STM32L4R9 target ([#694](https://github.com/texane/stlink/pull/694), [#699](https://github.com/texane/stlink/pull/699)
+* Added support for STM32L4R9 target ([#694](https://github.com/texane/stlink/pull/694), [#699](https://github.com/texane/stlink/pull/699))
 * Added creation of icons for .desktop file ([#708](https://github.com/texane/stlink/pull/708))
 * Added memory map for STM32F411RE target ([#709](https://github.com/texane/stlink/pull/709))
-* Added reset through AIRCR ([#540](https://github.com/texane/stlink/pull/540), [#712](https://github.com/texane/stlink/pull/712)
+* Added reset through AIRCR ([#540](https://github.com/texane/stlink/pull/540), [#712](https://github.com/texane/stlink/pull/712))
 * Implemented intel hex support for GTK GUI ([#718](https://github.com/texane/stlink/pull/718))
 
 Fixes:
@@ -74,12 +74,12 @@ Fixes:
 * Fixed missing flash_loader for L011 ([#675](https://github.com/texane/stlink/pull/675))
 * Fixed serial number size mismatch with stlink_open_usb() ([#680](https://github.com/texane/stlink/pull/680))
 * Debian packaging, CMake and README.md fixes ([#683](https://github.com/texane/stlink/pull/683))
-* Fix for stlink library calls exit() or _exit() ([#634](https://github.com/texane/stlink/pull/634), [#696](https://github.com/texane/stlink/pull/696)
-* Fix for libusb deprecation ([#703](https://github.com/texane/stlink/pull/703), [#704](https://github.com/texane/stlink/pull/704)
+* Fix for stlink library calls exit() or _exit() ([#634](https://github.com/texane/stlink/pull/634), [#696](https://github.com/texane/stlink/pull/696))
+* Fix for libusb deprecation ([#703](https://github.com/texane/stlink/pull/703), [#704](https://github.com/texane/stlink/pull/704))
 * Renamed STLINK_CHIPID_STM32_L4R9 to STLINK_CHIPID_STM32_L4RX ([#706](https://github.com/texane/stlink/pull/706))
 * Fixed flash memory map for F72XXX target ([#711](https://github.com/texane/stlink/pull/711))
 * Proper flash page size calculation for F412 target ([#721](https://github.com/texane/stlink/pull/721))
-* Return correct value on EOF for Semihosting SYS_READ ([#725](https://github.com/texane/stlink/pull/725), [#726](https://github.com/texane/stlink/pull/726, [#729](https://github.com/texane/stlink/pull/729, [#731](https://github.com/texane/stlink/pull/731)
+* Return correct value on EOF for Semihosting SYS_READ ([#725](https://github.com/texane/stlink/pull/725), [#726](https://github.com/texane/stlink/pull/726), [#729](https://github.com/texane/stlink/pull/729), [#731](https://github.com/texane/stlink/pull/731))
 * Fix for mem_write() ([#730](https://github.com/texane/stlink/pull/730))
 * FreeBSD defines LIBUSB_API_VERSION instead of LIBUSBX_API_VERSION ([#733](https://github.com/texane/stlink/pull/733))
 
