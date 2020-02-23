@@ -79,7 +79,7 @@ Fixes:
 * Renamed STLINK_CHIPID_STM32_L4R9 to STLINK_CHIPID_STM32_L4RX ([#706](https://github.com/texane/stlink/pull/706))
 * Fixed flash memory map for F72XXX target ([#711](https://github.com/texane/stlink/pull/711))
 * Proper flash page size calculation for F412 target ([#721](https://github.com/texane/stlink/pull/721))
-* Return correct value on EOF for Semihosting SYS_READ ([#725](https://github.com/texane/stlink/pull/725), [#726](https://github.com/texane/stlink/pull/726), [#729](https://github.com/texane/stlink/pull/729), [#731](https://github.com/texane/stlink/pull/731))
+* Return correct value on EOF for Semihosting SYS_READ ([#726](https://github.com/texane/stlink/pull/726), [#729](https://github.com/texane/stlink/pull/729), [#731](https://github.com/texane/stlink/pull/731))
 * Fix for mem_write() ([#730](https://github.com/texane/stlink/pull/730))
 * FreeBSD defines LIBUSB_API_VERSION instead of LIBUSBX_API_VERSION ([#733](https://github.com/texane/stlink/pull/733))
 
