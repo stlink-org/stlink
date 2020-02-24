@@ -938,22 +938,33 @@ int stlink_status(stlink_t *sl) {
  * @param slv output parsed version object
  */
 void _parse_version(stlink_t *sl, stlink_version_t *slv) {
-    uint32_t b0 = sl->q_buf[0]; //lsb
-    uint32_t b1 = sl->q_buf[1];
-    uint32_t b2 = sl->q_buf[2];
-    uint32_t b3 = sl->q_buf[3];
-    uint32_t b4 = sl->q_buf[4];
-    uint32_t b5 = sl->q_buf[5]; //msb
+    if (sl->version.stlink_v < 3) {
+        uint32_t b0 = sl->q_buf[0]; //lsb
+        uint32_t b1 = sl->q_buf[1];
+        uint32_t b2 = sl->q_buf[2];
+        uint32_t b3 = sl->q_buf[3];
+        uint32_t b4 = sl->q_buf[4];
+        uint32_t b5 = sl->q_buf[5]; //msb
 
-    // b0 b1                       || b2 b3  | b4 b5
-    // 4b        | 6b     | 6b     || 2B     | 2B
-    // stlink_v  | jtag_v | swim_v || st_vid | stlink_pid
+        // b0 b1                       || b2 b3  | b4 b5
+        // 4b        | 6b     | 6b     || 2B     | 2B
+        // stlink_v  | jtag_v | swim_v || st_vid | stlink_pid
 
-    slv->stlink_v = (b0 & 0xf0) >> 4;
-    slv->jtag_v = ((b0 & 0x0f) << 2) | ((b1 & 0xc0) >> 6);
-    slv->swim_v = b1 & 0x3f;
-    slv->st_vid = (b3 << 8) | b2;
-    slv->stlink_pid = (b5 << 8) | b4;
+        slv->stlink_v = (b0 & 0xf0) >> 4;
+        slv->jtag_v = ((b0 & 0x0f) << 2) | ((b1 & 0xc0) >> 6);
+        slv->swim_v = b1 & 0x3f;
+        slv->st_vid = (b3 << 8) | b2;
+        slv->stlink_pid = (b5 << 8) | b4;
+    } else {
+        // V3 uses different version format, for reference see OpenOCD source
+        // (that was written from docs available from ST under NDA):
+        // https://github.com/ntfreak/openocd/blob/a6dacdff58ef36fcdac00c53ec27f19de1fbce0d/src/jtag/drivers/stlink_usb.c#L965
+        slv->stlink_v = sl->q_buf[0];
+        slv->swim_v = sl->q_buf[1];
+        slv->jtag_v = sl->q_buf[2];
+        slv->st_vid = (uint32_t)((sl->q_buf[9] << 8) | sl->q_buf[8]);
+        slv->stlink_pid = (uint32_t)((sl->q_buf[11] << 8) | sl->q_buf[10]);
+    }
     return;
 }
 
