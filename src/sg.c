@@ -435,7 +435,7 @@ int _stlink_sg_current_mode(stlink_t *stl) {
 int _stlink_sg_enter_swd_mode(stlink_t *sl) {
     struct stlink_libsg *sg = sl->backend_data;
     clear_cdb(sg);
-    sg->cdb_cmd_blk[1] = STLINK_DEBUG_ENTER;
+    sg->cdb_cmd_blk[1] = STLINK_DEBUG_APIV1_ENTER;
     sg->cdb_cmd_blk[2] = STLINK_DEBUG_ENTER_SWD;
     sl->q_len = 0; // >0 -> aboard
     return stlink_q(sl);
@@ -448,7 +448,7 @@ int _stlink_sg_enter_jtag_mode(stlink_t *sl) {
     struct stlink_libsg *sg = sl->backend_data;
     DLOG("\n*** stlink_enter_jtag_mode ***\n");
     clear_cdb(sg);
-    sg->cdb_cmd_blk[1] = STLINK_DEBUG_ENTER;
+    sg->cdb_cmd_blk[1] = STLINK_DEBUG_APIV1_ENTER;
     sg->cdb_cmd_blk[2] = STLINK_DEBUG_ENTER_JTAG;
     sl->q_len = 0;
     return stlink_q(sl);
@@ -529,7 +529,7 @@ int _stlink_sg_core_id(stlink_t *sl) {
 int _stlink_sg_reset(stlink_t *sl) {
     struct stlink_libsg *sg = sl->backend_data;
     clear_cdb(sg);
-    sg->cdb_cmd_blk[1] = STLINK_DEBUG_RESETSYS;
+    sg->cdb_cmd_blk[1] = STLINK_DEBUG_APIV1_RESETSYS;
     sl->q_len = 2;
     sg->q_addr = 0;
     if (stlink_q(sl))
@@ -593,7 +593,7 @@ int _stlink_sg_read_all_regs(stlink_t *sl, struct stlink_reg *regp) {
     struct stlink_libsg *sg = sl->backend_data;
 
     clear_cdb(sg);
-    sg->cdb_cmd_blk[1] = STLINK_DEBUG_READALLREGS;
+    sg->cdb_cmd_blk[1] = STLINK_DEBUG_APIV1_READALLREGS;
     sl->q_len = 84;
     sg->q_addr = 0;
     if (stlink_q(sl))
@@ -634,7 +634,7 @@ int _stlink_sg_read_all_regs(stlink_t *sl, struct stlink_reg *regp) {
 int _stlink_sg_read_reg(stlink_t *sl, int r_idx, struct stlink_reg *regp) {
     struct stlink_libsg *sg = sl->backend_data;
     clear_cdb(sg);
-    sg->cdb_cmd_blk[1] = STLINK_DEBUG_READREG;
+    sg->cdb_cmd_blk[1] = STLINK_DEBUG_APIV1_READREG;
     sg->cdb_cmd_blk[2] = r_idx;
     sl->q_len = 4;
     sg->q_addr = 0;
@@ -679,7 +679,7 @@ int _stlink_sg_read_reg(stlink_t *sl, int r_idx, struct stlink_reg *regp) {
 int _stlink_sg_write_reg(stlink_t *sl, uint32_t reg, int idx) {
     struct stlink_libsg *sg = sl->backend_data;
     clear_cdb(sg);
-    sg->cdb_cmd_blk[1] = STLINK_DEBUG_WRITEREG;
+    sg->cdb_cmd_blk[1] = STLINK_DEBUG_APIV1_WRITEREG;
     //   2: reg index
     // 3-6: reg content
     sg->cdb_cmd_blk[2] = idx;
@@ -701,7 +701,7 @@ void stlink_write_dreg(stlink_t *sl, uint32_t reg, uint32_t addr) {
     struct stlink_libsg *sg = sl->backend_data;
     DLOG("\n*** stlink_write_dreg ***\n");
     clear_cdb(sg);
-    sg->cdb_cmd_blk[1] = STLINK_DEBUG_WRITEDEBUGREG;
+    sg->cdb_cmd_blk[1] = STLINK_DEBUG_APIV1_WRITEDEBUGREG;
     // 2-5: address of reg of the debug module
     // 6-9: reg content
     write_uint32(sg->cdb_cmd_blk + 2, addr);
@@ -750,7 +750,7 @@ void stlink_set_hw_bp(stlink_t *sl, int fp_nr, uint32_t addr, int fp) {
     DLOG("\n*** stlink_set_hw_bp ***\n");
     struct stlink_libsg *sg = sl->backend_data;
     clear_cdb(sg);
-    sg->cdb_cmd_blk[1] = STLINK_DEBUG_SETFP;
+    sg->cdb_cmd_blk[1] = STLINK_DEBUG_APIV1_SETFP;
     // 2:The number of the flash patch used to set the breakpoint
     // 3-6: Address of the breakpoint (LSB)
     // 7: FP_ALL (0x02) / FP_UPPER (0x01) / FP_LOWER (0x00)
@@ -770,7 +770,7 @@ void stlink_clr_hw_bp(stlink_t *sl, int fp_nr) {
     struct stlink_libsg *sg = sl->backend_data;
     DLOG("\n*** stlink_clr_hw_bp ***\n");
     clear_cdb(sg);
-    sg->cdb_cmd_blk[1] = STLINK_DEBUG_CLEARFP;
+    sg->cdb_cmd_blk[1] = STLINK_DEBUG_APIV1_CLEARFP;
     sg->cdb_cmd_blk[2] = fp_nr;
 
     sl->q_len = 2;
@@ -1045,7 +1045,7 @@ static stlink_t* stlink_open(const int verbose) {
     sl->backend_data = slsg;
     sl->backend = &_stlink_sg_backend;
 
-    sl->core_stat = STLINK_CORE_STAT_UNKNOWN;
+    sl->core_stat = TARGET_UNKNOWN;
     slsg->q_addr = 0;
 
     return sl;

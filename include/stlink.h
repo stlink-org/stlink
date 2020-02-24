@@ -24,10 +24,17 @@ extern "C" {
     //#define Q_BUF_LEN	96
 #define Q_BUF_LEN			(1024 * 100)
 
-    // STLINK_DEBUG_RESETSYS, etc:
+// STLINK_DEBUG_RESETSYS, etc:
+enum target_state {
+    TARGET_UNKNOWN = 0,
+    TARGET_RUNNING = 1,
+    TARGET_HALTED = 2,
+    TARGET_RESET = 3,
+    TARGET_DEBUG_RUNNING = 4,
+};
+
 #define STLINK_CORE_RUNNING		0x80
 #define STLINK_CORE_HALTED		0x81
-#define STLINK_CORE_STAT_UNKNOWN	-1
 
 #define STLINK_GET_VERSION		0xf1
 #define STLINK_GET_CURRENT_MODE	0xf5
@@ -52,6 +59,11 @@ extern "C" {
 
 #define STLINK_DEBUG_APIV2_SWD_SET_FREQ    0x43
 
+#define STLINK_APIV3_SET_COM_FREQ           0x61
+#define STLINK_APIV3_GET_COM_FREQ           0x62
+
+#define STLINK_APIV3_GET_VERSION_EX         0xFB
+
 // Baud rate divisors for SWDCLK
 #define STLINK_SWDCLK_4MHZ_DIVISOR		0
 #define STLINK_SWDCLK_1P8MHZ_DIVISOR	1
@@ -68,7 +80,45 @@ extern "C" {
 
 #define STLINK_SERIAL_MAX_SIZE 64
 
-    /* Enough space to hold both a V2 command or a V1 command packaged as generic scsi*/
+#define STLINK_V3_MAX_FREQ_NB               10
+
+/* Cortex Debug Control Block */
+#define DCB_DHCSR	0xE000EDF0
+#define DCB_DCRSR	0xE000EDF4
+#define DCB_DCRDR	0xE000EDF8
+#define DCB_DEMCR	0xE000EDFC
+
+/* DCB_DHCSR bit and field definitions */
+#define DBGKEY		(0xA05F << 16)
+#define C_DEBUGEN	(1 << 0)
+#define C_HALT		(1 << 1)
+#define C_STEP		(1 << 2)
+#define C_MASKINTS	(1 << 3)
+#define S_REGRDY	(1 << 16)
+#define S_HALT		(1 << 17)
+#define S_SLEEP		(1 << 18)
+#define S_LOCKUP	(1 << 19)
+#define S_RETIRE_ST	(1 << 24)
+#define S_RESET_ST	(1 << 25)
+
+
+/*
+ * Map the relevant features, quirks and workaround for specific firmware
+ * version of stlink
+ */
+#define STLINK_F_HAS_TRACE              (1<<0)
+#define STLINK_F_HAS_SWD_SET_FREQ       (1<<1)
+#define STLINK_F_HAS_JTAG_SET_FREQ      (1<<2)
+#define STLINK_F_HAS_MEM_16BIT          (1<<3)
+#define STLINK_F_HAS_GETLASTRWSTATUS2   (1<<4)
+#define STLINK_F_HAS_DAP_REG            (1<<5)
+#define STLINK_F_QUIRK_JTAG_DP_READ     (1<<6)
+#define STLINK_F_HAS_AP_INIT            (1<<7)
+#define STLINK_F_HAS_DPBANKSEL          (1<<8)
+#define STLINK_F_HAS_RW8_512BYTES       (1<<9)
+
+
+/* Enough space to hold both a V2 command or a V1 command packaged as generic scsi*/
 #define C_BUF_LEN 32
 
     enum stlink_flash_type {
@@ -111,12 +161,22 @@ typedef struct flash_loader {
         uint8_t revision;
     } cortex_m3_cpuid_t;
 
+    enum stlink_jtag_api_version {
+        STLINK_JTAG_API_V1 = 1,
+        STLINK_JTAG_API_V2,
+        STLINK_JTAG_API_V3,
+    };
+
     typedef struct stlink_version_ {
         uint32_t stlink_v;
         uint32_t jtag_v;
         uint32_t swim_v;
         uint32_t st_vid;
         uint32_t stlink_pid;
+        /** jtag api version supported */
+        enum stlink_jtag_api_version jtag_api;
+        /** one bit for each feature supported. See macros STLINK_F_* */
+        uint32_t flags;
     } stlink_version_t;
 
     enum transport_type {
@@ -144,7 +204,7 @@ typedef struct flash_loader {
         int verbose;
         uint32_t core_id;	// set by stlink_core_id(), result from STLINK_DEBUGREADCOREID
         uint32_t chip_id;	// set by stlink_load_device_params(), used to identify flash and sram
-        int core_stat;		// set by stlink_status(), values STLINK_CORE_xxxxx
+        enum target_state core_stat;		// set by stlink_status()
 
         char serial[STLINK_SERIAL_MAX_SIZE];
         int serial_size;

@@ -321,7 +321,9 @@ int stlink_flash_loader_write_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* 
     }
 
     memcpy(sl->q_buf, loader_code, loader_size);
-    stlink_write_mem32(sl, sl->sram_base, loader_size);
+    int ret = stlink_write_mem32(sl, sl->sram_base, loader_size);
+    if (ret)
+        return ret;
 
     *addr = sl->sram_base;
     *size = loader_size;

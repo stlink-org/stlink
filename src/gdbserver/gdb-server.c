@@ -1384,7 +1384,7 @@ int serve(stlink_t *sl, st_state_t *st) {
                     }
 
                     stlink_status(sl);
-                    if(sl->core_stat == STLINK_CORE_HALTED) {
+                    if(sl->core_stat == TARGET_HALTED) {
                         struct stlink_reg reg;
                         int ret;
                         stm32_addr_t pc;
