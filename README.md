@@ -3,24 +3,29 @@ Open source version of the STMicroelectronics Stlink Tools
 
 [![GitHub release](https://img.shields.io/github/release/texane/stlink.svg)](https://github.com/texane/stlink/releases/latest)
 [![BSD licensed](https://img.shields.io/badge/license-BSD-blue.svg)](https://raw.githubusercontent.com/hyperium/hyper/master/LICENSE)
-[![GitHub commits](https://img.shields.io/github/commits-since/texane/stlink/1.5.0.svg)](https://github.com/texane/stlink/compare/1.4.0...master)
+[![GitHub commits](https://img.shields.io/github/commits-since/texane/stlink/v1.6.0.svg)](https://github.com/texane/stlink/releases/master)
 [![Downloads](https://img.shields.io/github/downloads/texane/stlink/total.svg)](https://github.com/texane/stlink/releases)
+
 [![Linux Status](https://img.shields.io/travis/texane/stlink/master.svg?label=linux)](https://travis-ci.org/texane/stlink)
-[![Build Status](https://jenkins.ncrmnt.org/buildStatus/icon?job=GithubCI/stlink)](https://jenkins.ncrmnt.org/job/GithubCI/job/stlink/)
+[![macOS Status](https://img.shields.io/travis/texane/stlink/master.svg?label=osx)](https://travis-ci.org/texane/stlink)
+
 
 ## HOWTO
 
-First, you have to know there are several boards supported by the software.
-Those boards use a chip to translate from USB to JTAG commands. The chip is
-called stlink and there are two versions:
+This stlink toolset supports several so called stlink programmer boards (and clones thereof) which use a microcontroller chip to translate commands from USB to JTAG. These programmer boards are available in four versions:
 
-* STLINKv1, present on STM32VL discovery kits,
-* STLINKv2, present on STM32L discovery and later kits.
+* **STLINKv1:**
+  - transport layer: SCSI passthru commands over USB
+  - present on STM32VL discovery kits
+* **STLINKv2:**
+  * transport layer: raw USB commands
+  * present on STM32L discovery and nucleo and later kits
+* **STLINKv2-1:**
+  * transport layer: raw USB commands
+  * present on some STM32 nucleo boards
+* **STLINKv3:**
+  * _currently not supported by this toolset_
 
-Two different transport layers are used:
-
-* STLINKv1 uses SCSI passthru commands over USB
-* STLINKv2 and STLINKv2-1 (seen on nucleo boards) uses raw USB commands.
 
 ## Installation
 
@@ -28,8 +33,9 @@ Windows users can [download v1.3.0](https://github.com/texane/stlink/releases/ta
 
 Mac OS X users can install from [homebrew](http://brewformulas.org/Stlink) or [download v1.3.0](https://github.com/texane/stlink/releases/tag/1.3.0) from the releases page.
 
-For Debian Linux based distributions there is no package available
- in the standard repositories so you need to install [from source](doc/compiling.md) yourself.
+Debian Linux users can install it via the ```stlink-tools``` package [repository](https://packages.debian.org/buster/stlink-tools)
+
+Ubuntu Linux users can install it via the ```stlink-tools``` package [repository](https://packages.ubuntu.com/stlink-tools)
 
 Arch Linux users can install from the [repository](https://www.archlinux.org/packages/community/x86_64/stlink)
 
@@ -45,11 +51,11 @@ FreeBSD users can install from [freshports](https://www.freshports.org/devel/stl
 
 OpenBSD users need to install [from source](doc/compiling.md).
 
+
 ## Installation from source (advanced users)
 
-When there is no executable available for your platform or you need the latest
- (possible unstable) version you need to compile yourself. This is explained in
- the [compiling manual](doc/compiling.md).
+When there is no executable available for your platform or you need the latest (possible unstable) version you need to compile yourself. This is explained in the [compiling manual](doc/compiling.md).
+
 
 ## Using the gdb server
 
@@ -98,6 +104,7 @@ Transfer rate: 1 KB/sec, 560 bytes/write.
 (gdb) continue
 ```
 
+
 ## Resetting the chip from GDB
 
 You may reset the chip using GDB if you want. You'll need to use `target
@@ -113,8 +120,15 @@ Kill the program being debugged? (y or n) y
 Starting program: /home/whitequark/ST/apps/bally/firmware.elf
 ```
 
-Remember that you can shorten the commands. `tar ext :4242' is good enough
+Remember that you can shorten the commands. `tar ext :4242` is good enough
 for GDB.
+
+If you need to send a hard reset signal through `NRST` pin, you can use the following command:
+
+```
+(gdb) monitor jtag_reset
+```
+
 
 ## Running programs from SRAM
 
@@ -128,6 +142,7 @@ it at 0x20000000 and do
 It will be loaded, and pc will be adjusted to point to start of the
 code, if it is linked correctly (i.e. ELF has correct entry point).
 
+
 ## Writing to flash
 
 The GDB stub ships with a correct memory map, including the flash area.
@@ -139,36 +154,43 @@ If you would link your executable to `0x08000000` and then do
 
 then it would be written to the memory.
 
+
+## Writing Option Bytes
+
+Example to read and write option bytes (currently writing only supported for STM32G0 and STM32L0)
+```
+./st-flash --debug --reset --format binary --flash=128k read option_bytes_dump.bin 0x1FFF7800 4
+./st-flash --debug --reset --format binary --flash=128k write option_bytes_dump.bin 0x1FFF7800
+```
+
+
 ## FAQ
 
 Q: My breakpoints do not work at all or only work once.
 
-A: Optimizations can cause severe instruction reordering. For example,
-if you are doing something like `REG = 0x100;' in a loop, the code may
-be split into two parts: loading 0x100 into some intermediate register
-and moving that value to REG. When you set up a breakpoint, GDB will
-hook to the first instruction, which may be called only once if there are
-enough unused registers. In my experience, -O3 causes that frequently.
+A: Optimizations can cause severe instruction reordering. For example, if you are doing something like `REG = 0x100;' in a loop, the code may be split into two parts: loading 0x100 into some intermediate register and moving that value to REG. When you set up a breakpoint, GDB will hook to the first instruction, which may be called only once if there are enough unused registers. In my experience, -O3 causes that frequently.
 
 Q: At some point I use GDB command `next', and it hangs.
 
-A: Sometimes when you will try to use GDB `next` command to skip a loop,
-it will use a rather inefficient single-stepping way of doing that.
-Set up a breakpoint manually in that case and do `continue`.
+A: Sometimes when you will try to use GDB `next` command to skip a loop, it will use a rather inefficient single-stepping way of doing that. Set up a breakpoint manually in that case and do `continue`.
 
 Q: Load command does not work in GDB.
 
-A: Some people report XML/EXPAT is not enabled by default when compiling
-GDB. Memory map parsing thus fail. Use --enable-expat.
+A: Some people report XML/EXPAT is not enabled by default when compiling GDB. Memory map parsing thus fail. Use --enable-expat.
+
 
 ## Currently known working combinations of programmer and target
 
 See [doc/tested-boards.md](doc/tested-boards.md)
 
+## Changelog
+
+The [Changelog](CHANGELOG.md) for the StLink Tools.
+
+
 ## Known missing features
 
-Some features are missing from the `texane/stlink` project and we would like you to
- help us out if you want to get involved:
+Some features are missing from the `texane/stlink` project and we would like you to help us out if you want to get involved:
 
 * Control programming speed (See [#462](https://github.com/texane/stlink/issues/462))
 * OTP area programming (See [#202](https://github.com/texane/stlink/issues/202))
@@ -179,12 +201,11 @@ Some features are missing from the `texane/stlink` project and we would like you
 * Instrumentation Trace Macro (ITM) Cell (See [#136](https://github.com/texane/stlink/issues/136))
 * Writing external memory connected to an STM32 controller (e.g Quad SPI NOR flash) (See [#412](https://github.com/texane/stlink/issues/412))
 
-## Known bugs
 
+## Known bugs
 ### Sometimes flashing only works after a mass erase
 
-There is seen a problem sometimes where a flash loader run error occurs and is resolved after mass-erase
-of the flash:
+There is seen a problem sometimes where a flash loader run error occurs and is resolved after mass-erase of the flash:
 
 ```
 2015-12-09T22:01:57 INFO src/stlink-common.c: Successfully loaded flash loader in sram
@@ -193,6 +214,7 @@ of the flash:
 ```
 
 Issue related to this bug: [#356](https://github.com/texane/stlink/issues/356)
+
 
 ### Flash size is detected as zero bytes size
 
@@ -225,6 +247,7 @@ Try to remove the write protection (probably only possible with ST Link Utility 
 
 Issue related to this bug: [#545](https://github.com/texane/stlink/issues/545)
 
+
 ## Contributing and versioning
 
 * The semantic versioning scheme is used. Read more at [semver.org](http://semver.org)
@@ -232,5 +255,6 @@ Issue related to this bug: [#545](https://github.com/texane/stlink/issues/545)
 
 ## License
 
-The stlink library and tools are licensed under the [BSD license](LICENSE).
-The flashloaders/stm32l0x.s and flashloaders/stm32lx.s source files are licensed under the GPL-2+.
+The stlink library and tools are licensed under the [BSD license](LICENSE.md).
+
+The flashloaders/stm32l0x.s and flashloaders/stm32lx.s source files are licensed under the GPLv2+.

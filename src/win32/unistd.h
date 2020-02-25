@@ -57,4 +57,8 @@ typedef unsigned __int16  uint16_t;
 typedef unsigned __int32  uint32_t;
 typedef unsigned __int64  uint64_t;
 
+#ifndef STLINK_HAVE_UNISTD_H
+int usleep(unsigned int waitTime);
+#endif
+
 #endif /* unistd.h  */

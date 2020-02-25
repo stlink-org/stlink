@@ -23,6 +23,8 @@ else()
 endif()
 
 option(STLINK_GENERATE_MANPAGES "Generate manpages with pandoc" OFF)
+option(STLINK_INSTALL_UDEV_RULES "Install udev rules files" ON)
+option(STLINK_INSTALL_MODPROBE_CONF "Install modprobe conf files" ON)
 
 if (POLICY CMP0042)
 	# Newer cmake on MacOS should use @rpath
@@ -84,6 +86,7 @@ set(STLINK_SOURCE
 
 if (WIN32 OR MSYS OR MINGW)
 	set (STLINK_SOURCE "${STLINK_SOURCE};src/mmap.c;src/mingw/mingw.c")
+	set (STLINK_HEADERS "${STLINK_HEADERS};src/mingw/mingw.h")
 endif ()
 
 include_directories(${LIBUSB_INCLUDE_DIR})
@@ -196,11 +199,15 @@ install(TARGETS st-flash st-info
 )
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
-	file(GLOB RULES_FILES etc/udev/rules.d/*.rules)
-	install(FILES etc/modprobe.d/stlink_v1.conf
-	DESTINATION ${STLINK_MODPROBED_DIR}/)
-	install(FILES ${RULES_FILES}
-	DESTINATION ${STLINK_UDEV_RULES_DIR}/)
+	if (STLINK_INSTALL_MODPROBE_CONF)
+		install(FILES etc/modprobe.d/stlink_v1.conf
+		DESTINATION ${STLINK_MODPROBED_DIR}/)
+	endif()
+	if (STLINK_INSTALL_UDEV_RULES)
+		file(GLOB RULES_FILES etc/udev/rules.d/*.rules)
+		install(FILES ${RULES_FILES}
+		DESTINATION ${STLINK_UDEV_RULES_DIR}/)
+	endif()
 endif()
 
 add_subdirectory(src/gdbserver)

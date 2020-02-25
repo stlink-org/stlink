@@ -36,19 +36,19 @@ reset
 
 # OPTIONS
 
-`--version`
+\--version
 :   Print version information
 
-`--debug`
+\--debug
 :   TODO
 
-`--reset`
+\--reset
 :   TODO
 
-`--serial` *iSerial*
+\--serial *iSerial*
 :   TODO
 
-`--flash=fsize`
+\--flash=fsize
 :   Where fsize is the size in decimal, octal, or hex followed by an optional multiplier 
 'k' for KB, or 'm' for MB.
 Use a leading "0x" to specify hexadecimal, or a leading zero for octal.

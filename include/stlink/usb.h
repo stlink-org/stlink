@@ -18,10 +18,11 @@
 extern "C" {
 #endif
 
-#define STLINK_USB_VID_ST            0x0483
-#define STLINK_USB_PID_STLINK        0x3744
-#define STLINK_USB_PID_STLINK_32L    0x3748
-#define STLINK_USB_PID_STLINK_NUCLEO 0x374b
+#define STLINK_USB_VID_ST               0x0483
+#define STLINK_USB_PID_STLINK           0x3744
+#define STLINK_USB_PID_STLINK_32L       0x3748
+#define STLINK_USB_PID_STLINK_32L_AUDIO 0x374a
+#define STLINK_USB_PID_STLINK_NUCLEO    0x374b
 
 #define STLINK_SG_SIZE 31
 #define STLINK_CMD_SIZE 16
@@ -44,7 +45,7 @@ extern "C" {
      * @retval NULL   Error while opening the stlink
      * @retval !NULL  Stlink found and ready to use
      */
-    stlink_t *stlink_open_usb(enum ugly_loglevel verbose, bool reset, char serial[16]);
+    stlink_t *stlink_open_usb(enum ugly_loglevel verbose, bool reset, char serial[STLINK_SERIAL_MAX_SIZE]);
     size_t stlink_probe_usb(stlink_t **stdevs[]);
     void stlink_probe_usb_free(stlink_t **stdevs[], size_t size);
 

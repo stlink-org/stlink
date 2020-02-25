@@ -8,7 +8,7 @@
 #endif
 
 #include <io.h>
-#include <WinSock2.h>
+#include <winsock2.h>
 #if defined(_MSC_VER)
 #pragma comment(lib, "ws2_32.lib")
 #endif
@@ -60,7 +60,7 @@ SOCKET  win32_socket(int, int, int);
 int     win32_connect(SOCKET, struct sockaddr*, socklen_t);
 SOCKET  win32_accept(SOCKET, struct sockaddr*, socklen_t *);
 int     win32_shutdown(SOCKET, int);
-int 	win32_close_socket(SOCKET fd);
+int     win32_close_socket(SOCKET fd);
 
 #define strtok_r(x, y, z)      win32_strtok_r(x, y, z)
 #define strsep(x,y) win32_strsep(x,y)
@@ -70,10 +70,5 @@ char *win32_strsep(char **stringp, const char *delim);
 
 ssize_t win32_read_socket(SOCKET fd, void *buf, int n);
 ssize_t win32_write_socket(SOCKET fd, void *buf, int n);
-
-#ifndef STLINK_HAVE_UNISTD_H
-static inline void sleep(unsigned ms) { Sleep(ms); }
-void usleep(DWORD waitTime);
-#endif
 
 #endif //defined(__MINGW32__) || defined(_MSC_VER)

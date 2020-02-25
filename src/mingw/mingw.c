@@ -15,7 +15,8 @@ int win32_poll(struct pollfd *fds, unsigned int nfds, int timo)
 {
     struct timeval timeout, *toptr;
     fd_set ifds, ofds, efds, *ip, *op;
-    unsigned int i, rc;
+    unsigned int i;
+    int rc;
 
     /* Set up the file-descriptor sets in ifds, ofds and efds. */
 #ifdef _MSC_VER
@@ -272,7 +273,7 @@ char *win32_strsep (char **stringp, const char *delim)
 }
 
 #ifndef STLINK_HAVE_UNISTD_H
-void usleep(DWORD waitTime)
+int usleep(unsigned int waitTime)
 {
 	if (waitTime >= 1000)
 	{
@@ -288,7 +289,7 @@ void usleep(DWORD waitTime)
 		SetWaitableTimer(timer, &dueTime, 0, NULL, NULL, 0);
 		WaitForSingleObject(timer, INFINITE);
 		CloseHandle(timer);
-		return;
+        return 0;
 	}
     LARGE_INTEGER perf_cnt, start, now;
 
@@ -298,6 +299,8 @@ void usleep(DWORD waitTime)
     do {
         QueryPerformanceCounter((LARGE_INTEGER*) &now);
     } while ((now.QuadPart - start.QuadPart) / (float)perf_cnt.QuadPart * 1000 * 1000 < waitTime);
+
+    return 0;
 }
 #endif
 

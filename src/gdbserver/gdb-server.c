@@ -14,7 +14,7 @@
 #include <stdbool.h>
 #define __attribute__(x)
 #endif
-#if defined(__MINGW32__) || defined(_MSC_VER)
+#if defined(_WIN32)
 #include <mingw.h>
 #else
 #include <unistd.h>
@@ -43,6 +43,15 @@ static stlink_t *connected_stlink = NULL;
 static bool semihosting = false;
 static bool serial_specified = false;
 static char serialnumber[28] = {0};
+
+#if defined(_WIN32)
+#define close_socket win32_close_socket
+#define IS_SOCK_VALID(__sock) ((__sock) != INVALID_SOCKET)
+#else
+#define close_socket close
+#define SOCKET int
+#define IS_SOCK_VALID(__sock) ((__sock) > 0)
+#endif
 
 static const char hex[] = "0123456789abcdef";
 
@@ -106,7 +115,7 @@ int parse_options(int argc, char** argv, st_state_t *st) {
         {"no-reset", optional_argument, NULL, 'n'},
         {"version", no_argument, NULL, 'V'},
         {"semihosting", no_argument, NULL, SEMIHOSTING_OPTION},
-	  {"serial", required_argument, NULL, SERIAL_OPTION},
+        {"serial", required_argument, NULL, SERIAL_OPTION},
         {0, 0, 0, 0},
     };
     const char * help_str = "%s - usage:\n\n"
@@ -151,7 +160,7 @@ int parse_options(int argc, char** argv, st_state_t *st) {
                 if (optarg) {
                     st->logging_level = atoi(optarg);
                 } else {
-                    st->logging_level = DEFAULT_LOGGING_LEVEL;
+                    st->logging_level = DEBUG_LOGGING_LEVEL;
                 }
                 break;
             case '1':
@@ -254,8 +263,8 @@ int main(int argc, char** argv) {
 
     do {
         if (serve(sl, &state)) {
-	  sleep (1); // don't go bezurk if serve returns with error
-	}
+      usleep (1 * 1000); // don't go bezurk if serve returns with error
+    }
 
         /* in case serve() changed the connection */
         sl = connected_stlink;
@@ -863,7 +872,6 @@ static int flash_go(stlink_t *sl) {
             int ret = stlink_write_flash(sl, page, fb->data + (page - fb->addr), len, 0);
             if (ret < 0)
                 goto error;
-            length -= len;
         }
     }
 
@@ -989,29 +997,27 @@ static void init_cache (stlink_t *sl) {
 }
 
 static void cache_flush(stlink_t *sl, unsigned ccr) {
-  int level;
+    int level;
 
-  if (ccr & CCR_DC)
-    for (level = cache_desc.louu - 1; level >= 0; level--)
-      {
-	struct cache_level_desc *desc = &cache_desc.dcache[level];
-	unsigned addr;
-	unsigned max_addr = 1 << desc->width;
-	unsigned way_sh = 32 - desc->log2_nways;
+    if (ccr & CCR_DC)
+        for (level = cache_desc.louu - 1; level >= 0; level--) {
+            struct cache_level_desc *desc = &cache_desc.dcache[level];
+            unsigned addr;
+            unsigned max_addr = 1 << desc->width;
+            unsigned way_sh = 32 - desc->log2_nways;
 
-	/* D-cache clean by set-ways.  */
-	for (addr = (level << 1); addr < max_addr; addr += cache_desc.dminline)
-	  {
-	    unsigned int way;
+            /* D-cache clean by set-ways.  */
+            for (addr = (level << 1); addr < max_addr; addr += cache_desc.dminline) {
+                unsigned int way;
 
-	    for (way = 0; way < desc->nways; way++)
-	      stlink_write_debug32(sl, DCCSW, addr | (way << way_sh));
-	  }
-      }
+                for (way = 0; way < desc->nways; way++)
+                  stlink_write_debug32(sl, DCCSW, addr | (way << way_sh));
+              }
+        }
 
-  /* Invalidate all I-cache to oPU.  */
-  if (ccr & CCR_IC)
-    stlink_write_debug32(sl, ICIALLU, 0);
+    /* Invalidate all I-cache to oPU.  */
+    if (ccr & CCR_IC)
+        stlink_write_debug32(sl, ICIALLU, 0);
 }
 
 static int cache_modified;
@@ -1055,8 +1061,8 @@ static size_t unhexify(const char *in, char *out, size_t out_count)
 }
 
 int serve(stlink_t *sl, st_state_t *st) {
-    int sock = socket(AF_INET, SOCK_STREAM, 0);
-    if(sock < 0) {
+    SOCKET sock = socket(AF_INET, SOCK_STREAM, 0);
+    if(!IS_SOCK_VALID(sock)) {
         perror("socket");
         return 1;
     }
@@ -1072,28 +1078,27 @@ int serve(stlink_t *sl, st_state_t *st) {
 
     if(bind(sock, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
         perror("bind");
+        close_socket(sock);
         return 1;
     }
 
     if(listen(sock, 5) < 0) {
         perror("listen");
+        close_socket(sock);
         return 1;
     }
 
     ILOG("Listening at *:%d...\n", st->listen_port);
 
-    int client = accept(sock, NULL, NULL);
+    SOCKET client = accept(sock, NULL, NULL);
     //signal (SIGINT, SIG_DFL);
-    if(client < 0) {
+    if(!IS_SOCK_VALID(client)) {
         perror("accept");
+        close_socket(sock);
         return 1;
     }
 
-#if defined(__MINGW32__) || defined(_MSC_VER)
-	win32_close_socket(sock);
-#else
-	close(sock);
-#endif
+    close_socket(sock);
 
     stlink_force_debug(sl);
     if (st->reset) {
@@ -1116,9 +1121,7 @@ int serve(stlink_t *sl, st_state_t *st) {
         int status = gdb_recv_packet(client, &packet);
         if(status < 0) {
             ELOG("cannot recv: %d\n", status);
-#if defined(__MINGW32__) || defined(_MSC_VER)
-            win32_close_socket(client);
-#endif
+            close_socket(client);
             return 1;
         }
 
@@ -1343,6 +1346,8 @@ int serve(stlink_t *sl, st_state_t *st) {
                     } else {
                         reply = strdup("OK");
                     }
+
+                    free(decoded);
                 } else if(!strcmp(cmdName, "FlashDone")) {
                     if(flash_go(sl) < 0) {
                         reply = strdup("E00");
@@ -1369,9 +1374,7 @@ int serve(stlink_t *sl, st_state_t *st) {
                     status = gdb_check_for_interrupt(client);
                     if(status < 0) {
                         ELOG("cannot check for int: %d\n", status);
-#if defined(__MINGW32__) || defined(_MSC_VER)
-                        win32_close_socket(client);
-#endif
+                        close_socket(client);
                         return 1;
                     }
 
@@ -1771,9 +1774,7 @@ int serve(stlink_t *sl, st_state_t *st) {
                 ELOG("cannot send: %d\n", result);
                 free(reply);
                 free(packet);
-#if defined(__MINGW32__) || defined(_MSC_VER)
-                win32_close_socket(client);
-#endif
+                close_socket(client);
                 return 1;
             }
 
@@ -1783,9 +1784,7 @@ int serve(stlink_t *sl, st_state_t *st) {
         free(packet);
     }
 
-#if defined(__MINGW32__) || defined(_MSC_VER)
-    win32_close_socket(client);
-#endif
+    close_socket(client);
 
     return 0;
 }
