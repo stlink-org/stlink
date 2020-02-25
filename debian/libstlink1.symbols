@@ -78,6 +78,8 @@ libstlink.so.1 libstlink1 #MINVER#
  stlink_force_debug@Base 1.5.0
  stlink_fread@Base 1.5.0
  stlink_fwrite_flash@Base 1.5.0
+ stlink_fwrite_option_bytes@Base 1.6.0
+ stlink_fwrite_option_bytes_32bit@Base 1.6.0
  stlink_fwrite_sram@Base 1.5.0
  stlink_get_erased_pattern@Base 1.5.0
  stlink_is_core_halted@Base 1.5.0
@@ -95,6 +97,8 @@ libstlink.so.1 libstlink1 #MINVER#
  stlink_read_all_unsupported_regs@Base 1.5.0
  stlink_read_debug32@Base 1.5.0
  stlink_read_mem32@Base 1.5.0
+ stlink_read_option_bytes_f2@Base 1.6.0
+ stlink_read_option_bytes_f4@Base 1.6.0
  stlink_read_reg@Base 1.5.0
  stlink_read_unsupported_reg@Base 1.5.0
  stlink_reset@Base 1.5.0
@@ -115,6 +119,7 @@ libstlink.so.1 libstlink1 #MINVER#
  stlink_write_flash@Base 1.5.0
  stlink_write_mem32@Base 1.5.0
  stlink_write_mem8@Base 1.5.0
+ stlink_write_option_bytes@Base 1.6.0
  stlink_write_reg@Base 1.5.0
  stlink_write_unsupported_reg@Base 1.5.0
  stm32l1_write_half_pages@Base 1.5.0
