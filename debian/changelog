@@ -1,3 +1,11 @@
+stlink (1.6.0+ds-1) unstable; urgency=medium
+
+  * Merge tag 'v1.6.0' into debian
+  * Bump Standards-Version to 4.5.0, no changes.
+  * Update libstlink1 symbols file for 1.6.0.
+
+ -- Luca Boccassi <bluca@debian.org>  Tue, 25 Feb 2020 22:08:33 +0000
+
 stlink (1.5.1+ds-2) unstable; urgency=medium
 
   * Mark library packages as Multi-Arch: same.
