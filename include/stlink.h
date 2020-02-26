@@ -52,6 +52,11 @@ extern "C" {
 
 #define STLINK_DEBUG_APIV2_SWD_SET_FREQ    0x43
 
+#define STLINK_APIV3_SET_COM_FREQ           0x61
+#define STLINK_APIV3_GET_COM_FREQ           0x62
+
+#define STLINK_APIV3_GET_VERSION_EX         0xFB
+
 // Baud rate divisors for SWDCLK
 #define STLINK_SWDCLK_4MHZ_DIVISOR		0
 #define STLINK_SWDCLK_1P8MHZ_DIVISOR	1
@@ -68,6 +73,9 @@ extern "C" {
 
 #define STLINK_SERIAL_MAX_SIZE 64
 
+#define STLINK_V3_MAX_FREQ_NB               10
+
+
     /* Enough space to hold both a V2 command or a V1 command packaged as generic scsi*/
 #define C_BUF_LEN 32
 
@@ -79,6 +87,7 @@ extern "C" {
         STLINK_FLASH_TYPE_L4,
         STLINK_FLASH_TYPE_F1_XL,
         STLINK_FLASH_TYPE_G0,
+        STLINK_FLASH_TYPE_G4,
         STLINK_FLASH_TYPE_WB
     };
 
