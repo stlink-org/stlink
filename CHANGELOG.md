@@ -26,6 +26,7 @@ Major changes and added features:
 
 Updates and fixes:
 
+* Build failure when platform is 32 bit, but stuct stat.st_size is 64 bit. ([#629](https://github.com/texane/stlink/pull/629))
 * Made udev rules and modprobe conf installation optional ([#741](https://github.com/texane/stlink/pull/741))
 * Fixed case when __FILE__ don't contain "/" nor "\\". ([#745](https://github.com/texane/stlink/pull/745))
 * Fixed double dash issue in doc/man ([#746](https://github.com/texane/stlink/pull/746))
@@ -33,7 +34,7 @@ Updates and fixes:
 * Only do bank calculation on STM32L4 devices with dual banked flash ([#751](https://github.com/texane/stlink/pull/751))
 * Updated STM32F3xx chip ID that covers a few different devices ([#758](https://github.com/texane/stlink/pull/758))
 * Fixed versioning when compiling from the checked out git-repo ([#762](https://github.com/texane/stlink/pull/762))
-* Fixed "unkown chip id", piped output and st-util -v ([#763](https://github.com/texane/stlink/pull/763))
+* Fixed "unkown chip id", piped output and st-util -v ([#107](https://github.com/texane/stlink/pull/107), [#763](https://github.com/texane/stlink/pull/763))
 * win32: move usleep definition to unistd.h ([#765](https://github.com/texane/stlink/pull/765))
 * Fixed relative path to the UI files needed by stlink-gui-local (GUI) ([#770](https://github.com/texane/stlink/pull/770), [#771](https://github.com/texane/stlink/pull/771))
 * Fixed package name "devscripts" in doc/compiling.md ([#775](https://github.com/texane/stlink/pull/775))
@@ -149,10 +150,10 @@ Release date: 2017-01-28
 
 Major changes and added features:
 
-* Deprecation of autotools (autoconf, automake) (@xor-gate)
+* Deprecation of autotools (autoconf, automake) ([#83](https://github.com/texane/stlink/pull/83), [#431](https://github.com/texane/stlink/pull/431), [#434](https://github.com/texane/stlink/pull/434))
 * Removal of undocumented `st-term` utility, which is now replaced by `st-util` ARM semihosting feature ([#3fd0f09](https://github.com/texane/stlink/commit/3fd0f099782506532198473b24f643a3f68d5ff9))
 * Added support for native debian packaging ([#444](https://github.com/texane/stlink/pull/444), [#485](https://github.com/texane/stlink/pull/485))
-* Added intel hex file reading for `st-flash` ([#459](https://github.com/texane/stlink/pull/541))
+* Added intel hex file reading for `st-flash` ([#110](https://github.com/texane/stlink/pull/110), [#157](https://github.com/texane/stlink/pull/157), [#200](https://github.com/texane/stlink/pull/200), [#239](https://github.com/texane/stlink/pull/239), [#457](https://github.com/texane/stlink/pull/547), [#459](https://github.com/texane/stlink/pull/549))
 * Added `--reset` command to `st-flash` ([#505](https://github.com/texane/stlink/pull/505))
 * Support serial numbers argument for `st-util` and `st-flash` for multi-programmer setups ([#541](https://github.com/texane/stlink/pull/541))
 * Added kill ('k') command to gdb-server for `st-util` ([#9804416](https://github.com/texane/stlink/commit/98044163ab34bf5159f121d1c49ffb3550321ca0))
@@ -171,14 +172,15 @@ Chip support added for:
 
 Updates and fixes:
 
+* Set SWDCLK and fixed jtag_reset bug ([#254](https://github.com/texane/stlink/pull/254), [#291](https://github.com/texane/stlink/pull/291), [#475](https://github.com/texane/stlink/pull/475), [#533](https://github.com/texane/stlink/pull/533), [#534](https://github.com/texane/stlink/pull/534))
 * Fixed STM32F030 erase error ([#442](https://github.com/texane/stlink/pull/442))
 * Fixed Cygwin build ([#68b0f3b](https://github.com/texane/stlink/commit/68b0f3bddc3c4aaffe34caa6a3201029edd8ad56))
 * Reset flash mass erase (MER) bit after mass erase for safety ([#489](https://github.com/texane/stlink/pull/489))
 * Fixed memory map for STM32F4 (@zulusw)
-* Fixed STM32L-problem with flash loader (issue #390) (Tom de Boer)
+* Fixed STM32L-problem with flash loader ([#390](https://github.com/texane/stlink/pull/390))
 * `st-util` don't read target voltage on startup as it crashes STM32F100 (probably stlink/v1) (Greg Alexander)
 * Do a JTAG reset prior to reading CPU information when processor is in deep sleep (@andyg24)
-* Redesign of `st-flash` commandline options parsing (pull-request #459) (@dev26th)
+* Redesign of `st-flash` commandline options parsing ([#459](https://github.com/texane/stlink/pull/459))
 
 v1.2.0
 ======

@@ -69,7 +69,7 @@ When there is no executable available for your platform or you need the latest (
 * The semantic versioning scheme is used. Read more at [semver.org](http://semver.org)
 * Before creating a pull request, please _ALWAYS_ open a new issue for the discussion of the intended new features. Bugfixes don't require a discussion via a ticket-issue. However they should always be described in a few words as soon as they appear to help others as well.
 * Contributors and/or maintainers may submit comments or request changes to patch-proposals and/or pull-requests.
-
+* Please start new forks from the develop branch if possible as pull requests will go into this branch as well.
 
 ## License
 
