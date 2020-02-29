@@ -39,6 +39,7 @@ Currently known working combinations of programmers and targets are listed in [d
 
 **Windows**: download [v1.6.0](https://github.com/texane/stlink/releases/tag/v1.6.0) from the releases page.
 
+
 **macOS**: install [from homebrew](http://brewformulas.org/Stlink) or download [v1.6.0](https://github.com/texane/stlink/releases/tag/v1.6.0) from the releases page.
 
 **Linux**:
@@ -69,6 +70,8 @@ When there is no executable available for your platform or you need the latest (
 * The semantic versioning scheme is used. Read more at [semver.org](http://semver.org)
 * Before creating a pull request, please _ALWAYS_ open a new issue for the discussion of the intended new features. Bugfixes don't require a discussion via a ticket-issue. However they should always be described in a few words as soon as they appear to help others as well.
 * Contributors and/or maintainers may submit comments or request changes to patch-proposals and/or pull-requests.
+* **ATTENTION: _NEVER EVER_ use the '#' character to count-up single points within a listing as '#' is _exclusively_ reserved for referencing github issues and pull-requests. Otherwise you accidentally introduce false cross references within the project.**
+* Please start new forks from the develop branch if possible as pull requests will go into this branch as well.
 
 
 ## License
@@ -79,7 +82,6 @@ The flashloaders/stm32l0x.s and flashloaders/stm32lx.s source files are licensed
 
 
 # Current state of the project
-
 ## Known missing features
 
 Some features are currently missing from the `texane/stlink` toolset.

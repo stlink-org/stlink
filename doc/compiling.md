@@ -1,10 +1,11 @@
-# Compiling
+# Compiling from sources
 
-## Build from sources
+## Package requirements
 
-* CMake (minimal v2.8.7)
-* C compiler (gcc, clang, mingw)
-* Libusb 1.0 (minimal v1.0.9)
+* CMake (v2.8.7 or later)
+* C compiler (gcc, clang or mingw)
+* libusb 1.0 (v1.0.13 or later)
+* libusb-dev 1.0 (v1.0.13 or later)
 * (optional) pandoc for generating manpages from markdown
 
 Run from the root of the source directory:
@@ -127,7 +128,7 @@ you can use the following cmake option:
 $ cmake -DLIB_INSTALL_DIR:PATH="/usr/lib64"  ..
 ```
 
-## Windows (MinGW64) 
+## Windows (MinGW64)
 
 ### Prequistes
 
@@ -149,7 +150,7 @@ Check and execute (in the script folder) `<source-dir>\scripts\mingw64-build.bat
 NOTE: when installing different toolchains make sure you edit the path in the `mingw64-build.bat`
       the build script uses currently `C:\Program Files\mingw-w64\x86_64-5.3.0-win32-sjlj-rt_v4-rev0\mingw64\bin`
 
-## Windows (Visual Studio) 
+## Windows (Visual Studio)
 
 ### Prerequisites
 
