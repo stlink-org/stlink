@@ -18,9 +18,12 @@ addons:
       - g++-6
       - gcc-6
       - libusb-1.0.0-dev
+      - p7zip
+      - mingw-w64
 
 script:
   - git fetch --tags
   - printenv
   - cmake --version
   - ./.travis.sh
+  - ./.travis-lin-mingw.sh
