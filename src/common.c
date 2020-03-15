@@ -1893,6 +1893,9 @@ int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr)
         /* unlock if locked */
         unlock_flash_if(sl);
 
+        /* clear the pg bit */
+        clear_flash_cr_pg(sl);
+        
         /* set the page erase bit */
         set_flash_cr_per(sl);
 
