@@ -255,32 +255,37 @@ int stlink_flash_loader_write_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* 
     const uint8_t* loader_code;
     size_t loader_size;
 
-    if (sl->chip_id == STLINK_CHIPID_STM32_L1_MEDIUM || sl->chip_id == STLINK_CHIPID_STM32_L1_CAT2
-            || sl->chip_id == STLINK_CHIPID_STM32_L1_MEDIUM_PLUS || sl->chip_id == STLINK_CHIPID_STM32_L1_HIGH
-            || sl->chip_id == STLINK_CHIPID_STM32_L152_RE || sl->chip_id == STLINK_CHIPID_STM32_L011
-            || sl->chip_id == STLINK_CHIPID_STM32_L0 || sl->chip_id == STLINK_CHIPID_STM32_L0_CAT5 || sl->chip_id == STLINK_CHIPID_STM32_L0_CAT2) { /* stm32l */
+    if (sl->chip_id == STLINK_CHIPID_STM32_L1_MEDIUM ||
+        sl->chip_id == STLINK_CHIPID_STM32_L1_CAT2 ||
+        sl->chip_id == STLINK_CHIPID_STM32_L1_MEDIUM_PLUS ||
+        sl->chip_id == STLINK_CHIPID_STM32_L1_HIGH ||
+        sl->chip_id == STLINK_CHIPID_STM32_L152_RE ||
+        sl->chip_id == STLINK_CHIPID_STM32_L011 ||
+        sl->chip_id == STLINK_CHIPID_STM32_L0 ||
+        sl->chip_id == STLINK_CHIPID_STM32_L0_CAT5 ||
+        sl->chip_id == STLINK_CHIPID_STM32_L0_CAT2) { /* stm32l */
         loader_code = loader_code_stm32l;
         loader_size = sizeof(loader_code_stm32l);
-    } else if (sl->core_id == STM32VL_CORE_ID
-            || sl->chip_id == STLINK_CHIPID_STM32_F1_MEDIUM
-            || sl->chip_id == STLINK_CHIPID_STM32_F3
-            || sl->chip_id == STLINK_CHIPID_STM32_F3_SMALL
-            || sl->chip_id == STLINK_CHIPID_STM32_F303_HIGH
-            || sl->chip_id == STLINK_CHIPID_STM32_F37x
-            || sl->chip_id == STLINK_CHIPID_STM32_F334) {
+    } else if (sl->core_id == STM32VL_CORE_ID ||
+               sl->chip_id == STLINK_CHIPID_STM32_F1_MEDIUM ||
+               sl->chip_id == STLINK_CHIPID_STM32_F3 ||
+               sl->chip_id == STLINK_CHIPID_STM32_F3_SMALL ||
+               sl->chip_id == STLINK_CHIPID_STM32_F303_HIGH ||
+               sl->chip_id == STLINK_CHIPID_STM32_F37x ||
+               sl->chip_id == STLINK_CHIPID_STM32_F334) {
         loader_code = loader_code_stm32vl;
         loader_size = sizeof(loader_code_stm32vl);
-    } else if (sl->chip_id == STLINK_CHIPID_STM32_F2      ||
-		sl->chip_id == STLINK_CHIPID_STM32_F4     ||
-		sl->chip_id == STLINK_CHIPID_STM32_F4_DE  ||
-		sl->chip_id == STLINK_CHIPID_STM32_F4_LP  ||
-		sl->chip_id == STLINK_CHIPID_STM32_F4_HD  ||
-		sl->chip_id == STLINK_CHIPID_STM32_F4_DSI ||
-		sl->chip_id == STLINK_CHIPID_STM32_F410   ||
-		sl->chip_id == STLINK_CHIPID_STM32_F411RE ||
-		sl->chip_id == STLINK_CHIPID_STM32_F412   ||
-		sl->chip_id == STLINK_CHIPID_STM32_F413   ||
-		sl->chip_id == STLINK_CHIPID_STM32_F446
+    } else if (sl->chip_id == STLINK_CHIPID_STM32_F2 ||
+		           sl->chip_id == STLINK_CHIPID_STM32_F4 ||
+		           sl->chip_id == STLINK_CHIPID_STM32_F4_DE ||
+		           sl->chip_id == STLINK_CHIPID_STM32_F4_LP ||
+		           sl->chip_id == STLINK_CHIPID_STM32_F4_HD ||
+		           sl->chip_id == STLINK_CHIPID_STM32_F4_DSI ||
+		           sl->chip_id == STLINK_CHIPID_STM32_F410 ||
+		           sl->chip_id == STLINK_CHIPID_STM32_F411RE ||
+		           sl->chip_id == STLINK_CHIPID_STM32_F412 ||
+		           sl->chip_id == STLINK_CHIPID_STM32_F413 ||
+		           sl->chip_id == STLINK_CHIPID_STM32_F446
 		) {
         int retval;
         retval = loader_v_dependent_assignment(sl,
@@ -290,8 +295,8 @@ int stlink_flash_loader_write_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* 
         if (retval == -1) {
             return retval;
         }
-    } else if (sl->core_id == STM32F7_CORE_ID            ||
-               sl->chip_id == STLINK_CHIPID_STM32_F7     ||
+    } else if (sl->core_id == STM32F7_CORE_ID ||
+               sl->chip_id == STLINK_CHIPID_STM32_F7 ||
                sl->chip_id == STLINK_CHIPID_STM32_F7XXXX ||
                sl->chip_id == STLINK_CHIPID_STM32_F72XXX
                ) {
@@ -303,15 +308,19 @@ int stlink_flash_loader_write_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* 
         if (retval == -1) {
             return retval;
         }
-    } else if (sl->chip_id == STLINK_CHIPID_STM32_F0 || sl->chip_id == STLINK_CHIPID_STM32_F04 || sl->chip_id == STLINK_CHIPID_STM32_F0_CAN || sl->chip_id == STLINK_CHIPID_STM32_F0_SMALL || sl->chip_id == STLINK_CHIPID_STM32_F09X) {
+    } else if (sl->chip_id == STLINK_CHIPID_STM32_F0 ||
+               sl->chip_id == STLINK_CHIPID_STM32_F04 ||
+               sl->chip_id == STLINK_CHIPID_STM32_F0_CAN ||
+               sl->chip_id == STLINK_CHIPID_STM32_F0_SMALL ||
+               sl->chip_id == STLINK_CHIPID_STM32_F09X) {
         loader_code = loader_code_stm32f0;
         loader_size = sizeof(loader_code_stm32f0);
     } else if ((sl->chip_id == STLINK_CHIPID_STM32_L4) ||
-              (sl->chip_id == STLINK_CHIPID_STM32_L41X) ||
-              (sl->chip_id == STLINK_CHIPID_STM32_L43X) ||
-              (sl->chip_id == STLINK_CHIPID_STM32_L46X) ||
-              (sl->chip_id == STLINK_CHIPID_STM32_L4RX) ||
-	            (sl->chip_id == STLINK_CHIPID_STM32_L496X))
+               (sl->chip_id == STLINK_CHIPID_STM32_L41X) ||
+               (sl->chip_id == STLINK_CHIPID_STM32_L43X) ||
+               (sl->chip_id == STLINK_CHIPID_STM32_L46X) ||
+               (sl->chip_id == STLINK_CHIPID_STM32_L4RX) ||
+	             (sl->chip_id == STLINK_CHIPID_STM32_L496X))
       {
         loader_code = loader_code_stm32l4;
         loader_size = sizeof(loader_code_stm32l4);
@@ -345,11 +354,13 @@ int stlink_flash_loader_run(stlink_t *sl, flash_loader_t* fl, stm32_addr_t targe
         return -1;
     }
 
-    if ((sl->flash_type == STLINK_FLASH_TYPE_F0) || (sl->flash_type == STLINK_FLASH_TYPE_F1_XL)) {
+    if ((sl->flash_type == STLINK_FLASH_TYPE_F0) ||
+        (sl->flash_type == STLINK_FLASH_TYPE_F1_XL)) {
         count = size / sizeof(uint16_t);
         if (size % sizeof(uint16_t))
             ++count;
-    } else if (sl->flash_type == STLINK_FLASH_TYPE_F4 || sl->flash_type == STLINK_FLASH_TYPE_L0) {
+    } else if (sl->flash_type == STLINK_FLASH_TYPE_F4 ||
+               sl->flash_type == STLINK_FLASH_TYPE_L0) {
         count = size / sizeof(uint32_t);
         if (size % sizeof(uint32_t))
             ++count;

@@ -20,6 +20,7 @@ enum stlink_debug_commands {
 	STLINK_DEBUG_ENTER          = 0x20,
 	STLINK_DEBUG_EXIT           = 0x21,
 	STLINK_DEBUG_READCOREID     = 0x22,
+	STLINK_DEBUG_APIV2_ENTER    = 0x30,
 	STLINK_DEBUG_ENTER_SWD      = 0xa3
 };
 

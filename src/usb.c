@@ -22,6 +22,53 @@
 
 enum SCSI_Generic_Direction {SG_DXFER_TO_DEV=0, SG_DXFER_FROM_DEV=0x80};
 
+static inline uint32_t le_to_h_u32(const uint8_t* buf)
+{
+    return (uint32_t)((uint32_t)buf[0] | (uint32_t)buf[1] << 8 | (uint32_t)buf[2] << 16 | (uint32_t)buf[3] << 24);
+}
+
+static int _stlink_match_speed_map(const uint32_t *map, unsigned int map_size, uint32_t khz)
+{
+    unsigned int i;
+    int speed_index = -1;
+    int speed_diff = INT_MAX;
+    int last_valid_speed = -1;
+    bool match = true;
+
+    for (i = 0; i < map_size; i++) {
+	if (!map[i])
+	    continue;
+	last_valid_speed = i;
+	if (khz == map[i]) {
+	    speed_index = i;
+	    break;
+	} else {
+	    int current_diff = khz - map[i];
+	    /* get abs value for comparison */
+	    current_diff = (current_diff > 0) ? current_diff : -current_diff;
+	    if ((current_diff < speed_diff) && khz >= map[i]) {
+		speed_diff = current_diff;
+		speed_index = i;
+	    }
+	}
+    }
+
+    if (speed_index == -1) {
+	/* this will only be here if we cannot match the slow speed.
+	 * use the slowest speed we support.*/
+	speed_index = last_valid_speed;
+	match = false;
+    } else if (i == map_size)
+	match = false;
+
+    if (!match) {
+	ILOG("Unable to match requested speed %d kHz, using %d kHz\n", \
+		khz, map[speed_index]);
+    }
+
+    return speed_index;
+}
+
 void _stlink_usb_close(stlink_t* sl) {
     if (!sl)
         return;
@@ -133,6 +180,19 @@ int _stlink_usb_version(stlink_t *sl) {
     if (size == -1) {
         printf("[!] send_recv STLINK_GET_VERSION\n");
         return (int) size;
+    }
+
+    /* STLINK-V3 requires a specific command */
+    if (sl->version.stlink_v == 3) {
+        rep_len = 12;
+        i = fill_command(sl, SG_DXFER_FROM_DEV, 16);
+        cmd[i++] = STLINK_APIV3_GET_VERSION_EX;
+
+        size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len);
+        if (size != rep_len) {
+            printf("[!] send_recv STLINK_APIV3_GET_VERSION_EX\n");
+            return (int) size;
+        }
     }
 
     return 0;
@@ -334,17 +394,23 @@ int _stlink_usb_enter_swd_mode(stlink_t * sl) {
     struct stlink_libusb * const slu = sl->backend_data;
     unsigned char* const cmd  = sl->c_buf;
     ssize_t size;
-    const int rep_len = 0;
+    unsigned char* const data = sl->q_buf;
+    const uint32_t rep_len = sl->version.stlink_v > 1 ? 2 : 0;
     int i = fill_command(sl, SG_DXFER_FROM_DEV, rep_len);
 
     cmd[i++] = STLINK_DEBUG_COMMAND;
-    cmd[i++] = STLINK_DEBUG_ENTER;
+    cmd[i++] = sl->version.stlink_v > 1? STLINK_DEBUG_APIV2_ENTER : STLINK_DEBUG_ENTER;
     cmd[i++] = STLINK_DEBUG_ENTER_SWD;
 
-    size = send_only(slu, 1, cmd, slu->cmd_len);
+
+    if (rep_len == 0) {
+	size = send_only(slu, 1, cmd, slu->cmd_len);
+    } else {
+	size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len);
+    }
     if (size == -1) {
-        printf("[!] send_recv STLINK_DEBUG_ENTER\n");
-        return (int) size;
+	printf("[!] send_recv STLINK_DEBUG_ENTER\n");
+	return (int) size;
     }
 
     return 0;
@@ -466,9 +532,8 @@ int _stlink_usb_set_swdclk(stlink_t* sl, uint16_t clk_divisor) {
     ssize_t size;
     int rep_len = 2;
     int i;
-    
     // clock speed only supported by stlink/v2 and for firmware >= 22
-    if (sl->version.stlink_v >= 2 && sl->version.jtag_v >= 22) {
+    if (sl->version.stlink_v == 2 && sl->version.jtag_v >= 22) {
         i = fill_command(sl, SG_DXFER_FROM_DEV, rep_len);
 
         cmd[i++] = STLINK_DEBUG_COMMAND;
@@ -483,9 +548,55 @@ int _stlink_usb_set_swdclk(stlink_t* sl, uint16_t clk_divisor) {
         }
 
         return 0;
-    } else {
-        return -1;
+    } else if (sl->version.stlink_v == 3) {
+        int speed_index;
+	uint32_t map[STLINK_V3_MAX_FREQ_NB];
+        i = fill_command(sl, SG_DXFER_FROM_DEV, 16);
+
+        cmd[i++] = STLINK_DEBUG_COMMAND;
+        cmd[i++] = STLINK_APIV3_GET_COM_FREQ;
+        cmd[i++] = 0; // SWD mode
+
+        size = send_recv(slu, 1, cmd, slu->cmd_len, data, 52);
+        if (size == -1) {
+            printf("[!] send_recv STLINK_APIV3_GET_COM_FREQ\n");
+            return (int) size;
+        }
+
+        int speeds_size = data[8];
+
+        if (speeds_size > STLINK_V3_MAX_FREQ_NB)
+            speeds_size = STLINK_V3_MAX_FREQ_NB;
+
+	for (i = 0; i < speeds_size; i++)
+	    map[i] = le_to_h_u32(&data[12 + 4 * i]);
+
+        /* set to zero all the next entries */
+        for (i = speeds_size; i < STLINK_V3_MAX_FREQ_NB; i++)
+	    map[i] = 0;
+
+	speed_index = _stlink_match_speed_map(map, STLINK_ARRAY_SIZE(map), 1800);
+
+        i = fill_command(sl, SG_DXFER_FROM_DEV, 16);
+
+        cmd[i++] = STLINK_DEBUG_COMMAND;
+        cmd[i++] = STLINK_APIV3_SET_COM_FREQ;
+        cmd[i++] = 0; // SWD mode
+        cmd[i++] = 0;
+	cmd[i++] = (uint8_t)((map[speed_index] >> 0) & 0xFF);
+	cmd[i++] = (uint8_t)((map[speed_index] >> 8) & 0xFF);
+	cmd[i++] = (uint8_t)((map[speed_index] >> 16) & 0xFF);
+	cmd[i++] = (uint8_t)((map[speed_index] >> 24) & 0xFF);
+
+	size = send_recv(slu, 1, cmd, slu->cmd_len, data, 8);
+        if (size == -1) {
+            printf("[!] send_recv STLINK_APIV3_SET_COM_FREQ\n");
+            return (int) size;
+        }
+
+        return 0;
     }
+    return -1;
 }
 
 int _stlink_usb_exit_debug_mode(stlink_t *sl) {
@@ -827,31 +938,49 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, bool reset, char serial[ST
             }
         }
 
-        if ((desc.idProduct == STLINK_USB_PID_STLINK_32L) || (desc.idProduct == STLINK_USB_PID_STLINK_NUCLEO) || (desc.idProduct == STLINK_USB_PID_STLINK_32L_AUDIO)) {
+        if ((desc.idProduct == STLINK_USB_PID_STLINK_32L) ||
+            (desc.idProduct == STLINK_USB_PID_STLINK_NUCLEO) ||
+            (desc.idProduct == STLINK_USB_PID_STLINK_32L_AUDIO) ||
+            (desc.idProduct == STLINK_USB_PID_STLINK_V3_USBLOADER) ||
+            (desc.idProduct == STLINK_USB_PID_STLINK_V3E_PID) ||
+            (desc.idProduct == STLINK_USB_PID_STLINK_V3S_PID) ||
+            (desc.idProduct == STLINK_USB_PID_STLINK_V3_2VCP_PID)) {
             struct libusb_device_handle *handle;
 
             ret = libusb_open(list[cnt], &handle);
             if (ret)
-		continue;
+                continue;
 
             sl->serial_size = libusb_get_string_descriptor_ascii(handle, desc.iSerialNumber,
                                                                  (unsigned char *)sl->serial, sizeof(sl->serial));
             libusb_close(handle);
 
+            if ((desc.idProduct == STLINK_USB_PID_STLINK_32L)
+                    || (desc.idProduct == STLINK_USB_PID_STLINK_NUCLEO)
+                    || (desc.idProduct == STLINK_USB_PID_STLINK_32L_AUDIO)) {
+                sl->version.stlink_v = 2;
+            } else if ((desc.idProduct == STLINK_USB_PID_STLINK_V3_USBLOADER)
+                       || (desc.idProduct == STLINK_USB_PID_STLINK_V3E_PID)
+                       || (desc.idProduct == STLINK_USB_PID_STLINK_V3S_PID)
+                       || (desc.idProduct == STLINK_USB_PID_STLINK_V3_2VCP_PID)) {
+                sl->version.stlink_v = 3;
+            }
+
             if ((serial == NULL) || (*serial == 0))
-                 break;
+                break;
 
             if (sl->serial_size < 0)
-	         continue;
+                continue;
 
             if (memcmp(serial, &sl->serial, sl->serial_size) == 0)
-                 break;
+                break;
 
             continue;
         }
 
         if (desc.idProduct == STLINK_USB_PID_STLINK) {
             slu->protocoll = 1;
+            sl->version.stlink_v = 1;
             break;
         }
     }
@@ -901,7 +1030,12 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, bool reset, char serial[ST
 
     // TODO - could use the scanning techniq from stm8 code here...
     slu->ep_rep = 1 /* ep rep */ | LIBUSB_ENDPOINT_IN;
-    if (desc.idProduct == STLINK_USB_PID_STLINK_NUCLEO || desc.idProduct == STLINK_USB_PID_STLINK_32L_AUDIO) {
+    if (desc.idProduct == STLINK_USB_PID_STLINK_NUCLEO ||
+        desc.idProduct == STLINK_USB_PID_STLINK_32L_AUDIO ||
+        desc.idProduct == STLINK_USB_PID_STLINK_V3_USBLOADER ||
+        desc.idProduct == STLINK_USB_PID_STLINK_V3E_PID ||
+        desc.idProduct == STLINK_USB_PID_STLINK_V3S_PID ||
+        desc.idProduct == STLINK_USB_PID_STLINK_V3_2VCP_PID) {
         slu->ep_req = 1 /* ep req */ | LIBUSB_ENDPOINT_OUT;
     } else {
         slu->ep_req = 2 /* ep req */ | LIBUSB_ENDPOINT_OUT;
@@ -911,21 +1045,23 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, bool reset, char serial[ST
     // TODO - never used at the moment, always CMD_SIZE
     slu->cmd_len = (slu->protocoll == 1)? STLINK_SG_SIZE: STLINK_CMD_SIZE;
 
+    // Initialize stlink version (sl->version)
+    stlink_version(sl);
+
     if (stlink_current_mode(sl) == STLINK_DEV_DFU_MODE) {
         ILOG("-- exit_dfu_mode\n");
         stlink_exit_dfu_mode(sl);
     }
 
-    if (stlink_current_mode(sl) != STLINK_DEV_DEBUG_MODE) {
-        stlink_enter_swd_mode(sl);
-    }
-	
-    // Initialize stlink version (sl->version)	
-    stlink_version(sl);	
-
+    // set the speed before entering the mode
+    // as the chip discovery phase should be done at this speed too
     // Set the stlink clock speed (default is 1800kHz)
-    stlink_set_swdclk(sl, STLINK_SWDCLK_1P8MHZ_DIVISOR);    
-    
+    stlink_set_swdclk(sl, STLINK_SWDCLK_1P8MHZ_DIVISOR);
+
+    if (stlink_current_mode(sl) != STLINK_DEV_DEBUG_MODE) {
+	stlink_enter_swd_mode(sl);
+    }
+
     if (reset) {
         if( sl->version.stlink_v > 1 ) stlink_jtag_reset(sl, 2);
         stlink_reset(sl);
@@ -973,8 +1109,12 @@ static size_t stlink_probe_usb_devs(libusb_device **devs, stlink_t **sldevs[]) {
         }
 
         if (desc.idProduct != STLINK_USB_PID_STLINK_32L &&
-            desc.idProduct != STLINK_USB_PID_STLINK_32L_AUDIO && 
-            desc.idProduct != STLINK_USB_PID_STLINK_NUCLEO)
+            desc.idProduct != STLINK_USB_PID_STLINK_32L_AUDIO &&
+            desc.idProduct != STLINK_USB_PID_STLINK_NUCLEO &&
+            desc.idProduct != STLINK_USB_PID_STLINK_V3_USBLOADER &&
+            desc.idProduct != STLINK_USB_PID_STLINK_V3E_PID &&
+            desc.idProduct != STLINK_USB_PID_STLINK_V3S_PID &&
+            desc.idProduct != STLINK_USB_PID_STLINK_V3_2VCP_PID)
             continue;
 
         slcnt++;
@@ -997,8 +1137,8 @@ static size_t stlink_probe_usb_devs(libusb_device **devs, stlink_t **sldevs[]) {
             break;
         }
 
-        if (desc.idProduct != STLINK_USB_PID_STLINK_32L && 
-            desc.idProduct != STLINK_USB_PID_STLINK_32L_AUDIO && 
+        if (desc.idProduct != STLINK_USB_PID_STLINK_32L &&
+            desc.idProduct != STLINK_USB_PID_STLINK_32L_AUDIO &&
             desc.idProduct != STLINK_USB_PID_STLINK_NUCLEO)
             continue;
 
@@ -1019,7 +1159,7 @@ static size_t stlink_probe_usb_devs(libusb_device **devs, stlink_t **sldevs[]) {
         libusb_close(handle);
 
         stlink_t *sl = NULL;
-        sl = stlink_open_usb(0, 1, serial);
+	sl = stlink_open_usb(0, 1, serial);
         if (!sl)
             continue;
 

@@ -29,11 +29,11 @@ static void cleanup(int signum) {
 
 static void usage(void)
 {
-    puts("stlinkv1 command line: ./st-flash [--debug] [--reset] [--format <format>] [--flash=<fsize>] {read|write} /dev/sgX <path> <addr> <size>");
-    puts("stlinkv1 command line: ./st-flash [--debug] /dev/sgX erase");
-    puts("stlinkv2 command line: ./st-flash [--debug] [--reset] [--serial <serial>] [--format <format>] [--flash=<fsize>] {read|write} <path> <addr> <size>");
-    puts("stlinkv2 command line: ./st-flash [--debug] [--serial <serial>] erase");
-    puts("stlinkv2 command line: ./st-flash [--debug] [--serial <serial>] reset");
+    puts("stlinkv1   command line: ./st-flash [--debug] [--reset] [--format <format>] [--flash=<fsize>] {read|write} /dev/sgX <path> <addr> <size>");
+    puts("stlinkv1   command line: ./st-flash [--debug] /dev/sgX erase");
+    puts("stlinkv2/3 command line: ./st-flash [--debug] [--reset] [--serial <serial>] [--format <format>] [--flash=<fsize>] {read|write} <path> <addr> <size>");
+    puts("stlinkv2/3 command line: ./st-flash [--debug] [--serial <serial>] erase");
+    puts("stlinkv2/3 command line: ./st-flash [--debug] [--serial <serial>] reset");
     puts("                       Use hex format for addr, <serial> and <size>.");
     puts("                       fsize: Use decimal, octal or hex by prefix 0xXXX for hex, optionally followed by k=KB, or m=MB (eg. --flash=128k)");
     puts("                       Format may be 'binary' (default) or 'ihex', although <addr> must be specified for binary format only.");
@@ -164,7 +164,7 @@ int main(int ac, char** av)
                 goto on_error;
             }
         }
-        else if (o.addr == STM32_G0_OPTION_BYTES_BASE || o.addr == STM32_L0_CAT2_OPTION_BYTES_BASE){
+        else if (o.addr == STM32_G0_OPTION_BYTES_BASE || o.addr == STM32_L0_CAT2_OPTION_BYTES_BASE  || o.addr == STM32_L0_CAT2_OPTION_BYTES_BASE + 4){
             err = stlink_fwrite_option_bytes(sl, o.filename, o.addr);
             if (err == -1)
             {
