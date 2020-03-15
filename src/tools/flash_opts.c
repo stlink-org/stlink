@@ -58,6 +58,29 @@ int flash_get_opts(struct flash_opts* o, int ac, char** av)
 
             serial_specified = true;
         }
+        else if (strcmp(av[0], "--area") == 0 || starts_with(av[0], "--area=")) {
+            const char * area;
+            if(strcmp(av[0], "--area") == 0) {
+                ac--;
+                av++;
+                if (ac < 1) return -1;
+                area = av[0];
+            }
+            else {
+                area = av[0] + strlen("--area=");
+            }
+            if (strcmp(area, "main") == 0)
+                o->area = FLASH_MAIN_MEMORY;
+            else if (strcmp(area, "system") == 0)
+                o->area = FLASH_SYSTEM_MEMORY;
+            else if (strcmp(area, "otp") == 0)
+                o->area = FLASH_OTP;
+            else if (strcmp(area, "option") == 0)
+                o->area = FLASH_OPTION_BYTES;
+            else
+                return -1;
+
+        }
         else if (strcmp(av[0], "--format") == 0 || starts_with(av[0], "--format=")) {
             const char * format;
             if(strcmp(av[0], "--format") == 0) {
@@ -149,6 +172,7 @@ int flash_get_opts(struct flash_opts* o, int ac, char** av)
             break;
 
         case FLASH_CMD_READ:     // expect filename, addr and size
+            if((o->area == FLASH_OPTION_BYTES) &&(ac == 0)) break;
             if (ac != 3) return -1;
 
             o->filename = av[0];
@@ -161,7 +185,12 @@ int flash_get_opts(struct flash_opts* o, int ac, char** av)
             break;
 
         case FLASH_CMD_WRITE:
-            if(o->format == FLASH_FORMAT_BINARY) {    // expect filename and addr
+            if(o->area == FLASH_OPTION_BYTES){
+                if(ac != 1) return -1;
+
+                o->val = (uint32_t)strtoul(av[0], &tail, 16);
+            }
+            else if(o->format == FLASH_FORMAT_BINARY) {    // expect filename and addr
                 if (ac != 2) return -1;
 
                 o->filename = av[0];

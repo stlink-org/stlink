@@ -8,7 +8,7 @@ echo "----"
 if [ "$TRAVIS_OS_NAME" == "linux" ]; then
 	sudo apt-get update -qq || true
 	sudo apt-get install -qq -y --no-install-recommends libgtk-3-dev
-else
+else #("$TRAVIS_OS_NAME" == "osx")
 	brew install libusb
 fi
 
