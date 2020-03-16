@@ -449,7 +449,7 @@ static const char* const memory_map_template_L496 =
     "<memory-map>"
     "  <memory type=\"rom\" start=\"0x00000000\" length=\"0x%x\"/>"        // code = sram, bootrom or flash; flash is bigger
     "  <memory type=\"ram\" start=\"0x10000000\" length=\"0x10000\"/>"      // SRAM2 (64 KB)
-    "  <memory type=\"ram\" start=\"0x20000000\" length=\"0x40000\"/>"      // SRAM1 (256 KB)
+    "  <memory type=\"ram\" start=\"0x20000000\" length=\"0x50000\"/>"      // SRAM1 + aliased SRAM2 (256+64=320 KB)
     "  <memory type=\"flash\" start=\"0x08000000\" length=\"0x%x\">"
     "    <property name=\"blocksize\">0x800</property>"
     "  </memory>"

@@ -18,11 +18,15 @@
 extern "C" {
 #endif
 
-#define STLINK_USB_VID_ST               0x0483
-#define STLINK_USB_PID_STLINK           0x3744
-#define STLINK_USB_PID_STLINK_32L       0x3748
-#define STLINK_USB_PID_STLINK_32L_AUDIO 0x374a
-#define STLINK_USB_PID_STLINK_NUCLEO    0x374b
+#define STLINK_USB_VID_ST                   0x0483
+#define STLINK_USB_PID_STLINK               0x3744
+#define STLINK_USB_PID_STLINK_32L           0x3748
+#define STLINK_USB_PID_STLINK_32L_AUDIO     0x374a
+#define STLINK_USB_PID_STLINK_NUCLEO        0x374b
+#define STLINK_USB_PID_STLINK_V3_USBLOADER  0x374d
+#define STLINK_USB_PID_STLINK_V3E_PID       0x374e
+#define STLINK_USB_PID_STLINK_V3S_PID       0x374f
+#define STLINK_USB_PID_STLINK_V3_2VCP_PID   0x3753
 
 #define STLINK_SG_SIZE 31
 #define STLINK_CMD_SIZE 16
@@ -54,4 +58,3 @@ extern "C" {
 #endif
 
 #endif /* STLINK_USB_H */
-
