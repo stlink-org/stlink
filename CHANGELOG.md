@@ -132,15 +132,17 @@ Release date: 2017-02-25
 
 Major changes and added features:
 
-* Added preliminary support for STM32L011 to see it after probe (chipid `0x457`) (@xor-gate)
-* Stripped full paths to source files in log (commit [#2c0ab7f](https://github.com/texane/stlink/commit/2c0ab7f0eb6cfda5cfbdc08bb9f6760d27c2b667))
-* Added support for STM32F413 target ([#549](https://github.com/texane/stlink/pull/549))
 * Added support for Semihosting `SYS_READC` ([#546](https://github.com/texane/stlink/pull/546))
+* Added support for STM32F413 ([#549](https://github.com/texane/stlink/pull/549), [#550](https://github.com/texane/stlink/pull/550))
+* Added preliminary support for STM32L011 to see it after probe (chipid `0x457`) ([#558](https://github.com/texane/stlink/pull/558))
 
 Updates and fixes:
 
-* Updated documentation markdown files
-* Compilation fixes ([#552](https://github.com/texane/stlink/pull/552))
+* cmake/CPackConfig.cmake: Fixup OSX zip filename
+* Updated source repositories in README.md: Windows, macOS, Alpine Linux
+* Stripped full paths to source files in log ([#548](https://github.com/texane/stlink/pull/548))
+* Compilation fixes ([#551](https://github.com/texane/stlink/pull/551), [#552](https://github.com/texane/stlink/pull/552))
+* Fixed incorrect release folder name in docs ([#560](https://github.com/texane/stlink/pull/560))
 * Fixed compilation when path includes spaces ([#561](https://github.com/texane/stlink/pull/561))
 
 v1.3.0
@@ -162,7 +164,6 @@ Major changes and added features:
 * Added `--reset` command to `st-flash` ([#505](https://github.com/texane/stlink/pull/505))
 * st-util should detect when USB commands fail ([#525](https://github.com/texane/stlink/pull/525), ([#527](https://github.com/texane/stlink/pull/527), ([#528](https://github.com/texane/stlink/pull/528))
 
-
 Chip support added for:
 
 * STM32F401XE: Added memory map for device ([#460](https://github.com/texane/stlink/pull/460))
@@ -174,7 +175,6 @@ Chip support added for:
 * STM32L0xx Cat5 devices (chip id: 0x447) ([#406](https://github.com/texane/stlink/pull/406))
 * STM32L4xx ([#321](https://github.com/texane/stlink/pull/321))
 * STM32L432 ([#500](https://github.com/texane/stlink/pull/500), [#501](https://github.com/texane/stlink/pull/501))
-
 
 Updates and fixes:
 
