@@ -117,13 +117,13 @@ Major changes and added features:
 
 Updates and fixes:
 
+* Fixed gdb-server: L0xx has no FP_CTRL register for breakpoints ([#273](https://github.com/texane/stlink/pull/273))
 * Fixed compilation with GCC 7 ([#590](https://github.com/texane/stlink/pull/590))
 * Skipped GTK detection if we're cross-compiling ([#588](https://github.com/texane/stlink/pull/588))
 * Fixed possible memory leak ([#570](https://github.com/texane/stlink/pull/570))
 * Fixed building with mingw64 ([#569](https://github.com/texane/stlink/pull/569), [#610](https://github.com/texane/stlink/pull/610))
 * Updated libusb to 1.0.21 for Windows ([#562](https://github.com/texane/stlink/pull/562))
 * Fixed low-voltage flashing on STM32F7 parts. ([#567](https://github.com/texane/stlink/pull/567))
-* Updated libusb to 1.0.21 for Windows ([#562](https://github.com/texane/stlink/pull/562))
 
 v1.3.1
 ======
@@ -151,36 +151,48 @@ Release date: 2017-01-28
 Major changes and added features:
 
 * Deprecation of autotools (autoconf, automake) ([#83](https://github.com/texane/stlink/pull/83), [#431](https://github.com/texane/stlink/pull/431), [#434](https://github.com/texane/stlink/pull/434))
-* Removal of undocumented `st-term` utility, which is now replaced by `st-util` ARM semihosting feature ([#3fd0f09](https://github.com/texane/stlink/commit/3fd0f099782506532198473b24f643a3f68d5ff9))
-* Added support for native debian packaging ([#444](https://github.com/texane/stlink/pull/444), [#485](https://github.com/texane/stlink/pull/485))
 * Added intel hex file reading for `st-flash` ([#110](https://github.com/texane/stlink/pull/110), [#157](https://github.com/texane/stlink/pull/157), [#200](https://github.com/texane/stlink/pull/200), [#239](https://github.com/texane/stlink/pull/239), [#457](https://github.com/texane/stlink/pull/547), [#459](https://github.com/texane/stlink/pull/549))
-* Added `--reset` command to `st-flash` ([#505](https://github.com/texane/stlink/pull/505))
-* Support serial numbers argument for `st-util` and `st-flash` for multi-programmer setups ([#541](https://github.com/texane/stlink/pull/541))
-* Added kill ('k') command to gdb-server for `st-util` ([#9804416](https://github.com/texane/stlink/commit/98044163ab34bf5159f121d1c49ffb3550321ca0))
-* Added manpages (generated with pandoc from Markdown) ([#464](https://github.com/texane/stlink/pull/464))
-* Rewritten commandline parsing for `st-flash` ([#459](https://github.com/texane/stlink/pull/459))
+* Added manpages (generated with pandoc from Markdown) ([#208](https://github.com/texane/stlink/pull/208), [#464](https://github.com/texane/stlink/pull/464), [#466](https://github.com/texane/stlink/pull/466), [#467](https://github.com/texane/stlink/pull/467))
+* Removal of undocumented `st-term` utility, which is now replaced by `st-util` ARM semihosting feature ([#228](https://github.com/texane/stlink/pull/228), ([#507](https://github.com/texane/stlink/pull/507), commit [#2c0ab7f](https://github.com/texane/stlink/commit/3fd0f099782506532198473b24f643a3f68d5ff9))
+* Support serial numbers argument for `st-util` and `st-flash` to probe and control multiple connected programmers ([#318](https://github.com/texane/stlink/pull/318), [#398](https://github.com/texane/stlink/pull/398), [#541](https://github.com/texane/stlink/pull/541))
+* Merge st-probe tool into st-info ([#398](https://github.com/texane/stlink/pull/398))
+* Added support for native debian packaging ([#444](https://github.com/texane/stlink/pull/444), [#472](https://github.com/texane/stlink/pull/472), [#473](https://github.com/texane/stlink/pull/473), [#482](https://github.com/texane/stlink/pull/482), [#483](https://github.com/texane/stlink/pull/483), [#484](https://github.com/texane/stlink/pull/484), [#485](https://github.com/texane/stlink/pull/485))
 * Added support for ARM semihosting to `st-util` ([#454](https://github.com/texane/stlink/pull/454), [#455](https://github.com/texane/stlink/pull/455))
+* Rewritten commandline parsing for `st-flash` ([#459](https://github.com/texane/stlink/pull/459))
+* Added `--reset` command to `st-flash` ([#505](https://github.com/texane/stlink/pull/505))
+* st-util should detect when USB commands fail ([#525](https://github.com/texane/stlink/pull/525), ([#527](https://github.com/texane/stlink/pull/527), ([#528](https://github.com/texane/stlink/pull/528))
+
 
 Chip support added for:
 
-* STM32L432 ([#501](https://github.com/texane/stlink/pull/501))
-* STM32F412 ([#538](https://github.com/texane/stlink/pull/538))
-* STM32F410 ([#9c635e4](https://github.com/texane/stlink/commit/9c635e419deca697ff823000aad2e39d47ec8d6c))
-* Added memory map for STM32F401XE ([#460](https://github.com/texane/stlink/pull/460))
-* L0x Category 5 devices ([#406](https://github.com/texane/stlink/pull/406))
-* Added L0 Category 2 device (chip id: 0x425) ([#72b8e5e](https://github.com/texane/stlink/commit/72b8e5ec87e4fa386a8e94fe68df29467d4354ce))
+* STM32F401XE: Added memory map for device ([#460](https://github.com/texane/stlink/pull/460))
+* STM32F410RBTx ([#418](https://github.com/texane/stlink/pull/418))
+* STM32F412 ([#537](https://github.com/texane/stlink/pull/537), [#538](https://github.com/texane/stlink/pull/538))
+* STM32F7xx ([#324](https://github.com/texane/stlink/pull/324), [#326](https://github.com/texane/stlink/pull/326), [#327](https://github.com/texane/stlink/pull/327), [#337](https://github.com/texane/stlink/pull/337))
+* STM32F767ZI ([#509](https://github.com/texane/stlink/pull/509))
+* STM32L0xx Cat2 devices (chip id: 0x425) ([#414](https://github.com/texane/stlink/pull/414))
+* STM32L0xx Cat5 devices (chip id: 0x447) ([#406](https://github.com/texane/stlink/pull/406))
+* STM32L4xx ([#321](https://github.com/texane/stlink/pull/321))
+* STM32L432 ([#500](https://github.com/texane/stlink/pull/500), [#501](https://github.com/texane/stlink/pull/501))
+
 
 Updates and fixes:
 
 * Set SWDCLK and fixed jtag_reset bug ([#254](https://github.com/texane/stlink/pull/254), [#291](https://github.com/texane/stlink/pull/291), [#475](https://github.com/texane/stlink/pull/475), [#533](https://github.com/texane/stlink/pull/533), [#534](https://github.com/texane/stlink/pull/534))
-* Fixed STM32F030 erase error ([#442](https://github.com/texane/stlink/pull/442))
-* Fixed Cygwin build ([#68b0f3b](https://github.com/texane/stlink/commit/68b0f3bddc3c4aaffe34caa6a3201029edd8ad56))
-* Reset flash mass erase (MER) bit after mass erase for safety ([#489](https://github.com/texane/stlink/pull/489))
-* Fixed memory map for STM32F4 (@zulusw)
+* Fixed "unaligned addr or size" when trying to write a program in RAM ([#323](https://github.com/texane/stlink/pull/323))
+* Fixed flashing on STM32_F3_SMALL ([#325](https://github.com/texane/stlink/pull/325))
 * Fixed STM32L-problem with flash loader ([#390](https://github.com/texane/stlink/pull/390))
-* `st-util` don't read target voltage on startup as it crashes STM32F100 (probably stlink/v1) (Greg Alexander)
-* Do a JTAG reset prior to reading CPU information when processor is in deep sleep (@andyg24)
+* Don't read the target voltage on startup, because it crashes STM32F100 ([#423](https://github.com/texane/stlink/pull/423), [#424](https://github.com/texane/stlink/pull/424))
+* Added a useful error message instead of "[!] send_recv" ([#425](https://github.com/texane/stlink/pull/425), [#426](https://github.com/texane/stlink/pull/426))
+* Do a JTAG reset prior to reading CPU information when processor is in deep sleep ([#428](https://github.com/texane/stlink/pull/428), [#430](https://github.com/texane/stlink/pull/430), [#451](https://github.com/texane/stlink/pull/451))
+* Fixed STM32F030 erase error ([#442](https://github.com/texane/stlink/pull/442))
+* Fixed memory map for STM32F7xx ([#453](https://github.com/texane/stlink/pull/453), [#456](https://github.com/texane/stlink/pull/456))
 * Redesign of `st-flash` commandline options parsing ([#459](https://github.com/texane/stlink/pull/459))
+* Fixed Release target to generate the man-pages with pandoc ([#479](https://github.com/texane/stlink/pull/479))
+* Fixed Cygwin build ([#487](https://github.com/texane/stlink/pull/487), ([#506](https://github.com/texane/stlink/pull/506))
+* Reset flash mass erase (MER) bit after mass erase for safety ([#489](https://github.com/texane/stlink/pull/489))
+* Wrong extract command in FindLibUSB.cmake ([#510](https://github.com/texane/stlink/pull/510), [#511](https://github.com/texane/stlink/pull/511))
+
 
 v1.2.0
 ======
@@ -193,12 +205,9 @@ Features added:
 * Added stlink usb probe API functions (Jerry Jacobs)
 * Added parameter to specify one stlink v2 of many (Georg von Zengen)
 
-Changes:
-
-* Refactoring/fixes of flash loader (Maxime Coquelin)
-
 Updates and fixes:
 
+* Refactoring/fixes of flash loader (Maxime Coquelin)
 * Synchronized cache for stm32f7 (Tristan Gingold)
 * Allow flashing of STM32L4 down to 1.71 V (Greg Meiste)
 * Fix on stm32l4 to clear flash mass erase flags on CR (Bruno Dal Bo)
