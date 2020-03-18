@@ -53,6 +53,7 @@ General project updates:
 * Fixed travis build config file (Nightwalker-87)
 * Archived page from github project wiki to doc/wiki_old.md (Nightwalker-87)
 
+
 v1.5.1
 ======
 
@@ -84,6 +85,7 @@ Fixes:
 * Fix for mem_write() ([#730](https://github.com/texane/stlink/pull/730))
 * FreeBSD defines LIBUSB_API_VERSION instead of LIBUSBX_API_VERSION ([#733](https://github.com/texane/stlink/pull/733))
 
+
 v1.5.0
 ======
 
@@ -102,6 +104,7 @@ Fixes:
 * Fixed verification of flash error for STM32L496x device ([#618](https://github.com/texane/stlink/pull/618))
 * Fixed build on Fedora with GCC 8 ([#666](https://github.com/texane/stlink/pull/668))
 
+
 v1.4.0
 ======
 
@@ -109,21 +112,28 @@ Release date: 2017-07-01
 
 Major changes and added features:
 
-* Added support for STM32L452 target ([#608](https://github.com/texane/stlink/pull/608))
-* Initial support to compile with Microsoft Visual Studio 2017 ([#602](https://github.com/texane/stlink/pull/602))
+* Allow building of debian package with CPack ([#554](https://github.com/texane/stlink/pull/554), commit [#2c0ab7f](https://github.com/texane/stlink/commit/5b69f25198a1a8f34e2ee48d1ad20f79447e3d55))
+* Added support for STM32L011 target ([#564](https://github.com/texane/stlink/pull/564), [#565](https://github.com/texane/stlink/pull/565), [#572](https://github.com/texane/stlink/pull/572))
 * Added support for flashing second bank on STM32F10x_XL ([#592](https://github.com/texane/stlink/pull/592))
-* Added support for STM32L011 target ([#572](https://github.com/texane/stlink/pull/572))
-* Allow building of debian package with CPack (@xor-gate)
+* Initial support to compile with Microsoft Visual Studio 2017 ([#602](https://github.com/texane/stlink/pull/602))
+* Added support for STM32L452 target ([#603](https://github.com/texane/stlink/pull/603), [#608](https://github.com/texane/stlink/pull/608))
 
 Updates and fixes:
 
 * Fixed gdb-server: L0xx has no FP_CTRL register for breakpoints ([#273](https://github.com/texane/stlink/pull/273))
-* Fixed compilation with GCC 7 ([#590](https://github.com/texane/stlink/pull/590))
-* Skipped GTK detection if we're cross-compiling ([#588](https://github.com/texane/stlink/pull/588))
-* Fixed possible memory leak ([#570](https://github.com/texane/stlink/pull/570))
-* Fixed building with mingw64 ([#569](https://github.com/texane/stlink/pull/569), [#610](https://github.com/texane/stlink/pull/610))
 * Updated libusb to 1.0.21 for Windows ([#562](https://github.com/texane/stlink/pull/562))
-* Fixed low-voltage flashing on STM32F7 parts. ([#567](https://github.com/texane/stlink/pull/567))
+* Fixed low-voltage flashing on STM32F7 devices ([#566](https://github.com/texane/stlink/pull/566), [#567](https://github.com/texane/stlink/pull/567))
+* Fixed building with mingw64 ([#569](https://github.com/texane/stlink/pull/569), [#573](https://github.com/texane/stlink/pull/573), [#578](https://github.com/texane/stlink/pull/578), [#584](https://github.com/texane/stlink/pull/584), [#610](https://github.com/texane/stlink/pull/610))
+* Fixed possible memory leak ([#570](https://github.com/texane/stlink/pull/570), [#571](https://github.com/texane/stlink/pull/571))
+* Added --flash=n[k][m] command line option to override device model ([#576](https://github.com/texane/stlink/pull/576))
+* Fixed installation path for shared objects ([#581](https://github.com/texane/stlink/pull/581))
+* Fixed a few -Wformat warnings ([#582](https://github.com/texane/stlink/pull/582))
+* Removed unused defines in mimgw.h ([#583](https://github.com/texane/stlink/pull/583))
+* Skip GTK detection when cross-compiling ([#588](https://github.com/texane/stlink/pull/588))
+* Fixed compilation with GCC 7 ([#590](https://github.com/texane/stlink/pull/590), [#591](https://github.com/texane/stlink/pull/591))
+* Fixed flashing to 'f0 device' targets ([#594](https://github.com/texane/stlink/pull/594), [#595](https://github.com/texane/stlink/pull/595))
+*  Fix wrong counting when flashing ([#605](https://github.com/texane/stlink/pull/605))
+
 
 v1.3.1
 ======
@@ -134,16 +144,17 @@ Major changes and added features:
 
 * Added support for Semihosting `SYS_READC` ([#546](https://github.com/texane/stlink/pull/546))
 * Added support for STM32F413 ([#549](https://github.com/texane/stlink/pull/549), [#550](https://github.com/texane/stlink/pull/550))
-* Added preliminary support for STM32L011 to see it after probe (chipid `0x457`) ([#558](https://github.com/texane/stlink/pull/558))
+* Added preliminary support for STM32L011 to see it after probe (chipid `0x457`) ([#558](https://github.com/texane/stlink/pull/558), [#598](https://github.com/texane/stlink/pull/598))
 
 Updates and fixes:
 
 * cmake/CPackConfig.cmake: Fixup OSX zip filename
 * Updated source repositories in README.md: Windows, macOS, Alpine Linux
+* Compilation fixes ([#547](https://github.com/texane/stlink/pull/547), [#551](https://github.com/texane/stlink/pull/551), [#552](https://github.com/texane/stlink/pull/552))
 * Stripped full paths to source files in log ([#548](https://github.com/texane/stlink/pull/548))
-* Compilation fixes ([#551](https://github.com/texane/stlink/pull/551), [#552](https://github.com/texane/stlink/pull/552))
 * Fixed incorrect release folder name in docs ([#560](https://github.com/texane/stlink/pull/560))
 * Fixed compilation when path includes spaces ([#561](https://github.com/texane/stlink/pull/561))
+
 
 v1.3.0
 ======
