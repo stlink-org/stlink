@@ -61,28 +61,31 @@ Release date: 2018-09-13
 
 Major changes and added features:
 
+* Added reset through AIRCR ([#540](https://github.com/texane/stlink/pull/540), [#712](https://github.com/texane/stlink/pull/712))
+* Added creation of icons for .desktop file ([#684](https://github.com/texane/stlink/pull/684), [#708](https://github.com/texane/stlink/pull/708))
+* Added desktop file for linux ([#688](https://github.com/texane/stlink/pull/688))
 * Added button to export stm32 flash memory to a file ([#691](https://github.com/texane/stlink/pull/691))
 * Updated libusb to 1.0.22 ([#695](https://github.com/texane/stlink/pull/695))
-* Added desktop file for linux ([#688](https://github.com/texane/stlink/pull/688))
 * Added icons for stlink GUI ([#697](https://github.com/texane/stlink/pull/697))
 * Added support for STM32L4R9 target ([#694](https://github.com/texane/stlink/pull/694), [#699](https://github.com/texane/stlink/pull/699))
-* Added creation of icons for .desktop file ([#708](https://github.com/texane/stlink/pull/708))
 * Added memory map for STM32F411RE target ([#709](https://github.com/texane/stlink/pull/709))
-* Added reset through AIRCR ([#540](https://github.com/texane/stlink/pull/540), [#712](https://github.com/texane/stlink/pull/712))
-* Implemented intel hex support for GTK GUI ([#718](https://github.com/texane/stlink/pull/718))
+* Implemented intel hex support for GTK GUI ([#713](https://github.com/texane/stlink/pull/713), [#718](https://github.com/texane/stlink/pull/718))
 
-Fixes:
+Updates and fixes:
 
-* Fixed missing flash_loader for L011 ([#675](https://github.com/texane/stlink/pull/675))
-* Fixed serial number size mismatch with stlink_open_usb() ([#680](https://github.com/texane/stlink/pull/680))
-* Debian packaging, CMake and README.md fixes ([#683](https://github.com/texane/stlink/pull/683))
+* Fixed missing flash_loader for L011 ([#356](https://github.com/texane/stlink/pull/356), [#654](https://github.com/texane/stlink/pull/654), [#675](https://github.com/texane/stlink/pull/675))
 * Fix for stlink library calls exit() or _exit() ([#634](https://github.com/texane/stlink/pull/634), [#696](https://github.com/texane/stlink/pull/696))
+* Added semihosting parameter documentation in doc/man ([#674](https://github.com/texane/stlink/pull/674))
+* Fixed reference to non-exisiting st-term tool in doc/man ([#676](https://github.com/texane/stlink/pull/676))
+* Fixed serial number size mismatch with stlink_open_usb() ([#680](https://github.com/texane/stlink/pull/680))
+* Debian packaging, CMake and README.md fixes ([#682](https://github.com/texane/stlink/pull/682), [#683](https://github.com/texane/stlink/pull/683))
+* Disabled static library installation by default ([#702](https://github.com/texane/stlink/pull/702))
 * Fix for libusb deprecation ([#703](https://github.com/texane/stlink/pull/703), [#704](https://github.com/texane/stlink/pull/704))
 * Renamed STLINK_CHIPID_STM32_L4R9 to STLINK_CHIPID_STM32_L4RX ([#706](https://github.com/texane/stlink/pull/706))
-* Fixed flash memory map for F72XXX target ([#711](https://github.com/texane/stlink/pull/711))
-* Proper flash page size calculation for F412 target ([#721](https://github.com/texane/stlink/pull/721))
-* Return correct value on EOF for Semihosting SYS_READ ([#726](https://github.com/texane/stlink/pull/726), [#729](https://github.com/texane/stlink/pull/729), [#731](https://github.com/texane/stlink/pull/731))
-* Fix for mem_write() ([#730](https://github.com/texane/stlink/pull/730))
+* Regression: stlink installation under Linux (Debian 9) is broken since #695 ([#700](https://github.com/texane/stlink/pull/700), [#701](https://github.com/texane/stlink/pull/701), [#707](https://github.com/texane/stlink/pull/707))
+* Fixed flash memory map for F72xxx target ([#711](https://github.com/texane/stlink/pull/711))
+* Proper flash page size calculation for F412xx target ([#721](https://github.com/texane/stlink/pull/721))
+* Return correct value on EOF for Semihosting SYS_READ ([#726](https://github.com/texane/stlink/pull/726), [#727](https://github.com/texane/stlink/pull/727), [#729](https://github.com/texane/stlink/pull/729), [#730](https://github.com/texane/stlink/pull/730), [#731](https://github.com/texane/stlink/pull/731))
 * FreeBSD defines LIBUSB_API_VERSION instead of LIBUSBX_API_VERSION ([#733](https://github.com/texane/stlink/pull/733))
 
 
@@ -108,6 +111,7 @@ Updates and fixes:
 * Fixed __FILE__ base name extraction ([#624](https://github.com/texane/stlink/pull/624), [#628](https://github.com/texane/stlink/pull/628), [#648](https://github.com/texane/stlink/pull/648))
 * Added debian/triggers to run ldconfig ([#664](https://github.com/texane/stlink/pull/664))
 * Fixed build on Fedora with GCC 8 ([#666](https://github.com/texane/stlink/pull/666), [#667](https://github.com/texane/stlink/pull/667), [#668](https://github.com/texane/stlink/pull/668))
+
 
 v1.4.0
 ======
