@@ -522,7 +522,7 @@ static const struct stlink_chipid_params devices[] = {
             .bootrom_size = 0x2000
         },
         {
-            // STM32GG030/031/041 (from RM0444)
+            // STM32G030/031/041 (from RM0454 & RM0444)
             .chip_id = STLINK_CHIPID_STM32_G0_CAT1,
             .description = "G030/G031/G041 device",
             .flash_type = STLINK_FLASH_TYPE_G0,
