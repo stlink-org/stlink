@@ -93,17 +93,21 @@ Release date: 2018-02-16
 
 Major changes and added features:
 
-* STM32F72xx73xx support ([#1969148](https://github.com/texane/stlink/commit/19691485359afef1a256964afcbb8dcf4b733209))
 * Added support of STM32L496xx/4A6xx devices ([#615](https://github.com/texane/stlink/pull/615))
+* Added unknown chip dummy to obtain the serial of the ST-link by a call to st-info --probe ([#641](https://github.com/texane/stlink/pull/641))
+* Added support for STM32F72xx (chip id: 0x452) devices (commit [#1969148](https://github.com/texane/stlink/commit/19691485359afef1a256964afcbb8dcf4b733209))
 
-Fixes:
+Updates and fixes:
 
-* Fixed memory map for stm32l496xx boards ([#639](https://github.com/texane/stlink/pull/639))
+* Fixed verification of flash error for STM32L496x device ([#617](https://github.com/texane/stlink/pull/617), [#618](https://github.com/texane/stlink/pull/618))
+* Updated Linux source repositories in README.md: Gentoo, Fedora and RedHat/CentOS ([#622](https://github.com/texane/stlink/pull/622), [#635](https://github.com/texane/stlink/pull/635))
+* Updated changelog in debian package ([#630](https://github.com/texane/stlink/pull/630))
+* Added LIB_INSTALL_DIR to correct libs install on 64-bit systems ([#633](https://github.com/texane/stlink/pull/633), [#636](https://github.com/texane/stlink/pull/636))
 * Fixed write for microcontroller with RAM size less or equal to 32K ([#637](https://github.com/texane/stlink/pull/637))
-* Added LIB_INSTALL_DIR to correct libs install on 64-bit systems ([#636](https://github.com/texane/stlink/pull/636))
-* Fixed verification of flash error for STM32L496x device ([#618](https://github.com/texane/stlink/pull/618))
-* Fixed build on Fedora with GCC 8 ([#666](https://github.com/texane/stlink/pull/668))
-
+* Fixed memory map for stm32l496xx boards ([#639](https://github.com/texane/stlink/pull/639))
+* Fixed __FILE__ base name extraction ([#624](https://github.com/texane/stlink/pull/624), [#628](https://github.com/texane/stlink/pull/628), [#648](https://github.com/texane/stlink/pull/648))
+* Added debian/triggers to run ldconfig ([#664](https://github.com/texane/stlink/pull/664))
+* Fixed build on Fedora with GCC 8 ([#666](https://github.com/texane/stlink/pull/666), [#667](https://github.com/texane/stlink/pull/667), [#668](https://github.com/texane/stlink/pull/668))
 
 v1.4.0
 ======
