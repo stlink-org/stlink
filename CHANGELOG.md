@@ -85,7 +85,7 @@ Updates and fixes:
 * Regression: stlink installation under Linux (Debian 9) is broken since #695 ([#700](https://github.com/texane/stlink/pull/700), [#701](https://github.com/texane/stlink/pull/701), [#707](https://github.com/texane/stlink/pull/707))
 * Fixed flash memory map for F72xxx target ([#711](https://github.com/texane/stlink/pull/711))
 * Proper flash page size calculation for F412xx target ([#721](https://github.com/texane/stlink/pull/721))
-* Return correct value on EOF for Semihosting SYS_READ ([#726](https://github.com/texane/stlink/pull/726), [#727](https://github.com/texane/stlink/pull/727), [#729](https://github.com/texane/stlink/pull/729), [#730](https://github.com/texane/stlink/pull/730), [#731](https://github.com/texane/stlink/pull/731))
+* Return correct value on EOF for Semihosting SYS_READ ([#726](https://github.com/texane/stlink/pull/726), [#727](https://github.com/texane/stlink/pull/727), [#728](https://github.com/texane/stlink/pull/728), [#729](https://github.com/texane/stlink/pull/729), [#730](https://github.com/texane/stlink/pull/730), [#731](https://github.com/texane/stlink/pull/731), [#732](https://github.com/texane/stlink/pull/732))
 * FreeBSD defines LIBUSB_API_VERSION instead of LIBUSBX_API_VERSION ([#733](https://github.com/texane/stlink/pull/733))
 
 
@@ -211,6 +211,7 @@ Updates and fixes:
 * Fixed Cygwin build ([#487](https://github.com/texane/stlink/pull/487), ([#506](https://github.com/texane/stlink/pull/506))
 * Reset flash mass erase (MER) bit after mass erase for safety ([#489](https://github.com/texane/stlink/pull/489))
 * Wrong extract command in FindLibUSB.cmake ([#510](https://github.com/texane/stlink/pull/510), [#511](https://github.com/texane/stlink/pull/511))
+* Fixed compilation error on Ubuntu 16.10 ([#514](https://github.com/texane/stlink/pull/514), [#525](https://github.com/texane/stlink/pull/525))
 
 
 v1.2.0
