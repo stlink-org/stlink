@@ -7,7 +7,6 @@ Known working targets:
 
 * STM32F100xx (Medium Density VL)
 * STM32F103 (according to jpa- on ##stm32)
-* CKS32F103 (chinese STM32F103-Clone)
 
 No information:
 
