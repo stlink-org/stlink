@@ -27,7 +27,7 @@ static const struct stlink_chipid_params devices[] = {
         {
             //RM0431 and DS document was used to find these paramaters
             .chip_id = STLINK_CHIPID_STM32_F72XXX,
-            .description = "F72 device",
+            .description = "F72/F73 device",
             .flash_type = STLINK_FLASH_TYPE_F4,
             .flash_size_reg = 0x1ff07a22,      // section 35.2
             .flash_pagesize = 0x800,           // No flash pages
