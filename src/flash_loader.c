@@ -384,10 +384,20 @@ int stlink_flash_loader_run(stlink_t *sl, flash_loader_t* fl, stm32_addr_t targe
     /* run loader */
     stlink_run(sl);
 
-#define WAIT_ROUNDS 10000
+// This piece of code used to try to spin for .1 second by waiting 
+// doing 10000 rounds of 10 microseconds. But because this usually runs
+// on Unix-like OSes, the 10 microseconds get rounded up to the "tick" 
+// (actually almost two ticks) of the system. 1 milisecond. Thus, the
+// ten thousand attempts, when "something goes wrong" that requires 
+// the error message "flash loader run error" would wait for something 
+// like 20 seconds before coming up with the error. 
+// by increasing the sleep-per-round to the same order-of-magnitude as 
+// the tick-rounding that the OS uses, the wait until the error message is
+// reduced to the same order of magnitude as what was intended. -- REW. 
+#define WAIT_ROUNDS 100
     /* wait until done (reaches breakpoint) */
     for (i = 0; i < WAIT_ROUNDS; i++) {
-        usleep(10);
+        usleep(1000);
         if (stlink_is_core_halted(sl))
             break;
     }
