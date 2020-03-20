@@ -8,49 +8,47 @@ Release date: 2020-02-20
 
 Major changes and added features:
 
-* Added O_BINARY option to open file ([#753](https://github.com/texane/stlink/pull/753))
-* Added preliminary support for some STM32G0 chips ([#759](https://github.com/texane/stlink/pull/759), [#760](https://github.com/texane/stlink/pull/760))
+* Initial support for STM32L41X ([#754](https://github.com/texane/stlink/pull/754), [#799](https://github.com/texane/stlink/pull/799))
+* Added preliminary support for some STM32G0 chips ([#759](https://github.com/texane/stlink/pull/759), [#760](https://github.com/texane/stlink/pull/760), [#797](https://github.com/texane/stlink/pull/797))
 * Added support for mass erasing second bank on STM32F10x_XL ([#767](https://github.com/texane/stlink/pull/767), [#768](https://github.com/texane/stlink/pull/768))
 * Added call to clear PG bit after writing to flash ([#773](https://github.com/texane/stlink/pull/773))
-* Added howto for sending NRST signal through GDB ([#774](https://github.com/texane/stlink/pull/774), [#776](https://github.com/texane/stlink/pull/776))
 * Added support to write option bytes for the STM32G0 ([#778](https://github.com/texane/stlink/pull/778))
-* Added simple read/write support for STM32WB55 chips ([#786](https://github.com/texane/stlink/pull/786))
+* Added support for STM32WB55 chips ([#786](https://github.com/texane/stlink/pull/786), [#810](https://github.com/texane/stlink/pull/810), [#816](https://github.com/texane/stlink/pull/816))
 * Added STLink V3SET VID:PIDs to the udev rules ([#789](https://github.com/texane/stlink/pull/789))
 * Support for "STM32+Audio" v2-1 firmware ([#790](https://github.com/texane/stlink/pull/790))
-* Initial support for STM32L41X ([#799](https://github.com/texane/stlink/pull/799))
 * Build for Windows under Debian/Ubuntu ([#802](https://github.com/texane/stlink/pull/802))
 * Allow for 64 bytes serials ([#809](https://github.com/texane/stlink/pull/809))
-* Added support to read and write option bytes for STM32F2 series (Orie22)
-* Added full support for STLINK CHIP ID L4RX (Brad Natelborg)
-* Added support to write option bytes to STM32F4 devices (Davey Struijk)
+* Added full support for STLINK CHIP ID L4RX ([#814](https://github.com/texane/stlink/pull/814), [#839](https://github.com/texane/stlink/pull/839))
+* Added support for writing option bytes on STM32L0 ([#830](https://github.com/texane/stlink/pull/830))
+* Added support to read and write option bytes for STM32F2 series ([#836](https://github.com/texane/stlink/pull/836), [#837](https://github.com/texane/stlink/pull/837))
+* Added support to read and write option bytes for STM32F446 ([#843](https://github.com/texane/stlink/pull/843))
 
 Updates and fixes:
 
-* Build failure when platform is 32 bit, but stuct stat.st_size is 64 bit. ([#629](https://github.com/texane/stlink/pull/629))
+* Updated STM32F3xx chip ID that covers a few different devices ([#685](https://github.com/texane/stlink/pull/685), [#758](https://github.com/texane/stlink/pull/758))
 * Made udev rules and modprobe conf installation optional ([#741](https://github.com/texane/stlink/pull/741))
-* Fixed case when __FILE__ don't contain "/" nor "\\". ([#745](https://github.com/texane/stlink/pull/745))
-* Fixed double dash issue in doc/man ([#746](https://github.com/texane/stlink/pull/746))
-* Fixed Debug error on line 123 in CMakeLists.txt (@xor-gate)
-* Only do bank calculation on STM32L4 devices with dual banked flash ([#751](https://github.com/texane/stlink/pull/751))
-* Updated STM32F3xx chip ID that covers a few different devices ([#758](https://github.com/texane/stlink/pull/758))
+* Fixed case when __FILE__ don't contain "/" nor "\\" ([#745](https://github.com/texane/stlink/pull/745))
+* Fixed double dash issue in doc/man ([#746](https://github.com/texane/stlink/pull/746), [#747](https://github.com/texane/stlink/pull/747))
+* Compiling documentation: package is called libusb-1.0-0-dev on Debian ([#748](https://github.com/texane/stlink/pull/748))
+* Only do bank calculation on STM32L4 devices with dual banked flash / Added chip ID 0x464 for STM32L41xxx/L42xxx devices ([#751](https://github.com/texane/stlink/pull/751))
+* Added O_BINARY option to open file ([#753](https://github.com/texane/stlink/pull/753))
 * Fixed versioning when compiling from the checked out git-repo ([#762](https://github.com/texane/stlink/pull/762))
-* Fixed "unkown chip id", piped output and st-util -v ([#107](https://github.com/texane/stlink/pull/107), [#763](https://github.com/texane/stlink/pull/763))
+* Fixed "unkown chip id", piped output and st-util -v ([#107](https://github.com/texane/stlink/pull/107), [#665](https://github.com/texane/stlink/pull/665), [#763](https://github.com/texane/stlink/pull/763))
 * win32: move usleep definition to unistd.h ([#765](https://github.com/texane/stlink/pull/765))
 * Fixed relative path to the UI files needed by stlink-gui-local (GUI) ([#770](https://github.com/texane/stlink/pull/770), [#771](https://github.com/texane/stlink/pull/771))
+* Added howto for sending NRST signal through GDB ([#774](https://github.com/texane/stlink/pull/774), [#776](https://github.com/texane/stlink/pull/776), [#779](https://github.com/texane/stlink/pull/779))
 * Fixed package name "devscripts" in doc/compiling.md ([#775](https://github.com/texane/stlink/pull/775))
-* Fixed apparent STM32G0 flashing issue ([#797](https://github.com/texane/stlink/pull/797))
 * Fixed few potential memory/resource leaks ([#803](https://github.com/texane/stlink/pull/803))
-* Fixed flash verification error on STM32WB55RG ([#810](https://github.com/texane/stlink/pull/810), [#816](https://github.com/texane/stlink/pull/816))
-* Do not issue JTAG reset on stlink-v1 (Gwenhael Goavec-Merou)
-* Fixed flash size of STM32 Discovery vl (Gwenhael Goavec-Merou)
-* Added support for writing option bytes on STM32L0 (Adrian Imboden)
+* Do not issue JTAG reset on stlink-v1 ([#828](https://github.com/texane/stlink/pull/828))
+* Fixed flash size of STM32 Discovery vl ([#829](https://github.com/texane/stlink/pull/829))
+* Updated Linux source repositories in README.md: Debian and Ubuntu ([#821](https://github.com/texane/stlink/pull/821), [#835](https://github.com/texane/stlink/pull/835), [#859](https://github.com/texane/stlink/pull/859))
 * Updated documentation on software structure ([#851](https://github.com/texane/stlink/pull/851))
 
 General project updates:
 
-* Updated issue templates, README.md and CHANGELOG.md (Nightwalker-87)
-* Added CODE_OF_CONDUCT (Nightwalker-87)
+* Updated README.md, CHANGELOG.md and issue templates (Nightwalker-87)
 * Fixed travis build config file (Nightwalker-87)
+* Added CODE_OF_CONDUCT (Nightwalker-87)
 * Archived page from github project wiki to doc/wiki_old.md (Nightwalker-87)
 
 
@@ -140,7 +138,7 @@ Updates and fixes:
 * Skip GTK detection when cross-compiling ([#588](https://github.com/texane/stlink/pull/588))
 * Fixed compilation with GCC 7 ([#590](https://github.com/texane/stlink/pull/590), [#591](https://github.com/texane/stlink/pull/591))
 * Fixed flashing to 'f0 device' targets ([#594](https://github.com/texane/stlink/pull/594), [#595](https://github.com/texane/stlink/pull/595))
-*  Fix wrong counting when flashing ([#605](https://github.com/texane/stlink/pull/605))
+* Fixed wrong counting when flashing ([#605](https://github.com/texane/stlink/pull/605))
 
 
 v1.3.1
@@ -171,7 +169,7 @@ Release date: 2017-01-28
 
 Major changes and added features:
 
-* Deprecation of autotools (autoconf, automake) ([#83](https://github.com/texane/stlink/pull/83), [#431](https://github.com/texane/stlink/pull/431), [#434](https://github.com/texane/stlink/pull/434))
+* Deprecation of autotools (autoconf, automake) and fixed build with MinGW ([#83](https://github.com/texane/stlink/pull/83), [#431](https://github.com/texane/stlink/pull/431), [#434](https://github.com/texane/stlink/pull/434), [#465](https://github.com/texane/stlink/pull/465))
 * Added intel hex file reading for `st-flash` ([#110](https://github.com/texane/stlink/pull/110), [#157](https://github.com/texane/stlink/pull/157), [#200](https://github.com/texane/stlink/pull/200), [#239](https://github.com/texane/stlink/pull/239), [#457](https://github.com/texane/stlink/pull/547), [#459](https://github.com/texane/stlink/pull/549))
 * Added manpages (generated with pandoc from Markdown) ([#208](https://github.com/texane/stlink/pull/208), [#464](https://github.com/texane/stlink/pull/464), [#466](https://github.com/texane/stlink/pull/466), [#467](https://github.com/texane/stlink/pull/467))
 * Removal of undocumented `st-term` utility, which is now replaced by `st-util` ARM semihosting feature ([#228](https://github.com/texane/stlink/pull/228), ([#507](https://github.com/texane/stlink/pull/507), commit [#2c0ab7f](https://github.com/texane/stlink/commit/3fd0f099782506532198473b24f643a3f68d5ff9))
