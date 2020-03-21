@@ -830,7 +830,9 @@ int stlink_cpu_id(stlink_t *sl, cortex_m3_cpuid_t *cpuid) {
  * @return 0 for success, or -1 for unsupported core type.
  */
 int stlink_load_device_params(stlink_t *sl) {
-    ILOG("Loading device parameters....\n");
+    // This seems to normally work so is unnecessary info for a normal
+    // user. Demoted to debug. -- REW
+    DLOG("Loading device parameters....\n");
     const struct stlink_chipid_params *params = NULL;
     stlink_core_id(sl);
     uint32_t chip_id;
@@ -894,11 +896,19 @@ int stlink_load_device_params(stlink_t *sl) {
         sl->sram_size = 0x1000;
     }
 
+#if 0
+    // Old code -- REW
     ILOG("Device connected is: %s, id %#x\n", params->description, chip_id);
     // TODO make note of variable page size here.....
     ILOG("SRAM size: %#x bytes (%d KiB), Flash: %#x bytes (%d KiB) in pages of %u bytes\n",
             sl->sram_size, sl->sram_size / 1024, sl->flash_size, sl->flash_size / 1024,
 	 (unsigned int)sl->flash_pgsz);
+#else
+    ILOG("%s: %d KiB SRAM, %d KiB flash in %d %s pages.\n", 
+	params->description, sl->sram_size / 1024, sl->flash_size / 1024, 
+	(sl->flash_pgsz < 1024)? sl->flash_pgsz  :  sl->flash_pgsz/1024, 
+        (sl->flash_pgsz < 1024)?  "byte"         :  "KiB");
+#endif
     return 0;
 }
 

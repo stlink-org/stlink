@@ -1049,7 +1049,9 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, bool reset, char serial[ST
     stlink_version(sl);
 
     if (stlink_current_mode(sl) == STLINK_DEV_DFU_MODE) {
-        ILOG("-- exit_dfu_mode\n");
+        // This seems to work, and is unnecessary information for the user.
+        // Demoted to debug -- REW
+        DLOG("-- exit_dfu_mode\n");
         stlink_exit_dfu_mode(sl);
     }
 
