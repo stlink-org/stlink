@@ -246,8 +246,9 @@ int main(int argc, char** argv) {
     }
 
 
-
-    ILOG("Chip ID is %08x, Core ID is  %08x.\n", sl->chip_id, sl->core_id);
+    // This is low-level information for debugging, not useful for normal use. 
+    // So: Demoted to a debug meesage. -- REW
+    DLOG("Chip ID is %08x, Core ID is  %08x.\n", sl->chip_id, sl->core_id);
 
     sl->verbose=0;
     current_memory_map = make_memory_map(sl);
