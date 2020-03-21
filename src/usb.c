@@ -1102,9 +1102,9 @@ static size_t stlink_probe_usb_devs(libusb_device **devs, stlink_t **sldevs[]) {
     /* Count stlink */
     while ((dev = devs[i++]) != NULL) {
         struct libusb_device_descriptor desc;
-        int r = libusb_get_device_descriptor(dev, &desc);
-        if (r < 0) {
-            WLOG("failed to get libusb device descriptor\n");
+        ret = libusb_get_device_descriptor(dev, &desc);
+        if (ret < 0) {
+            WLOG("failed to get libusb device descriptor (libusb error: %d)\n", ret);
             break;
         }
 
@@ -1133,7 +1133,7 @@ static size_t stlink_probe_usb_devs(libusb_device **devs, stlink_t **sldevs[]) {
         struct libusb_device_descriptor desc;
         ret = libusb_get_device_descriptor(dev, &desc);
         if (ret < 0) {
-            WLOG("failed to get libusb device descriptor\n");
+            WLOG("failed to get libusb device descriptor (libusb error: %d)\n", ret);
             break;
         }
 
@@ -1148,7 +1148,11 @@ static size_t stlink_probe_usb_devs(libusb_device **devs, stlink_t **sldevs[]) {
 
         ret = libusb_open(dev, &handle);
         if (ret < 0) {
-            WLOG("failed to get libusb device descriptor\n");
+            if (ret == LIBUSB_ERROR_ACCESS) {
+                WLOG("failed to open USB device (LIBUSB_ERROR_ACCESS), try running as root?\n");
+            } else {
+                WLOG("failed to open USB device (libusb error: %d)\n", ret);
+            }
             break;
         }
 
@@ -1159,7 +1163,7 @@ static size_t stlink_probe_usb_devs(libusb_device **devs, stlink_t **sldevs[]) {
         libusb_close(handle);
 
         stlink_t *sl = NULL;
-	sl = stlink_open_usb(0, 1, serial);
+        sl = stlink_open_usb(0, 1, serial);
         if (!sl)
             continue;
 
