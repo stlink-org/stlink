@@ -39,9 +39,9 @@ Updates and fixes:
 * Added howto for sending NRST signal through GDB ([#774](https://github.com/texane/stlink/pull/774), [#776](https://github.com/texane/stlink/pull/776), [#779](https://github.com/texane/stlink/pull/779))
 * Fixed package name "devscripts" in doc/compiling.md ([#775](https://github.com/texane/stlink/pull/775))
 * Fixed few potential memory/resource leaks ([#803](https://github.com/texane/stlink/pull/803))
+* Updated Linux source repositories in README.md: Debian and Ubuntu ([#821](https://github.com/texane/stlink/pull/821), [#835](https://github.com/texane/stlink/pull/835), [#859](https://github.com/texane/stlink/pull/859))
 * Do not issue JTAG reset on stlink-v1 ([#828](https://github.com/texane/stlink/pull/828))
 * Fixed flash size of STM32 Discovery vl ([#829](https://github.com/texane/stlink/pull/829))
-* Updated Linux source repositories in README.md: Debian and Ubuntu ([#821](https://github.com/texane/stlink/pull/821), [#835](https://github.com/texane/stlink/pull/835), [#859](https://github.com/texane/stlink/pull/859))
 * Updated documentation on software structure ([#851](https://github.com/texane/stlink/pull/851))
 
 General project updates:
