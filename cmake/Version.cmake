@@ -7,15 +7,15 @@ set(__detect_version 0)
 find_package (Git)
 
 if (GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
-	# Working off a git repo, using git versioning
-	# Check if HEAD is pointing to a tag
-	execute_process (
-		COMMAND             "${GIT_EXECUTABLE}" describe --always --tag
-		WORKING_DIRECTORY   "${PROJECT_SOURCE_DIR}"
-		OUTPUT_VARIABLE     PROJECT_VERSION
+    # Working off a git repo, using git versioning
+    # Check if HEAD is pointing to a tag
+    execute_process (
+        COMMAND             "${GIT_EXECUTABLE}" describe --always --tag
+        WORKING_DIRECTORY   "${PROJECT_SOURCE_DIR}"
+        OUTPUT_VARIABLE     PROJECT_VERSION
         RESULT_VARIABLE     GIT_DESCRIBE_RESULT
         ERROR_VARIABLE      GIT_DESCRIBE_ERROR
-		OUTPUT_STRIP_TRAILING_WHITESPACE)
+        OUTPUT_STRIP_TRAILING_WHITESPACE)
 
     if(GIT_DESCRIBE_RESULT EQUAL 0)
         # If the sources have been changed locally, add -dirty to the version.
