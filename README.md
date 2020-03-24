@@ -39,6 +39,7 @@ Currently known working combinations of programmers and targets are listed in [d
 
 **Windows**: download [v1.6.0](https://github.com/texane/stlink/releases/tag/v1.6.0) from the releases page.
 
+Windows pre-compiled binaries are available at http://www.emb4fun.de/archive/stlink/index.html (outdated, not recommended for use)
 
 **macOS**: install [from homebrew](http://brewformulas.org/Stlink) or download [v1.6.0](https://github.com/texane/stlink/releases/tag/v1.6.0) from the releases page.
 

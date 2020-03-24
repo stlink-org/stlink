@@ -904,9 +904,9 @@ int stlink_load_device_params(stlink_t *sl) {
             sl->sram_size, sl->sram_size / 1024, sl->flash_size, sl->flash_size / 1024,
 	 (unsigned int)sl->flash_pgsz);
 #else
-    ILOG("%s: %d KiB SRAM, %d KiB flash in %d %s pages.\n", 
-	params->description, sl->sram_size / 1024, sl->flash_size / 1024, 
-	(sl->flash_pgsz < 1024)? sl->flash_pgsz  :  sl->flash_pgsz/1024, 
+    ILOG("%s: %d KiB SRAM, %d KiB flash in %d %s pages.\n",
+	params->description, sl->sram_size / 1024, sl->flash_size / 1024,
+	(sl->flash_pgsz < 1024)? sl->flash_pgsz  :  sl->flash_pgsz/1024,
         (sl->flash_pgsz < 1024)?  "byte"         :  "KiB");
 #endif
     return 0;
@@ -1905,7 +1905,7 @@ int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr)
 
         /* clear the pg bit */
         clear_flash_cr_pg(sl);
-        
+
         /* set the page erase bit */
         set_flash_cr_per(sl);
 
@@ -2855,7 +2855,7 @@ static int stlink_write_option_bytes_l1(stlink_t *sl, uint8_t* base, stm32_addr_
         stlink_read_debug32(sl, addr+4, &val);
         WLOG("2nd option bytes is 0x%08x\n",val);
         }
-    }	
+    }
 
     /* Reload options */
     stlink_read_debug32(sl, STM32L1_FLASH_REGS_ADDR + FLASH_PECR_OFF, &val);
