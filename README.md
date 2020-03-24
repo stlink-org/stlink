@@ -88,57 +88,9 @@ Some features are currently missing from the `texane/stlink` toolset.
 Here we would appreciate any help and would love to welcome new contributors who want to get involved:
 
 * Instrumentation Trace Macro (ITM) Cell ([#136](https://github.com/texane/stlink/issues/136))
-* OTP area programming ([#202](https://github.com/texane/stlink/issues/202))
-* EEPROM area programming ([#318](https://github.com/texane/stlink/issues/218))
+* OTP & EEPROM area programming ([#202](https://github.com/texane/stlink/issues/202), [#333](https://github.com/texane/stlink/issues/333), [#686](https://github.com/texane/stlink/issues/686))
 * Protection bits area reading ([#346](https://github.com/texane/stlink/issues/346))
 * Writing external memory connected to an STM32 controller (e.g Quad SPI NOR flash) ([#412](https://github.com/texane/stlink/issues/412))
 * MCU hotplug ([#449](https://github.com/texane/stlink/issues/449))
 * Writing options bytes (region) ([#458](https://github.com/texane/stlink/issues/458))
-* Control programming speed ([#462](https://github.com/texane/stlink/issues/462))
 * Support for STLINKv3 programmer ([#820](https://github.com/texane/stlink/issues/820))
-
-
-## Known bugs
-### Sometimes flashing only works after a mass erase
-
-There is seen a problem sometimes where a flash loader run error occurs and is resolved after mass-erase of the flash:
-
-```
-2015-12-09T22:01:57 INFO src/stlink-common.c: Successfully loaded flash loader in sram
-2015-12-09T22:02:18 ERROR src/stlink-common.c: flash loader run error
-2015-12-09T22:02:18 ERROR src/stlink-common.c: run_flash_loader(0x8000000) failed! == -1
-```
-
-Issue related to this bug: [#356](https://github.com/texane/stlink/issues/356)
-
-
-### Flash size is detected as zero bytes size
-
-It is possible that the STM32 flash is write protected, the st-flash tool will show something like this:
-
-```
-st-flash write prog.bin 0x8000000
-2017-01-24T18:44:14 INFO src/stlink-common.c: Loading device parameters....
-2017-01-24T18:44:14 INFO src/stlink-common.c: Device connected is: F1 High-density device, id 0x10036414
-2017-01-24T18:44:14 INFO src/stlink-common.c: SRAM size: 0x10000 bytes (64 KiB), Flash: 0 bytes (0 KiB) in pages of 2048 bytes
-```
-
-As you can see, it gives out something unexpected like
-```
-Flash: 0 bytes (0 KiB) in pages of 2048 bytes
-```
-
-```
-st-info --probe
-Found 1 stlink programmers
- serial: 303030303030303030303031
-openocd: "\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x30\x31"
-  flash: 0 (pagesize: 2048)
-   sram: 65536
- chipid: 0x0414
-  descr: F1 High-density device
-```
-
-Try to remove the write protection (probably only possible with ST Link Utility from ST itself).
-
-Issue related to this bug: [#545](https://github.com/texane/stlink/issues/545)
