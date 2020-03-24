@@ -29,17 +29,17 @@ static void cleanup(int signum) {
 
 static void usage(void)
 {
-    puts("stlinkv1   command line: ./st-flash [--debug] [--reset] [--format <format>] [--flash=<fsize>] {read|write} /dev/sgX <path> <addr> <size>");
-    puts("stlinkv1   command line: ./st-flash [--debug] /dev/sgX erase");
-    puts("stlinkv2/3 command line: ./st-flash [--debug] [--reset] [--serial <serial>] [--format <format>] [--flash=<fsize>] {read|write} <path> <addr> <size>");
-    puts("stlinkv2/3 command line: ./st-flash [--debug] [--serial <serial>] erase");
-    puts("stlinkv2/3 command line: ./st-flash [--debug] [--serial <serial>] reset");
-    puts("                       Use hex format for addr, <serial> and <size>.");
-    puts("                       fsize: Use decimal, octal or hex by prefix 0xXXX for hex, optionally followed by k=KB, or m=MB (eg. --flash=128k)");
-    puts("                       Format may be 'binary' (default) or 'ihex', although <addr> must be specified for binary format only.");
-    puts("                       ./st-flash [--version]");
+    puts("stlinkv1   command line:   ./st-flash [--debug] [--reset] [--format <format>] [--flash=<fsize>] {read|write} /dev/sgX <path> <addr> <size>");
+    puts("stlinkv1   command line:   ./st-flash [--debug] /dev/sgX erase");
+    puts("stlinkv2/3 command line:   ./st-flash [--debug] [--reset] [--serial <serial>] [--format <format>] [--flash=<fsize>] {read|write} <path> <addr> <size>");
+    puts("stlinkv2/3 command line:   ./st-flash [--debug] [--serial <serial>] erase");
+    puts("stlinkv2/3 command line:   ./st-flash [--debug] [--serial <serial>] reset");
+    puts("   <addr>, <serial> and <size>: Use hex format.");
+    puts("   <fsize>: Use decimal, octal or hex (prefix 0xXXX) format, optionally followed by k=KB, or m=MB (eg. --flash=128k)");
+    puts("   <format>: Can be 'binary' (default) or 'ihex', although <addr> must be specified for binary format only.");
+    puts("print tool version info:   ./st-flash [--version]");
     puts("example write option byte: ./st-flash --debug --reset --area=option write 0xXXXXXXXX");
-    puts("example read option byte: ./st-flash --debug --reset --area=option read > option_byte");
+    puts("example read option byte:  ./st-flash --debug --reset --area=option read > option_byte");
 }
 
 int main(int ac, char** av)
