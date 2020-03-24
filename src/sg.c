@@ -936,15 +936,6 @@ static stlink_t* stlink_open(const int verbose) {
         return NULL;
     }
 
-#if defined (__FreeBSD__)
- #define LIBUSBX_API_VERSION LIBUSB_API_VERSION
-#endif
-#if LIBUSBX_API_VERSION < 0x01000106
-    libusb_set_debug(slsg->libusb_ctx, 3);
-#else
-    libusb_set_option(slsg->libusb_ctx, LIBUSB_OPTION_LOG_LEVEL, 3);
-#endif
-
     slsg->usb_handle = libusb_open_device_with_vid_pid(slsg->libusb_ctx, STLINK_USB_VID_ST, STLINK_USB_PID_STLINK);
     if (slsg->usb_handle == NULL) {
         WLOG("Failed to find an stlink v1 by VID:PID\n");
