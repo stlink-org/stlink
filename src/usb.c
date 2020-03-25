@@ -902,6 +902,12 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, bool reset, char serial[ST
         goto on_error;
     }
 
+#if LIBUSB_API_VERSION < 0x01000106
+    libusb_set_debug(slu->libusb_ctx, ugly_libusb_log_level(verbose));
+#else
+    libusb_set_option(slu->libusb_ctx, LIBUSB_OPTION_LOG_LEVEL, ugly_libusb_log_level(verbose));
+#endif
+
     libusb_device **list;
     /** @todo We should use ssize_t and use it as a counter if > 0. As per libusb API: ssize_t libusb_get_device_list (libusb_context *ctx, libusb_device ***list) */
     int cnt = (int) libusb_get_device_list(slu->libusb_ctx, &list);
