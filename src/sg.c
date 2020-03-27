@@ -936,6 +936,12 @@ static stlink_t* stlink_open(const int verbose) {
         return NULL;
     }
 
+#if LIBUSB_API_VERSION < 0x01000106
+    libusb_set_debug(slsg->libusb_ctx, ugly_libusb_log_level(verbose));
+#else
+    libusb_set_option(slsg->libusb_ctx, LIBUSB_OPTION_LOG_LEVEL, ugly_libusb_log_level(verbose));
+#endif
+
     slsg->usb_handle = libusb_open_device_with_vid_pid(slsg->libusb_ctx, STLINK_USB_VID_ST, STLINK_USB_PID_STLINK);
     if (slsg->usb_handle == NULL) {
         WLOG("Failed to find an stlink v1 by VID:PID\n");

@@ -18,6 +18,7 @@ enum ugly_loglevel {
 
 int ugly_init(int maximum_threshold);
 int ugly_log(int level, const char *tag, const char *format, ...);
+int ugly_libusb_log_level(enum ugly_loglevel v);
 
 #define UGLY_LOG_FILE (strstr(__FILE__, "/") != NULL ? \
     strrchr(__FILE__, '/')  + 1 : strstr(__FILE__, "\\") != NULL ? \

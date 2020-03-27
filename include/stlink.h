@@ -168,8 +168,8 @@ typedef struct flash_loader {
         size_t sram_size;	// stlink_chipid_params.sram_size, set by stlink_load_device_params()
 
         // bootloader
-	// sys_base and sys_size are not used by the tools, but are only there to 
-	// download the bootloader code (see tests/sg.c)
+        // sys_base and sys_size are not used by the tools, but are only there to
+        // download the bootloader code (see tests/sg.c)
         stm32_addr_t sys_base;	// stlink_chipid_params.bootrom_base, set by stlink_load_device_params()
         size_t sys_size;  // stlink_chipid_params.bootrom_size, set by stlink_load_device_params()
 
@@ -243,6 +243,7 @@ typedef struct flash_loader {
 #include "stlink/chipid.h"
 #include "stlink/flash_loader.h"
 #include "stlink/version.h"
+#include "stlink/logging.h"
 
 #ifdef __cplusplus
 }
