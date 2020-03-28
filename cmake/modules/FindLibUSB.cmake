@@ -79,7 +79,7 @@ if(NOT LIBUSB_FOUND)
             file(DOWNLOAD
                 https://sourceforge.net/projects/libusb/files/libusb-1.0/libusb-${LIBUSB_WIN_VERSION}/libusb-${LIBUSB_WIN_VERSION}.7z/download
                 ${LIBUSB_WIN_ARCHIVE_PATH}
-                EXPECTED_MD5 750e64b45aca94fafbdff07171004d03
+                EXPECTED_MD5 cf3d38d2ff053ef343d10c0b8b0950c2
             )
         endif()
         file(MAKE_DIRECTORY ${LIBUSB_WIN_OUTPUT_FOLDER})
