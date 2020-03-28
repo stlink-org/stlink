@@ -8,14 +8,6 @@
 #endif
 #include <sys/types.h>
 #include <mingw.h>
-#if defined(_MSC_VER)
-#pragma warning(push)
-#pragma warning(disable: 4200 4255 4668 4820)
-#include <libusb.h>
-#pragma warning(pop)
-#else
-#include <libusb.h>
-#endif
 #include <errno.h>
 #include <unistd.h>
 
