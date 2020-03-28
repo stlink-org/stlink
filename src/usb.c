@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#include <limits.h>
 #if !defined(_MSC_VER)
 #include <sys/time.h>
 #endif
