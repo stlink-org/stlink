@@ -23,7 +23,7 @@
 
 #if !defined ( LIBUSBX_API_VERSION )
 #if defined (__FreeBSD__)
-#define LIBUSBX_API_VVERSION LIBUSB_API_VERSION
+#define LIBUSBX_API_VERSION LIBUSB_API_VERSION
 #elif !defined (LIBUSB_API_VERSION)
 #error unsupported libusb version
 #endif
