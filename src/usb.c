@@ -941,6 +941,7 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, bool reset, char serial[ST
         if ((desc.idProduct == STLINK_USB_PID_STLINK_32L) ||
             (desc.idProduct == STLINK_USB_PID_STLINK_NUCLEO) ||
             (desc.idProduct == STLINK_USB_PID_STLINK_32L_AUDIO) ||
+            (desc.idProduct == STLINK_USB_PID_STLINK_V2_1) ||
             (desc.idProduct == STLINK_USB_PID_STLINK_V3_USBLOADER) ||
             (desc.idProduct == STLINK_USB_PID_STLINK_V3E_PID) ||
             (desc.idProduct == STLINK_USB_PID_STLINK_V3S_PID) ||
@@ -957,7 +958,8 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, bool reset, char serial[ST
 
             if ((desc.idProduct == STLINK_USB_PID_STLINK_32L)
                     || (desc.idProduct == STLINK_USB_PID_STLINK_NUCLEO)
-                    || (desc.idProduct == STLINK_USB_PID_STLINK_32L_AUDIO)) {
+                    || (desc.idProduct == STLINK_USB_PID_STLINK_32L_AUDIO)
+                    || (desc.idProduct == STLINK_USB_PID_STLINK_V2_1)) {
                 sl->version.stlink_v = 2;
             } else if ((desc.idProduct == STLINK_USB_PID_STLINK_V3_USBLOADER)
                        || (desc.idProduct == STLINK_USB_PID_STLINK_V3E_PID)
@@ -1032,6 +1034,7 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, bool reset, char serial[ST
     slu->ep_rep = 1 /* ep rep */ | LIBUSB_ENDPOINT_IN;
     if (desc.idProduct == STLINK_USB_PID_STLINK_NUCLEO ||
         desc.idProduct == STLINK_USB_PID_STLINK_32L_AUDIO ||
+        desc.idProduct == STLINK_USB_PID_STLINK_V2_1 ||
         desc.idProduct == STLINK_USB_PID_STLINK_V3_USBLOADER ||
         desc.idProduct == STLINK_USB_PID_STLINK_V3E_PID ||
         desc.idProduct == STLINK_USB_PID_STLINK_V3S_PID ||
@@ -1115,6 +1118,7 @@ static size_t stlink_probe_usb_devs(libusb_device **devs, stlink_t **sldevs[]) {
         if (desc.idProduct != STLINK_USB_PID_STLINK_32L &&
             desc.idProduct != STLINK_USB_PID_STLINK_32L_AUDIO &&
             desc.idProduct != STLINK_USB_PID_STLINK_NUCLEO &&
+            desc.idProduct != STLINK_USB_PID_STLINK_V2_1 &&
             desc.idProduct != STLINK_USB_PID_STLINK_V3_USBLOADER &&
             desc.idProduct != STLINK_USB_PID_STLINK_V3E_PID &&
             desc.idProduct != STLINK_USB_PID_STLINK_V3S_PID &&
