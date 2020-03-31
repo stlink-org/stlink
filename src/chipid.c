@@ -555,6 +555,20 @@ static const struct stlink_chipid_params devices[] = {
             .bootrom_size = 0x7000           // 28K (table 2)
         },
         {
+            // STM32G471/473/474/483/484 (from RM0440)
+            .chip_id = STLINK_CHIPID_STM32_G4_CAT3,
+            .description = "G4 Category-3",
+            .flash_type = STLINK_FLASH_TYPE_G4,
+            .flash_size_reg = 0x1FFF75E0,    // Section 47.2
+            .flash_pagesize = 0x800,         // 2K (sec 3.3.1)
+            // SRAM1 is 80k at 0x20000000
+            // SRAM2 is 16k at 0x20014000
+            // SRAM3/CCM is 32k at 0x10000000, aliased at 0x20018000
+            .sram_size = 0x18000,             // 128K (sec 2.4)
+            .bootrom_base = 0x1fff0000,
+            .bootrom_size = 0x7000           // 28K (table 2)
+        },
+        {
             // STM32WB55 (from RM0434)
             .chip_id = STLINK_CHIPID_STM32_WB55,
             .description = "WB55",
