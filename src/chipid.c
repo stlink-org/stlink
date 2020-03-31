@@ -550,6 +550,9 @@ static const struct stlink_chipid_params devices[] = {
             .flash_type = STLINK_FLASH_TYPE_G4,
             .flash_size_reg = 0x1FFF75E0,    // Section 47.2
             .flash_pagesize = 0x800,         // 2K (sec 3.3.1)
+            // SRAM1 is 16k at 0x20000000
+            // SRAM2 is 6k at 0x20014000
+            // SRAM3/CCM is 10k at 0x10000000, aliased at 0x20018000
             .sram_size = 0x8000,             // 32K (sec 2.4)
             .bootrom_base = 0x1fff0000,
             .bootrom_size = 0x7000           // 28K (table 2)
