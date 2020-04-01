@@ -10,7 +10,7 @@
    v1.0.13   |    0x01000100
    v1.0.14   |    0x010000FF
    v1.0.15   |    0x01000101
-   v1.0.16   |    0x01000102       < MINIMAL_API_VERSION
+   v1.0.16   |    0x01000102
    v1.0.17   |    0x01000102
    v1.0.18   |    0x01000102
    v1.0.19   |    0x01000103
@@ -21,15 +21,23 @@
 
 */
 
-#if !defined ( LIBUSBX_API_VERSION )
 #if defined (__FreeBSD__)
+#if !defined ( LIBUSBX_API_VERSION )
 #define LIBUSBX_API_VERSION LIBUSB_API_VERSION
 #elif !defined (LIBUSB_API_VERSION)
 #error unsupported libusb version
 #endif
 #endif
 
+#if defined (__FreeBSD__)
 #define MINIMAL_API_VERSION 0x01000102
+#elif defined (__linux__)
+#define MINIMAL_API_VERSION 0x01000104
+#elif defined (__APPLE__)
+#define MINIMAL_API_VERSION 0x01000104
+#elif defined (_WIN32)
+#define MINIMAL_API_VERSION 0x01000106
+#endif
 
 #if ( LIBUSB_API_VERSION < MINIMAL_API_VERSION )
 #error unsupported libusb version
