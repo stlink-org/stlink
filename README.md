@@ -32,7 +32,7 @@ These programmer boards are available in four versions:
 
 ## Supported hardware combinations
 
-Currently known working combinations of programmers and targets are listed in [doc/tested-boards.md](doc/tested-boards.md).
+Currently known working combinations of programmers and targets are listed in [doc/devices_boards.md](doc/tested-boards.md).
 
 
 ## Installation
