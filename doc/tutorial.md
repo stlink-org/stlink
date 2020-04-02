@@ -1,3 +1,20 @@
+stlink Tools Tutorial
+=====================
+
+## Useful tool options
+### st-flash
+
+#### --flash=n[k][m]
+
+(since v1.4.0)
+
+You can specify `--flash=128k` for example, to override the STM32F103C8T6 to assume 128k of flash instead of the default of 64k.
+This option accepts decimal (128k), octal 0200k, or hex 0x80k.
+Obviously leaving the multiplier out is equally valid, for example: `--flash=0x20000`.
+The size may be followed by an optional "k" or "m" to multiply the given value by 1k (1024) or 1M respectively.
+
+------
+
 Using STM32 discovery kits with open source tools
 ========
 
