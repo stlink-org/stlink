@@ -170,6 +170,55 @@ Upon reset, the board LEDs should be blinking.
 
 HOWTO
 =====
+
+## Verify if udev rules are set correctly (by Dave Hylands)
+
+To investigate, start by plugging your STLINK device into the usb port. Then run lsusb. You should see an entry something like the following:
+
+```
+Bus 005 Device 017: ID 0483:374b STMicroelectronics ST-LINK/V2.1 (Nucleo-F103RB)
+```
+
+Note the bus number (005) and the Device (017). You should then do:
+`ls -l /dev/bus/usb/005/017` (replacing 005 and 017 appropriately).
+
+On my system I see the following:
+
+```
+crw-rw-rw- 1 root root 189, 528 Jan 24 17:52 /dev/bus/usb/005/017
+```
+
+which is world writable (this is from the MODE:="0666" below). I have several files in my `/etc/udev/rules.d` directory. In this particular case, the `49-stlinkv2-1.rules` file contains the following:
+
+```
+# stm32 nucleo boards, with onboard st/linkv2-1
+# ie, STM32F0, STM32F4.
+# STM32VL has st/linkv1, which is quite different
+
+SUBSYSTEMS=="usb", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="374b", \
+    MODE:="0666", \
+    SYMLINK+="stlinkv2-1_%n"
+
+# If you share your linux system with other users, or just don't like the
+# idea of write permission for everybody, you can replace MODE:="0666" with
+# OWNER:="yourusername" to create the device owned by you, or with
+# GROUP:="somegroupname" and mange access using standard unix groups.
+```
+
+and the idVendor of 0483 and idProduct of 374b matches the vendor id from the lsusb output.
+
+Make sure that you have all 3 files from here: https://github.com/texane/stlink/tree/master/etc/udev/rules.d in your `/etc/udev/rules.d` directory. After copying new files or editing excisting files in `/etc/udev/ruled.d` you should run the following:
+
+```
+sudo udevadm control --reload-rules
+sudo udevadm trigger
+```
+
+to ensure that the rules actually take effect. Using the trigger command means that you shouldn't need to unplug and replug the device, but you might want to try that for good measure as well.
+
+If the VID:PID of your device doesn't match those in any of the 3 files, then you may need to create a custom rule file to match your VID:PID.
+
+
 ## Using the gdb server
 
 To run the gdb server:

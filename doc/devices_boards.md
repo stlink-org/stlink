@@ -243,6 +243,7 @@ Tested boards [incl. STLink programmers]:
 | 0x471   | STM32L4**Q5**xx  |
 
 Tested boards [incl. STLink programmers]:
+* Nucleo-L432KC [v2-1]
 * Nucleo-L452RE [v2-1]
 * Nucleo-L476RG [v2-1]
 * Nucleo-L496ZG [v2-1]
