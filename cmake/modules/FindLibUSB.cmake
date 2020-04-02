@@ -67,7 +67,7 @@ if(NOT LIBUSB_FOUND)
     if(WIN32 OR MSVC OR MINGW OR MSYS)
         find_package(7Zip REQUIRED)
 
-        set(LIBUSB_WIN_VERSION 1.0.22)
+        set(LIBUSB_WIN_VERSION 1.0.23)
         set(LIBUSB_WIN_ARCHIVE libusb-${LIBUSB_WIN_VERSION}.7z)
         set(LIBUSB_WIN_ARCHIVE_PATH ${CMAKE_BINARY_DIR}/${LIBUSB_WIN_ARCHIVE})
         set(LIBUSB_WIN_OUTPUT_FOLDER ${CMAKE_BINARY_DIR}/3thparty/libusb-${LIBUSB_WIN_VERSION})
@@ -79,6 +79,7 @@ if(NOT LIBUSB_FOUND)
             file(DOWNLOAD
                 https://sourceforge.net/projects/libusb/files/libusb-1.0/libusb-${LIBUSB_WIN_VERSION}/libusb-${LIBUSB_WIN_VERSION}.7z/download
                 ${LIBUSB_WIN_ARCHIVE_PATH}
+                EXPECTED_MD5 cf3d38d2ff053ef343d10c0b8b0950c2
             )
         endif()
         file(MAKE_DIRECTORY ${LIBUSB_WIN_OUTPUT_FOLDER})
