@@ -885,7 +885,9 @@ int stlink_load_device_params(stlink_t *sl) {
     } else {
         sl->flash_size = flash_size * 1024;
     }
+
     sl->flash_type = params->flash_type;
+    sl->has_dual_bank = params->has_dual_bank;
     sl->flash_pgsz = params->flash_pagesize;
     sl->sram_size = params->sram_size;
     sl->sys_base = params->bootrom_base;

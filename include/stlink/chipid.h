@@ -73,6 +73,7 @@ struct stlink_chipid_params {
 	uint32_t chip_id;
 	char *description;
 	enum stlink_flash_type flash_type;
+	bool has_dual_bank;
 	uint32_t flash_size_reg;
 	uint32_t flash_pagesize;
 	uint32_t sram_size;
