@@ -1980,7 +1980,6 @@ int stlink_erase_flash_mass(stlink_t *sl) {
     /* TODO: User MER bit to mass-erase G0, G4, WB series. */
     if (sl->flash_type == STLINK_FLASH_TYPE_L0 ||
         sl->flash_type == STLINK_FLASH_TYPE_G0 ||
-        sl->flash_type == STLINK_FLASH_TYPE_G4 ||
         sl->flash_type == STLINK_FLASH_TYPE_WB) {
         /* erase each page */
         int i = 0, num_pages = (int) sl->flash_size/sl->flash_pgsz;
