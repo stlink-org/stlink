@@ -32,7 +32,12 @@ These programmer boards are available in four versions:
 
 ## Supported hardware combinations
 
-Currently known working combinations of programmers and targets are listed in [doc/devices_boards.md](doc/tested-boards.md).
+Currently known working combinations of programmers and targets are listed in [devices_boards.md](doc/devices_boards.md).
+
+
+## Tutorial & HOWTO
+
+Our [tutorial.md](doc/tutorial.md may help you along with some advanced tasks and additional info.
 
 
 ## Installation
@@ -77,7 +82,7 @@ When there is no executable available for your platform or you need the latest (
 
 ## License
 
-The stlink library and tools are licensed under the [BSD license](LICENSE.md).
+The stlink library and tools are licensed under the [BSD-3 license](LICENSE.md).
 
 The flashloaders/stm32l0x.s and flashloaders/stm32lx.s source files are licensed under the GPLv2+.
 
