@@ -22,25 +22,25 @@
 */
 
 #if defined (__FreeBSD__)
-#if !defined ( LIBUSBX_API_VERSION )
-#define LIBUSBX_API_VERSION LIBUSB_API_VERSION
-#elif !defined (LIBUSB_API_VERSION)
-#error unsupported libusb version
-#endif
+    #if !defined ( LIBUSBX_API_VERSION )
+        #define LIBUSBX_API_VERSION LIBUSB_API_VERSION
+    #elif !defined (LIBUSB_API_VERSION)
+        #error unsupported libusb version
+    #endif
 #endif
 
 #if defined (__FreeBSD__)
-#define MINIMAL_API_VERSION 0x01000102
+    #define MINIMAL_API_VERSION 0x01000102 // v1.0.16
 #elif defined (__linux__)
-#define MINIMAL_API_VERSION 0x01000104
+    #define MINIMAL_API_VERSION 0x01000104 // v1.0.20
 #elif defined (__APPLE__)
-#define MINIMAL_API_VERSION 0x01000104
+    #define MINIMAL_API_VERSION 0x01000104 // v1.0.20
 #elif defined (_WIN32)
-#define MINIMAL_API_VERSION 0x01000106
+    #define MINIMAL_API_VERSION 0x01000104 // v1.0.20
 #endif
 
 #if ( LIBUSB_API_VERSION < MINIMAL_API_VERSION )
-#error unsupported libusb version
+    #error unsupported libusb version
 #endif
 
 #endif // STLINKUSB_H

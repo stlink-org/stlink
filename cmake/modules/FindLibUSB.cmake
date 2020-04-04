@@ -6,13 +6,13 @@
 #  LIBUSB_LIBRARY - The libraries needed to use libusb
 #  LIBUSB_DEFINITIONS - Compiler switches required for using libusb
 
-# FreeBSD
-if (CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
+
+if (CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")      # FreeBSD
 	FIND_PATH(LIBUSB_INCLUDE_DIR NAMES libusb.h
 	HINTS
 	/usr/include
 	)
-else ()
+else ()                                        # other OS
 	FIND_PATH(LIBUSB_INCLUDE_DIR NAMES libusb.h
 	HINTS
 	/usr
@@ -22,6 +22,8 @@ else ()
 	)
 endif()
 
+
+# macOS
 if (APPLE)
 	set(LIBUSB_NAME libusb-1.0.a)
 elseif(MSYS OR MINGW)

@@ -1,122 +1,180 @@
 # Compiling from sources
-## General package requirements
 
-* cmake (v2.8.7 or later)
-* C compiler (gcc, clang or mingw)
-* libusb-1.0 (v1.0.13 or later)
-* libusb-dev-1.0 (v1.0.13 or later)
-* pandoc _(optional; for generating manpages from markdown)_
+## Microsoft Windows (10, 8.1)
+### Common Requirements
 
-Run from the root of the source directory:
+On Windows users should ensure that the following software is installed:
 
-```
-$ make release
-$ make debug
-```
+* `7zip`
+* `git`
+* `cmake` (3.17.0 or later)
+* `MinGW-w64` (7.0.0 or later) with GCC toolchain 8.1.0
 
-The debug target should only be necessary for people who want to modify the sources and run under a debugger.
+
+### Installation
+
+1. Install `7zip` from <https://www.7-zip.org>
+2. Install `git` from <https://git-scm.com/download/win>
+3. Install `cmake` from <https://cmake.org/download>
+4. Install
+  - _EITHER_: **MinGW-w64** from <https://sourceforge.net/projects/mingw-w64> (mingw-w64-install.exe)<br />
+    Ensure that you add MinGW to the $PATH system variable when following the instructions by the setup assistant.<br />
+  - _OR_:     **Visual Studio 2017 CE** (other versions will likely work as well, but are untested; the Community edition is free for open source
+  development)
+5. Create a new destination folder at a place of your choice
+6. Open the command-line (cmd.exe) and execute `cd C:\$Path-to-your-destination-folder$\`
+7. Fetch the project sourcefiles by running `git clone https://github.com/texane/stlink.git`from the command-line (cmd.exe)<br />
+  or download the stlink zip-sourcefolder from the Release page on GitHub
+
+
+### Building
+#### MinGW64
+
+1. Use the command-line to move to the `scripts` directory within the source-folder: `cd stlink\scripts\`
+2. Execute `./mingw64-build.bat`
+
+NOTE:<br />
+Per default the build script (currently) uses `C:\Program Files\mingw-w64\x86_64-8.1.0-release-win32-sjlj-rt_v6-rev0\mingw64\bin`.<br />
+When installing different toolchains make sure to update the path in the `mingw64-build.bat`.<br />
+This can be achieved by opening the .bat file with a common text editor.
+
+
+#### Visual Studio (32 bit)
+
+1. In a command prompt, change the directory to the folder where the stlink files were cloned (or unzipped) to.
+2. Make sure the build folder exists (`mkdir build` if not).
+3. From the build folder, run cmake (`cd build; cmake ..`).
+
+This will create a solution (stlink.sln) in the build folder. Open it in Visual Studio, select the Solution Configuration (Debug or
+Release) and build the solution normally (F7).
+
+NOTE:<br />
+This solution will link to the dll version of libusb-1.0.y<br />
+To debug or run the executable, the dll version of libusb-1.0 must be either on the path, or in the same folder as the executable.<br />
+It can be copied from here: `build\3thparty\libusb-1.0.21\MS32\dll\libusb-1.0.dll`.
+
+## Linux
+### Common requirements
+
+Install the following packages from your package repository:
+
+* `gcc` or `clang` or `mingw32-gcc` or `mingw64-gcc` (C-compiler; very likely gcc is already present)
+* `build-essential` (on Debian based distros (debian, ubuntu))
+* `cmake` (3.4.2 or later, use the latest version available from the repository)
+* `libusb-1.0`
+* `libusb-1.0-0-dev` (development headers for building)
+* `libgtk-3-dev` (_optional_, needed for `stlink-gui`)
+* `pandoc` (_optional_, needed for generating manpages from markdown)
+
+or execute (Debian-based systems only): `apt-get install gcc build-essential cmake libusb-1.0 libusb-1.0-0-dev libgtk-3-dev pandoc`
+
+(Replace gcc with the intended C-compiler if necessary or leave out any optional package not needed.)
+
+
+### Installation
+
+1. Open a new terminal console
+2. Create a new destination folder at a place of your choice e.g. at `~/git`: `mkdir $HOME/git`
+3. Change to this directory: `cd ~/git`
+4. Fetch the project sourcefiles by running `git clone https://github.com/texane/stlink.git`
+
+
+### Building
+
+1. Change into the project source directory: `cd stlink`
+2. Run `make release` to create the _Release_ target
+3. Run `make debug` to create the _Debug_ target (_optional_)<br />
+   The debug target is only necessary in order to modify the sources and to run under a debugger.
+
 The top level Makefile is just a handy wrapper for:
 
-```
+##### MinGW64:
+
+```sh
 $ mkdir build && cd build
-$ cmake -DCMAKE_BUILD_TYPE=Debug ..
+$ cmake -DCMAKE_BUILD_TYPE=release -DCMAKE_TOOLCHAIN_FILE=./cmake/linux-mingw64.cmake -S ..
 $ make
 ```
 
-You may install to a user folder e.g `$HOME`:
+##### MinGW32:
 
-```
-$ cd build/Release; make install DESTDIR=$HOME
-```
-
-Or system-wide:
-
-```
-$ cd build/Release; sudo make install
+```sh
+$ mkdir build && cd build
+$ cmake -DCMAKE_BUILD_TYPE=release -DCMAKE_TOOLCHAIN_FILE=./cmake/linux-mingw32.cmake -S ..
+$ make
 ```
 
+As an alternative you may also install
+- to a user folder e.g `$HOME` with `cd build/Release && make install DESTDIR=$HOME`
+- or system wide with `cd build/Release && sudo make install`.
 
-## Linux / Unix
-## Common requirements
-
-* `build-essential`
-* `cmake`
-* `libusb-1.0`
-* `libusb-1.0-0-dev` (development headers for building, _only on debian based distros_)
-* `libgtk-3-dev` _(optional; required for `stlink-gui`)_
-
-As of today several distributions namely:
-
-- CentOS 6, 7, 8
-- Debian 8, 9, 10, sid
-- Fedora 30, 31, Rawhide
-- NetBSD 7.2, 8.1, 9.0
-- openSUSE Leap 15.1, Leap 15.2
-- Ubuntu 14.04 LTS, 16.04 LTS, 18.04 LTS, 19.10
-
-provide packages for libusb 0.1 and libusb 1.0.
-
-**Please ensure that the correct version 1.0 is installed.**
-Other relevant distributions appear to have packages named _libusb-compat-0.1_ or alike to distinguish from libusb packages based on version 1.0.x.
+When installing system-wide, the dynamic library cache needs to be updated with the command `ldconfig`.
 
 
-### Fixing cannot open shared object file
+### Build a Debian Package
 
-When installing system-wide (`sudo make install`) the dynamic library cache needs to be updated with the command `ldconfig`.
+To build the debian package you need the following extra packages: `devscripts debhelper`.
 
-
-## Permissions with udev
-
-Make sure you install udev files which are necessary to run the tools without root permissions.
-By default most distributions don't allow access to USB devices.
-The udev rules create devices nodes and set the group of this to `stlink`.
-
-The rules are located in the `etc/udev/rules.d` directory.
-You will need to copy it to /etc/udev/rules.d, and then either execute as root (or reboot your machine):
-
-```
-$ udevadm control --reload-rules
-$ udevadm trigger
-```
-
-Udev will now create device node files `/dev/stlinkv2_XX`, `/dev/stlinkv1_XX`.
-**You need to make sure the `stlink` group exists and the user, who is trying to access, is added to this group.**
-
-
-### Note for STLINKv1 usage
-
-The STLINKv1's SCSI emulation is corrupted, so the best thing to do is tell your operating system to completely ignore it.
-
-Options (do one of these before you plug it in)
-
-* `modprobe -r usb-storage && modprobe usb-storage quirks=483:3744:i` or
-  1. `echo "options usb-storage quirks=483:3744:i" >> /etc/modprobe.conf`
-  2. `modprobe -r usb-storage && modprobe usb-storage`
-* or
-  1. `cp stlink_v1.modprobe.conf /etc/modprobe.d`
-  2. `modprobe -r usb-storage && modprobe usb-storage`
-
-
-### Build Debian Package
-
-To build the debian package you need the additional packages `devscripts` and `debhelper`.
-
-```
+```sh
 $ git archive --prefix=$(git describe)/ HEAD | bzip2 --stdout > ../libstlink_$(sed -En -e "s/.*\((.*)\).*/\1/" -e "1,1 p" debian/changelog).orig.tar.bz2
 $ debuild -uc -us
 ```
 
 
-## macOS
-### Prerequisites
+### Set permissions with udev
+
+By default most distributions don't allow access to USB devices.
+Therefore make sure you install udev files which are necessary to run the tools without root permissions.
+udev rules create devices nodes and set the group of these to `stlink`.
+
+The rules are located in the subdirectory `etc/udev/rules.d` within the sourcefolder.
+Copy them to the directory path `/etc/udev/rules.d` and subsequently reload the udev rules:
+
+```sh
+$ cp etc/udev/rules.d /etc/udev/rules.d
+$ udevadm control --reload-rules
+$ udevadm trigger
+```
+
+Udev will now create device node files `/dev/stlinkv2_XX`, `/dev/stlinkv1_XX`.
+You need to ensure that the group `stlink` exists and the user who is trying to access these devices is a member of this group.
+
+
+### Note on the use of STLink-v1 programmers:
+
+At the time of writing the STLink-v1 has mostly been replaced with the newer generation STLink-v2 programmers and thus is only rarely used.
+As there are some caveats as well, we recommend to use the STLink-v2 programmers if possible.
+
+To be more precise, the STLINKv1's SCSI emulation is somehow broken, so the best advice possibly is to tell your operating system to completely ignore it.
+
+Choose on of the following options _before_ connecting the device to your computer:
+
+* `modprobe -r usb-storage && modprobe usb-storage quirks=483:3744:i`
+* _OR_
+    1. `echo "options usb-storage quirks=483:3744:i" >> /etc/modprobe.conf`
+    2. `modprobe -r usb-storage && modprobe usb-storage`
+* _OR_
+    1. `cp stlink_v1.modprobe.conf /etc/modprobe.d`
+    2. `modprobe -r usb-storage && modprobe usb-storage`
+
+
+Author: nightwalker-87
+
+-----
+
+---- **The following content is outdated and unrevised!** ----
+
+## Mac OS X
 
 When compiling on a mac you need the following:
 
 * A compiler toolchain (XCode)
-* cmake
-* **libusb 1.0**
+* CMake
+* Libusb 1.0
 
-The best way is to install [homebrew](http://brew.sh) which is a package manager for opensource software which is missing from the Apple App Store. Then install the dependencies:
+The best way is to install [homebrew](http://brew.sh) which is a package manager
+ for opensource software which is missing from the Apple App Store. Then install
+ the dependencies:
 
 ```
 brew install libusb cmake
@@ -127,7 +185,8 @@ Compile as described in the first section of this document.
 
 ## Build using different directories for udev and modprobe
 
-To put the udev or the modprobe configuration files into a different directory during installation use the following cmake options:
+To put the udev or the modprobe configuration files into a different directory
+during installation you can use the following cmake options:
 
 ```
 $ cmake -DSTLINK_UDEV_RULES_DIR="/usr/lib/udev/rules.d" \
@@ -137,88 +196,9 @@ $ cmake -DSTLINK_UDEV_RULES_DIR="/usr/lib/udev/rules.d" \
 
 ## Build using different directory for shared libs
 
-To put the compiled shared libs into a different directory during installation you can use the following cmake option:
+To put the compiled shared libs into a different directory during installation
+you can use the following cmake option:
 
 ```
-$ cmake -DLIB_INSTALL_DIR:PATH="/usr/lib64" ..
-```
-
-
-## Windows (MinGW64)
-### Prerequisites
-
-* 7zip
-* cmake 2.8 or higher
-* MinGW64 GCC toolchain (5.3.0)
-
-
-### Installation
-
-1. Install 7zip from <http://www.7-zip.org>
-2. Install CMake from <https://cmake.org/download>
-3. Install MinGW64 from <https://sourceforge.net/projects/mingw-w64> (mingw-w64-install.exe)
-4. Git clone or download stlink sourcefiles zip
-
-
-### Building
-
-Check and execute (in the script folder) `<source-dir>\scripts\mingw64-build.bat`
-
-**NOTE:** when installing different toolchains make sure you edit the path in the `mingw64-build.bat`.
-The build script currently uses `C:\Program Files\mingw-w64\x86_64-5.3.0-win32-sjlj-rt_v4-rev0\mingw64\bin`
-
-
-## Windows (Visual Studio)
-### Prerequisites
-
-* 7zip
-* cmake (tested with version 3.9.0-rc2)
-* Visual Studio 2017 Community Edition (other versions will likely work but are untested; the Community Edition is free for open source
-development)
-
-
-### Installation
-
-1. Install 7zip from <http://www.7-zip.org>
-2. Install CMake from <https://cmake.org/download>
-3. Git clone or download stlink sourcefiles zip
-
-
-### Building
-
-These instructions are for a 32-bit version.
-
-In a command prompt, change directory to the folder where the stlink files were cloned (or unzipped).
-Make sure the build folder exists (`mkdir build` if not).
-From the build folder, run cmake (`cd build; cmake ..`).
-
-This will create a solution (stlink.sln) in the build folder.
-Open it in Visual Studio, select the Solution Configuration (_Debug_ or _Release_) and build the solution normally (F7).
-
-NOTES: This solution will link to the dll version of libusb-1.0.
-To debug or run the executable, the dll version of libusb-1.0 must be either on the path, or in the same folder as the executable.
-It can be copied from here: `build\3thparty\libusb-1.0.21\MS32\dll\libusb-1.0.dll`.
-
-
-## Linux (MinGW64)
-### Prerequisites
-
-* 7zip
-* cmake 2.8 or higher
-* MinGW64 GCC toolchain (5.3.0)
-
-
-### Installation (Debian / Ubuntu)
-
-sudo apt install p7zip mingw-w64
-
-
-### Building
-
-These instructions are for a 32-bit version.
-
-```sh
-cd <source-dir>
-cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=./cmake/linux-mingw32.cmake -S . -B ./build/linux-mingw32
-cmake --build ./build/linux-mingw32 --target all
+$ cmake -DLIB_INSTALL_DIR:PATH="/usr/lib64"  ..
 ```
