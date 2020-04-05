@@ -1,7 +1,7 @@
 if (NOT gtk_FOUND)
     message(STATUS "gtk not found!")
-	  return()
-endif()
+    return()
+endif ()
 
 set(GUI_SOURCES stlink-gui.c stlink-gui.h)
 set(INSTALLED_UI_DIR share/stlink)
@@ -12,7 +12,7 @@ add_executable(stlink-gui-local ${GUI_SOURCES})
 set_target_properties(
     stlink-gui-local PROPERTIES
     COMPILE_DEFINITIONS STLINK_UI_DIR="${CMAKE_CURRENT_SOURCE_DIR}"
-		)
+    )
 target_link_libraries(stlink-gui-local ${STLINK_LIB_STATIC} ${gtk_LDFLAGS} ${SSP_LIB})
 
 
@@ -20,7 +20,7 @@ add_executable(stlink-gui ${GUI_SOURCES})
 set_target_properties(
     stlink-gui PROPERTIES
     COMPILE_DEFINITIONS STLINK_UI_DIR="${CMAKE_INSTALL_PREFIX}/${INSTALLED_UI_DIR}"
-		)
+    )
 target_link_libraries(stlink-gui ${STLINK_LIB_STATIC} ${gtk_LDFLAGS} ${SSP_LIB})
 
 install(TARGETS stlink-gui RUNTIME DESTINATION bin)
@@ -31,4 +31,4 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     install(FILES stlink-gui.desktop DESTINATION share/applications)
     # Install icon
     install(FILES art/stlink-gui.svg DESTINATION share/icons/hicolor/scalable/apps)
-endif (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+endif ()

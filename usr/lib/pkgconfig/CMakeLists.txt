@@ -5,11 +5,11 @@ set(PKG_CONFIG_CFLAGS     "-I\${includedir}")
 set(PKG_CONFIG_REQUIRES   "libusb-1.0")
 
 configure_file(
-	  "${CMAKE_CURRENT_SOURCE_DIR}/pkg-config.pc.cmake"
-	  "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.pc"
+    "${CMAKE_CURRENT_SOURCE_DIR}/pkg-config.pc.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.pc"
     )
 
 install(
     FILES "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.pc"
-	  DESTINATION ${STLINK_LIBRARY_PATH}/pkgconfig/
+    DESTINATION ${STLINK_LIBRARY_PATH}/pkgconfig/
     )

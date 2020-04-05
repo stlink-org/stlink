@@ -10,14 +10,14 @@ set(STUTIL_SOURCE
 if (MSVC)
     # We need a getopt from somewhere...
     set(STUTIL_SOURCE "${STUTIL_SOURCE};../getopt/getopt.c")
-endif()
+endif ()
 
 add_executable(st-util ${STUTIL_SOURCE})
 
 if (WIN32 OR APPLE)
     target_link_libraries(st-util ${STLINK_LIB_STATIC} ${SSP_LIB})
-else()
+else ()
     target_link_libraries(st-util ${STLINK_LIB_SHARED} ${SSP_LIB})
-endif()
+endif ()
 
 install(TARGETS st-util RUNTIME DESTINATION bin)
