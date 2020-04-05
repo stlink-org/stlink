@@ -72,7 +72,7 @@ Major changes and added features:
 
 Updates and fixes:
 
-* Fixed missing flash_loader for STM32L011 ([#654](https://github.com/texane/stlink/pull/654), [#675](https://github.com/texane/stlink/pull/675))
+* Fixed missing flash_loader for STM32L0x ([#269](https://github.com/texane/stlink/pull/269), [#274](https://github.com/texane/stlink/pull/274), [#654](https://github.com/texane/stlink/pull/654), [#675](https://github.com/texane/stlink/pull/675))
 * Fix for stlink library calls exit() or _exit() ([#634](https://github.com/texane/stlink/pull/634), [#696](https://github.com/texane/stlink/pull/696))
 * Added semihosting parameter documentation in doc/man ([#674](https://github.com/texane/stlink/pull/674))
 * Fixed reference to non-exisiting st-term tool in doc/man ([#676](https://github.com/texane/stlink/pull/676))
@@ -128,11 +128,11 @@ Major changes and added features:
 Updates and fixes:
 
 * Fixed gdb-server: STM32L0xx has no FP_CTRL register for breakpoints ([#273](https://github.com/texane/stlink/pull/273))
+* Added --flash=n[k][m] command line option to override device model ([#305](https://github.com/texane/stlink/pull/305), [#516](https://github.com/texane/stlink/pull/516), [#576](https://github.com/texane/stlink/pull/576))
 * Updated libusb to 1.0.21 for Windows ([#562](https://github.com/texane/stlink/pull/562))
 * Fixed low-voltage flashing on STM32F7 devices ([#566](https://github.com/texane/stlink/pull/566), [#567](https://github.com/texane/stlink/pull/567))
 * Fixed building with mingw64 ([#569](https://github.com/texane/stlink/pull/569), [#573](https://github.com/texane/stlink/pull/573), [#578](https://github.com/texane/stlink/pull/578), [#584](https://github.com/texane/stlink/pull/584), [#610](https://github.com/texane/stlink/pull/610))
 * Fixed possible memory leak ([#570](https://github.com/texane/stlink/pull/570), [#571](https://github.com/texane/stlink/pull/571))
-* Added --flash=n[k][m] command line option to override device model ([#576](https://github.com/texane/stlink/pull/576))
 * Fixed installation path for shared objects ([#581](https://github.com/texane/stlink/pull/581))
 * Fixed a few -Wformat warnings ([#582](https://github.com/texane/stlink/pull/582))
 * Removed unused defines in mimgw.h ([#583](https://github.com/texane/stlink/pull/583))
@@ -150,7 +150,7 @@ Release date: 2017-02-25
 Major changes and added features:
 
 * Added support for Semihosting `SYS_READC` ([#546](https://github.com/texane/stlink/pull/546))
-* Added support for STM32F413 ([#549](https://github.com/texane/stlink/pull/549), [#550](https://github.com/texane/stlink/pull/550))
+* Added support for STM32F413 ([#549](https://github.com/texane/stlink/pull/549), [#550](https://github.com/texane/stlink/pull/550), [#758](https://github.com/texane/stlink/pull/758))
 * Added preliminary support for STM32L011 to see it after probe (chip-ID 0x457) ([#558](https://github.com/texane/stlink/pull/558), [#598](https://github.com/texane/stlink/pull/598))
 
 Updates and fixes:
