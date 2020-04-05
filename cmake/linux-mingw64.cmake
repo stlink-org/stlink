@@ -1,4 +1,4 @@
-# Sample toolchain file for building for Windows from an Ubuntu Linux system.
+# Sample toolchain file for building for Windows from a Debian/Ubuntu Linux system.
 #
 # Typical usage:
 #    *) install cross compiler: `sudo apt-get install mingw-w64`
@@ -14,7 +14,7 @@ set(CMAKE_CXX_COMPILER ${TOOLCHAIN_PREFIX}-g++)
 set(CMAKE_RC_COMPILER ${TOOLCHAIN_PREFIX}-windres)
 
 # target environment on the build host system
-#   set 1st to dir with the cross compiler's C/C++ headers/libs
+# set 1st to dir with the cross compiler's C/C++ headers/libs
 set(CMAKE_FIND_ROOT_PATH /usr/${TOOLCHAIN_PREFIX})
 
 # modify default behavior of FIND_XXX() commands to

@@ -1,13 +1,13 @@
 set(TESTS
-	usb
-	sg
-)
+	  usb
+	  sg
+    )
 
 foreach(test ${TESTS})
-	add_executable(${test} ${test}.c)
-	add_dependencies(${test} ${STLINK_LIB_STATIC})
+  	add_executable(${test} ${test}.c)
+  	add_dependencies(${test} ${STLINK_LIB_STATIC})
     target_link_libraries(${test} ${STLINK_LIB_STATIC} ${SSP_LIB})
-	add_test(${test} ${CMAKE_CURRENT_BINARY_DIR}/${test})
+	  add_test(${test} ${CMAKE_CURRENT_BINARY_DIR}/${test})
 endforeach()
 
 add_executable(flash flash.c "${CMAKE_SOURCE_DIR}/src/tools/flash_opts.c")

@@ -8,56 +8,60 @@
 
 
 if (CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")      # FreeBSD
-	FIND_PATH(LIBUSB_INCLUDE_DIR NAMES libusb.h
-	HINTS
-	/usr/include
-	)
+    FIND_PATH(LIBUSB_INCLUDE_DIR NAMES libusb.h
+  	HINTS
+	  /usr/include
+	  )
 else ()                                        # other OS
-	FIND_PATH(LIBUSB_INCLUDE_DIR NAMES libusb.h
-	HINTS
-	/usr
-	/usr/local
-	/opt
-	PATH_SUFFIXES libusb-1.0
-	)
+	  FIND_PATH(LIBUSB_INCLUDE_DIR NAMES libusb.h
+	  HINTS
+	  /usr
+	  /usr/local
+	  /opt
+	  PATH_SUFFIXES libusb-1.0
+	  )
 endif()
 
 
 # macOS
 if (APPLE)
-	set(LIBUSB_NAME libusb-1.0.a)
+	  set(LIBUSB_NAME libusb-1.0.a)
 elseif(MSYS OR MINGW)
-	set(LIBUSB_NAME usb-1.0)
+	  set(LIBUSB_NAME usb-1.0)
 elseif(MSVC)
-	set(LIBUSB_NAME libusb-1.0.lib)
+	  set(LIBUSB_NAME libusb-1.0.lib)
 elseif(CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
-	set(LIBUSB_NAME usb)
+	  set(LIBUSB_NAME usb)
 else()
-	set(LIBUSB_NAME usb-1.0)
+	  set(LIBUSB_NAME usb-1.0)
 endif()
 
 if (MSYS OR MINGW)
-	if (CMAKE_SIZEOF_VOID_P EQUAL 8)
-		find_library(LIBUSB_LIBRARY NAMES ${LIBUSB_NAME}
-			HINTS ${LIBUSB_WIN_OUTPUT_FOLDER}/MinGW64/static)
-	else ()
-		find_library(LIBUSB_LIBRARY NAMES ${LIBUSB_NAME}
-			HINTS ${LIBUSB_WIN_OUTPUT_FOLDER}/MinGW32/static)
-	endif ()
-elseif(MSVC)
-	if (CMAKE_SIZEOF_VOID_P EQUAL 8)
-		find_library(LIBUSB_LIBRARY NAMES ${LIBUSB_NAME}
+	  if (CMAKE_SIZEOF_VOID_P EQUAL 8)
+	  	  find_library(
+				    LIBUSB_LIBRARY NAMES ${LIBUSB_NAME}
+		        HINTS ${LIBUSB_WIN_OUTPUT_FOLDER}/MinGW64/static)
+	  else ()
+		    find_library(
+				    LIBUSB_LIBRARY NAMES ${LIBUSB_NAME}
+			      HINTS ${LIBUSB_WIN_OUTPUT_FOLDER}/MinGW32/static)
+	  endif ()
+elseif (MSVC)
+	  if (CMAKE_SIZEOF_VOID_P EQUAL 8)
+	    	find_library(
+				    LIBUSB_LIBRARY NAMES ${LIBUSB_NAME}
             HINTS ${LIBUSB_WIN_OUTPUT_FOLDER}/MS64/dll)
-	else ()
-		find_library(LIBUSB_LIBRARY NAMES ${LIBUSB_NAME}
-			HINTS ${LIBUSB_WIN_OUTPUT_FOLDER}/MS32/dll)
-	endif ()
+	  else ()
+		    find_library(
+				    LIBUSB_LIBRARY NAMES ${LIBUSB_NAME}
+			      HINTS ${LIBUSB_WIN_OUTPUT_FOLDER}/MS32/dll)
+	  endif ()
 else()
-	find_library(LIBUSB_LIBRARY NAMES ${LIBUSB_NAME}
-	HINTS
-	/usr
-	/usr/local
-	/opt)
+  	find_library(LIBUSB_LIBRARY NAMES ${LIBUSB_NAME}
+  	HINTS
+  	/usr
+	  /usr/local
+	  /opt)
 endif ()
 
 include(FindPackageHandleStandardArgs)
@@ -72,7 +76,7 @@ if(NOT LIBUSB_FOUND)
         set(LIBUSB_WIN_VERSION 1.0.23)
         set(LIBUSB_WIN_ARCHIVE libusb-${LIBUSB_WIN_VERSION}.7z)
         set(LIBUSB_WIN_ARCHIVE_PATH ${CMAKE_BINARY_DIR}/${LIBUSB_WIN_ARCHIVE})
-        set(LIBUSB_WIN_OUTPUT_FOLDER ${CMAKE_BINARY_DIR}/3thparty/libusb-${LIBUSB_WIN_VERSION})
+        set(LIBUSB_WIN_OUTPUT_FOLDER ${CMAKE_BINARY_DIR}/3rdparty/libusb-${LIBUSB_WIN_VERSION})
 
         if(EXISTS ${LIBUSB_WIN_ARCHIVE_PATH})
             message(STATUS "libusb archive already in build folder")
@@ -102,13 +106,15 @@ if(NOT LIBUSB_FOUND)
 
         if (MSYS OR MINGW)
             if (CMAKE_SIZEOF_VOID_P EQUAL 8)
-                find_library(LIBUSB_LIBRARY NAMES ${LIBUSB_NAME}
+                find_library(
+								    LIBUSB_LIBRARY NAMES ${LIBUSB_NAME}
                     HINTS ${LIBUSB_WIN_OUTPUT_FOLDER}/MinGW64/static
                     NO_DEFAULT_PATH
                     NO_CMAKE_FIND_ROOT_PATH
                     )
             else ()
-                find_library(LIBUSB_LIBRARY NAMES ${LIBUSB_NAME}
+                find_library(
+								    LIBUSB_LIBRARY NAMES ${LIBUSB_NAME}
                     HINTS ${LIBUSB_WIN_OUTPUT_FOLDER}/MinGW32/static
                     NO_DEFAULT_PATH
                     NO_CMAKE_FIND_ROOT_PATH
@@ -116,13 +122,15 @@ if(NOT LIBUSB_FOUND)
             endif ()
         elseif(MSVC)
             if (CMAKE_SIZEOF_VOID_P EQUAL 8)
-                find_library(LIBUSB_LIBRARY NAMES ${LIBUSB_NAME}
+                find_library(
+								    LIBUSB_LIBRARY NAMES ${LIBUSB_NAME}
                     HINTS ${LIBUSB_WIN_OUTPUT_FOLDER}/MS64/dll
                     NO_DEFAULT_PATH
                     NO_CMAKE_FIND_ROOT_PATH
                     )
             else ()
-                find_library(LIBUSB_LIBRARY NAMES ${LIBUSB_NAME}
+                find_library(
+								    LIBUSB_LIBRARY NAMES ${LIBUSB_NAME}
                     HINTS ${LIBUSB_WIN_OUTPUT_FOLDER}/MS32/dll
                     NO_DEFAULT_PATH
                     NO_CMAKE_FIND_ROOT_PATH

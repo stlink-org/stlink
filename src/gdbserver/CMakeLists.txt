@@ -4,7 +4,8 @@ set(STUTIL_SOURCE
     gdb-server.c
     gdb-server.h
     semihosting.c
-    semihosting.h)
+    semihosting.h
+    )
 
 if (MSVC)
     # We need a getopt from somewhere...
@@ -19,6 +20,4 @@ else()
     target_link_libraries(st-util ${STLINK_LIB_SHARED} ${SSP_LIB})
 endif()
 
-install(TARGETS st-util
-	RUNTIME DESTINATION bin
-)
+install(TARGETS st-util RUNTIME DESTINATION bin)

@@ -60,8 +60,6 @@ else()
     message(STATUS "Git or repo not found.")
 endif()
 
-
-
 if(NOT __detect_version)
     message(STATUS "Try to detect version from \"${PROJECT_SOURCE_DIR}/.version\" file.")
     if(EXISTS ${PROJECT_SOURCE_DIR}/.version)
@@ -71,7 +69,7 @@ if(NOT __detect_version)
 
         # TODO create function to extract semver from file or string and check if it is correct instead of copy-pasting
         string(REGEX REPLACE "^(0|[1-9][0-9]*)[.](0|[1-9][0-9]*)[.](0|[1-9][0-9]*)(-[.0-9A-Za-z-]+)?([+][.0-9A-Za-z-]+)?$"
-                         "\\1;\\2;\\3" PROJECT_VERSION_LIST ${PROJECT_VERSION})
+                             "\\1;\\2;\\3" PROJECT_VERSION_LIST ${PROJECT_VERSION})
         list(LENGTH PROJECT_VERSION_LIST len)
         if(len EQUAL 3)
             list(GET PROJECT_VERSION_LIST 0 PROJECT_VERSION_MAJOR)
@@ -90,6 +88,5 @@ if(NOT __detect_version)
     message(FATAL_ERROR "Unable to determine project version")
 endif()
 
-
 message(STATUS "stlink version: ${PROJECT_VERSION}")
-message(STATUS "          Major ${PROJECT_VERSION_MAJOR} Minor ${PROJECT_VERSION_MINOR} Patch ${PROJECT_VERSION_PATCH}")
+message(STATUS "Major ${PROJECT_VERSION_MAJOR} Minor ${PROJECT_VERSION_MINOR} Patch ${PROJECT_VERSION_PATCH}")

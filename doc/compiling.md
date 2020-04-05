@@ -15,10 +15,10 @@ On Windows users should ensure that the following software is installed:
 
 1. Install `7zip` from <https://www.7-zip.org>
 2. Install `git` from <https://git-scm.com/download/win>
-3. Install `cmake` from <https://cmake.org/download>
+3. Install `cmake` from <https://cmake.org/download><br />
+   Ensure that you add cmake to the $PATH system variable when following the instructions by the setup assistant.
 4. Install
   - _EITHER_: **MinGW-w64** from <https://sourceforge.net/projects/mingw-w64> (mingw-w64-install.exe)<br />
-    Ensure that you add MinGW to the $PATH system variable when following the instructions by the setup assistant.<br />
   - _OR_:     **Visual Studio 2017 CE** (other versions will likely work as well, but are untested; the Community edition is free for open source
   development)
 5. Create a new destination folder at a place of your choice
@@ -51,7 +51,7 @@ Release) and build the solution normally (F7).
 NOTE:<br />
 This solution will link to the dll version of libusb-1.0.y<br />
 To debug or run the executable, the dll version of libusb-1.0 must be either on the path, or in the same folder as the executable.<br />
-It can be copied from here: `build\3thparty\libusb-1.0.21\MS32\dll\libusb-1.0.dll`.
+It can be copied from here: `build\3rdparty\libusb-1.0.21\MS32\dll\libusb-1.0.dll`.
 
 ## Linux
 ### Common requirements
