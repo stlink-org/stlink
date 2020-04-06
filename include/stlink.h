@@ -159,6 +159,8 @@ typedef struct flash_loader {
         int serial_size;
 
         enum stlink_flash_type flash_type;	// stlink_chipid_params.flash_type, set by stlink_load_device_params(), values: STLINK_FLASH_TYPE_xxx
+        bool has_dual_bank;
+
         stm32_addr_t flash_base;	// STM32_FLASH_BASE, set by stlink_load_device_params()
         size_t flash_size;	// calculated by stlink_load_device_params()
         size_t flash_pgsz;	// stlink_chipid_params.flash_pagesize, set by stlink_load_device_params()

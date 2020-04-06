@@ -562,6 +562,7 @@ static const struct stlink_chipid_params devices[] = {
             .chip_id = STLINK_CHIPID_STM32_G4_CAT3,
             .description = "G4 Category-3",
             .flash_type = STLINK_FLASH_TYPE_G4,
+            .has_dual_bank = true,
             .flash_size_reg = 0x1FFF75E0,    // Section 47.2
             .flash_pagesize = 0x800,         // 2K (sec 3.3.1)
             // SRAM1 is 80k at 0x20000000

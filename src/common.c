@@ -120,6 +120,7 @@
 #define STM32Gx_FLASH_CR_PNB         (3)      /* Page number */
 #define STM32G0_FLASH_CR_PNG_LEN     (5)      /* STM32G0: 5 page number bits */
 #define STM32G4_FLASH_CR_PNG_LEN     (7)      /* STM32G4: 7 page number bits */
+#define STM32Gx_FLASH_CR_MER2       (15)      /* Mass erase (2nd bank)*/
 #define STM32Gx_FLASH_CR_STRT       (16)      /* Start */
 #define STM32Gx_FLASH_CR_OPTSTRT    (17)      /* Start of modification of option bytes */
 #define STM32Gx_FLASH_CR_FSTPG      (18)      /* Fast programming */
@@ -128,8 +129,14 @@
 #define STM32Gx_FLASH_CR_OBL_LAUNCH (27)      /* Forces the option byte loading */
 #define STM32Gx_FLASH_CR_OPTLOCK    (30)      /* Options Lock */
 #define STM32Gx_FLASH_CR_LOCK       (31)      /* FLASH_CR Lock */
+
 // G0/G4 FLASH status register
+#define STM32Gx_FLASH_SR_ERROR_MASK (0x3fa)
 #define STM32Gx_FLASH_SR_BSY        (16)      /* FLASH_SR Busy */
+#define STM32Gx_FLASH_SR_EOP        (0)       /* FLASH_EOP End of Operation */
+
+// G4 FLASH option register
+#define STM32G4_FLASH_OPTR_DBANK    (22)      /* FLASH_OPTR Dual Bank Mode */
 
 // WB (RM0434)
 #define STM32WB_FLASH_REGS_ADDR ((uint32_t)0x58004000)
@@ -515,7 +522,10 @@ static void set_flash_cr_mer(stlink_t *sl, bool v) {
     } else if (sl->flash_type == STLINK_FLASH_TYPE_G0 ||
                sl->flash_type == STLINK_FLASH_TYPE_G4) {
         cr_reg = STM32Gx_FLASH_CR;
-        cr_mer = (1 << FLASH_CR_MER);
+        cr_mer = (1 <<  STM32Gx_FLASH_CR_MER1);
+        if (sl->has_dual_bank) {
+			cr_mer |= (1 << STM32Gx_FLASH_CR_MER2);
+		}
         cr_pg  = (1 << FLASH_CR_PG);
     } else if (sl->flash_type == STLINK_FLASH_TYPE_WB) {
         cr_reg = STM32WB_FLASH_CR;
@@ -678,6 +688,22 @@ static void wait_flash_busy_progress(stlink_t *sl) {
         }
     }
     fprintf(stdout, "\n");
+}
+
+static int check_flash_error(stlink_t *sl)
+{
+    uint32_t res = 0;
+    if ((sl->flash_type == STLINK_FLASH_TYPE_G0) ||
+		(sl->flash_type == STLINK_FLASH_TYPE_G4)) {
+        res = read_flash_sr(sl) & STM32Gx_FLASH_SR_ERROR_MASK;
+	}
+
+    if (res) {
+        ELOG("Flash programming error : %#010x\n", res);
+        return -1;
+    }
+
+    return 0;
 }
 
 static inline unsigned int is_flash_eop(stlink_t *sl) {
@@ -885,7 +911,9 @@ int stlink_load_device_params(stlink_t *sl) {
     } else {
         sl->flash_size = flash_size * 1024;
     }
+
     sl->flash_type = params->flash_type;
+    sl->has_dual_bank = params->has_dual_bank;
     sl->flash_pgsz = params->flash_pagesize;
     sl->sram_size = params->sram_size;
     sl->sys_base = params->bootrom_base;
@@ -895,6 +923,14 @@ int stlink_load_device_params(stlink_t *sl) {
     //STM32F100xx datasheet Doc ID 16455 Table 2
     if(sl->chip_id == STLINK_CHIPID_STM32_F1_VL_MEDIUM_LOW && sl->flash_size < 64 * 1024){
         sl->sram_size = 0x1000;
+    }
+
+    if (sl->chip_id == STLINK_CHIPID_STM32_G4_CAT3) {
+        uint32_t flash_optr;
+        stlink_read_debug32(sl, STM32Gx_FLASH_OPTR, &flash_optr);
+        if (!(flash_optr & (1 << STM32G4_FLASH_OPTR_DBANK))) {
+            sl->flash_pgsz <<= 1;
+        }
     }
 
 #if 0
@@ -1961,8 +1997,6 @@ int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr)
 int stlink_erase_flash_mass(stlink_t *sl) {
     /* TODO: User MER bit to mass-erase G0, G4, WB series. */
     if (sl->flash_type == STLINK_FLASH_TYPE_L0 ||
-        sl->flash_type == STLINK_FLASH_TYPE_G0 ||
-        sl->flash_type == STLINK_FLASH_TYPE_G4 ||
         sl->flash_type == STLINK_FLASH_TYPE_WB) {
         /* erase each page */
         int i = 0, num_pages = (int) sl->flash_size/sl->flash_pgsz;
@@ -2000,6 +2034,8 @@ int stlink_erase_flash_mass(stlink_t *sl) {
 
         /* wait for completion */
         wait_flash_busy_progress(sl);
+
+        check_flash_error(sl);
 
         /* relock the flash */
         lock_flash(sl);
