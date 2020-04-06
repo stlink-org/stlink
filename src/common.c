@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 
 #include <errno.h>
 #include <unistd.h>
@@ -1267,8 +1268,14 @@ static int map_file(mapped_file_t* mf, const char* path) {
         fprintf(stderr, "fstat() == -1\n");
         goto on_error;
     }
-
-    mf->base = (uint8_t*) mmap(NULL, st.st_size, PROT_READ, MAP_SHARED, fd, 0);
+    if (sizeof(st.st_size) != sizeof(size_t)) {
+        /* On 32 bit systems, check if there is an overflow */
+        if (st.st_size > (off_t)UINT32_MAX) {
+            fprintf(stderr, "mmap() size_t overflow\n");
+            goto on_error;
+        }
+    }
+    mf->base = (uint8_t*) mmap(NULL, (size_t)(st.st_size), PROT_READ, MAP_SHARED, fd, 0);
     if (mf->base == MAP_FAILED) {
         fprintf(stderr, "mmap() == MAP_FAILED\n");
         goto on_error;
