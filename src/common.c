@@ -128,8 +128,12 @@
 #define STM32Gx_FLASH_CR_OBL_LAUNCH (27)      /* Forces the option byte loading */
 #define STM32Gx_FLASH_CR_OPTLOCK    (30)      /* Options Lock */
 #define STM32Gx_FLASH_CR_LOCK       (31)      /* FLASH_CR Lock */
+
 // G0/G4 FLASH status register
 #define STM32Gx_FLASH_SR_BSY        (16)      /* FLASH_SR Busy */
+
+// G4 FLASH option register
+#define STM32G4_FLASH_OPTR_DBANK    (22)      /* FLASH_OPTR Dual Bank Mode */
 
 // WB (RM0434)
 #define STM32WB_FLASH_REGS_ADDR ((uint32_t)0x58004000)
@@ -897,6 +901,14 @@ int stlink_load_device_params(stlink_t *sl) {
     //STM32F100xx datasheet Doc ID 16455 Table 2
     if(sl->chip_id == STLINK_CHIPID_STM32_F1_VL_MEDIUM_LOW && sl->flash_size < 64 * 1024){
         sl->sram_size = 0x1000;
+    }
+
+    if (sl->chip_id == STLINK_CHIPID_STM32_G4_CAT3) {
+        uint32_t flash_optr;
+        stlink_read_debug32(sl, STM32Gx_FLASH_OPTR, &flash_optr);
+        if (!(flash_optr & (1 << STM32G4_FLASH_OPTR_DBANK))) {
+            sl->flash_pgsz <<= 1;
+        }
     }
 
 #if 0
