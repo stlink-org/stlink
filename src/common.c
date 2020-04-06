@@ -120,6 +120,7 @@
 #define STM32Gx_FLASH_CR_PNB         (3)      /* Page number */
 #define STM32G0_FLASH_CR_PNG_LEN     (5)      /* STM32G0: 5 page number bits */
 #define STM32G4_FLASH_CR_PNG_LEN     (7)      /* STM32G4: 7 page number bits */
+#define STM32Gx_FLASH_CR_MER2       (15)      /* Mass erase (2nd bank)*/
 #define STM32Gx_FLASH_CR_STRT       (16)      /* Start */
 #define STM32Gx_FLASH_CR_OPTSTRT    (17)      /* Start of modification of option bytes */
 #define STM32Gx_FLASH_CR_FSTPG      (18)      /* Fast programming */
@@ -519,7 +520,10 @@ static void set_flash_cr_mer(stlink_t *sl, bool v) {
     } else if (sl->flash_type == STLINK_FLASH_TYPE_G0 ||
                sl->flash_type == STLINK_FLASH_TYPE_G4) {
         cr_reg = STM32Gx_FLASH_CR;
-        cr_mer = (1 << FLASH_CR_MER);
+        cr_mer = (1 <<  STM32Gx_FLASH_CR_MER1);
+        if (sl->has_dual_bank) {
+			cr_mer |= (1 << STM32Gx_FLASH_CR_MER2);
+		}
         cr_pg  = (1 << FLASH_CR_PG);
     } else if (sl->flash_type == STLINK_FLASH_TYPE_WB) {
         cr_reg = STM32WB_FLASH_CR;
