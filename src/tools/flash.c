@@ -218,6 +218,10 @@ int main(int ac, char** av)
                 printf("%x\n",option_byte);
             } else {
                 printf("This format is available for STM32F2 and STM32F4 only\n");
+            if (err == -1)
+            {
+                printf("could not read option bytes\n");
+                goto on_error;
             }
         } else {
             if ((o.addr >= sl->flash_base) && (o.size == 0) &&
@@ -229,11 +233,12 @@ int main(int ac, char** av)
                 o.size = sl->sram_size;
             }
             err = stlink_fread(sl, o.filename, o.format == FLASH_FORMAT_IHEX, o.addr, o.size);
-        }
-        if (err == -1)
-        {
-            printf("stlink_fread() == -1\n");
-            goto on_error;
+
+            if (err == -1)
+            {
+                printf("stlink_fread() == -1\n");
+                goto on_error;
+            }
         }
     }
 
