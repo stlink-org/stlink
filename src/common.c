@@ -131,7 +131,9 @@
 #define STM32Gx_FLASH_CR_LOCK       (31)      /* FLASH_CR Lock */
 
 // G0/G4 FLASH status register
+#define STM32Gx_FLASH_SR_ERROR_MASK (0x3fa)
 #define STM32Gx_FLASH_SR_BSY        (16)      /* FLASH_SR Busy */
+#define STM32Gx_FLASH_SR_EOP        (0)       /* FLASH_EOP End of Operation */
 
 // G4 FLASH option register
 #define STM32G4_FLASH_OPTR_DBANK    (22)      /* FLASH_OPTR Dual Bank Mode */
@@ -686,6 +688,22 @@ static void wait_flash_busy_progress(stlink_t *sl) {
         }
     }
     fprintf(stdout, "\n");
+}
+
+static int check_flash_error(stlink_t *sl)
+{
+    uint32_t res = 0;
+    if ((sl->flash_type == STLINK_FLASH_TYPE_G0) ||
+		(sl->flash_type == STLINK_FLASH_TYPE_G4)) {
+        res = read_flash_sr(sl) & STM32Gx_FLASH_SR_ERROR_MASK;
+	}
+
+    if (res) {
+        ELOG("Flash programming error : %#010x\n", res);
+        return -1;
+    }
+
+    return 0;
 }
 
 static inline unsigned int is_flash_eop(stlink_t *sl) {
@@ -2017,6 +2035,8 @@ int stlink_erase_flash_mass(stlink_t *sl) {
 
         /* wait for completion */
         wait_flash_busy_progress(sl);
+
+        check_flash_error(sl);
 
         /* relock the flash */
         lock_flash(sl);
