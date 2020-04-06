@@ -189,7 +189,7 @@ int _stlink_usb_version(stlink_t *sl) {
         cmd[i++] = STLINK_APIV3_GET_VERSION_EX;
 
         size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len);
-        if (size != rep_len) {
+        if (size != (ssize_t)rep_len) {
             printf("[!] send_recv STLINK_APIV3_GET_VERSION_EX\n");
             return (int) size;
         }
