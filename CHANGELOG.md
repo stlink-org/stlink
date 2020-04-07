@@ -26,6 +26,8 @@ Major changes and added features:
 
 Updates and fixes:
 
+* Fixed "unkown chip id", piped output and st-util -v ([#107](https://github.com/texane/stlink/pull/107), [#665](https://github.com/texane/stlink/pull/665), [#763](https://github.com/texane/stlink/pull/763))
+* Fixed an issue with versioning stuck at 1.4.0 for versions cloned with git ([#563](https://github.com/texane/stlink/pull/563), [#762](https://github.com/texane/stlink/pull/762), [#772](https://github.com/texane/stlink/pull/772))
 * Updated STM32F3xx chip ID that covers a few different devices ([#685](https://github.com/texane/stlink/pull/685), [#758](https://github.com/texane/stlink/pull/758))
 * Made udev rules and modprobe conf installation optional ([#741](https://github.com/texane/stlink/pull/741))
 * Fixed case when __FILE__ don't contain "/" nor "\\" ([#745](https://github.com/texane/stlink/pull/745))
@@ -34,7 +36,6 @@ Updates and fixes:
 * Only do bank calculation on STM32L4 devices with dual banked flash / Added chip-ID 0x464 for STM32L41xxx/L42xxx devices ([#751](https://github.com/texane/stlink/pull/751))
 * Added O_BINARY option to open file ([#753](https://github.com/texane/stlink/pull/753))
 * Fixed versioning when compiling from the checked out git-repo ([#762](https://github.com/texane/stlink/pull/762), [#772](https://github.com/texane/stlink/pull/772))
-* Fixed "unkown chip id", piped output and st-util -v ([#107](https://github.com/texane/stlink/pull/107), [#665](https://github.com/texane/stlink/pull/665), [#763](https://github.com/texane/stlink/pull/763))
 * win32: move usleep definition to unistd.h ([#765](https://github.com/texane/stlink/pull/765))
 * Fixed relative path to the UI files needed by stlink-gui-local (GUI) ([#770](https://github.com/texane/stlink/pull/770), [#771](https://github.com/texane/stlink/pull/771))
 * Added howto for sending NRST signal through GDB ([#774](https://github.com/texane/stlink/pull/774), [#776](https://github.com/texane/stlink/pull/776), [#779](https://github.com/texane/stlink/pull/779))
@@ -190,7 +191,7 @@ Chip support added for:
 * STM32F7xx ([#324](https://github.com/texane/stlink/pull/324), [#326](https://github.com/texane/stlink/pull/326), [#327](https://github.com/texane/stlink/pull/327), [#337](https://github.com/texane/stlink/pull/337))
 * STM32F767ZI ([#509](https://github.com/texane/stlink/pull/509))
 * STM32L0xx Cat2 devices (chip-ID: 0x425) ([#414](https://github.com/texane/stlink/pull/414))
-* STM32L0xx Cat5 devices (chip-ID: 0x447) ([#406](https://github.com/texane/stlink/pull/406))
+* STM32L0xx Cat5 devices (chip-ID: 0x447) ([#387](https://github.com/texane/stlink/pull/387), [#406](https://github.com/texane/stlink/pull/406))
 * STM32L4xx ([#321](https://github.com/texane/stlink/pull/321))
 * STM32L432 ([#500](https://github.com/texane/stlink/pull/500), [#501](https://github.com/texane/stlink/pull/501))
 
@@ -198,7 +199,7 @@ Updates and fixes:
 
 * Fixed "unaligned addr or size" when trying to write a program in RAM ([#323](https://github.com/texane/stlink/pull/323))
 * Fixed flashing on STM32_F3_SMALL ([#325](https://github.com/texane/stlink/pull/325))
-* Fixed STM32L-problem with flash loader ([#390](https://github.com/texane/stlink/pull/390))
+* Fixed STM32L-problem with flash loader ([#390](https://github.com/texane/stlink/pull/390), [#407](https://github.com/texane/stlink/pull/407),[#408](https://github.com/texane/stlink/pull/408))
 * Don't read the target voltage on startup, because it crashes STM32F100 ([#423](https://github.com/texane/stlink/pull/423), [#424](https://github.com/texane/stlink/pull/424))
 * Added a useful error message instead of "[!] send_recv" ([#425](https://github.com/texane/stlink/pull/425), [#426](https://github.com/texane/stlink/pull/426))
 * Do a JTAG reset prior to reading CPU information when processor is in deep sleep ([#428](https://github.com/texane/stlink/pull/428), [#430](https://github.com/texane/stlink/pull/430), [#451](https://github.com/texane/stlink/pull/451))
@@ -253,6 +254,7 @@ Chip support added for:
 * Added STM32L4 to CHIPID #defines and devices[], flash driver and loader (Dave Vandervies)
 * Basic support for STM32F446 (Pavel Kirienko)
 * STM32F303 High Density
+* STM32F469/STM32F479 ([#345](https://github.com/texane/stlink/pull/345), [#555](https://github.com/texane/stlink/pull/555)) (Release v1.2.0)
 * STM32L1xx Cat.2 devices (Nicolas Schodet)
 * STM32L1xx (chip-ID 0x427) ([#152](https://github.com/texane/stlink/pull/152), [#163](https://github.com/texane/stlink/pull/163), [#165](https://github.com/texane/stlink/pull/165)) (Release v1.0.0)
 
