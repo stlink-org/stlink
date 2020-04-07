@@ -3,7 +3,6 @@ Sources: [pkgs.org - libusb](https://pkgs.org/search/?q=libusb) & [pkgs.org - cm
 
 
 ## Supported Operating Systems
-
 ### Microsoft Windows
 
 On Windows users should ensure that cmake 3.17.0 is installed.<br />
@@ -14,6 +13,7 @@ Thus no user interaction regarding libusb is necessary.
 * Windows 10
 * Windows 8.1
 
+
 ### Apple macOS
 
 On macOS users should ensure that cmake 3.17.0 is installed.
@@ -23,6 +23,7 @@ On macOS users should ensure that cmake 3.17.0 is installed.
 * macOS 10.15 Catalina
 * macOS 10.14 Mojave
 * macOS 10.13 High Sierra
+
 
 ### Linux-/Unix-based:
 
