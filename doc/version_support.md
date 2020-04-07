@@ -16,13 +16,10 @@ Thus no user interaction regarding libusb is necessary.
 
 ### Apple macOS
 
-On macOS users should ensure that cmake 3.17.0 is installed.
-
---> libusb Installation routine: (TBD) Work in progress...
-
-* macOS 10.15 Catalina
-* macOS 10.14 Mojave
-* macOS 10.13 High Sierra
+| Package Repository | libusb<br />version | cmake<br />version | Supported macOS versions |
+| --- | --- | --- | --- |
+| homebrew | 1.0.23 | 3.17.0 | 10.12 (Sierra)- 10.15 (Catalina) |
+| MacPorts | 1.0.23 | 3.17.0 | 10.6 (Snow Leopard) - 10.15 (Catalina) |
 
 
 ### Linux-/Unix-based:

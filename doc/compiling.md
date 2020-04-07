@@ -28,7 +28,7 @@ On Windows users should ensure that the following software is installed:
 
 
 ### Building
-#### MinGW64
+#### MinGW-w64
 
 1. Use the command-line to move to the `scripts` directory within the source-folder: `cd stlink\scripts\`
 2. Execute `./mingw64-build.bat`
@@ -158,47 +158,46 @@ Choose on of the following options _before_ connecting the device to your comput
     2. `modprobe -r usb-storage && modprobe usb-storage`
 
 
+## macOS
+### Common requirements
+
+The best way is to install a package manager for open source software,
+either [homebrew](https://brew.sh) or [MacPorts](https://www.macports.org/).
+
+Then install the following dependencies from the package repository:
+
+* `git`
+* `cmake`
+* `libusb`
+
+To do this with only one simple command, type:
+
+* for homebrew: `sudo brew install git cmake libusb` or
+* for MacPorts:`sudo port install git cmake libusb`
+
+Additionally we recommend to install Xcode which delivers the necessary C-compiler toolchain Clang (LLVM).
+
+
+### Installation
+
+1. Open a new terminal window
+2. Create a new destination folder at a place of your choice e.g. at `~/git`: `mkdir $HOME/git`
+3. Change to this directory: `cd ~/git`
+4. Fetch the project sourcefiles by running `git clone https://github.com/texane/stlink.git`
+
+
+### Building
+
+1. Change into the project source directory: `cd stlink`
+2. Run `make release` to create the _Release_ target
+3. Run `make debug` to create the _Debug_ target (_optional_)<br />
+   The debug target is only necessary in order to modify the sources and to run under a debugger.
+
+
+## Build using a different directory for shared libs
+
+To put the compiled shared libs into a different directory during installation,
+you can use the cmake option `cmake -DLIB_INSTALL_DIR:PATH="/usr/lib64" ..`.
+
+
 Author: nightwalker-87
-
------
-
----- **The following content is outdated and unrevised!** ----
-
-## Mac OS X
-
-When compiling on a mac you need the following:
-
-* A compiler toolchain (XCode)
-* CMake
-* Libusb 1.0
-
-The best way is to install [homebrew](http://brew.sh) which is a package manager
- for opensource software which is missing from the Apple App Store. Then install
- the dependencies:
-
-```
-brew install libusb cmake
-```
-
-Compile as described in the first section of this document.
-
-
-## Build using different directories for udev and modprobe
-
-To put the udev or the modprobe configuration files into a different directory
-during installation you can use the following cmake options:
-
-```
-$ cmake -DSTLINK_UDEV_RULES_DIR="/usr/lib/udev/rules.d" \
-        -DSTLINK_MODPROBED_DIR="/usr/lib/modprobe.d" ..
-```
-
-
-## Build using different directory for shared libs
-
-To put the compiled shared libs into a different directory during installation
-you can use the following cmake option:
-
-```
-$ cmake -DLIB_INSTALL_DIR:PATH="/usr/lib64"  ..
-```
