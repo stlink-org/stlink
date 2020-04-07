@@ -4,7 +4,7 @@ set(CMAKE_USER_MAKE_RULES_OVERRIDE cmake/c_flag_overrides.cmake)
 project(stlink C)
 set(PROJECT_DESCRIPTION "Open source version of the STMicroelectronics ST-LINK Tools")
 include(GNUInstallDirs)
-set(STLINK_UDEV_RULES_DIR "${CMAKE_INSTALL_FULL_SYSCONFDIR}/udev/rules.d" CACHE PATH "Udev rules directory")
+set(STLINK_UDEV_RULES_DIR "${CMAKE_INSTALL_FULL_SYSCONFDIR}/udev/rules.d" CACHE PATH "udev rules directory")
 set(STLINK_MODPROBED_DIR "${CMAKE_INSTALL_FULL_SYSCONFDIR}/modprobe.d" CACHE PATH "modprobe.d directory")
 set(STLINK_STATIC_LIB ON CACHE BOOL "Install static lib")
 

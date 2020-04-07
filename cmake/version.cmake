@@ -4,7 +4,7 @@
 
 set(__detect_version 0)
 
-find_package (Git)
+find_package(Git)
 
 if (GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
     # Working off a git repo, using git versioning
