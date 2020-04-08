@@ -9,6 +9,7 @@ Release date: 2020-02-20
 Major changes and added features:
 
 * Initial support for STM32L41X ([#754](https://github.com/texane/stlink/pull/754), [#799](https://github.com/texane/stlink/pull/799))
+* Working support for CKS32F103C8T6 and related CKS devices with Core-ID 0x2ba01477 ([#756](https://github.com/texane/stlink/pull/756), [#757](https://github.com/texane/stlink/pull/757), [#805](https://github.com/texane/stlink/pull/805), [#834](https://github.com/texane/stlink/pull/834), Regression-Fixes: [#761](https://github.com/texane/stlink/pull/761), [#766](https://github.com/texane/stlink/pull/766))
 * Added preliminary support for some STM32G0 chips ([#759](https://github.com/texane/stlink/pull/759), [#760](https://github.com/texane/stlink/pull/760), [#797](https://github.com/texane/stlink/pull/797))
 * Added support for mass erasing second bank on STM32F10x_XL ([#767](https://github.com/texane/stlink/pull/767), [#768](https://github.com/texane/stlink/pull/768))
 * Added call to clear PG bit after writing to flash ([#773](https://github.com/texane/stlink/pull/773))
@@ -25,15 +26,16 @@ Major changes and added features:
 
 Updates and fixes:
 
+* Fixed "unkown chip id", piped output and st-util -v ([#107](https://github.com/texane/stlink/pull/107), [#665](https://github.com/texane/stlink/pull/665), [#763](https://github.com/texane/stlink/pull/763))
+* Fixed an issue with versioning stuck at 1.4.0 for versions cloned with git ([#563](https://github.com/texane/stlink/pull/563), [#762](https://github.com/texane/stlink/pull/762), [#772](https://github.com/texane/stlink/pull/772))
 * Updated STM32F3xx chip ID that covers a few different devices ([#685](https://github.com/texane/stlink/pull/685), [#758](https://github.com/texane/stlink/pull/758))
 * Made udev rules and modprobe conf installation optional ([#741](https://github.com/texane/stlink/pull/741))
 * Fixed case when __FILE__ don't contain "/" nor "\\" ([#745](https://github.com/texane/stlink/pull/745))
 * Fixed double dash issue in doc/man ([#746](https://github.com/texane/stlink/pull/746), [#747](https://github.com/texane/stlink/pull/747))
 * Compiling documentation: package is called libusb-1.0-0-dev on Debian ([#748](https://github.com/texane/stlink/pull/748))
-* Only do bank calculation on STM32L4 devices with dual banked flash / Added chip ID 0x464 for STM32L41xxx/L42xxx devices ([#751](https://github.com/texane/stlink/pull/751))
+* Only do bank calculation on STM32L4 devices with dual banked flash / Added chip-ID 0x464 for STM32L41xxx/L42xxx devices ([#751](https://github.com/texane/stlink/pull/751))
 * Added O_BINARY option to open file ([#753](https://github.com/texane/stlink/pull/753))
-* Fixed versioning when compiling from the checked out git-repo ([#762](https://github.com/texane/stlink/pull/762))
-* Fixed "unkown chip id", piped output and st-util -v ([#107](https://github.com/texane/stlink/pull/107), [#665](https://github.com/texane/stlink/pull/665), [#763](https://github.com/texane/stlink/pull/763))
+* Fixed versioning when compiling from the checked out git-repo ([#762](https://github.com/texane/stlink/pull/762), [#772](https://github.com/texane/stlink/pull/772))
 * win32: move usleep definition to unistd.h ([#765](https://github.com/texane/stlink/pull/765))
 * Fixed relative path to the UI files needed by stlink-gui-local (GUI) ([#770](https://github.com/texane/stlink/pull/770), [#771](https://github.com/texane/stlink/pull/771))
 * Added howto for sending NRST signal through GDB ([#774](https://github.com/texane/stlink/pull/774), [#776](https://github.com/texane/stlink/pull/776), [#779](https://github.com/texane/stlink/pull/779))
@@ -71,7 +73,7 @@ Major changes and added features:
 
 Updates and fixes:
 
-* Fixed missing flash_loader for STM32L011 ([#356](https://github.com/texane/stlink/pull/356), [#654](https://github.com/texane/stlink/pull/654), [#675](https://github.com/texane/stlink/pull/675))
+* Fixed missing flash_loader for STM32L0x ([#269](https://github.com/texane/stlink/pull/269), [#274](https://github.com/texane/stlink/pull/274), [#654](https://github.com/texane/stlink/pull/654), [#675](https://github.com/texane/stlink/pull/675))
 * Fix for stlink library calls exit() or _exit() ([#634](https://github.com/texane/stlink/pull/634), [#696](https://github.com/texane/stlink/pull/696))
 * Added semihosting parameter documentation in doc/man ([#674](https://github.com/texane/stlink/pull/674))
 * Fixed reference to non-exisiting st-term tool in doc/man ([#676](https://github.com/texane/stlink/pull/676))
@@ -94,9 +96,9 @@ Release date: 2018-02-16
 
 Major changes and added features:
 
-* Added support of STM32L496xx/4A6xx devices ([#615](https://github.com/texane/stlink/pull/615))
+* Added support of STM32L496xx/4A6xx devices ([#615](https://github.com/texane/stlink/pull/615), [#657](https://github.com/texane/stlink/pull/657))
 * Added unknown chip dummy to obtain the serial of the ST-link by a call to st-info --probe ([#641](https://github.com/texane/stlink/pull/641))
-* Added support for STM32F72xx (chip id: 0x452) devices (commit [#1969148](https://github.com/texane/stlink/commit/19691485359afef1a256964afcbb8dcf4b733209))
+* Added support for STM32F72xx (chip-ID: 0x452) devices (commit [#1969148](https://github.com/texane/stlink/commit/19691485359afef1a256964afcbb8dcf4b733209))
 
 Updates and fixes:
 
@@ -118,7 +120,7 @@ Release date: 2017-07-01
 
 Major changes and added features:
 
-* Allow building of debian package with CPack ([#554](https://github.com/texane/stlink/pull/554), commit [#2c0ab7f](https://github.com/texane/stlink/commit/5b69f25198a1a8f34e2ee48d1ad20f79447e3d55))
+* Allow building of debian package with CPack ([#554](https://github.com/texane/stlink/pull/554), commit [#5b69f25](https://github.com/texane/stlink/commit/5b69f25198a1a8f34e2ee48d1ad20f79447e3d55))
 * Added support for STM32L011 target ([#564](https://github.com/texane/stlink/pull/564), [#565](https://github.com/texane/stlink/pull/565), [#572](https://github.com/texane/stlink/pull/572))
 * Added support for flashing second bank on STM32F10x_XL ([#592](https://github.com/texane/stlink/pull/592))
 * Initial support to compile with Microsoft Visual Studio 2017 ([#602](https://github.com/texane/stlink/pull/602))
@@ -127,11 +129,11 @@ Major changes and added features:
 Updates and fixes:
 
 * Fixed gdb-server: STM32L0xx has no FP_CTRL register for breakpoints ([#273](https://github.com/texane/stlink/pull/273))
+* Added --flash=n[k][m] command line option to override device model ([#305](https://github.com/texane/stlink/pull/305), [#516](https://github.com/texane/stlink/pull/516), [#576](https://github.com/texane/stlink/pull/576))
 * Updated libusb to 1.0.21 for Windows ([#562](https://github.com/texane/stlink/pull/562))
 * Fixed low-voltage flashing on STM32F7 devices ([#566](https://github.com/texane/stlink/pull/566), [#567](https://github.com/texane/stlink/pull/567))
 * Fixed building with mingw64 ([#569](https://github.com/texane/stlink/pull/569), [#573](https://github.com/texane/stlink/pull/573), [#578](https://github.com/texane/stlink/pull/578), [#584](https://github.com/texane/stlink/pull/584), [#610](https://github.com/texane/stlink/pull/610))
 * Fixed possible memory leak ([#570](https://github.com/texane/stlink/pull/570), [#571](https://github.com/texane/stlink/pull/571))
-* Added --flash=n[k][m] command line option to override device model ([#576](https://github.com/texane/stlink/pull/576))
 * Fixed installation path for shared objects ([#581](https://github.com/texane/stlink/pull/581))
 * Fixed a few -Wformat warnings ([#582](https://github.com/texane/stlink/pull/582))
 * Removed unused defines in mimgw.h ([#583](https://github.com/texane/stlink/pull/583))
@@ -149,8 +151,8 @@ Release date: 2017-02-25
 Major changes and added features:
 
 * Added support for Semihosting `SYS_READC` ([#546](https://github.com/texane/stlink/pull/546))
-* Added support for STM32F413 ([#549](https://github.com/texane/stlink/pull/549), [#550](https://github.com/texane/stlink/pull/550))
-* Added preliminary support for STM32L011 to see it after probe (chipid `0x457`) ([#558](https://github.com/texane/stlink/pull/558), [#598](https://github.com/texane/stlink/pull/598))
+* Added support for STM32F413 ([#549](https://github.com/texane/stlink/pull/549), [#550](https://github.com/texane/stlink/pull/550), [#758](https://github.com/texane/stlink/pull/758))
+* Added preliminary support for STM32L011 to see it after probe (chip-ID 0x457) ([#558](https://github.com/texane/stlink/pull/558), [#598](https://github.com/texane/stlink/pull/598))
 
 Updates and fixes:
 
@@ -171,12 +173,12 @@ Major changes and added features:
 
 * Deprecation of autotools (autoconf, automake) and fixed build with MinGW ([#83](https://github.com/texane/stlink/pull/83), [#431](https://github.com/texane/stlink/pull/431), [#434](https://github.com/texane/stlink/pull/434), [#465](https://github.com/texane/stlink/pull/465))
 * Added intel hex file reading for `st-flash` ([#110](https://github.com/texane/stlink/pull/110), [#157](https://github.com/texane/stlink/pull/157), [#200](https://github.com/texane/stlink/pull/200), [#239](https://github.com/texane/stlink/pull/239), [#457](https://github.com/texane/stlink/pull/547), [#459](https://github.com/texane/stlink/pull/549))
+* Added support for ARM semihosting to `st-util` ([#147](https://github.com/texane/stlink/pull/147), [#227](https://github.com/texane/stlink/pull/227), [#454](https://github.com/texane/stlink/pull/454), [#455](https://github.com/texane/stlink/pull/455))
 * Added manpages (generated with pandoc from Markdown) ([#208](https://github.com/texane/stlink/pull/208), [#464](https://github.com/texane/stlink/pull/464), [#466](https://github.com/texane/stlink/pull/466), [#467](https://github.com/texane/stlink/pull/467))
-* Removal of undocumented `st-term` utility, which is now replaced by `st-util` ARM semihosting feature ([#228](https://github.com/texane/stlink/pull/228), ([#507](https://github.com/texane/stlink/pull/507), commit [#2c0ab7f](https://github.com/texane/stlink/commit/3fd0f099782506532198473b24f643a3f68d5ff9))
+* Removal of undocumented `st-term` utility, which is now replaced by `st-util` ARM semihosting feature ([#228](https://github.com/texane/stlink/pull/228), ([#507](https://github.com/texane/stlink/pull/507), commit [#3fd0f09](https://github.com/texane/stlink/commit/3fd0f099782506532198473b24f643a3f68d5ff9))
 * Support serial numbers argument for `st-util` and `st-flash` to probe and control multiple connected programmers ([#318](https://github.com/texane/stlink/pull/318), [#398](https://github.com/texane/stlink/pull/398), [#541](https://github.com/texane/stlink/pull/541))
 * Merge st-probe tool into st-info ([#398](https://github.com/texane/stlink/pull/398))
 * Added support for native debian packaging ([#444](https://github.com/texane/stlink/pull/444), [#472](https://github.com/texane/stlink/pull/472), [#473](https://github.com/texane/stlink/pull/473), [#482](https://github.com/texane/stlink/pull/482), [#483](https://github.com/texane/stlink/pull/483), [#484](https://github.com/texane/stlink/pull/484), [#485](https://github.com/texane/stlink/pull/485))
-* Added support for ARM semihosting to `st-util` ([#454](https://github.com/texane/stlink/pull/454), [#455](https://github.com/texane/stlink/pull/455))
 * Rewritten commandline parsing for `st-flash` ([#459](https://github.com/texane/stlink/pull/459))
 * Added `--reset` command to `st-flash` ([#505](https://github.com/texane/stlink/pull/505))
 * st-util should detect when USB commands fail ([#525](https://github.com/texane/stlink/pull/525), ([#527](https://github.com/texane/stlink/pull/527), ([#528](https://github.com/texane/stlink/pull/528))
@@ -188,23 +190,24 @@ Chip support added for:
 * STM32F412 ([#537](https://github.com/texane/stlink/pull/537), [#538](https://github.com/texane/stlink/pull/538))
 * STM32F7xx ([#324](https://github.com/texane/stlink/pull/324), [#326](https://github.com/texane/stlink/pull/326), [#327](https://github.com/texane/stlink/pull/327), [#337](https://github.com/texane/stlink/pull/337))
 * STM32F767ZI ([#509](https://github.com/texane/stlink/pull/509))
-* STM32L0xx Cat2 devices (chip id: 0x425) ([#414](https://github.com/texane/stlink/pull/414))
-* STM32L0xx Cat5 devices (chip id: 0x447) ([#406](https://github.com/texane/stlink/pull/406))
+* STM32L0xx Cat2 devices (chip-ID: 0x425) ([#414](https://github.com/texane/stlink/pull/414))
+* STM32L0xx Cat5 devices (chip-ID: 0x447) ([#387](https://github.com/texane/stlink/pull/387), [#406](https://github.com/texane/stlink/pull/406))
 * STM32L4xx ([#321](https://github.com/texane/stlink/pull/321))
 * STM32L432 ([#500](https://github.com/texane/stlink/pull/500), [#501](https://github.com/texane/stlink/pull/501))
 
 Updates and fixes:
 
-* Set SWDCLK and fixed jtag_reset bug ([#254](https://github.com/texane/stlink/pull/254), [#291](https://github.com/texane/stlink/pull/291), [#475](https://github.com/texane/stlink/pull/475), [#533](https://github.com/texane/stlink/pull/533), [#534](https://github.com/texane/stlink/pull/534))
 * Fixed "unaligned addr or size" when trying to write a program in RAM ([#323](https://github.com/texane/stlink/pull/323))
 * Fixed flashing on STM32_F3_SMALL ([#325](https://github.com/texane/stlink/pull/325))
-* Fixed STM32L-problem with flash loader ([#390](https://github.com/texane/stlink/pull/390))
+* Fixed STM32L-problem with flash loader ([#390](https://github.com/texane/stlink/pull/390), [#407](https://github.com/texane/stlink/pull/407),[#408](https://github.com/texane/stlink/pull/408))
 * Don't read the target voltage on startup, because it crashes STM32F100 ([#423](https://github.com/texane/stlink/pull/423), [#424](https://github.com/texane/stlink/pull/424))
 * Added a useful error message instead of "[!] send_recv" ([#425](https://github.com/texane/stlink/pull/425), [#426](https://github.com/texane/stlink/pull/426))
 * Do a JTAG reset prior to reading CPU information when processor is in deep sleep ([#428](https://github.com/texane/stlink/pull/428), [#430](https://github.com/texane/stlink/pull/430), [#451](https://github.com/texane/stlink/pull/451))
 * Fixed STM32F030 erase error ([#442](https://github.com/texane/stlink/pull/442))
 * Fixed memory map for STM32F7xx ([#453](https://github.com/texane/stlink/pull/453), [#456](https://github.com/texane/stlink/pull/456))
 * Redesign of `st-flash` commandline options parsing ([#459](https://github.com/texane/stlink/pull/459))
+* Set SWDCLK and fixed jtag_reset bug ([#475](https://github.com/texane/stlink/pull/475), [#534](https://github.com/texane/stlink/pull/534))
+* doc/compiling.md: Add note about installation and ldconfig ([#478](https://github.com/texane/stlink/pull/478), commit [#be66bbf](https://github.com/texane/stlink/commit/be66bbf200c718904514b044ba84d64a36456218))
 * Fixed Release target to generate the man-pages with pandoc ([#479](https://github.com/texane/stlink/pull/479))
 * Fixed Cygwin build ([#487](https://github.com/texane/stlink/pull/487), ([#506](https://github.com/texane/stlink/pull/506))
 * Reset flash mass erase (MER) bit after mass erase for safety ([#489](https://github.com/texane/stlink/pull/489))
@@ -241,6 +244,8 @@ Updates and fixes:
 * Fixed STM32F2xx memory map (Nicolas Schodet)
 * Memory map for STM32F42xxx and STM32F43xxx devices (Craig Lilley)
 * Stm32l0x flash loader (Robin Kreis)
+* Send F4 memory-map and features for STM32F429 ([#188](https://github.com/texane/stlink/pull/188), [#196](https://github.com/texane/stlink/pull/196), [#250](https://github.com/texane/stlink/pull/250), [#251](https://github.com/texane/stlink/pull/251)) (Release v1.1.0)
+* Added AHB3 Peripherals definition for STM32F4 ([#218](https://github.com/texane/stlink/pull/218), [#288](https://github.com/texane/stlink/pull/288)) (Release v1.1.0)
 
 Chip support added for:
 
@@ -249,7 +254,9 @@ Chip support added for:
 * Added STM32L4 to CHIPID #defines and devices[], flash driver and loader (Dave Vandervies)
 * Basic support for STM32F446 (Pavel Kirienko)
 * STM32F303 High Density
+* STM32F469/STM32F479 ([#345](https://github.com/texane/stlink/pull/345), [#555](https://github.com/texane/stlink/pull/555)) (Release v1.2.0)
 * STM32L1xx Cat.2 devices (Nicolas Schodet)
+* STM32L1xx (chip-ID 0x427) ([#152](https://github.com/texane/stlink/pull/152), [#163](https://github.com/texane/stlink/pull/163), [#165](https://github.com/texane/stlink/pull/165)) (Release v1.0.0)
 
 Board support added for:
 
