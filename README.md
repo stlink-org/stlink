@@ -42,11 +42,20 @@ Our [tutorial.md](doc/tutorial.md may help you along with some advanced tasks an
 
 ## Installation
 
-**Windows**: download [v1.6.0](https://github.com/texane/stlink/releases/tag/v1.6.0) from the releases page.
+**Windows**:
 
-Windows pre-compiled binaries are available at http://www.emb4fun.de/archive/stlink/index.html (outdated, not recommended for use)
+Please compile and install from source as described in our [compiling manual](doc/compiling.md#Windows).
 
-**macOS**: install [from homebrew](http://brewformulas.org/Stlink) or download [v1.6.0](https://github.com/texane/stlink/releases/tag/v1.6.0) from the releases page.
+Long awaited binaries will be available soon...
+
+**macOS**:
+
+We recommend to install from:
+
+* [homebrew](https://formulae.brew.sh/formula/stlink) or
+* [MacPorts](https://ports.macports.org/port/stlink)
+
+Alternatively one can compile and install from source as described in our [compiling manual](doc/compiling.md#macOS).
 
 **Linux**:
 
@@ -61,9 +70,9 @@ We recommend to install `stlink-tools` from the package repository of the used d
 
 **Other Operating Systems**:
 
-* RedHat/CentOS 7: Users can install [from EPEL repository](https://src.fedoraproject.org/rpms/stlink/branch/epel7)
-* FreeBSD: Users can install [from freshports](https://www.freshports.org/devel/stlink)
-* OpenBSD: Users need to install [from source](doc/compiling.md).
+* RedHat/CentOS 8: Users can install from [EPEL repository](https://src.fedoraproject.org/rpms/stlink/branch/epel8)
+* FreeBSD: Users can install from [freshports](https://www.freshports.org/devel/stlink)
+* OpenBSD: Users need to compile and install from source as described in our [compiling manual](doc/compiling.md).
 
 
 ## Installation from source (advanced users)

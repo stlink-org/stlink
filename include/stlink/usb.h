@@ -9,9 +9,9 @@
 #define STLINK_USB_H
 
 #include <stdbool.h>
-#include <libusb.h>
 
 #include "stlink.h"
+#include "stlinkusb.h"
 #include "stlink/logging.h"
 
 #ifdef __cplusplus

@@ -93,6 +93,7 @@ function(pandocology_get_file_extension varname filename)
     STRING(REGEX MATCH "\\.[^.]*\$" result "${name}")
     SET(${varname} "${result}" PARENT_SCOPE)
 endfunction()
+
 ###############################################################################
 
 function(pandocology_add_input_dir source_dir dest_parent_dir dir_dest_filelist_var)
@@ -370,4 +371,3 @@ endfunction()
 function(add_pandoc_document)
     add_document(${ARGV})
 endfunction()
-
