@@ -16,10 +16,8 @@
 #include "stlink/mmap.h"
 #include "stlink/logging.h"
 
-#ifdef _WIN32
 #ifndef O_BINARY
 #define O_BINARY 0
-#endif
 #endif
 
 #ifdef _MSC_VER
