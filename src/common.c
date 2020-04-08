@@ -15,9 +15,10 @@
 #include "stlink/mmap.h"
 #include "stlink/logging.h"
 
-#ifndef _WIN32
-#define O_BINARY 0 //! @todo get rid of this OH MY (@xor-gate)
+#ifndef O_BINARY
+#define O_BINARY 0
 #endif
+
 #ifdef _MSC_VER
 #define __attribute__(x)
 #endif
