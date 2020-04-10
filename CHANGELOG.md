@@ -20,6 +20,7 @@ Major changes and added features:
 * Build for Windows under Debian/Ubuntu ([#802](https://github.com/texane/stlink/pull/802))
 * Allow for 64 bytes serials ([#809](https://github.com/texane/stlink/pull/809))
 * Added full support for STLINK CHIP ID L4RX ([#814](https://github.com/texane/stlink/pull/814), [#839](https://github.com/texane/stlink/pull/839))
+* Added support for the STLink-v2.1 when flashed with no mass storage (PID 0x3752) ([#819](https://github.com/texane/stlink/pull/819), [#861](https://github.com/texane/stlink/pull/861))
 * Added support for writing option bytes on STM32L0xx ([#830](https://github.com/texane/stlink/pull/830))
 * Added support to read and write option bytes for STM32F2 series ([#836](https://github.com/texane/stlink/pull/836), [#837](https://github.com/texane/stlink/pull/837))
 * Added support to read and write option bytes for STM32F446 ([#843](https://github.com/texane/stlink/pull/843))
@@ -65,7 +66,7 @@ Major changes and added features:
 * Added creation of icons for .desktop file ([#684](https://github.com/texane/stlink/pull/684), [#708](https://github.com/texane/stlink/pull/708))
 * Added desktop file for linux ([#688](https://github.com/texane/stlink/pull/688))
 * Added button to export STM32 flash memory to a file ([#691](https://github.com/texane/stlink/pull/691))
-* Updated libusb to 1.0.22 ([#695](https://github.com/texane/stlink/pull/695))
+* Updated libusb to 1.0.22 ([#695](https://github.com/texane/stlink/pull/695)) - (related Bugs: [#438](https://github.com/texane/stlink/pull/438), [#632](https://github.com/texane/stlink/pull/632))
 * Added icons for STLink GUI ([#697](https://github.com/texane/stlink/pull/697))
 * Added support for STM32L4R9 target ([#694](https://github.com/texane/stlink/pull/694), [#699](https://github.com/texane/stlink/pull/699))
 * Added memory map for STM32F411RE target ([#709](https://github.com/texane/stlink/pull/709))
@@ -132,7 +133,7 @@ Updates and fixes:
 * Added --flash=n[k][m] command line option to override device model ([#305](https://github.com/texane/stlink/pull/305), [#516](https://github.com/texane/stlink/pull/516), [#576](https://github.com/texane/stlink/pull/576))
 * Updated libusb to 1.0.21 for Windows ([#562](https://github.com/texane/stlink/pull/562))
 * Fixed low-voltage flashing on STM32F7 devices ([#566](https://github.com/texane/stlink/pull/566), [#567](https://github.com/texane/stlink/pull/567))
-* Fixed building with mingw64 ([#569](https://github.com/texane/stlink/pull/569), [#573](https://github.com/texane/stlink/pull/573), [#578](https://github.com/texane/stlink/pull/578), [#584](https://github.com/texane/stlink/pull/584), [#610](https://github.com/texane/stlink/pull/610))
+* Fixed building with mingw64 ([#569](https://github.com/texane/stlink/pull/569), [#573](https://github.com/texane/stlink/pull/573), [#578](https://github.com/texane/stlink/pull/578), [#582](https://github.com/texane/stlink/pull/582), [#584](https://github.com/texane/stlink/pull/584), [#610](https://github.com/texane/stlink/pull/610), [#846](https://github.com/texane/stlink/pull/846))
 * Fixed possible memory leak ([#570](https://github.com/texane/stlink/pull/570), [#571](https://github.com/texane/stlink/pull/571))
 * Fixed installation path for shared objects ([#581](https://github.com/texane/stlink/pull/581))
 * Fixed a few -Wformat warnings ([#582](https://github.com/texane/stlink/pull/582))
@@ -246,6 +247,7 @@ Updates and fixes:
 * Stm32l0x flash loader (Robin Kreis)
 * Send F4 memory-map and features for STM32F429 ([#188](https://github.com/texane/stlink/pull/188), [#196](https://github.com/texane/stlink/pull/196), [#250](https://github.com/texane/stlink/pull/250), [#251](https://github.com/texane/stlink/pull/251)) (Release v1.1.0)
 * Added AHB3 Peripherals definition for STM32F4 ([#218](https://github.com/texane/stlink/pull/218), [#288](https://github.com/texane/stlink/pull/288)) (Release v1.1.0)
+* Corrected flash size register address for STM32F2 devices ([#278](https://github.com/texane/stlink/pull/278)) (Release v1.0.0)
 
 Chip support added for:
 

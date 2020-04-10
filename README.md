@@ -1,4 +1,4 @@
-Open source version of the STMicroelectronics Stlink Tools
+Open source version of the STMicroelectronics STlink Tools
 ==========================================================
 
 [![BSD licensed](https://img.shields.io/badge/license-BSD-blue.svg)](https://raw.githubusercontent.com/hyperium/hyper/master/LICENSE)
@@ -9,6 +9,13 @@ Open source version of the STMicroelectronics Stlink Tools
 [![macOS Status](https://img.shields.io/travis/texane/stlink/master.svg?label=osx)](https://travis-ci.org/texane/stlink)
 
 Recent new features and bugfixes can be found in the [Changelog](CHANGELOG.md) of this software project.
+
+
+#### License
+
+The stlink library and tools are licensed under the **[BSD-3 License](LICENSE.md)**.<br />
+The source files **stm32l0x.s** and **stm32lx.s** found in the subdirectory `/flashloaders/`
+are licensed under the **General Public License (GPL v2+)**.
 
 
 ## Introduction
@@ -87,13 +94,6 @@ When there is no executable available for your platform or you need the latest (
 * Contributors and/or maintainers may submit comments or request changes to patch-proposals and/or pull-requests.
 * **ATTENTION: _NEVER EVER_ use the '#' character to count-up single points within a listing as '#' is _exclusively_ reserved for referencing github issues and pull-requests. Otherwise you accidentally introduce false cross references within the project.**
 * Please start new forks from the develop branch if possible as pull requests will go into this branch as well.
-
-
-## License
-
-The stlink library and tools are licensed under the [BSD-3 license](LICENSE.md).
-
-The flashloaders/stm32l0x.s and flashloaders/stm32lx.s source files are licensed under the GPLv2+.
 
 
 # Current state of the project

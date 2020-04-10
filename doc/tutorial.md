@@ -2,6 +2,7 @@ stlink Tools Tutorial
 =====================
 
 ## Useful tool options
+
 ### st-flash
 
 #### --flash=n[k][m]
@@ -14,8 +15,8 @@ Obviously leaving the multiplier out is equally valid, for example: `--flash=0x2
 The size may be followed by an optional "k" or "m" to multiply the given value by 1k (1024) or 1M respectively.
 
 
-## Solution to common problems
-### ST-Link-v1 driver: Issue with Kernel Extension (kext) (macOS 10.11 and later only)
+## Solutions to common problems
+### a) ST-Link-v1 driver: Issue with Kernel Extension (kext) (macOS 10.11 and later only)
 #### Problem:
 
 st-util fails to detect a ST-Link-v1 device:
@@ -39,11 +40,13 @@ while SIP is fully activated (as is per default).
 
 Action needs to be taken here by booting into the recovery mode where a terminal console window needs to be opened.
 
-Here it is **NOT RECOMMEND to disable SIP completely as with the command** `csrutil disable`,
-**because this leaves the system more vulnerable to common threats.
+For macOS 10.11 - 10.13 it is not recommended to disable SIP completely as with the command `csrutil disable`,
+because this leaves the system more vulnerable to common threats.
 Instead there is a more adequate and reasonable option implemented by Apple.
-Running** `csrutil enable --without kext`, **allows to load unsigned kernel extensions
-while leaving SIP active with all other security features.**
+Running `csrutil enable --without kext`, allows to load unsigned kernel extensions
+while leaving SIP active with all other security features.
+Unfortunately this option has been removed in macOS 10.14, which leaves the only option to disable SIP completely.
+
 So who ever intends to run the ST-Link-v1 programmer on macOS please take this into account.
 
 Further details can be found here: https://forums.developer.apple.com/thread/17452
@@ -76,8 +79,56 @@ INFO gdb-server.c: Chip ID is 00000414, Core ID is  1ba01477.
 INFO gdb-server.c: Listening at *:4242...
 ```
 
+### b) Verify if udev rules are set correctly (by Dave Hylands)
+
+To investigate, start by plugging your STLINK device into the usb port. Then run lsusb. You should see an entry something like the following:
+
+```
+Bus 005 Device 017: ID 0483:374b STMicroelectronics ST-LINK/V2.1 (Nucleo-F103RB)
+```
+
+Note the bus number (005) and the Device (017). You should then do:
+`ls -l /dev/bus/usb/005/017` (replacing 005 and 017 appropriately).
+
+On my system I see the following:
+
+```
+crw-rw-rw- 1 root root 189, 528 Jan 24 17:52 /dev/bus/usb/005/017
+```
+
+which is world writable (this is from the MODE:="0666" below). I have several files in my `/etc/udev/rules.d` directory. In this particular case, the `49-stlinkv2-1.rules` file contains the following:
+
+```
+# stm32 nucleo boards, with onboard st/linkv2-1
+# ie, STM32F0, STM32F4.
+# STM32VL has st/linkv1, which is quite different
+
+SUBSYSTEMS=="usb", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="374b", \
+    MODE:="0666", \
+    SYMLINK+="stlinkv2-1_%n"
+
+# If you share your linux system with other users, or just don't like the
+# idea of write permission for everybody, you can replace MODE:="0666" with
+# OWNER:="yourusername" to create the device owned by you, or with
+# GROUP:="somegroupname" and mange access using standard unix groups.
+```
+
+and the idVendor of 0483 and idProduct of 374b matches the vendor id from the lsusb output.
+
+Make sure that you have all 3 files from here: https://github.com/texane/stlink/tree/master/etc/udev/rules.d in your `/etc/udev/rules.d` directory. After copying new files or editing excisting files in `/etc/udev/ruled.d` you should run the following:
+
+```
+sudo udevadm control --reload-rules
+sudo udevadm trigger
+```
+
+to ensure that the rules actually take effect. Using the trigger command means that you shouldn't need to unplug and replug the device, but you might want to try that for good measure as well.
+
+If the VID:PID of your device doesn't match those in any of the 3 files, then you may need to create a custom rule file to match your VID:PID.
+
 
 ------
+( Content below is currently unrevised and may be outdated as of Apr 2020. )
 
 Using STM32 discovery kits with open source tools
 ========
@@ -249,56 +300,8 @@ $> [sudo] ./st-flash write fancy_blink.bin 0x08000000
 Upon reset, the board LEDs should be blinking.
 
 
-HOWTO
-=====
-
-## Verify if udev rules are set correctly (by Dave Hylands)
-
-To investigate, start by plugging your STLINK device into the usb port. Then run lsusb. You should see an entry something like the following:
-
-```
-Bus 005 Device 017: ID 0483:374b STMicroelectronics ST-LINK/V2.1 (Nucleo-F103RB)
-```
-
-Note the bus number (005) and the Device (017). You should then do:
-`ls -l /dev/bus/usb/005/017` (replacing 005 and 017 appropriately).
-
-On my system I see the following:
-
-```
-crw-rw-rw- 1 root root 189, 528 Jan 24 17:52 /dev/bus/usb/005/017
-```
-
-which is world writable (this is from the MODE:="0666" below). I have several files in my `/etc/udev/rules.d` directory. In this particular case, the `49-stlinkv2-1.rules` file contains the following:
-
-```
-# stm32 nucleo boards, with onboard st/linkv2-1
-# ie, STM32F0, STM32F4.
-# STM32VL has st/linkv1, which is quite different
-
-SUBSYSTEMS=="usb", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="374b", \
-    MODE:="0666", \
-    SYMLINK+="stlinkv2-1_%n"
-
-# If you share your linux system with other users, or just don't like the
-# idea of write permission for everybody, you can replace MODE:="0666" with
-# OWNER:="yourusername" to create the device owned by you, or with
-# GROUP:="somegroupname" and mange access using standard unix groups.
-```
-
-and the idVendor of 0483 and idProduct of 374b matches the vendor id from the lsusb output.
-
-Make sure that you have all 3 files from here: https://github.com/texane/stlink/tree/master/etc/udev/rules.d in your `/etc/udev/rules.d` directory. After copying new files or editing excisting files in `/etc/udev/ruled.d` you should run the following:
-
-```
-sudo udevadm control --reload-rules
-sudo udevadm trigger
-```
-
-to ensure that the rules actually take effect. Using the trigger command means that you shouldn't need to unplug and replug the device, but you might want to try that for good measure as well.
-
-If the VID:PID of your device doesn't match those in any of the 3 files, then you may need to create a custom rule file to match your VID:PID.
-
+HOWTO (old)
+===========
 
 ## Using the gdb server
 

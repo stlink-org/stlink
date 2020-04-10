@@ -2,5 +2,3 @@ build
 build-mingw
 obj-*
 *.user*
-
-.travis-lin-mingw.sh
