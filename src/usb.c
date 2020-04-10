@@ -937,14 +937,7 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, bool reset, char serial[ST
             }
         }
 
-        if ((desc.idProduct == STLINK_USB_PID_STLINK_32L) ||
-            (desc.idProduct == STLINK_USB_PID_STLINK_NUCLEO) ||
-            (desc.idProduct == STLINK_USB_PID_STLINK_32L_AUDIO) ||
-            (desc.idProduct == STLINK_USB_PID_STLINK_V2_1) ||
-            (desc.idProduct == STLINK_USB_PID_STLINK_V3_USBLOADER) ||
-            (desc.idProduct == STLINK_USB_PID_STLINK_V3E_PID) ||
-            (desc.idProduct == STLINK_USB_PID_STLINK_V3S_PID) ||
-            (desc.idProduct == STLINK_USB_PID_STLINK_V3_2VCP_PID)) {
+        if (STLINK_V2_USB_PID(desc.idProduct) || STLINK_V2_1_USB_PID(desc.idProduct) || STLINK_V3_USB_PID(desc.idProduct)) {
             struct libusb_device_handle *handle;
 
             ret = libusb_open(list[cnt], &handle);
@@ -955,15 +948,9 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, bool reset, char serial[ST
                                                                  (unsigned char *)sl->serial, sizeof(sl->serial));
             libusb_close(handle);
 
-            if ((desc.idProduct == STLINK_USB_PID_STLINK_32L)
-                    || (desc.idProduct == STLINK_USB_PID_STLINK_NUCLEO)
-                    || (desc.idProduct == STLINK_USB_PID_STLINK_32L_AUDIO)
-                    || (desc.idProduct == STLINK_USB_PID_STLINK_V2_1)) {
-                sl->version.stlink_v = 2;
-            } else if ((desc.idProduct == STLINK_USB_PID_STLINK_V3_USBLOADER)
-                       || (desc.idProduct == STLINK_USB_PID_STLINK_V3E_PID)
-                       || (desc.idProduct == STLINK_USB_PID_STLINK_V3S_PID)
-                       || (desc.idProduct == STLINK_USB_PID_STLINK_V3_2VCP_PID)) {
+			if (STLINK_V2_USB_PID(desc.idProduct) || STLINK_V2_1_USB_PID(desc.idProduct)) {
+				sl->version.stlink_v = 2;
+            } else if (STLINK_V3_USB_PID(desc.idProduct)) {
                 sl->version.stlink_v = 3;
             }
 
@@ -977,9 +964,7 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, bool reset, char serial[ST
                 break;
 
             continue;
-        }
-
-        if (desc.idProduct == STLINK_USB_PID_STLINK) {
+        } else if (STLINK_V1_USB_PID(desc.idProduct)) {
             slu->protocoll = 1;
             sl->version.stlink_v = 1;
             break;
