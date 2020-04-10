@@ -30,9 +30,9 @@ static bool execute_test(const struct Test * test) {
 
     // parse (tokenize) the test command line
 #if defined(_MSC_VER)
-    char *cmd_line = alloca(strlen(test->cmd_line));
+    char *cmd_line = alloca(strlen(test->cmd_line) + 1);
 #else
-    char cmd_line[strlen(test->cmd_line)];
+    char cmd_line[strlen(test->cmd_line) + 1];
 #endif
     strcpy(cmd_line, test->cmd_line);
 
