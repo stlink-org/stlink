@@ -926,6 +926,8 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, bool reset, char serial[ST
     }
 
     while (cnt--) {
+		struct libusb_device_handle *handle;
+
         libusb_get_device_descriptor( list[cnt], &desc );
         if (desc.idVendor != STLINK_USB_VID_ST)
             continue;
@@ -937,48 +939,44 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, bool reset, char serial[ST
             }
         }
 
-        if (STLINK_V2_USB_PID(desc.idProduct) || STLINK_V2_1_USB_PID(desc.idProduct) || STLINK_V3_USB_PID(desc.idProduct)) {
-            struct libusb_device_handle *handle;
+		ret = libusb_open(list[cnt], &handle);
 
-            ret = libusb_open(list[cnt], &handle);
-            if (ret)
-                continue;
+		/* could not open device, continue */
+		if (ret)
+			continue;
 
-            sl->serial_size = libusb_get_string_descriptor_ascii(handle, desc.iSerialNumber,
-                                                                 (unsigned char *)sl->serial, sizeof(sl->serial));
-            libusb_close(handle);
+		sl->serial_size = libusb_get_string_descriptor_ascii(handle, desc.iSerialNumber,
+				(unsigned char *)sl->serial, sizeof(sl->serial));
 
-			if (STLINK_V2_USB_PID(desc.idProduct) || STLINK_V2_1_USB_PID(desc.idProduct)) {
+		libusb_close(handle);
+
+		/* could not read serial, continue */
+		if (sl->serial_size < 0)
+			continue;
+
+		/* if no serial provided, or if serial match device, fixup version and protocol */
+		if (((serial == NULL) || (*serial == 0)) || (memcmp(serial, &sl->serial, sl->serial_size) == 0)) {
+			if (STLINK_V1_USB_PID(desc.idProduct)) {
+				slu->protocoll = 1;
+				sl->version.stlink_v = 1;
+			} else if (STLINK_V2_USB_PID(desc.idProduct) || STLINK_V2_1_USB_PID(desc.idProduct)) {
 				sl->version.stlink_v = 2;
-            } else if (STLINK_V3_USB_PID(desc.idProduct)) {
-                sl->version.stlink_v = 3;
-            }
+			} else if (STLINK_V3_USB_PID(desc.idProduct)) {
+				sl->version.stlink_v = 3;
+			}
 
-            if ((serial == NULL) || (*serial == 0))
-                break;
-
-            if (sl->serial_size < 0)
-                continue;
-
-            if (memcmp(serial, &sl->serial, sl->serial_size) == 0)
-                break;
-
-            continue;
-        } else if (STLINK_V1_USB_PID(desc.idProduct)) {
-            slu->protocoll = 1;
-            sl->version.stlink_v = 1;
-            break;
-        }
+			break;
+		}
     }
 
     if (cnt < 0) {
-        WLOG ("Couldn't find %s ST-Link/V2 devices\n",(devBus && devAddr)?"matched":"any");
+        WLOG ("Couldn't find %s ST-Link devices\n", (devBus && devAddr) ? "matched":"any");
         goto on_error;
     } else {
         ret = libusb_open(list[cnt], &slu->usb_handle);
         if (ret != 0) {
-            WLOG("Error %d (%s) opening ST-Link/V2 device %03d:%03d\n",
-                 ret, strerror (errno), libusb_get_bus_number(list[cnt]), libusb_get_device_address(list[cnt]));
+            WLOG("Error %d (%s) opening ST-Link v%d device %03d:%03d\n",
+                 ret, strerror (errno), sl->version.stlink_v, libusb_get_bus_number(list[cnt]), libusb_get_device_address(list[cnt]));
             libusb_free_device_list(list, 1);
             goto on_error;
         }
