@@ -1174,7 +1174,7 @@ static size_t stlink_probe_usb_devs(libusb_device **devs, stlink_t **sldevs[]) {
     }
 
     *sldevs = _sldevs;
-    return slcnt;
+    return slcur;
 }
 
 size_t stlink_probe_usb(stlink_t **stdevs[]) {
