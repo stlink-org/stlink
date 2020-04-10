@@ -1114,15 +1114,13 @@ static size_t stlink_probe_usb_devs(libusb_device **devs, stlink_t **sldevs[]) {
             break;
         }
 
-        if (desc.idProduct != STLINK_USB_PID_STLINK_32L &&
-            desc.idProduct != STLINK_USB_PID_STLINK_32L_AUDIO &&
-            desc.idProduct != STLINK_USB_PID_STLINK_NUCLEO &&
-            desc.idProduct != STLINK_USB_PID_STLINK_V2_1 &&
-            desc.idProduct != STLINK_USB_PID_STLINK_V3_USBLOADER &&
-            desc.idProduct != STLINK_USB_PID_STLINK_V3E_PID &&
-            desc.idProduct != STLINK_USB_PID_STLINK_V3S_PID &&
-            desc.idProduct != STLINK_USB_PID_STLINK_V3_2VCP_PID)
-            continue;
+		if (desc.idVendor != STLINK_USB_VID_ST)
+			continue;
+
+		if (!STLINK_SUPPORTED_USB_PID(desc.idProduct)) {
+			WLOG("skipping ST device : %#04x:%#04x)\n", desc.idVendor, desc.idProduct);
+			continue;
+		}
 
         slcnt++;
     }
@@ -1144,10 +1142,9 @@ static size_t stlink_probe_usb_devs(libusb_device **devs, stlink_t **sldevs[]) {
             break;
         }
 
-        if (desc.idProduct != STLINK_USB_PID_STLINK_32L &&
-            desc.idProduct != STLINK_USB_PID_STLINK_32L_AUDIO &&
-            desc.idProduct != STLINK_USB_PID_STLINK_NUCLEO)
+		if (!STLINK_SUPPORTED_USB_PID(desc.idProduct)) {
             continue;
+		}
 
         struct libusb_device_handle* handle;
         char serial[STLINK_SERIAL_MAX_SIZE];
