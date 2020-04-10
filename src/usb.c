@@ -1027,8 +1027,7 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, bool reset, char serial[ST
     }
 
     slu->sg_transfer_idx = 0;
-    // TODO - never used at the moment, always CMD_SIZE
-    slu->cmd_len = (slu->protocoll == 1)? STLINK_SG_SIZE: STLINK_CMD_SIZE;
+    slu->cmd_len = (slu->protocoll == 1) ? STLINK_SG_SIZE: STLINK_CMD_SIZE;
 
     // Initialize stlink version (sl->version)
     stlink_version(sl);
