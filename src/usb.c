@@ -1101,14 +1101,13 @@ static size_t stlink_probe_usb_devs(libusb_device **devs, stlink_t **sldevs[]) {
     stlink_t **_sldevs;
     libusb_device *dev;
     int i = 0;
-    int ret = 0;
     size_t slcnt = 0;
     size_t slcur = 0;
 
     /* Count stlink */
     while ((dev = devs[i++]) != NULL) {
         struct libusb_device_descriptor desc;
-        ret = libusb_get_device_descriptor(dev, &desc);
+        int ret = libusb_get_device_descriptor(dev, &desc);
         if (ret < 0) {
             WLOG("failed to get libusb device descriptor (libusb error: %d)\n", ret);
             break;
@@ -1136,7 +1135,7 @@ static size_t stlink_probe_usb_devs(libusb_device **devs, stlink_t **sldevs[]) {
     i = 0;
     while ((dev = devs[i++]) != NULL) {
         struct libusb_device_descriptor desc;
-        ret = libusb_get_device_descriptor(dev, &desc);
+        int ret = libusb_get_device_descriptor(dev, &desc);
         if (ret < 0) {
             WLOG("failed to get libusb device descriptor (libusb error: %d)\n", ret);
             break;
@@ -1146,40 +1145,32 @@ static size_t stlink_probe_usb_devs(libusb_device **devs, stlink_t **sldevs[]) {
             continue;
 		}
 
-        struct libusb_device_handle* handle;
-        char serial[STLINK_SERIAL_MAX_SIZE];
-        memset(serial, 0, sizeof(serial));
+		struct libusb_device_handle* handle;
+        char serial[STLINK_SERIAL_MAX_SIZE] = {0,};
 
-        ret = libusb_open(dev, &handle);
-        if (ret < 0) {
-            if (ret == LIBUSB_ERROR_ACCESS) {
+		ret = libusb_open(dev, &handle);
+		if (ret < 0) {
+			if (ret == LIBUSB_ERROR_ACCESS) {
                 WLOG("failed to open USB device (LIBUSB_ERROR_ACCESS), try running as root?\n");
             } else {
                 WLOG("failed to open USB device (libusb error: %d)\n", ret);
-            }
-            break;
-        }
+			}
+			break;
+		}
 
-        ret = libusb_get_string_descriptor_ascii(handle, desc.iSerialNumber, (unsigned char *)&serial, sizeof(serial));
-        if (ret < 0)
-          *serial = 0;
+		ret = libusb_get_string_descriptor_ascii(handle, desc.iSerialNumber, (unsigned char *)&serial, sizeof(serial));
 
-        libusb_close(handle);
+		libusb_close(handle);
 
-        stlink_t *sl = NULL;
-        sl = stlink_open_usb(0, 1, serial);
+		if (ret < 0) {
+			continue;
+		}
+
+        stlink_t *sl = stlink_open_usb(0, 1, serial);
         if (!sl)
             continue;
 
-        _sldevs[slcur] = sl;
-        slcur++;
-    }
-
-    /* Something went wrong */
-    if (ret < 0) {
-        free(_sldevs);
-        *sldevs = NULL;
-        return 0;
+        _sldevs[slcur++] = sl;
     }
 
     *sldevs = _sldevs;
