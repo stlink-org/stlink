@@ -2641,6 +2641,7 @@ int stlink_mwrite_flash(stlink_t *sl, uint8_t* data, uint32_t length, stm32_addr
         num_empty = 0;
     }
     /* 
+     * TODO: investigate:
      * a kind of weird behaviour here: 
      * if the file is identified to be all-empty and four-bytes aligned,
      * still flash the whole file even if ignoring message is printed 
@@ -2684,7 +2685,12 @@ int stlink_fwrite_flash(stlink_t *sl, const char* path, stm32_addr_t addr) {
     } else {
         num_empty = 0;
     }
-    
+    /* 
+     * TODO: investigate:
+     * a kind of weird behaviour here: 
+     * if the file is identified to be all-empty and four-bytes aligned,
+     * still flash the whole file even if ignoring message is printed 
+     */  
     err = stlink_write_flash(sl, addr, mf.base, (num_empty == mf.len) ? (uint32_t) mf.len : (uint32_t) mf.len - num_empty, num_empty == mf.len);
     stlink_fwrite_finalize(sl, addr);
     unmap_file(&mf);
