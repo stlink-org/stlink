@@ -190,10 +190,10 @@
 #define STM32L4_FLASH_CR_OBL_LAUNCH 27  /* Option bytes reload */
 // Bits requesting flash operations (useful when we want to clear them)
 #define STM32L4_FLASH_CR_OPBITS                                     \
-    ((1lu<<STM32L4_FLASH_CR_PG) | (1lu<<STM32L4_FLASH_CR_PER)       \
+    (uint32_t)((1lu<<STM32L4_FLASH_CR_PG) | (1lu<<STM32L4_FLASH_CR_PER)       \
     | (1lu<<STM32L4_FLASH_CR_MER1) | (1lu<<STM32L4_FLASH_CR_MER1))
 // Page is fully specified by BKER and PNB
-#define STM32L4_FLASH_CR_PAGEMASK (0x1fflu << STM32L4_FLASH_CR_PNB)
+#define STM32L4_FLASH_CR_PAGEMASK (uint32_t)(0x1fflu << STM32L4_FLASH_CR_PNB)
 
 #define STM32L4_FLASH_OPTR_DUALBANK     21
 
@@ -755,12 +755,12 @@ static inline void write_flash_cr_snb(stlink_t *sl, uint32_t n) {
 static inline void write_flash_cr_bker_pnb(stlink_t *sl, uint32_t n) {
     stlink_write_debug32(sl, STM32L4_FLASH_SR, 0xFFFFFFFF & ~(1<<STM32L4_FLASH_SR_BSY));
     uint32_t x = read_flash_cr(sl);
-    x &=~ STM32L4_FLASH_CR_OPBITS;
-    x &=~ STM32L4_FLASH_CR_PAGEMASK;
+    x &= ~ STM32L4_FLASH_CR_OPBITS;
+    x &= ~ STM32L4_FLASH_CR_PAGEMASK;
     x &= ~(1<<STM32L4_FLASH_CR_MER1);
     x &= ~(1<<STM32L4_FLASH_CR_MER2);
     x |= (n << STM32L4_FLASH_CR_PNB);
-    x |= (1lu << STM32L4_FLASH_CR_PER);
+    x |= (uint32_t)(1lu << STM32L4_FLASH_CR_PER);
 #if DEBUG_FLASH
     fprintf(stdout, "BKER:PNB:0x%x 0x%x\n", x, n);
 #endif
@@ -1720,7 +1720,7 @@ uint32_t calculate_L4_page(stlink_t *sl, uint32_t flashaddr) {
         sl->chip_id == STLINK_CHIPID_STM32_L496X ||
         sl->chip_id == STLINK_CHIPID_STM32_L4RX) {
         // This chip use dual banked flash
-        if (flashopt & (1lu << STM32L4_FLASH_OPTR_DUALBANK)) {
+        if (flashopt & (uint32_t)(1lu << STM32L4_FLASH_OPTR_DUALBANK)) {
             uint32_t banksize = (uint32_t) sl->flash_size / 2;
             if (flashaddr >= banksize) {
                 flashaddr -= banksize;
@@ -1731,7 +1731,7 @@ uint32_t calculate_L4_page(stlink_t *sl, uint32_t flashaddr) {
 
     // For 1MB chips without the dual-bank option set, the page address will
     // overflow into the BKER bit, which gives us the correct bank:page value.
-    return bker | flashaddr/sl->flash_pgsz;
+    return bker | flashaddr/(uint32_t)sl->flash_pgsz;
 }
 
 uint32_t stlink_calculate_pagesize(stlink_t *sl, uint32_t flashaddr){
@@ -1907,7 +1907,7 @@ int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr)
 
         // Set the page to erase.
         if (sl->flash_type == STLINK_FLASH_TYPE_WB) {
-            uint32_t flash_page = ((flashaddr - STM32_FLASH_BASE) / sl->flash_pgsz);
+            uint32_t flash_page = ((flashaddr - STM32_FLASH_BASE) / (uint32_t)(sl->flash_pgsz));
             stlink_read_debug32(sl, STM32WB_FLASH_CR, &val);
 
             // sec 3.10.5 - PNB[7:0] is offset by 3.
@@ -1916,14 +1916,14 @@ int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr)
 
             stlink_write_debug32(sl, STM32WB_FLASH_CR, val);
         } else if (sl->flash_type == STLINK_FLASH_TYPE_G0) {
-            uint32_t flash_page = ((flashaddr - STM32_FLASH_BASE) / sl->flash_pgsz);
+            uint32_t flash_page = ((flashaddr - STM32_FLASH_BASE) / (uint32_t)(sl->flash_pgsz));
             stlink_read_debug32(sl, STM32Gx_FLASH_CR, &val);
             // sec 3.7.5 - PNB[5:0] is offset by 3. PER is 0x2.
             val &= ~(0x3F << 3);
             val |= ((flash_page & 0x3F) << 3) | ( 1 << FLASH_CR_PER );
             stlink_write_debug32(sl, STM32Gx_FLASH_CR, val);
         } else if (sl->flash_type == STLINK_FLASH_TYPE_G4) {
-            uint32_t flash_page = ((flashaddr - STM32_FLASH_BASE) / sl->flash_pgsz);
+            uint32_t flash_page = ((flashaddr - STM32_FLASH_BASE) / (uint32_t)(sl->flash_pgsz));
             stlink_read_debug32(sl, STM32Gx_FLASH_CR, &val);
             // sec 3.7.5 - PNB[6:0] is offset by 3. PER is 0x2.
             val &= ~(0x7F << 3);
@@ -2000,7 +2000,7 @@ int stlink_erase_flash_mass(stlink_t *sl) {
     if (sl->flash_type == STLINK_FLASH_TYPE_L0 ||
         sl->flash_type == STLINK_FLASH_TYPE_WB) {
         /* erase each page */
-        int i = 0, num_pages = (int) sl->flash_size/sl->flash_pgsz;
+        int i = 0, num_pages = (int)(sl->flash_size/sl->flash_pgsz);
         for (i = 0; i < num_pages; i++) {
             /* addr must be an addr inside the page */
             stm32_addr_t addr = (stm32_addr_t) sl->flash_base + i * (stm32_addr_t) sl->flash_pgsz;
