@@ -96,30 +96,30 @@ int flash_get_opts(struct flash_opts* o, int ac, char** av) {
             else
                 return -1;
         }
-	    else if ( starts_with(av[0], "--flash=") ) {
-		    const char *arg = av[0] + strlen("--flash=");
-		    char *ep = 0;
+        else if ( starts_with(av[0], "--flash=") ) {
+            const char *arg = av[0] + strlen("--flash=");
+            char *ep = 0;
 
-		    o->flash_size = (uint32_t)strtoul(arg,&ep,0);
-		    while ( *ep ) {
-			    switch ( *ep++ ) {
-			    case 0:
-				    break;
-			    case 'k':
-			    case 'K':
-				    o->flash_size *= 1024u;
-				    break;
-			    case 'm':
-			    case 'M':
-				    o->flash_size *= 1024u * 1024u;
-				    break;
-			    default:
-				    fprintf(stderr,"Invalid --flash=%s\n",arg);
-				    return -1;
-			    }
-		    }
-	    }
-	    else {
+            o->flash_size = (uint32_t)strtoul(arg,&ep,0);
+            while ( *ep ) {
+                switch ( *ep++ ) {
+                case 0:
+                    break;
+                case 'k':
+                case 'K':
+                    o->flash_size *= 1024u;
+                    break;
+                case 'm':
+                case 'M':
+                    o->flash_size *= 1024u * 1024u;
+                    break;
+                default:
+                    fprintf(stderr,"Invalid --flash=%s\n",arg);
+                    return -1;
+                }
+            }
+        }
+        else {
             break;  // non-option found
         }
 
