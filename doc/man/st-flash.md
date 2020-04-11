@@ -45,6 +45,9 @@ reset
 \--reset
 :   TODO
 
+\--opt
+:   Enable ignore ending empty bytes optimization
+
 \--serial *iSerial*
 :   TODO
 
