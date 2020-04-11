@@ -27,6 +27,9 @@ int flash_get_opts(struct flash_opts* o, int ac, char** av) {
         else if (strcmp(av[0], "--debug") == 0) {
             o->log_level = DEBUG_LOG_LEVEL;
         }
+        else if (strcmp(av[0], "--opt") == 0) {
+            o->opt = ENABLE_OPT;
+        }
         else if (strcmp(av[0], "--reset") == 0) {
             o->reset = 1;
         }

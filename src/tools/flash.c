@@ -29,9 +29,9 @@ static void cleanup(int signum) {
 
 static void usage(void)
 {
-    puts("stlinkv1   command line:   ./st-flash [--debug] [--reset] [--format <format>] [--flash=<fsize>] {read|write} /dev/sgX <path> <addr> <size>");
+    puts("stlinkv1   command line:   ./st-flash [--debug] [--reset] [--opt] [--format <format>] [--flash=<fsize>] {read|write} /dev/sgX <path> <addr> <size>");
     puts("stlinkv1   command line:   ./st-flash [--debug] /dev/sgX erase");
-    puts("stlinkv2/3 command line:   ./st-flash [--debug] [--reset] [--serial <serial>] [--format <format>] [--flash=<fsize>] {read|write} <path> <addr> <size>");
+    puts("stlinkv2/3 command line:   ./st-flash [--debug] [--reset] [--opt] [--serial <serial>] [--format <format>] [--flash=<fsize>] {read|write} <path> <addr> <size>");
     puts("stlinkv2/3 command line:   ./st-flash [--debug] [--serial <serial>] erase");
     puts("stlinkv2/3 command line:   ./st-flash [--debug] [--serial <serial>] reset");
     puts("   <addr>, <serial> and <size>: Use hex format.");
@@ -73,6 +73,7 @@ int main(int ac, char** av)
     }
 
     sl->verbose = o.log_level;
+    sl->opt = o.opt;
 
     connected_stlink = sl;
     signal(SIGINT, &cleanup);

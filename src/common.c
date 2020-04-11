@@ -2621,17 +2621,30 @@ int stlink_mwrite_flash(stlink_t *sl, uint8_t* data, uint32_t length, stm32_addr
     unsigned int num_empty, idx;
     uint8_t erased_pattern = stlink_get_erased_pattern(sl);
 
-    idx = (unsigned int)length;
-    for(num_empty = 0; num_empty != length; ++num_empty) {
-        if (data[--idx] != erased_pattern) {
-            break;
+    /*
+     * This optimization may cause unexpected garbage data remaining
+     * Turned off by default
+     */
+    if (sl->opt) {
+        idx = (unsigned int)length;
+        for(num_empty = 0; num_empty != length; ++num_empty) {
+            if (data[--idx] != erased_pattern) {
+                break;
+            }
         }
+        /* Round down to words */
+        num_empty -= (num_empty & 3);
+        if(num_empty != 0) {
+            ILOG("Ignoring %d bytes of 0x%02x at end of file\n", num_empty, erased_pattern);
+        }
+    } else {
+        num_empty = 0;
     }
-    /* Round down to words */
-    num_empty -= (num_empty & 3);
-    if(num_empty != 0) {
-        ILOG("Ignoring %d bytes of 0x%02x at end of file\n", num_empty, erased_pattern);
-    }
+    /* 
+     * a kind of weird behaviour here: 
+     * if the file is identified to be all-empty and four-bytes aligned,
+     * still flash the whole file even if ignoring message is printed 
+     */  
     err = stlink_write_flash(sl, addr, data, (num_empty == length) ? (uint32_t) length : (uint32_t) length - num_empty, num_empty == length);
     stlink_fwrite_finalize(sl, addr);
     return err;
@@ -2655,18 +2668,23 @@ int stlink_fwrite_flash(stlink_t *sl, const char* path, stm32_addr_t addr) {
         ELOG("map_file() == -1\n");
         return -1;
     }
-
-    idx = (unsigned int) mf.len;
-    for(num_empty = 0; num_empty != mf.len; ++num_empty) {
-        if (mf.base[--idx] != erased_pattern) {
-            break;
+    
+    if (sl->opt) {
+        idx = (unsigned int) mf.len;
+        for(num_empty = 0; num_empty != mf.len; ++num_empty) {
+            if (mf.base[--idx] != erased_pattern) {
+                break;
+            }
         }
+        /* Round down to words */
+        num_empty -= (num_empty & 3);
+        if(num_empty != 0) {
+            ILOG("Ignoring %d bytes of 0x%02x at end of file\n", num_empty, erased_pattern);
+        }
+    } else {
+        num_empty = 0;
     }
-    /* Round down to words */
-    num_empty -= (num_empty & 3);
-    if(num_empty != 0) {
-        ILOG("Ignoring %d bytes of 0x%02x at end of file\n", num_empty, erased_pattern);
-    }
+    
     err = stlink_write_flash(sl, addr, mf.base, (num_empty == mf.len) ? (uint32_t) mf.len : (uint32_t) mf.len - num_empty, num_empty == mf.len);
     stlink_fwrite_finalize(sl, addr);
     unmap_file(&mf);
