@@ -26,4 +26,3 @@ script:
   - printenv
   - cmake --version
   - ./.travis.sh
-  - ./.travis-lin-mingw.sh
