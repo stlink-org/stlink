@@ -1054,11 +1054,8 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, bool reset, char serial[ST
         usleep(10000);
     }
 
-    ret = stlink_load_device_params(sl);
-    if (ret == -1) {
-        // This one didn't have any message. 
-        goto on_libusb_error;
-    }
+    stlink_load_device_params(sl);
+
     return sl;
 
 on_libusb_error:
