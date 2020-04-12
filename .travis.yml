@@ -1,25 +1,96 @@
-
-compiler:
-  - gcc
-  - clang
-
 language: c
 
-os:
-  - linux
-  - osx
+matrix:
+    include:
+        ### 64-bit builds ###
+        - os: linux
+          arch: x64
+          compiler: gcc-5
+          addons:
+              apt:
+                  sources: ['ubuntu-toolchain-r-test']
+                  packages: ['gcc-5', 'libusb-1.0.0-dev']
+        - os: linux
+          arch: x64
+          compiler: gcc-7
+          addons:
+              apt:
+                  sources: ['ubuntu-toolchain-r-test']
+                  packages: ['gcc-7', 'libusb-1.0.0-dev']
+        - os: linux
+          arch: x64
+          compiler: gcc-9
+          addons:
+              apt:
+                  sources: ['ubuntu-toolchain-r-test']
+                  packages: ['gcc-9', 'libusb-1.0.0-dev']
+        - os: linux
+          arch: x64
+          compiler: clang-3.7
+          addons:
+              apt:
+                  sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-xenial-3.7']
+                  packages: ['clang-3.7', 'libusb-1.0.0-dev']
+        - os: linux
+          arch: x64
+          compiler: clang-6.0
+          addons:
+              apt:
+                  sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-bionic-6.0']
+                  packages: ['clang-6.0', 'libusb-1.0.0-dev']
 
-addons:
-  apt:
-    sources:
-       - sourceline: 'ppa:ubuntu-toolchain-r/test'
-    packages:
-      - clang
-      - g++-6
-      - gcc-6
-      - libusb-1.0.0-dev
-      - p7zip
-      - mingw-w64
+        ### 32-bit builds ###
+        - os: linux
+          arch: x86
+          compiler: gcc-5
+          addons:
+              apt:
+                  sources: ['ubuntu-toolchain-r-test']
+                  packages: ['gcc-5', 'libusb-1.0.0-dev']
+        - os: linux
+          arch: x86
+          compiler: gcc-6
+          addons:
+              apt:
+                  sources: ['ubuntu-toolchain-r-test']
+                  packages: ['gcc-6', 'libusb-1.0.0-dev']
+        - os: linux
+          arch: x86
+          compiler: gcc-7
+          addons:
+              apt:
+                  sources: ['ubuntu-toolchain-r-test']
+                  packages: ['gcc-7', 'libusb-1.0.0-dev']
+        - os: linux
+          arch: x86
+          compiler: clang-3.7
+          addons:
+              apt:
+                  sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-xenial-3.7']
+                  packages: ['clang-3.7', 'libusb-1.0.0-dev']
+        - os: linux
+          arch: x86
+          compiler: clang-6.0
+          addons:
+              apt:
+                  sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-bionic-6.0']
+                  packages: ['clang-6.0', 'libusb-1.0.0-dev']
+
+        ### macOS ###
+        - os: osx
+          compiler: gcc
+          addons:
+            homebrew:
+              packages:
+                - libusb
+                - gcc
+        - os: osx
+          compiler: clang
+          addons:
+            homebrew:
+              packages:
+                - libusb
+                - clang
 
 script:
   - git fetch --tags
