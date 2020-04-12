@@ -1302,19 +1302,19 @@ static int map_file(mapped_file_t* mf, const char* path) {
     }
 
     if (fstat(fd, &st) == -1) {
-        fprintf(stderr, "fstat() == -1\n");
+        fprintf(stderr, "fstat(%s) == -1\n", path);
         goto on_error;
     }
     if (sizeof(st.st_size) != sizeof(size_t)) {
         /* On 32 bit systems, check if there is an overflow */
         if (st.st_size > (off_t)UINT32_MAX) {
-            fprintf(stderr, "mmap() size_t overflow\n");
+            fprintf(stderr, "mmap() size_t overflow for file %s\n", path);
             goto on_error;
         }
     }
     mf->base = (uint8_t*) mmap(NULL, (size_t)(st.st_size), PROT_READ, MAP_SHARED, fd, 0);
     if (mf->base == MAP_FAILED) {
-        fprintf(stderr, "mmap() == MAP_FAILED\n");
+        fprintf(stderr, "mmap() == MAP_FAILED for file %s\n", path);
         goto on_error;
     }
 
