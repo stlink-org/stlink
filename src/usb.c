@@ -1045,7 +1045,7 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, bool reset, char serial[ST
     stlink_set_swdclk(sl, STLINK_SWDCLK_1P8MHZ_DIVISOR);
 
     if (stlink_current_mode(sl) != STLINK_DEV_DEBUG_MODE) {
-	stlink_enter_swd_mode(sl);
+        stlink_enter_swd_mode(sl);
     }
 
     if (reset) {
@@ -1130,9 +1130,9 @@ static size_t stlink_probe_usb_devs(libusb_device **devs, stlink_t **sldevs[]) {
 		ret = libusb_open(dev, &handle);
 		if (ret < 0) {
 			if (ret == LIBUSB_ERROR_ACCESS) {
-                WLOG("failed to open USB device (LIBUSB_ERROR_ACCESS), try running as root?\n");
-            } else {
-                WLOG("failed to open USB device (libusb error: %d)\n", ret);
+				ELOG("Could not open USB device %#06x:%#06x, access error.\n", desc.idVendor, desc.idProduct, ret);
+			} else {
+				ELOG("Failed to open USB device %#06x:%#06x, libusb error: %d)\n", desc.idVendor, desc.idProduct, ret);
 			}
 			break;
 		}
@@ -1146,8 +1146,10 @@ static size_t stlink_probe_usb_devs(libusb_device **devs, stlink_t **sldevs[]) {
 		}
 
         stlink_t *sl = stlink_open_usb(0, 1, serial);
-        if (!sl)
+        if (!sl) {
+            ELOG("Failed to open USB device %#06x:%#06x\n", desc.idVendor, desc.idProduct);
             continue;
+		}
 
         _sldevs[slcur++] = sl;
     }
