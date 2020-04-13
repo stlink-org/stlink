@@ -11,16 +11,14 @@ static bool starts_with(const char * str, const char * prefix) {
     return (0 == strncmp(str, prefix, n));
 }
 
-static int invalid_args(const char *expected)
-{
-	fprintf(stderr, "*** Error: Expected args for this command: %s\n", expected);
-	return -1;
+static int invalid_args(const char *expected) {
+    fprintf(stderr, "*** Error: Expected args for this command: %s\n", expected);
+    return -1;
 }
 
-static int bad_arg(const char *arg)
-{
-	fprintf(stderr, "*** Error: Invalid value for %s\n", arg);
-	return -1;
+static int bad_arg(const char *arg) {
+    fprintf(stderr, "*** Error: Invalid value for %s\n", arg);
+    return -1;
 }
 
 int flash_get_opts(struct flash_opts* o, int ac, char** av) {
