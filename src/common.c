@@ -1373,11 +1373,11 @@ static void md5_calculate(mapped_file_t *mf, const char *path) {
     Md5Initialise(&md5Context);
     Md5Update(&md5Context, mf->base, (uint32_t)mf->len);
     Md5Finalise(&md5Context, &md5Hash);
-    printf("file %s md5 checksum: ",path);
+    printf("md5 checksum: ");
     for(int i = 0; i < (int) sizeof(md5Hash); i++) {
         printf("%x", md5Hash.bytes[i]);
     }
-    printf("\n");
+    printf(", ");
 }
 
 static void stlink_checksum(mapped_file_t *mp, const char* path) {
@@ -1387,7 +1387,7 @@ static void stlink_checksum(mapped_file_t *mp, const char* path) {
     for (size_t i = 0; i < mp->len; ++i) {
         sum += mp_byte[i];
     }
-    printf("file %s stlink checksum: 0x%08x\n", path, sum);
+    printf("stlink checksum: 0x%08x\n", sum);
 }
 
 static void stlink_fwrite_finalize(stlink_t *sl, stm32_addr_t addr) {
@@ -1470,7 +1470,7 @@ int stlink_fwrite_sram(stlink_t * sl, const char* path, stm32_addr_t addr) {
         fprintf(stderr, "map_file() == -1\n");
         return -1;
     }
-
+    printf("file %s ");
     md5_calculate(&mf, path);
     stlink_checksum(&mf, path);
 
@@ -2698,6 +2698,7 @@ int stlink_fwrite_flash(stlink_t *sl, const char* path, stm32_addr_t addr) {
         return -1;
     }
 
+    printf("file %s ");
     md5_calculate(&mf, path);
     stlink_checksum(&mf, path);
 
@@ -3265,6 +3266,7 @@ int stlink_fwrite_option_bytes(stlink_t *sl, const char* path, stm32_addr_t addr
         return -1;
     }
 
+    printf("file %s ");
     md5_calculate(&mf, path);
     stlink_checksum(&mf, path);
 
