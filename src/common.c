@@ -1380,6 +1380,16 @@ static void md5_calculate(mapped_file_t *mf, const char *path) {
     printf("\n");
 }
 
+static void stlink_checksum(mapped_file_t *mp, const char* path) {
+    /* checksum that backward compatible with official ST tools */
+    uint32_t sum = 0;
+    uint8_t *mp_byte = (uint8_t *)mp->base;
+    for (size_t i = 0; i < mp->len; ++i) {
+        sum += mp_byte[i];
+    }
+    printf("file %s stlink checksum: 0x%08x\n", path, sum);
+}
+
 static void stlink_fwrite_finalize(stlink_t *sl, stm32_addr_t addr) {
     unsigned int val;
     /* set stack*/
@@ -1462,6 +1472,7 @@ int stlink_fwrite_sram(stlink_t * sl, const char* path, stm32_addr_t addr) {
     }
 
     md5_calculate(&mf, path);
+    stlink_checksum(&mf, path);
 
     /* check addr range is inside the sram */
     if (addr < sl->sram_base) {
@@ -2688,6 +2699,7 @@ int stlink_fwrite_flash(stlink_t *sl, const char* path, stm32_addr_t addr) {
     }
 
     md5_calculate(&mf, path);
+    stlink_checksum(&mf, path);
 
     if (sl->opt) {
         idx = (unsigned int) mf.len;
@@ -3254,6 +3266,7 @@ int stlink_fwrite_option_bytes(stlink_t *sl, const char* path, stm32_addr_t addr
     }
 
     md5_calculate(&mf, path);
+    stlink_checksum(&mf, path);
 
     err = stlink_write_option_bytes(sl, addr, mf.base, (uint32_t) mf.len);
     stlink_fwrite_finalize(sl, addr);
