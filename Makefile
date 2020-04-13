@@ -4,11 +4,12 @@
 MAKEFLAGS += -s
 
 all: release
-ci: debug release test
+ci: debug release binary test
 
 help:
-		@echo "      release: Run a release build"
 		@echo "        debug: Run a debug build"
+		@echo "      release: Run a release build"
+		@echo "       binary: Build Windows-Binary"
 		@echo "         lint: Lint check all source-code"
 		@echo "         test: Build and run tests"
 		@echo "        clean: Clean all build output"
@@ -17,6 +18,7 @@ help:
 rebuild_cache: build/Debug build/Release
 		@$(MAKE) -C build/Debug rebuild_cache
 		@$(MAKE) -C build/Release rebuild_cache
+		@$(MAKE) -C build/Binary rebuild_cache
 
 debug: build/Debug
 		@echo "[DEBUG]"
@@ -25,6 +27,10 @@ debug: build/Debug
 release: build/Release
 		@echo "[RELEASE]"
 		@$(MAKE) -C build/Release
+
+binary: build/Binary
+		@echo "[BINARY]"
+		@$(MAKE) -C build/Binary
 
 package: build/Release
 		@echo "[PACKAGE] Release"
@@ -40,6 +46,10 @@ build/Debug:
 build/Release:
 		@mkdir -p $@
 		@cd $@ && cmake -Wno-dev -DCMAKE_BUILD_TYPE=Release $(CMAKEFLAGS) ../../
+
+build/Binary:
+		@mkdir -p $@
+		@cd $@ && cmake -Wno-dev -DCMAKE_BUILD_TYPE=Binary $(CMAKEFLAGS) ../../
 
 clean:
 		@echo "[CLEAN]"

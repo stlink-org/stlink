@@ -38,6 +38,14 @@ matrix:
               apt:
                   sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-bionic-6.0']
                   packages: ['clang-6.0', 'libusb-1.0.0-dev']
+        - os: linux
+          arch: x64
+          compiler: clang-6.0
+          addons:
+              apt:
+                  sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-bionic-6.0']
+                  packages: ['clang-6.0', 'libusb-1.0.0-dev']
+          env: CFLAGS=-m32 LDFLAGS=-m32
 
         ### 32-bit builds ###
         - os: linux
