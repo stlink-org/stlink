@@ -2,11 +2,11 @@ Open source version of the STMicroelectronics STlink Tools
 ==========================================================
 
 [![BSD licensed](https://img.shields.io/badge/license-BSD-blue.svg)](https://raw.githubusercontent.com/hyperium/hyper/master/LICENSE)
-[![GitHub release](https://img.shields.io/github/release/texane/stlink.svg)](https://github.com/texane/stlink/releases/latest)
-[![GitHub commits](https://img.shields.io/github/commits-since/texane/stlink/v1.6.0.svg)](https://github.com/texane/stlink/releases/master)
-[![Downloads](https://img.shields.io/github/downloads/texane/stlink/total.svg)](https://github.com/texane/stlink/releases)
-[![Linux Status](https://img.shields.io/travis/texane/stlink/master.svg?label=linux)](https://travis-ci.org/texane/stlink)
-[![macOS Status](https://img.shields.io/travis/texane/stlink/master.svg?label=osx)](https://travis-ci.org/texane/stlink)
+[![GitHub release](https://img.shields.io/github/release/texane/stlink.svg)](https://github.com/stlink-org/stlink/releases/latest)
+[![GitHub commits](https://img.shields.io/github/commits-since/texane/stlink/v1.6.0.svg)](https://github.com/stlink-org/stlink/releases/master)
+[![Downloads](https://img.shields.io/github/downloads/texane/stlink/total.svg)](https://github.com/stlink-org/stlink/releases)
+[![Linux Status](https://img.shields.io/travis/texane/stlink/master.svg?label=linux)](https://travis-ci.org/stlink-org/stlink)
+[![macOS Status](https://img.shields.io/travis/texane/stlink/master.svg?label=osx)](https://travis-ci.org/stlink-org/stlink)
 
 Recent new features and bugfixes can be found in the [Changelog](CHANGELOG.md) of this software project.
 

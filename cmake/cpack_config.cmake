@@ -16,12 +16,11 @@ elseif (WIN32)
 elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux" AND EXISTS "/etc/debian_version")
 	  message(STATUS "Debian-based Linux OS detected")
 	  set(CPACK_GENERATOR "DEB")
-
   	if ("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "x86_64")
 	    	set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${PROJECT_VERSION}-amd64" )
    	endif()
 
-  	set(CPACK_DEBIAN_PACKAGE_HOMEPAGE "https://github.com/texane/stlink")
+  	set(CPACK_DEBIAN_PACKAGE_HOMEPAGE "https://github.com/stlink-org/stlink")
   	set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Luca Boccassi")
 	  set(CPACK_PACKAGE_CONTACT "bluca@debian.org")
 	  set(CPACK_DEBIAN_PACKAGE_DESCRIPTION "STM32 STlink programmer tools")
