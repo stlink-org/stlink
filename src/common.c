@@ -15,6 +15,7 @@
 #include "stlink.h"
 #include "stlink/mmap.h"
 #include "stlink/logging.h"
+#include "md5.h"
 
 #ifndef O_BINARY
 #define O_BINARY 0
@@ -1365,6 +1366,30 @@ static int check_file(stlink_t* sl, mapped_file_t* mf, stm32_addr_t addr) {
     return 0;
 }
 
+static void md5_calculate(mapped_file_t *mf) {
+    /* calculate md5 checksum of given binary file */
+    Md5Context      md5Context;
+    MD5_HASH        md5Hash;
+    Md5Initialise(&md5Context);
+    Md5Update(&md5Context, mf->base, (uint32_t)mf->len);
+    Md5Finalise(&md5Context, &md5Hash);
+    printf("md5 checksum: ");
+    for(int i = 0; i < (int) sizeof(md5Hash); i++) {
+        printf("%x", md5Hash.bytes[i]);
+    }
+    printf(", ");
+}
+
+static void stlink_checksum(mapped_file_t *mp) {
+    /* checksum that backward compatible with official ST tools */
+    uint32_t sum = 0;
+    uint8_t *mp_byte = (uint8_t *)mp->base;
+    for (size_t i = 0; i < mp->len; ++i) {
+        sum += mp_byte[i];
+    }
+    printf("stlink checksum: 0x%08x\n", sum);
+}
+
 static void stlink_fwrite_finalize(stlink_t *sl, stm32_addr_t addr) {
     unsigned int val;
     /* set stack*/
@@ -1445,6 +1470,9 @@ int stlink_fwrite_sram(stlink_t * sl, const char* path, stm32_addr_t addr) {
         fprintf(stderr, "map_file() == -1\n");
         return -1;
     }
+    printf("file %s ", path);
+    md5_calculate(&mf);
+    stlink_checksum(&mf);
 
     /* check addr range is inside the sram */
     if (addr < sl->sram_base) {
@@ -2669,7 +2697,11 @@ int stlink_fwrite_flash(stlink_t *sl, const char* path, stm32_addr_t addr) {
         ELOG("map_file() == -1\n");
         return -1;
     }
-    
+
+    printf("file %s ", path);
+    md5_calculate(&mf);
+    stlink_checksum(&mf);
+
     if (sl->opt) {
         idx = (unsigned int) mf.len;
         for(num_empty = 0; num_empty != mf.len; ++num_empty) {
@@ -3233,6 +3265,10 @@ int stlink_fwrite_option_bytes(stlink_t *sl, const char* path, stm32_addr_t addr
         ELOG("map_file() == -1\n");
         return -1;
     }
+
+    printf("file %s ", path);
+    md5_calculate(&mf);
+    stlink_checksum(&mf);
 
     err = stlink_write_option_bytes(sl, addr, mf.base, (uint32_t) mf.len);
     stlink_fwrite_finalize(sl, addr);

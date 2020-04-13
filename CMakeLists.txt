@@ -97,6 +97,7 @@ set(STLINK_SOURCE
     src/sg.c
     src/logging.c
     src/flash_loader.c
+    src/md5.c
     )
 
 if (WIN32 OR MSYS OR MINGW)

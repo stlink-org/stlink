@@ -539,6 +539,11 @@ want to disassemble the code at 0x20000000, use:\
 (gdb) disassemble 0x20000001
 ```
 
+Checksum of binary file
+-----------------------
+
+When flashing a file, the checksum of which is calculated, both in md5 and the sum algorithm used by ST's official tool. The detail of sum algorithm can be found in [https://www.st.com/resource/en/user_manual/cd00262073-stm32-stlink-utility-software-description-stmicroelectronics.pdf](https://www.st.com/resource/en/user_manual/cd00262073-stm32-stlink-utility-software-description-stmicroelectronics.pdf).
+
 References
 ==========
 
