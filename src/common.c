@@ -15,6 +15,7 @@
 #include "stlink.h"
 #include "stlink/mmap.h"
 #include "stlink/logging.h"
+#include "md5.h"
 
 #ifndef O_BINARY
 #define O_BINARY 0
@@ -1365,6 +1366,20 @@ static int check_file(stlink_t* sl, mapped_file_t* mf, stm32_addr_t addr) {
     return 0;
 }
 
+static void md5_calculate(mapped_file_t *mf, const char *path) {
+    /* calculate md5 checksum of given binary file */
+    Md5Context      md5Context;
+    MD5_HASH        md5Hash;
+    Md5Initialise(&md5Context);
+    Md5Update(&md5Context, mf->base, (uint32_t)mf->len);
+    Md5Finalise(&md5Context, &md5Hash);
+    printf("file %s md5 checksum: ",path);
+    for(int i = 0; i < (int) sizeof(md5Hash); i++) {
+        printf("%x", md5Hash.bytes[i]);
+    }
+    printf("\n");
+}
+
 static void stlink_fwrite_finalize(stlink_t *sl, stm32_addr_t addr) {
     unsigned int val;
     /* set stack*/
@@ -1445,6 +1460,8 @@ int stlink_fwrite_sram(stlink_t * sl, const char* path, stm32_addr_t addr) {
         fprintf(stderr, "map_file() == -1\n");
         return -1;
     }
+
+    md5_calculate(&mf, path);
 
     /* check addr range is inside the sram */
     if (addr < sl->sram_base) {
@@ -2669,7 +2686,9 @@ int stlink_fwrite_flash(stlink_t *sl, const char* path, stm32_addr_t addr) {
         ELOG("map_file() == -1\n");
         return -1;
     }
-    
+
+    md5_calculate(&mf, path);
+
     if (sl->opt) {
         idx = (unsigned int) mf.len;
         for(num_empty = 0; num_empty != mf.len; ++num_empty) {
@@ -3233,6 +3252,8 @@ int stlink_fwrite_option_bytes(stlink_t *sl, const char* path, stm32_addr_t addr
         ELOG("map_file() == -1\n");
         return -1;
     }
+
+    md5_calculate(&mf, path);
 
     err = stlink_write_option_bytes(sl, addr, mf.base, (uint32_t) mf.len);
     stlink_fwrite_finalize(sl, addr);
