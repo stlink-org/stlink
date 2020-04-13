@@ -11,6 +11,16 @@ static bool starts_with(const char * str, const char * prefix) {
     return (0 == strncmp(str, prefix, n));
 }
 
+static int invalid_args(const char *expected) {
+    fprintf(stderr, "*** Error: Expected args for this command: %s\n", expected);
+    return -1;
+}
+
+static int bad_arg(const char *arg) {
+    fprintf(stderr, "*** Error: Invalid value for %s\n", arg);
+    return -1;
+}
+
 int flash_get_opts(struct flash_opts* o, int ac, char** av) {
     bool serial_specified = false;
 
@@ -94,7 +104,7 @@ int flash_get_opts(struct flash_opts* o, int ac, char** av) {
             else if (strcmp(format, "ihex") == 0)
                 o->format = FLASH_FORMAT_IHEX;
             else
-                return -1;
+                return bad_arg("format");
         }
         else if ( starts_with(av[0], "--flash=") ) {
             const char *arg = av[0] + strlen("--flash=");
@@ -168,12 +178,13 @@ int flash_get_opts(struct flash_opts* o, int ac, char** av) {
 
         case FLASH_CMD_READ:     // expect filename, addr and size
             if((o->area == FLASH_OPTION_BYTES) &&(ac == 0)) break;
+            if (ac != 3) return invalid_args("read <path> <addr> <size>");
             if (ac != 3) return -1;
             o->filename = av[0];
             o->addr = (uint32_t) strtoul(av[1], &tail, 16);
-            if(tail[0] != '\0') return -1;
+            if(tail[0] != '\0') return bad_arg("addr");
             o->size = strtoul(av[2], &tail, 16);
-            if(tail[0] != '\0') return -1;
+            if(tail[0] != '\0') return bad_arg("size");
             break;
 
         case FLASH_CMD_WRITE:
@@ -182,17 +193,17 @@ int flash_get_opts(struct flash_opts* o, int ac, char** av) {
                 o->val = (uint32_t)strtoul(av[0], &tail, 16);
             }
             else if(o->format == FLASH_FORMAT_BINARY) {    // expect filename and addr
-                if (ac != 2) return -1;
+                if (ac != 2) return invalid_args("write <path> <addr>");
                 o->filename = av[0];
                 o->addr = (uint32_t) strtoul(av[1], &tail, 16);
-                if(tail[0] != '\0') return -1;
+                if(tail[0] != '\0') return bad_arg("addr");
             }
             else if(o->format == FLASH_FORMAT_IHEX) { // expect filename
-                if (ac != 1) return -1;
+                if (ac != 1) return invalid_args("write <path>");
                 o->filename = av[0];
             }
             else {
-                return -1;
+                return -1; // should have been caught during format parsing
             }
             break;
 
