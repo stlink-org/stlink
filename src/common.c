@@ -2863,7 +2863,7 @@ static int stlink_write_option_bytes_l0_cat2(stlink_t *sl, uint8_t* base, uint32
     uint32_t data;
     write_uint32((unsigned char*) &data, *(uint32_t*) (base));
     WLOG("Writing option bytes 0x%04x\n", data);
-    stlink_write_debug32(sl, STM32_L0_CAT2_OPTION_BYTES_BASE, data);
+    stlink_write_debug32(sl, STM32_L0_CATx_OPTION_BYTES_BASE, data);
 
     /* Reload options */
     stlink_read_debug32(sl, STM32L0_FLASH_REGS_ADDR + FLASH_PECR_OFF, &val);

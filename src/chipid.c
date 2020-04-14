@@ -378,7 +378,9 @@ static const struct stlink_chipid_params devices[] = {
             .flash_pagesize = 0x80,
             .sram_size = 0x2000,
             .bootrom_base = 0x1ff0000,
-            .bootrom_size = 0x1000
+            .bootrom_size = 0x1000,
+            .option_base = STM32_L0_CATx_OPTION_BYTES_BASE,
+            .option_size = 4,
         },
         {
             // STM32L0x Category 5
@@ -390,7 +392,9 @@ static const struct stlink_chipid_params devices[] = {
             .flash_pagesize = 0x80,
             .sram_size = 0x5000,
             .bootrom_base = 0x1ff0000,
-            .bootrom_size = 0x2000
+            .bootrom_size = 0x2000,
+            .option_base = STM32_L0_CATx_OPTION_BYTES_BASE,
+            .option_size = 4,
         },
         {
             // STM32L0x Category 2
@@ -403,7 +407,7 @@ static const struct stlink_chipid_params devices[] = {
             .sram_size = 0x2000,
             .bootrom_base = 0x1ff0000,
             .bootrom_size = 0x1000,
-            .option_base = STM32_L0_CAT2_OPTION_BYTES_BASE,
+            .option_base = STM32_L0_CATx_OPTION_BYTES_BASE,
             .option_size = 4,
         },
         {
@@ -443,7 +447,9 @@ static const struct stlink_chipid_params devices[] = {
             // sizes; table 2, page 74 for SRAM2 location)
             .sram_size = 0x18000,
             .bootrom_base = 0x1fff0000,      // Tables 4-6, pages 80-81 (Bank 1 system memory)
-            .bootrom_size = 0x7000           // 28k (per bank), same source as base
+            .bootrom_size = 0x7000,          // 28k (per bank), same source as base
+            .option_base = STM32_L4_OPTION_BYTES_BASE,
+            .option_size = 4,
         },
         {
             // STM32L4RX
@@ -484,7 +490,9 @@ static const struct stlink_chipid_params devices[] = {
             // sizes; table 2, page 74 for SRAM2 location)
             .sram_size = 0xc000,
             .bootrom_base = 0x1fff0000,      // Tables 4-6, pages 80-81 (Bank 1 system memory)
-            .bootrom_size = 0x7000           // 28k (per bank), same source as base
+            .bootrom_size = 0x7000,          // 28k (per bank), same source as base
+            .option_base = STM32_L4_OPTION_BYTES_BASE,
+            .option_size = 4,
         },
         {
             // STLINK_CHIPID_STM32_L496X
@@ -499,7 +507,7 @@ static const struct stlink_chipid_params devices[] = {
             .sram_size = 0x40000,            // Embedded SRAM (sec 2.4, page 84)
             .bootrom_base = 0x1fff0000,      // System Memory (Bank 1) (sec 3.3.1)
             .bootrom_size = 0x7000,          // 28k (per bank), same source as base
-            .option_base = STM32_L496X_OPTION_BYTES_BASE,
+            .option_base = STM32_L4_OPTION_BYTES_BASE,
             .option_size = 4,
         },
         {
@@ -537,8 +545,8 @@ static const struct stlink_chipid_params devices[] = {
             .sram_size = 0x2000,             // 8K (sec 2.3)
             .bootrom_base = 0x1fff0000,
             .bootrom_size = 0x2000,          // 8K (sec 2.2.2 table 3)
-            .option_base = STM32_G4_OPTION_BYTES_BASE,
-            .option_size = 4,
+            .option_base = STM32_G0_OPTION_BYTES_BASE,
+            .option_size = 8*4,
         },
         {
             // STM32G071/081 (from RM0444)
@@ -551,7 +559,7 @@ static const struct stlink_chipid_params devices[] = {
             .bootrom_base = 0x1fff0000,
             .bootrom_size = 0x7000,          // 28K (sec 2.2.2 table 2)
             .option_base = STM32_G0_OPTION_BYTES_BASE,
-            .option_size = 4,
+            .option_size = 8*4,
         },
         {
             // STM32G431/441 (from RM0440)
