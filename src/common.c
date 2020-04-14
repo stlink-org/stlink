@@ -920,6 +920,8 @@ int stlink_load_device_params(stlink_t *sl) {
     sl->sram_size = params->sram_size;
     sl->sys_base = params->bootrom_base;
     sl->sys_size = params->bootrom_size;
+    sl->option_base = params->option_base;
+    sl->option_size = params->option_size;
 
     //medium and low devices have the same chipid. ram size depends on flash size.
     //STM32F100xx datasheet Doc ID 16455 Table 2

@@ -79,6 +79,8 @@ struct stlink_chipid_params {
 	uint32_t sram_size;
 	uint32_t bootrom_base;
 	uint32_t bootrom_size;
+	uint32_t option_base;
+	uint32_t option_size;
 };
 
 const struct stlink_chipid_params *stlink_chipid_get_params(uint32_t chipid);

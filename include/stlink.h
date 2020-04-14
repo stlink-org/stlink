@@ -170,6 +170,10 @@ typedef struct flash_loader {
         stm32_addr_t sram_base;	// STM32_SRAM_BASE, set by stlink_load_device_params()
         size_t sram_size;	// stlink_chipid_params.sram_size, set by stlink_load_device_params()
 
+		/* option settings */
+        stm32_addr_t option_base;
+        size_t option_size;
+
         // bootloader
         // sys_base and sys_size are not used by the tools, but are only there to
         // download the bootloader code (see tests/sg.c)
