@@ -170,7 +170,11 @@ int main(int ac, char** av)
             }
         }
         else if (o.area == FLASH_OPTION_BYTES){
-            // XXX some sanity check should be done here to check o.val parsing.
+            if (o.val == 0) {
+                printf("attempting to set option byte to 0, abort.\n");
+                goto on_error;
+			}
+
             err = stlink_write_option_bytes32(sl, o.val);
             if (err == -1)
             {
