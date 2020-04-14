@@ -14,12 +14,17 @@ This option accepts decimal (128k), octal 0200k, or hex 0x80k.
 Obviously leaving the multiplier out is equally valid, for example: `--flash=0x20000`.
 The size may be followed by an optional "k" or "m" to multiply the given value by 1k (1024) or 1M respectively.
 
+#### Checksum for binary files
+
+When flashing a file, a checksum is calculated for the binary file, both in md5 and the sum algorithm.
+The latter is also used by the official ST-Link utility tool from STMicroelectronics as described in the document: [`UM0892 - User manual - STM32 ST-LINK utility software description`](https://www.st.com/resource/en/user_manual/cd00262073-stm32-stlink-utility-software-description-stmicroelectronics.pdf).
+
 
 ## Solutions to common problems
-### a) ST-Link-v1 driver: Issue with Kernel Extension (kext) (macOS 10.11 and later only)
+### a) STLINK/v1 driver: Issue with Kernel Extension (kext) (macOS 10.11 and later only)
 #### Problem:
 
-st-util fails to detect a ST-Link-v1 device:
+st-util fails to detect a STLINK/v1 device:
 
 ```
 st-util -1
@@ -35,7 +40,7 @@ ERROR src/sg.c: Could not open stlink device
 The root of this problem is a system security setting introduced by Apple with OS X El Capitan (10.11) in 2015.
 The so called System Integrity Protection (SIP) is active per default
 and prevents the operating system amongst other things to load unsigned Kernel Extension Modules (kext).
-Thus the ST-Link-v1 driver supplied with the tools, which installs as a kext, remains not functional,
+Thus the STLINK/v1 driver supplied with the tools, which installs as a kext, remains not functional,
 while SIP is fully activated (as is per default).
 
 Action needs to be taken here by booting into the recovery mode where a terminal console window needs to be opened.
@@ -47,7 +52,7 @@ Running `csrutil enable --without kext`, allows to load unsigned kernel extensio
 while leaving SIP active with all other security features.
 Unfortunately this option has been removed in macOS 10.14, which leaves the only option to disable SIP completely.
 
-So who ever intends to run the ST-Link-v1 programmer on macOS please take this into account.
+So who ever intends to run the STLINK/v1 programmer on macOS please take this into account.
 
 Further details can be found here: https://forums.developer.apple.com/thread/17452
 
@@ -66,7 +71,7 @@ Requesting load of /System/Library/Extensions/stlink_shield10_x.kext.
 5) Enter the command `$ sudo touch /System/Library/Extensions`
 
 
-7) Verify correct detection of the ST-Link-v1 device with the following input: `st-util -1`
+7) Verify correct detection of the STLINK/v1 device with the following input: `st-util -1`
 
 You should then see a similar output like in this example:
 
@@ -81,7 +86,7 @@ INFO gdb-server.c: Listening at *:4242...
 
 ### b) Verify if udev rules are set correctly (by Dave Hylands)
 
-To investigate, start by plugging your STLINK device into the usb port. Then run lsusb. You should see an entry something like the following:
+To investigate, start by plugging your STLINK device into the usb port. Then run `lsusb`. You should see an entry something like the following:
 
 ```
 Bus 005 Device 017: ID 0483:374b STMicroelectronics ST-LINK/V2.1 (Nucleo-F103RB)
@@ -96,7 +101,7 @@ On my system I see the following:
 crw-rw-rw- 1 root root 189, 528 Jan 24 17:52 /dev/bus/usb/005/017
 ```
 
-which is world writable (this is from the MODE:="0666" below). I have several files in my `/etc/udev/rules.d` directory. In this particular case, the `49-stlinkv2-1.rules` file contains the following:
+which is world writable (this is from the `MODE:="0666"` below). I have several files in my `/etc/udev/rules.d` directory. In this particular case, the `49-stlinkv2-1.rules` file contains the following:
 
 ```
 # stm32 nucleo boards, with onboard st/linkv2-1
@@ -113,9 +118,9 @@ SUBSYSTEMS=="usb", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="374b", \
 # GROUP:="somegroupname" and mange access using standard unix groups.
 ```
 
-and the idVendor of 0483 and idProduct of 374b matches the vendor id from the lsusb output.
+and the `idVendor` of `0483` and `idProduct` of `374b` matches the vendor id from the `lsusb` output.
 
-Make sure that you have all 3 files from here: https://github.com/texane/stlink/tree/master/etc/udev/rules.d in your `/etc/udev/rules.d` directory. After copying new files or editing excisting files in `/etc/udev/ruled.d` you should run the following:
+Make sure that you have all 3 files from here: https://github.com/stlink-org/stlink/tree/master/etc/udev/rules.d in your `/etc/udev/rules.d` directory. After copying new files or editing excisting files in `/etc/udev/ruled.d` you should run the following:
 
 ```
 sudo udevadm control --reload-rules
@@ -135,8 +140,7 @@ Using STM32 discovery kits with open source tools
 
 This guide details the use of STMicroelectronics STM32 discovery kits in an open source environment.
 
-Installing a GNU toolchain
-==========================
+## Installing a GNU toolchain
 
 Any toolchain supporting the cortex m3 should do. You can find the
 necessary to install such a toolchain here:
@@ -149,51 +153,7 @@ Details for the installation are provided in the topmost `README` file.
 This documentation assumes the toolchains is installed in a
 `$TOOLCHAIN_PATH`.
 
-Installing STLINK
-=================
-
-STLINK is open source software to program and debug ST’s STM32 Discovery
-kits. Those kits have an onboard chip that translates USB commands sent
-by the host PC into JTAG/SWD commands. This chip is called STLINK, (yes,
-isn’t that confusing? suggest a better name!) and comes in 2 versions
-(STLINK v1 and v2). From a software point of view, those versions differ
-only in the transport layer used to communicate (v1 uses SCSI passthru
-commands, while v2 uses raw USB). From a user point of view, they are
-identical.
-
-
-Before continuing, the following dependencies must be met:
-
--   libusb-1.0
--   cmake
-
-Also make sure `gtk+` version 3.0 is installed. (`sudo apt-get install gtk+-3.0` or similiar)
-
-STLINK should run on any system meeting the above constraints.
-
-The STLINK software source code is retrieved using:
-
-```
-$> git clone https://github.com/texane/stlink.git
-```
-
-Everything can be built from the top directory:
-
-```
-$> cd stlink
-$> make
-$> cd build/Release && make install DESTDIR=_install
-```
-
-It includes:
-
-- a communication library (libstlink.a),
-- a GDB server (st-util),
-- a flash manipulation tool (st-flash).
-- a programmer and chip information tool (st-info)
-
-Using the GDB server
-====================
+## Using the GDB server
 
 This assumes you have got the libopencm3 project downloaded in `ocm3`.
 The libopencm3 project has some good, reliable examples for each of the
@@ -259,8 +219,7 @@ examples from libopencm3, the LEDs on the board should be blinking for
 you.
 
 
-Building and flashing a program
-===============================
+## Building and flashing a program
 
 If you want to simply flash binary files to arbitrary sections of
 memory, or read arbitary addresses of memory out to a binary file, use
@@ -299,9 +258,6 @@ $> [sudo] ./st-flash write fancy_blink.bin 0x08000000
 
 Upon reset, the board LEDs should be blinking.
 
-
-HOWTO (old)
-===========
 
 ## Using the gdb server
 
@@ -373,6 +329,16 @@ If you need to send a hard reset signal through `NRST` pin, you can use the foll
 
 ```
 (gdb) monitor jtag_reset
+```
+
+
+## Disassembling THUMB code in GDB
+
+By default, the disassemble command in GDB operates in ARM mode. The programs running on CORTEX-M3 are compiled in THUMB mode.
+To correctly disassemble them under GDB, uses an odd address. For instance, if you want to disassemble the code at 0x20000000, use:
+
+```
+(gdb) disassemble 0x20000001
 ```
 
 
@@ -469,19 +435,15 @@ A: Installed on Mac OS X 10.9.4 with ports method,
 
 [https://coderwall.com/p/oznj_q](https://coderwall.com/p/oznj_q)
 
-`sudo port install libusb automake autoconf pkgconfig`
-
-`aclocal --force -I /opt/local/share/aclocal`
-
-`git clone https://github.com/texane/stlink.git stlink-utility`
-
-`cd stlink-utility`
-
-`./autogen.sh`
-
-`./configure`
-
-`make`
+```
+sudo port install libusb automake autoconf pkgconfig
+aclocal --force -I /opt/local/share/aclocal
+git clone https://github.com/stlink-org/stlink.git stlink-utility
+cd stlink-utility
+./autogen.sh
+./configure
+make
+```
 
 Then trying to flash the image with STLINK v2 :
 
@@ -524,26 +486,6 @@ http://community.spark.io/t/how-to-flash-a-brand-new-freshly-soldered-stm32f103-
 > 2014-08-11T23:14:54 INFO src/stlink-common.c: Flash written and verified! jolly good!
 
 
-Notes
-=====
-
-Disassembling THUMB code in GDB
--------------------------------
-
-By default, the disassemble command in GDB operates in ARM mode. The
-programs running on CORTEX-M3 are compiled in THUMB mode. To correctly
-disassemble them under GDB, uses an odd address. For instance, if you
-want to disassemble the code at 0x20000000, use:\
-
-```
-(gdb) disassemble 0x20000001
-```
-
-Checksum of binary file
------------------------
-
-When flashing a file, the checksum of which is calculated, both in md5 and the sum algorithm used by ST's official tool. The detail of sum algorithm can be found in [https://www.st.com/resource/en/user_manual/cd00262073-stm32-stlink-utility-software-description-stmicroelectronics.pdf](https://www.st.com/resource/en/user_manual/cd00262073-stm32-stlink-utility-software-description-stmicroelectronics.pdf).
-
 References
 ==========
 
@@ -554,5 +496,4 @@ References
     documentation related to the STM32L discovery kit
 
 -   <http://www.libopencm3.org>
-    libopencm3, a project providing a firmware library, with solid
-    examples for Cortex M3, M4 and M0 processors from any vendor.
+    libopencm3, a project providing a firmware library, with solid examples for Cortex M3, M4 and M0 processors from any vendor.
