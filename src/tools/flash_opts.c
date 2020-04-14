@@ -22,7 +22,6 @@ static int bad_arg(const char *arg) {
 }
 
 int flash_get_opts(struct flash_opts* o, int ac, char** av) {
-    bool serial_specified = false;
 
     // defaults
     memset(o, 0, sizeof(*o));
@@ -63,7 +62,6 @@ int flash_get_opts(struct flash_opts* o, int ac, char** av) {
                 memcpy(buffer, serial + j, 2);
                 o->serial[length - k] = (uint8_t)strtol(buffer, NULL, 16);
             }
-            serial_specified = true;
         }
         else if (strcmp(av[0], "--area") == 0 || starts_with(av[0], "--area=")) {
             const char * area;
@@ -138,7 +136,7 @@ int flash_get_opts(struct flash_opts* o, int ac, char** av) {
     }
 
     // command and (optional) device name
-    while(ac >= 1) { // looks like for stlinkv1 the device name and command may be swaped - check both positions in all cases
+    while(ac >= 1) {
         if (strcmp(av[0], "erase") == 0) {
             if (o->cmd != FLASH_CMD_NONE) return -1;
             o->cmd = FLASH_CMD_ERASE;
@@ -154,10 +152,6 @@ int flash_get_opts(struct flash_opts* o, int ac, char** av) {
         else if (strcmp(av[0], "reset") == 0) {
             if (o->cmd != FLASH_CMD_NONE) return -1;
             o->cmd = CMD_RESET;
-        }
-        else if(starts_with(av[0], "/dev/")) {
-            if (o->devname) return -1;
-            o->devname = av[0];
         }
         else {
             break;
@@ -209,9 +203,6 @@ int flash_get_opts(struct flash_opts* o, int ac, char** av) {
 
        default: break ;
     }
-
-    // some constistence checks
-    if(serial_specified && o->devname != NULL) return -1; // serial not supported for v1
 
     return 0;
 }
