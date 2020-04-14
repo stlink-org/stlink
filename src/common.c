@@ -3219,6 +3219,26 @@ int stlink_read_option_bytes_f4(stlink_t *sl, uint32_t* option_byte) {
 }
 
 /**
+ * Read option bytes
+ * @param sl
+ * @param option_byte value to read 
+ * @return 0 on success, -ve on failure.
+ */
+int stlink_read_option_bytes(stlink_t *sl, uint32_t* option_byte) {
+	int err = -1;
+	if (sl->chip_id == STLINK_CHIPID_STM32_F2){
+		err = stlink_read_option_bytes_f2(sl, option_byte);
+	}else if(sl->chip_id == STLINK_CHIPID_STM32_F446){
+		err = stlink_read_option_bytes_f4(sl, option_byte);
+	}else if(sl->flash_type == STLINK_FLASH_TYPE_G0 || sl->flash_type == STLINK_FLASH_TYPE_G4) {
+		err = stlink_read_option_bytes_Gx(sl, option_byte);
+	}else{
+		ELOG("This format is only available for STM32F2, STM32F4, STM32G0 and STM32G4\n");
+	}
+	return err;
+}
+
+/**
  * Write option bytes
  * @param sl
  * @param addr of the memory mapped option bytes

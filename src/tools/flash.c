@@ -207,26 +207,16 @@ int main(int ac, char** av)
     }
     else /* read */
     {
-        if (o.area == FLASH_OPTION_BYTES){
-            uint32_t option_byte = 0;
-            if (sl->chip_id == STLINK_CHIPID_STM32_F2){
-                err = stlink_read_option_bytes_f2(sl,&option_byte);
+        if(o.area == FLASH_OPTION_BYTES){
+			uint32_t option_byte;
+			err = stlink_read_option_bytes(sl, &option_byte);
+			if (err == -1) {
+				printf("could not read option bytes (%d)\n", err);
+				goto on_error;
+			} else {
                 printf("%x\n",option_byte);
-            } else if (sl->chip_id == STLINK_CHIPID_STM32_F446){
-                err = stlink_read_option_bytes_f4(sl,&option_byte);
-                printf("%x\n",option_byte);
-            }else if(sl->flash_type == STLINK_FLASH_TYPE_G0 || sl->flash_type == STLINK_FLASH_TYPE_G4) {
-                err = stlink_read_option_bytes_Gx(sl,&option_byte);
-                printf("%x\n",option_byte);
-            } else {
-                printf("This format is only available for STM32F2, STM32F4, STM32G0 and STM32G4\n");
             }
-            if (err == -1)
-            {
-                printf("could not read option bytes\n");
-                goto on_error;
-            }
-        } else {
+        }else{
             if ((o.addr >= sl->flash_base) && (o.size == 0) &&
                     (o.addr < sl->flash_base + sl->flash_size)){
                 o.size = sl->flash_size;
