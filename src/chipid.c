@@ -175,7 +175,9 @@ static const struct stlink_chipid_params devices[] = {
             .flash_pagesize = 0x100,
             .sram_size = 0xC000, /*Not completely clear if there are some with 32K*/
             .bootrom_base = 0x1ff00000,
-            .bootrom_size = 0x1000
+            .bootrom_size = 0x1000,
+            .option_base = STM32_L1_OPTION_BYTES_BASE,
+            .option_size = 8,
         },
         {
             .chip_id = STLINK_CHIPID_STM32_L152_RE,
@@ -400,7 +402,9 @@ static const struct stlink_chipid_params devices[] = {
             .flash_pagesize = 0x80,
             .sram_size = 0x2000,
             .bootrom_base = 0x1ff0000,
-            .bootrom_size = 0x1000
+            .bootrom_size = 0x1000,
+            .option_base = STM32_L0_CAT2_OPTION_BYTES_BASE,
+            .option_size = 4,
         },
         {
             // STM32F334, STM32F303x6/8, and STM32F328
@@ -494,7 +498,9 @@ static const struct stlink_chipid_params devices[] = {
             // SRAM2 is 64k at 0x20040000 (sec 2.2.1, fig 2, page 74)
             .sram_size = 0x40000,            // Embedded SRAM (sec 2.4, page 84)
             .bootrom_base = 0x1fff0000,      // System Memory (Bank 1) (sec 3.3.1)
-            .bootrom_size = 0x7000           // 28k (per bank), same source as base
+            .bootrom_size = 0x7000,          // 28k (per bank), same source as base
+            .option_base = STM32_L496X_OPTION_BYTES_BASE,
+            .option_size = 4,
         },
         {
             // STLINK_CHIPID_STM32_L46X
@@ -530,7 +536,9 @@ static const struct stlink_chipid_params devices[] = {
             .flash_pagesize = 0x800,         // 2K (sec 3.2)
             .sram_size = 0x2000,             // 8K (sec 2.3)
             .bootrom_base = 0x1fff0000,
-            .bootrom_size = 0x2000           // 8K (sec 2.2.2 table 3)
+            .bootrom_size = 0x2000,          // 8K (sec 2.2.2 table 3)
+            .option_base = STM32_G4_OPTION_BYTES_BASE,
+            .option_size = 4,
         },
         {
             // STM32G071/081 (from RM0444)
@@ -541,7 +549,9 @@ static const struct stlink_chipid_params devices[] = {
             .flash_pagesize = 0x800,         // 2K (sec 3.2)
             .sram_size = 0x9000,             // 36K (sec 2.3)
             .bootrom_base = 0x1fff0000,
-            .bootrom_size = 0x7000           // 28K (sec 2.2.2 table 2)
+            .bootrom_size = 0x7000,          // 28K (sec 2.2.2 table 2)
+            .option_base = STM32_G0_OPTION_BYTES_BASE,
+            .option_size = 4,
         },
         {
             // STM32G431/441 (from RM0440)
@@ -555,7 +565,10 @@ static const struct stlink_chipid_params devices[] = {
             // SRAM3/CCM is 10k at 0x10000000, aliased at 0x20018000
             .sram_size = 0x8000,             // 32K (sec 2.4)
             .bootrom_base = 0x1fff0000,
-            .bootrom_size = 0x7000           // 28K (table 2)
+            .bootrom_size = 0x7000,           // 28K (table 2)
+            .option_base = STM32_G4_OPTION_BYTES_BASE,
+            .option_size = 4*4,
+            
         },
         {
             // STM32G471/473/474/483/484 (from RM0440)
@@ -570,7 +583,9 @@ static const struct stlink_chipid_params devices[] = {
             // SRAM3/CCM is 32k at 0x10000000, aliased at 0x20018000
             .sram_size = 0x18000,             // 128K (sec 2.4)
             .bootrom_base = 0x1fff0000,
-            .bootrom_size = 0x7000           // 28K (table 2)
+            .bootrom_size = 0x7000,           // 28K (table 2)
+            .option_base = STM32_G4_OPTION_BYTES_BASE,
+            .option_size = 4*4,
         },
         {
             // STM32WB55 (from RM0434)
