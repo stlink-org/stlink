@@ -160,9 +160,8 @@ int main(int ac, char** av)
                 goto on_error;
             }
         }
-        else if (o.addr == STM32_G0_OPTION_BYTES_BASE ||
-                 o.addr == STM32_L0_CAT2_OPTION_BYTES_BASE  ||
-                 o.addr == STM32_L0_CAT2_OPTION_BYTES_BASE + 4){
+        else if ((o.addr >= sl->option_base) &&
+                (o.addr < sl->option_base + sl->option_size)) {
             err = stlink_fwrite_option_bytes(sl, o.filename, o.addr);
             if (err == -1)
             {
@@ -171,10 +170,11 @@ int main(int ac, char** av)
             }
         }
         else if (o.area == FLASH_OPTION_BYTES){
-            err = stlink_fwrite_option_bytes_32bit(sl, o.val);
+            // XXX some sanity check should be done here to check o.val parsing.
+            err = stlink_write_option_bytes32(sl, o.val);
             if (err == -1)
             {
-                printf("stlink_fwrite_option_bytes() == -1\n");
+                printf("stlink_write_option_bytes32() == -1\n");
                 goto on_error;
             }
         }
@@ -209,7 +209,7 @@ int main(int ac, char** av)
     {
         if(o.area == FLASH_OPTION_BYTES){
 			uint32_t option_byte;
-			err = stlink_read_option_bytes(sl, &option_byte);
+			err = stlink_read_option_bytes32(sl, &option_byte);
 			if (err == -1) {
 				printf("could not read option bytes (%d)\n", err);
 				goto on_error;

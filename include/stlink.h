@@ -239,9 +239,11 @@ typedef struct flash_loader {
     int stlink_fread(stlink_t* sl, const char* path, bool is_ihex, stm32_addr_t addr, size_t size);
     int stlink_load_device_params(stlink_t *sl);
 
-	int stlink_read_option_bytes(stlink_t *sl, uint32_t* option_byte);
+    int stlink_read_option_bytes32(stlink_t *sl, uint32_t* option_byte);
+    int stlink_write_option_bytes32(stlink_t *sl, uint32_t option_byte);
+
+    int stlink_write_option_bytes(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uint32_t len);
     int stlink_fwrite_option_bytes(stlink_t *sl, const char* path, stm32_addr_t addr);
-    int stlink_fwrite_option_bytes_32bit(stlink_t *sl,uint32_t val);
 
 #include "stlink/sg.h"
 #include "stlink/usb.h"

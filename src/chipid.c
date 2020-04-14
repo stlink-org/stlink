@@ -546,7 +546,7 @@ static const struct stlink_chipid_params devices[] = {
             .bootrom_base = 0x1fff0000,
             .bootrom_size = 0x2000,          // 8K (sec 2.2.2 table 3)
             .option_base = STM32_G0_OPTION_BYTES_BASE,
-            .option_size = 8*4,
+            .option_size = 4,
         },
         {
             // STM32G071/081 (from RM0444)
@@ -559,7 +559,7 @@ static const struct stlink_chipid_params devices[] = {
             .bootrom_base = 0x1fff0000,
             .bootrom_size = 0x7000,          // 28K (sec 2.2.2 table 2)
             .option_base = STM32_G0_OPTION_BYTES_BASE,
-            .option_size = 8*4,
+            .option_size = 4,
         },
         {
             // STM32G431/441 (from RM0440)
@@ -575,7 +575,7 @@ static const struct stlink_chipid_params devices[] = {
             .bootrom_base = 0x1fff0000,
             .bootrom_size = 0x7000,           // 28K (table 2)
             .option_base = STM32_G4_OPTION_BYTES_BASE,
-            .option_size = 4*4,
+            .option_size = 4,
             
         },
         {
@@ -593,7 +593,7 @@ static const struct stlink_chipid_params devices[] = {
             .bootrom_base = 0x1fff0000,
             .bootrom_size = 0x7000,           // 28K (table 2)
             .option_base = STM32_G4_OPTION_BYTES_BASE,
-            .option_size = 4*4,
+            .option_size = 4,
         },
         {
             // STM32WB55 (from RM0434)
