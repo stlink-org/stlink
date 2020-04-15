@@ -23,7 +23,7 @@ On Windows users should ensure that the following software is installed:
   development)
 5. Create a new destination folder at a place of your choice
 6. Open the command-line (cmd.exe) and execute `cd C:\$Path-to-your-destination-folder$\`
-7. Fetch the project sourcefiles by running `git clone https://github.com/texane/stlink.git`from the command-line (cmd.exe)<br />
+7. Fetch the project sourcefiles by running `git clone https://github.com/stlink-org/stlink.git`from the command-line (cmd.exe)<br />
   or download the stlink zip-sourcefolder from the Release page on GitHub
 
 
@@ -76,7 +76,7 @@ or execute (Debian-based systems only): `apt-get install gcc build-essential cma
 1. Open a new terminal console
 2. Create a new destination folder at a place of your choice e.g. at `~/git`: `mkdir $HOME/git`
 3. Change to this directory: `cd ~/git`
-4. Fetch the project sourcefiles by running `git clone https://github.com/texane/stlink.git`
+4. Fetch the project sourcefiles by running `git clone https://github.com/stlink-org/stlink.git`
 
 
 ### Building
@@ -183,7 +183,7 @@ Additionally we recommend to install Xcode which delivers the necessary C-compil
 1. Open a new terminal window
 2. Create a new destination folder at a place of your choice e.g. at `~/git`: `mkdir $HOME/git`
 3. Change to this directory: `cd ~/git`
-4. Fetch the project sourcefiles by running `git clone https://github.com/texane/stlink.git`
+4. Fetch the project sourcefiles by running `git clone https://github.com/stlink-org/stlink.git`
 
 
 ### Building

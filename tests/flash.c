@@ -15,12 +15,12 @@ struct Test {
 };
 
 static bool cmp_strings(const char * s1, const char * s2) {
-    if(s1 == NULL || s2 == NULL) return (s1 == s2);
+    if (s1 == NULL || s2 == NULL) return (s1 == s2);
     else return (0 == strcmp(s1, s2));
 }
 
 static bool cmp_mem(const uint8_t * s1, const uint8_t * s2, size_t size) {
-    if(s1 == NULL || s2 == NULL) return (s1 == s2);
+    if (s1 == NULL || s2 == NULL) return (s1 == s2);
     else return (0 == memcmp(s1, s2, size));
 }
 
@@ -36,8 +36,8 @@ static bool execute_test(const struct Test * test) {
 #endif
     strcpy(cmd_line, test->cmd_line);
 
-    for(char * tok = strtok(cmd_line, " "); tok; tok = strtok(NULL, " ")) {
-        if((size_t)ac >= sizeof(av)/sizeof(av[0])) return false;
+    for (char * tok = strtok(cmd_line, " "); tok; tok = strtok(NULL, " ")) {
+        if ((size_t)ac >= sizeof(av)/sizeof(av[0])) return false;
 
         av[ac] = tok;
         ++ac;
@@ -50,7 +50,7 @@ static bool execute_test(const struct Test * test) {
     // compare results
     bool ret = (res == test->res);
 
-    if(ret && (res == 0)) {
+    if (ret && (res == 0)) {
         ret &= (opts.cmd == test->opts.cmd);
         ret &= cmp_strings(opts.devname, test->opts.devname);
         ret &= cmp_mem(opts.serial, test->opts.serial, sizeof(opts.serial));
@@ -104,8 +104,8 @@ static struct Test tests[] = {
 int main()
 {
     bool allOk = true;
-    for(size_t i = 0; i < sizeof(tests)/sizeof(tests[0]); ++i) {
-        if(!execute_test(&tests[i])) allOk = false;
+    for (size_t i = 0; i < sizeof(tests)/sizeof(tests[0]); ++i) {
+        if (!execute_test(&tests[i])) allOk = false;
     }
 
     return (allOk ? 0 : 1);

@@ -20,21 +20,32 @@ are licensed under the **General Public License (GPL v2+)**.
 
 ## Introduction
 
-This stlink toolset supports several so called stlink programmer boards (and clones thereof) which use a microcontroller chip to translate commands from USB to JTAG.
+STLink is an open source toolset to program and debug STM32 devices and boards manufactured by STMicroelectronics.
+It supports several so called STLINK programmer boards (and clones thereof) which use a microcontroller chip
+to translate commands from USB to JTAG/SWD. There are four generations available on the market:
 
-These programmer boards are available in four versions:
-
-* **STLINKv1:**
+* **STLINK/v1** _(obsolete as of 21-11-2019)_
   - transport layer: SCSI passthru commands over USB
-  - present on STM32VL discovery kits
-* **STLINKv2:**
-  * transport layer: raw USB commands
-  * present on STM32L discovery and nucleo and later kits
-* **STLINKv2-1:**
-  * transport layer: raw USB commands
-  * present on some STM32 nucleo boards
-* **STLINKv3:**
-  * _not yet supported by this toolset (but planned)_
+  - stand-alone programmer and present on STM32VL Discovery boards
+* **STLINK/v2**
+  - transport layer: raw USB commands
+  - stand-alone programmer and present on STM32L Discovery and Nucleo boards
+* **STLINK/v2-1**
+  - transport layer: raw USB commands
+  - present on some STM32 Nucleo boards
+* **STLINK/v3**
+  - transport layer: raw USB commands
+  - stand-alone programmer
+
+On the user level there is no difference in handling or operation between these different revisions.
+
+The STlink toolset includes:
+
+* a communication library (libstlink.a),
+* a programmer and chip information tool (st-info),
+* a flash manipulation tool (st-flash),
+* a GDB server (st-util) and
+* a GUI-Interface (stlink-gui) _[optional]_
 
 
 ## Supported hardware combinations

@@ -97,11 +97,12 @@ set(STLINK_SOURCE
     src/sg.c
     src/logging.c
     src/flash_loader.c
+    src/md5.c
     )
 
 if (WIN32 OR MSYS OR MINGW)
-    set (STLINK_SOURCE "${STLINK_SOURCE};src/mmap.c;src/mingw/mingw.c")
-    set (STLINK_HEADERS "${STLINK_HEADERS};src/mingw/mingw.h")
+    set(STLINK_SOURCE "${STLINK_SOURCE};src/mmap.c;src/mingw/mingw.c")
+    set(STLINK_HEADERS "${STLINK_HEADERS};src/mingw/mingw.h")
 endif ()
 
 include_directories(${LIBUSB_INCLUDE_DIR})

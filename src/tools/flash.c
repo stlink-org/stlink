@@ -29,11 +29,9 @@ static void cleanup(int signum) {
 
 static void usage(void)
 {
-    puts("stlinkv1   command line:   ./st-flash [--debug] [--reset] [--opt] [--format <format>] [--flash=<fsize>] {read|write} /dev/sgX <path> <addr> <size>");
-    puts("stlinkv1   command line:   ./st-flash [--debug] /dev/sgX erase");
-    puts("stlinkv2/3 command line:   ./st-flash [--debug] [--reset] [--opt] [--serial <serial>] [--format <format>] [--flash=<fsize>] {read|write} <path> <addr> <size>");
-    puts("stlinkv2/3 command line:   ./st-flash [--debug] [--serial <serial>] erase");
-    puts("stlinkv2/3 command line:   ./st-flash [--debug] [--serial <serial>] reset");
+    puts("command line:   ./st-flash [--debug] [--reset] [--opt] [--serial <serial>] [--format <format>] [--flash=<fsize>] {read|write} <path> [addr] [size]");
+    puts("command line:   ./st-flash [--debug] [--serial <serial>] erase");
+    puts("command line:   ./st-flash [--debug] [--serial <serial>] reset");
     puts("   <addr>, <serial> and <size>: Use hex format.");
     puts("   <fsize>: Use decimal, octal or hex (prefix 0xXXX) format, optionally followed by k=KB, or m=MB (eg. --flash=128k)");
     puts("   <format>: Can be 'binary' (default) or 'ihex', although <addr> must be specified for binary format only.");
@@ -59,10 +57,7 @@ int main(int ac, char** av)
 
     printf("st-flash %s\n", STLINK_VERSION);
 
-    if (o.devname != NULL) /* stlinkv1 */
-        sl = stlink_v1_open(o.log_level, 1);
-    else /* stlinkv2 */
-        sl = stlink_open_usb(o.log_level, 1, (char *)o.serial);
+    sl = stlink_open_usb(o.log_level, 1, (char *)o.serial);
 
     if (sl == NULL)
         return -1;
@@ -134,7 +129,7 @@ int main(int ac, char** av)
     if (o.cmd == FLASH_CMD_WRITE) /* write */
     {
         size_t size = 0;
-        if(o.format == FLASH_FORMAT_IHEX) {
+        if (o.format == FLASH_FORMAT_IHEX) {
             err = stlink_parse_ihex(o.filename, stlink_get_erased_pattern(sl), &mem, &size, &o.addr);
             if (err == -1) {
                 printf("Cannot parse %s as Intel-HEX file\n", o.filename);
@@ -143,7 +138,7 @@ int main(int ac, char** av)
         }
         if ((o.addr >= sl->flash_base) &&
                 (o.addr < sl->flash_base + sl->flash_size)) {
-            if(o.format == FLASH_FORMAT_IHEX)
+            if (o.format == FLASH_FORMAT_IHEX)
                 err = stlink_mwrite_flash(sl, mem, (uint32_t)size, o.addr);
             else
                 err = stlink_fwrite_flash(sl, o.filename, o.addr);
@@ -155,7 +150,7 @@ int main(int ac, char** av)
         }
         else if ((o.addr >= sl->sram_base) &&
                 (o.addr < sl->sram_base + sl->sram_size)) {
-            if(o.format == FLASH_FORMAT_IHEX)
+            if (o.format == FLASH_FORMAT_IHEX)
                 err = stlink_mwrite_sram(sl, mem, (uint32_t)size, o.addr);
             else
                 err = stlink_fwrite_sram(sl, o.filename, o.addr);
@@ -212,19 +207,19 @@ int main(int ac, char** av)
     }
     else /* read */
     {
-        if(o.area == FLASH_OPTION_BYTES){
-            if(sl->chip_id == STLINK_CHIPID_STM32_F2){
+        if (o.area == FLASH_OPTION_BYTES){
+            if (sl->chip_id == STLINK_CHIPID_STM32_F2){
                 uint32_t option_byte = 0;
                 err = stlink_read_option_bytes_f2(sl,&option_byte);
                 printf("%x\n",option_byte);
-            }else if(sl->chip_id == STLINK_CHIPID_STM32_F446){
+            } else if (sl->chip_id == STLINK_CHIPID_STM32_F446){
                 uint32_t option_byte = 0;
                 err = stlink_read_option_bytes_f4(sl,&option_byte);
                 printf("%x\n",option_byte);
-            }else{
+            } else {
                 printf("This format is available for STM32F2 and STM32F4 only\n");
             }
-        }else{
+        } else {
             if ((o.addr >= sl->flash_base) && (o.size == 0) &&
                     (o.addr < sl->flash_base + sl->flash_size)){
                 o.size = sl->flash_size;

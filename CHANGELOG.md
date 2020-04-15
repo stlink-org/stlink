@@ -173,7 +173,7 @@ Release date: 2017-01-28
 Major changes and added features:
 
 * Deprecation of autotools (autoconf, automake) and fixed build with MinGW ([#83](https://github.com/texane/stlink/pull/83), [#431](https://github.com/texane/stlink/pull/431), [#434](https://github.com/texane/stlink/pull/434), [#465](https://github.com/texane/stlink/pull/465))
-* Added intel hex file reading for `st-flash` ([#110](https://github.com/texane/stlink/pull/110), [#157](https://github.com/texane/stlink/pull/157), [#200](https://github.com/texane/stlink/pull/200), [#239](https://github.com/texane/stlink/pull/239), [#457](https://github.com/texane/stlink/pull/547), [#459](https://github.com/texane/stlink/pull/549))
+* Added intel hex file reading for `st-flash` ([#110](https://github.com/texane/stlink/pull/110), [#157](https://github.com/texane/stlink/pull/157), [#457](https://github.com/texane/stlink/pull/547), [#459](https://github.com/texane/stlink/pull/549))
 * Added support for ARM semihosting to `st-util` ([#147](https://github.com/texane/stlink/pull/147), [#227](https://github.com/texane/stlink/pull/227), [#454](https://github.com/texane/stlink/pull/454), [#455](https://github.com/texane/stlink/pull/455))
 * Added manpages (generated with pandoc from Markdown) ([#208](https://github.com/texane/stlink/pull/208), [#464](https://github.com/texane/stlink/pull/464), [#466](https://github.com/texane/stlink/pull/466), [#467](https://github.com/texane/stlink/pull/467))
 * Removal of undocumented `st-term` utility, which is now replaced by `st-util` ARM semihosting feature ([#228](https://github.com/texane/stlink/pull/228), ([#507](https://github.com/texane/stlink/pull/507), commit [#3fd0f09](https://github.com/texane/stlink/commit/3fd0f099782506532198473b24f643a3f68d5ff9))
@@ -190,7 +190,7 @@ Chip support added for:
 * STM32F410RBTx ([#418](https://github.com/texane/stlink/pull/418))
 * STM32F412 ([#537](https://github.com/texane/stlink/pull/537), [#538](https://github.com/texane/stlink/pull/538))
 * STM32F7xx ([#324](https://github.com/texane/stlink/pull/324), [#326](https://github.com/texane/stlink/pull/326), [#327](https://github.com/texane/stlink/pull/327), [#337](https://github.com/texane/stlink/pull/337))
-* STM32F767ZI ([#509](https://github.com/texane/stlink/pull/509))
+* STM32F7x7x ([#433](https://github.com/texane/stlink/pull/433), [#435](https://github.com/texane/stlink/pull/435), [#436](https://github.com/texane/stlink/pull/436), [#509](https://github.com/texane/stlink/pull/509))
 * STM32L0xx Cat2 devices (chip-ID: 0x425) ([#414](https://github.com/texane/stlink/pull/414))
 * STM32L0xx Cat5 devices (chip-ID: 0x447) ([#387](https://github.com/texane/stlink/pull/387), [#406](https://github.com/texane/stlink/pull/406))
 * STM32L4xx ([#321](https://github.com/texane/stlink/pull/321))
@@ -207,7 +207,7 @@ Updates and fixes:
 * Fixed STM32F030 erase error ([#442](https://github.com/texane/stlink/pull/442))
 * Fixed memory map for STM32F7xx ([#453](https://github.com/texane/stlink/pull/453), [#456](https://github.com/texane/stlink/pull/456))
 * Redesign of `st-flash` commandline options parsing ([#459](https://github.com/texane/stlink/pull/459))
-* Set SWDCLK and fixed jtag_reset bug ([#475](https://github.com/texane/stlink/pull/475), [#534](https://github.com/texane/stlink/pull/534))
+* Set SWDCLK and fixed jtag_reset bug ([#462](https://github.com/texane/stlink/pull/462), [#475](https://github.com/texane/stlink/pull/475), [#534](https://github.com/texane/stlink/pull/534))
 * doc/compiling.md: Add note about installation and ldconfig ([#478](https://github.com/texane/stlink/pull/478), commit [#be66bbf](https://github.com/texane/stlink/commit/be66bbf200c718904514b044ba84d64a36456218))
 * Fixed Release target to generate the man-pages with pandoc ([#479](https://github.com/texane/stlink/pull/479))
 * Fixed Cygwin build ([#487](https://github.com/texane/stlink/pull/487), ([#506](https://github.com/texane/stlink/pull/506))

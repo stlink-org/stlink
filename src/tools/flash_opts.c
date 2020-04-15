@@ -11,15 +11,24 @@ static bool starts_with(const char * str, const char * prefix) {
     return (0 == strncmp(str, prefix, n));
 }
 
+static int invalid_args(const char *expected) {
+    fprintf(stderr, "*** Error: Expected args for this command: %s\n", expected);
+    return -1;
+}
+
+static int bad_arg(const char *arg) {
+    fprintf(stderr, "*** Error: Invalid value for %s\n", arg);
+    return -1;
+}
+
 int flash_get_opts(struct flash_opts* o, int ac, char** av) {
-    bool serial_specified = false;
 
     // defaults
     memset(o, 0, sizeof(*o));
     o->log_level = STND_LOG_LEVEL;
 
     // options
-    while(ac >= 1) {
+    while (ac >= 1) {
         if (strcmp(av[0], "--version") == 0) {
             printf("v%s\n", STLINK_VERSION);
             exit(EXIT_SUCCESS);
@@ -35,7 +44,7 @@ int flash_get_opts(struct flash_opts* o, int ac, char** av) {
         }
         else if (strcmp(av[0], "--serial") == 0 || starts_with(av[0], "--serial=")) {
             const char * serial;
-            if(strcmp(av[0], "--serial") == 0) {
+            if (strcmp(av[0], "--serial") == 0) {
                 ac--;
                 av++;
                 if (ac < 1) return -1;
@@ -47,17 +56,16 @@ int flash_get_opts(struct flash_opts* o, int ac, char** av) {
             /** @todo This is not really portable, as strlen really returns size_t we need to obey and not cast it to a signed type. */
             int j = (int)strlen(serial);
             int length = j / 2;  // the length of the destination-array
-            if(j % 2 != 0) return -1;
-            for(size_t k = 0; j >= 0 && k < sizeof(o->serial); ++k, j -= 2) {
+            if (j % 2 != 0) return -1;
+            for (size_t k = 0; j >= 0 && k < sizeof(o->serial); ++k, j -= 2) {
                 char buffer[3] = {0};
                 memcpy(buffer, serial + j, 2);
                 o->serial[length - k] = (uint8_t)strtol(buffer, NULL, 16);
             }
-            serial_specified = true;
         }
         else if (strcmp(av[0], "--area") == 0 || starts_with(av[0], "--area=")) {
             const char * area;
-            if(strcmp(av[0], "--area") == 0) {
+            if (strcmp(av[0], "--area") == 0) {
                 ac--;
                 av++;
                 if (ac < 1) return -1;
@@ -80,7 +88,7 @@ int flash_get_opts(struct flash_opts* o, int ac, char** av) {
         }
         else if (strcmp(av[0], "--format") == 0 || starts_with(av[0], "--format=")) {
             const char * format;
-            if(strcmp(av[0], "--format") == 0) {
+            if (strcmp(av[0], "--format") == 0) {
                 ac--;
                 av++;
                 if (ac < 1) return -1;
@@ -94,7 +102,7 @@ int flash_get_opts(struct flash_opts* o, int ac, char** av) {
             else if (strcmp(format, "ihex") == 0)
                 o->format = FLASH_FORMAT_IHEX;
             else
-                return -1;
+                return bad_arg("format");
         }
         else if ( starts_with(av[0], "--flash=") ) {
             const char *arg = av[0] + strlen("--flash=");
@@ -128,7 +136,7 @@ int flash_get_opts(struct flash_opts* o, int ac, char** av) {
     }
 
     // command and (optional) device name
-    while(ac >= 1) { // looks like for stlinkv1 the device name and command may be swaped - check both positions in all cases
+    while (ac >= 1) {
         if (strcmp(av[0], "erase") == 0) {
             if (o->cmd != FLASH_CMD_NONE) return -1;
             o->cmd = FLASH_CMD_ERASE;
@@ -145,10 +153,6 @@ int flash_get_opts(struct flash_opts* o, int ac, char** av) {
             if (o->cmd != FLASH_CMD_NONE) return -1;
             o->cmd = CMD_RESET;
         }
-        else if(starts_with(av[0], "/dev/")) {
-            if (o->devname) return -1;
-            o->devname = av[0];
-        }
         else {
             break;
         }
@@ -163,44 +167,42 @@ int flash_get_opts(struct flash_opts* o, int ac, char** av) {
             return -1;
 
         case FLASH_CMD_ERASE:    // no more arguments expected
-            if(ac != 0) return -1;
+            if (ac != 0) return -1;
             break;
 
         case FLASH_CMD_READ:     // expect filename, addr and size
-            if((o->area == FLASH_OPTION_BYTES) &&(ac == 0)) break;
+            if ((o->area == FLASH_OPTION_BYTES) &&(ac == 0)) break;
+            if (ac != 3) return invalid_args("read <path> <addr> <size>");
             if (ac != 3) return -1;
             o->filename = av[0];
             o->addr = (uint32_t) strtoul(av[1], &tail, 16);
-            if(tail[0] != '\0') return -1;
+            if (tail[0] != '\0') return bad_arg("addr");
             o->size = strtoul(av[2], &tail, 16);
-            if(tail[0] != '\0') return -1;
+            if (tail[0] != '\0') return bad_arg("size");
             break;
 
         case FLASH_CMD_WRITE:
-            if(o->area == FLASH_OPTION_BYTES){
-                if(ac != 1) return -1;
+            if (o->area == FLASH_OPTION_BYTES){
+                if (ac != 1) return -1;
                 o->val = (uint32_t)strtoul(av[0], &tail, 16);
             }
-            else if(o->format == FLASH_FORMAT_BINARY) {    // expect filename and addr
-                if (ac != 2) return -1;
+            else if (o->format == FLASH_FORMAT_BINARY) {    // expect filename and addr
+                if (ac != 2) return invalid_args("write <path> <addr>");
                 o->filename = av[0];
                 o->addr = (uint32_t) strtoul(av[1], &tail, 16);
-                if(tail[0] != '\0') return -1;
+                if (tail[0] != '\0') return bad_arg("addr");
             }
-            else if(o->format == FLASH_FORMAT_IHEX) { // expect filename
-                if (ac != 1) return -1;
+            else if (o->format == FLASH_FORMAT_IHEX) { // expect filename
+                if (ac != 1) return invalid_args("write <path>");
                 o->filename = av[0];
             }
             else {
-                return -1;
+                return -1; // should have been caught during format parsing
             }
             break;
 
        default: break ;
     }
-
-    // some constistence checks
-    if(serial_specified && o->devname != NULL) return -1; // serial not supported for v1
 
     return 0;
 }
