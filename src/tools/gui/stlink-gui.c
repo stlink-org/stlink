@@ -142,7 +142,7 @@ mem_view_add_as_hex (GtkListStore *store,
     gchar     *hex_str;
 
     hex_str = g_strdup_printf ("0x%08X", value);
-    gtk_list_store_set (store, iter, column, hex_str, -1);
+    gtk_list_store_set(store, iter, column, hex_str, -1);
     g_free (hex_str);
 }
 
@@ -439,7 +439,7 @@ static void mem_jmp (GtkTreeView *view,
                     }
                 }
             }
-            g_value_unset (&value);
+            g_value_unset(&value);
         } while (gtk_tree_model_iter_next (model, &iter));
     }
 }
@@ -751,10 +751,10 @@ int export_to_file(const char*filename, const struct mem_t flash_mem)
 {
     printf("%s\n", filename);
     FILE * f=fopen(filename, "w");
-    if(f==NULL)
+    if (f==NULL)
         return -1;
-    for(gsize i=0;i<flash_mem.size;i++)
-        if(fputc(flash_mem.memory[i], f)==EOF)
+    for (gsize i=0;i<flash_mem.size;i++)
+        if (fputc(flash_mem.memory[i], f)==EOF)
         return -1;
     fclose(f);
     return 0;
@@ -782,7 +782,7 @@ export_button_cb (GtkWidget *widget, gpointer data)
         char *filename;
 
         filename = gtk_file_chooser_get_filename (chooser);
-        if(export_to_file (filename, gui->flash_mem)!=0)
+        if (export_to_file (filename, gui->flash_mem)!=0)
             stlink_gui_set_info_error_message(gui, "Failed to export flash");
         else
             stlink_gui_set_info_error_message(gui, "Export successful");
@@ -886,7 +886,7 @@ stlink_gui_init_dnd (STlinkGUI *gui)
         { "text/uri-list", 0, TARGET_FILENAME },
     };
 
-    gtk_drag_dest_set (GTK_WIDGET (gui->window),
+    gtk_drag_dest_set(GTK_WIDGET (gui->window),
                        GTK_DEST_DEFAULT_ALL,
                        target_list,
                        G_N_ELEMENTS (target_list),

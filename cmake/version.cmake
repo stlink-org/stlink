@@ -27,7 +27,7 @@ if (GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
             )
 
         if (res EQUAL 1)
-            set (PROJECT_VERSION "${PROJECT_VERSION}-dirty")
+            set(PROJECT_VERSION "${PROJECT_VERSION}-dirty")
         endif ()
 
         # strip a leading v off of the version as proceeding code expectes just the version numbering.
@@ -57,7 +57,7 @@ if (GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
     else(GIT_DESCRIBE_RESULT EQUAL 0)
         message(WARNING "git describe failed.")
         message(WARNING "${GIT_DESCRIBE_ERROR}")
-    endif(GIT_DESCRIBE_RESULT EQUAL 0)
+    endif (GIT_DESCRIBE_RESULT EQUAL 0)
 else ()
     message(STATUS "Git or repo not found.")
 endif ()

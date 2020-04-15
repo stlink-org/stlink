@@ -70,7 +70,7 @@ void*
 
     #define GET(n) (ctx->block[(n)])
     #define SET(n) (ctx->block[(n)] =             \
-            ((uint32_t)ptr[(n)*4 + 0] << 0 )      \
+            ((uint32_t)ptr[(n)*4 + 0] << 0)     \
         |   ((uint32_t)ptr[(n)*4 + 1] << 8 )      \
         |   ((uint32_t)ptr[(n)*4 + 2] << 16)      \
         |   ((uint32_t)ptr[(n)*4 + 3] << 24) )
@@ -167,7 +167,7 @@ void*
         d += saved_d;
 
         ptr += 64;
-    } while( size -= 64 );
+    } while ( size -= 64 );
 
     ctx->a = a;
     ctx->b = b;
@@ -223,7 +223,7 @@ void
     uint32_t    free;
 
     saved_lo = Context->lo;
-    if( (Context->lo = (saved_lo + BufferSize) & 0x1fffffff) < saved_lo )
+    if ( (Context->lo = (saved_lo + BufferSize) & 0x1fffffff) < saved_lo )
     {
         Context->hi++;
     }
@@ -231,11 +231,11 @@ void
 
     used = saved_lo & 0x3f;
 
-    if( used )
+    if ( used )
     {
         free = 64 - used;
 
-        if( BufferSize < free )
+        if ( BufferSize < free )
         {
             memcpy( &Context->buffer[used], Buffer, BufferSize );
             return;
@@ -247,7 +247,7 @@ void
         TransformFunction(Context, Context->buffer, 64);
     }
 
-    if( BufferSize >= 64 )
+    if ( BufferSize >= 64 )
     {
         Buffer = TransformFunction( Context, Buffer, BufferSize & ~(unsigned long)0x3f );
         BufferSize &= 0x3f;
@@ -278,7 +278,7 @@ void
 
     free = 64 - used;
 
-    if(free < 8)
+    if (free < 8)
     {
         memset( &Context->buffer[used], 0, free );
         TransformFunction( Context, Context->buffer, 64 );

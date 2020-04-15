@@ -226,7 +226,7 @@ static int loader_v_dependent_assignment(stlink_t *sl,
 {
     int retval = 0;
 
-    if( sl->version.stlink_v == 1 ) {
+    if ( sl->version.stlink_v == 1){
         printf("STLINK V1 cannot read voltage, defaulting to 32-bit writes\n");
         *loader_code = high_v_loader;
         *loader_size = high_v_loader_size;

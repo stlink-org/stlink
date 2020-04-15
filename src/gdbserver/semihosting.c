@@ -178,7 +178,7 @@ int do_semihosting (stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret) {
         uint32_t name_len;
         char     *name;
 
-        if (mem_read(sl, r1, args, sizeof (args)) != 0 ) {
+        if (mem_read(sl, r1, args, sizeof (args)) != 0){
             DLOG("Semihosting SYS_OPEN error: "
                  "cannot read args from target memory\n");
             *ret = -1;
@@ -215,7 +215,7 @@ int do_semihosting (stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret) {
             return -1;
         }
 
-        if (mem_read(sl, name_address, name, name_len) != 0 ) {
+        if (mem_read(sl, name_address, name, name_len) != 0){
             free(name);
             *ret = -1;
             DLOG("Semihosting SYS_OPEN error: "
@@ -238,7 +238,7 @@ int do_semihosting (stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret) {
         uint32_t args[1];
         int      fd;
 
-        if (mem_read(sl, r1, args, sizeof (args)) != 0 ) {
+        if (mem_read(sl, r1, args, sizeof (args)) != 0){
             DLOG("Semihosting SYS_CLOSE error: "
                  "cannot read args from target memory\n");
             *ret = -1;
@@ -263,7 +263,7 @@ int do_semihosting (stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret) {
         uint32_t buffer_len;
         void    *buffer;
 
-        if (mem_read(sl, r1, args, sizeof (args)) != 0 ) {
+        if (mem_read(sl, r1, args, sizeof (args)) != 0){
             DLOG("Semihosting SYS_WRITE error: "
                  "cannot read args from target memory\n");
             *ret = -1;
@@ -289,7 +289,7 @@ int do_semihosting (stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret) {
             return -1;
         }
 
-        if (mem_read(sl, buffer_address, buffer, buffer_len) != 0 ) {
+        if (mem_read(sl, buffer_address, buffer, buffer_len) != 0){
             DLOG("Semihosting SYS_WRITE error: "
                  "cannot read buffer from target memory\n");
             free(buffer);
@@ -322,7 +322,7 @@ int do_semihosting (stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret) {
         void    *buffer;
         ssize_t  read_result;
 
-        if (mem_read(sl, r1, args, sizeof (args)) != 0 ) {
+        if (mem_read(sl, r1, args, sizeof (args)) != 0){
             DLOG("Semihosting SYS_READ error: "
                  "cannot read args from target memory\n");
             *ret = -1;
@@ -357,7 +357,7 @@ int do_semihosting (stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret) {
         if (read_result == -1) {
             *ret = buffer_len;
         } else {
-            if (mem_write(sl, buffer_address, buffer, read_result) != 0 ) {
+            if (mem_write(sl, buffer_address, buffer, read_result) != 0){
                 DLOG("Semihosting SYS_READ error: "
                      "cannot write buffer to target memory\n");
                 free(buffer);
@@ -385,7 +385,7 @@ int do_semihosting (stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret) {
         uint32_t name_len;
         char     *name;
 
-        if (mem_read(sl, r1, args, sizeof (args)) != 0 ) {
+        if (mem_read(sl, r1, args, sizeof (args)) != 0){
             DLOG("Semihosting SYS_REMOVE error: "
                  "cannot read args from target memory\n");
             *ret = -1;
@@ -414,7 +414,7 @@ int do_semihosting (stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret) {
             return -1;
         }
 
-        if (mem_read(sl, name_address, name, name_len) != 0 ) {
+        if (mem_read(sl, name_address, name, name_len) != 0){
             free(name);
             *ret = -1;
             DLOG("Semihosting SYS_REMOVE error: "
@@ -438,7 +438,7 @@ int do_semihosting (stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret) {
         int      fd;
         off_t    offset;
 
-        if (mem_read(sl, r1, args, sizeof (args)) != 0 ) {
+        if (mem_read(sl, r1, args, sizeof (args)) != 0){
             DLOG("Semihosting SYS_SEEK error: "
                  "cannot read args from target memory\n");
             *ret = -1;
@@ -482,7 +482,7 @@ int do_semihosting (stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret) {
         uint8_t buf[WRITE0_BUFFER_SIZE];
 
         while (true) {
-            if (mem_read(sl, r1, buf, WRITE0_BUFFER_SIZE) != 0 ) {
+            if (mem_read(sl, r1, buf, WRITE0_BUFFER_SIZE) != 0){
                 DLOG("Semihosting WRITE0: "
                      "cannot read target memory at 0x%08x\n", r1);
                 return -1;

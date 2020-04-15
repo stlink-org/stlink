@@ -1,6 +1,6 @@
-if(NOT EXISTS "@CMAKE_BINARY_DIR@/install_manifest.txt")
+if (NOT EXISTS "@CMAKE_BINARY_DIR@/install_manifest.txt")
     message(FATAL_ERROR "Cannot find install manifest: @CMAKE_BINARY_DIR@/install_manifest.txt")
-endif()
+endif ()
 
 file(READ "@CMAKE_BINARY_DIR@/install_manifest.txt" files)
 string(REGEX REPLACE "\n" ";" files "${files}")

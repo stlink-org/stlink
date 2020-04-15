@@ -77,7 +77,7 @@ else ()                                          # all other OS
         LIBUSB_LIBRARY NAMES ${LIBUSB_NAME}
         HINTS /usr /usr/local /opt
         )
-endif()
+endif ()
 
 include(FindPackageHandleStandardArgs)
 FIND_PACKAGE_HANDLE_STANDARD_ARGS(Libusb DEFAULT_MSG LIBUSB_LIBRARY LIBUSB_INCLUDE_DIR)

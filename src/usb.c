@@ -144,7 +144,7 @@ static int fill_command
     unsigned char* const cmd = sl->c_buf;
     int i = 0;
     memset(cmd, 0, sizeof (sl->c_buf));
-    if(slu->protocoll == 1) {
+    if (slu->protocoll == 1) {
         cmd[i++] = 'U';
         cmd[i++] = 'S';
         cmd[i++] = 'B';
@@ -651,7 +651,7 @@ int _stlink_usb_read_all_regs(stlink_t *sl, struct stlink_reg *regp) {
     }
     sl->q_len = (int) size;
     stlink_print_data(sl);
-    for(i=0; i<16; i++)
+    for (i=0; i<16; i++)
         regp->r[i]= read_uint32(sl->q_buf, i*4);
     regp->xpsr       = read_uint32(sl->q_buf, 64);
     regp->main_sp    = read_uint32(sl->q_buf, 68);
@@ -1049,7 +1049,7 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, bool reset, char serial[ST
     }
 
     if (reset) {
-        if( sl->version.stlink_v > 1 ) stlink_jtag_reset(sl, 2);
+        if ( sl->version.stlink_v > 1)stlink_jtag_reset(sl, 2);
         stlink_reset(sl);
         usleep(10000);
     }

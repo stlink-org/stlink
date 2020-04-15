@@ -23,7 +23,7 @@ foreach (manpage ${MANPAGES})
         set(f "${CMAKE_CURRENT_SOURCE_DIR}/${manpage}.1")
     else()
         message(AUTHOR_WARNING "Manpage ${manpage} not generated")
-    endif()
+    endif ()
 
     if (f AND NOT WIN32)
         install(FILES ${f} DESTINATION ${CMAKE_INSTALL_PREFIX}/share/man/man1)

@@ -921,9 +921,9 @@ static stlink_t* stlink_open(const int verbose) {
     struct stlink_libsg *slsg = malloc(sizeof (struct stlink_libsg));
     if (sl == NULL || slsg == NULL) {
         WLOG("Couldn't malloc stlink and stlink_sg structures out of memory!\n");
-        if(sl != NULL)
+        if (sl != NULL)
             free(sl);
-        if(slsg != NULL)
+        if (slsg != NULL)
             free(slsg);
         return NULL;
     }

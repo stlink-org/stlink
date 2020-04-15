@@ -546,7 +546,7 @@ static void set_flash_cr_mer(stlink_t *sl, bool v) {
         stlink_write_debug32(sl, cr_reg, val);
     }
 
-    if(v)
+    if (v)
         val |= cr_mer;
     else
         val &= ~cr_mer;
@@ -905,7 +905,7 @@ int stlink_load_device_params(stlink_t *sl) {
         sl->flash_size = (flash_size & 0xff) * 1024;
     } else if ((sl->chip_id & 0xFFF) == STLINK_CHIPID_STM32_L1_HIGH) {
         // 0 is 384k and 1 is 256k
-        if ( flash_size == 0 ) {
+        if ( flash_size == 0){
             sl->flash_size = 384 * 1024;
         } else {
             sl->flash_size = 256 * 1024;
@@ -923,7 +923,7 @@ int stlink_load_device_params(stlink_t *sl) {
 
     //medium and low devices have the same chipid. ram size depends on flash size.
     //STM32F100xx datasheet Doc ID 16455 Table 2
-    if(sl->chip_id == STLINK_CHIPID_STM32_F1_VL_MEDIUM_LOW && sl->flash_size < 64 * 1024){
+    if (sl->chip_id == STLINK_CHIPID_STM32_F1_VL_MEDIUM_LOW && sl->flash_size < 64 * 1024){
         sl->sram_size = 0x1000;
     }
 
@@ -1091,7 +1091,7 @@ int stlink_read_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
 
 int stlink_write_mem8(stlink_t *sl, uint32_t addr, uint16_t len) {
     DLOG("*** stlink_write_mem8 ***\n");
-    if (len > 0x40 ) { // !!! never ever: Writing more then 0x40 bytes gives unexpected behaviour
+    if (len > 0x40){ // !!! never ever: Writing more then 0x40 bytes gives unexpected behaviour
         fprintf(stderr, "Error: Data length > 64: +%d byte.\n",
                 len);
         abort();
@@ -1374,7 +1374,7 @@ static void md5_calculate(mapped_file_t *mf) {
     Md5Update(&md5Context, mf->base, (uint32_t)mf->len);
     Md5Finalise(&md5Context, &md5Hash);
     printf("md5 checksum: ");
-    for(int i = 0; i < (int) sizeof(md5Hash); i++) {
+    for (int i = 0; i < (int) sizeof(md5Hash); i++) {
         printf("%x", md5Hash.bytes[i]);
     }
     printf(", ");
@@ -1426,7 +1426,7 @@ int stlink_mwrite_sram(stlink_t * sl, uint8_t* data, uint32_t length, stm32_addr
 
     len = length;
 
-    if(len & 3) {
+    if (len & 3) {
       len -= len & 3;
     }
 
@@ -1445,7 +1445,7 @@ int stlink_mwrite_sram(stlink_t * sl, uint8_t* data, uint32_t length, stm32_addr
         stlink_write_mem32(sl, addr + (uint32_t) off, size);
     }
 
-    if(length > len) {
+    if (length > len) {
         memcpy(sl->q_buf, data + len, length - len);
         stlink_write_mem8(sl, addr + (uint32_t) len, length - len);
     }
@@ -1492,7 +1492,7 @@ int stlink_fwrite_sram(stlink_t * sl, const char* path, stm32_addr_t addr) {
 
     len = mf.len;
 
-    if(len & 3) {
+    if (len & 3) {
       len -= len & 3;
     }
 
@@ -1511,7 +1511,7 @@ int stlink_fwrite_sram(stlink_t * sl, const char* path, stm32_addr_t addr) {
         stlink_write_mem32(sl, addr + (uint32_t) off, size);
     }
 
-    if(mf.len > len) {
+    if (mf.len > len) {
         memcpy(sl->q_buf, mf.base + len, mf.len - len);
         stlink_write_mem8(sl, addr + (uint32_t) len, mf.len - len);
     }
@@ -1595,7 +1595,7 @@ struct stlink_fread_ihex_worker_arg {
 static bool stlink_fread_ihex_newsegment(struct stlink_fread_ihex_worker_arg* the_arg) {
     uint32_t addr = the_arg->addr;
     uint8_t sum = 2 + 4 + (uint8_t)((addr & 0xFF000000) >> 24) + (uint8_t)((addr & 0x00FF0000) >> 16);
-    if(17 != fprintf(the_arg->file, ":02000004%04X%02X\r\n", (addr & 0xFFFF0000) >> 16, (uint8_t)(0x100 - sum)))
+    if (17 != fprintf(the_arg->file, ":02000004%04X%02X\r\n", (addr & 0xFFFF0000) >> 16, (uint8_t)(0x100 - sum)))
         return false;
 
     the_arg->lba = (addr & 0xFFFF0000);
@@ -1605,26 +1605,26 @@ static bool stlink_fread_ihex_newsegment(struct stlink_fread_ihex_worker_arg* th
 
 static bool stlink_fread_ihex_writeline(struct stlink_fread_ihex_worker_arg* the_arg) {
     uint8_t count = the_arg->buf_pos;
-    if(count == 0) return true;
+    if (count == 0) return true;
 
     uint32_t addr = the_arg->addr;
 
-    if(the_arg->lba != (addr & 0xFFFF0000)) { // segment changed
-        if(!stlink_fread_ihex_newsegment(the_arg)) return false;
+    if (the_arg->lba != (addr & 0xFFFF0000)) { // segment changed
+        if (!stlink_fread_ihex_newsegment(the_arg)) return false;
     }
 
     uint8_t sum = count + (uint8_t)((addr & 0x0000FF00) >> 8) + (uint8_t)(addr & 0x000000FF);
-    if(9 != fprintf(the_arg->file, ":%02X%04X00", count, (addr & 0x0000FFFF)))
+    if (9 != fprintf(the_arg->file, ":%02X%04X00", count, (addr & 0x0000FFFF)))
         return false;
 
-    for(uint8_t i = 0; i < count; ++i) {
+    for (uint8_t i = 0; i < count; ++i) {
         uint8_t b = the_arg->buf[i];
         sum += b;
-        if(2 != fprintf(the_arg->file, "%02X", b))
+        if (2 != fprintf(the_arg->file, "%02X", b))
             return false;
     }
 
-    if(4 != fprintf(the_arg->file, "%02X\r\n", (uint8_t)(0x100 - sum)))
+    if (4 != fprintf(the_arg->file, "%02X\r\n", (uint8_t)(0x100 - sum)))
         return false;
 
     the_arg->addr += count;
@@ -1645,9 +1645,9 @@ static bool stlink_fread_ihex_init(struct stlink_fread_ihex_worker_arg* the_arg,
 static bool stlink_fread_ihex_worker(void* arg, uint8_t* block, ssize_t len) {
     struct stlink_fread_ihex_worker_arg* the_arg = (struct stlink_fread_ihex_worker_arg*)arg;
 
-    for(ssize_t i = 0; i < len; ++i) {
-        if(the_arg->buf_pos == sizeof(the_arg->buf)) { // line is full
-            if(!stlink_fread_ihex_writeline(the_arg)) return false;
+    for (ssize_t i = 0; i < len; ++i) {
+        if (the_arg->buf_pos == sizeof(the_arg->buf)) { // line is full
+            if (!stlink_fread_ihex_writeline(the_arg)) return false;
         }
 
         the_arg->buf[the_arg->buf_pos++] = block[i];
@@ -1657,11 +1657,11 @@ static bool stlink_fread_ihex_worker(void* arg, uint8_t* block, ssize_t len) {
 }
 
 static bool stlink_fread_ihex_finalize(struct stlink_fread_ihex_worker_arg* the_arg) {
-    if(!stlink_fread_ihex_writeline(the_arg)) return false;
+    if (!stlink_fread_ihex_writeline(the_arg)) return false;
 
     // FIXME do we need the Start Linear Address?
 
-    if(13 != fprintf(the_arg->file, ":00000001FF\r\n")) // EoF
+    if (13 != fprintf(the_arg->file, ":00000001FF\r\n")) // EoF
         return false;
 
     return (0 == fclose(the_arg->file));
@@ -1678,11 +1678,11 @@ int stlink_fread(stlink_t* sl, const char* path, bool is_ihex, stm32_addr_t addr
         return -1;
     }
 
-    if(is_ihex) {
+    if (is_ihex) {
         struct stlink_fread_ihex_worker_arg arg;
-        if(stlink_fread_ihex_init(&arg, fd, addr)) {
+        if (stlink_fread_ihex_init(&arg, fd, addr)) {
             error = stlink_read(sl, addr, size, &stlink_fread_ihex_worker, &arg);
-            if(!stlink_fread_ihex_finalize(&arg))
+            if (!stlink_fread_ihex_finalize(&arg))
                 error = -1;
         }
         else {
@@ -1722,18 +1722,18 @@ uint32_t calculate_F4_sectornum(uint32_t flashaddr){
         flashaddr -= 0x100000;
     }
     if (flashaddr<0x4000) return (offset + 0);
-    else if(flashaddr<0x8000) return(offset + 1);
-    else if(flashaddr<0xc000) return(offset + 2);
-    else if(flashaddr<0x10000) return(offset + 3);
-    else if(flashaddr<0x20000) return(offset + 4);
+    else if (flashaddr<0x8000) return(offset + 1);
+    else if (flashaddr<0xc000) return(offset + 2);
+    else if (flashaddr<0x10000) return(offset + 3);
+    else if (flashaddr<0x20000) return(offset + 4);
     else return offset + (flashaddr/0x20000) +4;
 
 }
 
 uint32_t calculate_F7_sectornum(uint32_t flashaddr){
     flashaddr &= ~STM32_FLASH_BASE;	//Page now holding the actual flash address
-	if(flashaddr<0x20000) return(flashaddr/0x8000);
-    else if(flashaddr<0x40000) return(4);
+	if (flashaddr<0x20000) return(flashaddr/0x8000);
+    else if (flashaddr<0x40000) return(4);
     else return(flashaddr/0x40000) +4;
 
 }
@@ -1778,14 +1778,14 @@ uint32_t stlink_calculate_pagesize(stlink_t *sl, uint32_t flashaddr){
             sector -= 12;
         }
         if (sector<4) sl->flash_pgsz=0x4000;
-        else if(sector<5) sl->flash_pgsz=0x10000;
+        else if (sector<5) sl->flash_pgsz=0x10000;
         else sl->flash_pgsz=0x20000;
     }
     else if (sl->chip_id == STLINK_CHIPID_STM32_F7 ||
              sl->chip_id == STLINK_CHIPID_STM32_F7XXXX) {
         uint32_t sector=calculate_F7_sectornum(flashaddr);
         if (sector<4) sl->flash_pgsz=0x8000;
-        else if(sector<5) sl->flash_pgsz=0x20000;
+        else if (sector<5) sl->flash_pgsz=0x20000;
         else sl->flash_pgsz=0x40000;
     }
     return (uint32_t) sl->flash_pgsz;
@@ -1866,7 +1866,7 @@ int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr)
 
         /* check if the locks are set */
         stlink_read_debug32(sl, flash_regs_base + FLASH_PECR_OFF, &val);
-        if((val & (1<<0))||(val & (1<<1))) {
+        if ((val & (1<<0))||(val & (1<<1))) {
             /* disable pecr protection */
             stlink_write_debug32(sl, flash_regs_base + FLASH_PEKEYR_OFF, 0x89abcdef);
             stlink_write_debug32(sl, flash_regs_base + FLASH_PEKEYR_OFF, 0x02030405);
@@ -1903,7 +1903,7 @@ int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr)
          */
         do {
             stlink_read_debug32(sl, STM32L_FLASH_SR, &val)
-        } while((val & (1 << 0)) != 0);
+        } while ((val & (1 << 0)) != 0);
 
 #endif /* fix_to_be_confirmed */
 
@@ -2265,7 +2265,7 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uint32_t 
             (sl->chip_id != STLINK_CHIPID_STM32_L496X) &&
             (sl->chip_id != STLINK_CHIPID_STM32_L4RX)) {
 
-            if( sl->version.stlink_v == 1 ) {
+            if ( sl->version.stlink_v == 1){
                 printf("STLINK V1 cannot read voltage, defaulting to 32-bit writes on F4 devices\n");
                 write_flash_cr_psiz(sl, 2);
             }
@@ -2299,7 +2299,7 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uint32_t 
         set_flash_cr_pg(sl);
 
 		size_t buf_size = (sl->sram_size > 0x8000) ? 0x8000 : 0x4000;
-        for(off = 0; off < len;) {
+        for (off = 0; off < len;) {
             size_t size = len - off > buf_size ? buf_size : len - off;
 
             printf("size: %u\n", (unsigned int)size);
@@ -2483,11 +2483,11 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uint32_t 
 // note: length not checked
 static uint8_t stlink_parse_hex(const char* hex) {
     uint8_t d[2];
-    for(int i = 0; i < 2; ++i) {
+    for (int i = 0; i < 2; ++i) {
         char c = *(hex + i);
-        if(c >= '0' && c <= '9') d[i] = c - '0';
-        else if(c >= 'A' && c <= 'F') d[i] = c - 'A' + 10;
-        else if(c >= 'a' && c <= 'f') d[i] = c - 'a' + 10;
+        if (c >= '0' && c <= '9') d[i] = c - '0';
+        else if (c >= 'A' && c <= 'F') d[i] = c - 'A' + 10;
+        else if (c >= 'a' && c <= 'f') d[i] = c - 'a' + 10;
         else return 0; // error
     }
     return (d[0] << 4) | (d[1]);
@@ -2500,15 +2500,15 @@ int stlink_parse_ihex(const char* path, uint8_t erased_pattern, uint8_t * * mem,
     uint32_t end = 0;
     bool eof_found = false;
 
-    for(int scan = 0; (res == 0) && (scan < 2); ++scan) { // parse file two times - first to find memory range, second - to fill it
-        if(scan == 1) {
-            if(!eof_found) {
+    for (int scan = 0; (res == 0) && (scan < 2); ++scan) { // parse file two times - first to find memory range, second - to fill it
+        if (scan == 1) {
+            if (!eof_found) {
                 ELOG("No EoF recond\n");
                 res = -1;
                 break;
             }
 
-            if(*begin >= end) {
+            if (*begin >= end) {
                 ELOG("No data found in file\n");
                 res = -1;
                 break;
@@ -2516,7 +2516,7 @@ int stlink_parse_ihex(const char* path, uint8_t erased_pattern, uint8_t * * mem,
 
             *size = (end - *begin) + 1;
             data = calloc(*size, 1); // use calloc to get NULL if out of memory
-            if(!data) {
+            if (!data) {
                 ELOG("Cannot allocate %d bytes\n", *size);
                 res = -1;
                 break;
@@ -2526,7 +2526,7 @@ int stlink_parse_ihex(const char* path, uint8_t erased_pattern, uint8_t * * mem,
         }
 
         FILE* file = fopen(path, "r");
-        if(!file) {
+        if (!file) {
             ELOG("Cannot open file\n");
             res = -1;
             break;
@@ -2535,17 +2535,17 @@ int stlink_parse_ihex(const char* path, uint8_t erased_pattern, uint8_t * * mem,
         uint32_t lba = 0;
 
         char line[1 + 5*2 + 255*2 + 2];
-        while(fgets(line, sizeof(line), file)) {
-            if(line[0] == '\n' || line[0] == '\r') continue; // skip empty lines
-            if(line[0] != ':') { // no marker - wrong file format
+        while (fgets(line, sizeof(line), file)) {
+            if (line[0] == '\n' || line[0] == '\r') continue; // skip empty lines
+            if (line[0] != ':') { // no marker - wrong file format
                 ELOG("Wrong file format - no marker\n");
                 res = -1;
                 break;
             }
 
             size_t l = strlen(line);
-            while(l > 0 && (line[l-1] == '\n' || line[l-1] == '\r')) --l; // trim EoL
-            if((l < 11) || (l == (sizeof(line)-1))) { // line too short or long - wrong file format
+            while (l > 0 && (line[l-1] == '\n' || line[l-1] == '\r')) --l; // trim EoL
+            if ((l < 11) || (l == (sizeof(line)-1))) { // line too short or long - wrong file format
                 ELOG("Wrong file format - wrong line length\n");
                 res = -1;
                 break;
@@ -2553,17 +2553,17 @@ int stlink_parse_ihex(const char* path, uint8_t erased_pattern, uint8_t * * mem,
 
             // check sum
             uint8_t chksum = 0;
-            for(size_t i = 1; i < l; i += 2) {
+            for (size_t i = 1; i < l; i += 2) {
                 chksum += stlink_parse_hex(line + i);
             }
-            if(chksum != 0) {
+            if (chksum != 0) {
                 ELOG("Wrong file format - checksum mismatch\n");
                 res = -1;
                 break;
             }
 
             uint8_t reclen = stlink_parse_hex(line + 1);
-            if(((uint32_t)reclen + 5)*2 + 1 != l) {
+            if (((uint32_t)reclen + 5)*2 + 1 != l) {
                 ELOG("Wrong file format - record length mismatch\n");
                 res = -1;
                 break;
@@ -2574,17 +2574,17 @@ int stlink_parse_ihex(const char* path, uint8_t erased_pattern, uint8_t * * mem,
 
             switch(rectype) {
                 case 0: // data
-                    if(scan == 0) {
+                    if (scan == 0) {
                         uint32_t b = lba + offset;
                         uint32_t e = b + reclen - 1;
-                        if(b < *begin) *begin = b;
-                        if(e > end) end = e;
+                        if (b < *begin) *begin = b;
+                        if (e > end) end = e;
                     }
                     else {
-                        for(uint8_t i = 0; i < reclen; ++i) {
+                        for (uint8_t i = 0; i < reclen; ++i) {
                             uint8_t b = stlink_parse_hex(line + 9 + i*2);
                             uint32_t addr = lba + offset + i;
-                            if(addr >= *begin && addr <= end) {
+                            if (addr >= *begin && addr <= end) {
                                 data[addr - *begin] = b;
                             }
                         }
@@ -2604,7 +2604,7 @@ int stlink_parse_ihex(const char* path, uint8_t erased_pattern, uint8_t * * mem,
                     break;
 
                 case 4: // Extended Linear Address
-                    if(reclen == 2) {
+                    if (reclen == 2) {
                         lba = ((uint32_t)stlink_parse_hex(line + 9) << 24) | ((uint32_t)stlink_parse_hex(line + 11) << 16);
                     }
                     else {
@@ -2620,13 +2620,13 @@ int stlink_parse_ihex(const char* path, uint8_t erased_pattern, uint8_t * * mem,
                     ELOG("Wrong file format - unexpected record type %d\n", rectype);
                     res = -1;
             }
-            if(res != 0) break;
+            if (res != 0) break;
         }
 
         fclose(file);
     }
 
-    if(res == 0) {
+    if (res == 0) {
         *mem = data;
     }
     else {
@@ -2655,14 +2655,14 @@ int stlink_mwrite_flash(stlink_t *sl, uint8_t* data, uint32_t length, stm32_addr
      */
     if (sl->opt) {
         idx = (unsigned int)length;
-        for(num_empty = 0; num_empty != length; ++num_empty) {
+        for (num_empty = 0; num_empty != length; ++num_empty) {
             if (data[--idx] != erased_pattern) {
                 break;
             }
         }
         /* Round down to words */
         num_empty -= (num_empty & 3);
-        if(num_empty != 0) {
+        if (num_empty != 0) {
             ILOG("Ignoring %d bytes of 0x%02x at end of file\n", num_empty, erased_pattern);
         }
     } else {
@@ -2704,14 +2704,14 @@ int stlink_fwrite_flash(stlink_t *sl, const char* path, stm32_addr_t addr) {
 
     if (sl->opt) {
         idx = (unsigned int) mf.len;
-        for(num_empty = 0; num_empty != mf.len; ++num_empty) {
+        for (num_empty = 0; num_empty != mf.len; ++num_empty) {
             if (mf.base[--idx] != erased_pattern) {
                 break;
             }
         }
         /* Round down to words */
         num_empty -= (num_empty & 3);
-        if(num_empty != 0) {
+        if (num_empty != 0) {
             ILOG("Ignoring %d bytes of 0x%02x at end of file\n", num_empty, erased_pattern);
         }
     } else {
@@ -2740,7 +2740,7 @@ static int stlink_write_option_bytes_g0x(stlink_t *sl, uint8_t* base, uint32_t l
 
     uint32_t val;
 
-    if(len != 4) {
+    if (len != 4) {
         ELOG("Wrong length for writing option bytes, must be 4 is %d\n", len);
         return -1;
     }
@@ -2749,7 +2749,7 @@ static int stlink_write_option_bytes_g0x(stlink_t *sl, uint8_t* base, uint32_t l
     stlink_core_id(sl);
 
     /* Check if chip is supported and for correct address */
-    if(sl->chip_id != STLINK_CHIPID_STM32_G0_CAT1 &&
+    if (sl->chip_id != STLINK_CHIPID_STM32_G0_CAT1 &&
        sl->chip_id != STLINK_CHIPID_STM32_G0_CAT2) {
         ELOG("Option bytes writing is currently only supported for the STM32G0\n");
         return -1;
@@ -2833,7 +2833,7 @@ static int stlink_write_option_bytes_l0_cat2(stlink_t *sl, uint8_t* base, uint32
 
     uint32_t val;
 
-    if(len != 4) {
+    if (len != 4) {
         ELOG("Wrong length for writting option bytes, must be 4 is %d\n", len);
         return -1;
     }
@@ -2891,7 +2891,7 @@ static int stlink_write_option_bytes_l1(stlink_t *sl, uint8_t* base, stm32_addr_
     uint32_t val;
     uint32_t data;
 
-    if(len != 4 && len != 8) {
+    if (len != 4 && len != 8) {
         ELOG("Wrong length for writting option bytes, must be 4 or 8 is %d\n", len);
         return -1;
     }
@@ -2932,7 +2932,7 @@ static int stlink_write_option_bytes_l1(stlink_t *sl, uint8_t* base, stm32_addr_
 
     /* Write options bytes */
     write_uint32((unsigned char*) &data, *(uint32_t*) (base));
-    if( data != val ) {
+    if ( data != val ) {
         WLOG("Writing option bytes 0x%04x\n", data);
         stlink_write_debug32(sl, addr, data);
         stlink_read_debug32(sl, addr, &val);
@@ -2940,7 +2940,7 @@ static int stlink_write_option_bytes_l1(stlink_t *sl, uint8_t* base, stm32_addr_
     }
 
 
-    if(len==8) {
+    if (len==8) {
 	/* Clear errors */
     	stlink_write_debug32(sl, STM32L1_FLASH_REGS_ADDR + FLASH_SR_OFF, 0x00003F00);
 
@@ -2949,7 +2949,7 @@ static int stlink_write_option_bytes_l1(stlink_t *sl, uint8_t* base, stm32_addr_
 
         /* Write options bytes */
     	write_uint32((unsigned char*) &data, *(uint32_t*) (base+4));
-	if( data != val ) {
+	if ( data != val ) {
    	    WLOG("Writing 2nd option bytes 0x%04x\n", data);
     	  stlink_write_debug32(sl, addr+4, data);
         stlink_read_debug32(sl, addr+4, &val);
@@ -2976,7 +2976,7 @@ static int stlink_write_option_bytes_l496x(stlink_t *sl, uint8_t* base, uint32_t
 
     uint32_t val;
 
-    if(len != 4) {
+    if (len != 4) {
         ELOG("Wrong length for writting option bytes, must be 4 is %d\n", len);
         return -1;
     }
@@ -3082,7 +3082,7 @@ static int stlink_write_option_bytes_f2(stlink_t *sl, uint32_t option_byte) {
     stlink_read_debug32(sl, FLASH_F2_SR, &val);
     WLOG("wait BSY flag to be 0\n");
 
-    while(val & 0x00010000){
+    while (val & 0x00010000){
         stlink_read_debug32(sl, FLASH_F2_SR, &val);
     }
     WLOG("BSY flag is 0\n");
@@ -3132,7 +3132,7 @@ static int stlink_write_option_bytes_f4(stlink_t *sl, uint32_t option_byte) {
     stlink_read_debug32(sl, FLASH_F4_SR, &val);
     WLOG("wait BSY flag to be 0\n");
 
-    while(val & 0x00010000){
+    while (val & 0x00010000){
         stlink_read_debug32(sl, FLASH_F4_SR, &val);
     }
     WLOG("BSY flag is 0\n");
@@ -3228,17 +3228,17 @@ int stlink_write_option_bytes(stlink_t *sl, stm32_addr_t addr, uint8_t* base, ui
     WLOG("Option bytes write chip_id 0x%08x addr 0x%08x\n",sl->chip_id,addr);
 
     /* Check if chip is supported and for correct address */
-    if(((sl->chip_id == STLINK_CHIPID_STM32_G0_CAT1) ||
+    if (((sl->chip_id == STLINK_CHIPID_STM32_G0_CAT1) ||
         (sl->chip_id == STLINK_CHIPID_STM32_G0_CAT2)) && (addr == STM32_G0_OPTION_BYTES_BASE)) {
         return stlink_write_option_bytes_g0x(sl, base, len);
     }
-    else if((sl->chip_id == STLINK_CHIPID_STM32_L0_CAT2) && (addr == STM32_L0_CAT2_OPTION_BYTES_BASE)) {
+    else if ((sl->chip_id == STLINK_CHIPID_STM32_L0_CAT2) && (addr == STM32_L0_CAT2_OPTION_BYTES_BASE)) {
         return stlink_write_option_bytes_l0_cat2(sl, base, len);
     }
-    else if((sl->chip_id == STLINK_CHIPID_STM32_L496X) && (addr == STM32_L496X_OPTION_BYTES_BASE)) {
+    else if ((sl->chip_id == STLINK_CHIPID_STM32_L496X) && (addr == STM32_L496X_OPTION_BYTES_BASE)) {
         return stlink_write_option_bytes_l496x(sl, base, len);
     }
-    else if(((sl->chip_id == STLINK_CHIPID_STM32_L152_RE) || (sl->chip_id == STLINK_CHIPID_STM32_L1_HIGH) ) &&
+    else if (((sl->chip_id == STLINK_CHIPID_STM32_L152_RE) || (sl->chip_id == STLINK_CHIPID_STM32_L1_HIGH) ) &&
             ((addr == STM32_L1_OPTION_BYTES_BASE) || (addr == STM32_L1_OPTION_BYTES_BASE+4))) {
         return stlink_write_option_bytes_l1(sl, base, addr, len);
     }
@@ -3284,9 +3284,9 @@ int stlink_fwrite_option_bytes(stlink_t *sl, const char* path, stm32_addr_t addr
  */
 int stlink_fwrite_option_bytes_32bit(stlink_t *sl, uint32_t val) {
 
-    if(sl->chip_id == STLINK_CHIPID_STM32_F2){
+    if (sl->chip_id == STLINK_CHIPID_STM32_F2){
         return stlink_write_option_bytes_f2(sl, val);
-    }else if(sl->chip_id == STLINK_CHIPID_STM32_F446){
+    } else if (sl->chip_id == STLINK_CHIPID_STM32_F446){
         return stlink_write_option_bytes_f4(sl, val);
     }
     else
