@@ -38,14 +38,14 @@ matrix:
               apt:
                   sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-bionic-6.0']
                   packages: ['clang-6.0', 'libusb-1.0.0-dev']
-        - os: linux
-          arch: x64
-          compiler: clang-6.0
-          addons:
-              apt:
-                  sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-bionic-6.0']
-                  packages: ['clang-6.0', 'libusb-1.0.0-dev']
-          env: CFLAGS=-m32 LDFLAGS=-m32
+#        - os: linux
+#          arch: x64
+#          compiler: clang-6.0
+#          addons:
+#              apt:
+#                  sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-bionic-6.0']
+#                  packages: ['clang-6.0', 'libusb-1.0.0-dev']
+#          env: CFLAGS=-m32 LDFLAGS=-m32
 
         ### 32-bit builds ###
         - os: linux
@@ -57,18 +57,18 @@ matrix:
                   packages: ['gcc-5', 'libusb-1.0.0-dev']
         - os: linux
           arch: x86
-          compiler: gcc-6
-          addons:
-              apt:
-                  sources: ['ubuntu-toolchain-r-test']
-                  packages: ['gcc-6', 'libusb-1.0.0-dev']
-        - os: linux
-          arch: x86
           compiler: gcc-7
           addons:
               apt:
                   sources: ['ubuntu-toolchain-r-test']
                   packages: ['gcc-7', 'libusb-1.0.0-dev']
+        - os: linux
+          arch: x86
+          compiler: gcc-9
+          addons:
+              apt:
+                  sources: ['ubuntu-toolchain-r-test']
+                  packages: ['gcc-9', 'libusb-1.0.0-dev']
         - os: linux
           arch: x86
           compiler: clang-3.7

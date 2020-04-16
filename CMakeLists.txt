@@ -1,16 +1,24 @@
 cmake_minimum_required(VERSION 3.4.2)
-set(CMAKE_USER_MAKE_RULES_OVERRIDE cmake/c_flag_overrides.cmake)
+cmake_policy(SET CMP0042 NEW)
+set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_SOURCE_DIR}/cmake/modules")
+include(GNUInstallDirs)
 
 project(stlink C)
 set(PROJECT_DESCRIPTION "Open source version of the STMicroelectronics ST-LINK Tools")
-include(GNUInstallDirs)
+
 set(STLINK_UDEV_RULES_DIR "${CMAKE_INSTALL_FULL_SYSCONFDIR}/udev/rules.d" CACHE PATH "udev rules directory")
 set(STLINK_MODPROBED_DIR "${CMAKE_INSTALL_FULL_SYSCONFDIR}/modprobe.d" CACHE PATH "modprobe.d directory")
 set(STLINK_STATIC_LIB ON CACHE BOOL "Install static lib")
 
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+option(STLINK_INSTALL_UDEV_RULES "Install udev rules files" ON)
+option(STLINK_INSTALL_MODPROBE_CONF "Install modprobe conf files" ON)
+option(STLINK_GENERATE_MANPAGES "Generate manpages with pandoc" OFF)
+
+# ====
+
+#set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+#set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+#set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 if (IS_DIRECTORY ${LIB_INSTALL_DIR})
     set(LIB_INSTALL_DIR ${LIB_INSTALL_DIR} CACHE PATH "Main library directory")
@@ -28,17 +36,16 @@ else ()
     set(STLINK_INCLUDE_PATH "${CMAKE_INSTALL_PREFIX}/${INCLUDE_INSTALL_DIR}")
 endif ()
 
-option(STLINK_GENERATE_MANPAGES "Generate manpages with pandoc" OFF)
-option(STLINK_INSTALL_UDEV_RULES "Install udev rules files" ON)
-option(STLINK_INSTALL_MODPROBE_CONF "Install modprobe conf files" ON)
-
-# cmake (3.0+) on MacOS should use @rpath
-cmake_policy(SET CMP0042 NEW)
-
-set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_SOURCE_DIR}/cmake/modules")
 include(cmake/version.cmake)
+
 if (NOT MSVC)
     include(cmake/c_flags.cmake)
+else ()
+    message(STATUS "MSVC C Flags override to /MT")
+    set(CMAKE_C_FLAGS_DEBUG_INIT          "/D_DEBUG /MTd /Zi /Ob0 /Od /RTC1")
+    set(CMAKE_C_FLAGS_MINSIZEREL_INIT     "/MT /O1 /Ob1 /D NDEBUG")
+    set(CMAKE_C_FLAGS_RELEASE_INIT        "/MT /O2 /Ob2 /D NDEBUG")
+    set(CMAKE_C_FLAGS_RELWITHDEBINFO_INIT "/MT /Zi /O2 /Ob1 /D NDEBUG")
 endif ()
 
 
@@ -207,16 +214,13 @@ endif ()
 ###
 
 add_executable(st-flash src/tools/flash.c src/tools/flash_opts.c)
+add_executable(st-info src/tools/info.c)
+
 if (WIN32 OR APPLE)
     target_link_libraries(st-flash ${STLINK_LIB_STATIC} ${SSP_LIB})
-else ()
-    target_link_libraries(st-flash ${STLINK_LIB_SHARED} ${SSP_LIB})
-endif ()
-
-add_executable(st-info src/tools/info.c)
-if (WIN32 OR APPLE)
     target_link_libraries(st-info ${STLINK_LIB_STATIC} ${SSP_LIB})
 else ()
+    target_link_libraries(st-flash ${STLINK_LIB_SHARED} ${SSP_LIB})
     target_link_libraries(st-info ${STLINK_LIB_SHARED} ${SSP_LIB})
 endif ()
 
@@ -233,20 +237,22 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
 endif ()
 
 add_subdirectory(src/gdbserver)
-add_subdirectory(src/tools/gui)
+add_subdirectory(src/stlink-gui)
 
 
 ###
 # Others
 ###
 
-add_subdirectory(usr/lib/pkgconfig)
+add_subdirectory(debian/pkgconfig)
 add_subdirectory(include)
 add_subdirectory(doc/man)
 add_subdirectory(tests)
 
 include(cmake/cpack_config.cmake)
 include(CPack)
+
+# ====
 
 
 ###
