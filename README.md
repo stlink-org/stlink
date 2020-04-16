@@ -2,11 +2,11 @@ Open source version of the STMicroelectronics STlink Tools
 ==========================================================
 
 [![BSD licensed](https://img.shields.io/badge/license-BSD-blue.svg)](https://raw.githubusercontent.com/hyperium/hyper/master/LICENSE)
-[![GitHub release](https://img.shields.io/github/release/texane/stlink.svg)](https://github.com/stlink-org/stlink/releases/latest)
-[![GitHub commits](https://img.shields.io/github/commits-since/texane/stlink/v1.6.0.svg)](https://github.com/stlink-org/stlink/releases/master)
-[![Downloads](https://img.shields.io/github/downloads/texane/stlink/total.svg)](https://github.com/stlink-org/stlink/releases)
-[![Linux Status](https://img.shields.io/travis/texane/stlink/master.svg?label=linux)](https://travis-ci.org/stlink-org/stlink)
-[![macOS Status](https://img.shields.io/travis/texane/stlink/master.svg?label=osx)](https://travis-ci.org/stlink-org/stlink)
+[![GitHub release](https://img.shields.io/github/release/stlink-org/stlink.svg)](https://github.com/stlink-org/stlink/releases/latest)
+[![GitHub commits](https://img.shields.io/github/commits-since/stlink-org/stlink/v1.6.0.svg)](https://github.com/stlink-org/stlink/releases/master)
+[![Downloads](https://img.shields.io/github/downloads/stlink-org/stlink/total.svg)](https://github.com/stlink-org/stlink/releases)
+[![Linux Status](https://img.shields.io/travis/stlink-org/stlink/master.svg?label=linux)](https://travis-ci.org/stlink-org/stlink)
+[![macOS Status](https://img.shields.io/travis/stlink-org/stlink/master.svg?label=osx)](https://travis-ci.org/stlink-org/stlink)
 
 Recent new features and bugfixes can be found in the [Changelog](CHANGELOG.md) of this software project.
 
@@ -48,9 +48,11 @@ The STlink toolset includes:
 * a GUI-Interface (stlink-gui) _[optional]_
 
 
-## Supported hardware combinations
+## Supported operating systems and hardware combinations
 
 Currently known working combinations of programmers and targets are listed in [devices_boards.md](doc/devices_boards.md).
+
+Supported operating systems are listed in [version_support.md](doc/version_support.md).
 
 
 ## Tutorial & HOWTO
@@ -110,13 +112,13 @@ When there is no executable available for your platform or you need the latest (
 # Current state of the project
 ## Known missing features
 
-Some features are currently missing from the `texane/stlink` toolset.
+Some features are currently missing from the `stlink-org/stlink` toolset.
 Here we would appreciate any help and would love to welcome new contributors who want to get involved:
 
-* Instrumentation Trace Macro (ITM) Cell ([#136](https://github.com/texane/stlink/issues/136))
-* OTP & EEPROM area programming ([#202](https://github.com/texane/stlink/issues/202), [#333](https://github.com/texane/stlink/issues/333), [#686](https://github.com/texane/stlink/issues/686))
-* Protection bits area reading ([#346](https://github.com/texane/stlink/issues/346))
-* Writing external memory connected to an STM32 controller (e.g Quad SPI NOR flash) ([#412](https://github.com/texane/stlink/issues/412))
-* MCU hotplug ([#449](https://github.com/texane/stlink/issues/449))
-* Writing options bytes (region) ([#458](https://github.com/texane/stlink/issues/458))
-* Support for STLINKv3 programmer ([#820](https://github.com/texane/stlink/issues/820))
+* Instrumentation Trace Macro (ITM) Cell ([#136](https://github.com/stlink-org/stlink/issues/136))
+* OTP & EEPROM area programming ([#202](https://github.com/stlink-org/stlink/issues/202), [#333](https://github.com/stlink-org/stlink/issues/333), [#686](https://github.com/stlink-org/stlink/issues/686))
+* Protection bits area reading ([#346](https://github.com/stlink-org/stlink/issues/346))
+* Writing external memory connected to an STM32 controller (e.g Quad SPI NOR flash) ([#412](https://github.com/stlink-org/stlink/issues/412))
+* MCU hotplug ([#449](https://github.com/stlink-org/stlink/issues/449))
+* Writing options bytes (region) ([#458](https://github.com/stlink-org/stlink/issues/458))
+* Support for STLINKv3 programmer ([#820](https://github.com/stlink-org/stlink/issues/820))
