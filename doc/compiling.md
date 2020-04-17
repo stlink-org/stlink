@@ -58,6 +58,7 @@ It can be copied from here: `build\3rdparty\libusb-1.0.21\MS32\dll\libusb-1.0.dl
 
 Install the following packages from your package repository:
 
+* `git`
 * `gcc` or `clang` or `mingw32-gcc` or `mingw64-gcc` (C-compiler; very likely gcc is already present)
 * `build-essential` (on Debian based distros (debian, ubuntu))
 * `cmake` (3.4.2 or later, use the latest version available from the repository)
@@ -162,22 +163,26 @@ Choose on of the following options _before_ connecting the device to your comput
 ## macOS
 ### Common requirements
 
-The best way is to install a package manager for open source software,
+The best and recommended way is to install a package manager for open source software,
 either [homebrew](https://brew.sh) or [MacPorts](https://www.macports.org/).
 
 Then install the following dependencies from the package repository:
 
 * `git`
+* `gcc` or `llvm` (for clang) (C-compiler)
 * `cmake`
 * `pkg-config`
 * `libusb`
+* `gtk+3` or `gtk3` (_optional_, needed for `stlink-gui`)
 
 To do this with only one simple command, type:
 
-* for homebrew: `sudo brew install git cmake libusb` or
-* for MacPorts:`sudo port install git cmake libusb`
-
-Additionally we recommend to install Xcode which delivers the necessary C-compiler toolchain Clang (LLVM).
+* for homebrew:
+    - with gcc:   `sudo brew install git gcc cmake libusb gtk+3` or
+    - with clang: `sudo brew install git llvm cmake libusb gtk+3` or
+* for MacPorts:
+    - with gcc:    `sudo port install git llvm-9.0 cmake libusb gtk3` or
+    - with clang:  `sudo port install git gcc9 cmake libusb gtk3`
 
 
 ### Installation
