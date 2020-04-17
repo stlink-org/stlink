@@ -14,7 +14,6 @@ enum flash_area {FLASH_MAIN_MEMORY = 0, FLASH_SYSTEM_MEMORY = 1,FLASH_OTP = 2, F
 struct flash_opts
 {
     enum flash_cmd cmd;
-    const char* devname;
     uint8_t serial[STLINK_SERIAL_MAX_SIZE];
     const char* filename;
     stm32_addr_t addr;
@@ -28,7 +27,7 @@ struct flash_opts
     int opt;
 };
 
-#define FLASH_OPTS_INITIALIZER {0, NULL, { 0 }, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+#define FLASH_OPTS_INITIALIZER {0, { 0 }, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 
 int flash_get_opts(struct flash_opts* o, int ac, char** av);
 
