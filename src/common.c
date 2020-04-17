@@ -3238,6 +3238,7 @@ int stlink_read_option_bytes32(stlink_t *sl, uint32_t* option_byte)
         ELOG("Option bytes read is currently not supported for connected chip\n");
         return -1;
     }
+
     switch (sl->chip_id) {
         case STLINK_CHIPID_STM32_F2:
             return stlink_read_option_bytes_f2(sl, option_byte);
@@ -3289,6 +3290,7 @@ int stlink_write_option_bytes(stlink_t *sl, stm32_addr_t addr, uint8_t* base, ui
         return -1;
     }
 
+    /* filter out on chip_id, until complete flash family are handled */
     switch (sl->chip_id) {
         case STLINK_CHIPID_STM32_F2:
             return stlink_write_option_bytes_f2(sl, base, addr, len);

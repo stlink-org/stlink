@@ -81,11 +81,11 @@ extern "C" {
 
     enum stlink_flash_type {
         STLINK_FLASH_TYPE_UNKNOWN = 0,
-        STLINK_FLASH_TYPE_F0,
-        STLINK_FLASH_TYPE_L0,
-        STLINK_FLASH_TYPE_F4,
-        STLINK_FLASH_TYPE_L4,
-        STLINK_FLASH_TYPE_F1_XL,
+        STLINK_FLASH_TYPE_F0, /* used by f0, f1 (except f1xl),f3. */
+        STLINK_FLASH_TYPE_F1_XL, /* f0 flash with dual bank, apparently */
+        STLINK_FLASH_TYPE_F4, /* used by f2, f4, f7 */
+        STLINK_FLASH_TYPE_L0, /* l0, l1 */
+        STLINK_FLASH_TYPE_L4, /* l4, l4+ */
         STLINK_FLASH_TYPE_G0,
         STLINK_FLASH_TYPE_G4,
         STLINK_FLASH_TYPE_WB
