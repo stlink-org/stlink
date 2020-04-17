@@ -3028,12 +3028,8 @@ static int stlink_write_option_bytes_f2(stlink_t *sl, uint8_t *base, stm32_addr_
     uint32_t val;
     uint32_t option_byte;
 
-    (void) addr; /* todo: add sanitary check */
-
-    if(len != 4) {
-        ELOG("Wrong length for writting option bytes, must be 4 is %d\n", len);
-        return -1;
-    }
+    (void) addr;
+    (void) len;
 
     option_byte =  *(uint32_t*) (base);
 
@@ -3088,12 +3084,8 @@ static int stlink_write_option_bytes_f4(stlink_t *sl, uint8_t* base, stm32_addr_
     uint32_t val;
     uint32_t option_byte;
 
-    (void) addr; /* todo: add sanitary check */
-
-    if(len != 4) {
-        ELOG("Wrong length for writing option bytes, must be 4 is %d\n", len);
-        return -1;
-    }
+    (void) addr;
+    (void) len;
 
     option_byte =  *(uint32_t*) (base);
 
