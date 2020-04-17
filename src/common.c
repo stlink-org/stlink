@@ -67,11 +67,16 @@
 #define FLASH_L0_OPTKEY2 0x24252627
 
 #define FLASH_SR_BSY 0
+#define FLASH_SR_PG_ERR 2
+#define FLASH_SR_WRPRT_ERR 4
 #define FLASH_SR_EOP 5
+
+#define FLASH_SR_ERROR_MASK ((1 << FLASH_SR_PG_ERR) | (1 << FLASH_SR_WRPRT_ERR))
 
 #define FLASH_CR_PG 0
 #define FLASH_CR_PER 1
 #define FLASH_CR_MER 2
+#define FLASH_CR_OPTPG 4
 #define FLASH_CR_STRT 6
 #define FLASH_CR_LOCK 7
 #define FLASH_CR_OPTWRE 9
@@ -218,6 +223,8 @@
 #define STM32L0_FLASH_PELOCK (0)
 #define STM32L0_FLASH_OPTLOCK (2)
 #define STM32L0_FLASH_OBL_LAUNCH (18)
+
+#define STM32L0_FLASH_SR_ERROR_MASK 0x00003F00
 
 #define FLASH_ACR_OFF     ((uint32_t) 0x00)
 #define FLASH_PECR_OFF    ((uint32_t) 0x04)
@@ -902,10 +909,19 @@ static void wait_flash_busy_progress(stlink_t *sl) {
 static int check_flash_error(stlink_t *sl)
 {
     uint32_t res = 0;
-    if ((sl->flash_type == STLINK_FLASH_TYPE_G0) ||
-            (sl->flash_type == STLINK_FLASH_TYPE_G4)) {
-        res = read_flash_sr(sl) & STM32Gx_FLASH_SR_ERROR_MASK;
-	}
+    switch (sl->flash_type) {
+       case STLINK_FLASH_TYPE_F0:
+           res = read_flash_sr(sl) & FLASH_SR_ERROR_MASK;
+           break;
+       case STLINK_FLASH_TYPE_G0:
+       case STLINK_FLASH_TYPE_G4:
+           res = read_flash_sr(sl) & STM32Gx_FLASH_SR_ERROR_MASK;
+           break;
+       case STLINK_FLASH_TYPE_L0:
+           res = read_flash_sr(sl) & STM32L0_FLASH_SR_ERROR_MASK;
+       default:
+           break;
+    }
 
     if (res) {
         ELOG("Flash programming error : %#010x\n", res);
