@@ -1,4 +1,4 @@
-# FindLibUSB.cmake
+# Findlibusb.cmake
 # Once done this will define
 #
 #  LIBUSB_FOUND         libusb present on system
@@ -75,7 +75,7 @@ elseif (WIN32 OR (EXISTS "/etc/debian_version" AND ${CMAKE_BUILD_TYPE} MATCHES "
 
     if (NOT LIBUSB_FOUND OR EXISTS "/etc/debian_version")
         # Preparations for installing libusb library
-        find_package(7Zip REQUIRED)
+        find_package(7zip REQUIRED)
         set(LIBUSB_WIN_VERSION 1.0.23)          # set libusb version
         set(LIBUSB_WIN_ARCHIVE libusb-${LIBUSB_WIN_VERSION}.7z)
         set(LIBUSB_WIN_ARCHIVE_PATH ${CMAKE_BINARY_DIR}/${LIBUSB_WIN_ARCHIVE})

@@ -53,7 +53,7 @@ endif ()
 # Dependencies
 ###
 
-find_package(LibUSB REQUIRED)
+find_package(libusb REQUIRED)
 
 if (NOT APPLE AND NOT WIN32 AND NOT CMAKE_CROSSCOMPILING)
     find_package(PkgConfig)
@@ -243,7 +243,7 @@ add_subdirectory(src/stlink-gui)
 # Others
 ###
 
-add_subdirectory(debian/pkgconfig)
+add_subdirectory(debian/pkg-config)
 add_subdirectory(include)                                                            ### TODO: Check path
 add_subdirectory(doc/man)
 add_subdirectory(tests)

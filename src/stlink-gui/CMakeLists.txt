@@ -1,6 +1,6 @@
 if (NOT gtk_FOUND)
     message(STATUS "gtk not found!")
-    return()
+    return()                         # no GTK present => no GUI build
 endif ()
 
 set(GUI_SOURCES gui.c gui.h)
