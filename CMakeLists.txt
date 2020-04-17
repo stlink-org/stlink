@@ -54,12 +54,14 @@ endif ()
 ###
 
 find_package(LibUSB REQUIRED)
+
 if (NOT APPLE AND NOT WIN32 AND NOT CMAKE_CROSSCOMPILING)
     find_package(PkgConfig)
     pkg_check_modules(gtk gtk+-3.0)
 endif ()
 
 include(CheckIncludeFile)
+
 CHECK_INCLUDE_FILE(sys/mman.h STLINK_HAVE_SYS_MMAN_H)
 if (STLINK_HAVE_SYS_MMAN_H)
     add_definitions(-DSTLINK_HAVE_SYS_MMAN_H)
@@ -71,8 +73,8 @@ if (STLINK_HAVE_UNISTD_H)
 endif ()
 
 include(CheckLibraryExists)
-CHECK_LIBRARY_EXISTS(ssp __stack_chk_fail "" _stack_chk_fail_exists)
 
+CHECK_LIBRARY_EXISTS(ssp __stack_chk_fail "" _stack_chk_fail_exists)
 if (_stack_chk_fail_exists)
     set(SSP_LIB ssp)
 else ()
@@ -151,11 +153,10 @@ message(STATUS "STLINK_LIB_SHARED: ${STLINK_LIB_SHARED}")
 message(STATUS "PROJECT_VERSION_MAJOR: ${PROJECT_VERSION_MAJOR}")
 message(STATUS "VERSION: ${STLINK_SHARED_VERSION}")
 
-set_target_properties(
-    ${STLINK_LIB_SHARED}
-    PROPERTIES SOVERSION ${PROJECT_VERSION_MAJOR}
-    VERSION ${STLINK_SHARED_VERSION}
-    )
+set_target_properties(${STLINK_LIB_SHARED} PROPERTIES
+        SOVERSION ${PROJECT_VERSION_MAJOR}
+        VERSION ${STLINK_SHARED_VERSION}
+        )
 
 # Link shared library with Apple macOS libraries
 if (APPLE)
