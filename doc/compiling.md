@@ -61,6 +61,7 @@ Install the following packages from your package repository:
 * `gcc` or `clang` or `mingw32-gcc` or `mingw64-gcc` (C-compiler; very likely gcc is already present)
 * `build-essential` (on Debian based distros (debian, ubuntu))
 * `cmake` (3.4.2 or later, use the latest version available from the repository)
+* `pkg-config`
 * `libusb-1.0`
 * `libusb-1.0-0-dev` (development headers for building)
 * `libgtk-3-dev` (_optional_, needed for `stlink-gui`)
@@ -168,6 +169,7 @@ Then install the following dependencies from the package repository:
 
 * `git`
 * `cmake`
+* `pkg-config`
 * `libusb`
 
 To do this with only one simple command, type:

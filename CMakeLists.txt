@@ -55,7 +55,7 @@ endif ()
 
 find_package(libusb REQUIRED)
 
-if (NOT APPLE AND NOT WIN32 AND NOT CMAKE_CROSSCOMPILING)
+if (NOT WIN32 AND NOT CMAKE_CROSSCOMPILING)
     find_package(PkgConfig)
     pkg_check_modules(gtk gtk+-3.0)
 endif ()
