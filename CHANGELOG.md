@@ -28,7 +28,6 @@ Updates & changes:
 - Define libusb version compatibility for supported operating systems via LIBUSB_API_VERSION (#211, #782, #895)
 - [doc] Verify correct udev configuration for device access (#764)
 - Added more error info to WLOGs during probe (#883)
-- Added travis build for win32 (#870)
 - Added check for libssp during compilation (#885)
 - Silence unnecessary messages (#886)
 - Set up a libusb log level accordingly to verbosity (commit 49f887d5247fdd28f163b6317790c4f087e652cc)

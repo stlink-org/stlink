@@ -92,7 +92,6 @@ We recommend to install `stlink-tools` from the package repository of the used d
 
 * RedHat/CentOS 8: Users can install from [EPEL repository](https://src.fedoraproject.org/rpms/stlink/branch/epel8)
 * FreeBSD: Users can install from [freshports](https://www.freshports.org/devel/stlink)
-* OpenBSD: Users need to compile and install from source as described in our [compiling manual](doc/compiling.md).
 
 
 ## Installation from source (advanced users)

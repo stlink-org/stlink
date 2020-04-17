@@ -9,42 +9,42 @@ matrix:
           addons:
               apt:
                   sources: ['ubuntu-toolchain-r-test']
-                  packages: ['gcc-5', 'libusb-1.0.0-dev']
+                  packages: ['gcc-5', 'libusb-1.0.0-dev', 'libgtk-3-dev']
         - os: linux
           arch: x64
           compiler: gcc-7
           addons:
               apt:
                   sources: ['ubuntu-toolchain-r-test']
-                  packages: ['gcc-7', 'libusb-1.0.0-dev']
+                  packages: ['gcc-7', 'libusb-1.0.0-dev', 'libgtk-3-dev']
         - os: linux
           arch: x64
           compiler: gcc-9
           addons:
               apt:
                   sources: ['ubuntu-toolchain-r-test']
-                  packages: ['gcc-9', 'libusb-1.0.0-dev']
+                  packages: ['gcc-9', 'libusb-1.0.0-dev', 'libgtk-3-dev']
         - os: linux
           arch: x64
           compiler: clang-3.7
           addons:
               apt:
                   sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-xenial-3.7']
-                  packages: ['clang-3.7', 'libusb-1.0.0-dev']
+                  packages: ['clang-3.7', 'libusb-1.0.0-dev', 'libgtk-3-dev']
         - os: linux
           arch: x64
           compiler: clang-6.0
           addons:
               apt:
                   sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-bionic-6.0']
-                  packages: ['clang-6.0', 'libusb-1.0.0-dev']
+                  packages: ['clang-6.0', 'libusb-1.0.0-dev', 'libgtk-3-dev']
 #        - os: linux
 #          arch: x64
 #          compiler: clang-6.0
 #          addons:
 #              apt:
 #                  sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-bionic-6.0']
-#                  packages: ['clang-6.0', 'libusb-1.0.0-dev']
+#                  packages: ['clang-6.0', 'libusb-1.0.0-dev', 'libgtk-3-dev']
 #          env: CFLAGS=-m32 LDFLAGS=-m32
 
         ### 32-bit builds ###
@@ -54,35 +54,35 @@ matrix:
           addons:
               apt:
                   sources: ['ubuntu-toolchain-r-test']
-                  packages: ['gcc-5', 'libusb-1.0.0-dev']
+                  packages: ['gcc-5', 'libusb-1.0.0-dev', 'libgtk-3-dev']
         - os: linux
           arch: x86
           compiler: gcc-7
           addons:
               apt:
                   sources: ['ubuntu-toolchain-r-test']
-                  packages: ['gcc-7', 'libusb-1.0.0-dev']
+                  packages: ['gcc-7', 'libusb-1.0.0-dev', 'libgtk-3-dev']
         - os: linux
           arch: x86
           compiler: gcc-9
           addons:
               apt:
                   sources: ['ubuntu-toolchain-r-test']
-                  packages: ['gcc-9', 'libusb-1.0.0-dev']
+                  packages: ['gcc-9', 'libusb-1.0.0-dev', 'libgtk-3-dev']
         - os: linux
           arch: x86
           compiler: clang-3.7
           addons:
               apt:
                   sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-xenial-3.7']
-                  packages: ['clang-3.7', 'libusb-1.0.0-dev']
+                  packages: ['clang-3.7', 'libusb-1.0.0-dev', 'libgtk-3-dev']
         - os: linux
           arch: x86
           compiler: clang-6.0
           addons:
               apt:
                   sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-bionic-6.0']
-                  packages: ['clang-6.0', 'libusb-1.0.0-dev']
+                  packages: ['clang-6.0', 'libusb-1.0.0-dev', 'libgtk-3-dev']
 
         ### macOS ###
         - os: osx
@@ -90,15 +90,17 @@ matrix:
           addons:
             homebrew:
               packages:
-                - libusb
                 - gcc
+                - libusb
+                - gtk+3
         - os: osx
           compiler: clang
           addons:
             homebrew:
               packages:
-                - libusb
                 - clang
+                - libusb
+                - gtk+3
 
 script:
   - git fetch --tags
