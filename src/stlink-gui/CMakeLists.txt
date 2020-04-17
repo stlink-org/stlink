@@ -28,6 +28,6 @@ install(TARGETS stlink-gui RUNTIME DESTINATION bin)                             
 install(FILES gui.ui DESTINATION ${INSTALLED_UI_DIR})                               ### TODO: Check Path
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    install(FILES stlink-gui.desktop DESTINATION share/applications)                # Install desktop entry
+    install(FILES stlink-gui.desktop DESTINATION share/applications)                  # Install desktop entry
     install(FILES icons/stlink-gui.svg DESTINATION share/icons/hicolor/scalable/apps) # Install icon
 endif ()

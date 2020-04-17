@@ -1,5 +1,64 @@
-Stlink ChangeLog
+stlink ChangeLog
 ================
+
+v1.6.1
+======
+
+Release date: (TBD)
+
+This release drops support for some older operating systems. Check project README for details.
+
+Features:
+
+- Support for STM32L1, SM32L4 option bytes write (#596, #844, #847)
+- CMake now creates an uninstall target (#619, #907)
+- Support for STM32G4 (#822)
+- Add aliased SRAM2 region in the L496 memory map (#824)
+- Improved support for STM32G0 (#825, #850, #856, #857)
+- Added usb PID and udev rules for STlink v2.1 found on Nucleo-L432KC and Nucleo-L552ze boards (#900)
+- STM32G0/G4 improvements (#910)
+  - Enable mass erase with a flash programming check
+  - Handle G4 Cat3 devices with configurable dual bank flash by using a helper
+- Calculate checksums for flash operations (#862, #924)
+
+Updates & changes:
+
+- Improved argument parsing for CLI tools (#378, #922)
+- [doc] Updated tutorial: macOS ST-Link-v1 detection (#574, #587)
+- Define libusb version compatibility for supported operating systems via LIBUSB_API_VERSION (#211, #782, #895)
+- [doc] Verify correct udev configuration for device access (#764)
+- Added more error info to WLOGs during probe (#883)
+- Added travis build for win32 (#870)
+- Added check for libssp during compilation (#885)
+- Silence unnecessary messages (#886)
+- Set up a libusb log level accordingly to verbosity (commit 49f887d5247fdd28f163b6317790c4f087e652cc)
+- [doc] Define libusb & cmake version compatibility (#896, #897, #899, commit 27aa88821197d3ffe82baff4e971c3488ec39899)
+- Update for STM32G471/473/474/483/484 devices (#901)
+- [doc] st-flash --flash=n[k][m] command line option to override device model (#902)
+- [doc] Update compiling instructions (#113, commit 10ae5294cd03aacfc07312010f026d3cb12ea56c)
+- [doc] Defined version compatibility and installation instructions for macOS (commit 23c071edea45f6e8852fef52d884a680973d6d8f)
+- Deprecated old appveyor-mingw script (commit 97484422008df0f75c978627054776f35842a075)
+- Enhanced error log with file path for map_file() (#650, #879, #921)
+
+Fixes:
+
+- Fixed wait-loop for flash_loader_run() (#290)
+- Clear the PG bit before setting the PER bit (#579, #876)
+- Fixed compilation issues with int length on 32-bit platforms (#629, #908)
+- Fixed st-info --probe mechanism (#679, #918)
+- Fixed sign-compare (size != rep_len) in usb.c (Regression) (#772, #869, #872, #891)
+- Avoid re-define of O_BINARY on Windows (#788)
+- Fixed st-flash manpage read example (#858)
+- Fixed stlink support with no mass storage (#861)
+- Make Version.cmake more error-resistant (#872)
+- Error return in failed probe (#887, #890)
+- Fixed formatting for options display in st-flash & st-info (commits c783d0e777ccc83a7a8be26a4f4d3414e0478560 and 562cd2496e696dbd22950925866aac662d81ee5f)
+- Fixed dead loop after an unexpected unplug (#780, #812, #913)
+- Fixed broken build on 32-bit systems (#919, #920)
+- st-flash: minor usage fix and make cmdline parsing more user friendly (#925)
+- Better argument parsing for CLI tools: stlink_open_usb can address v1, v2, v3 (#378, #922)
+- Restored functionality of make test builds (Regression) (#926)
+
 
 v1.6.0
 ======

@@ -107,7 +107,7 @@ set(STLINK_SOURCE
     src/md5.c
     )
 
-if (WIN32 OR MSYS OR MINGW)
+if (WIN32 OR MINGW OR MSYS)
     set(STLINK_SOURCE "${STLINK_SOURCE};src/mmap.c;src/mingw/mingw.c")
     set(STLINK_HEADERS "${STLINK_HEADERS};src/mingw/mingw.h")
 endif ()
@@ -116,6 +116,7 @@ include_directories(${LIBUSB_INCLUDE_DIR})
 include_directories(include)
 include_directories(${PROJECT_BINARY_DIR}/include)
 include_directories(src/mingw)
+
 if (MSVC)
     include_directories(src/win32)
     include_directories(src/getopt)
@@ -130,7 +131,7 @@ endif ()
 
 if (NOT WIN32)
     set(STLINK_LIB_SHARED ${PROJECT_NAME})
-else ()
+else (WIN32)
     set(STLINK_LIB_SHARED ${PROJECT_NAME}-shared)
 endif ()
 
@@ -164,16 +165,13 @@ if (APPLE)
     target_link_libraries(${STLINK_LIB_SHARED} ${CoreFoundation} ${IOKit} ${ObjC} ${SSP_LIB})
 endif ()
 
-if (WIN32 OR MSYS OR MINGW)
+if (WIN32 OR MINGW OR MSYS)
     target_link_libraries(${STLINK_LIB_SHARED} ${LIBUSB_LIBRARY} wsock32 ws2_32 ${SSP_LIB})
 else ()
     target_link_libraries(${STLINK_LIB_SHARED} ${LIBUSB_LIBRARY} ${SSP_LIB})
 endif ()
 
-install(
-    TARGETS ${STLINK_LIB_SHARED}
-    DESTINATION ${STLINK_LIBRARY_PATH}
-    )
+install(TARGETS ${STLINK_LIB_SHARED} DESTINATION ${STLINK_LIBRARY_PATH})             ### TODO: Check path
 
 
 ###
@@ -188,7 +186,7 @@ add_library(
     ${STLINK_SOURCE}
     )
 
-# Link shared library with Apple macOS libraries
+# Link static library with Apple macOS libraries
 if (APPLE)
     find_library(ObjC objc)
     find_library(CoreFoundation CoreFoundation)
@@ -196,7 +194,7 @@ if (APPLE)
     target_link_libraries(${STLINK_LIB_STATIC} ${CoreFoundation} ${IOKit} ${ObjC} ${SSP_LIB})
 endif ()
 
-if (WIN32 OR MSYS OR MINGW)
+if (WIN32 OR MINGW OR MSYS)                                                          ### TODO: MinGW OR MSYS on Linux
     target_link_libraries(${STLINK_LIB_STATIC} ${LIBUSB_LIBRARY} wsock32 ws2_32 ${SSP_LIB})
 else ()
     target_link_libraries(${STLINK_LIB_STATIC} ${LIBUSB_LIBRARY} ${SSP_LIB})
@@ -205,7 +203,7 @@ endif ()
 set_target_properties(${STLINK_LIB_STATIC} PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
 
 if (STLINK_STATIC_LIB)
-    install(TARGETS ${STLINK_LIB_STATIC} ARCHIVE DESTINATION ${STLINK_LIBRARY_PATH})
+    install(TARGETS ${STLINK_LIB_STATIC} ARCHIVE DESTINATION ${STLINK_LIBRARY_PATH}) ### TODO: Check path
 endif ()
 
 
@@ -224,7 +222,7 @@ else ()
     target_link_libraries(st-info ${STLINK_LIB_SHARED} ${SSP_LIB})
 endif ()
 
-install(TARGETS st-flash st-info RUNTIME DESTINATION bin)
+install(TARGETS st-flash st-info RUNTIME DESTINATION bin)                            ### TODO: Check path
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     if (STLINK_INSTALL_MODPROBE_CONF)
@@ -245,7 +243,7 @@ add_subdirectory(src/stlink-gui)
 ###
 
 add_subdirectory(debian/pkgconfig)
-add_subdirectory(include)
+add_subdirectory(include)                                                            ### TODO: Check path
 add_subdirectory(doc/man)
 add_subdirectory(tests)
 
