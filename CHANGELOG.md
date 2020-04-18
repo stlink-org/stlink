@@ -258,7 +258,7 @@ Updates and fixes:
 
 * Fixed "unaligned addr or size" when trying to write a program in RAM ([#323](https://github.com/stlink-org/stlink/pull/323))
 * Fixed flashing on STM32_F3_SMALL ([#325](https://github.com/stlink-org/stlink/pull/325))
-* Fixed STM32L-problem with flash loader ([#390](https://github.com/stlink-org/stlink/pull/390), [#407](https://github.com/stlink-org/stlink/pull/407),[#408](https://github.com/stlink-org/stlink/pull/408))
+* Fixed STM32L-problem with flash loader ([#390](https://github.com/stlink-org/stlink/pull/390), [#407](https://github.com/stlink-org/stlink/pull/407), [#408](https://github.com/stlink-org/stlink/pull/408))
 * Don't read the target voltage on startup, because it crashes STM32F100 ([#423](https://github.com/stlink-org/stlink/pull/423), [#424](https://github.com/stlink-org/stlink/pull/424))
 * Added a useful error message instead of "[!] send_recv" ([#425](https://github.com/stlink-org/stlink/pull/425), [#426](https://github.com/stlink-org/stlink/pull/426))
 * Do a JTAG reset prior to reading CPU information when processor is in deep sleep ([#428](https://github.com/stlink-org/stlink/pull/428), [#430](https://github.com/stlink-org/stlink/pull/430), [#451](https://github.com/stlink-org/stlink/pull/451))

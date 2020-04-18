@@ -1,6 +1,5 @@
-# Find7zip.cmake
+# Find_7zip.cmake
 # Detect 7zip file archiver on Windows systems to extract (zip-)archives
-
 
 find_program(
     ZIP_EXECUTABLE NAMES 7z.exe p7zip

@@ -1,0 +1,226 @@
+stlink (1.6.0) unstable; urgency=medium
+
+Release date: 2020-02-20
+
+Major changes and added features:
+
+* Initial support for STM32L41X
+* Working support for CKS32F103C8T6 and related CKS devices with Core-ID 0x2ba01477
+* Added preliminary support for some STM32G0 chips
+* Added support for mass erasing second bank on STM32F10x_XL
+* Added call to clear PG bit after writing to flash
+* Added support to write option bytes for the STM32G0
+* Added support for STM32WB55 chips
+* Added STLink V3SET VID:PIDs to the udev rules
+* Support for "STM32+Audio" v2-1 firmware
+* Build for Windows under Debian/Ubuntu
+* Allow for 64 bytes serials
+* Added full support for STLINK CHIP ID L4RX
+* Added support for the STLink-v2.1 when flashed with no mass storage (PID 0x3752)
+* Added support for writing option bytes on STM32L0xx
+* Added support to read and write option bytes for STM32F2 series
+* Added support to read and write option bytes for STM32F446
+
+Updates and fixes:
+
+* Fixed "unkown chip id", piped output and st-util -v
+* Fixed an issue with versioning stuck at 1.4.0 for versions cloned with git
+* Updated STM32F3xx chip ID that covers a few different devices
+* Made udev rules and modprobe conf installation optional
+* Fixed case when __FILE__ don't contain "/" nor "\\"
+* Fixed double dash issue in doc/man
+* Compiling documentation: package is called libusb-1.0-0-dev on Debian
+* Only do bank calculation on STM32L4 devices with dual banked flash / Added chip-ID 0x464 for STM32L41xxx/L42xxx devices
+* Added O_BINARY option to open file
+* Fixed versioning when compiling from the checked out git-repo
+* win32: move usleep definition to unistd.h
+* Fixed relative path to the UI files needed by stlink-gui-local (GUI)
+* Added howto for sending NRST signal through GDB
+* Fixed package name "devscripts" in doc/compiling.md
+* Fixed few potential memory/resource leaks
+* Updated Linux source repositories in README.md: Debian and Ubuntu
+* Do not issue JTAG reset on stlink-v1
+* Fixed flash size of STM32 Discovery vl
+* Updated documentation on software structure
+
+General project updates:
+
+* Updated README.md, CHANGELOG.md and issue templates
+* Fixed travis build config file
+* Added CODE_OF_CONDUCT
+* Archived page from github project wiki to doc/wiki_old.md
+
+-- Luca Boccassi <bluca@debian.org>  Tue, 25 Feb 2020 22:08:33 +0000
+
+
+stlink (1.5.1) unstable; urgency=medium
+
+Release date: 2018-09-13
+
+Major changes and added features:
+
+* Added reset through AIRCR
+* Added creation of icons for .desktop file
+* Added desktop file for linux
+* Added button to export STM32 flash memory to a file
+* Updated libusb to 1.0.22
+* Added icons for STLink GUI
+* Added support for STM32L4R9 target
+* Added memory map for STM32F411RE target
+* Implemented intel hex support for GTK GUI
+
+Updates and fixes:
+
+* Fixed missing flash_loader for STM32L0x
+* Fix for stlink library calls exit() or _exit()
+* Added semihosting parameter documentation in doc/man
+* Fixed reference to non-exisiting st-term tool in doc/man
+* Fixed serial number size mismatch with stlink_open_usb()
+* Debian packaging, CMake and README.md fixes
+* Disabled static library installation by default
+* Fix for libusb deprecation
+* Renamed STLINK_CHIPID_STM32_L4R9 to STLINK_CHIPID_STM32_L4RX
+* Regression: stlink installation under Linux (Debian 9) is broken since #695
+* Fixed flash memory map for STM32F72xxx target
+* Proper flash page size calculation for STM32F412xx target
+* Return correct value on EOF for Semihosting SYS_READ
+* FreeBSD defines LIBUSB_API_VERSION instead of LIBUSBX_API_VERSION
+
+-- Luca Boccassi <bluca@debian.org>  Fri, 28 Sep 2018 10:26:39 +0100
+
+
+stlink (1.5.0) unstable; urgency=medium
+
+Release date: 2018-02-16
+
+Major changes and added features:
+
+* Added support of STM32L496xx/4A6xx devices
+* Added unknown chip dummy to obtain the serial of the ST-link by a call to st-info --probe
+* Added support for STM32F72xx (chip-ID: 0x452) devices
+
+Updates and fixes:
+
+* Fixed verification of flash error for STM32L496x device
+* Updated Linux source repositories in README.md: Gentoo, Fedora and RedHat/CentOS
+* Updated changelog in debian package
+* Added LIB_INSTALL_DIR to correct libs install on 64-bit systems
+* Fixed write for microcontroller with RAM size less or equal to 32K
+* Fixed memory map for STM32L496xx boards
+* Fixed __FILE__ base name extraction
+* Added debian/triggers to run ldconfig
+* Fixed build on Fedora with GCC 8
+
+-- Luca Boccassi <bluca@debian.org>  Fri, 16 Mar 2018 16:56:17 +0000
+
+
+stlink (1.4.0) unstable; urgency=low
+
+Release date: 2017-07-01
+
+Major changes and added features:
+
+* Allow building of debian package with CPack
+* Added support for STM32L011 target
+* Added support for flashing second bank on STM32F10x_XL
+* Initial support to compile with Microsoft Visual Studio 2017
+* Added support for STM32L452 target
+
+Updates and fixes:
+
+* Fixed gdb-server: STM32L0xx has no FP_CTRL register for breakpoints
+* Added --flash=n[k][m] command line option to override device model
+* Updated libusb to 1.0.21 for Windows
+* Fixed low-voltage flashing on STM32F7 devices
+* Fixed building with mingw64
+* Fixed possible memory leak
+* Fixed installation path for shared objects
+* Fixed a few -Wformat warnings
+* Removed unused defines in mimgw.h
+* Skip GTK detection when cross-compiling
+* Fixed compilation with GCC 7
+* Fixed flashing to 'f0 device' targets
+* Fixed wrong counting when flashing
+
+-- Andrew 'Necromant' Andrianov <andrew@ncrmnt.org>  Sat, 01 Jul 2017 00:00:00 +0000
+
+
+stlink (1.3.1) unstable; urgency=low
+
+Release date: 2017-02-25
+
+Major changes and added features:
+
+* Added support for Semihosting `SYS_READC`
+* Added support for STM32F413
+* Added preliminary support for STM32L011 to see it after probe (chip-ID 0x457)
+
+Updates and fixes:
+
+* cmake/CPackConfig.cmake: Fixup OSX zip filename
+* Updated source repositories in README.md: Windows, macOS, Alpine Linux
+* Compilation fixes
+* Stripped full paths to source files in log
+* Fixed incorrect release folder name in docs
+* Fixed compilation when path includes spaces
+
+-- Andrew 'Necromant' Andrianov <andrew@ncrmnt.org>  Sat, 25 Feb 2017 00:00:00 +0000
+
+
+stlink (1.3.0) unstable; urgency=low
+
+Release date: 2017-01-28
+
+Major changes and added features:
+
+* Deprecation of autotools (autoconf, automake) and fixed build with MinGW
+* Added intel hex file reading for `st-flash`
+* Added support for ARM semihosting to `st-util`
+* Added manpages (generated with pandoc from Markdown)
+* Removal of undocumented `st-term` utility, which is now replaced by `st-util` ARM semihosting feature
+* Support serial numbers argument for `st-util` and `st-flash` to probe and control multiple connected programmers
+* Merge st-probe tool into st-info
+* Added support for native debian packaging
+* Rewritten commandline parsing for `st-flash`
+* Added `--reset` command to `st-flash`
+* st-util should detect when USB commands fail
+
+Chip support added for:
+
+* STM32F401XE: Added memory map for device
+* STM32F410RBTx
+* STM32F412
+* STM32F7xx
+* STM32F7x7x
+* STM32L0xx Cat2 devices (chip-ID: 0x425)
+* STM32L0xx Cat5 devices (chip-ID: 0x447)
+* STM32L4xx
+* STM32L432
+
+Updates and fixes:
+
+* Fixed "unaligned addr or size" when trying to write a program in RAM
+* Fixed flashing on STM32_F3_SMALL
+* Fixed STM32L-problem with flash loader
+* Don't read the target voltage on startup, because it crashes STM32F100
+* Added a useful error message instead of "[!] send_recv"
+* Do a JTAG reset prior to reading CPU information when processor is in deep sleep
+* Fixed STM32F030 erase error
+* Fixed memory map for STM32F7xx
+* Redesign of `st-flash` commandline options parsing
+* Set SWDCLK and fixed jtag_reset bug
+* doc/compiling.md: Add note about installation and ldconfig
+* Fixed Release target to generate the man-pages with pandoc
+* Fixed Cygwin build
+* Reset flash mass erase (MER) bit after mass erase for safety
+* Wrong extract command in FindLibUSB.cmake
+* Fixed compilation error on Ubuntu 16.10
+
+-- Andrew 'Necromant' Andrianov <andrew@ncrmnt.org>  Sat, 28 Jan 2017 00:00:00 +0000
+
+
+libstlink (1.2.1) unstable; urgency=low
+
+* Initial Debian-packaged release.
+
+-- Andrew 'Necromant' Andrianov <andrew@ncrmnt.org>  Sat, 09 Jul 2016 23:16:07 +0300
