@@ -9,6 +9,8 @@ ci: debug release binary test
 help:
 		@echo "        debug: Run a debug build"
 		@echo "      release: Run a release build"
+		@echo "      install: Install release build"
+		@echo "      package: Package release build"
 		@echo "         lint: Lint check all source-code"
 		@echo "         test: Build and run tests"
 		@echo "        clean: Clean all build output"
@@ -25,6 +27,10 @@ debug: build/Debug
 release: build/Release
 		@echo "[RELEASE]"
 		@$(MAKE) -C build/Release
+
+install: build/Release
+		@echo "[INSTALL] Release"
+		@$(MAKE) -C build/Release install
 
 package: build/Release
 		@echo "[PACKAGE] Release"
