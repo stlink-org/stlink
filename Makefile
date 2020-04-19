@@ -9,7 +9,6 @@ ci: debug release binary test
 help:
 		@echo "        debug: Run a debug build"
 		@echo "      release: Run a release build"
-		@echo "       binary: Build Windows-Binary"
 		@echo "         lint: Lint check all source-code"
 		@echo "         test: Build and run tests"
 		@echo "        clean: Clean all build output"
