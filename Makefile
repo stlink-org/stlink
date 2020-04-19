@@ -1,6 +1,7 @@
 ##
 # This Makefile is used to drive building of Debug and Release targets of CMake
 ##
+MAKEFLAGS += -s
 
 # additional flags for cmake, e.g. install path -DCMAKE_INSTALL_PREFIX=$(HOME)/.local
 CMAKEFLAGS +=
@@ -47,7 +48,7 @@ build/Debug:
 
 build/Release:
 		@mkdir -p $@
-		@cd $@ && cmake -Wno-dev -DCMAKE_BUILD_TYPE=Release $(CMAKEFLAGS) ../../
+		@cd $@ && cmake -DCMAKE_BUILD_TYPE=Release $(CMAKEFLAGS) -Wno-dev ../../
 
 clean:
 		@echo "[CLEAN]"
