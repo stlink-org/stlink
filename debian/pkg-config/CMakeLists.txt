@@ -11,5 +11,5 @@ configure_file(
 
 install(
     FILES "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.pc"
-    DESTINATION ${STLINK_LIBRARY_PATH}/pkgconfig/
+    DESTINATION ${STLINK_LIBRARY_PATH}/pkg-config/
     )

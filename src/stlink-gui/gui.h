@@ -39,8 +39,7 @@ struct mem_t {
     guint32 base;
 };
 
-struct _STlinkGUI
-{
+struct _STlinkGUI {
     GObject parent_instance;
 
     /*< private >*/
@@ -82,8 +81,7 @@ struct _STlinkGUI
     stlink_t *sl;
 };
 
-struct _STlinkGUIClass
-{
+struct _STlinkGUIClass {
     GObjectClass parent_class;
 
     /* class members */

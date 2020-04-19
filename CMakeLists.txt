@@ -1,16 +1,24 @@
 cmake_minimum_required(VERSION 3.4.2)
-set(CMAKE_USER_MAKE_RULES_OVERRIDE cmake/c_flag_overrides.cmake)
+cmake_policy(SET CMP0042 NEW)
+set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_SOURCE_DIR}/cmake/modules")
+include(GNUInstallDirs)
 
 project(stlink C)
 set(PROJECT_DESCRIPTION "Open source version of the STMicroelectronics ST-LINK Tools")
-include(GNUInstallDirs)
+
 set(STLINK_UDEV_RULES_DIR "${CMAKE_INSTALL_FULL_SYSCONFDIR}/udev/rules.d" CACHE PATH "udev rules directory")
 set(STLINK_MODPROBED_DIR "${CMAKE_INSTALL_FULL_SYSCONFDIR}/modprobe.d" CACHE PATH "modprobe.d directory")
 set(STLINK_STATIC_LIB ON CACHE BOOL "Install static lib")
 
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+option(STLINK_INSTALL_UDEV_RULES "Install udev rules files" ON)
+option(STLINK_INSTALL_MODPROBE_CONF "Install modprobe conf files" ON)
+option(STLINK_GENERATE_MANPAGES "Generate manpages with pandoc" OFF)
+
+# ====
+
+#set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+#set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+#set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 if (IS_DIRECTORY ${LIB_INSTALL_DIR})
     set(LIB_INSTALL_DIR ${LIB_INSTALL_DIR} CACHE PATH "Main library directory")
@@ -28,17 +36,16 @@ else ()
     set(STLINK_INCLUDE_PATH "${CMAKE_INSTALL_PREFIX}/${INCLUDE_INSTALL_DIR}")
 endif ()
 
-option(STLINK_GENERATE_MANPAGES "Generate manpages with pandoc" OFF)
-option(STLINK_INSTALL_UDEV_RULES "Install udev rules files" ON)
-option(STLINK_INSTALL_MODPROBE_CONF "Install modprobe conf files" ON)
-
-# cmake (3.0+) on MacOS should use @rpath
-cmake_policy(SET CMP0042 NEW)
-
-set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_SOURCE_DIR}/cmake/modules")
 include(cmake/version.cmake)
+
 if (NOT MSVC)
     include(cmake/c_flags.cmake)
+else ()
+    message(STATUS "MSVC C Flags override to /MT")
+    set(CMAKE_C_FLAGS_DEBUG_INIT          "/D_DEBUG /MTd /Zi /Ob0 /Od /RTC1")
+    set(CMAKE_C_FLAGS_MINSIZEREL_INIT     "/MT /O1 /Ob1 /D NDEBUG")
+    set(CMAKE_C_FLAGS_RELEASE_INIT        "/MT /O2 /Ob2 /D NDEBUG")
+    set(CMAKE_C_FLAGS_RELWITHDEBINFO_INIT "/MT /Zi /O2 /Ob1 /D NDEBUG")
 endif ()
 
 
@@ -46,13 +53,15 @@ endif ()
 # Dependencies
 ###
 
-find_package(LibUSB REQUIRED)
-if (NOT APPLE AND NOT WIN32 AND NOT CMAKE_CROSSCOMPILING)
+find_package(libusb REQUIRED)
+
+if (NOT WIN32 AND NOT CMAKE_CROSSCOMPILING)
     find_package(PkgConfig)
-    pkg_check_modules(gtk gtk+-3.0)
+    pkg_check_modules(GTK3 gtk+-3.0)
 endif ()
 
 include(CheckIncludeFile)
+
 CHECK_INCLUDE_FILE(sys/mman.h STLINK_HAVE_SYS_MMAN_H)
 if (STLINK_HAVE_SYS_MMAN_H)
     add_definitions(-DSTLINK_HAVE_SYS_MMAN_H)
@@ -64,8 +73,8 @@ if (STLINK_HAVE_UNISTD_H)
 endif ()
 
 include(CheckLibraryExists)
-CHECK_LIBRARY_EXISTS(ssp __stack_chk_fail "" _stack_chk_fail_exists)
 
+CHECK_LIBRARY_EXISTS(ssp __stack_chk_fail "" _stack_chk_fail_exists)
 if (_stack_chk_fail_exists)
     set(SSP_LIB ssp)
 else ()
@@ -100,7 +109,7 @@ set(STLINK_SOURCE
     src/md5.c
     )
 
-if (WIN32 OR MSYS OR MINGW)
+if (WIN32 OR MINGW OR MSYS)
     set(STLINK_SOURCE "${STLINK_SOURCE};src/mmap.c;src/mingw/mingw.c")
     set(STLINK_HEADERS "${STLINK_HEADERS};src/mingw/mingw.h")
 endif ()
@@ -109,6 +118,7 @@ include_directories(${LIBUSB_INCLUDE_DIR})
 include_directories(include)
 include_directories(${PROJECT_BINARY_DIR}/include)
 include_directories(src/mingw)
+
 if (MSVC)
     include_directories(src/win32)
     include_directories(src/getopt)
@@ -123,7 +133,7 @@ endif ()
 
 if (NOT WIN32)
     set(STLINK_LIB_SHARED ${PROJECT_NAME})
-else ()
+else (WIN32)
     set(STLINK_LIB_SHARED ${PROJECT_NAME}-shared)
 endif ()
 
@@ -143,11 +153,10 @@ message(STATUS "STLINK_LIB_SHARED: ${STLINK_LIB_SHARED}")
 message(STATUS "PROJECT_VERSION_MAJOR: ${PROJECT_VERSION_MAJOR}")
 message(STATUS "VERSION: ${STLINK_SHARED_VERSION}")
 
-set_target_properties(
-    ${STLINK_LIB_SHARED}
-    PROPERTIES SOVERSION ${PROJECT_VERSION_MAJOR}
-    VERSION ${STLINK_SHARED_VERSION}
-    )
+set_target_properties(${STLINK_LIB_SHARED} PROPERTIES
+        SOVERSION ${PROJECT_VERSION_MAJOR}
+        VERSION ${STLINK_SHARED_VERSION}
+        )
 
 # Link shared library with Apple macOS libraries
 if (APPLE)
@@ -157,16 +166,13 @@ if (APPLE)
     target_link_libraries(${STLINK_LIB_SHARED} ${CoreFoundation} ${IOKit} ${ObjC} ${SSP_LIB})
 endif ()
 
-if (WIN32 OR MSYS OR MINGW)
+if (WIN32 OR MINGW OR MSYS)
     target_link_libraries(${STLINK_LIB_SHARED} ${LIBUSB_LIBRARY} wsock32 ws2_32 ${SSP_LIB})
 else ()
     target_link_libraries(${STLINK_LIB_SHARED} ${LIBUSB_LIBRARY} ${SSP_LIB})
 endif ()
 
-install(
-    TARGETS ${STLINK_LIB_SHARED}
-    DESTINATION ${STLINK_LIBRARY_PATH}
-    )
+install(TARGETS ${STLINK_LIB_SHARED} DESTINATION ${STLINK_LIBRARY_PATH})             ### TODO: Check path
 
 
 ###
@@ -181,7 +187,7 @@ add_library(
     ${STLINK_SOURCE}
     )
 
-# Link shared library with Apple macOS libraries
+# Link static library with Apple macOS libraries
 if (APPLE)
     find_library(ObjC objc)
     find_library(CoreFoundation CoreFoundation)
@@ -189,7 +195,7 @@ if (APPLE)
     target_link_libraries(${STLINK_LIB_STATIC} ${CoreFoundation} ${IOKit} ${ObjC} ${SSP_LIB})
 endif ()
 
-if (WIN32 OR MSYS OR MINGW)
+if (WIN32 OR MINGW OR MSYS)                                                          ### TODO: MinGW OR MSYS on Linux
     target_link_libraries(${STLINK_LIB_STATIC} ${LIBUSB_LIBRARY} wsock32 ws2_32 ${SSP_LIB})
 else ()
     target_link_libraries(${STLINK_LIB_STATIC} ${LIBUSB_LIBRARY} ${SSP_LIB})
@@ -198,7 +204,7 @@ endif ()
 set_target_properties(${STLINK_LIB_STATIC} PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
 
 if (STLINK_STATIC_LIB)
-    install(TARGETS ${STLINK_LIB_STATIC} ARCHIVE DESTINATION ${STLINK_LIBRARY_PATH})
+    install(TARGETS ${STLINK_LIB_STATIC} ARCHIVE DESTINATION ${STLINK_LIBRARY_PATH}) ### TODO: Check path
 endif ()
 
 
@@ -207,20 +213,17 @@ endif ()
 ###
 
 add_executable(st-flash src/tools/flash.c src/tools/flash_opts.c)
+add_executable(st-info src/tools/info.c)
+
 if (WIN32 OR APPLE)
     target_link_libraries(st-flash ${STLINK_LIB_STATIC} ${SSP_LIB})
-else ()
-    target_link_libraries(st-flash ${STLINK_LIB_SHARED} ${SSP_LIB})
-endif ()
-
-add_executable(st-info src/tools/info.c)
-if (WIN32 OR APPLE)
     target_link_libraries(st-info ${STLINK_LIB_STATIC} ${SSP_LIB})
 else ()
+    target_link_libraries(st-flash ${STLINK_LIB_SHARED} ${SSP_LIB})
     target_link_libraries(st-info ${STLINK_LIB_SHARED} ${SSP_LIB})
 endif ()
 
-install(TARGETS st-flash st-info RUNTIME DESTINATION bin)
+install(TARGETS st-flash st-info RUNTIME DESTINATION bin)                            ### TODO: Check path
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     if (STLINK_INSTALL_MODPROBE_CONF)
@@ -233,20 +236,22 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
 endif ()
 
 add_subdirectory(src/gdbserver)
-add_subdirectory(src/tools/gui)
+add_subdirectory(src/stlink-gui)
 
 
 ###
 # Others
 ###
 
-add_subdirectory(usr/lib/pkgconfig)
-add_subdirectory(include)
+add_subdirectory(debian/pkg-config)
+add_subdirectory(include)                                                            ### TODO: Check path
 add_subdirectory(doc/man)
 add_subdirectory(tests)
 
 include(cmake/cpack_config.cmake)
 include(CPack)
+
+# ====
 
 
 ###
