@@ -41,9 +41,7 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")   # FreeBSD; libusb is integrated 
         message(FATAL_ERROR "Expected libusb library not found on your system! Verify your system integrity.")
     endif ()
 
-elseif (WIN32 OR (EXISTS "/etc/debian_version" AND ${CMAKE_BUILD_TYPE} MATCHES "Binary"))
-                                                # Windows & Windows-Binary-Build on Debian/Ubuntu
-
+elseif (WIN32)                                  # Windows
     # for MinGW/MSYS/MSVC: 64-bit or 32-bit?
     if (CMAKE_SIZEOF_VOID_P EQUAL 8)
         set(ARCH 64)

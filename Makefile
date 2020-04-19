@@ -11,7 +11,6 @@ ci: debug release binary test
 help:
 		@echo "        debug: Run a debug build"
 		@echo "      release: Run a release build"
-		@echo "       binary: Build Windows-Binary"
 		@echo "      install: Install release build"
 		@echo "      package: Package release build"
 		@echo "         lint: Lint check all source-code"
@@ -22,7 +21,6 @@ help:
 rebuild_cache: build/Debug build/Release
 		@$(MAKE) -C build/Debug rebuild_cache
 		@$(MAKE) -C build/Release rebuild_cache
-		@$(MAKE) -C build/Binary rebuild_cache
 
 debug: build/Debug
 		@echo "[DEBUG]"
@@ -31,10 +29,6 @@ debug: build/Debug
 release: build/Release
 		@echo "[RELEASE]"
 		@$(MAKE) -C build/Release
-
-binary: build/Binary
-		@echo "[BINARY]"
-		@$(MAKE) -C build/Binary
 
 install: build/Release
 		@echo "[INSTALL] Release"
@@ -54,10 +48,6 @@ build/Debug:
 build/Release:
 		@mkdir -p $@
 		@cd $@ && cmake -Wno-dev -DCMAKE_BUILD_TYPE=Release $(CMAKEFLAGS) ../../
-
-build/Binary:
-		@mkdir -p $@
-		@cd $@ && cmake -Wno-dev -DCMAKE_BUILD_TYPE=Binary $(CMAKEFLAGS) ../../
 
 clean:
 		@echo "[CLEAN]"
