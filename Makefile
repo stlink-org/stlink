@@ -1,7 +1,9 @@
 ##
 # This Makefile is used to drive building of Debug and Release targets of CMake
 ##
-MAKEFLAGS += -s
+
+# additional flags for cmake, e.g. install path -DCMAKE_INSTALL_PREFIX=$(HOME)/.local
+CMAKEFLAGS +=
 
 all: release
 ci: debug release binary test
@@ -10,6 +12,8 @@ help:
 		@echo "        debug: Run a debug build"
 		@echo "      release: Run a release build"
 		@echo "       binary: Build Windows-Binary"
+		@echo "      install: Install release build"
+		@echo "      package: Package release build"
 		@echo "         lint: Lint check all source-code"
 		@echo "         test: Build and run tests"
 		@echo "        clean: Clean all build output"
@@ -31,6 +35,10 @@ release: build/Release
 binary: build/Binary
 		@echo "[BINARY]"
 		@$(MAKE) -C build/Binary
+
+install: build/Release
+		@echo "[INSTALL] Release"
+		@$(MAKE) -C build/Release install
 
 package: build/Release
 		@echo "[PACKAGE] Release"
