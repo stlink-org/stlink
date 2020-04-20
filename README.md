@@ -3,7 +3,7 @@ Open source version of the STMicroelectronics STlink Tools
 
 [![BSD licensed](https://img.shields.io/badge/license-BSD-blue.svg)](https://raw.githubusercontent.com/hyperium/hyper/master/LICENSE)
 [![GitHub release](https://img.shields.io/github/release/stlink-org/stlink.svg)](https://github.com/stlink-org/stlink/releases/latest)
-[![GitHub commits](https://img.shields.io/github/commits-since/stlink-org/stlink/v1.6.0.svg)](https://github.com/stlink-org/stlink/releases/master)
+[![GitHub commits](https://img.shields.io/github/commits-since/stlink-org/stlink/v1.6.0.svg)](https://github.com/stlink-org/stlink/releases/develop)
 [![Downloads](https://img.shields.io/github/downloads/stlink-org/stlink/total.svg)](https://github.com/stlink-org/stlink/releases)
 [![Linux Status](https://img.shields.io/travis/stlink-org/stlink/master.svg?label=linux)](https://travis-ci.org/stlink-org/stlink)
 [![macOS Status](https://img.shields.io/travis/stlink-org/stlink/master.svg?label=osx)](https://travis-ci.org/stlink-org/stlink)

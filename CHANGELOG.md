@@ -12,14 +12,16 @@ Features:
 
 - Support for STM32L1, SM32L4 option bytes write (#596, #844, #847)
 - CMake now creates an uninstall target (#619, #907)
+- Added CMAKEFLAGS and install target (#804, #935)
 - Support for STM32G4 (#822)
 - Add aliased SRAM2 region in the L496 memory map (#824)
 - Improved support for STM32G0 (#825, #850, #856, #857)
+- Added postinst script with 'depmod -a' for 'make package' (#845, #931)
+- Calculate checksums for flash operations (#862, #924)
 - Added usb PID and udev rules for STlink v2.1 found on Nucleo-L432KC and Nucleo-L552ze boards (#900)
 - STM32G0/G4 improvements (#910)
   - Enable mass erase with a flash programming check
   - Handle G4 Cat3 devices with configurable dual bank flash by using a helper
-- Calculate checksums for flash operations (#862, #924)
 
 Updates & changes:
 
@@ -38,6 +40,8 @@ Updates & changes:
 - [doc] Defined version compatibility and installation instructions for macOS (commit 23c071edea45f6e8852fef52d884a680973d6d8f)
 - Deprecated old appveyor-mingw script (commit 97484422008df0f75c978627054776f35842a075)
 - Enhanced error log with file path for map_file() (#650, #879, #921)
+- Refactoring: Overall option code rework (#927)
+- Refactoring: Build settings / GUI-Build on UNIX-based systems if GTK3 is detected (#929)
 
 Fixes:
 
@@ -56,7 +60,7 @@ Fixes:
 - Fixed broken build on 32-bit systems (#919, #920)
 - st-flash: minor usage fix and make cmdline parsing more user friendly (#925)
 - Better argument parsing for CLI tools: stlink_open_usb can address v1, v2, v3 (#378, #922)
-- Restored functionality of make test builds (Regression) (#926)
+- Restored functionality of make test builds (Regression) (#926, #929)
 
 
 v1.6.0
@@ -258,7 +262,7 @@ Updates and fixes:
 
 * Fixed "unaligned addr or size" when trying to write a program in RAM ([#323](https://github.com/stlink-org/stlink/pull/323))
 * Fixed flashing on STM32_F3_SMALL ([#325](https://github.com/stlink-org/stlink/pull/325))
-* Fixed STM32L-problem with flash loader ([#390](https://github.com/stlink-org/stlink/pull/390), [#407](https://github.com/stlink-org/stlink/pull/407),[#408](https://github.com/stlink-org/stlink/pull/408))
+* Fixed STM32L-problem with flash loader ([#390](https://github.com/stlink-org/stlink/pull/390), [#407](https://github.com/stlink-org/stlink/pull/407), [#408](https://github.com/stlink-org/stlink/pull/408))
 * Don't read the target voltage on startup, because it crashes STM32F100 ([#423](https://github.com/stlink-org/stlink/pull/423), [#424](https://github.com/stlink-org/stlink/pull/424))
 * Added a useful error message instead of "[!] send_recv" ([#425](https://github.com/stlink-org/stlink/pull/425), [#426](https://github.com/stlink-org/stlink/pull/426))
 * Do a JTAG reset prior to reading CPU information when processor is in deep sleep ([#428](https://github.com/stlink-org/stlink/pull/428), [#430](https://github.com/stlink-org/stlink/pull/430), [#451](https://github.com/stlink-org/stlink/pull/451))

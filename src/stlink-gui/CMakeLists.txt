@@ -1,6 +1,6 @@
 if (NOT GTK3_FOUND)
     message(STATUS "GTK3 not found!")
-    return()                         # no GTK3 present => no GUI build
+    return()                          # no GTK3 present => no GUI build
 else (GTK3_FOUND)
     message(STATUS "Found GTK3: -I${GTK3_INCLUDE_DIRS}, ${GTK3_LIBRARIES}")
 endif ()

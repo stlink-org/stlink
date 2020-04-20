@@ -34,17 +34,17 @@ add_cflag_if_supported("-Wimplicit-function-declaration")
 # /usr/include/sys/types.h:218: warning: previous declaration of 'truncate' was here
 ##
 if (NOT CMAKE_SYSTEM_NAME STREQUAL "OpenBSD")
-	  add_cflag_if_supported("-Wredundant-decls")
+    add_cflag_if_supported("-Wredundant-decls")
 endif ()
 
 if (NOT WIN32)
-	  add_cflag_if_supported("-fPIC")
+    add_cflag_if_supported("-fPIC")
 endif ()
 
 if (${CMAKE_BUILD_TYPE} MATCHES "Debug")
-	  add_cflag_if_supported("-ggdb")
-	  add_cflag_if_supported("-O0")
-else()
-	  add_cflag_if_supported("-O2")
+    add_cflag_if_supported("-ggdb")
+    add_cflag_if_supported("-O0")
+else ()
+    add_cflag_if_supported("-O2")
     add_cflag_if_supported("-Werror")
 endif ()

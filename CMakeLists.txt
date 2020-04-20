@@ -1,7 +1,20 @@
+###
+# General cmake settings
+###
+
 cmake_minimum_required(VERSION 3.4.2)
 cmake_policy(SET CMP0042 NEW)
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_SOURCE_DIR}/cmake/modules")
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+
+# Define GNU standard installation directories
 include(GNUInstallDirs)
+
+
+###
+# General project settings
+###
 
 project(stlink C)
 set(PROJECT_DESCRIPTION "Open source version of the STMicroelectronics ST-LINK Tools")
@@ -14,10 +27,23 @@ option(STLINK_INSTALL_UDEV_RULES "Install udev rules files" ON)
 option(STLINK_INSTALL_MODPROBE_CONF "Install modprobe conf files" ON)
 option(STLINK_GENERATE_MANPAGES "Generate manpages with pandoc" OFF)
 
+# Determine project version
+include(${CMAKE_MODULE_PATH}/get_version.cmake)
+
+# Set C build flags
+if (NOT MSVC)
+    include(${CMAKE_MODULE_PATH}/c_flags.cmake)
+else ()
+    message(STATUS "MSVC C Flags override to /MT")
+    set(CMAKE_C_FLAGS_DEBUG_INIT          "/D_DEBUG /MTd /Zi /Ob0 /Od /RTC1")
+    set(CMAKE_C_FLAGS_MINSIZEREL_INIT     "/MT /O1 /Ob1 /D NDEBUG")
+    set(CMAKE_C_FLAGS_RELEASE_INIT        "/MT /O2 /Ob2 /D NDEBUG")
+    set(CMAKE_C_FLAGS_RELWITHDEBINFO_INIT "/MT /Zi /O2 /Ob1 /D NDEBUG")
+endif ()
+
+
 # ====
 
-#set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-#set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 #set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 if (IS_DIRECTORY ${LIB_INSTALL_DIR})
@@ -34,18 +60,6 @@ if (IS_DIRECTORY ${INCLUDE_INSTALL_DIR})
 else ()
     set(INCLUDE_INSTALL_DIR "include" CACHE PATH "Main include directory")
     set(STLINK_INCLUDE_PATH "${CMAKE_INSTALL_PREFIX}/${INCLUDE_INSTALL_DIR}")
-endif ()
-
-include(cmake/version.cmake)
-
-if (NOT MSVC)
-    include(cmake/c_flags.cmake)
-else ()
-    message(STATUS "MSVC C Flags override to /MT")
-    set(CMAKE_C_FLAGS_DEBUG_INIT          "/D_DEBUG /MTd /Zi /Ob0 /Od /RTC1")
-    set(CMAKE_C_FLAGS_MINSIZEREL_INIT     "/MT /O1 /Ob1 /D NDEBUG")
-    set(CMAKE_C_FLAGS_RELEASE_INIT        "/MT /O2 /Ob2 /D NDEBUG")
-    set(CMAKE_C_FLAGS_RELWITHDEBINFO_INIT "/MT /Zi /O2 /Ob1 /D NDEBUG")
 endif ()
 
 
@@ -243,15 +257,19 @@ add_subdirectory(src/stlink-gui)
 # Others
 ###
 
-add_subdirectory(debian/pkg-config)
 add_subdirectory(include)                                                            ### TODO: Check path
 add_subdirectory(doc/man)
 add_subdirectory(tests)
 
-include(cmake/cpack_config.cmake)
-include(CPack)
-
 # ====
+
+
+###
+# Package build
+###
+
+add_subdirectory(cmake/packaging)
+include(cmake/packaging/cpack_config.cmake)
 
 
 ###
@@ -261,11 +279,11 @@ include(CPack)
 if (NOT TARGET uninstall)
     configure_file(
         "${CMAKE_CURRENT_SOURCE_DIR}/cmake_uninstall.cmake.in"
-        "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
+        "${CMAKE_CURRENT_BINARY_DIR}/cmake/cmake_uninstall.cmake"
         IMMEDIATE @ONLY
         )
     add_custom_target(
         uninstall COMMAND ${CMAKE_COMMAND}
-        -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake
+        -P ${CMAKE_CURRENT_BINARY_DIR}/cmake/cmake_uninstall.cmake
         )
 endif ()
