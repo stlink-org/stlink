@@ -19,7 +19,7 @@ if (APPLE)                                      # macOS
         LIBUSB_LIBRARY NAMES ${LIBUSB_NAME}
         HINTS /usr /usr/local /opt
         )
-    FIND_PACKAGE_HANDLE_STANDARD_ARGS(Libusb DEFAULT_MSG LIBUSB_LIBRARY LIBUSB_INCLUDE_DIR)
+    FIND_PACKAGE_HANDLE_STANDARD_ARGS(_libusb DEFAULT_MSG LIBUSB_LIBRARY LIBUSB_INCLUDE_DIR)
     mark_as_advanced(LIBUSB_INCLUDE_DIR LIBUSB_LIBRARY)
     if (NOT LIBUSB_FOUND)
         message(FATAL_ERROR "No libusb library found on your system! Install libusb-1.0 from Homebrew or MacPorts")
@@ -35,7 +35,7 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")   # FreeBSD; libusb is integrated 
         LIBUSB_LIBRARY NAMES ${LIBUSB_NAME}
         HINTS /usr /usr/local /opt
         )
-    FIND_PACKAGE_HANDLE_STANDARD_ARGS(Libusb DEFAULT_MSG LIBUSB_LIBRARY LIBUSB_INCLUDE_DIR)
+    FIND_PACKAGE_HANDLE_STANDARD_ARGS(_libusb DEFAULT_MSG LIBUSB_LIBRARY LIBUSB_INCLUDE_DIR)
     mark_as_advanced(LIBUSB_INCLUDE_DIR LIBUSB_LIBRARY)
     if (NOT LIBUSB_FOUND)
         message(FATAL_ERROR "Expected libusb library not found on your system! Verify your system integrity.")
@@ -131,7 +131,7 @@ elseif (WIN32)                                  # Windows
         endif ()
         message(STATUS "Missing libusb library has been installed")
     endif ()
-    FIND_PACKAGE_HANDLE_STANDARD_ARGS(Libusb DEFAULT_MSG LIBUSB_LIBRARY LIBUSB_INCLUDE_DIR)
+    FIND_PACKAGE_HANDLE_STANDARD_ARGS(_libusb DEFAULT_MSG LIBUSB_LIBRARY LIBUSB_INCLUDE_DIR)
     mark_as_advanced(LIBUSB_INCLUDE_DIR LIBUSB_LIBRARY)
 
 else ()                                          # all other OS (unix-based)
@@ -145,7 +145,7 @@ else ()                                          # all other OS (unix-based)
         LIBUSB_LIBRARY NAMES ${LIBUSB_NAME}
         HINTS /usr /usr/local /opt
         )
-    FIND_PACKAGE_HANDLE_STANDARD_ARGS(Libusb DEFAULT_MSG LIBUSB_LIBRARY LIBUSB_INCLUDE_DIR)
+    FIND_PACKAGE_HANDLE_STANDARD_ARGS(_libusb DEFAULT_MSG LIBUSB_LIBRARY LIBUSB_INCLUDE_DIR)
     mark_as_advanced(LIBUSB_INCLUDE_DIR LIBUSB_LIBRARY)
 
     if (NOT LIBUSB_FOUND)
