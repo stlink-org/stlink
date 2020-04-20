@@ -3241,109 +3241,38 @@ static int stlink_write_option_bytes_l496x(stlink_t *sl, uint8_t* base, stm32_ad
  * @param option_byte value to write
  * @return 0 on success, -ve on failure.
  */
-static int stlink_write_option_bytes_f2(stlink_t *sl, uint8_t *base, stm32_addr_t addr, size_t len) {
-    uint32_t val;
-    uint32_t option_byte;
-
-    (void) addr;
-    (void) len;
-
-    option_byte =  *(uint32_t*) (base);
-
-    stlink_read_debug32(sl, FLASH_F2_OPT_CR, &val);
-    if (val & FLASH_F2_OPT_LOCK_BIT) {
-        WLOG("Unlocking option flash\n");
-        //Unlock the FLASH_OPT_CR register (FLASH Programming manual page 15)
-        //https://www.st.com/resource/en/programming_manual/cd00233952.pdf
-        stlink_write_debug32(sl, FLASH_F2_OPT_KEYR, FLASH_OPTKEY1);
-        stlink_write_debug32(sl, FLASH_F2_OPT_KEYR, FLASH_OPTKEY2);
-
-        stlink_read_debug32(sl, FLASH_F2_OPT_CR, &val);
-        if (val & FLASH_F2_OPT_LOCK_BIT) {
-            ELOG("Option flash unlock failed! System reset required to be able to unlock it again!\n");
-            return -1;
-        }
-    }
-
-    stlink_read_debug32(sl, FLASH_F2_OPT_CR, &val);
-    WLOG("option bytes CR = %x\n",val);
-
-    stlink_write_debug32(sl, FLASH_F2_OPT_CR, option_byte & 0x0FFFFFFC);
-
-    stlink_write_debug32(sl, FLASH_F2_OPT_CR, (option_byte & 0x0FFFFFFC)|0x00000002);
-
-
-    stlink_read_debug32(sl, FLASH_F2_SR, &val);
-    WLOG("wait BSY flag to be 0\n");
-
-    while (val & 0x00010000){
-        stlink_read_debug32(sl, FLASH_F2_SR, &val);
-    }
-    WLOG("BSY flag is 0\n");
-
-    stlink_read_debug32(sl, FLASH_F2_OPT_CR, &val);
-    WLOG("option bytes CR = %x\n",val);
-    WLOG("Option flash re-lock\n");
-    stlink_write_debug32(sl, FLASH_F2_OPT_CR, val | 0x00000001);
-
-    DLOG("STM32 F2 option bytes are written\n");
-
-	return 0;
-}
-
-/**
- * Write option bytes
- * @param sl
- * @param option_byte value to write
- * @return 0 on success, -ve on failure.
- */
 static int stlink_write_option_bytes_f4(stlink_t *sl, uint8_t* base, stm32_addr_t addr, uint32_t len) {
-    uint32_t val;
     uint32_t option_byte;
 
     (void) addr;
     (void) len;
 
-    option_byte =  *(uint32_t*) (base);
+    wait_flash_busy(sl);
 
-    stlink_read_debug32(sl, FLASH_F4_OPT_CR, &val);
-    if (val & FLASH_F4_OPT_LOCK_BIT) {
-        WLOG("Unlocking option flash\n");
-        //Unlock the FLASH_OPT_CR register (FLASH Programming manual page 15)
-        //https://www.st.com/resource/en/programming_manual/cd00233952.pdf
-        stlink_write_debug32(sl, FLASH_F4_OPT_KEYR, FLASH_OPTKEY1);
-        stlink_write_debug32(sl, FLASH_F4_OPT_KEYR, FLASH_OPTKEY2);
-
-        stlink_read_debug32(sl, FLASH_F4_OPT_CR, &val);
-        if (val & FLASH_F4_OPT_LOCK_BIT) {
-            ELOG("Option flash unlock failed! System reset required to be able to unlock it again!\n");
-            return -1;
-        }
+    if (unlock_flash_if(sl)) {
+        ELOG("Flash unlock failed! System reset required to be able to unlock it again!\n");
+        return -1;
     }
 
-    stlink_read_debug32(sl, FLASH_F4_OPT_CR, &val);
-    WLOG("option bytes CR = %x\n",val);
-
-    stlink_write_debug32(sl, FLASH_F4_OPT_CR, option_byte & 0x0FFFFFFC);
-
-    stlink_write_debug32(sl, FLASH_F4_OPT_CR, (option_byte & 0x0FFFFFFC)|0x00000002);
-
-    stlink_read_debug32(sl, FLASH_F4_SR, &val);
-    WLOG("wait BSY flag to be 0\n");
-
-    while (val & 0x00010000){
-        stlink_read_debug32(sl, FLASH_F4_SR, &val);
+    if (unlock_flash_option_if(sl)) {
+        ELOG("Flash option unlock failed!\n");
+        return -1;
     }
-    WLOG("BSY flag is 0\n");
+    write_uint32((unsigned char*) &option_byte, *(uint32_t*) (base));
 
-    stlink_read_debug32(sl, FLASH_F4_OPT_CR, &val);
-    WLOG("option bytes CR = %x\n",val);
-    WLOG("Option flash re-lock\n");
-    stlink_write_debug32(sl, FLASH_F4_OPT_CR, val | 0x00000001);
+    /* write option byte, ensuring we dont lock opt, and set strt bit */
+    stlink_write_debug32(sl, FLASH_F4_OPTCR, (option_byte & ~(1 << FLASH_F4_OPTCR_LOCK)) | (1 << FLASH_F4_OPTCR_START));
 
-    DLOG("STM32 F4 option bytes are written\n");
+    wait_flash_busy(sl);
 
-	return 0;
+    check_flash_error(sl);
+
+    /* option bytes are reloaded at reset only, no obl. */
+
+    lock_flash_option(sl);
+    lock_flash(sl);
+
+    return 0;
 }
 
 /**
@@ -3352,11 +3281,8 @@ static int stlink_write_option_bytes_f4(stlink_t *sl, uint8_t* base, stm32_addr_
  * @param option_byte value to write
  * @return 0 on success, -ve on failure.
  */
-int stlink_read_option_bytes_Gx(stlink_t *sl, uint32_t* option_byte)
-{
-    uint32_t ret = stlink_read_debug32(sl, STM32Gx_FLASH_OPTR, option_byte);
-    WLOG("option bytes CR = %#010x\n", *option_byte);
-	return ret;
+int stlink_read_option_bytes_Gx(stlink_t *sl, uint32_t* option_byte) {
+    return stlink_read_debug32(sl, STM32Gx_FLASH_OPTR, option_byte);
 }
 
 /**
@@ -3366,30 +3292,7 @@ int stlink_read_option_bytes_Gx(stlink_t *sl, uint32_t* option_byte)
  * @return 0 on success, -ve on failure.
  */
 int stlink_read_option_bytes_f2(stlink_t *sl, uint32_t* option_byte) {
-    uint32_t val;
-
-    stlink_read_debug32(sl, FLASH_F2_OPT_CR, &val);
-    if (val & FLASH_F2_OPT_LOCK_BIT) {
-        WLOG("Unlocking option flash\n");
-        //Unlock the FLASH_OPT_CR register (FLASH Programming manual page 15)
-        //https://www.st.com/resource/en/programming_manual/cd00233952.pdf
-        stlink_write_debug32(sl, FLASH_F2_OPT_KEYR, FLASH_OPTKEY1);
-        stlink_write_debug32(sl, FLASH_F2_OPT_KEYR, FLASH_OPTKEY2);
-
-        stlink_read_debug32(sl, FLASH_F2_OPT_CR, &val);
-        if (val & FLASH_F2_OPT_LOCK_BIT) {
-            ELOG("Option flash unlock failed! System reset required to be able to unlock it again!\n");
-            return -1;
-        }
-    }
-
-    stlink_read_debug32(sl, FLASH_F2_OPT_CR, option_byte);
-    WLOG("option bytes CR = %x\n",option_byte);
-
-    WLOG("Option flash re-lock\n");
-    stlink_write_debug32(sl, FLASH_F2_OPT_CR, val | 0x00000001);
-
-	return 0;
+    return stlink_read_debug32(sl, FLASH_F2_OPT_CR, option_byte);
 }
 
 /**
@@ -3399,39 +3302,15 @@ int stlink_read_option_bytes_f2(stlink_t *sl, uint32_t* option_byte) {
  * @return 0 on success, -ve on failure.
  */
 int stlink_read_option_bytes_f4(stlink_t *sl, uint32_t* option_byte) {
-    uint32_t val;
-
-    stlink_read_debug32(sl, FLASH_F4_OPT_CR, &val);
-    if (val & FLASH_F4_OPT_LOCK_BIT) {
-        WLOG("Unlocking option flash\n");
-        //Unlock the FLASH_OPT_CR register (FLASH Programming manual page 15)
-        //https://www.st.com/resource/en/programming_manual/cd00233952.pdf
-        stlink_write_debug32(sl, FLASH_F4_OPT_KEYR, FLASH_OPTKEY1);
-        stlink_write_debug32(sl, FLASH_F4_OPT_KEYR, FLASH_OPTKEY2);
-
-        stlink_read_debug32(sl, FLASH_F4_OPT_CR, &val);
-        if (val & FLASH_F4_OPT_LOCK_BIT) {
-            ELOG("Option flash unlock failed! System reset required to be able to unlock it again!\n");
-            return -1;
-        }
-    }
-
-    stlink_read_debug32(sl, FLASH_F4_OPT_CR, option_byte);
-    WLOG("option bytes CR = %x\n", option_byte);
-
-    WLOG("Option flash re-lock\n");
-    stlink_write_debug32(sl, FLASH_F4_OPT_CR, val | 0x00000001);
-
-	return 0;
+    return stlink_read_debug32(sl, FLASH_F4_OPTCR, option_byte);
 }
 /**
-* Read first option bytes
+ * Read first option bytes
 * @param sl
 * @param option_byte option value
 * @return 0 on success, -ve on failure.
 */
-int stlink_read_option_bytes_generic(stlink_t *sl, uint32_t* option_byte)
-{
+int stlink_read_option_bytes_generic(stlink_t *sl, uint32_t* option_byte) {
     return stlink_read_debug32(sl, sl->option_base, option_byte);
 }
 
@@ -3502,7 +3381,6 @@ int stlink_write_option_bytes(stlink_t *sl, stm32_addr_t addr, uint8_t* base, ui
     /* filter out on chip_id, until complete flash family are handled */
     switch (sl->chip_id) {
         case STLINK_CHIPID_STM32_F2:
-            return stlink_write_option_bytes_f2(sl, base, addr, len);
         case STLINK_CHIPID_STM32_F446:
             return stlink_write_option_bytes_f4(sl, base, addr, len);
         case STLINK_CHIPID_STM32_L0_CAT2:
