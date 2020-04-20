@@ -2958,25 +2958,16 @@ static int stlink_write_option_bytes_gx(stlink_t *sl, uint8_t* base, stm32_addr_
     (void) addr;
     (void) len;
 
+    wait_flash_busy(sl);
+
     if (unlock_flash_if(sl)) {
         ELOG("Flash unlock failed! System reset required to be able to unlock it again!\n");
         return -1;
     }
 
-    /* Unlock option bytes if necessary (ref manuel page 61) */
-    stlink_read_debug32(sl, STM32Gx_FLASH_CR, &val);
-    if ((val & (1 << STM32Gx_FLASH_CR_OPTLOCK))) {
-
-        /* disable option byte write protection. */
-        stlink_write_debug32(sl, STM32Gx_FLASH_OPTKEYR, FLASH_OPTKEY1);
-        stlink_write_debug32(sl, STM32Gx_FLASH_OPTKEYR, FLASH_OPTKEY2);
-
-        /* check that the lock is no longer set. */
-        stlink_read_debug32(sl, STM32Gx_FLASH_CR, &val);
-        if ((val & (1 << STM32Gx_FLASH_CR_OPTLOCK))) {
-            ELOG("Options bytes unlock failed! System reset required to be able to unlock it again!\n");
-            return -1;
-        }
+    if (unlock_flash_option_if(sl)) {
+        ELOG("Flash option unlock failed!\n");
+        return -1;
     }
 
     /* Write options bytes */
@@ -3003,12 +2994,8 @@ static int stlink_write_option_bytes_gx(stlink_t *sl, uint8_t* base, stm32_addr_
     val |= (1 << STM32Gx_FLASH_CR_OBL_LAUNCH);
     stlink_write_debug32(sl, STM32Gx_FLASH_CR, val);
 
-    /* Re-lock option bytes */
-    stlink_read_debug32(sl, STM32Gx_FLASH_CR, &val);
-    val |= (1u << STM32Gx_FLASH_CR_OPTLOCK);
-    stlink_write_debug32(sl, STM32Gx_FLASH_CR, val);
-
     /* Re-lock flash. */
+    lock_flash_option(sl);
     lock_flash(sl);
 
     return 0;
