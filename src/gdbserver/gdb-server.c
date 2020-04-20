@@ -234,7 +234,14 @@ int main(int argc, char** argv) {
     printf("st-util %s\n", STLINK_VERSION);
 
     sl = do_connect(&state);
-    if (sl == NULL) return 1;
+    if (sl == NULL) {
+        return 1;
+    }
+
+    if (sl->chip_id == STLINK_CHIPID_UNKNOWN)  {
+        ELOG("Unsupported Target (Chip ID is %#010x, Core ID is %#010x).\n", sl->chip_id, sl->core_id);
+        return 1;
+    }
 
     connected_stlink = sl;
     signal(SIGINT, &cleanup);
@@ -245,10 +252,7 @@ int main(int argc, char** argv) {
         stlink_reset(sl);
     }
 
-
-    // This is low-level information for debugging, not useful for normal use. 
-    // So: Demoted to a debug meesage. -- REW
-    DLOG("Chip ID is %08x, Core ID is  %08x.\n", sl->chip_id, sl->core_id);
+    DLOG("Chip ID is %#010x, Core ID is %#08x.\n", sl->chip_id, sl->core_id);
 
     sl->verbose=0;
     current_memory_map = make_memory_map(sl);
@@ -1852,7 +1856,8 @@ int serve(stlink_t *sl, st_state_t *st) {
                 stlink_close(sl);
 
                 sl = do_connect(st);
-                if (sl == NULL) cleanup(0);
+                if (sl == NULL || sl->chip_id == STLINK_CHIPID_UNKNOWN)
+                    cleanup(0);
                 connected_stlink = sl;
 
                 if (st->reset) {
