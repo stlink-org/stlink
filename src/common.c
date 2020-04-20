@@ -843,9 +843,13 @@ int stlink_chip_id(stlink_t *sl, uint32_t *chip_id) {
 int stlink_cpu_id(stlink_t *sl, cortex_m3_cpuid_t *cpuid) {
     uint32_t raw;
 
-    if (stlink_read_debug32(sl, STLINK_REG_CM3_CPUID, &raw))
+    if (stlink_read_debug32(sl, STLINK_REG_CM3_CPUID, &raw)) {
+        cpuid->implementer_id = 0;
+        cpuid->variant = 0;
+        cpuid->part = 0;
+        cpuid->revision = 0;
         return -1;
-
+    }
     cpuid->implementer_id = (raw >> 24) & 0x7f;
     cpuid->variant = (raw >> 20) & 0xf;
     cpuid->part = (raw >> 4) & 0xfff;
