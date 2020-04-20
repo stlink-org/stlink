@@ -2091,8 +2091,8 @@ int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr)
         stlink_read_debug32(sl, flash_regs_base + FLASH_PECR_OFF, &val);
         if ((val & (1<<0))||(val & (1<<1))) {
             /* disable pecr protection */
-            stlink_write_debug32(sl, flash_regs_base + FLASH_PEKEYR_OFF, 0x89abcdef);
-            stlink_write_debug32(sl, flash_regs_base + FLASH_PEKEYR_OFF, 0x02030405);
+            stlink_write_debug32(sl, flash_regs_base + FLASH_PEKEYR_OFF, FLASH_L0_PEKEY1);
+            stlink_write_debug32(sl, flash_regs_base + FLASH_PEKEYR_OFF, FLASH_L0_PEKEY2);
 
             /* check pecr.pelock is cleared */
             stlink_read_debug32(sl, flash_regs_base + FLASH_PECR_OFF, &val);
@@ -2102,8 +2102,8 @@ int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr)
             }
 
             /* unlock program memory */
-            stlink_write_debug32(sl, flash_regs_base + FLASH_PRGKEYR_OFF, 0x8c9daebf);
-            stlink_write_debug32(sl, flash_regs_base + FLASH_PRGKEYR_OFF, 0x13141516);
+            stlink_write_debug32(sl, flash_regs_base + FLASH_PRGKEYR_OFF, FLASH_L0_PRGKEY1);
+            stlink_write_debug32(sl, flash_regs_base + FLASH_PRGKEYR_OFF, FLASH_L0_PRGKEY2);
 
             /* check pecr.prglock is cleared */
             stlink_read_debug32(sl, flash_regs_base + FLASH_PECR_OFF, &val);
@@ -2603,8 +2603,8 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uint32_t 
         /* todo: check write operation */
 
         /* disable pecr protection */
-        stlink_write_debug32(sl, flash_regs_base + FLASH_PEKEYR_OFF, 0x89abcdef);
-        stlink_write_debug32(sl, flash_regs_base + FLASH_PEKEYR_OFF, 0x02030405);
+        stlink_write_debug32(sl, flash_regs_base + FLASH_PEKEYR_OFF, FLASH_L0_PEKEY1);
+        stlink_write_debug32(sl, flash_regs_base + FLASH_PEKEYR_OFF, FLASH_L0_PEKEY2);
 
         /* check pecr.pelock is cleared */
         stlink_read_debug32(sl, flash_regs_base + FLASH_PECR_OFF, &val);
@@ -2614,8 +2614,8 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uint32_t 
         }
 
         /* unlock program memory */
-        stlink_write_debug32(sl, flash_regs_base + FLASH_PRGKEYR_OFF, 0x8c9daebf);
-        stlink_write_debug32(sl, flash_regs_base + FLASH_PRGKEYR_OFF, 0x13141516);
+        stlink_write_debug32(sl, flash_regs_base + FLASH_PRGKEYR_OFF, FLASH_L0_PRGKEY1);
+        stlink_write_debug32(sl, flash_regs_base + FLASH_PRGKEYR_OFF, FLASH_L0_PRGKEY2);
 
         /* check pecr.prglock is cleared */
         stlink_read_debug32(sl, flash_regs_base + FLASH_PECR_OFF, &val);
