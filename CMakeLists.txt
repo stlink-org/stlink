@@ -65,7 +65,7 @@ endif ()
 # Dependencies
 ###
 
-find_package(_libusb REQUIRED)
+find_package(libusb REQUIRED)
 
 if (NOT WIN32 AND NOT CMAKE_CROSSCOMPILING)
     find_package(PkgConfig)
