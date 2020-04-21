@@ -391,6 +391,7 @@ static inline unsigned int is_flash_locked(stlink_t *sl) {
         cr_reg = STM32WB_FLASH_CR;
         cr_lock_shift = STM32WB_FLASH_CR_LOCK;
     } else {
+        ELOG("unsupported flash method, abort\n");
         return -1;
     }
 
@@ -425,6 +426,7 @@ static void unlock_flash(stlink_t *sl) {
     } else if (sl->flash_type == STLINK_FLASH_TYPE_WB) {
         key_reg = STM32WB_FLASH_KEYR;
     } else {
+        ELOG("unsupported flash method, abort\n");
         return;
     }
 
@@ -474,6 +476,7 @@ static void lock_flash(stlink_t *sl) {
         cr_reg = STM32WB_FLASH_CR;
         cr_lock_shift = STM32WB_FLASH_CR_LOCK;
     } else {
+        ELOG("unsupported flash method, abort\n");
         return;
     }
 
@@ -521,6 +524,7 @@ static bool is_flash_option_locked(stlink_t *sl) {
             optlock_shift = STM32WB_FLASH_CR_OPTLOCK;
             break;
         default:
+            ELOG("unsupported flash method, abort\n");
             return -1;
     }
 
@@ -564,8 +568,8 @@ static int lock_flash_option(stlink_t *sl) {
             optcr_reg = STM32WB_FLASH_CR;
             optlock_shift = STM32WB_FLASH_CR_OPTLOCK;
             break;
-
         default:
+            ELOG("unsupported flash method, abort\n");
             return -1;
     }
 
@@ -612,6 +616,7 @@ static int unlock_flash_option(stlink_t *sl)
             break;
 
         default:
+            ELOG("unsupported flash method, abort\n");
             return -1;
     }
 
@@ -831,21 +836,23 @@ static void set_flash_cr2_strt(stlink_t *sl) {
 static inline uint32_t read_flash_sr(stlink_t *sl) {
     uint32_t res, sr_reg;
 
-    if ((sl->flash_type == STLINK_FLASH_TYPE_F0) || (sl->flash_type == STLINK_FLASH_TYPE_F1_XL))
+    if ((sl->flash_type == STLINK_FLASH_TYPE_F0) || (sl->flash_type == STLINK_FLASH_TYPE_F1_XL)) {
         sr_reg = FLASH_SR;
-    else if (sl->flash_type == STLINK_FLASH_TYPE_L0)
+    } else if (sl->flash_type == STLINK_FLASH_TYPE_L0) {
         sr_reg = get_stm32l0_flash_base(sl) + FLASH_SR_OFF;
-    else if (sl->flash_type == STLINK_FLASH_TYPE_F4)
+    } else if (sl->flash_type == STLINK_FLASH_TYPE_F4) {
         sr_reg = FLASH_F4_SR;
-    else if (sl->flash_type == STLINK_FLASH_TYPE_L4)
+    } else if (sl->flash_type == STLINK_FLASH_TYPE_L4) {
         sr_reg = STM32L4_FLASH_SR;
-    else if (sl->flash_type == STLINK_FLASH_TYPE_G0 ||
-             sl->flash_type == STLINK_FLASH_TYPE_G4)
+    } else if (sl->flash_type == STLINK_FLASH_TYPE_G0 ||
+             sl->flash_type == STLINK_FLASH_TYPE_G4) {
         sr_reg = STM32Gx_FLASH_SR;
-    else if (sl->flash_type == STLINK_FLASH_TYPE_WB)
+    } else if (sl->flash_type == STLINK_FLASH_TYPE_WB) {
         sr_reg = STM32WB_FLASH_SR;
-    else
+    } else {
+        ELOG("unsupported flash method, abort");
         return -1;
+    }
 
     stlink_read_debug32(sl, sr_reg, &res);
 
@@ -862,19 +869,21 @@ static inline unsigned int is_flash_busy(stlink_t *sl) {
     uint32_t sr_busy_shift;
     unsigned int res;
 
-    if ((sl->flash_type == STLINK_FLASH_TYPE_F0) || (sl->flash_type == STLINK_FLASH_TYPE_F0) || (sl->flash_type == STLINK_FLASH_TYPE_L0))
+    if ((sl->flash_type == STLINK_FLASH_TYPE_F0) || (sl->flash_type == STLINK_FLASH_TYPE_F0) || (sl->flash_type == STLINK_FLASH_TYPE_L0)) {
         sr_busy_shift = FLASH_SR_BSY;
-    else if (sl->flash_type == STLINK_FLASH_TYPE_F4)
+    } else if (sl->flash_type == STLINK_FLASH_TYPE_F4) {
         sr_busy_shift = FLASH_F4_SR_BSY;
-    else if (sl->flash_type == STLINK_FLASH_TYPE_L4)
+    } else if (sl->flash_type == STLINK_FLASH_TYPE_L4) {
         sr_busy_shift = STM32L4_FLASH_SR_BSY;
-    else if (sl->flash_type == STLINK_FLASH_TYPE_G0 ||
-             sl->flash_type == STLINK_FLASH_TYPE_G4)
+    } else if (sl->flash_type == STLINK_FLASH_TYPE_G0 ||
+            sl->flash_type == STLINK_FLASH_TYPE_G4) {
         sr_busy_shift = STM32Gx_FLASH_SR_BSY;
-    else if (sl->flash_type == STLINK_FLASH_TYPE_WB)
+    } else if (sl->flash_type == STLINK_FLASH_TYPE_WB) {
         sr_busy_shift = STM32WB_FLASH_SR_BSY;
-    else
+    } else {
+        ELOG("unsupported flash method, abort");
         return -1;
+    }
 
     res = read_flash_sr(sl) & (1 << sr_busy_shift);
 
