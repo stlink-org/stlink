@@ -59,8 +59,14 @@ int main(int ac, char** av)
 
     sl = stlink_open_usb(o.log_level, 1, (char *)o.serial);
 
-    if (sl == NULL)
+    if (sl == NULL) {
         return -1;
+    }
+
+    if (sl->flash_type == STLINK_FLASH_TYPE_UNKNOWN) {
+        printf("Failed to connect to target\n");
+        return -1;
+    }
 
     if ( o.flash_size != 0u && o.flash_size != sl->flash_size ) {
         sl->flash_size = o.flash_size;
