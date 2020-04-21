@@ -1,4 +1,4 @@
-# Find_libusb.cmake
+# Findlibusb.cmake
 # Once done this will define
 #
 #  LIBUSB_FOUND         libusb present on system
@@ -19,7 +19,7 @@ if (APPLE)                                      # macOS
         LIBUSB_LIBRARY NAMES ${LIBUSB_NAME}
         HINTS /usr /usr/local /opt
         )
-    FIND_PACKAGE_HANDLE_STANDARD_ARGS(Libusb DEFAULT_MSG LIBUSB_LIBRARY LIBUSB_INCLUDE_DIR)
+    FIND_PACKAGE_HANDLE_STANDARD_ARGS(libusb DEFAULT_MSG LIBUSB_LIBRARY LIBUSB_INCLUDE_DIR)
     mark_as_advanced(LIBUSB_INCLUDE_DIR LIBUSB_LIBRARY)
     if (NOT LIBUSB_FOUND)
         message(FATAL_ERROR "No libusb library found on your system! Install libusb-1.0 from Homebrew or MacPorts")
@@ -35,7 +35,7 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")   # FreeBSD; libusb is integrated 
         LIBUSB_LIBRARY NAMES ${LIBUSB_NAME}
         HINTS /usr /usr/local /opt
         )
-    FIND_PACKAGE_HANDLE_STANDARD_ARGS(Libusb DEFAULT_MSG LIBUSB_LIBRARY LIBUSB_INCLUDE_DIR)
+    FIND_PACKAGE_HANDLE_STANDARD_ARGS(libusb DEFAULT_MSG LIBUSB_LIBRARY LIBUSB_INCLUDE_DIR)
     mark_as_advanced(LIBUSB_INCLUDE_DIR LIBUSB_LIBRARY)
     if (NOT LIBUSB_FOUND)
         message(FATAL_ERROR "Expected libusb library not found on your system! Verify your system integrity.")
@@ -73,7 +73,7 @@ elseif (WIN32)                                  # Windows
 
     if (NOT LIBUSB_FOUND OR EXISTS "/etc/debian_version")
         # Preparations for installing libusb library
-        find_package(_7zip REQUIRED)
+        find_package(7zip REQUIRED)
         set(LIBUSB_WIN_VERSION 1.0.23)          # set libusb version
         set(LIBUSB_WIN_ARCHIVE libusb-${LIBUSB_WIN_VERSION}.7z)
         set(LIBUSB_WIN_ARCHIVE_PATH ${CMAKE_BINARY_DIR}/${LIBUSB_WIN_ARCHIVE})
@@ -100,8 +100,8 @@ elseif (WIN32)                                  # Windows
                 )
         else ()
             execute_process(
-                COMMAND ${ZIP_EXECUTABLE} x -y ${LIBUSB_WIN_ARCHIVE_PATH} -o ${LIBUSB_WIN_OUTPUT_FOLDER}
-                )
+                COMMAND ${ZIP_EXECUTABLE} x -y ${LIBUSB_WIN_ARCHIVE_PATH} -o${LIBUSB_WIN_OUTPUT_FOLDER}
+                ) # <-- Note the absence of a space character following the -o option!
         endif ()
 
         # Find path to libusb library
@@ -131,7 +131,7 @@ elseif (WIN32)                                  # Windows
         endif ()
         message(STATUS "Missing libusb library has been installed")
     endif ()
-    FIND_PACKAGE_HANDLE_STANDARD_ARGS(Libusb DEFAULT_MSG LIBUSB_LIBRARY LIBUSB_INCLUDE_DIR)
+    FIND_PACKAGE_HANDLE_STANDARD_ARGS(libusb DEFAULT_MSG LIBUSB_LIBRARY LIBUSB_INCLUDE_DIR)
     mark_as_advanced(LIBUSB_INCLUDE_DIR LIBUSB_LIBRARY)
 
 else ()                                          # all other OS (unix-based)
@@ -145,7 +145,7 @@ else ()                                          # all other OS (unix-based)
         LIBUSB_LIBRARY NAMES ${LIBUSB_NAME}
         HINTS /usr /usr/local /opt
         )
-    FIND_PACKAGE_HANDLE_STANDARD_ARGS(Libusb DEFAULT_MSG LIBUSB_LIBRARY LIBUSB_INCLUDE_DIR)
+    FIND_PACKAGE_HANDLE_STANDARD_ARGS(libusb DEFAULT_MSG LIBUSB_LIBRARY LIBUSB_INCLUDE_DIR)
     mark_as_advanced(LIBUSB_INCLUDE_DIR LIBUSB_LIBRARY)
 
     if (NOT LIBUSB_FOUND)
