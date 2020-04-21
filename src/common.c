@@ -2971,27 +2971,14 @@ int stlink_fwrite_flash(stlink_t *sl, const char* path, stm32_addr_t addr) {
 static int stlink_write_option_bytes_gx(stlink_t *sl, uint8_t* base, stm32_addr_t addr, uint32_t len) {
 
     uint32_t val;
-
-    (void) addr;
+    int ret = 0;
     (void) len;
-
-    wait_flash_busy(sl);
-
-    if (unlock_flash_if(sl)) {
-        ELOG("Flash unlock failed! System reset required to be able to unlock it again!\n");
-        return -1;
-    }
-
-    if (unlock_flash_option_if(sl)) {
-        ELOG("Flash option unlock failed!\n");
-        return -1;
-    }
 
     /* Write options bytes */
     uint32_t data;
     write_uint32((unsigned char*) &data, *(uint32_t*) (base));
     WLOG("Writing option bytes %#10x to %#10x\n", data, addr);
-    //stlink_write_debug32(sl, addr, data);
+
     stlink_write_debug32(sl, STM32Gx_FLASH_OPTR, data);
 
     /* Set Options Start bit */
@@ -2999,23 +2986,16 @@ static int stlink_write_option_bytes_gx(stlink_t *sl, uint8_t* base, stm32_addr_
     val |= (1 << STM32Gx_FLASH_CR_OPTSTRT);
     stlink_write_debug32(sl, STM32Gx_FLASH_CR, val);
 
-    /* Wait for 'busy' bit in FLASH_SR to clear. */
-    do {
-        stlink_read_debug32(sl, STM32Gx_FLASH_SR, &val);
-    } while ((val & (1 << STM32Gx_FLASH_SR_BSY)) != 0);
+    wait_flash_busy(sl);
 
-    check_flash_error(sl);
+    ret = check_flash_error(sl);
 
-    /* apply options bytes immediate */
+    /* Reload options */
     stlink_read_debug32(sl, STM32Gx_FLASH_CR, &val);
     val |= (1 << STM32Gx_FLASH_CR_OBL_LAUNCH);
     stlink_write_debug32(sl, STM32Gx_FLASH_CR, val);
 
-    /* Re-lock flash. */
-    lock_flash_option(sl);
-    lock_flash(sl);
-
-    return 0;
+    return ret;
 }
 
 /**
@@ -3030,18 +3010,7 @@ static int stlink_write_option_bytes_l0(stlink_t *sl, uint8_t* base, stm32_addr_
     uint32_t flash_base = get_stm32l0_flash_base(sl);
     uint32_t val;
     uint32_t data;
-
-    wait_flash_busy(sl);
-
-    if (unlock_flash_if(sl)) {
-        ELOG("Flash unlock failed! System reset required to be able to unlock it again!\n");
-        return -1;
-    }
-
-    if (unlock_flash_option_if(sl)) {
-        ELOG("Flash option unlock failed!\n");
-        return -1;
-    }
+    int ret = 0;
 
     /* Clear errors */
     stlink_write_debug32(sl, flash_base + FLASH_SR_OFF, STM32L0_FLASH_REGS_ADDR);
@@ -3055,7 +3024,7 @@ static int stlink_write_option_bytes_l0(stlink_t *sl, uint8_t* base, stm32_addr_
 
         wait_flash_busy(sl);
 
-        if (check_flash_error(sl))
+        if ((ret = check_flash_error(sl)))
             break;
 
         len-=4;
@@ -3068,10 +3037,7 @@ static int stlink_write_option_bytes_l0(stlink_t *sl, uint8_t* base, stm32_addr_
     val |= (1 << STM32L0_FLASH_OBL_LAUNCH);
     stlink_write_debug32(sl, flash_base + FLASH_PECR_OFF, val);
 
-    lock_flash_option(sl);
-    lock_flash(sl);
-
-    return 0;
+    return ret;
 }
 
 /**
@@ -3084,21 +3050,10 @@ static int stlink_write_option_bytes_l0(stlink_t *sl, uint8_t* base, stm32_addr_
 static int stlink_write_option_bytes_l4(stlink_t *sl, uint8_t* base, stm32_addr_t addr, uint32_t len) {
 
     uint32_t val;
+    int ret = 0;
 
     (void) addr;
     (void) len;
-
-    wait_flash_busy(sl);
-
-    if (unlock_flash_if(sl)) {
-        ELOG("Flash unlock failed! System reset required to be able to unlock it again!\n");
-        return -1;
-    }
-
-    if (unlock_flash_option_if(sl)) {
-        ELOG("Flash option unlock failed!\n");
-        return -1;
-    }
 
     /* Write options bytes */
     uint32_t data;
@@ -3114,18 +3069,14 @@ static int stlink_write_option_bytes_l4(stlink_t *sl, uint8_t* base, stm32_addr_
     /* Wait for 'busy' bit in FLASH_SR to clear. */
     wait_flash_busy(sl);
 
-    check_flash_error(sl);
+    ret = check_flash_error(sl);
 
     /* apply options bytes immediate */
     stlink_read_debug32(sl, STM32L4_FLASH_CR, &val);
     val |= (1 << STM32L4_FLASH_CR_OBL_LAUNCH);
     stlink_write_debug32(sl, STM32L4_FLASH_CR, val);
 
-    /* Re-lock flash. */
-    lock_flash_option(sl);
-    lock_flash(sl);
-
-    return 0;
+    return ret;
 }
 
 
@@ -3137,21 +3088,10 @@ static int stlink_write_option_bytes_l4(stlink_t *sl, uint8_t* base, stm32_addr_
  */
 static int stlink_write_option_bytes_f4(stlink_t *sl, uint8_t* base, stm32_addr_t addr, uint32_t len) {
     uint32_t option_byte;
+    int ret = 0;
 
     (void) addr;
     (void) len;
-
-    wait_flash_busy(sl);
-
-    if (unlock_flash_if(sl)) {
-        ELOG("Flash unlock failed! System reset required to be able to unlock it again!\n");
-        return -1;
-    }
-
-    if (unlock_flash_option_if(sl)) {
-        ELOG("Flash option unlock failed!\n");
-        return -1;
-    }
 
     write_uint32((unsigned char*) &option_byte, *(uint32_t*) (base));
 
@@ -3160,14 +3100,11 @@ static int stlink_write_option_bytes_f4(stlink_t *sl, uint8_t* base, stm32_addr_
 
     wait_flash_busy(sl);
 
-    check_flash_error(sl);
+    ret = check_flash_error(sl);
 
     /* option bytes are reloaded at reset only, no obl. */
 
-    lock_flash_option(sl);
-    lock_flash(sl);
-
-    return 0;
+    return ret;
 }
 
 /**
@@ -3258,6 +3195,8 @@ int stlink_write_option_bytes32(stlink_t *sl, uint32_t option_byte)
  */
 int stlink_write_option_bytes(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uint32_t len)
 {
+    int ret = -1;
+
     if (sl->option_base == 0) {
         ELOG("Option bytes writing is currently not supported for connected chip\n");
         return -1;
@@ -3273,28 +3212,47 @@ int stlink_write_option_bytes(stlink_t *sl, stm32_addr_t addr, uint8_t* base, ui
         return -1;
     }
 
-    /* filter out on chip_id, until complete flash family are handled */
-    switch (sl->chip_id) {
-        case STLINK_CHIPID_STM32_F2:
-        case STLINK_CHIPID_STM32_F446:
-            return stlink_write_option_bytes_f4(sl, base, addr, len);
-        case STLINK_CHIPID_STM32_L0_CAT2:
-        case STLINK_CHIPID_STM32_L0_CAT5:
-        case STLINK_CHIPID_STM32_L152_RE:
-        case STLINK_CHIPID_STM32_L1_HIGH:
-            return stlink_write_option_bytes_l0(sl, base, addr, len);
-        case STLINK_CHIPID_STM32_L496X:
-        case STLINK_CHIPID_STM32_L4:
-            return stlink_write_option_bytes_l4(sl, base, addr, len);
-        case STLINK_CHIPID_STM32_G0_CAT1:
-        case STLINK_CHIPID_STM32_G0_CAT2:
-        case STLINK_CHIPID_STM32_G4_CAT2:
-        case STLINK_CHIPID_STM32_G4_CAT3:
-            return stlink_write_option_bytes_gx(sl, base, addr, len);
+    wait_flash_busy(sl);
+
+    if (unlock_flash_if(sl)) {
+        ELOG("Flash unlock failed! System reset required to be able to unlock it again!\n");
+        return -1;
+    }
+
+    if (unlock_flash_option_if(sl)) {
+        ELOG("Flash option unlock failed!\n");
+        return -1;
+    }
+
+    switch (sl->flash_type) {
+        case STLINK_FLASH_TYPE_F4:
+            ret = stlink_write_option_bytes_f4(sl, base, addr, len);
+            break;
+        case STLINK_FLASH_TYPE_L0:
+            ret = stlink_write_option_bytes_l0(sl, base, addr, len);
+            break;
+        case STLINK_FLASH_TYPE_L4:
+            ret = stlink_write_option_bytes_l4(sl, base, addr, len);
+            break;
+        case STLINK_FLASH_TYPE_G0:
+        case STLINK_FLASH_TYPE_G4:
+            ret = stlink_write_option_bytes_gx(sl, base, addr, len);
+            break;
         default:
             ELOG("Option bytes writing is currently not implemented for connected chip\n");
-            return -1;
+            break;
     }
+
+    if (ret)
+        ELOG("Flash option write failed!\n");
+	else
+		ILOG("Wrote %d option bytes to %#010x!\n", len, addr);
+
+    /* Re-lock flash. */
+    lock_flash_option(sl);
+    lock_flash(sl);
+
+    return ret;
 }
 
 /**
