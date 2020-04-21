@@ -734,8 +734,8 @@ static void set_flash_cr_mer(stlink_t *sl, bool v) {
         cr_reg = STM32Gx_FLASH_CR;
         cr_mer = (1 <<  STM32Gx_FLASH_CR_MER1);
         if (sl->has_dual_bank) {
-			cr_mer |= (1 << STM32Gx_FLASH_CR_MER2);
-		}
+            cr_mer |= (1 << STM32Gx_FLASH_CR_MER2);
+        }
         cr_pg  = (1 << FLASH_CR_PG);
     } else if (sl->flash_type == STLINK_FLASH_TYPE_WB) {
         cr_reg = STM32WB_FLASH_CR;
@@ -1100,7 +1100,7 @@ int stlink_load_device_params(stlink_t *sl) {
             sl->chip_id = 0x413;
     }
 
-    params = stlink_chipid_get_params(sl->chip_id);		// chipid.c
+    params = stlink_chipid_get_params(sl->chip_id);
     if (params == NULL) {
         WLOG("unknown chip id! %#x\n", chip_id);
         return -1;
@@ -1166,12 +1166,12 @@ int stlink_load_device_params(stlink_t *sl) {
     // TODO make note of variable page size here.....
     ILOG("SRAM size: %#x bytes (%d KiB), Flash: %#x bytes (%d KiB) in pages of %u bytes\n",
             sl->sram_size, sl->sram_size / 1024, sl->flash_size, sl->flash_size / 1024,
-	 (unsigned int)sl->flash_pgsz);
+            (unsigned int)sl->flash_pgsz);
 #else
     ILOG("%s: %d KiB SRAM, %d KiB flash in %d %s pages.\n",
-	params->description, sl->sram_size / 1024, sl->flash_size / 1024,
-	(sl->flash_pgsz < 1024)? sl->flash_pgsz  :  sl->flash_pgsz/1024,
-        (sl->flash_pgsz < 1024)?  "byte"         :  "KiB");
+            params->description, sl->sram_size / 1024, sl->flash_size / 1024,
+            (sl->flash_pgsz < 1024)? sl->flash_pgsz  :  sl->flash_pgsz/1024,
+            (sl->flash_pgsz < 1024)?  "byte"         :  "KiB");
 #endif
     return 0;
 }
@@ -1285,9 +1285,9 @@ int stlink_read_debug32(stlink_t *sl, uint32_t addr, uint32_t *data) {
 
     ret = sl->backend->read_debug32(sl, addr, data);
     if (!ret)
-	    DLOG("*** stlink_read_debug32 %x is %#x\n", *data, addr);
+        DLOG("*** stlink_read_debug32 %x is %#x\n", *data, addr);
 
-	return ret;
+    return ret;
 }
 
 int stlink_write_debug32(stlink_t *sl, uint32_t addr, uint32_t data) {
@@ -1955,7 +1955,7 @@ uint32_t calculate_F4_sectornum(uint32_t flashaddr){
 
 uint32_t calculate_F7_sectornum(uint32_t flashaddr){
     flashaddr &= ~STM32_FLASH_BASE;	//Page now holding the actual flash address
-	if (flashaddr<0x20000) return(flashaddr/0x8000);
+    if (flashaddr<0x20000) return(flashaddr/0x8000);
     else if (flashaddr<0x40000) return(4);
     else return(flashaddr/0x40000) +4;
 
@@ -2347,7 +2347,7 @@ int stlink_verify_write_flash(stlink_t *sl, stm32_addr_t address, uint8_t *data,
         stlink_read_mem32(sl, address + (uint32_t) off, aligned_size);
 
         if (memcmp(sl->q_buf, data + off, cmp_size)) {
-	  ELOG("Verification of flash failed at offset: %u\n", (unsigned int)off);
+            ELOG("Verification of flash failed at offset: %u\n", (unsigned int)off);
             return -1;
         }
     }
@@ -2521,7 +2521,7 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uint32_t 
         /* set programming mode */
         set_flash_cr_pg(sl);
 
-		size_t buf_size = (sl->sram_size > 0x8000) ? 0x8000 : 0x4000;
+        size_t buf_size = (sl->sram_size > 0x8000) ? 0x8000 : 0x4000;
         for (off = 0; off < len;) {
             size_t size = len - off > buf_size ? buf_size : len - off;
 
@@ -2642,7 +2642,7 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uint32_t 
             if ((off % sl->flash_pgsz) > (sl->flash_pgsz -5)) {
                 fprintf(stdout, "\r%3u/%3u pages written",
                         (unsigned int)(off/sl->flash_pgsz),
-			(unsigned int)(len/sl->flash_pgsz));
+                        (unsigned int)(len/sl->flash_pgsz));
                 fflush(stdout);
             }
 
@@ -3236,8 +3236,8 @@ int stlink_read_option_bytes32(stlink_t *sl, uint32_t* option_byte)
  */
 int stlink_write_option_bytes32(stlink_t *sl, uint32_t option_byte)
 {
-	WLOG("About to write option byte %#10x to target.\n", option_byte);
-	return stlink_write_option_bytes(sl, sl->option_base, (uint8_t *) &option_byte, 4);
+    WLOG("About to write option byte %#10x to target.\n", option_byte);
+    return stlink_write_option_bytes(sl, sl->option_base, (uint8_t *) &option_byte, 4);
 }
 
 /**
