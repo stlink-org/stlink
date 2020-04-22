@@ -2223,7 +2223,7 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uint32_t 
         WLOG("unaligned len 0x%x -- padding with zero\n", len);
         len += 1;
     } else if (addr & (sl->flash_pgsz - 1)) {
-        ELOG("addr not a multiple of current pagesize (%zd bytes), not supported\n", sl->flash_pgsz);
+        ELOG("addr not a multiple of current pagesize (%zd bytes), not supported, check page start address and compare with flash module organisation in related ST reference manual of your device.\n", sl->flash_pgsz);
         return -1;
     }
 
