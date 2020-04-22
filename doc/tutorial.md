@@ -168,18 +168,14 @@ will help you verify that:
 -   Your arm-none-eabi-gdb is functional
 -   Your board is functional
 
-A GDB server must be started to interact with the STM32. Depending on
-the discovery kit you are using, you must run one of the 2 commands:
+A GDB server must be started to interact with the STM32 by running 
+st-util tool :
 
 ```
-# STM32VL discovery kit (onboard ST-link)
-$> ./st-util --stlinkv1
-
-# STM32L or STM32F4 discovery kit (onboard ST-link/V2)
-$> ./st-util
+$> st-util
 
 # Full help for other options (listen port, version)
-$> ./st-util --help
+$> st-util --help
 ```
 
 Then, GDB can be used to interact with the kit:
@@ -226,16 +222,10 @@ memory, or read arbitary addresses of memory out to a binary file, use
 the st-flash tool, as shown below:
 
 ```
-# stlinkv1 command to read 4096 from flash into out.bin
+# stlink command to read 4096 from flash into out.bin
 $> ./st-flash read out.bin 0x8000000 4096
 
-# stlinkv2 command
-$> ./st-flash read out.bin 0x8000000 4096
-
-# stlinkv1 command to write the file in.bin into flash
-$> ./st-flash write in.bin 0x8000000
-
-# stlinkv2 command
+# stlinkv command to write the file in.bin into flash
 $> ./st-flash write in.bin 0x8000000
 ```
 
@@ -273,9 +263,6 @@ There are a few options:
   -h, --help		Print this help
   -vXX, --verbose=XX	Specify a specific verbosity level (0..99)
   -v, --verbose		Specify generally verbose logging
-  -s X, --stlink_version=X
-			Choose what version of stlink to use, (defaults to 2)
-  -1, --stlinkv1	Force stlink version 1
   -p 4242, --listen_port=1234
 			Set the gdb server listen port. (default port: 4242)
   -m, --multi
@@ -285,8 +272,8 @@ There are a few options:
 			Do not reset board on connection.
 ```
 
-The STLINKv2 device to use can be specified in the environment
-variable `STLINK_DEVICE` in the format `<USB_BUS>:<USB_ADDR>`.
+The STLink device to use can be specified using the --serial parameter, or via 
+the environment variable STLINK_DEVICE on the format <USB_BUS>:<USB_ADDR>.
 
 Then, in your project directory, someting like this...
 (remember, you need to run an _ARM_ gdb, not an x86 gdb)
