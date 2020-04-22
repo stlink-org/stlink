@@ -17,7 +17,6 @@ Run the main binary of the local package (src/main.rs).
 If a port number is not specified using the **--listen_port** option, the
 default **4242** port will be used.
 
-Stlink version 2 is used by default unless the option **--stlinkv1** is given.
 The STLink device to use can be specified using the --serial parameter, or via 
 the environment variable STLINK_DEVICE on the format <USB_BUS>:<USB_ADDR>.
 
@@ -34,12 +33,6 @@ the environment variable STLINK_DEVICE on the format <USB_BUS>:<USB_ADDR>.
 
 -v, \--verbose
 :   Specify generally verbose logging
-
--s *X*, \--stlink_version=*X*
-:   Choose what version of stlink to use, (defaults to 2)
-
--1, \--stlinkv1
-:   Force stlink version 1
 
 -p *4242*, \--listen_port=1234
 :   Set the gdb server listen port. (default port: 4242)
