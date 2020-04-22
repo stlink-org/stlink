@@ -949,7 +949,7 @@ int stlink_load_device_params(stlink_t *sl) {
             sl->sram_size, sl->sram_size / 1024, sl->flash_size, sl->flash_size / 1024,
 	 (unsigned int)sl->flash_pgsz);
 #else
-    ILOG("%s: %d KiB SRAM, %d KiB flash in %d %s pages.\n",
+    ILOG("%s: %zd KiB SRAM, %zd KiB flash in at least %zd %s pages.\n",
 	params->description, sl->sram_size / 1024, sl->flash_size / 1024,
 	(sl->flash_pgsz < 1024)? sl->flash_pgsz  :  sl->flash_pgsz/1024,
         (sl->flash_pgsz < 1024)?  "byte"         :  "KiB");
@@ -2223,7 +2223,7 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uint32_t 
         WLOG("unaligned len 0x%x -- padding with zero\n", len);
         len += 1;
     } else if (addr & (sl->flash_pgsz - 1)) {
-        ELOG("addr not a multiple of pagesize, not supported\n");
+        ELOG("addr not a multiple of current pagesize (%zd bytes), not supported\n", sl->flash_pgsz);
         return -1;
     }
 
