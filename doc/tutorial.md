@@ -285,8 +285,8 @@ There are a few options:
 			Do not reset board on connection.
 ```
 
-The STLINKv2 device to use can be specified in the environment
-variable `STLINK_DEVICE` in the format `<USB_BUS>:<USB_ADDR>`.
+The STLink device to use can be specified using the --serial parameter, or via 
+the environment variable STLINK_DEVICE on the format <USB_BUS>:<USB_ADDR>.
 
 Then, in your project directory, someting like this...
 (remember, you need to run an _ARM_ gdb, not an x86 gdb)

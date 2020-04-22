@@ -18,9 +18,8 @@ If a port number is not specified using the **--listen_port** option, the
 default **4242** port will be used.
 
 Stlink version 2 is used by default unless the option **--stlinkv1** is given.
-
-The STLinkV2 device to use can be specified in the environment
-variable STLINK_DEVICE on the format <USB_BUS>:<USB_ADDR>.
+The STLink device to use can be specified using the --serial parameter, or via 
+the environment variable STLINK_DEVICE on the format <USB_BUS>:<USB_ADDR>.
 
 # OPTIONS
 
