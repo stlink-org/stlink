@@ -27,7 +27,7 @@ int gdb_send_packet(int fd, char* data) {
     packet[0] = '$';
 
     uint8_t cksum = 0;
-    for(unsigned int i = 0; i < data_length; i++) {
+    for (unsigned int i = 0; i < data_length; i++) {
         packet[i + 1] = data[i];
         cksum += data[i];
     }
@@ -36,19 +36,19 @@ int gdb_send_packet(int fd, char* data) {
     packet[length - 2] = hex[cksum >> 4];
     packet[length - 1] = hex[cksum & 0xf];
 
-    while(1) {
-        if(write(fd, packet, length) != length) {
+    while (1) {
+        if (write(fd, packet, length) != length) {
             free(packet);
             return -2;
         }
 
         char ack;
-        if(read(fd, &ack, 1) != 1) {
+        if (read(fd, &ack, 1) != 1) {
             free(packet);
             return -2;
         }
 
-        if(ack == '+') {
+        if (ack == '+') {
             free(packet);
             return 0;
         }
@@ -64,7 +64,7 @@ int gdb_recv_packet(int fd, char** buffer) {
     char* packet_buffer = malloc(packet_size);
     unsigned state;
 
-    if(packet_buffer == NULL)
+    if (packet_buffer == NULL)
         return -2;
 
 start:
@@ -79,15 +79,15 @@ start:
      */
 
     char c;
-    while(state != 4) {
-        if(read(fd, &c, 1) != 1) {
+    while (state != 4) {
+        if (read(fd, &c, 1) != 1) {
             free(packet_buffer);
             return -2;
         }
 
         switch(state) {
         case 0:
-            if(c != '$') {
+            if (c != '$') {
                 // ignore
             } else {
                 state = 1;
@@ -95,16 +95,16 @@ start:
             break;
 
         case 1:
-            if(c == '#') {
+            if (c == '#') {
                 state = 2;
             } else {
                 packet_buffer[packet_idx++] = c;
                 cksum += c;
 
-                if(packet_idx == packet_size) {
+                if (packet_idx == packet_size) {
                     packet_size += ALLOC_STEP;
                     void* p = realloc(packet_buffer, packet_size);
-                    if(p != NULL)
+                    if (p != NULL)
                         packet_buffer = p;
                     else {
                         free(packet_buffer);
@@ -127,9 +127,9 @@ start:
     }
 
     uint8_t recv_cksum_int = strtoul(recv_cksum, NULL, 16);
-    if(recv_cksum_int != cksum) {
+    if (recv_cksum_int != cksum) {
         char nack = '-';
-        if(write(fd, &nack, 1) != 1) {
+        if (write(fd, &nack, 1) != 1) {
             free(packet_buffer);
             return -2;
         }
@@ -137,7 +137,7 @@ start:
         goto start;
     } else {
         char ack = '+';
-        if(write(fd, &ack, 1) != 1) {
+        if (write(fd, &ack, 1) != 1) {
             free(packet_buffer);
             return -2;
         }
@@ -157,13 +157,13 @@ int gdb_check_for_interrupt(int fd) {
     pfd.fd = fd;
     pfd.events = POLLIN;
 
-    if(poll(&pfd, 1, 0) != 0) {
+    if (poll(&pfd, 1, 0) != 0) {
         char c;
 
-        if(read(fd, &c, 1) != 1)
+        if (read(fd, &c, 1) != 1)
             return -2;
 
-        if(c == '\x03') // ^C
+        if (c == '\x03') // ^C
             return 1;
     }
 

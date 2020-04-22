@@ -8,14 +8,14 @@
 static void usage(void)
 {
     puts("st-info --version");
-    puts("st-info --flash");
-    puts("st-info --sram");
-    puts("st-info --descr");
-    puts("st-info --pagesize");
-    puts("st-info --chipid");
+    puts("st-info --probe");
     puts("st-info --serial");
     puts("st-info --hla-serial");
-    puts("st-info --probe");
+    puts("st-info --flash");
+    puts("st-info --pagesize");
+    puts("st-info --sram");
+    puts("st-info --chipid");
+    puts("st-info --descr");
 }
 
 /* Print normal or OpenOCD hla_serial with newline */
@@ -45,20 +45,20 @@ static void stlink_print_info(stlink_t *sl)
     if (!sl)
         return;
 
-    printf(" serial: ");
+    printf(" serial:     ");
     stlink_print_serial(sl, false);
-    printf("openocd: ");
+    printf(" hla-serial: ");
     stlink_print_serial(sl, true);
 
-    printf("  flash: %u (pagesize: %u)\n",
-	   (unsigned int)sl->flash_size, (unsigned int)sl->flash_pgsz);
+    printf(" flash:      %u (pagesize: %u)\n",
+	     (unsigned int)sl->flash_size, (unsigned int)sl->flash_pgsz);
 
-    printf("   sram: %u\n",       (unsigned int)sl->sram_size);
-    printf(" chipid: 0x%.4x\n",    sl->chip_id);
+    printf(" sram:       %u\n", (unsigned int)sl->sram_size);
+    printf(" chipid:     0x%.4x\n", sl->chip_id);
 
 	params = stlink_chipid_get_params(sl->chip_id);
 	if (params)
-		printf("  descr: %s\n", params->description);
+		printf(" descr:      %s\n", params->description);
 }
 
 static void stlink_probe(void)
@@ -113,18 +113,18 @@ static int print_data(char **av)
     if (stlink_current_mode(sl) != STLINK_DEV_DEBUG_MODE)
         stlink_enter_swd_mode(sl);
 
-    if (strcmp(av[1], "--flash") == 0)
-        printf("0x%x\n", (unsigned int)sl->flash_size);
-    else if (strcmp(av[1], "--sram") == 0)
-        printf("0x%x\n", (unsigned int)sl->sram_size);
-    else if (strcmp(av[1], "--pagesize") == 0)
-        printf("0x%x\n", (unsigned int)sl->flash_pgsz);
-    else if (strcmp(av[1], "--chipid") == 0)
-        printf("0x%.4x\n", sl->chip_id);
-    else if (strcmp(av[1], "--serial") == 0)
+    if (strcmp(av[1], "--serial") == 0)
         stlink_print_serial(sl, false);
     else if (strcmp(av[1], "--hla-serial") == 0)
         stlink_print_serial(sl, true);
+    else if (strcmp(av[1], "--flash") == 0)
+        printf("0x%x\n", (unsigned int)sl->flash_size);
+    else if (strcmp(av[1], "--pagesize") == 0)
+        printf("0x%x\n", (unsigned int)sl->flash_pgsz);
+    else if (strcmp(av[1], "--sram") == 0)
+        printf("0x%x\n", (unsigned int)sl->sram_size);
+    else if (strcmp(av[1], "--chipid") == 0)
+        printf("0x%.4x\n", sl->chip_id);
     else if (strcmp(av[1], "--descr") == 0) {
         const struct stlink_chipid_params *params = stlink_chipid_get_params(sl->chip_id);
         if (params == NULL)

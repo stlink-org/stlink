@@ -1,7 +1,7 @@
 Release
 =======
 
-This document describes the steps takes for developers to create a release
+This document describes the steps it takes for developers to create a release
 
 1. Update `.version` with semantic version: `x.x.x`
 2. Update `README.md` with semantic version `x.x.x` in commits badge

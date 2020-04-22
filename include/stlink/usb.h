@@ -9,9 +9,9 @@
 #define STLINK_USB_H
 
 #include <stdbool.h>
-#include <libusb.h>
 
 #include "stlink.h"
+#include "stlinkusb.h"
 #include "stlink/logging.h"
 
 #ifdef __cplusplus
@@ -19,14 +19,33 @@ extern "C" {
 #endif
 
 #define STLINK_USB_VID_ST                   0x0483
-#define STLINK_USB_PID_STLINK                    0x3744
-#define STLINK_USB_PID_STLINK_32L                0x3748
-#define STLINK_USB_PID_STLINK_32L_AUDIO          0x374a
-#define STLINK_USB_PID_STLINK_NUCLEO             0x374b
-#define STLINK_USB_PID_STLINK_V3_USBLOADER       0x374d
-#define STLINK_USB_PID_STLINK_V3E_PID            0x374e
-#define STLINK_USB_PID_STLINK_V3S_PID            0x374f
-#define STLINK_USB_PID_STLINK_V3_2VCP_PID        0x3753
+#define STLINK_USB_PID_STLINK               0x3744
+#define STLINK_USB_PID_STLINK_32L           0x3748
+#define STLINK_USB_PID_STLINK_32L_AUDIO     0x374a
+#define STLINK_USB_PID_STLINK_NUCLEO        0x374b
+#define STLINK_USB_PID_STLINK_V2_1          0x3752
+#define STLINK_USB_PID_STLINK_V3_USBLOADER  0x374d
+#define STLINK_USB_PID_STLINK_V3E_PID       0x374e
+#define STLINK_USB_PID_STLINK_V3S_PID       0x374f
+#define STLINK_USB_PID_STLINK_V3_2VCP_PID   0x3753
+
+#define STLINK_V1_USB_PID(pid) ((pid) == STLINK_USB_PID_STLINK )
+
+#define STLINK_V2_USB_PID(pid) ((pid) == STLINK_USB_PID_STLINK_32L || \
+                        (pid) == STLINK_USB_PID_STLINK_32L_AUDIO || \
+                        (pid) == STLINK_USB_PID_STLINK_NUCLEO)
+
+#define STLINK_V2_1_USB_PID(pid) ( (pid) == STLINK_USB_PID_STLINK_V2_1 )
+
+#define STLINK_V3_USB_PID(pid) ((pid) == STLINK_USB_PID_STLINK_V3_USBLOADER || \
+                        (pid) == STLINK_USB_PID_STLINK_V3E_PID || \
+                        (pid) == STLINK_USB_PID_STLINK_V3S_PID || \
+                        (pid) == STLINK_USB_PID_STLINK_V3_2VCP_PID )
+
+#define STLINK_SUPPORTED_USB_PID(pid) ( STLINK_V1_USB_PID(pid) || \
+                        STLINK_V2_USB_PID(pid) || \
+                        STLINK_V2_1_USB_PID(pid) || \
+                        STLINK_V3_USB_PID(pid))
 
 #define STLINK_SG_SIZE 31
 #define STLINK_CMD_SIZE 16
@@ -58,4 +77,3 @@ extern "C" {
 #endif
 
 #endif /* STLINK_USB_H */
-

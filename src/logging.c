@@ -54,3 +54,24 @@ int ugly_log(int level, const char *tag, const char *format, ...) {
     va_end(args);
     return 1;
 }
+
+
+/*
+ *  Log message levels.
+ *  - LIBUSB_LOG_LEVEL_NONE (0)    : no messages ever printed by the library (default)
+ *  - LIBUSB_LOG_LEVEL_ERROR (1)   : error messages are printed to stderr
+ *  - LIBUSB_LOG_LEVEL_WARNING (2) : warning and error messages are printed to stderr
+ *  - LIBUSB_LOG_LEVEL_INFO (3)    : informational messages are printed to stderr
+ *  - LIBUSB_LOG_LEVEL_DEBUG (4)   : debug and informational messages are printed to stderr
+*/
+int ugly_libusb_log_level(enum ugly_loglevel v)
+{
+    switch (v) {
+    case UDEBUG: return 4;
+    case UINFO: return 3;
+    case UWARN: return 2;
+    case UERROR: return 1;
+    };
+
+    return 2;
+}

@@ -45,6 +45,9 @@ reset
 \--reset
 :   TODO
 
+\--opt
+:   Enable ignore ending empty bytes optimization
+
 \--serial *iSerial*
 :   TODO
 
@@ -61,7 +64,7 @@ Flash `firmware.bin` to device
 
 Read firmware from device (4096 bytes)
 
-    $ st-flash read firmware.bin 0x8000000 4096
+    $ st-flash read firmware.bin 0x8000000 0x1000
 
 Erase firmware from device
 

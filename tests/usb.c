@@ -1,10 +1,9 @@
 #include <stdio.h>
 #include <stlink.h>
 
-int main(int ac, char** av)
-{
-	(void)ac;
-	(void)av;
+int main(int ac, char** av) {
+    (void)ac;
+    (void)av;
 
     stlink_t* sl;
     struct stlink_reg regs;
@@ -30,9 +29,13 @@ int main(int ac, char** av)
         printf("-- core_id: %#x\n", sl->core_id);
 
         cortex_m3_cpuid_t cpuid;
-        stlink_cpu_id(sl, &cpuid);
-        printf("cpuid:impl_id = %0#x, variant = %#x\n", cpuid.implementer_id, cpuid.variant);
-        printf("cpuid:part = %#x, rev = %#x\n", cpuid.part, cpuid.revision);
+        if (stlink_cpu_id(sl, &cpuid)) {
+            printf("Failed reading stlink_cpu_id\n");
+        } else {
+            printf("cpuid:impl_id = %0#x, variant = %#x\n", cpuid.implementer_id, cpuid.variant);
+            printf("cpuid:part = %#x, rev = %#x\n", cpuid.part, cpuid.revision);
+        }
+        
 
         printf("-- read_sram\n");
         static const uint32_t sram_base = STM32_SRAM_BASE;
@@ -43,12 +46,12 @@ int main(int ac, char** av)
         printf("FP_CTRL\n");
         stlink_read_mem32(sl, STLINK_REG_CM3_FP_CTRL, 4);
 
-        // no idea what reg this is..  */
-        //     stlink_read_mem32(sl, 0xe000ed90, 4);
+        // no idea what reg this is...
+        //stlink_read_mem32(sl, 0xe000ed90, 4);
         // no idea what register this is...
-        //     stlink_read_mem32(sl, 0xe000edf0, 4);
+        //stlink_read_mem32(sl, 0xe000edf0, 4);
         // offset 0xC into TIM11 register? TIMx_DIER?
-        //     stlink_read_mem32(sl, 0x4001100c, 4); */
+        //stlink_read_mem32(sl, 0x4001100c, 4);
 
         /* Test 32 bit Write */
         write_uint32(sl->q_buf,0x01234567);
@@ -72,13 +75,12 @@ int main(int ac, char** av)
         printf("-- reset\n");
         stlink_reset(sl);
         stlink_force_debug(sl);
-        /* Test reg write*/
+        /* Test reg write */
         stlink_write_reg(sl, 0x01234567, 3);
         stlink_write_reg(sl, 0x89abcdef, 4);
         stlink_write_reg(sl, 0x12345678, 15);
         for (off = 0; off < 21; off += 1)
             stlink_read_reg(sl, off, &regs);
-
 
         stlink_read_all_regs(sl, &regs);
 
@@ -96,6 +98,5 @@ int main(int ac, char** av)
 
         stlink_close(sl);
     }
-
     return 0;
 }

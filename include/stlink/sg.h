@@ -6,20 +6,12 @@
  */
 
 #ifndef STLINK_SG_H
-#define	STLINK_SG_H
+#define STLINK_SG_H
 
-#if defined(_MSC_VER)
-#pragma warning(push)
-#pragma warning(disable: 4200 4255 4668 4820)
-#include <libusb.h>
-#pragma warning(pop)
-#else
-#include <libusb.h>
-#endif
-
+#include "stlinkusb.h"
 #include "stlink.h"
 
-#ifdef	__cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -49,29 +41,29 @@ extern "C" {
 
 
 
-    struct stlink_libsg {
-        libusb_context* libusb_ctx;
-        libusb_device_handle *usb_handle;
-        unsigned ep_rep;
-        unsigned ep_req;
+struct stlink_libsg {
+    libusb_context* libusb_ctx;
+    libusb_device_handle *usb_handle;
+    unsigned ep_rep;
+    unsigned ep_req;
 
-        int sg_fd;
-        int do_scsi_pt_err;
+    int sg_fd;
+    int do_scsi_pt_err;
 
-        unsigned char cdb_cmd_blk[CDB_SL];
+    unsigned char cdb_cmd_blk[CDB_SL];
 
-        int q_data_dir; // Q_DATA_IN, Q_DATA_OUT
-        // the start of the query data in the device memory space
-        uint32_t q_addr;
+    int q_data_dir; // Q_DATA_IN, Q_DATA_OUT
+    // the start of the query data in the device memory space
+    uint32_t q_addr;
 
-        // Sense (error information) data
-        // obsolete, this was fed to the scsi tools
-        unsigned char sense_buf[SENSE_BUF_LEN];
+    // Sense (error information) data
+    // obsolete, this was fed to the scsi tools
+    unsigned char sense_buf[SENSE_BUF_LEN];
 
-        struct stlink_reg reg;
-    };
+    struct stlink_reg reg;
+};
 
-    stlink_t* stlink_v1_open(const int verbose, int reset);
+stlink_t* stlink_v1_open(const int verbose, int reset);
 
 #ifdef	__cplusplus
 }

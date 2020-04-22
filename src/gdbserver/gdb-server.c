@@ -89,10 +89,10 @@ static stlink_t* do_connect(st_state_t *st) {
     stlink_t *ret = NULL;
     switch (st->stlink_version) {
         case 2:
-            if(serial_specified){
+            if (serial_specified){
                 ret = stlink_open_usb(st->logging_level, st->reset, serialnumber);
             }
-            else{
+            else {
                 ret = stlink_open_usb(st->logging_level, st->reset, NULL);
             }
             break;
@@ -199,8 +199,8 @@ int parse_options(int argc, char** argv, st_state_t *st) {
                             /** @todo This is not really portable, as strlen really returns size_t we need to obey and not cast it to a signed type. */
                 int j = (int)strlen(optarg);
                 int length = j / 2;  //the length of the destination-array
-                if(j % 2 != 0) return -1;
-                for(size_t k = 0; j >= 0 && k < sizeof(serialnumber); ++k, j -= 2) {
+                if (j % 2 != 0) return -1;
+                for (size_t k = 0; j >= 0 && k < sizeof(serialnumber); ++k, j -= 2) {
                     char buffer[3] = {0};
                     memcpy(buffer, optarg + j, 2);
                     serialnumber[length - k] = (uint8_t)strtol(buffer, NULL, 16);
@@ -234,7 +234,14 @@ int main(int argc, char** argv) {
     printf("st-util %s\n", STLINK_VERSION);
 
     sl = do_connect(&state);
-    if(sl == NULL) return 1;
+    if (sl == NULL) {
+        return 1;
+    }
+
+    if (sl->chip_id == STLINK_CHIPID_UNKNOWN)  {
+        ELOG("Unsupported Target (Chip ID is %#010x, Core ID is %#010x).\n", sl->chip_id, sl->core_id);
+        return 1;
+    }
 
     connected_stlink = sl;
     signal(SIGINT, &cleanup);
@@ -245,16 +252,14 @@ int main(int argc, char** argv) {
         stlink_reset(sl);
     }
 
-
-
-    ILOG("Chip ID is %08x, Core ID is  %08x.\n", sl->chip_id, sl->core_id);
+    DLOG("Chip ID is %#010x, Core ID is %#08x.\n", sl->chip_id, sl->core_id);
 
     sl->verbose=0;
     current_memory_map = make_memory_map(sl);
 
 #if defined(__MINGW32__) || defined(_MSC_VER)
     WSADATA	wsadata;
-    if (WSAStartup(MAKEWORD(2,2),&wsadata) !=0 ) {
+    if (WSAStartup(MAKEWORD(2,2),&wsadata) !=0){
         goto winsock_error;
     }
 #endif
@@ -449,7 +454,7 @@ static const char* const memory_map_template_L496 =
     "<memory-map>"
     "  <memory type=\"rom\" start=\"0x00000000\" length=\"0x%x\"/>"        // code = sram, bootrom or flash; flash is bigger
     "  <memory type=\"ram\" start=\"0x10000000\" length=\"0x10000\"/>"      // SRAM2 (64 KB)
-    "  <memory type=\"ram\" start=\"0x20000000\" length=\"0x40000\"/>"      // SRAM1 (256 KB)
+    "  <memory type=\"ram\" start=\"0x20000000\" length=\"0x50000\"/>"      // SRAM1 + aliased SRAM2 (256+64=320 KB)
     "  <memory type=\"flash\" start=\"0x08000000\" length=\"0x%x\">"
     "    <property name=\"blocksize\">0x800</property>"
     "  </memory>"
@@ -531,27 +536,27 @@ char* make_memory_map(stlink_t *sl) {
     char* map = malloc(sz);
     map[0] = '\0';
 
-    if(sl->chip_id==STLINK_CHIPID_STM32_F4 || sl->chip_id==STLINK_CHIPID_STM32_F446 || sl->chip_id==STLINK_CHIPID_STM32_F411RE) {
+    if (sl->chip_id==STLINK_CHIPID_STM32_F4 || sl->chip_id==STLINK_CHIPID_STM32_F446 || sl->chip_id==STLINK_CHIPID_STM32_F411RE) {
         strcpy(map, memory_map_template_F4);
-    } else if(sl->chip_id==STLINK_CHIPID_STM32_F4_DE) {
+    } else if (sl->chip_id==STLINK_CHIPID_STM32_F4_DE) {
         strcpy(map, memory_map_template_F4_DE);
-    } else if(sl->core_id==STM32F7_CORE_ID) {
+    } else if (sl->core_id==STM32F7_CORE_ID) {
         snprintf(map, sz, memory_map_template_F7,
                 (unsigned int)sl->sram_size);
-    } else if(sl->chip_id==STLINK_CHIPID_STM32_F4_HD) {
+    } else if (sl->chip_id==STLINK_CHIPID_STM32_F4_HD) {
         strcpy(map, memory_map_template_F4_HD);
-    } else if(sl->chip_id==STLINK_CHIPID_STM32_F2) {
+    } else if (sl->chip_id==STLINK_CHIPID_STM32_F2) {
         snprintf(map, sz, memory_map_template_F2,
                 (unsigned int)sl->flash_size,
                 (unsigned int)sl->sram_size,
                 (unsigned int)sl->flash_size - 0x20000,
                 (unsigned int)sl->sys_base, (unsigned int)sl->sys_size);
-    } else if((sl->chip_id==STLINK_CHIPID_STM32_L4) ||
+    } else if ((sl->chip_id==STLINK_CHIPID_STM32_L4) ||
               (sl->chip_id==STLINK_CHIPID_STM32_L43X) ||
               (sl->chip_id==STLINK_CHIPID_STM32_L46X)) {
         snprintf(map, sz, memory_map_template_L4,
                 (unsigned int)sl->flash_size, (unsigned int)sl->flash_size);
-    } else if(sl->chip_id==STLINK_CHIPID_STM32_L496X) {
+    } else if (sl->chip_id==STLINK_CHIPID_STM32_L496X) {
         snprintf(map, sz, memory_map_template_L496,
                 (unsigned int)sl->flash_size, (unsigned int)sl->flash_size);
     } else {
@@ -602,7 +607,7 @@ static void init_data_watchpoints(stlink_t *sl) {
     stlink_write_debug32(sl, 0xE000EDFC, data);
 
     // make sure all watchpoints are cleared
-    for(int i = 0; i < DATA_WATCH_NUM; i++) {
+    for (int i = 0; i < DATA_WATCH_NUM; i++) {
         data_watches[i].fun = WATCHDISABLED;
         stlink_write_debug32(sl, 0xe0001028 + i * 16, 0);
     }
@@ -619,15 +624,15 @@ static int add_data_watchpoint(stlink_t *sl, enum watchfun wf,
 
     mask = -1;
     i = len;
-    while(i) {
+    while (i) {
         i >>= 1;
         mask++;
     }
 
-    if((mask != (uint32_t)-1) && (mask < 16)) {
-        for(i = 0; i < DATA_WATCH_NUM; i++) {
+    if ((mask != (uint32_t)-1) && (mask < 16)) {
+        for (i = 0; i < DATA_WATCH_NUM; i++) {
             // is this an empty slot ?
-            if(data_watches[i].fun == WATCHDISABLED) {
+            if (data_watches[i].fun == WATCHDISABLED) {
                 DLOG("insert watchpoint %d addr %x wf %u mask %u len %d\n", i, addr, wf, mask, len);
 
                 data_watches[i].fun = wf;
@@ -658,8 +663,8 @@ static int delete_data_watchpoint(stlink_t *sl, stm32_addr_t addr)
 {
     int i;
 
-    for(i = 0 ; i < DATA_WATCH_NUM; i++) {
-        if((data_watches[i].addr == addr) && (data_watches[i].fun != WATCHDISABLED)) {
+    for (i = 0 ; i < DATA_WATCH_NUM; i++) {
+        if ((data_watches[i].addr == addr) && (data_watches[i].fun != WATCHDISABLED)) {
             DLOG("delete watchpoint %d addr %x\n", i, addr);
 
             data_watches[i].fun = WATCHDISABLED;
@@ -697,7 +702,7 @@ static void init_code_breakpoints(stlink_t *sl) {
 
     ILOG("Found %i hw breakpoint registers\n", code_break_num);
 
-    for(int i = 0; i < code_break_num; i++) {
+    for (int i = 0; i < code_break_num; i++) {
         code_breaks[i].type = 0;
         stlink_write_debug32(sl, STLINK_REG_CM3_FP_COMP0 + i * 4, 0);
     }
@@ -705,7 +710,7 @@ static void init_code_breakpoints(stlink_t *sl) {
 
 static int has_breakpoint(stm32_addr_t addr)
 {
-    for(int i = 0; i < code_break_num; i++) {
+    for (int i = 0; i < code_break_num; i++) {
         if (code_breaks[i].addr == addr) {
             return 1;
         }
@@ -718,7 +723,7 @@ static int update_code_breakpoint(stlink_t *sl, stm32_addr_t addr, int set) {
     uint32_t mask;
     int type = (addr & 0x2) ? CODE_BREAK_HIGH : CODE_BREAK_LOW;
 
-    if(addr & 1) {
+    if (addr & 1) {
         ELOG("update_code_breakpoint: unaligned address %08x\n", addr);
         return -1;
     }
@@ -730,16 +735,16 @@ static int update_code_breakpoint(stlink_t *sl, stm32_addr_t addr, int set) {
 	}
 
     int id = -1;
-    for(int i = 0; i < code_break_num; i++) {
-        if(fpb_addr == code_breaks[i].addr ||
+    for (int i = 0; i < code_break_num; i++) {
+        if (fpb_addr == code_breaks[i].addr ||
                 (set && code_breaks[i].type == 0)) {
             id = i;
             break;
         }
     }
 
-    if(id == -1) {
-        if(set) return -1; // Free slot not found
+    if (id == -1) {
+        if (set) return -1; // Free slot not found
         else	return 0;  // Breakpoint is already removed
     }
 
@@ -748,18 +753,18 @@ static int update_code_breakpoint(stlink_t *sl, stm32_addr_t addr, int set) {
     bp->addr = fpb_addr;
 
 	if (sl->core_id==STM32F7_CORE_ID) {
-		if(set) bp->type = type;
+		if (set) bp->type = type;
 		else	bp->type = 0;
 
 		mask = (bp->addr) | 1;
 	} else {
-		if(set) bp->type |= type;
+		if (set) bp->type |= type;
 		else	bp->type &= ~type;
 
 		mask = (bp->addr) | 1 | (bp->type << 30);
 	}
 
-    if(bp->type == 0) {
+    if (bp->type == 0) {
         DLOG("clearing hw break %d\n", id);
 
         stlink_write_debug32(sl, 0xe0002008 + id * 4, 0);
@@ -788,13 +793,13 @@ static struct flash_block* flash_root;
 
 static int flash_add_block(stm32_addr_t addr, unsigned length, stlink_t *sl) {
 
-    if(addr < FLASH_BASE || addr + length > FLASH_BASE + sl->flash_size) {
+    if (addr < FLASH_BASE || addr + length > FLASH_BASE + sl->flash_size) {
         ELOG("flash_add_block: incorrect bounds\n");
         return -1;
     }
 
     stlink_calculate_pagesize(sl, addr);
-    if(addr % FLASH_PAGE != 0 || length % FLASH_PAGE != 0) {
+    if (addr % FLASH_PAGE != 0 || length % FLASH_PAGE != 0) {
         ELOG("flash_add_block: unaligned block\n");
         return -1;
     }
@@ -814,7 +819,7 @@ static int flash_add_block(stm32_addr_t addr, unsigned length, stlink_t *sl) {
 static int flash_populate(stm32_addr_t addr, uint8_t* data, unsigned length) {
     unsigned int fit_blocks = 0, fit_length = 0;
 
-    for(struct flash_block* fb = flash_root; fb; fb = fb->next) {
+    for (struct flash_block* fb = flash_root; fb; fb = fb->next) {
         /* Block: ------X------Y--------
          * Data:            a-----b
          *                a--b
@@ -825,7 +830,7 @@ static int flash_populate(stm32_addr_t addr, uint8_t* data, unsigned length) {
 
         unsigned X = fb->addr, Y = fb->addr + fb->length;
         unsigned a = addr, b = addr + length;
-        if(a < Y && b > X) {
+        if (a < Y && b > X) {
             // from start of the block
             unsigned start = (a > X ? a : X) - X;
             unsigned end   = (b > Y ? Y : b) - X;
@@ -837,12 +842,12 @@ static int flash_populate(stm32_addr_t addr, uint8_t* data, unsigned length) {
         }
     }
 
-    if(fit_blocks == 0) {
+    if (fit_blocks == 0) {
         ELOG("Unfit data block %08x -> %04x\n", addr, length);
         return -1;
     }
 
-    if(fit_length != length) {
+    if (fit_length != length) {
         WLOG("data block %08x -> %04x truncated to %04x\n",
                 addr, length, fit_length);
         WLOG("(this is not an error, just a GDB glitch)\n");
@@ -858,10 +863,10 @@ static int flash_go(stlink_t *sl) {
     stlink_reset(sl);
     stlink_force_debug(sl);
 
-    for(struct flash_block* fb = flash_root; fb; fb = fb->next) {
+    for (struct flash_block* fb = flash_root; fb; fb = fb->next) {
         DLOG("flash_do: block %08x -> %04x\n", fb->addr, fb->length);
 
-        for(stm32_addr_t page = fb->addr; page < fb->addr + fb->length; page += FLASH_PAGE) {
+        for (stm32_addr_t page = fb->addr; page < fb->addr + fb->length; page += (uint32_t)FLASH_PAGE) {
             unsigned length = fb->length - (page - fb->addr);
 
             //Update FLASH_PAGE
@@ -880,7 +885,7 @@ static int flash_go(stlink_t *sl) {
     error = 0;
 
 error:
-    for(struct flash_block* fb = flash_root, *next; fb; fb = next) {
+    for (struct flash_block* fb = flash_root, *next; fb; fb = next) {
         next = fb->next;
         free(fb->data);
         free(fb);
@@ -955,7 +960,7 @@ static void init_cache (stlink_t *sl) {
   int i;
 
   /* Assume only F7 has a cache.  */
-  if(sl->core_id!=STM32F7_CORE_ID)
+  if (sl->core_id!=STM32F7_CORE_ID)
     return;
 
   stlink_read_debug32(sl, CLIDR, &clidr);
@@ -971,14 +976,14 @@ static void init_cache (stlink_t *sl) {
        (clidr >> 27) & 7, (clidr >> 24) & 7, (clidr >> 21) & 7);
   ILOG(" cache: ctr: %08x, DminLine: %u bytes, IminLine: %u bytes\n", ctr,
        cache_desc.dminline, cache_desc.iminline);
-  for(i = 0; i < 7; i++)
+  for (i = 0; i < 7; i++)
     {
       unsigned int ct = (clidr >> (3 * i)) & 0x07;
 
       cache_desc.dcache[i].width = 0;
       cache_desc.icache[i].width = 0;
 
-      if(ct == 2 || ct == 3 || ct == 4)
+      if (ct == 2 || ct == 3 || ct == 4)
 	{
 	  /* Data.  */
 	  stlink_write_debug32(sl, CSSELR, i << 1);
@@ -986,7 +991,7 @@ static void init_cache (stlink_t *sl) {
 	  read_cache_level_desc(sl, &cache_desc.dcache[i]);
 	}
 
-      if(ct == 1 || ct == 3)
+      if (ct == 1 || ct == 3)
 	{
 	  /* Instruction.  */
 	  stlink_write_debug32(sl, CSSELR, (i << 1) | 1);
@@ -1034,7 +1039,7 @@ static void cache_sync(stlink_t *sl)
 {
   unsigned ccr;
 
-  if(sl->core_id!=STM32F7_CORE_ID)
+  if (sl->core_id!=STM32F7_CORE_ID)
     return;
   if (!cache_modified)
     return;
@@ -1062,7 +1067,7 @@ static size_t unhexify(const char *in, char *out, size_t out_count)
 
 int serve(stlink_t *sl, st_state_t *st) {
     SOCKET sock = socket(AF_INET, SOCK_STREAM, 0);
-    if(!IS_SOCK_VALID(sock)) {
+    if (!IS_SOCK_VALID(sock)) {
         perror("socket");
         return 1;
     }
@@ -1076,13 +1081,13 @@ int serve(stlink_t *sl, st_state_t *st) {
     serv_addr.sin_addr.s_addr = INADDR_ANY;
     serv_addr.sin_port = htons(st->listen_port);
 
-    if(bind(sock, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
+    if (bind(sock, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
         perror("bind");
         close_socket(sock);
         return 1;
     }
 
-    if(listen(sock, 5) < 0) {
+    if (listen(sock, 5) < 0) {
         perror("listen");
         close_socket(sock);
         return 1;
@@ -1092,7 +1097,7 @@ int serve(stlink_t *sl, st_state_t *st) {
 
     SOCKET client = accept(sock, NULL, NULL);
     //signal (SIGINT, SIG_DFL);
-    if(!IS_SOCK_VALID(client)) {
+    if (!IS_SOCK_VALID(client)) {
         perror("accept");
         close_socket(sock);
         return 1;
@@ -1114,12 +1119,17 @@ int serve(stlink_t *sl, st_state_t *st) {
      * emulate attaching and detaching to target.
      */
     unsigned int attached = 1;
-
-    while(1) {
+    /*
+     * If a critical error is detected, break from the loop
+     */
+    int critical_error = 0;
+    int ret;
+    while (1) {
+        ret = 0;
         char* packet;
 
         int status = gdb_recv_packet(client, &packet);
-        if(status < 0) {
+        if (status < 0) {
             ELOG("cannot recv: %d\n", status);
             close_socket(client);
             return 1;
@@ -1132,13 +1142,13 @@ int serve(stlink_t *sl, st_state_t *st) {
 
         switch(packet[0]) {
             case 'q': {
-                if(packet[1] == 'P' || packet[1] == 'C' || packet[1] == 'L') {
+                if (packet[1] == 'P' || packet[1] == 'C' || packet[1] == 'L') {
                     reply = strdup("");
                     break;
                 }
 
                 char *separator = strstr(packet, ":"), *params = "";
-                if(separator == NULL) {
+                if (separator == NULL) {
                     separator = packet + strlen(packet);
                 } else {
                     params = separator + 1;
@@ -1150,8 +1160,8 @@ int serve(stlink_t *sl, st_state_t *st) {
 
                 DLOG("query: %s;%s\n", queryName, params);
 
-                if(!strcmp(queryName, "Supported")) {
-                    if(sl->chip_id==STLINK_CHIPID_STM32_F4
+                if (!strcmp(queryName, "Supported")) {
+                    if (sl->chip_id==STLINK_CHIPID_STM32_F4
                        || sl->chip_id==STLINK_CHIPID_STM32_F4_HD
                        || sl->core_id==STM32F7_CORE_ID) {
                         reply = strdup("PacketSize=3fff;qXfer:memory-map:read+;qXfer:features:read+");
@@ -1159,7 +1169,7 @@ int serve(stlink_t *sl, st_state_t *st) {
                     else {
                         reply = strdup("PacketSize=3fff;qXfer:memory-map:read+");
                     }
-                } else if(!strcmp(queryName, "Xfer")) {
+                } else if (!strcmp(queryName, "Xfer")) {
                     char *type, *op, *__s_addr, *s_length;
                     char *tok = params;
                     char *annex __attribute__((unused));
@@ -1178,18 +1188,18 @@ int serve(stlink_t *sl, st_state_t *st) {
 
                     const char* data = NULL;
 
-                    if(!strcmp(type, "memory-map") && !strcmp(op, "read"))
+                    if (!strcmp(type, "memory-map") && !strcmp(op, "read"))
                         data = current_memory_map;
 
-                    if(!strcmp(type, "features") && !strcmp(op, "read"))
+                    if (!strcmp(type, "features") && !strcmp(op, "read"))
                         data = target_description_F4;
 
-                    if(data) {
+                    if (data) {
                         unsigned data_length = (unsigned int) strlen(data);
-                        if(addr + length > data_length)
+                        if (addr + length > data_length)
                             length = data_length - addr;
 
-                        if(length == 0) {
+                        if (length == 0) {
                             reply = strdup("l");
                         } else {
                             reply = calloc(length + 2, 1);
@@ -1197,11 +1207,11 @@ int serve(stlink_t *sl, st_state_t *st) {
                             strncpy(&reply[1], data, length);
                         }
                     }
-                } else if(!strncmp(queryName, "Rcmd,",4)) {
+                } else if (!strncmp(queryName, "Rcmd,",4)) {
                     // Rcmd uses the wrong separator
                     separator = strstr(packet, ",");
                     params = "";
-                    if(separator == NULL) {
+                    if (separator == NULL) {
                         separator = packet + strlen(packet);
                     } else {
                         params = separator + 1;
@@ -1225,32 +1235,75 @@ int serve(stlink_t *sl, st_state_t *st) {
                     if (!strncmp(cmd, "resume", 6)) {// resume
                         DLOG("Rcmd: resume\n");
                         cache_sync(sl);
-                        stlink_run(sl);
+                        ret = stlink_run(sl);
+                        if (ret) {
+                            DLOG("Rcmd: resume failed\n");
+                            reply = strdup("E00");
 
-                        reply = strdup("OK");
+                        } else {
+                            reply = strdup("OK");
+                        }
+
                     } else if (!strncmp(cmd, "halt", 4)) { //halt
-                        reply = strdup("OK");
+                        ret = stlink_force_debug(sl);
+                        if (ret) {
+                            DLOG("Rcmd: halt failed\n");
+                            reply = strdup("E00");
 
-                        stlink_force_debug(sl);
+                        } else {
+                            reply = strdup("OK");
+                            DLOG("Rcmd: halt\n");
+                        }
 
-                        DLOG("Rcmd: halt\n");
                     } else if (!strncmp(cmd, "jtag_reset", 10)) { //jtag_reset
                         reply = strdup("OK");
 
-                        stlink_jtag_reset(sl, 0);
-                        stlink_jtag_reset(sl, 1);
-                        stlink_force_debug(sl);
+                        ret = stlink_jtag_reset(sl, 0);
+                        if (ret) {
+                            DLOG("Rcmd: jtag_reset failed with jtag_reset\n");
+                            reply = strdup("E00");
 
-                        DLOG("Rcmd: jtag_reset\n");
+                        }
+
+                        ret = stlink_jtag_reset(sl, 1);
+                        if (ret) {
+                            DLOG("Rcmd: jtag_reset failed with jtag_reset\n");
+                            reply = strdup("E00");
+
+                        }
+
+                        ret = stlink_force_debug(sl);
+                        if (ret) {
+                            DLOG("Rcmd: jtag_reset failed with force_debug\n");
+                            reply = strdup("E00");
+
+                        }
+                        if (strcmp(reply, "E00")) {
+                            // no errors have been found
+                            DLOG("Rcmd: jtag_reset\n");
+                        }
                     } else if (!strncmp(cmd, "reset", 5)) { //reset
-                        reply = strdup("OK");
 
-                        stlink_force_debug(sl);
-                        stlink_reset(sl);
+                        ret = stlink_force_debug(sl);
+                        if (ret) {
+                           DLOG("Rcmd: reset failed with force_debug\n");
+                           reply = strdup("E00");
+                        }
+
+                        ret = stlink_reset(sl);
+                        if (ret) {
+                           DLOG("Rcmd: reset failed with reset\n");
+                           reply = strdup("E00");
+                        }
+
                         init_code_breakpoints(sl);
                         init_data_watchpoints(sl);
 
-                        DLOG("Rcmd: reset\n");
+                        if (reply == NULL) {
+                            reply = strdup("OK");
+                            DLOG("Rcmd: reset\n");
+                        }
+
                     } else if (!strncmp(cmd, "semihosting ", 12)) {
                         DLOG("Rcmd: got semihosting cmd '%s'", cmd);
                         char *arg = cmd + 12;
@@ -1279,7 +1332,7 @@ int serve(stlink_t *sl, st_state_t *st) {
                     free(cmd);
                 }
 
-                if(reply == NULL)
+                if (reply == NULL)
                     reply = strdup("");
 
                 free(queryName);
@@ -1293,7 +1346,7 @@ int serve(stlink_t *sl, st_state_t *st) {
 
                 cmdName++; // vCommand -> Command
 
-                if(!strcmp(cmdName, "FlashErase")) {
+                if (!strcmp(cmdName, "FlashErase")) {
                     char *__s_addr, *s_length;
                     char *tok = params;
 
@@ -1306,12 +1359,12 @@ int serve(stlink_t *sl, st_state_t *st) {
                     DLOG("FlashErase: addr:%08x,len:%04x\n",
                                 addr, length);
 
-                    if(flash_add_block(addr, length, sl) < 0) {
+                    if (flash_add_block(addr, length, sl) < 0) {
                         reply = strdup("E00");
                     } else {
                         reply = strdup("OK");
                     }
-                } else if(!strcmp(cmdName, "FlashWrite")) {
+                } else if (!strcmp(cmdName, "FlashWrite")) {
                     char *__s_addr, *data;
                     char *tok = params;
 
@@ -1326,8 +1379,8 @@ int serve(stlink_t *sl, st_state_t *st) {
                     // Additional byte is reserved for alignment fix.
                     uint8_t *decoded = calloc(data_length + 1, 1);
                     unsigned dec_index = 0;
-                    for(unsigned int i = 0; i < data_length; i++) {
-                        if(data[i] == 0x7d) {
+                    for (unsigned int i = 0; i < data_length; i++) {
+                        if (data[i] == 0x7d) {
                             i++;
                             decoded[dec_index++] = data[i] ^ 0x20;
                         } else {
@@ -1336,31 +1389,31 @@ int serve(stlink_t *sl, st_state_t *st) {
                     }
 
                     // Fix alignment
-                    if(dec_index % 2 != 0)
+                    if (dec_index % 2 != 0)
                         dec_index++;
 
                     DLOG("binary packet %d -> %d\n", data_length, dec_index);
 
-                    if(flash_populate(addr, decoded, dec_index) < 0) {
+                    if (flash_populate(addr, decoded, dec_index) < 0) {
                         reply = strdup("E00");
                     } else {
                         reply = strdup("OK");
                     }
 
                     free(decoded);
-                } else if(!strcmp(cmdName, "FlashDone")) {
-                    if(flash_go(sl) < 0) {
+                } else if (!strcmp(cmdName, "FlashDone")) {
+                    if (flash_go(sl) < 0) {
                         reply = strdup("E00");
                     } else {
                         reply = strdup("OK");
                     }
-                } else if(!strcmp(cmdName, "Kill")) {
+                } else if (!strcmp(cmdName, "Kill")) {
                     attached = 0;
 
                     reply = strdup("OK");
                 }
 
-                if(reply == NULL)
+                if (reply == NULL)
                     reply = strdup("");
 
                 break;
@@ -1368,25 +1421,30 @@ int serve(stlink_t *sl, st_state_t *st) {
 
             case 'c':
                 cache_sync(sl);
-                stlink_run(sl);
+                ret = stlink_run(sl);
+                if (ret) {
+                    DLOG("Semihost: run failed\n");
+                }
 
-                while(1) {
+                while (1) {
                     status = gdb_check_for_interrupt(client);
-                    if(status < 0) {
+                    if (status < 0) {
                         ELOG("cannot check for int: %d\n", status);
                         close_socket(client);
                         return 1;
                     }
 
-                    if(status == 1) {
+                    if (status == 1) {
                         stlink_force_debug(sl);
                         break;
                     }
 
-                    stlink_status(sl);
+                    ret = stlink_status(sl);
+                    if (ret) {
+                        DLOG("Semihost: status failed\n");
+                    }
                     if(sl->core_stat == TARGET_HALTED) {
                         struct stlink_reg reg;
-                        int ret;
                         stm32_addr_t pc;
                         stm32_addr_t addr;
                         int offset = 0;
@@ -1396,7 +1454,10 @@ int serve(stlink_t *sl, st_state_t *st) {
                             break;
                         }
 
-                        stlink_read_all_regs (sl, &reg);
+                        ret = stlink_read_all_regs (sl, &reg);
+                        if (ret) {
+                            DLOG("Semihost: read_all_regs failed\n");
+                        }
 
                         /* Read PC */
                         pc = reg.r[15];
@@ -1420,17 +1481,29 @@ int serve(stlink_t *sl, st_state_t *st) {
 
                         if (insn == 0xBEAB && !has_breakpoint(addr)) {
 
-                            do_semihosting (sl, reg.r[0], reg.r[1], &reg.r[0]);
+                            ret = do_semihosting (sl, reg.r[0], reg.r[1], &reg.r[0]);
+                            if (ret) {
+                                DLOG("Semihost: do_semihosting failed\n");
+                            }
 
                             /* Write return value */
-                            stlink_write_reg(sl, reg.r[0], 0);
+                            ret = stlink_write_reg(sl, reg.r[0], 0);
+                            if (ret) {
+                                DLOG("Semihost: write_reg failed for return value\n");
+                            }
 
                             /* Jump over the break instruction */
-                            stlink_write_reg(sl, reg.r[15] + 2, 15);
+                            ret = stlink_write_reg(sl, reg.r[15] + 2, 15);
+                            if (ret) {
+                                DLOG("Semihost: write_reg failed for jumping over break\n");
+                            }
 
                             /* continue execution */
                             cache_sync(sl);
-                            stlink_run(sl);
+                            ret = stlink_run(sl);
+                            if (ret) {
+                                DLOG("Semihost: continue execution failed with stlink_run\n");
+                            }
                         } else {
                             break;
                         }
@@ -1443,14 +1516,21 @@ int serve(stlink_t *sl, st_state_t *st) {
                 break;
 
             case 's':
-	        cache_sync(sl);
-                stlink_step(sl);
+	            cache_sync(sl);
+                ret = stlink_step(sl);
+                if (ret) {
+                    // have problem sending step packet
+                    ELOG("Step: cannot send step request\n");
+                    reply = strdup("E00");
+                    critical_error = 1; // absolutely critical
+                } else {
+                    reply = strdup("S05"); // TRAP
+                }
 
-                reply = strdup("S05"); // TRAP
                 break;
 
             case '?':
-                if(attached) {
+                if (attached) {
                     reply = strdup("S05"); // TRAP
                 } else {
                     /* Stub shall reply OK if not attached. */
@@ -1459,10 +1539,13 @@ int serve(stlink_t *sl, st_state_t *st) {
                 break;
 
             case 'g':
-                stlink_read_all_regs(sl, &regp);
+                ret = stlink_read_all_regs(sl, &regp);
+                if (ret) {
+                    DLOG("g packet: read_all_regs failed\n");
+                }
 
                 reply = calloc(8 * 16 + 1, 1);
-                for(int i = 0; i < 16; i++)
+                for (int i = 0; i < 16; i++)
                     sprintf(&reply[i * 8], "%08x", (uint32_t)htonl(regp.r[i]));
 
                 break;
@@ -1471,42 +1554,49 @@ int serve(stlink_t *sl, st_state_t *st) {
                 unsigned id = (unsigned int) strtoul(&packet[1], NULL, 16);
                 unsigned myreg = 0xDEADDEAD;
 
-                if(id < 16) {
-                    stlink_read_reg(sl, id, &regp);
+                if (id < 16) {
+                    ret = stlink_read_reg(sl, id, &regp);
                     myreg = htonl(regp.r[id]);
-                } else if(id == 0x19) {
-                    stlink_read_reg(sl, 16, &regp);
+                } else if (id == 0x19) {
+                    ret = stlink_read_reg(sl, 16, &regp);
                     myreg = htonl(regp.xpsr);
-                } else if(id == 0x1A) {
-                    stlink_read_reg(sl, 17, &regp);
+                } else if (id == 0x1A) {
+                    ret = stlink_read_reg(sl, 17, &regp);
                     myreg = htonl(regp.main_sp);
-                } else if(id == 0x1B) {
-                    stlink_read_reg(sl, 18, &regp);
+                } else if (id == 0x1B) {
+                    ret = stlink_read_reg(sl, 18, &regp);
                     myreg = htonl(regp.process_sp);
-                } else if(id == 0x1C) {
-                    stlink_read_unsupported_reg(sl, id, &regp);
+                } else if (id == 0x1C) {
+                    ret = stlink_read_unsupported_reg(sl, id, &regp);
                     myreg = htonl(regp.control);
-                } else if(id == 0x1D) {
-                    stlink_read_unsupported_reg(sl, id, &regp);
+                } else if (id == 0x1D) {
+                    ret = stlink_read_unsupported_reg(sl, id, &regp);
                     myreg = htonl(regp.faultmask);
-                } else if(id == 0x1E) {
-                    stlink_read_unsupported_reg(sl, id, &regp);
+                } else if (id == 0x1E) {
+                    ret = stlink_read_unsupported_reg(sl, id, &regp);
                     myreg = htonl(regp.basepri);
-                } else if(id == 0x1F) {
-                    stlink_read_unsupported_reg(sl, id, &regp);
+                } else if (id == 0x1F) {
+                    ret = stlink_read_unsupported_reg(sl, id, &regp);
                     myreg = htonl(regp.primask);
-                } else if(id >= 0x20 && id < 0x40) {
-                    stlink_read_unsupported_reg(sl, id, &regp);
+                } else if (id >= 0x20 && id < 0x40) {
+                    ret = stlink_read_unsupported_reg(sl, id, &regp);
                     myreg = htonl(regp.s[id-0x20]);
-                } else if(id == 0x40) {
-                    stlink_read_unsupported_reg(sl, id, &regp);
+                } else if (id == 0x40) {
+                    ret = stlink_read_unsupported_reg(sl, id, &regp);
                     myreg = htonl(regp.fpscr);
                 } else {
+                    ret = 1;
                     reply = strdup("E00");
                 }
+                if (ret) {
+                    DLOG("p packet: stlink_read_unsupported_reg failed with id %u\n", id);
+                }
 
-                reply = calloc(8 + 1, 1);
-                sprintf(reply, "%08x", myreg);
+                if (reply == NULL) {
+                    // if reply is set to "E00", skip
+                    reply = calloc(8 + 1, 1);
+                    sprintf(reply, "%08x", myreg);
+                }
 
                 break;
             }
@@ -1518,31 +1608,36 @@ int serve(stlink_t *sl, st_state_t *st) {
                 unsigned reg   = (unsigned int) strtoul(s_reg,   NULL, 16);
                 unsigned value = (unsigned int) strtoul(s_value, NULL, 16);
 
-                if(reg < 16) {
-                    stlink_write_reg(sl, ntohl(value), reg);
-                } else if(reg == 0x19) {
-                    stlink_write_reg(sl, ntohl(value), 16);
-                } else if(reg == 0x1A) {
-                    stlink_write_reg(sl, ntohl(value), 17);
-                } else if(reg == 0x1B) {
-                    stlink_write_reg(sl, ntohl(value), 18);
-                } else if(reg == 0x1C) {
-                    stlink_write_unsupported_reg(sl, ntohl(value), reg, &regp);
-                } else if(reg == 0x1D) {
-                    stlink_write_unsupported_reg(sl, ntohl(value), reg, &regp);
-                } else if(reg == 0x1E) {
-                    stlink_write_unsupported_reg(sl, ntohl(value), reg, &regp);
-                } else if(reg == 0x1F) {
-                    stlink_write_unsupported_reg(sl, ntohl(value), reg, &regp);
-                } else if(reg >= 0x20 && reg < 0x40) {
-                    stlink_write_unsupported_reg(sl, ntohl(value), reg, &regp);
-                } else if(reg == 0x40) {
-                    stlink_write_unsupported_reg(sl, ntohl(value), reg, &regp);
+
+                if (reg < 16) {
+                    ret = stlink_write_reg(sl, ntohl(value), reg);
+                } else if (reg == 0x19) {
+                    ret = stlink_write_reg(sl, ntohl(value), 16);
+                } else if (reg == 0x1A) {
+                    ret = stlink_write_reg(sl, ntohl(value), 17);
+                } else if (reg == 0x1B) {
+                    ret = stlink_write_reg(sl, ntohl(value), 18);
+                } else if (reg == 0x1C) {
+                    ret = stlink_write_unsupported_reg(sl, ntohl(value), reg, &regp);
+                } else if (reg == 0x1D) {
+                    ret = stlink_write_unsupported_reg(sl, ntohl(value), reg, &regp);
+                } else if (reg == 0x1E) {
+                    ret = stlink_write_unsupported_reg(sl, ntohl(value), reg, &regp);
+                } else if (reg == 0x1F) {
+                    ret = stlink_write_unsupported_reg(sl, ntohl(value), reg, &regp);
+                } else if (reg >= 0x20 && reg < 0x40) {
+                    ret = stlink_write_unsupported_reg(sl, ntohl(value), reg, &regp);
+                } else if (reg == 0x40) {
+                    ret = stlink_write_unsupported_reg(sl, ntohl(value), reg, &regp);
                 } else {
+                    ret = 1;
                     reply = strdup("E00");
                 }
-
-                if(!reply) {
+                if (ret) {
+                    DLOG("P packet: stlink_write_unsupported_reg failed with reg %u\n", reg);
+                }
+                if (reply == NULL) {
+                    // note that NULL may not be zero
                     reply = strdup("OK");
                 }
 
@@ -1550,11 +1645,14 @@ int serve(stlink_t *sl, st_state_t *st) {
             }
 
             case 'G':
-                for(int i = 0; i < 16; i++) {
+                for (int i = 0; i < 16; i++) {
                     char str[9] = {0};
                     strncpy(str, &packet[1 + i * 8], 8);
                     uint32_t reg = (uint32_t) strtoul(str, NULL, 16);
-                    stlink_write_reg(sl, ntohl(reg), i);
+                    ret = stlink_write_reg(sl, ntohl(reg), i);
+                    if (ret) {
+                        DLOG("G packet: stlink_write_reg failed");
+                    }
                 }
 
                 reply = strdup("OK");
@@ -1582,7 +1680,7 @@ int serve(stlink_t *sl, st_state_t *st) {
                 }
 
                 reply = calloc(count * 2 + 1, 1);
-                for(unsigned int i = 0; i < count; i++) {
+                for (unsigned int i = 0; i < count; i++) {
                     reply[i * 2 + 0] = hex[sl->q_buf[i + adj_start] >> 4];
                     reply[i * 2 + 1] = hex[sl->q_buf[i + adj_start] & 0xf];
                 }
@@ -1599,10 +1697,10 @@ int serve(stlink_t *sl, st_state_t *st) {
                 unsigned     count = (unsigned int) strtoul(s_count, NULL, 16);
                 int err = 0;
 
-                if(start % 4) {
+                if (start % 4) {
                     unsigned align_count = 4 - start % 4;
                     if (align_count > count) align_count = count;
-                    for(unsigned int i = 0; i < align_count; i ++) {
+                    for (unsigned int i = 0; i < align_count; i ++) {
                         char hextmp[3] = { hexdata[i*2], hexdata[i*2+1], 0 };
                         uint8_t byte = strtoul(hextmp, NULL, 16);
                         sl->q_buf[i] = byte;
@@ -1614,10 +1712,10 @@ int serve(stlink_t *sl, st_state_t *st) {
                     hexdata += 2*align_count;
                 }
 
-                if(count - count % 4) {
+                if (count - count % 4) {
                     unsigned aligned_count = count - count % 4;
 
-                    for(unsigned int i = 0; i < aligned_count; i ++) {
+                    for (unsigned int i = 0; i < aligned_count; i ++) {
                         char hextmp[3] = { hexdata[i*2], hexdata[i*2+1], 0 };
                         uint8_t byte = strtoul(hextmp, NULL, 16);
                         sl->q_buf[i] = byte;
@@ -1629,8 +1727,8 @@ int serve(stlink_t *sl, st_state_t *st) {
                     hexdata += 2*aligned_count;
                 }
 
-                if(count) {
-                    for(unsigned int i = 0; i < count; i ++) {
+                if (count) {
+                    for (unsigned int i = 0; i < count; i ++) {
                         char hextmp[3] = { hexdata[i*2], hexdata[i*2+1], 0 };
                         uint8_t byte = strtoul(hextmp, NULL, 16);
                         sl->q_buf[i] = byte;
@@ -1649,7 +1747,7 @@ int serve(stlink_t *sl, st_state_t *st) {
 
                 switch (packet[1]) {
                     case '1':
-                        if(update_code_breakpoint(sl, addr, 1) < 0) {
+                        if (update_code_breakpoint(sl, addr, 1) < 0) {
                             reply = strdup("E00");
                         } else {
                             reply = strdup("OK");
@@ -1660,15 +1758,15 @@ int serve(stlink_t *sl, st_state_t *st) {
                     case '3':   // insert read  watchpoint
                     case '4': { // insert access watchpoint
                         enum watchfun wf;
-                        if(packet[1] == '2') {
+                        if (packet[1] == '2') {
                             wf = WATCHWRITE;
-                        } else if(packet[1] == '3') {
+                        } else if (packet[1] == '3') {
                             wf = WATCHREAD;
                         } else {
                             wf = WATCHACCESS;
                         }
 
-                        if(add_data_watchpoint(sl, wf, addr, len) < 0) {
+                        if (add_data_watchpoint(sl, wf, addr, len) < 0) {
                             reply = strdup("E00");
                         } else {
                             reply = strdup("OK");
@@ -1696,7 +1794,7 @@ int serve(stlink_t *sl, st_state_t *st) {
                     case '2' : // remove write watchpoint
                     case '3' : // remove read watchpoint
                     case '4' : // remove access watchpoint
-                        if(delete_data_watchpoint(sl, addr) < 0) {
+                        if (delete_data_watchpoint(sl, addr) < 0) {
                             reply = strdup("E00");
                             break;
                         } else {
@@ -1728,9 +1826,13 @@ int serve(stlink_t *sl, st_state_t *st) {
             }
 
             case 'R': {
+
                 /* Reset the core. */
 
-                stlink_reset(sl);
+                ret = stlink_reset(sl);
+                if (ret) {
+                    DLOG("R packet : stlink_reset failed\n");
+                }
                 init_code_breakpoints(sl);
                 init_data_watchpoints(sl);
 
@@ -1742,18 +1844,29 @@ int serve(stlink_t *sl, st_state_t *st) {
             }
             case 'k':
                 /* Kill request - reset the connection itself */
-                stlink_run(sl);
-                stlink_exit_debug_mode(sl);
+                ret = stlink_run(sl);
+                if (ret) {
+                    DLOG("Kill: stlink_run failed\n");
+                }
+
+                ret = stlink_exit_debug_mode(sl);
+                if (ret) {
+                    DLOG("Kill: stlink_exit_debug_mode failed\n");
+                }
                 stlink_close(sl);
 
                 sl = do_connect(st);
-                if(sl == NULL) cleanup(0);
+                if (sl == NULL || sl->chip_id == STLINK_CHIPID_UNKNOWN)
+                    cleanup(0);
                 connected_stlink = sl;
 
                 if (st->reset) {
                     stlink_reset(sl);
                 }
-                stlink_force_debug(sl);
+                ret = stlink_force_debug(sl);
+                if (ret) {
+                    DLOG("Kill: stlink_force_debug failed\n");
+                }
                 init_cache(sl);
                 init_code_breakpoints(sl);
                 init_data_watchpoints(sl);
@@ -1766,11 +1879,11 @@ int serve(stlink_t *sl, st_state_t *st) {
                 reply = strdup("");
         }
 
-        if(reply) {
+        if (reply) {
             DLOG("send: %s\n", reply);
 
             int result = gdb_send_packet(client, reply);
-            if(result != 0) {
+            if (result != 0) {
                 ELOG("cannot send: %d\n", result);
                 free(reply);
                 free(packet);
@@ -1779,6 +1892,11 @@ int serve(stlink_t *sl, st_state_t *st) {
             }
 
             free(reply);
+        }
+
+        if (critical_error) {
+            close_socket(client);
+            return 1;
         }
 
         free(packet);

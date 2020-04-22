@@ -118,7 +118,6 @@ enum target_state {
 #define STLINK_F_HAS_RW8_512BYTES       (1<<9)
 
 
-/* Enough space to hold both a V2 command or a V1 command packaged as generic scsi*/
 #define C_BUF_LEN 32
 
     enum stlink_flash_type {
@@ -129,6 +128,7 @@ enum target_state {
         STLINK_FLASH_TYPE_L4,
         STLINK_FLASH_TYPE_F1_XL,
         STLINK_FLASH_TYPE_G0,
+        STLINK_FLASH_TYPE_G4,
         STLINK_FLASH_TYPE_WB
     };
 
@@ -202,6 +202,7 @@ typedef struct flash_loader {
 
         // transport layer verboseness: 0 for no debug info, 10 for lots
         int verbose;
+        int opt;
         uint32_t core_id;	// set by stlink_core_id(), result from STLINK_DEBUGREADCOREID
         uint32_t chip_id;	// set by stlink_load_device_params(), used to identify flash and sram
         enum target_state core_stat;		// set by stlink_status()
@@ -210,6 +211,8 @@ typedef struct flash_loader {
         int serial_size;
 
         enum stlink_flash_type flash_type;	// stlink_chipid_params.flash_type, set by stlink_load_device_params(), values: STLINK_FLASH_TYPE_xxx
+        bool has_dual_bank;
+
         stm32_addr_t flash_base;	// STM32_FLASH_BASE, set by stlink_load_device_params()
         size_t flash_size;	// calculated by stlink_load_device_params()
         size_t flash_pgsz;	// stlink_chipid_params.flash_pagesize, set by stlink_load_device_params()
@@ -218,9 +221,13 @@ typedef struct flash_loader {
         stm32_addr_t sram_base;	// STM32_SRAM_BASE, set by stlink_load_device_params()
         size_t sram_size;	// stlink_chipid_params.sram_size, set by stlink_load_device_params()
 
+		/* option settings */
+        stm32_addr_t option_base;
+        size_t option_size;
+
         // bootloader
-	// sys_base and sys_size are not used by the tools, but are only there to 
-	// download the bootloader code (see tests/sg.c)
+        // sys_base and sys_size are not used by the tools, but are only there to
+        // download the bootloader code (see tests/sg.c)
         stm32_addr_t sys_base;	// stlink_chipid_params.bootrom_base, set by stlink_load_device_params()
         size_t sys_size;  // stlink_chipid_params.bootrom_size, set by stlink_load_device_params()
 
@@ -261,8 +268,6 @@ typedef struct flash_loader {
     uint8_t stlink_get_erased_pattern(stlink_t *sl);
     int stlink_mwrite_flash(stlink_t *sl, uint8_t* data, uint32_t length, stm32_addr_t addr);
     int stlink_fwrite_flash(stlink_t *sl, const char* path, stm32_addr_t addr);
-    int stlink_fwrite_option_bytes(stlink_t *sl, const char* path, stm32_addr_t addr);
-    int stlink_fwrite_option_bytes_32bit(stlink_t *sl,uint32_t val);
     int stlink_mwrite_sram(stlink_t *sl, uint8_t* data, uint32_t length, stm32_addr_t addr);
     int stlink_fwrite_sram(stlink_t *sl, const char* path, stm32_addr_t addr);
     int stlink_verify_write_flash(stlink_t *sl, stm32_addr_t address, uint8_t *data, uint32_t length);
@@ -284,8 +289,12 @@ typedef struct flash_loader {
     int write_loader_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* size);
     int stlink_fread(stlink_t* sl, const char* path, bool is_ihex, stm32_addr_t addr, size_t size);
     int stlink_load_device_params(stlink_t *sl);
-    int stlink_read_option_bytes_f2(stlink_t *sl, uint32_t* option_byte);
-    int stlink_read_option_bytes_f4(stlink_t *sl, uint32_t* option_byte);
+
+    int stlink_read_option_bytes32(stlink_t *sl, uint32_t* option_byte);
+    int stlink_write_option_bytes32(stlink_t *sl, uint32_t option_byte);
+
+    int stlink_write_option_bytes(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uint32_t len);
+    int stlink_fwrite_option_bytes(stlink_t *sl, const char* path, stm32_addr_t addr);
 
 #include "stlink/sg.h"
 #include "stlink/usb.h"
@@ -294,6 +303,7 @@ typedef struct flash_loader {
 #include "stlink/chipid.h"
 #include "stlink/flash_loader.h"
 #include "stlink/version.h"
+#include "stlink/logging.h"
 
 #ifdef __cplusplus
 }

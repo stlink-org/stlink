@@ -109,8 +109,7 @@ void _stlink_sg_close(stlink_t *sl) {
     }
 }
 
-static int get_usb_mass_storage_status(libusb_device_handle *handle, uint8_t endpoint, uint32_t *tag)
-{
+static int get_usb_mass_storage_status(libusb_device_handle *handle, uint8_t endpoint, uint32_t *tag) {
     unsigned char csw[13];
     memset(csw, 0, sizeof(csw));
     int transferred;
@@ -229,9 +228,7 @@ int send_usb_mass_storage_command(libusb_device_handle *handle, uint8_t endpoint
  * @param endpoint_in
  * @param endpoint_out
  */
-    static void
-get_sense(libusb_device_handle *handle, uint8_t endpoint_in, uint8_t endpoint_out)
-{
+static void get_sense(libusb_device_handle *handle, uint8_t endpoint_in, uint8_t endpoint_out) {
     DLOG("Fetching sense...\n");
     uint8_t cdb[16];
     memset(cdb, 0, sizeof(cdb));
@@ -324,7 +321,6 @@ int send_usb_data_only(libusb_device_handle *handle, unsigned char endpoint_out,
     return real_transferred;
 }
 
-
 int stlink_q(stlink_t *sl) {
     struct stlink_libsg* sg = sl->backend_data;
     //uint8_t cdb_len = 6;  // FIXME varies!!!
@@ -385,7 +381,6 @@ int stlink_q(stlink_t *sl) {
 }
 
 // TODO thinking, cleanup
-
 void stlink_stat(stlink_t *stl, char *txt) {
     if (stl->q_len <= 0)
         return;
@@ -404,7 +399,6 @@ void stlink_stat(stlink_t *stl, char *txt) {
     }
 }
 
-
 int _stlink_sg_version(stlink_t *stl) {
     struct stlink_libsg *sl = stl->backend_data;
     clear_cdb(sl);
@@ -417,7 +411,6 @@ int _stlink_sg_version(stlink_t *stl) {
 // Get stlink mode:
 // STLINK_DEV_DFU_MODE || STLINK_DEV_MASS_MODE || STLINK_DEV_DEBUG_MODE
 // usb dfu             || usb mass             || jtag or swd
-
 int _stlink_sg_current_mode(stlink_t *stl) {
     struct stlink_libsg *sl = stl->backend_data;
     clear_cdb(sl);
@@ -431,7 +424,6 @@ int _stlink_sg_current_mode(stlink_t *stl) {
 }
 
 // Exit the mass mode and enter the swd debug mode.
-
 int _stlink_sg_enter_swd_mode(stlink_t *sl) {
     struct stlink_libsg *sg = sl->backend_data;
     clear_cdb(sg);
@@ -443,7 +435,6 @@ int _stlink_sg_enter_swd_mode(stlink_t *sl) {
 
 // Exit the mass mode and enter the jtag debug mode.
 // (jtag is disabled in the discovery's stlink firmware)
-
 int _stlink_sg_enter_jtag_mode(stlink_t *sl) {
     struct stlink_libsg *sg = sl->backend_data;
     DLOG("\n*** stlink_enter_jtag_mode ***\n");
@@ -525,7 +516,6 @@ int _stlink_sg_core_id(stlink_t *sl) {
 }
 
 // Arm-core reset -> halted state.
-
 int _stlink_sg_reset(stlink_t *sl) {
     struct stlink_libsg *sg = sl->backend_data;
     clear_cdb(sg);
@@ -545,7 +535,6 @@ int _stlink_sg_reset(stlink_t *sl) {
 }
 
 // Arm-core reset -> halted state.
-
 int _stlink_sg_jtag_reset(stlink_t *sl, int value) {
     struct stlink_libsg *sg = sl->backend_data;
     clear_cdb(sg);
@@ -562,7 +551,6 @@ int _stlink_sg_jtag_reset(stlink_t *sl, int value) {
 }
 
 // Arm-core status: halted or running.
-
 int _stlink_sg_status(stlink_t *sl) {
     struct stlink_libsg *sg = sl->backend_data;
     clear_cdb(sg);
@@ -573,7 +561,6 @@ int _stlink_sg_status(stlink_t *sl) {
 }
 
 // Force the core into the debug mode -> halted state.
-
 int _stlink_sg_force_debug(stlink_t *sl) {
     struct stlink_libsg *sg = sl->backend_data;
     clear_cdb(sg);
@@ -588,7 +575,6 @@ int _stlink_sg_force_debug(stlink_t *sl) {
 }
 
 // Read all arm-core registers.
-
 int _stlink_sg_read_all_regs(stlink_t *sl, struct stlink_reg *regp) {
     struct stlink_libsg *sg = sl->backend_data;
 
@@ -696,7 +682,6 @@ int _stlink_sg_write_reg(stlink_t *sl, uint32_t reg, int idx) {
 // Write a register of the debug module of the core.
 // XXX ?(atomic writes)
 // TODO test
-
 void stlink_write_dreg(stlink_t *sl, uint32_t reg, uint32_t addr) {
     struct stlink_libsg *sg = sl->backend_data;
     DLOG("\n*** stlink_write_dreg ***\n");
@@ -713,7 +698,6 @@ void stlink_write_dreg(stlink_t *sl, uint32_t reg, uint32_t addr) {
 }
 
 // Force the core exit the debug mode.
-
 int _stlink_sg_run(stlink_t *sl) {
     struct stlink_libsg *sg = sl->backend_data;
     clear_cdb(sg);
@@ -729,7 +713,6 @@ int _stlink_sg_run(stlink_t *sl) {
 }
 
 // Step the arm-core.
-
 int _stlink_sg_step(stlink_t *sl) {
     struct stlink_libsg *sg = sl->backend_data;
     clear_cdb(sg);
@@ -764,7 +747,6 @@ void stlink_set_hw_bp(stlink_t *sl, int fp_nr, uint32_t addr, int fp) {
 }
 
 // TODO test
-
 // TODO make delegate!
 void stlink_clr_hw_bp(stlink_t *sl, int fp_nr) {
     struct stlink_libsg *sg = sl->backend_data;
@@ -779,7 +761,6 @@ void stlink_clr_hw_bp(stlink_t *sl, int fp_nr) {
 }
 
 // Read a "len" bytes to the sl->q_buf from the memory, max 6kB (6144 bytes)
-
 int _stlink_sg_read_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
     struct stlink_libsg *sg = sl->backend_data;
     clear_cdb(sg);
@@ -804,7 +785,6 @@ int _stlink_sg_read_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
 }
 
 // Write a "len" bytes from the sl->q_buf to the memory, max 64 Bytes.
-
 int _stlink_sg_write_mem8(stlink_t *sl, uint32_t addr, uint16_t len) {
     struct stlink_libsg *sg = sl->backend_data;
     int ret;
@@ -833,7 +813,6 @@ int _stlink_sg_write_mem8(stlink_t *sl, uint32_t addr, uint16_t len) {
 }
 
 // Write a "len" bytes from the sl->q_buf to the memory, max Q_BUF_LEN bytes.
-
 int _stlink_sg_write_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
     struct stlink_libsg *sg = sl->backend_data;
     int ret;
@@ -862,7 +841,6 @@ int _stlink_sg_write_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
 }
 
 // Write one DWORD data to memory
-
 int _stlink_sg_write_debug32(stlink_t *sl, uint32_t addr, uint32_t data) {
     struct stlink_libsg *sg = sl->backend_data;
     clear_cdb(sg);
@@ -875,7 +853,6 @@ int _stlink_sg_write_debug32(stlink_t *sl, uint32_t addr, uint32_t data) {
 }
 
 // Read one DWORD data from memory
-
 int _stlink_sg_read_debug32(stlink_t *sl, uint32_t addr, uint32_t *data) {
     struct stlink_libsg *sg = sl->backend_data;
     clear_cdb(sg);
@@ -891,9 +868,7 @@ int _stlink_sg_read_debug32(stlink_t *sl, uint32_t addr, uint32_t *data) {
 }
 
 // Exit the jtag or swd mode and enter the mass mode.
-
-int _stlink_sg_exit_debug_mode(stlink_t *stl)
-{
+int _stlink_sg_exit_debug_mode(stlink_t *stl) {
     if (stl) {
         struct stlink_libsg* sl = stl->backend_data;
         clear_cdb(sl);
@@ -904,7 +879,6 @@ int _stlink_sg_exit_debug_mode(stlink_t *stl)
 
     return 0;
 }
-
 
 // 1) open a sg device, switch the stlink from dfu to mass mode
 // 2) wait 5s until the kernel driver stops reseting the broken device
@@ -943,14 +917,13 @@ static stlink_backend_t _stlink_sg_backend = {
 };
 
 static stlink_t* stlink_open(const int verbose) {
-
     stlink_t *sl = malloc(sizeof (stlink_t));
     struct stlink_libsg *slsg = malloc(sizeof (struct stlink_libsg));
     if (sl == NULL || slsg == NULL) {
         WLOG("Couldn't malloc stlink and stlink_sg structures out of memory!\n");
-        if(sl != NULL)
+        if (sl != NULL)
             free(sl);
-        if(slsg != NULL)
+        if (slsg != NULL)
             free(slsg);
         return NULL;
     }
@@ -963,13 +936,10 @@ static stlink_t* stlink_open(const int verbose) {
         return NULL;
     }
 
-#if defined (__FreeBSD__)
- #define LIBUSBX_API_VERSION LIBUSB_API_VERSION
-#endif 
-#if LIBUSBX_API_VERSION < 0x01000106
-    libusb_set_debug(slsg->libusb_ctx, 3);
+#if LIBUSB_API_VERSION < 0x01000106
+    libusb_set_debug(slsg->libusb_ctx, ugly_libusb_log_level(verbose));
 #else
-    libusb_set_option(slsg->libusb_ctx, LIBUSB_OPTION_LOG_LEVEL, 3);
+    libusb_set_option(slsg->libusb_ctx, LIBUSB_OPTION_LOG_LEVEL, ugly_libusb_log_level(verbose));
 #endif
 
     slsg->usb_handle = libusb_open_device_with_vid_pid(slsg->libusb_ctx, STLINK_USB_VID_ST, STLINK_USB_PID_STLINK);
@@ -984,7 +954,6 @@ static stlink_t* stlink_open(const int verbose) {
 
     // TODO
     // Could read the interface config descriptor, and assert lots of the assumptions
-
     // assumption: numInterfaces is always 1...
     if (libusb_kernel_driver_active(slsg->usb_handle, 0) == 1) {
         int r = libusb_detach_kernel_driver(slsg->usb_handle, 0);
