@@ -53,7 +53,9 @@ static const struct stlink_chipid_params devices[] = {
             .flash_pagesize = 0x20000,
             .sram_size = 0x20000,
             .bootrom_base = 0x1fff0000,
-            .bootrom_size = 0x7800
+            .bootrom_size = 0x7800,
+            .option_base = 0x1FFFC000,
+            .option_size = 4,
         },
         { // PM0063
             .chip_id = STLINK_CHIPID_STM32_F1_LOW,
@@ -218,7 +220,9 @@ static const struct stlink_chipid_params devices[] = {
             .flash_pagesize = 0x20000,
             .sram_size = 0x20000,
             .bootrom_base = 0x1fff0000,
-            .bootrom_size = 0x7800
+            .bootrom_size = 0x7800,
+            .option_base = 0x1FFFC000,
+            .option_size = 4,
         },
         {
             // STM32F410 MCUs. Support based on DM00180366.pdf (RM0401) document.
