@@ -68,6 +68,7 @@ endif ()
 find_package(libusb REQUIRED)
 
 if (NOT WIN32 AND NOT CMAKE_CROSSCOMPILING)
+    add_subdirectory(cmake/pkgconfig)
     find_package(PkgConfig)
     pkg_check_modules(GTK3 gtk+-3.0)
 endif ()
@@ -268,7 +269,6 @@ add_subdirectory(tests)
 
 add_subdirectory(cmake/packaging)
 include(cmake/packaging/cpack_config.cmake)
-
 
 ###
 # Uninstall target
