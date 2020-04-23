@@ -73,7 +73,6 @@ elseif (WIN32)                                  # Windows
 
     if (NOT LIBUSB_FOUND OR EXISTS "/etc/debian_version")
         # Preparations for installing libusb library
-        find_package(7zip REQUIRED)
         set(LIBUSB_WIN_VERSION 1.0.23)          # set libusb version
         set(LIBUSB_WIN_ARCHIVE libusb-${LIBUSB_WIN_VERSION}.7z)
         set(LIBUSB_WIN_ARCHIVE_PATH ${CMAKE_BINARY_DIR}/${LIBUSB_WIN_ARCHIVE})
@@ -92,17 +91,11 @@ elseif (WIN32)                                  # Windows
 
         file(MAKE_DIRECTORY ${LIBUSB_WIN_OUTPUT_FOLDER})
 
-        # Extract libusb package
-        if (${ZIP_EXECUTABLE} MATCHES "p7zip")
-            execute_process(
-                COMMAND ${ZIP_EXECUTABLE} -d ${LIBUSB_WIN_ARCHIVE_PATH}
-                WORKING_DIRECTORY ${LIBUSB_WIN_OUTPUT_FOLDER}
-                )
-        else ()
-            execute_process(
-                COMMAND ${ZIP_EXECUTABLE} x -y ${LIBUSB_WIN_ARCHIVE_PATH} -o${LIBUSB_WIN_OUTPUT_FOLDER}
-                ) # <-- Note the absence of a space character following the -o option!
-        endif ()
+        # Extract libusb package with cmake
+        execute_process(
+            COMMAND ${CMAKE_COMMAND} -E tar xv ${LIBUSB_WIN_ARCHIVE_PATH}
+            WORKING_DIRECTORY ${LIBUSB_WIN_OUTPUT_FOLDER}
+            )
 
         # Find path to libusb library
         FIND_PATH(
