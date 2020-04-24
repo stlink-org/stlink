@@ -1,14 +1,6 @@
     .syntax unified
     .text
 
-flash_base:
-    .align 2
-    .word 0x40022000
-flash_off_cr:
-    .word 0x10
-flash_off_sr:
-    .word 0x0c
-
     .global mycopy
 mycopy:
     ldr r7, =flash_base
@@ -61,3 +53,11 @@ myexit:
     str r3, [r6]
 
     bkpt
+
+flash_base:
+    .align 2
+    .word 0x40022000
+flash_off_cr:
+    .word 0x10
+flash_off_sr:
+    .word 0x0c
