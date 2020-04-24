@@ -10,9 +10,9 @@ mycopy:
 myloop:
     # copy 8 bytes
     ldr r3, [r0]
-    ldr r3, [r0， #4]
+    ldr r4, [r0, #4]
     str r3, [r1]
-    str r3, [r1， #4]
+    str r4, [r1, #4]
 
     add r0, r0, #8
     add r1, r1, #8
