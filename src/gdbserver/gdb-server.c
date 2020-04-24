@@ -59,7 +59,6 @@ static const char* current_memory_map = NULL;
 
 typedef struct _st_state_t {
     // things from command line, bleh
-    int stlink_version;
     int logging_level;
     int listen_port;
     int persistent;
@@ -86,21 +85,13 @@ static void cleanup(int signum) {
 
 
 static stlink_t* do_connect(st_state_t *st) {
-    stlink_t *ret = NULL;
-    switch (st->stlink_version) {
-        case 2:
-            if (serial_specified){
-                ret = stlink_open_usb(st->logging_level, st->reset, serialnumber);
-            }
-            else {
-                ret = stlink_open_usb(st->logging_level, st->reset, NULL);
-            }
-            break;
-        case 1:
-            ret = stlink_v1_open(st->logging_level, st->reset);
-            break;
+    stlink_t *sl = NULL;
+	if (serial_specified) {
+		sl = stlink_open_usb(st->logging_level, st->reset, serialnumber);
+	} else {
+		sl = stlink_open_usb(st->logging_level, st->reset, NULL);
     }
-    return ret;
+    return sl;
 }
 
 
@@ -108,8 +99,6 @@ int parse_options(int argc, char** argv, st_state_t *st) {
     static struct option long_options[] = {
         {"help", no_argument, NULL, 'h'},
         {"verbose", optional_argument, NULL, 'v'},
-        {"stlink_version", required_argument, NULL, 's'},
-        {"stlinkv1", no_argument, NULL, '1'},
         {"listen_port", required_argument, NULL, 'p'},
         {"multi", optional_argument, NULL, 'm'},
         {"no-reset", optional_argument, NULL, 'n'},
@@ -123,7 +112,6 @@ int parse_options(int argc, char** argv, st_state_t *st) {
         "  -V, --version\t\tPrint the version\n"
         "  -vXX, --verbose=XX\tSpecify a specific verbosity level (0..99)\n"
         "  -v, --verbose\t\tSpecify generally verbose logging\n"
-        "  -s X, --stlink_version=X\n"
         "\t\t\tChoose what version of stlink to use, (defaults to 2)\n"
         "  -1, --stlinkv1\tForce stlink version 1\n"
         "  -p 4242, --listen_port=1234\n"
@@ -139,7 +127,7 @@ int parse_options(int argc, char** argv, st_state_t *st) {
         "  --serial <serial>\n"
         "\t\t\tUse a specific serial number.\n"
         "\n"
-        "The STLINKv2 device to use can be specified in the environment\n"
+        "The STLINK device to use can be specified in the environment\n"
         "variable STLINK_DEVICE on the format <USB_BUS>:<USB_ADDR>.\n"
         "\n"
         ;
@@ -148,7 +136,7 @@ int parse_options(int argc, char** argv, st_state_t *st) {
     int option_index = 0;
     int c;
     int q;
-    while ((c = getopt_long(argc, argv, "hv::s:1p:mn", long_options, &option_index)) != -1) {
+    while ((c = getopt_long(argc, argv, "hv::p:mn", long_options, &option_index)) != -1) {
         switch (c) {
             case 0:
                 break;
@@ -162,17 +150,6 @@ int parse_options(int argc, char** argv, st_state_t *st) {
                 } else {
                     st->logging_level = DEBUG_LOGGING_LEVEL;
                 }
-                break;
-            case '1':
-                st->stlink_version = 1;
-                break;
-            case 's':
-                sscanf(optarg, "%i", &q);
-                if (q < 0 || q > 2) {
-                    fprintf(stderr, "stlink version %d unknown!\n", q);
-                    exit(EXIT_FAILURE);
-                }
-                st->stlink_version = q;
                 break;
             case 'p':
                 sscanf(optarg, "%i", &q);
@@ -225,16 +202,22 @@ int main(int argc, char** argv) {
     memset(&state, 0, sizeof(state));
 
     // set defaults...
-    state.stlink_version = 2;
     state.logging_level = DEFAULT_LOGGING_LEVEL;
     state.listen_port = DEFAULT_GDB_LISTEN_PORT;
     state.reset = 1;    /* By default, reset board */
     parse_options(argc, argv, &state);
 
-    printf("st-util %s\n", STLINK_VERSION);
+    printf("st-util\n");
 
     sl = do_connect(&state);
-    if (sl == NULL) return 1;
+    if (sl == NULL) {
+        return 1;
+    }
+
+    if (sl->chip_id == STLINK_CHIPID_UNKNOWN)  {
+        ELOG("Unsupported Target (Chip ID is %#010x, Core ID is %#010x).\n", sl->chip_id, sl->core_id);
+        return 1;
+    }
 
     connected_stlink = sl;
     signal(SIGINT, &cleanup);
@@ -245,10 +228,7 @@ int main(int argc, char** argv) {
         stlink_reset(sl);
     }
 
-
-    // This is low-level information for debugging, not useful for normal use. 
-    // So: Demoted to a debug meesage. -- REW
-    DLOG("Chip ID is %08x, Core ID is  %08x.\n", sl->chip_id, sl->core_id);
+    DLOG("Chip ID is %#010x, Core ID is %#08x.\n", sl->chip_id, sl->core_id);
 
     sl->verbose=0;
     current_memory_map = make_memory_map(sl);
@@ -1852,7 +1832,8 @@ int serve(stlink_t *sl, st_state_t *st) {
                 stlink_close(sl);
 
                 sl = do_connect(st);
-                if (sl == NULL) cleanup(0);
+                if (sl == NULL || sl->chip_id == STLINK_CHIPID_UNKNOWN)
+                    cleanup(0);
                 connected_stlink = sl;
 
                 if (st->reset) {

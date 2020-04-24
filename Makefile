@@ -7,7 +7,7 @@ MAKEFLAGS += -s
 CMAKEFLAGS +=
 
 all: release
-ci: debug release binary test
+ci: debug release test
 
 help:
 		@echo "        debug: Run a debug build"

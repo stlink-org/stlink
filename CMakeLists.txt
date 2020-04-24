@@ -8,9 +8,6 @@ set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_SOURCE_DIR}/cmake/modules")
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
-# Define GNU standard installation directories
-include(GNUInstallDirs)
-
 
 ###
 # General project settings
@@ -18,6 +15,7 @@ include(GNUInstallDirs)
 
 project(stlink C)
 set(PROJECT_DESCRIPTION "Open source version of the STMicroelectronics ST-LINK Tools")
+include(GNUInstallDirs) # Define GNU standard installation directories
 
 set(STLINK_UDEV_RULES_DIR "${CMAKE_INSTALL_FULL_SYSCONFDIR}/udev/rules.d" CACHE PATH "udev rules directory")
 set(STLINK_MODPROBED_DIR "${CMAKE_INSTALL_FULL_SYSCONFDIR}/modprobe.d" CACHE PATH "modprobe.d directory")
@@ -67,7 +65,7 @@ endif ()
 # Dependencies
 ###
 
-find_package(_libusb REQUIRED)
+find_package(libusb REQUIRED)
 
 if (NOT WIN32 AND NOT CMAKE_CROSSCOMPILING)
     find_package(PkgConfig)

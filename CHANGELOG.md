@@ -22,6 +22,7 @@ Features:
 - STM32G0/G4 improvements (#910)
   - Enable mass erase with a flash programming check
   - Handle G4 Cat3 devices with configurable dual bank flash by using a helper
+- Display programmer serial when no target is connected (#432, #933, #943)
 
 Updates & changes:
 
@@ -42,6 +43,7 @@ Updates & changes:
 - Enhanced error log with file path for map_file() (#650, #879, #921)
 - Refactoring: Overall option code rework (#927)
 - Refactoring: Build settings / GUI-Build on UNIX-based systems if GTK3 is detected (#929)
+- Reconfiguration of package build process (#931, #936, #940, commit 9b19f9225460472af9d98959b7217d0a840ee972)
 
 Fixes:
 
@@ -61,6 +63,7 @@ Fixes:
 - st-flash: minor usage fix and make cmdline parsing more user friendly (#925)
 - Better argument parsing for CLI tools: stlink_open_usb can address v1, v2, v3 (#378, #922)
 - Restored functionality of make test builds (Regression) (#926, #929)
+- Fixed compilation error due to uninitialized cpuid (#937, #938)
 
 
 v1.6.0
