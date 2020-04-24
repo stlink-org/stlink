@@ -1,6 +1,12 @@
     .syntax unified
     .text
 
+flash_base:
+    .align 2
+    .word 0x40023c00
+flash_off_sr:
+    .word 0x0e
+
     .global mycopy
 mycopy:
     ldr r12, flash_base
@@ -28,8 +34,3 @@ mywait:
 
 myexit:
     bkpt
-
-flash_base:
-    .word 0x40023c00
-flash_off_sr:
-    .word 0x0e

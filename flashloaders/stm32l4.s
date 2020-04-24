@@ -1,6 +1,12 @@
     .syntax unified
     .text
 
+flash_base:
+    .align 2
+    .word 0x40022000
+flash_off_bsy:
+    .word 0x12
+
     .global mycopy
 mycopy:
     ldr r12, flash_base
@@ -10,9 +16,9 @@ mycopy:
 myloop:
     # copy 8 bytes
     ldr r3, [r0]
-    ldr r3, [r0， #4]
+    ldr r4, [r0, #4]
     str r3, [r1]
-    str r3, [r1， #4]
+    str r4, [r1, #4]
 
     add r0, r0, #8
     add r1, r1, #8
@@ -30,8 +36,3 @@ mywait:
 
 myexit:
     bkpt
-
-flash_base:
-    .word 0x40022000
-flash_off_bsy:
-    .word 0x12
