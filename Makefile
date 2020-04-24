@@ -40,6 +40,7 @@ package: build/Release
 		@$(MAKE) -C build/Release package
 
 test: debug
+		@echo "[TEST]"
 		@$(MAKE) -C build/Debug test
 
 build/Debug:

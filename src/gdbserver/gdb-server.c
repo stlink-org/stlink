@@ -24,7 +24,7 @@
 #endif
 
 #include <stlink.h>
-#include <stlink/logging.h>
+#include "../logging.h"
 
 #include "gdb-remote.h"
 #include "gdb-server.h"

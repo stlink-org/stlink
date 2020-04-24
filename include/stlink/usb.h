@@ -12,7 +12,7 @@
 
 #include "stlink.h"
 #include "stlinkusb.h"
-#include "stlink/logging.h"
+#include "../src/logging.h"
 
 #ifdef __cplusplus
 extern "C" {

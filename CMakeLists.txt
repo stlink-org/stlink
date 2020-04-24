@@ -7,6 +7,7 @@ cmake_policy(SET CMP0042 NEW)
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_SOURCE_DIR}/cmake/modules")
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 
 ###
@@ -25,10 +26,10 @@ option(STLINK_INSTALL_UDEV_RULES "Install udev rules files" ON)
 option(STLINK_INSTALL_MODPROBE_CONF "Install modprobe conf files" ON)
 option(STLINK_GENERATE_MANPAGES "Generate manpages with pandoc" OFF)
 
-# Determine project version
+## Determine project version
 include(${CMAKE_MODULE_PATH}/get_version.cmake)
 
-# Set C build flags
+## Set C build flags
 if (NOT MSVC)
     include(${CMAKE_MODULE_PATH}/c_flags.cmake)
 else ()
@@ -39,11 +40,7 @@ else ()
     set(CMAKE_C_FLAGS_RELWITHDEBINFO_INIT "/MT /Zi /O2 /Ob1 /D NDEBUG")
 endif ()
 
-
-# ====
-
-#set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-
+## Set installation directories for libraries
 if (IS_DIRECTORY ${LIB_INSTALL_DIR})
     set(LIB_INSTALL_DIR ${LIB_INSTALL_DIR} CACHE PATH "Main library directory")
     set(STLINK_LIBRARY_PATH "${LIB_INSTALL_DIR}")
@@ -52,6 +49,7 @@ else ()
     set(STLINK_LIBRARY_PATH "${CMAKE_INSTALL_PREFIX}/${LIB_INSTALL_DIR}")
 endif ()
 
+## Set installation directories for header files
 if (IS_DIRECTORY ${INCLUDE_INSTALL_DIR})
     set(INCLUDE_INSTALL_DIR ${INCLUDE_INSTALL_DIR} CACHE PATH "Main include directory")
     set(STLINK_INCLUDE_PATH "${INCLUDE_INSTALL_DIR}")
@@ -67,12 +65,14 @@ endif ()
 
 find_package(libusb REQUIRED)
 
+## Package configuration (pkg-config) on unix-based systems
 if (NOT WIN32 AND NOT CMAKE_CROSSCOMPILING)
     add_subdirectory(cmake/pkgconfig)
     find_package(PkgConfig)
     pkg_check_modules(GTK3 gtk+-3.0)
 endif ()
 
+## Check for system-specific additional header files and libraries
 include(CheckIncludeFile)
 
 CHECK_INCLUDE_FILE(sys/mman.h STLINK_HAVE_SYS_MMAN_H)
@@ -94,20 +94,13 @@ else ()
     set(SSP_LIB "")
 endif ()
 
-if (CMAKE_BUILD_TYPE STREQUAL "")
-    set(CMAKE_BUILD_TYPE "Debug")
-endif ()
 
-if (${CMAKE_BUILD_TYPE} MATCHES "Debug")
-    include(CTest)
-endif ()
+# ====
 
 set(STLINK_HEADERS
     include/stlink.h
     include/stlink/usb.h
     include/stlink/sg.h
-    include/stlink/logging.h
-    include/stlink/mmap.h
     include/stlink/chipid.h
     include/stlink/flash_loader.h
     )
@@ -115,11 +108,11 @@ set(STLINK_HEADERS
 set(STLINK_SOURCE
     src/chipid.c
     src/common.c
-    src/usb.c
-    src/sg.c
-    src/logging.c
     src/flash_loader.c
+    src/logging.c
     src/md5.c
+    src/sg.c
+    src/usb.c
     )
 
 if (WIN32 OR MINGW OR MSYS)
@@ -139,6 +132,10 @@ if (MSVC)
     add_definitions(-DHAVE_STRING_H -D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_WARNINGS /wd4710)
 endif ()
 
+# Include test execution for test-targets for target Debug
+if (${CMAKE_BUILD_TYPE} MATCHES "Debug")
+    include(CTest)
+endif ()
 
 ###
 # Shared library
@@ -235,8 +232,6 @@ else ()
     target_link_libraries(st-flash ${STLINK_LIB_SHARED} ${SSP_LIB})
     target_link_libraries(st-info ${STLINK_LIB_SHARED} ${SSP_LIB})
 endif ()
-
-install(TARGETS st-flash st-info RUNTIME DESTINATION bin)                            ### TODO: Check path
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     if (STLINK_INSTALL_MODPROBE_CONF)

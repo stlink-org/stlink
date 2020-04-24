@@ -252,7 +252,7 @@ typedef struct flash_loader {
 #include "stlink/chipid.h"
 #include "stlink/flash_loader.h"
 #include "stlink/version.h"
-#include "stlink/logging.h"
+#include "../src/logging.h"
 
 #ifdef __cplusplus
 }
