@@ -1,32 +1,63 @@
-/* Adopted from STM AN4065 stm32f0xx_flash.c:FLASH_ProgramWord */
+    .syntax unified
+    .text
 
-write:
-    ldr     r4, STM32_FLASH_BASE
-    mov     r5, #1            /*  FLASH_CR_PG, FLASH_SR_BUSY */
-    mov     r6, #4            /*  PGERR  */
-write_half_word:
-    ldr     r3, [r4, #16]     /*  FLASH->CR   */
-    orr     r3, r5
-    str     r3, [r4, #16]     /*  FLASH->CR |= FLASH_CR_PG */
-    ldrh    r3, [r0]          /*  r3 = *sram */
-    strh    r3, [r1]          /*  *flash = r3 */
-busy:
-    ldr     r3, [r4, #12]     /*  FLASH->SR  */
-    tst     r3, r5            /*  FLASH_SR_BUSY  */
-    beq     busy
+    .global mycopy
+mycopy:
+    ldr r7, =flash_base
+    ldr r4, [r7]
+    ldr r7, =flash_off_cr
+    ldr r6, [r7]
+    adds r6, r6, r4
+    ldr r7, =flash_off_sr
+    ldr r5, [r7]
+    adds r5, r5, r4
 
-    tst     r3, r6            /*  PGERR  */
-    bne     exit
+myloop:
+    # FLASH_CR ^= 1
+    ldr r7, =0x1
+    ldr r3, [r6]
+    orrs r3, r3, r7
+    str r3, [r6]
 
-    add     r0, r0, #2        /*  sram += 2  */
-    add     r1, r1, #2        /*  flash += 2  */
-    sub     r2, r2, #0x01     /*  count--  */
-    cmp     r2, #0
-    bne     write_half_word
-exit:
-    ldr     r3, [r4, #16]     /*  FLASH->CR  */
-    bic     r3, r5
-    str     r3, [r4, #16]     /*  FLASH->CR &= ~FLASH_CR_PG  */
-    bkpt    #0x00
+    # copy 2 bytes
+    ldrh r3, [r0]
+    strh r3, [r1]
 
-STM32_FLASH_BASE: .word 0x40022000
+    ldr r7, =2
+    adds r0, r0, r7
+    adds r1, r1, r7
+
+    # wait if FLASH_SR == 1
+mywait:
+    ldr r7, =0x1
+    ldr r3, [r5]
+    tst r3, r7
+    beq mywait
+
+    # exit if FLASH_SR == 4
+    ldr r7, =0x4
+    tst r3, r7
+    beq myexit
+
+    # loop if r2 != 0
+    ldr r7, =0x1
+    subs r2, r2, r7
+    cmp r2, #0
+    bne myloop
+
+myexit:
+    # FLASH_CR &= ~1
+    ldr r7, =0x1
+    ldr r3, [r6]
+    bics r3, r3, r7
+    str r3, [r6]
+
+    bkpt
+
+flash_base:
+    .align 2
+    .word 0x40022000
+flash_off_cr:
+    .word 0x10
+flash_off_sr:
+    .word 0x0c
