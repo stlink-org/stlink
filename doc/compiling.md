@@ -17,13 +17,27 @@ On Windows users should ensure that the following software is installed:
    Ensure that you add cmake to the $PATH system variable when following the instructions by the setup assistant.
 3. Install
   - _EITHER_: **MinGW-w64** from <https://sourceforge.net/projects/mingw-w64> (mingw-w64-install.exe)<br />
-  - _OR_:     **Visual Studio 2017 CE** (other versions will likely work as well, but are untested; the Community edition is free for open source
-  development)
+  - _OR_:     **MSVC toolchain** from Visual Studio Build Tools 2019
 4. Create a new destination folder at a place of your choice
 5. Open the command-line (cmd.exe) and execute `cd C:\$Path-to-your-destination-folder$\`
 6. Fetch the project sourcefiles by running `git clone https://github.com/stlink-org/stlink.git`from the command-line (cmd.exe)<br />
   or download the stlink zip-sourcefolder from the Release page on GitHub
 
+#### MSVC toolchain - minimal installation
+
+Visual Studio IDE is not necessary, only Windows SDK & build tools are required (~3,3GB).
+
+1. Open <https://visualstudio.microsoft.com/downloads/>
+2. Navigate through menus as follows (might change overtime)
+
+   `All downloads > Tools for Visual Studio 2019 > Build Tools for Visual Studio 2019 > Download`
+3. Start downloaded executable. After Visual Studio Installer bootstraps and main window pops up, open `Individual Components` tab, and pick
+  - latest build tools (eg. `MSVC v142 - VS 2019 C++ x64/x86 build tools (v14.25)`)
+  - latest Windows SDK (eg. `Windows 10 SDK (10.0.18362.0)`)
+4. After installation finishes, you can press `Launch` button in Visual Studio Installer's main menu.
+   - Thus you can open `Developer Command Prompt for VS 2019`. It is `cmd.exe` instance with adjusted PATHs including eg. `msbuild`.
+   - Alternatively, you can use `Developer Powershell for VS 2019` which is the same thing for `powershell.exe`. Both are available from Start menu.
+   - Another option is to add `msbuild` to PATH manually. Its location should be `C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin`. Then, it should be available from any `powershell.exe` or `cmd.exe` session.
 
 ### Building
 #### MinGW-w64
@@ -37,19 +51,32 @@ When installing different toolchains make sure to update the path in the `mingw6
 This can be achieved by opening the .bat file with a common text editor.
 
 
-#### Visual Studio (32 bit)
+#### MSVC toolchain
 
 1. In a command prompt, change the directory to the folder where the stlink files were cloned (or unzipped) to.
 2. Make sure the build folder exists (`mkdir build` if not).
 3. From the build folder, run cmake (`cd build; cmake ..`).
 
-This will create a solution (stlink.sln) in the build folder. Open it in Visual Studio, select the Solution Configuration (Debug or
-Release) and build the solution normally (F7).
+This will create a solution file `stlink.sln` in the build folder.
+Now, you can build whole `stlink` suite using following command:
+```
+msbuild /m /p:Configuration=Release stlink.sln
+```
+Options:
+- `/m` - compilation runs in parallel utilizing multiple cores
+- `/p:Configuration=Release` - generates *Release*, optimized build.
 
-NOTE:<br />
-This solution will link to the dll version of libusb-1.0.y<br />
-To debug or run the executable, the dll version of libusb-1.0 must be either on the path, or in the same folder as the executable.<br />
-It can be copied from here: `build\3rdparty\libusb-1.0.21\MS32\dll\libusb-1.0.dll`.
+Directory `<project_root>\build\Release` contains final executables.
+(`st-util.exe` is located in `<project_root>\build\src\gdbserver\Release`).
+
+**NOTE 1:**
+
+Executables link against libusb.dll library. It has to be placed in the same directory as binaries or in PATH.
+It can be copied from: `<project_root>\build\3rdparty\libusb-{version}\MS{arch}\dll\libusb-1.0.dll`.
+
+**NOTE 2:**
+
+[ST-LINK drivers](https://www.st.com/en/development-tools/stsw-link009.html) are required for `stlink` to work.
 
 ## Linux
 ### Common requirements
