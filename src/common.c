@@ -11,7 +11,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#include "stlink.h"
+#include <stlink.h>
 #include "mmap.h"
 #include "logging.h"
 #include "md5.h"

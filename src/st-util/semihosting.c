@@ -5,10 +5,9 @@
 #include <stdlib.h>
 #include <errno.h>
 
-#include "semihosting.h"
-
 #include <stlink.h>
-#include "../logging.h"
+#include <logging.h>
+#include "semihosting.h"
 
 static int mem_read_u8(stlink_t *sl, uint32_t addr, uint8_t *data)
 {

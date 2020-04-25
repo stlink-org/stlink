@@ -8,12 +8,15 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdint.h>
+
 #if defined(__MINGW32__) || defined(_MSC_VER)
 #include <mingw.h>
 #else
 #include <unistd.h>
 #include <sys/poll.h>
 #endif
+
+#include "gdb-remote.h"
 
 static const char hex[] = "0123456789abcdef";
 
@@ -169,4 +172,3 @@ int gdb_check_for_interrupt(int fd) {
 
     return 0;
 }
-

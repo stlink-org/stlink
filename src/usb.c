@@ -7,11 +7,13 @@
 #include <sys/time.h>
 #endif
 #include <sys/types.h>
-#include <mingw.h>
 #include <errno.h>
 #include <unistd.h>
 
-#include "stlink.h"
+#if defined(__MINGW32__) || defined(_MSC_VER)
+#include <mingw.h>
+#endif
+#include <stlink.h>
 
 enum SCSI_Generic_Direction {SG_DXFER_TO_DEV=0, SG_DXFER_FROM_DEV=0x80};
 

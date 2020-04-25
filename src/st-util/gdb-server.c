@@ -14,6 +14,7 @@
 #include <stdbool.h>
 #define __attribute__(x)
 #endif
+
 #if defined(_WIN32)
 #include <mingw.h>
 #else
@@ -24,8 +25,7 @@
 #endif
 
 #include <stlink.h>
-#include "../logging.h"
-
+#include <logging.h>
 #include "gdb-remote.h"
 #include "gdb-server.h"
 #include "semihosting.h"

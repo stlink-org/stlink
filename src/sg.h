@@ -1,5 +1,5 @@
 /*
- * File:   stlink/sg.h
+ * File:   sg.h
  * Author: karl
  *
  * Created on October 1, 2011, 11:29 PM
@@ -8,8 +8,8 @@
 #ifndef STLINK_SG_H
 #define STLINK_SG_H
 
-#include "stlinkusb.h"
-#include "stlink.h"
+#include "libusb_settings.h"
+#include <stlink.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -70,4 +70,3 @@ stlink_t* stlink_v1_open(const int verbose, int reset);
 #endif
 
 #endif	/* STLINK_SG_H */
-

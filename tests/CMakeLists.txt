@@ -1,3 +1,7 @@
+###
+# Build test executables
+###
+
 set(TESTEXEC usb sg)
 
 foreach (test ${TESTEXEC})

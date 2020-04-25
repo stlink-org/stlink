@@ -3,7 +3,7 @@
 #include <string.h>
 
 #include <stlink.h>
-#include <stlink/tools/flash.h>
+#include <flash.h>
 
 #if defined(_MSC_VER)
     #include <malloc.h>

@@ -13,6 +13,7 @@ help:
 		@echo "        debug: Run a debug build"
 		@echo "      release: Run a release build"
 		@echo "      install: Install release build"
+		@echo "    uninstall: Uninstall release build"
 		@echo "      package: Package release build"
 		@echo "         lint: Lint check all source-code"
 		@echo "         test: Build and run tests"
@@ -34,6 +35,10 @@ release: build/Release
 install: build/Release
 		@echo "[INSTALL] Release"
 		@$(MAKE) -C build/Release install
+
+uninstall: build/Release
+		@echo "[UNINSTALL] Release"
+		@$(MAKE) -C build/Release uninstall
 
 package: build/Release
 		@echo "[PACKAGE] Release"

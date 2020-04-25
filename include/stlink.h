@@ -137,7 +137,7 @@ typedef struct flash_loader {
 
     typedef struct _stlink stlink_t;
 
-#include "stlink/backend.h"
+#include <backend.h>
 
     struct _stlink {
         struct _stlink_backend *backend;
@@ -245,14 +245,14 @@ typedef struct flash_loader {
     int stlink_write_option_bytes(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uint32_t len);
     int stlink_fwrite_option_bytes(stlink_t *sl, const char* path, stm32_addr_t addr);
 
-#include "stlink/sg.h"
-#include "stlink/usb.h"
-#include "stlink/reg.h"
-#include "stlink/commands.h"
-#include "stlink/chipid.h"
-#include "stlink/flash_loader.h"
-#include "stlink/version.h"
-#include "../src/logging.h"
+#include <sg.h>
+#include <usb.h>
+#include <reg.h>
+#include <commands.h>
+#include <chipid.h>
+#include <flash_loader.h>
+#include <version.h>
+#include <logging.h>
 
 #ifdef __cplusplus
 }

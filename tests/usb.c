@@ -1,4 +1,5 @@
 #include <stdio.h>
+
 #include <stlink.h>
 
 int main(int ac, char** av) {
@@ -35,7 +36,6 @@ int main(int ac, char** av) {
             printf("cpuid:impl_id = %0#x, variant = %#x\n", cpuid.implementer_id, cpuid.variant);
             printf("cpuid:part = %#x, rev = %#x\n", cpuid.part, cpuid.revision);
         }
-        
 
         printf("-- read_sram\n");
         static const uint32_t sram_base = STM32_SRAM_BASE;

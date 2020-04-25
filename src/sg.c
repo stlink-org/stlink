@@ -82,7 +82,7 @@
 #include <stdlib.h>
 #include <sys/types.h>
 
-#include "stlink.h"
+#include <stlink.h>
 #include "logging.h"
 
 #define STLINK_OK    0x80
