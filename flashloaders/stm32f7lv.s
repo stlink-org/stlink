@@ -32,8 +32,8 @@ mywait:
 myexit:
     bkpt
 
-flash_base:
     .align 2
+flash_base:
     .word 0x40023c00
 flash_off_sr:
     .word 0x0e
