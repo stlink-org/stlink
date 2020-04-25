@@ -7,11 +7,11 @@ mycopy:
     ldr r10, flash_off_sr
     add r10, r10, r12
 
-    # original r2 indicates the count of 4 bytes need to copy,
-    # but we can only copy one byte each time.
-    # as we have no flash larger than 1GB, we do a little trick here.
-    ldr r3, =4
-    mul r2, r2, r3
+    # tip 1: original r2 indicates the count of 4 bytes need to copy,
+    #   but we can only copy one byte each time.
+    #   as we have no flash larger than 1GB, we do a little trick here.
+    # tip 2: r2 is always a power of 2
+    mov r2, r2, lsl#2
 
 myloop:
     # copy 1 byte
