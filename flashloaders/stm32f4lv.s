@@ -7,19 +7,19 @@ mycopy:
     ldr r10, flash_off_sr
     add r10, r10, r12
 
-myloop:
-    # copy 1 byte each time and 4 times as one group
-    ldrb r3, [r0]
-    ldrb r4, [r0, #1]
-    ldrb r5, [r0, #2]
-    ldrb r6, [r0, #3]
-    strb r3, [r1]
-    strb r4, [r1, #1]
-    strb r5, [r1, #2]
-    strb r6, [r1, #3]
+    # original r2 indicates the count of 4 bytes need to copy,
+    # but we can only copy one byte each time.
+    # as we have no flash larger than 1GB, we do a little trick here.
+    ldr r3, =4
+    mul r2, r2, r3
 
-    add r0, r0, #4
-    add r1, r1, #4
+myloop:
+    # copy 1 byte
+    ldrb r3, [r0]
+    strb r3, [r1]
+
+    add r0, r0, #1
+    add r1, r1, #1
 
     # wait if FLASH_SR == 1
 mywait:
