@@ -39,7 +39,7 @@ English version can be found below.
 
 每次写入数据宽度为2字节（半字）。
 
-每完成一次写入，需等待flash完成写入，检查方式为读取FLASH_SR处4字节内容，若取值为1，则说明写入尚未完成，需继续轮询等待；否则需要检查FLASH_SR处值是否为4，若是4，则应直接准备退出。
+每完成一次写入，需等待flash完成写入，检查方式为读取FLASH_SR处4字节内容，若取值为1，则说明写入尚未完成，需继续轮询等待；否则需要检查FLASH_SR处值是否为4，若非4，则应直接准备退出。
 
 退出：全部拷贝执行完毕后触发断点前，将FLASH_CR处4字节内容最低bit清为0，写回FLASH_CR。
 
@@ -155,7 +155,7 @@ Copy data from source to destination, after which trigger a breakpint to exit. B
 
 Before every copy, read a word from FLASH_CR, set the lowest bit to 1 and write back. Copy one half word each time.
 
-How to wait for the write process: read a word from FLASH_SR, loop until the content is not 1. After that, check FLASH_SR, proceed if the content is not 4, otherwise exit.
+How to wait for the write process: read a word from FLASH_SR, loop until the content is not 1. After that, check FLASH_SR, proceed if the content is 4, otherwise exit.
 
 Exit: after the copying process and before triggering the breakpoint, clear the lowest bit in FLASH_CR.
 
