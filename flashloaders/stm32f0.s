@@ -34,10 +34,10 @@ mywait:
     tst r3, r7
     beq mywait
 
-    # exit if FLASH_SR == 4
+    # exit if FLASH_SR != 4
     ldr r7, =0x4
     tst r3, r7
-    beq myexit
+    bne myexit
 
     # loop if r2 != 0
     ldr r7, =0x1
