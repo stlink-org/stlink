@@ -1,5 +1,5 @@
-#ifndef STLINKUSB_H
-#define STLINKUSB_H
+#ifndef LIBUSB_SETTINGS_H
+#define LIBUSB_SETTINGS_H
 
 #include <libusb.h>
 

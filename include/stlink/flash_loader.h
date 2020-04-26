@@ -10,7 +10,7 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#include "stlink.h"
+#include <stlink.h>
 
 #ifdef __cplusplus
 extern "C" {

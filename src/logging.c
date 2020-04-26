@@ -9,7 +9,7 @@
 #include <stdarg.h>
 #include <time.h>
 
-#include "stlink/logging.h"
+#include "logging.h"
 
 static int max_level = UINFO;
 

@@ -2,6 +2,7 @@
 #define STLINK_TOOLS_FLASH_H_
 
 #include <stdint.h>
+
 #include <stlink.h>
 
 #define DEBUG_LOG_LEVEL 100
