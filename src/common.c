@@ -11,9 +11,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#include "stlink.h"
-#include "stlink/mmap.h"
-#include "stlink/logging.h"
+#include <stlink.h>
+#include "mmap.h"
+#include "logging.h"
 #include "md5.h"
 
 #ifndef O_BINARY
@@ -2904,12 +2904,12 @@ int stlink_mwrite_flash(stlink_t *sl, uint8_t* data, uint32_t length, stm32_addr
     } else {
         num_empty = 0;
     }
-    /* 
+    /*
      * TODO: investigate:
-     * a kind of weird behaviour here: 
+     * a kind of weird behaviour here:
      * if the file is identified to be all-empty and four-bytes aligned,
-     * still flash the whole file even if ignoring message is printed 
-     */  
+     * still flash the whole file even if ignoring message is printed
+     */
     err = stlink_write_flash(sl, addr, data, (num_empty == length) ? (uint32_t) length : (uint32_t) length - num_empty, num_empty == length);
     stlink_fwrite_finalize(sl, addr);
     return err;
@@ -2953,12 +2953,12 @@ int stlink_fwrite_flash(stlink_t *sl, const char* path, stm32_addr_t addr) {
     } else {
         num_empty = 0;
     }
-    /* 
+    /*
      * TODO: investigate:
-     * a kind of weird behaviour here: 
+     * a kind of weird behaviour here:
      * if the file is identified to be all-empty and four-bytes aligned,
-     * still flash the whole file even if ignoring message is printed 
-     */  
+     * still flash the whole file even if ignoring message is printed
+     */
     err = stlink_write_flash(sl, addr, mf.base, (num_empty == mf.len) ? (uint32_t) mf.len : (uint32_t) mf.len - num_empty, num_empty == mf.len);
     stlink_fwrite_finalize(sl, addr);
     unmap_file(&mf);
@@ -3179,9 +3179,9 @@ int stlink_read_option_bytes32(stlink_t *sl, uint32_t* option_byte)
 }
 
 /**
- * Write option bytes 
+ * Write option bytes
  * @param sl
- * @param option_byte value to write 
+ * @param option_byte value to write
  * @return 0 on success, -ve on failure.
  */
 int stlink_write_option_bytes32(stlink_t *sl, uint32_t option_byte)

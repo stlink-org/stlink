@@ -2,7 +2,6 @@
 
 // TODO - this should be done as just a simple flag to the st-util command line...
 
-
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -10,7 +9,7 @@
 #include <sys/types.h>
 
 #include <stlink.h>
-#include <stlink/tools/flash.h>
+#include <flash.h>
 
 static stlink_t *connected_stlink = NULL;
 

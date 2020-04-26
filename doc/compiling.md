@@ -5,24 +5,22 @@
 
 On Windows users should ensure that the following software is installed:
 
-* `7zip`
-* `git`
+* `git` (_optional, but recommended_)
 * `cmake` (3.17.0 or later)
 * `MinGW-w64` (7.0.0 or later) with GCC toolchain 8.1.0
 
 
 ### Installation
 
-1. Install `7zip` from <https://www.7-zip.org>
-2. Install `git` from <https://git-scm.com/download/win>
-3. Install `cmake` from <https://cmake.org/download><br />
+1. Install `git` from <https://git-scm.com/download/win>
+2. Install `cmake` from <https://cmake.org/download><br />
    Ensure that you add cmake to the $PATH system variable when following the instructions by the setup assistant.
-4. Install
+3. Install
   - _EITHER_: **MinGW-w64** from <https://sourceforge.net/projects/mingw-w64> (mingw-w64-install.exe)<br />
   - _OR_:     **MSVC toolchain** from Visual Studio Build Tools 2019
-5. Create a new destination folder at a place of your choice
-6. Open the command-line (cmd.exe) and execute `cd C:\$Path-to-your-destination-folder$\`
-7. Fetch the project sourcefiles by running `git clone https://github.com/stlink-org/stlink.git`from the command-line (cmd.exe)<br />
+4. Create a new destination folder at a place of your choice
+5. Open the command-line (cmd.exe) and execute `cd C:\$Path-to-your-destination-folder$\`
+6. Fetch the project sourcefiles by running `git clone https://github.com/stlink-org/stlink.git`from the command-line (cmd.exe)<br />
   or download the stlink zip-sourcefolder from the Release page on GitHub
 
 #### MSVC toolchain - minimal installation
@@ -73,7 +71,7 @@ Directory `<project_root>\build\Release` contains final executables.
 
 **NOTE 1:**
 
-Executables link against libusb.dll library. It has to be placed in the same directory as binaries or in PATH. 
+Executables link against libusb.dll library. It has to be placed in the same directory as binaries or in PATH.
 It can be copied from: `<project_root>\build\3rdparty\libusb-{version}\MS{arch}\dll\libusb-1.0.dll`.
 
 **NOTE 2:**
@@ -228,10 +226,22 @@ To do this with only one simple command, type:
    The debug target is only necessary in order to modify the sources and to run under a debugger.
 
 
-## Build using a different directory for shared libs
+## Build options
+### Build using a different directory for shared libs
 
 To put the compiled shared libs into a different directory during installation,
 you can use the cmake option `cmake -DLIB_INSTALL_DIR:PATH="/usr/lib64" ..`.
+
+
+### Standard installation directories
+
+The cmake build system of this toolset includes `GNUInstallDirs` to define GNU standard installation directories.
+This module provides install directory variables as defined by the GNU Coding Standards.
+
+Below are the preset default cmake options, which apply if none of these options are redefined:
+
+* `-DCMAKE_INSTALL_SYSCONFDIR=/etc`
+* `-DCMAKE_INSTALL_PREFIX=/usr/local`
 
 
 Author: nightwalker-87

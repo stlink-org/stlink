@@ -1,3 +1,7 @@
+###
+# Generate manpages
+###
+
 set(MANPAGES st-util st-flash st-info)
 
 # Only generate manpages with pandoc in Debug builds

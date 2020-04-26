@@ -1,5 +1,5 @@
-#include "stlink.h"
-#include "stlink/chipid.h"
+#include <stlink.h>
+#include <chipid.h>
 
 static const struct stlink_chipid_params devices[] = {
         {
@@ -580,7 +580,6 @@ static const struct stlink_chipid_params devices[] = {
             .bootrom_size = 0x7000,           // 28K (table 2)
             .option_base = STM32_G4_OPTION_BYTES_BASE,
             .option_size = 4,
-            
         },
         {
             // STM32G471/473/474/483/484 (from RM0440)
@@ -621,8 +620,6 @@ static const struct stlink_chipid_params devices[] = {
             .bootrom_base = 0x0,
             .bootrom_size = 0x0
         },
-
-
  };
 
 const struct stlink_chipid_params *stlink_chipid_get_params(uint32_t chipid)

@@ -1,5 +1,5 @@
 /*
- * File:   stlink/usb.h
+ * File:   usb.h
  * Author: karl
  *
  * Created on October 1, 2011, 11:29 PM
@@ -10,9 +10,9 @@
 
 #include <stdbool.h>
 
-#include "stlink.h"
-#include "stlinkusb.h"
-#include "stlink/logging.h"
+#include <stlink.h>
+#include "libusb_settings.h"
+#include "logging.h"
 
 #ifdef __cplusplus
 extern "C" {

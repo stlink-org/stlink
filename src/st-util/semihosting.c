@@ -5,10 +5,9 @@
 #include <stdlib.h>
 #include <errno.h>
 
-#include "semihosting.h"
-
 #include <stlink.h>
-#include <stlink/logging.h>
+#include <logging.h>
+#include "semihosting.h"
 
 static int mem_read_u8(stlink_t *sl, uint32_t addr, uint8_t *data)
 {
@@ -100,7 +99,7 @@ static int mem_write(stlink_t *sl, uint32_t addr, void *data, uint16_t len)
     // the requested bytes. (perhaps reading the whole area is faster??).
     //
     // If 16 and 8 bit writes are available, then they could be used instead.
- 
+
     // Just return when the length is zero avoiding unneeded work.
     if (len == 0) return 0;
 

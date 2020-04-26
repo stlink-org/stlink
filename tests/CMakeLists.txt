@@ -1,12 +1,16 @@
-set(TESTS usb sg)
+###
+# Build test executables
+###
 
-foreach (test ${TESTS})
-    add_executable(${test} ${test}.c)
-    add_dependencies(${test} ${STLINK_LIB_STATIC})
-    target_link_libraries(${test} ${STLINK_LIB_STATIC} ${SSP_LIB})
-    add_test(${test} ${CMAKE_CURRENT_BINARY_DIR}/${test})
+set(TESTEXEC usb sg)
+
+foreach (test ${TESTEXEC})
+    add_executable(test-${test} ${test}.c)
+    add_dependencies(test-${test} ${STLINK_LIB_STATIC})
+    target_link_libraries(test-${test} ${STLINK_LIB_STATIC} ${SSP_LIB})
+    add_test(test-${test} ${CMAKE_BINARY_DIR}/bin/test-${test})
 endforeach ()
 
-add_executable(flash flash.c "${CMAKE_SOURCE_DIR}/src/tools/flash_opts.c")
-target_link_libraries(flash ${STLINK_LIB_STATIC} ${SSP_LIB})
-add_test(flash ${CMAKE_CURRENT_BINARY_DIR}/flash)
+add_executable(test-flash flash.c "${CMAKE_SOURCE_DIR}/src/tools/flash_opts.c")
+target_link_libraries(test-flash ${STLINK_LIB_STATIC} ${SSP_LIB})
+add_test(test-flash ${CMAKE_BINARY_DIR}/bin/test-flash)

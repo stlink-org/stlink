@@ -1,7 +1,7 @@
-#include "getopt.h"
-
 #include <stddef.h>
 #include <string.h>
+
+#include "getopt.h"
 
 #if !defined(_MSC_VER)
 const int no_argument = 0;
@@ -19,8 +19,8 @@ static char* optcursor = NULL;
 
 /* Implemented based on [1] and [2] for optional arguments.
    optopt is handled FreeBSD-style, per [3].
-   Other GNU and FreeBSD extensions are purely accidental. 
-   
+   Other GNU and FreeBSD extensions are purely accidental.
+
 [1] http://pubs.opengroup.org/onlinepubs/000095399/functions/getopt.html
 [2] http://www.kernel.org/doc/man-pages/online/pages/man3/getopt.3.html
 [3] http://www.freebsd.org/cgi/man.cgi?query=getopt&sektion=3&manpath=FreeBSD+9.0-RELEASE
@@ -37,22 +37,22 @@ int getopt(int argc, char* const argv[], const char* optstring) {
   if (optind >= argc)
     goto no_more_optchars;
 
-  /* If, when getopt() is called argv[optind] is a null pointer, getopt() 
+  /* If, when getopt() is called argv[optind] is a null pointer, getopt()
      shall return -1 without changing optind. */
   if (argv[optind] == NULL)
     goto no_more_optchars;
 
-  /* If, when getopt() is called *argv[optind]  is not the character '-', 
+  /* If, when getopt() is called *argv[optind]  is not the character '-',
      getopt() shall return -1 without changing optind. */
   if (*argv[optind] != '-')
     goto no_more_optchars;
 
-  /* If, when getopt() is called argv[optind] points to the string "-", 
+  /* If, when getopt() is called argv[optind] points to the string "-",
      getopt() shall return -1 without changing optind. */
   if (strcmp(argv[optind], "-") == 0)
     goto no_more_optchars;
 
-  /* If, when getopt() is called argv[optind] points to the string "--", 
+  /* If, when getopt() is called argv[optind] points to the string "--",
      getopt() shall return -1 after incrementing optind. */
   if (strcmp(argv[optind], "--") == 0) {
     ++optind;
@@ -64,12 +64,12 @@ int getopt(int argc, char* const argv[], const char* optstring) {
 
   optchar = *optcursor;
 
-  /* FreeBSD: The variable optopt saves the last known option character 
+  /* FreeBSD: The variable optopt saves the last known option character
      returned by getopt(). */
   optopt = optchar;
 
-  /* The getopt() function shall return the next option character (if one is 
-     found) from argv that matches a character in optstring, if there is 
+  /* The getopt() function shall return the next option character (if one is
+     found) from argv that matches a character in optstring, if there is
      one that matches. */
   optdecl = strchr(optstring, optchar);
   if (optdecl) {
@@ -79,15 +79,15 @@ int getopt(int argc, char* const argv[], const char* optstring) {
       optarg = ++optcursor;
       if (*optarg == '\0') {
         /* GNU extension: Two colons mean an option takes an
-           optional arg; if there is text in the current argv-element 
-           (i.e., in the same word as the option name itself, for example, 
+           optional arg; if there is text in the current argv-element
+           (i.e., in the same word as the option name itself, for example,
            "-oarg"), then it is returned in optarg, otherwise optarg is set
            to zero. */
         if (optdecl[2] != ':') {
           /* If the option was the last character in the string pointed to by
              an element of argv, then optarg shall contain the next element
              of argv, and optind shall be incremented by 2. If the resulting
-             value of optind is greater than argc, this indicates a missing 
+             value of optind is greater than argc, this indicates a missing
              option-argument, and getopt() shall return an error indication.
 
              Otherwise, optarg shall point to the string following the
@@ -97,7 +97,7 @@ int getopt(int argc, char* const argv[], const char* optstring) {
           if (++optind < argc) {
             optarg = argv[optind];
           } else {
-            /* If it detects a missing option-argument, it shall return the 
+            /* If it detects a missing option-argument, it shall return the
                colon character ( ':' ) if the first character of optstring
                was a colon, or a question-mark character ( '?' ) otherwise.
             */
@@ -112,7 +112,7 @@ int getopt(int argc, char* const argv[], const char* optstring) {
       optcursor = NULL;
     }
   } else {
-    /* If getopt() encounters an option character that is not contained in 
+    /* If getopt() encounters an option character that is not contained in
        optstring, it shall return the question-mark ( '?' ) character. */
     optchar = '?';
   }
@@ -131,7 +131,7 @@ no_more_optchars:
 
 [1] http://www.kernel.org/doc/man-pages/online/pages/man3/getopt.3.html
 */
-int getopt_long(int argc, char* const argv[], const char* optstring, 
+int getopt_long(int argc, char* const argv[], const char* optstring,
   const struct option* longopts, int* longindex) {
   const struct option* o = longopts;
   const struct option* match = NULL;
@@ -165,7 +165,7 @@ int getopt_long(int argc, char* const argv[], const char* optstring,
     if (longindex)
       *longindex = (match - longopts);
 
-    /* If flag is NULL, then getopt_long() shall return val. 
+    /* If flag is NULL, then getopt_long() shall return val.
        Otherwise, getopt_long() returns 0, and flag shall point to a variable
        which shall be set to val if the option is found, but left unchanged if
        the option is not found. */
@@ -190,7 +190,7 @@ int getopt_long(int argc, char* const argv[], const char* optstring,
           retval = ':';
       }
     } else if (strchr(argv[optind], '=')) {
-      /* An argument was provided to a non-argument option. 
+      /* An argument was provided to a non-argument option.
          I haven't seen this specified explicitly, but both GNU and BSD-based
          implementations show this behavior.
       */
