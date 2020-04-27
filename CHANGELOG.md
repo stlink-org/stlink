@@ -26,9 +26,10 @@ Features:
 
 Updates & changes:
 
+- Define libusb version compatibility for supported operating systems via LIBUSB_API_VERSION (#211, #782, #895)
 - Improved argument parsing for CLI tools (#378, #922)
 - [doc] Updated tutorial: macOS ST-Link-v1 detection (#574, #587)
-- Define libusb version compatibility for supported operating systems via LIBUSB_API_VERSION (#211, #782, #895)
+- Enhanced output for error msg "addr not a multiple of pagesize, not supported" (#663, #945)
 - [doc] Verify correct udev configuration for device access (#764)
 - Added more error info to WLOGs during probe (#883)
 - Added check for libssp during compilation (#885)
@@ -41,9 +42,15 @@ Updates & changes:
 - [doc] Defined version compatibility and installation instructions for macOS (commit 23c071edea45f6e8852fef52d884a680973d6d8f)
 - Deprecated old appveyor-mingw script (commit 97484422008df0f75c978627054776f35842a075)
 - Enhanced error log with file path for map_file() (#650, #879, #921)
-- Refactoring: Overall option code rework (#927)
-- Refactoring: Build settings / GUI-Build on UNIX-based systems if GTK3 is detected (#929)
-- Reconfiguration of package build process (#931, #936, #940, commit 9b19f9225460472af9d98959b7217d0a840ee972)
+- [refactoring] Overall option code rework (#927)
+- [refactoring] Build settings / GUI-Build on UNIX-based systems if GTK3 is detected (#929)
+- [refactoring] Reconfiguration of package build process (#931, #936, #940, commit 9b19f9225460472af9d98959b7217d0a840ee972)
+- [refactoring] st-util: Removed now useless v1/v2 STLink version stuff (#934)
+- [refactoring] Cleanup for option bytes and flash settings (#941)
+- Added compilation guideline for MSVC toolchain (#942)
+- st-util: Removal of useless v1/v2 stlink version stuff (#934)
+- libusb package extraction no longer requires 7zip as an external unarchiver (commit 5db2dc4c0410ace65308cddcc03d1c0cfa4855cf)
+- [refactoring] Cleanup of cmake build process (#944, #946, #947)
 
 Fixes:
 
@@ -60,7 +67,7 @@ Fixes:
 - Fixed formatting for options display in st-flash & st-info (commits c783d0e777ccc83a7a8be26a4f4d3414e0478560 and 562cd2496e696dbd22950925866aac662d81ee5f)
 - Fixed dead loop after an unexpected unplug (#780, #812, #913)
 - Fixed broken build on 32-bit systems (#919, #920)
-- st-flash: minor usage fix and make cmdline parsing more user friendly (#925)
+- st-flash: Minor usage fix and make cmdline parsing more user friendly (#925)
 - Better argument parsing for CLI tools: stlink_open_usb can address v1, v2, v3 (#378, #922)
 - Restored functionality of make test builds (Regression) (#926, #929)
 - Fixed compilation error due to uninitialized cpuid (#937, #938)
