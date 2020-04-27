@@ -2,3 +2,4 @@ build
 build-mingw
 obj-*
 *.user*
+.project
