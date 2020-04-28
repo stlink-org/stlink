@@ -61,7 +61,6 @@ static int bad_arg(const char *arg) {
 }
 
 int flash_get_opts(struct flash_opts* o, int ac, char** av) {
-    bool serial_specified = false;
 
     // defaults
     memset(o, 0, sizeof(*o));
@@ -146,26 +145,10 @@ int flash_get_opts(struct flash_opts* o, int ac, char** av) {
         }
         else if ( starts_with(av[0], "--flash=") ) {
             const char *arg = av[0] + strlen("--flash=");
-            char *ep = 0;
 
-            o->flash_size = (uint32_t)strtoul(arg,&ep,0);
-            while ( *ep ) {
-                switch ( *ep++ ) {
-                case 0:
-                    break;
-                case 'k':
-                case 'K':
-                    o->flash_size *= 1024u;
-                    break;
-                case 'm':
-                case 'M':
-                    o->flash_size *= 1024u * 1024u;
-                    break;
-                default:
-                    fprintf(stderr,"Invalid --flash=%s\n",arg);
-                    return -1;
-                }
-            }
+            int32_t flash_size = get_integer_from_char_array(arg);
+            if (flash_size < 0) return bad_arg("--flash");
+            else o->flash_size = (size_t) flash_size;
         }
         else {
             break;  // non-option found
@@ -201,7 +184,6 @@ int flash_get_opts(struct flash_opts* o, int ac, char** av) {
         av++;
     }
 
-    char * tail;
     switch(o->cmd) {
         case FLASH_CMD_NONE:     // no command found
             return -1;
@@ -215,22 +197,31 @@ int flash_get_opts(struct flash_opts* o, int ac, char** av) {
             if (ac != 3) return invalid_args("read <path> <addr> <size>");
             if (ac != 3) return -1;
             o->filename = av[0];
-            o->addr = (uint32_t) strtoul(av[1], &tail, 16);
-            if (tail[0] != '\0') return bad_arg("addr");
-            o->size = strtoul(av[2], &tail, 16);
-            if (tail[0] != '\0') return bad_arg("size");
+            int32_t address = get_integer_from_char_array(av[1]);
+            if(address < 0) return bad_arg("addr");
+            else o->addr = (stm32_addr_t) address;
+
+            int32_t size = get_integer_from_char_array(av[2]);
+            if(size < 0) return bad_arg("size");
+            else o->size = (size_t) size;
+
             break;
 
         case FLASH_CMD_WRITE:
             if (o->area == FLASH_OPTION_BYTES){
                 if (ac != 1) return -1;
-                o->val = (uint32_t)strtoul(av[0], &tail, 16);
+
+                int32_t val = get_integer_from_char_array(av[0]);
+                if(val < 0) return bad_arg("val");
+                else o->val = (uint32_t) val;
+
             }
             else if (o->format == FLASH_FORMAT_BINARY) {    // expect filename and addr
                 if (ac != 2) return invalid_args("write <path> <addr>");
                 o->filename = av[0];
-                o->addr = (uint32_t) strtoul(av[1], &tail, 16);
-                if (tail[0] != '\0') return bad_arg("addr");
+                int32_t addr = get_integer_from_char_array(av[1]);
+                if(addr < 0) return bad_arg("addr");
+                else o->addr = (stm32_addr_t) addr;
             }
             else if (o->format == FLASH_FORMAT_IHEX) { // expect filename
                 if (ac != 1) return invalid_args("write <path>");
