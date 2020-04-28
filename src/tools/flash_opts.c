@@ -11,6 +11,45 @@ static bool starts_with(const char * str, const char * prefix) {
     return (0 == strncmp(str, prefix, n));
 }
 
+// support positive integer from 0 to 0x7fffffff
+// support decimal, hexadecimal, octal, binary format like 0xff 12 1k 1M, 0b1001
+// negative numbers are not supported
+static int32_t get_integer_from_char_array (const char * const str) {
+    int32_t value;
+    char *tail;
+
+    // hexadecimal
+    if ((strncmp ("0x", str, 2) == 0) || (strncmp ("0X", str, 2) == 0)) {
+        value = strtoul (str + 2, &tail, 16);
+    }
+    // binary
+    else if ((strncmp ("0b", str, 2) == 0) || (strncmp ("0B", str, 2) == 0)) {
+        value = strtoul (str + 2, &tail, 2);
+    }
+    // octal
+    else if ((strncmp ("0", str, 1) == 0) || (strncmp ("0", str, 1) == 0)) {
+        value = strtoul (str + 1, &tail, 8);
+    }
+    // decimal
+    else {
+        value = strtoul (str, &tail, 10);
+    }
+
+    if (((tail[0] == 'k') || (tail[0] == 'K')) && (tail[1] == '\0')) {
+        return value * 1024;
+    }
+    else if (((tail[0] == 'm') || (tail[0] == 'M')) && (tail[1] == '\0')) {
+        return value * 1024 * 1024;
+    }
+    else if (tail[0] == '\0') {
+        return value;
+    }
+    else {
+        return -1;
+    }
+    return value;
+}
+
 static int invalid_args(const char *expected) {
     fprintf(stderr, "*** Error: Expected args for this command: %s\n", expected);
     return -1;
@@ -22,6 +61,7 @@ static int bad_arg(const char *arg) {
 }
 
 int flash_get_opts(struct flash_opts* o, int ac, char** av) {
+    bool serial_specified = false;
 
     // defaults
     memset(o, 0, sizeof(*o));
