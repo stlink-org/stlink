@@ -10,7 +10,7 @@ matrix:
           addons:
               apt:
                   sources: ['ubuntu-toolchain-r-test']
-                  packages: ['gcc-5', 'libusb-1.0.0-dev', 'libgtk-3-dev']
+                  packages: ['gcc-5', 'libusb-1.0.0-dev', 'libgtk-3-dev', 'rpm']
         - os: linux
           env: BADGE=linux
           arch: x64
@@ -18,7 +18,7 @@ matrix:
           addons:
               apt:
                   sources: ['ubuntu-toolchain-r-test']
-                  packages: ['gcc-7', 'libusb-1.0.0-dev', 'libgtk-3-dev']
+                  packages: ['gcc-7', 'libusb-1.0.0-dev', 'libgtk-3-dev', 'rpm']
         - os: linux
           env: BADGE=linux
           arch: x64
@@ -26,7 +26,7 @@ matrix:
           addons:
               apt:
                   sources: ['ubuntu-toolchain-r-test']
-                  packages: ['gcc-9', 'libusb-1.0.0-dev', 'libgtk-3-dev']
+                  packages: ['gcc-9', 'libusb-1.0.0-dev', 'libgtk-3-dev', 'rpm']
         - os: linux
           env: BADGE=linux
           arch: x64
@@ -34,7 +34,7 @@ matrix:
           addons:
               apt:
                   sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-xenial-3.7']
-                  packages: ['clang-3.7', 'libusb-1.0.0-dev', 'libgtk-3-dev']
+                  packages: ['clang-3.7', 'libusb-1.0.0-dev', 'libgtk-3-dev', 'rpm']
         - os: linux
           env: BADGE=linux
           arch: x64
@@ -42,7 +42,7 @@ matrix:
           addons:
               apt:
                   sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-bionic-6.0']
-                  packages: ['clang-6.0', 'libusb-1.0.0-dev', 'libgtk-3-dev']
+                  packages: ['clang-6.0', 'libusb-1.0.0-dev', 'libgtk-3-dev', 'rpm']
 #        - os: linux
 #          arch: x64
 #          compiler: clang-6.0
@@ -60,7 +60,7 @@ matrix:
           addons:
               apt:
                   sources: ['ubuntu-toolchain-r-test']
-                  packages: ['gcc-5', 'libusb-1.0.0-dev', 'libgtk-3-dev']
+                  packages: ['gcc-5', 'libusb-1.0.0-dev', 'libgtk-3-dev', 'rpm']
         - os: linux
           env: BADGE=linux
           arch: x86
@@ -68,7 +68,7 @@ matrix:
           addons:
               apt:
                   sources: ['ubuntu-toolchain-r-test']
-                  packages: ['gcc-7', 'libusb-1.0.0-dev', 'libgtk-3-dev']
+                  packages: ['gcc-7', 'libusb-1.0.0-dev', 'libgtk-3-dev', 'rpm']
         - os: linux
           env: BADGE=linux
           arch: x86
@@ -76,7 +76,7 @@ matrix:
           addons:
               apt:
                   sources: ['ubuntu-toolchain-r-test']
-                  packages: ['gcc-9', 'libusb-1.0.0-dev', 'libgtk-3-dev']
+                  packages: ['gcc-9', 'libusb-1.0.0-dev', 'libgtk-3-dev', 'rpm']
         - os: linux
           env: BADGE=linux
           arch: x86
@@ -84,7 +84,7 @@ matrix:
           addons:
               apt:
                   sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-xenial-3.7']
-                  packages: ['clang-3.7', 'libusb-1.0.0-dev', 'libgtk-3-dev']
+                  packages: ['clang-3.7', 'libusb-1.0.0-dev', 'libgtk-3-dev', 'rpm']
         - os: linux
           env: BADGE=linux
           arch: x86
@@ -92,7 +92,7 @@ matrix:
           addons:
               apt:
                   sources: ['ubuntu-toolchain-r-test', 'llvm-toolchain-bionic-6.0']
-                  packages: ['clang-6.0', 'libusb-1.0.0-dev', 'libgtk-3-dev']
+                  packages: ['clang-6.0', 'libusb-1.0.0-dev', 'libgtk-3-dev', 'rpm']
 
         ### macOS ###
         - os: osx

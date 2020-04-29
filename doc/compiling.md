@@ -87,6 +87,8 @@ Install the following packages from your package repository:
 * `gcc` or `clang` or `mingw32-gcc` or `mingw64-gcc` (C-compiler; very likely gcc is already present)
 * `build-essential` (on Debian based distros (debian, ubuntu))
 * `cmake` (3.4.2 or later, use the latest version available from the repository)
+* `dpkg`
+* `rpm`
 * `pkg-config`
 * `libusb-1.0`
 * `libusb-1.0-0-dev` (development headers for building)
