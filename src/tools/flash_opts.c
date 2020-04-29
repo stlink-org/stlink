@@ -11,11 +11,12 @@ static bool starts_with(const char * str, const char * prefix) {
     return (0 == strncmp(str, prefix, n));
 }
 
-// support positive integer from 0 to 0x7fffffff
+// support positive integer from 0 to INT64_MAX
+// INT64_MAX+1 to UINT64_MAX are not supported
 // support decimal, hexadecimal, octal, binary format like 0xff 12 1k 1M, 0b1001
 // negative numbers are not supported
-static int32_t get_integer_from_char_array (const char * const str) {
-    int32_t value;
+static int64_t get_long_integer_from_char_array (const char * const str) {
+    uint64_t value;
     char *tail;
 
     // hexadecimal
@@ -36,18 +37,43 @@ static int32_t get_integer_from_char_array (const char * const str) {
     }
 
     if (((tail[0] == 'k') || (tail[0] == 'K')) && (tail[1] == '\0')) {
-        return value * 1024;
+        value = value * 1024;
     }
     else if (((tail[0] == 'm') || (tail[0] == 'M')) && (tail[1] == '\0')) {
-        return value * 1024 * 1024;
+        value = value * 1024 * 1024;
     }
     else if (tail[0] == '\0') {
-        return value;
+        // value not change
     }
     else {
         return -1;
     }
-    return value;
+    if (value >= INT64_MAX) {
+        fprintf (stderr, "*** Error: Integer greater than INT64_MAX\n");
+        return -1l;
+    }
+    else {
+        return (int64_t)value;
+    }
+}
+
+// support positive integer from 0 to INT32_MAX
+// INT32_MAX+1 to UINT32_MAX are not supported
+// support decimal, hexadecimal, octal, binary format like 0xff 12 1k 1M, 0b1001
+// negative numbers are not supported
+static int32_t get_integer_from_char_array (const char * const str) {
+    int64_t v = get_long_integer_from_char_array (str);
+    if (v < 0) {
+        return (int32_t)v;
+    }
+    else if (v >= INT32_MAX) {
+        fprintf(stderr, "*** Error: Integer greater than INT32_MAX, \
+cannot convert to int32_t\n");
+        return -1;
+    }
+    else {
+        return (int32_t)v;
+    }
 }
 
 static int invalid_args(const char *expected) {
