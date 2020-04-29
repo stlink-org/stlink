@@ -1,5 +1,5 @@
 /*. Entry Point *./
-ENTRY( mycopy )
+ENTRY( copy )
 
 
 /*. Specify the memory areas .*/

@@ -1,8 +1,8 @@
     .syntax unified
     .text
 
-    .global mycopy
-mycopy:
+    .global copy
+copy:
     ldr r7, =flash_base
     ldr r4, [r7]
     ldr r7, =flash_off_cr
@@ -12,7 +12,7 @@ mycopy:
     ldr r5, [r7]
     adds r5, r5, r4
 
-myloop:
+loop:
     # FLASH_CR ^= 1
     ldr r7, =0x1
     ldr r3, [r6]
@@ -37,15 +37,15 @@ mywait:
     # exit if FLASH_SR != 4
     ldr r7, =0x4
     tst r3, r7
-    bne myexit
+    bne exit
 
     # loop if r2 != 0
     ldr r7, =0x1
     subs r2, r2, r7
     cmp r2, #0
-    bne myloop
+    bne loop
 
-myexit:
+exit:
     # FLASH_CR &= ~1
     ldr r7, =0x1
     ldr r3, [r6]

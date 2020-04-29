@@ -1,8 +1,8 @@
     .syntax unified
     .text
 
-    .global mycopy
-mycopy:
+    .global copy
+copy:
     ldr r12, flash_base
     ldr r10, flash_off_sr
     add r10, r10, r12
@@ -13,7 +13,7 @@ mycopy:
     # tip 2: r2 is always a power of 2
     mov r2, r2, lsl#2
 
-myloop:
+loop:
     # copy 1 byte
     ldrb r3, [r0]
     strb r3, [r1]
@@ -30,9 +30,9 @@ mywait:
     # loop if r2 != 0
     sub r2, r2, #1
     cmp r2, #0
-    bne myloop
+    bne loop
 
-myexit:
+exit:
     bkpt
 
     .align 2

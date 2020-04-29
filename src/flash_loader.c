@@ -7,6 +7,8 @@
 #define FLASH_REGS_BANK2_OFS 0x40
 #define FLASH_BANK2_START_ADDR 0x08080000
 
+/* DO NOT MODIFY SOURCECODE DIRECTLY, EDIT ASSEMBLY FILES INSTEAD */
+
     /* flashloaders/stm32f0.s -- compiled with thumb2 */
     static const uint8_t loader_code_stm32vl[] = {
         0x16, 0x4f, 0x3c, 0x68, 

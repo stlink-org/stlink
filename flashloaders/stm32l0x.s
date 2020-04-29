@@ -1,9 +1,9 @@
     .syntax unified
     .text
 
-    .global mycopy
-mycopy:
-myloop:
+    .global copy
+copy:
+loop:
     # copy 4 bytes
     ldr r3, [r0]
     str r3, [r1]
@@ -16,7 +16,7 @@ myloop:
     ldr r7, =1
     subs r2, r2, r7
     cmp r2, #0
-    bne myloop
+    bne loop
 
-myexit:
+exit:
     bkpt
