@@ -11,11 +11,11 @@ static bool starts_with(const char * str, const char * prefix) {
     return (0 == strncmp(str, prefix, n));
 }
 
-// support positive integer from 0 to INT64_MAX
-// INT64_MAX+1 to UINT64_MAX are not supported
+// support positive integer from 0 to UINT64_MAX
 // support decimal, hexadecimal, octal, binary format like 0xff 12 1k 1M, 0b1001
 // negative numbers are not supported
-static int64_t get_long_integer_from_char_array (const char * const str) {
+// return 0 if success else return -1
+static int get_long_integer_from_char_array (const char *const str, uint64_t *read_value) {
     uint64_t value;
     char *tail;
 
@@ -48,31 +48,28 @@ static int64_t get_long_integer_from_char_array (const char * const str) {
     else {
         return -1;
     }
-    if (value >= INT64_MAX) {
-        fprintf (stderr, "*** Error: Integer greater than INT64_MAX\n");
-        return -1l;
-    }
-    else {
-        return (int64_t)value;
-    }
+    *read_value = value;
+    return 0;
 }
 
-// support positive integer from 0 to INT32_MAX
-// INT32_MAX+1 to UINT32_MAX are not supported
+// support positive integer from 0 to UINT32_MAX
 // support decimal, hexadecimal, octal, binary format like 0xff 12 1k 1M, 0b1001
 // negative numbers are not supported
-static int32_t get_integer_from_char_array (const char * const str) {
-    int64_t v = get_long_integer_from_char_array (str);
-    if (v < 0) {
-        return (int32_t)v;
+// return 0 if success else return -1
+static int get_integer_from_char_array (const char *const str, uint32_t *read_value) {
+    uint64_t value;
+    int result = get_long_integer_from_char_array (str, &value);
+    if (result != 0) {
+        return result;
     }
-    else if (v >= INT32_MAX) {
-        fprintf(stderr, "*** Error: Integer greater than INT32_MAX, \
+    else if (value > UINT32_MAX) {
+        fprintf (stderr, "*** Error: Integer greater than UINT32_MAX, \
 cannot convert to int32_t\n");
         return -1;
     }
     else {
-        return (int32_t)v;
+        *read_value = value;
+        return 0;
     }
 }
 
