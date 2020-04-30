@@ -20,15 +20,15 @@ static int get_long_integer_from_char_array (const char *const str, uint64_t *re
     char *tail;
 
     // hexadecimal
-    if ((strncmp ("0x", str, 2) == 0) || (strncmp ("0X", str, 2) == 0)) {
+    if (starts_with (str, "0x") || starts_with (str, "0X")) {
         value = strtoul (str + 2, &tail, 16);
     }
     // binary
-    else if ((strncmp ("0b", str, 2) == 0) || (strncmp ("0B", str, 2) == 0)) {
+    else if (starts_with (str, "0b") || starts_with (str, "0B")) {
         value = strtoul (str + 2, &tail, 2);
     }
     // octal
-    else if ((strncmp ("0", str, 1) == 0) || (strncmp ("0", str, 1) == 0)) {
+    else if (starts_with (str, "0")) {
         value = strtoul (str + 1, &tail, 8);
     }
     // decimal
