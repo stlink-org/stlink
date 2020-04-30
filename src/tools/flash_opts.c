@@ -90,6 +90,7 @@ int flash_get_opts(struct flash_opts* o, int ac, char** av) {
     o->log_level = STND_LOG_LEVEL;
 
     // options
+    int result;
     while (ac >= 1) {
         if (strcmp(av[0], "--version") == 0) {
             printf("v%s\n", STLINK_VERSION);
@@ -169,8 +170,9 @@ int flash_get_opts(struct flash_opts* o, int ac, char** av) {
         else if ( starts_with(av[0], "--flash=") ) {
             const char *arg = av[0] + strlen("--flash=");
 
-            int32_t flash_size = get_integer_from_char_array(arg);
-            if (flash_size < 0) return bad_arg("--flash");
+            uint32_t flash_size;
+            result = get_integer_from_char_array(arg, &flash_size);
+            if (result != 0) return bad_arg ("--flash");
             else o->flash_size = (size_t) flash_size;
         }
         else {
@@ -220,12 +222,14 @@ int flash_get_opts(struct flash_opts* o, int ac, char** av) {
             if (ac != 3) return invalid_args("read <path> <addr> <size>");
             if (ac != 3) return -1;
             o->filename = av[0];
-            int32_t address = get_integer_from_char_array(av[1]);
-            if(address < 0) return bad_arg("addr");
+            uint32_t address;
+            result = get_integer_from_char_array(av[1], &address);
+            if (result != 0) return bad_arg ("addr");
             else o->addr = (stm32_addr_t) address;
 
-            int32_t size = get_integer_from_char_array(av[2]);
-            if(size < 0) return bad_arg("size");
+            uint32_t size;
+            result = get_integer_from_char_array(av[2], &size);
+            if (result != 0) return bad_arg ("size");
             else o->size = (size_t) size;
 
             break;
@@ -234,16 +238,18 @@ int flash_get_opts(struct flash_opts* o, int ac, char** av) {
             if (o->area == FLASH_OPTION_BYTES){
                 if (ac != 1) return -1;
 
-                int32_t val = get_integer_from_char_array(av[0]);
-                if(val < 0) return bad_arg("val");
+                uint32_t val;
+                result = get_integer_from_char_array(av[0], &val);
+                if (result != 0) return bad_arg ("val");
                 else o->val = (uint32_t) val;
 
             }
             else if (o->format == FLASH_FORMAT_BINARY) {    // expect filename and addr
                 if (ac != 2) return invalid_args("write <path> <addr>");
                 o->filename = av[0];
-                int32_t addr = get_integer_from_char_array(av[1]);
-                if(addr < 0) return bad_arg("addr");
+                uint32_t addr;
+                result = get_integer_from_char_array(av[1], &addr);
+                if (result != 0) return bad_arg ("addr");
                 else o->addr = (stm32_addr_t) addr;
             }
             else if (o->format == FLASH_FORMAT_IHEX) { // expect filename
