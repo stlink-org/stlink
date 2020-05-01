@@ -278,6 +278,7 @@ install(TARGETS st-flash DESTINATION bin)
 install(TARGETS st-info DESTINATION bin)
 install(TARGETS st-util DESTINATION bin)
 
+
 ###
 # Additional build tasks
 ###

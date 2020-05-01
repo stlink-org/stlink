@@ -3,10 +3,12 @@ Open source version of the STMicroelectronics STlink Tools
 
 [![BSD licensed](https://img.shields.io/badge/license-BSD-blue.svg)](https://raw.githubusercontent.com/hyperium/hyper/master/LICENSE)
 [![GitHub release](https://img.shields.io/github/release/stlink-org/stlink.svg)](https://github.com/stlink-org/stlink/releases/latest)
-[![GitHub commits](https://img.shields.io/github/commits-since/stlink-org/stlink/v1.6.0.svg)](https://github.com/stlink-org/stlink/releases/develop)
-[![Downloads](https://img.shields.io/github/downloads/stlink-org/stlink/total.svg)](https://github.com/stlink-org/stlink/releases)
-[![Linux Status](https://img.shields.io/travis/stlink-org/stlink/master.svg?label=linux)](https://travis-ci.org/stlink-org/stlink)
-[![macOS Status](https://img.shields.io/travis/stlink-org/stlink/master.svg?label=osx)](https://travis-ci.org/stlink-org/stlink)
+[![Downloads](https://img.shields.io/github/downloads/stlink-org/stlink/total)](https://github.com/stlink-org/stlink/releases/latest)
+![GitHub commits](https://img.shields.io/github/commits-since/stlink-org/stlink/v1.6.0/develop)
+![GitHub activity](https://img.shields.io/github/commit-activity/m/stlink-org/stlink)
+![GitHub contributors](https://img.shields.io/github/contributors/stlink-org/stlink)
+[![Linux Status](https://img.shields.io/travis/stlink-org/stlink/master?env=BADGE=linux&label=linux)](https://travis-ci.org/stlink-org/stlink)
+[![macOS Status](https://img.shields.io/travis/stlink-org/stlink/master?env=BADGE=osx&label=osx)](https://travis-ci.org/stlink-org/stlink)
 
 Recent new features and bugfixes can be found in the [Changelog](CHANGELOG.md) of this software project.
 
@@ -104,8 +106,10 @@ When there is no executable available for your platform or you need the latest (
 * The semantic versioning scheme is used. Read more at [semver.org](http://semver.org)
 * Before creating a pull request, please _ALWAYS_ open a new issue for the discussion of the intended new features. Bugfixes don't require a discussion via a ticket-issue. However they should always be described in a few words as soon as they appear to help others as well.
 * Contributors and/or maintainers may submit comments or request changes to patch-proposals and/or pull-requests.
-* **ATTENTION: _NEVER EVER_ use the '#' character to count-up single points within a listing as '#' is _exclusively_ reserved for referencing github issues and pull-requests. Otherwise you accidentally introduce false cross references within the project.**
-* Please start new forks from the develop branch if possible as pull requests will go into this branch as well.
+* **ATTENTION: _NEVER EVER_ use the '#' character to count-up single points within a listing as '#' is _exclusively_ reserved for referencing GitHub issues and pull-requests. Otherwise you accidentally introduce false cross references within the project.**
+* Please start new forks from the develop branch, as pull requests will go into this branch as well.
+
+Please also refer to our [Contribution Guidelines](CONTRIBUTING.md).
 
 
 # Current state of the project
