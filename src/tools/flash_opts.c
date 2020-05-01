@@ -68,7 +68,7 @@ cannot convert to int32_t\n");
         return -1;
     }
     else {
-        *read_value = value;
+        *read_value = (uint32_t)value;
         return 0;
     }
 }
