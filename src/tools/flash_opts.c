@@ -11,6 +11,68 @@ static bool starts_with(const char * str, const char * prefix) {
     return (0 == strncmp(str, prefix, n));
 }
 
+// support positive integer from 0 to UINT64_MAX
+// support decimal, hexadecimal, octal, binary format like 0xff 12 1k 1M, 0b1001
+// negative numbers are not supported
+// return 0 if success else return -1
+static int get_long_integer_from_char_array (const char *const str, uint64_t *read_value) {
+    uint64_t value;
+    char *tail;
+
+    // hexadecimal
+    if (starts_with (str, "0x") || starts_with (str, "0X")) {
+        value = strtoul (str + 2, &tail, 16);
+    }
+    // binary
+    else if (starts_with (str, "0b") || starts_with (str, "0B")) {
+        value = strtoul (str + 2, &tail, 2);
+    }
+    // octal
+    else if (starts_with (str, "0")) {
+        value = strtoul (str + 1, &tail, 8);
+    }
+    // decimal
+    else {
+        value = strtoul (str, &tail, 10);
+    }
+
+    if (((tail[0] == 'k') || (tail[0] == 'K')) && (tail[1] == '\0')) {
+        value = value * 1024;
+    }
+    else if (((tail[0] == 'm') || (tail[0] == 'M')) && (tail[1] == '\0')) {
+        value = value * 1024 * 1024;
+    }
+    else if (tail[0] == '\0') {
+        // value not change
+    }
+    else {
+        return -1;
+    }
+    *read_value = value;
+    return 0;
+}
+
+// support positive integer from 0 to UINT32_MAX
+// support decimal, hexadecimal, octal, binary format like 0xff 12 1k 1M, 0b1001
+// negative numbers are not supported
+// return 0 if success else return -1
+static int get_integer_from_char_array (const char *const str, uint32_t *read_value) {
+    uint64_t value;
+    int result = get_long_integer_from_char_array (str, &value);
+    if (result != 0) {
+        return result;
+    }
+    else if (value > UINT32_MAX) {
+        fprintf (stderr, "*** Error: Integer greater than UINT32_MAX, \
+cannot convert to int32_t\n");
+        return -1;
+    }
+    else {
+        *read_value = (uint32_t)value;
+        return 0;
+    }
+}
+
 static int invalid_args(const char *expected) {
     fprintf(stderr, "*** Error: Expected args for this command: %s\n", expected);
     return -1;
@@ -28,6 +90,7 @@ int flash_get_opts(struct flash_opts* o, int ac, char** av) {
     o->log_level = STND_LOG_LEVEL;
 
     // options
+    int result;
     while (ac >= 1) {
         if (strcmp(av[0], "--version") == 0) {
             printf("v%s\n", STLINK_VERSION);
@@ -106,26 +169,11 @@ int flash_get_opts(struct flash_opts* o, int ac, char** av) {
         }
         else if ( starts_with(av[0], "--flash=") ) {
             const char *arg = av[0] + strlen("--flash=");
-            char *ep = 0;
 
-            o->flash_size = (uint32_t)strtoul(arg,&ep,0);
-            while ( *ep ) {
-                switch ( *ep++ ) {
-                case 0:
-                    break;
-                case 'k':
-                case 'K':
-                    o->flash_size *= 1024u;
-                    break;
-                case 'm':
-                case 'M':
-                    o->flash_size *= 1024u * 1024u;
-                    break;
-                default:
-                    fprintf(stderr,"Invalid --flash=%s\n",arg);
-                    return -1;
-                }
-            }
+            uint32_t flash_size;
+            result = get_integer_from_char_array(arg, &flash_size);
+            if (result != 0) return bad_arg ("--flash");
+            else o->flash_size = (size_t) flash_size;
         }
         else {
             break;  // non-option found
@@ -161,7 +209,6 @@ int flash_get_opts(struct flash_opts* o, int ac, char** av) {
         av++;
     }
 
-    char * tail;
     switch(o->cmd) {
         case FLASH_CMD_NONE:     // no command found
             return -1;
@@ -175,22 +222,35 @@ int flash_get_opts(struct flash_opts* o, int ac, char** av) {
             if (ac != 3) return invalid_args("read <path> <addr> <size>");
             if (ac != 3) return -1;
             o->filename = av[0];
-            o->addr = (uint32_t) strtoul(av[1], &tail, 16);
-            if (tail[0] != '\0') return bad_arg("addr");
-            o->size = strtoul(av[2], &tail, 16);
-            if (tail[0] != '\0') return bad_arg("size");
+            uint32_t address;
+            result = get_integer_from_char_array(av[1], &address);
+            if (result != 0) return bad_arg ("addr");
+            else o->addr = (stm32_addr_t) address;
+
+            uint32_t size;
+            result = get_integer_from_char_array(av[2], &size);
+            if (result != 0) return bad_arg ("size");
+            else o->size = (size_t) size;
+
             break;
 
         case FLASH_CMD_WRITE:
             if (o->area == FLASH_OPTION_BYTES){
                 if (ac != 1) return -1;
-                o->val = (uint32_t)strtoul(av[0], &tail, 16);
+
+                uint32_t val;
+                result = get_integer_from_char_array(av[0], &val);
+                if (result != 0) return bad_arg ("val");
+                else o->val = (uint32_t) val;
+
             }
             else if (o->format == FLASH_FORMAT_BINARY) {    // expect filename and addr
                 if (ac != 2) return invalid_args("write <path> <addr>");
                 o->filename = av[0];
-                o->addr = (uint32_t) strtoul(av[1], &tail, 16);
-                if (tail[0] != '\0') return bad_arg("addr");
+                uint32_t addr;
+                result = get_integer_from_char_array(av[1], &addr);
+                if (result != 0) return bad_arg ("addr");
+                else o->addr = (stm32_addr_t) addr;
             }
             else if (o->format == FLASH_FORMAT_IHEX) { // expect filename
                 if (ac != 1) return invalid_args("write <path>");
