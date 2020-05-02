@@ -59,7 +59,7 @@ Supported operating systems are listed in [version_support.md](doc/version_suppo
 
 ## Tutorial & HOWTO
 
-Our [tutorial.md](doc/tutorial.md may help you along with some advanced tasks and additional info.
+Our [tutorial.md](doc/tutorial.md) may help you along with some advanced tasks and additional info.
 
 
 ## Installation
