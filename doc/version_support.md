@@ -68,10 +68,10 @@ Thus no user interaction regarding libusb is necessary.
 
 | Operating System | libusb<br />version | cmake<br />version | End of OS-Support | Notes |
 | --- | --- | --- | --- | --- |
-| CentOS 7 | 1.0.21 | **2.8.12.2** | | named `libusbx`, but `libusb`-codebase is used |
+| CentOS 7 | 1.0.21 | **2.8.12.2** | | named `libusbx`, but<br />`libusb`-codebase is used |
 | Debian 8 (Jessie) | 1.0.**19** | 3.**0.2** | Jun 2020 |
 | Ubuntu 14.04 LTS (Trusty Tahr) | 1.0.**17** | **2.8.12.2** | Apr 2019 |
-| CentOS 6 | 1.0.**9** | **2.8.12.2** | Dec 2020 | named `libusbx`, but `libusb`-codebase is used |
+| CentOS 6 | 1.0.**9** | **2.8.12.2** | Dec 2020 | named `libusbx`, but<br />`libusb`-codebase is used |
 | Slackware 14.1 | 1.0.**9** | **2.8.12** | |
 | Slackware 14.0 | 1.0.**9** | **2.8.8** | |
 
