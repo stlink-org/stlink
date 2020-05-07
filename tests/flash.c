@@ -66,6 +66,7 @@ static bool execute_test(const struct Test * test) {
         ret &= (opts.size == test->opts.size);
         ret &= (opts.reset == test->opts.reset);
         ret &= (opts.log_level == test->opts.log_level);
+        ret &= (opts.freq == test->opts.freq);
         ret &= (opts.format == test->opts.format);
     }
 
@@ -127,7 +128,7 @@ static struct Test tests[] = {
           .size = 0,
           .reset = 1,
           .log_level = DEBUG_LOG_LEVEL,
-          .freq = 0,
+          .freq = 5,
           .format = FLASH_FORMAT_BINARY }
     },
     { "--debug --freq=6k --reset write test.bin 0x80000000", -1,
