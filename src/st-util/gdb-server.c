@@ -1419,7 +1419,7 @@ int serve(stlink_t *sl, st_state_t *st) {
                     if (ret) {
                         DLOG("Semihost: status failed\n");
                     }
-                    if (sl->core_stat == STLINK_CORE_HALTED) {
+                    if(sl->core_stat == TARGET_HALTED) {
                         struct stlink_reg reg;
                         stm32_addr_t pc;
                         stm32_addr_t addr;
