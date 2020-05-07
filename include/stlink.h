@@ -159,6 +159,8 @@ typedef struct flash_loader {
         char serial[STLINK_SERIAL_MAX_SIZE];
         int serial_size;
 
+        int freq;           // set by stlink_open_usb(), values: STLINK_SWDCLK_xxx_DIVISOR
+
         enum stlink_flash_type flash_type;	// stlink_chipid_params.flash_type, set by stlink_load_device_params(), values: STLINK_FLASH_TYPE_xxx
         bool has_dual_bank;
 

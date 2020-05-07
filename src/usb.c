@@ -873,7 +873,7 @@ static stlink_backend_t _stlink_usb_backend = {
     _stlink_usb_set_swdclk
 };
 
-stlink_t *stlink_open_usb(enum ugly_loglevel verbose, bool reset, char serial[STLINK_SERIAL_MAX_SIZE])
+stlink_t *stlink_open_usb(enum ugly_loglevel verbose, bool reset, char serial[STLINK_SERIAL_MAX_SIZE], int freq)
 {
     stlink_t* sl = NULL;
     struct stlink_libusb* slu = NULL;
@@ -1041,10 +1041,51 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, bool reset, char serial[ST
         stlink_exit_dfu_mode(sl);
     }
 
+
+    sl->opt = freq;
     // set the speed before entering the mode
     // as the chip discovery phase should be done at this speed too
     // Set the stlink clock speed (default is 1800kHz)
-    stlink_set_swdclk(sl, STLINK_SWDCLK_1P8MHZ_DIVISOR);
+    DLOG("JTAG/SWD freq set to %d\n", freq);
+    switch (freq) {
+        case 5:
+            stlink_set_swdclk(sl, STLINK_SWDCLK_5KHZ_DIVISOR);
+            break;
+        case 15:
+            stlink_set_swdclk(sl, STLINK_SWDCLK_15KHZ_DIVISOR);
+            break;
+        case 25:
+            stlink_set_swdclk(sl, STLINK_SWDCLK_25KHZ_DIVISOR);
+            break;
+        case 50:
+            stlink_set_swdclk(sl, STLINK_SWDCLK_50KHZ_DIVISOR);
+            break;
+        case 100:
+            stlink_set_swdclk(sl, STLINK_SWDCLK_100KHZ_DIVISOR);
+            break;
+        case 125:
+            stlink_set_swdclk(sl, STLINK_SWDCLK_125KHZ_DIVISOR);
+            break;
+        case 240:
+            stlink_set_swdclk(sl, STLINK_SWDCLK_240KHZ_DIVISOR);
+            break;
+        case 480:
+            stlink_set_swdclk(sl, STLINK_SWDCLK_480KHZ_DIVISOR);
+            break;
+        case 950:
+            stlink_set_swdclk(sl, STLINK_SWDCLK_950KHZ_DIVISOR);
+            break;
+        case 1200:
+            stlink_set_swdclk(sl, STLINK_SWDCLK_1P2MHZ_DIVISOR);
+            break;
+        case 0: case 1800:
+            stlink_set_swdclk(sl, STLINK_SWDCLK_1P8MHZ_DIVISOR);
+            break;
+        case 4000:
+            stlink_set_swdclk(sl, STLINK_SWDCLK_4MHZ_DIVISOR);
+            break;
+    }
+    
 
     if (stlink_current_mode(sl) != STLINK_DEV_DEBUG_MODE) {
         stlink_enter_swd_mode(sl);
@@ -1147,7 +1188,7 @@ static size_t stlink_probe_usb_devs(libusb_device **devs, stlink_t **sldevs[]) {
 			continue;
 		}
 
-        stlink_t *sl = stlink_open_usb(0, 1, serial);
+        stlink_t *sl = stlink_open_usb(0, 1, serial, 0);
         if (!sl) {
             ELOG("Failed to open USB device %#06x:%#06x\n", desc.idVendor, desc.idProduct);
             continue;

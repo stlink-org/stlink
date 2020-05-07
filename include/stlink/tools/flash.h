@@ -26,9 +26,10 @@ struct flash_opts
     uint32_t val;
     size_t flash_size;	/* --flash=n[k][m] */
     int opt;
+    int freq;
 };
 
-#define FLASH_OPTS_INITIALIZER {0, { 0 }, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+#define FLASH_OPTS_INITIALIZER {0, { 0 }, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 
 int flash_get_opts(struct flash_opts* o, int ac, char** av);
 
