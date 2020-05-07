@@ -116,15 +116,9 @@ int flash_get_opts(struct flash_opts* o, int ac, char** av) {
             else {
                 serial = av[0] + strlen("--serial=");
             }
-            /** @todo This is not really portable, as strlen really returns size_t we need to obey and not cast it to a signed type. */
-            int j = (int)strlen(serial);
-            int length = j / 2;  // the length of the destination-array
-            if (j % 2 != 0) return -1;
-            for (size_t k = 0; j >= 0 && k < sizeof(o->serial); ++k, j -= 2) {
-                char buffer[3] = {0};
-                memcpy(buffer, serial + j, 2);
-                o->serial[length - k] = (uint8_t)strtol(buffer, NULL, 16);
-            }
+
+            strncpy((char*)o->serial, serial, STLINK_SERIAL_MAX_SIZE - 1);
+            o->serial[STLINK_SERIAL_MAX_SIZE - 1] = '\0';
         }
         else if (strcmp(av[0], "--area") == 0 || starts_with(av[0], "--area=")) {
             const char * area;
