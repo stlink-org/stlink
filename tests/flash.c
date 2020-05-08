@@ -66,6 +66,7 @@ static bool execute_test(const struct Test * test) {
         ret &= (opts.size == test->opts.size);
         ret &= (opts.reset == test->opts.reset);
         ret &= (opts.log_level == test->opts.log_level);
+        ret &= (opts.freq == test->opts.freq);
         ret &= (opts.format == test->opts.format);
     }
 
@@ -83,6 +84,7 @@ static struct Test tests[] = {
           .size = 0x1000,
           .reset = 1,
           .log_level = DEBUG_LOG_LEVEL,
+          .freq = 0,
           .format = FLASH_FORMAT_BINARY }
     },
     { "--debug --reset write test.bin 0x80000000", 0,
@@ -93,6 +95,51 @@ static struct Test tests[] = {
           .size = 0,
           .reset = 1,
           .log_level = DEBUG_LOG_LEVEL,
+          .freq = 0,
+          .format = FLASH_FORMAT_BINARY }
+    },
+    { "--debug --freq 5k --reset write test.bin 0x80000000", 0,
+        { .cmd = FLASH_CMD_WRITE,
+          .serial = { 0 },
+          .filename = "test.bin",
+          .addr = 0x80000000,
+          .size = 0,
+          .reset = 1,
+          .log_level = DEBUG_LOG_LEVEL,
+          .freq = 5,
+          .format = FLASH_FORMAT_BINARY }
+    },
+    { "--debug --freq 15K --reset write test.bin 0x80000000", 0,
+        { .cmd = FLASH_CMD_WRITE,
+          .serial = { 0 },
+          .filename = "test.bin",
+          .addr = 0x80000000,
+          .size = 0,
+          .reset = 1,
+          .log_level = DEBUG_LOG_LEVEL,
+          .freq = 15,
+          .format = FLASH_FORMAT_BINARY }
+    },
+    { "--debug --freq=5k --reset write test.bin 0x80000000", 0,
+        { .cmd = FLASH_CMD_WRITE,
+          .serial = { 0 },
+          .filename = "test.bin",
+          .addr = 0x80000000,
+          .size = 0,
+          .reset = 1,
+          .log_level = DEBUG_LOG_LEVEL,
+          .freq = 5,
+          .format = FLASH_FORMAT_BINARY }
+    },
+    { "--debug --freq=6k --reset write test.bin 0x80000000", -1,
+        { .cmd = FLASH_CMD_WRITE,
+          .serial = { 0 },
+          .filename = "test.bin",
+          .addr = 0x80000000,
+          .size = 0,
+          .reset = 1,
+          .log_level = DEBUG_LOG_LEVEL,
+          .freq = 6,
           .format = FLASH_FORMAT_BINARY }
     },
     { "--debug --reset read test.bin 0x80000000 1000", 0,
@@ -103,6 +150,7 @@ static struct Test tests[] = {
           .size = 1000,
           .reset = 1,
           .log_level = DEBUG_LOG_LEVEL,
+          .freq = 0,
           .format = FLASH_FORMAT_BINARY }
     },
     { "--debug --reset read test.bin 0x80000000 1k", 0,
@@ -113,6 +161,7 @@ static struct Test tests[] = {
         .size = 1024,
         .reset = 1,
         .log_level = DEBUG_LOG_LEVEL,
+        .freq = 0,
         .format = FLASH_FORMAT_BINARY }
     },
     { "--debug --reset read test.bin 0x80000000 1M", 0,
@@ -123,6 +172,7 @@ static struct Test tests[] = {
         .size = 1048576,
         .reset = 1,
         .log_level = DEBUG_LOG_LEVEL,
+        .freq = 0,
         .format = FLASH_FORMAT_BINARY }
     },
     { "--debug --reset write test.bin 0x80000000", 0,
@@ -133,6 +183,7 @@ static struct Test tests[] = {
           .size = 0,
           .reset = 1,
           .log_level = DEBUG_LOG_LEVEL,
+          .freq = 0,
           .format = FLASH_FORMAT_BINARY }
     },
     { "erase", 0,
@@ -143,6 +194,7 @@ static struct Test tests[] = {
           .size = 0,
           .reset = 0,
           .log_level = STND_LOG_LEVEL,
+          .freq = 0,
           .format = FLASH_FORMAT_BINARY }
     },
     { "--debug --reset --format=ihex write test.hex", 0,
@@ -153,6 +205,7 @@ static struct Test tests[] = {
           .size = 0,
           .reset = 1,
           .log_level = DEBUG_LOG_LEVEL,
+          .freq = 0,
           .format = FLASH_FORMAT_IHEX }
     },
     { "--debug --reset --format=binary write test.hex", -1, FLASH_OPTS_INITIALIZER },
@@ -167,6 +220,7 @@ static struct Test tests[] = {
           .size = 0,
           .reset = 0,
           .log_level = STND_LOG_LEVEL,
+          .freq = 0,
           .format = FLASH_FORMAT_BINARY }
     },
     { "--serial=A1020304 erase", 0,
@@ -177,6 +231,7 @@ static struct Test tests[] = {
           .size = 0,
           .reset = 0,
           .log_level = STND_LOG_LEVEL,
+          .freq = 0,
           .format = FLASH_FORMAT_BINARY }
     },
 };

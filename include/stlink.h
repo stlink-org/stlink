@@ -151,13 +151,15 @@ typedef struct flash_loader {
 
         // transport layer verboseness: 0 for no debug info, 10 for lots
         int verbose;
-        int opt;
+        int opt;            // set by main() in tools/flash.c, empty tail bytes drop optimization
         uint32_t core_id;	// set by stlink_core_id(), result from STLINK_DEBUGREADCOREID
         uint32_t chip_id;	// set by stlink_load_device_params(), used to identify flash and sram
         int core_stat;		// set by stlink_status(), values STLINK_CORE_xxxxx
 
         char serial[STLINK_SERIAL_MAX_SIZE];
         int serial_size;
+
+        int freq;           // set by stlink_open_usb(), values: STLINK_SWDCLK_xxx_DIVISOR
 
         enum stlink_flash_type flash_type;	// stlink_chipid_params.flash_type, set by stlink_load_device_params(), values: STLINK_FLASH_TYPE_xxx
         bool has_dual_bank;
