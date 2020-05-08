@@ -1042,7 +1042,7 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, bool reset, char serial[ST
     }
 
 
-    sl->opt = freq;
+    sl->freq = freq;
     // set the speed before entering the mode
     // as the chip discovery phase should be done at this speed too
     // Set the stlink clock speed (default is 1800kHz)

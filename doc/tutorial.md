@@ -19,6 +19,17 @@ The size may be followed by an optional "k" or "m" to multiply the given value b
 When flashing a file, a checksum is calculated for the binary file, both in md5 and the sum algorithm.
 The latter is also used by the official ST-Link utility tool from STMicroelectronics as described in the document: [`UM0892 - User manual - STM32 ST-LINK utility software description`](https://www.st.com/resource/en/user_manual/cd00262073-stm32-stlink-utility-software-description-stmicroelectronics.pdf).
 
+#### --freq=n[k][m]
+
+(since v1.6.1)
+
+You can specify the frequency of SWD/JTAG interface, to override the default 1800KHz configuration. This option accpets decimal only (5K or 1.8M). `Hz` is left out in this option. Valid frequencies are `5K, 15K, 25K, 50K, 100K, 125K, 240K, 480K, 950K, 1200K(1.2M), 1800K(1.8M), 4000K(4M)`
+
+#### --opt
+
+(since v1.6.1, optional; enabled by default from v1.0.0 to v1.6.0)
+
+You can enable the optimization to skip flashing empty (0x00 or 0xff) bytes at the end of binary file. May cause some garbage data left after a flash.
 
 ## Solutions to common problems
 ### a) STLINK/v1 driver: Issue with Kernel Extension (kext) (macOS 10.11 and later only)

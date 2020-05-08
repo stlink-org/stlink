@@ -151,7 +151,7 @@ typedef struct flash_loader {
 
         // transport layer verboseness: 0 for no debug info, 10 for lots
         int verbose;
-        int opt;
+        int opt;            // set by main() in tools/flash.c, empty tail bytes drop optimization
         uint32_t core_id;	// set by stlink_core_id(), result from STLINK_DEBUGREADCOREID
         uint32_t chip_id;	// set by stlink_load_device_params(), used to identify flash and sram
         int core_stat;		// set by stlink_status(), values STLINK_CORE_xxxxx

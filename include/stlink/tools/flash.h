@@ -25,8 +25,8 @@ struct flash_opts
     enum flash_area area;
     uint32_t val;
     size_t flash_size;	/* --flash=n[k][m] */
-    int opt;
-    int freq;
+    int opt;            /* enable empty tail data drop optimization */
+    int freq;           /* --freq=n[k][m] frequency of JTAG/SWD */
 };
 
 #define FLASH_OPTS_INITIALIZER {0, { 0 }, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
