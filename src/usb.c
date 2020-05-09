@@ -87,11 +87,7 @@ ssize_t send_recv(struct stlink_libusb* handle, int terminate,
     int res = 0;
     int t;
 
-    t = libusb_bulk_transfer(handle->usb_handle, handle->ep_req,
-                             txbuf,
-                             (int) txsize,
-                             &res,
-                             3000);
+    t = libusb_bulk_transfer(handle->usb_handle, handle->ep_req, txbuf, (int) txsize, &res, 3000);
     if (t) {
         printf("[!] send_recv send request failed: %s\n", libusb_error_name(t));
         return -1;
@@ -101,11 +97,7 @@ ssize_t send_recv(struct stlink_libusb* handle, int terminate,
     }
 
     if (rxsize != 0) {
-        t = libusb_bulk_transfer(handle->usb_handle, handle->ep_rep,
-                                 rxbuf,
-                                 (int) rxsize,
-                                 &res,
-                                 3000);
+        t = libusb_bulk_transfer(handle->usb_handle, handle->ep_rep, rxbuf, (int) rxsize, &res, 3000);
         if (t) {
             printf("[!] send_recv read reply failed: %s\n",
                    libusb_error_name(t));
@@ -116,11 +108,7 @@ ssize_t send_recv(struct stlink_libusb* handle, int terminate,
     if ((handle->protocoll == 1) && terminate) {
         /* Read the SG reply */
         unsigned char sg_buf[13];
-        t = libusb_bulk_transfer(handle->usb_handle, handle->ep_rep,
-                                 sg_buf,
-                                 13,
-                                 &res,
-                                 3000);
+        t = libusb_bulk_transfer(handle->usb_handle, handle->ep_rep, sg_buf, 13, &res, 3000);
         if (t) {
             printf("[!] send_recv read storage failed: %s\n",
                    libusb_error_name(t));
@@ -270,7 +258,8 @@ int _stlink_usb_get_rw_status(stlink_t *sl)
     unsigned char* const rdata = sl->q_buf;
     struct stlink_libusb * const slu = sl->backend_data;
     unsigned char* const cmd  = sl->c_buf;
-    int i, ret = 0;
+    int i;
+    int16_t ret = 0;
 
     i = fill_command(sl, SG_DXFER_FROM_DEV, 12);
     cmd[i++] = STLINK_DEBUG_COMMAND;
@@ -456,6 +445,7 @@ int _stlink_usb_enter_swd_mode(stlink_t * sl) {
     int i = fill_command(sl, SG_DXFER_FROM_DEV, rep_len);
 
     cmd[i++] = STLINK_DEBUG_COMMAND;
+    // Select correct API-Version for entering SWD mode: V1 API (0x20) or V2 API (0x30)
     cmd[i++] = sl->version.jtag_api == STLINK_JTAG_API_V1 ? STLINK_DEBUG_APIV1_ENTER : STLINK_DEBUG_APIV2_ENTER;
     cmd[i++] = STLINK_DEBUG_ENTER_SWD;
 
