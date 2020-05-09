@@ -102,7 +102,6 @@ enum target_state {
 #define S_RETIRE_ST (1 << 24)
 #define S_RESET_ST  (1 << 25)
 
-
 /* Map the relevant features, quirks and workaround for specific firmware version of stlink */
 #define STLINK_F_HAS_TRACE              (1<<0)
 #define STLINK_F_HAS_SWD_SET_FREQ       (1<<1)
@@ -114,7 +113,6 @@ enum target_state {
 #define STLINK_F_HAS_AP_INIT            (1<<7)
 #define STLINK_F_HAS_DPBANKSEL          (1<<8)
 #define STLINK_F_HAS_RW8_512BYTES       (1<<9)
-
 
 #define C_BUF_LEN 32
 
@@ -185,7 +183,7 @@ enum transport_type {
 };
 
 typedef struct _stlink stlink_t;
-
+  
 #include <backend.h>
 
 struct _stlink {
@@ -207,6 +205,7 @@ struct _stlink {
 
     char serial[STLINK_SERIAL_MAX_SIZE];
     int serial_size;
+    int freq;                // set by stlink_open_usb(), values: STLINK_SWDCLK_xxx_DIVISOR
 
     enum stlink_flash_type flash_type;
     // stlink_chipid_params.flash_type, set by stlink_load_device_params(), values: STLINK_FLASH_TYPE_xxx
