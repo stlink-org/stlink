@@ -25,12 +25,11 @@ elseif (WIN32 AND NOT EXISTS "/etc/debian_version")                             
     set(CPACK_INSTALL_PREFIX "")
 
 elseif (WIN32)                                                                  # Windows cross-build on Debian/Ubuntu
-    set(CPACK_OUTPUT_FILE_PREFIX "${CMAKE_SOURCE_DIR}/build/Release/dist")
     set(CPACK_GENERATOR "ZIP")
     set(CPACK_PACKAGE_FILE_NAME "${PROJECT_NAME}-${PROJECT_VERSION}-${TOOLCHAIN_PREFIX}")
     set(CPACK_INSTALL_PREFIX "")
 
-elseif (EXISTS "/etc/debian_version") # Package-build is available on Debian/Ubuntu only
+elseif (EXISTS "/etc/debian_version" AND NOT EXISTS WIN32) # Package-build is available on Debian/Ubuntu only
     message(STATUS "Debian-based Linux OS detected")
 
     set(CPACK_GENERATOR "DEB;RPM") # RPM requires package `rpm`
