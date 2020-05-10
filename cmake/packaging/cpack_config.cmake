@@ -19,7 +19,7 @@ if (APPLE)                                                                      
     set(CPACK_PACKAGE_FILE_NAME "${PROJECT_NAME}-${PROJECT_VERSION}-macosx-amd64")
     set(CPACK_INSTALL_PREFIX "")
 
-elseif (WIN32 AND NOT EXISTS "/etc/debian_version")                             # Windows
+elseif (WIN32 AND (NOT EXISTS "/etc/debian_version"))                           # Windows
     set(CPACK_GENERATOR "ZIP")
     set(CPACK_PACKAGE_FILE_NAME "${PROJECT_NAME}-${PROJECT_VERSION}-win32")
     set(CPACK_INSTALL_PREFIX "")
@@ -75,6 +75,8 @@ elseif (EXISTS "/etc/debian_version" AND NOT EXISTS WIN32) # Package-build is av
     # Slackware & Redhat (RPM)
     ###
 
+    set(CPACK_SET_DESTDIR "OFF")
+
     # CPACK_RPM_PACKAGE_SUMMARY          --> Default: CPACK_PACKAGE_DESCRIPTION_SUMMARY
     # CPACK_RPM_PACKAGE_NAME             --> Default: CPACK_PACKAGE_NAME
 
@@ -94,6 +96,9 @@ elseif (EXISTS "/etc/debian_version" AND NOT EXISTS WIN32) # Package-build is av
     # CPACK_RPM_PACKAGE_VENDOR           --> Default: CPACK_PACKAGE_VENDOR (as it is set)
     # CPACK_RPM_PACKAGE_URL              --> Default: CMAKE_PROJECT_HOMEPAGE_URL
     set(CPACK_RPM_PACKAGE_DESCRIPTION CPACK_DEBIAN_PACKAGE_DESCRIPTION)
+
+    ## Add CHANGELOG in rpm-specific format
+                                                                                ### TODO
 else ()
     # No package configuration on other platforms ...
 endif ()
