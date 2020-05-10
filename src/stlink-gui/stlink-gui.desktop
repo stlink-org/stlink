@@ -1,7 +1,7 @@
 [Desktop Entry]
 Name=stlink
 GenericName=Stlink Tools
-Comment=STM32 discovery line Linux programmer
+Comment=Open source STM32 MCU programming toolset
 Exec=stlink-gui
 Icon=stlink-gui
 Terminal=false

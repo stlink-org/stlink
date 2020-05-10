@@ -1,23 +1,31 @@
 stlink Tools Tutorial
 =====================
 
-## Useful tool options
+## Available tools and options
 
-### st-flash
+| Option | Tool | Description | Available<br />since |
+| --- | --- | --- | --- |
+| --flash=n[k][m] | st-flash | One can specify `--flash=128k` for example, to override the default value of 64k<br />for the STM32F103C8T6 to assume 128k of flash being present. This option accepts<br />decimal (128k), octal 0200k, or hex 0x80k values. Leaving the multiplier out is<br />equally valid, e.g.: `--flash=0x20000`. The size may be followed by an optional "k"<br />or "m" to multiply the given value by 1k (1024) or 1M respectively. | v1.4.0 |
+| --freq=n[k][m] | st-flash,<br />st-util | The frequency of the SWD/JTAG interface can be specified, to override the default<br />1800 kHz configuration. This option solely accepts decimal values (5K or 1.8M) with<br />the unit `Hz` being left out. Valid frequencies are `5K, 15K, 25K, 50K, 100K,`<br />`125K, 240K, 480K, 950K, 1200K(1.2M), 1800K(1.8M), 4000K(4M)`. | v1.6.1 |
+| --opt | st-flash | Optimisation can be enabled in order to skip flashing empty (0x00 or 0xff) bytes at<br />the end of binary file. This may cause some garbage data left after a flash operation.<br />This option was enabled by default in earlier releases. | v1.6.1 |
+| --version | st-info,<br />st-flash,<br />st-util | Print version information. | |
+| --help | st-flash,<br />st-util | Print list of available commands. _(To be added to this table.)_ | |
 
-#### --flash=n[k][m]
-
-(since v1.4.0)
-
-You can specify `--flash=128k` for example, to override the STM32F103C8T6 to assume 128k of flash instead of the default of 64k.
-This option accepts decimal (128k), octal 0200k, or hex 0x80k.
-Obviously leaving the multiplier out is equally valid, for example: `--flash=0x20000`.
-The size may be followed by an optional "k" or "m" to multiply the given value by 1k (1024) or 1M respectively.
-
-#### Checksum for binary files
-
+### st-flash: Checksum for binary files
 When flashing a file, a checksum is calculated for the binary file, both in md5 and the sum algorithm.
 The latter is also used by the official ST-Link utility tool from STMicroelectronics as described in the document: [`UM0892 - User manual - STM32 ST-LINK utility software description`](https://www.st.com/resource/en/user_manual/cd00262073-stm32-stlink-utility-software-description-stmicroelectronics.pdf).
+
+### stlink-gui
+The `stlink` toolset also provides a GUI which is an optional feature. It is only installed if a gtk3 toolset has been detected during package installation or compilation from source. It is not available for Windows. If you prefer to have an user interface on the latter system, please use the official `ST-LINK Utility` instead.
+
+The stlink-gui offers the following features:
+* Connect/disconnect to a present STlink programmer
+* Display basic device information
+* Select a binary file from the local filesystem to flash it to the detected device connected to the programmer
+* Export the memory of the connected chip to a file which can be saved to the local filesystem
+* Display of the memory address map in the main window for each, the device memory and a loaded binary file
+
+Within the GUI main window tooltips explain the available user elements.
 
 
 ## Solutions to common problems
@@ -142,22 +150,13 @@ This guide details the use of STMicroelectronics STM32 discovery kits in an open
 
 ## Installing a GNU toolchain
 
-Any toolchain supporting the cortex m3 should do. You can find the
-necessary to install such a toolchain here:
-
-```
-https://github.com/esden/summon-arm-toolchain
-```
-
-Details for the installation are provided in the topmost `README` file.
-This documentation assumes the toolchains is installed in a
-`$TOOLCHAIN_PATH`.
+Any toolchain supporting the cortex m3 should do.
 
 ## Using the GDB server
 
-This assumes you have got the libopencm3 project downloaded in `ocm3`.
-The libopencm3 project has some good, reliable examples for each of the
-Discovery boards.
+This assumes you have got the [libopencm3](http://www.libopencm3.org) project downloaded in `ocm3`.
+The libopencm3 project provides a firmware library, with solid examples for Cortex M3, M4 and M0 processors
+from any vendor. It has some good, reliable examples for each of the Discovery boards.
 
 Even if you don’t plan on using libopencm3, the examples they provide
 will help you verify that:
@@ -168,7 +167,7 @@ will help you verify that:
 -   Your arm-none-eabi-gdb is functional
 -   Your board is functional
 
-A GDB server must be started to interact with the STM32 by running 
+A GDB server must be started to interact with the STM32 by running
 st-util tool :
 
 ```
@@ -272,7 +271,7 @@ There are a few options:
 			Do not reset board on connection.
 ```
 
-The STLink device to use can be specified using the --serial parameter, or via 
+The STLink device to use can be specified using the --serial parameter, or via
 the environment variable STLINK_DEVICE on the format <USB_BUS>:<USB_ADDR>.
 
 Then, in your project directory, someting like this...
@@ -362,42 +361,6 @@ Example to read and write option bytes (currently writing only supported for STM
 ./st-flash --debug --reset --format binary --flash=128k write option_bytes_dump.bin 0x1FFF7800
 ```
 
-## Installation of openOCD on Mac OS X with STlink-v2:
-
-`sudo port install openocd +jlink +stlink +ft2232`
-
-`/opt/local/bin/openocd --version`
-
-> Open On-Chip Debugger 0.7.0 (2014-08-11-22:12)
-
-`openocd -f /opt/local/share/openocd/scripts/interface/stlink-v2.cfg -f /opt/local/share/openocd/scripts/target/stm32f1x_stlink.cfg `
-
-> Open On-Chip Debugger 0.8.0 (2014-08-11-15:36)
->
-> Licensed under GNU GPL v2
->
-> For bug reports, read http://openocd.sourceforge.net/doc/doxygen/bugs.html
->
-> Info : This adapter doesn't support configurable speed
->
-> Info : STLINK v2 JTAG v21 API v2 SWIM v4 VID 0x0483 PID 0x3748
->
-> Info : using stlink api v2
->
-> Info : Target voltage: 3.244269
->
-> Info : stm32f1x.cpu: hardware has 6 breakpoints, 4 watchpoints
-
-and connecting to the server through telnet yields a successful installation
-
-`telnet localhost 4444`
-
-> Connected to localhost.
->
-> Escape character is '^]'.
->
-> Open On-Chip Debugger
-
 
 FAQ
 ===
@@ -413,74 +376,3 @@ A: Sometimes when you will try to use GDB `next` command to skip a loop, it will
 Q: Load command does not work in GDB.
 
 A: Some people report XML/EXPAT is not enabled by default when compiling GDB. Memory map parsing thus fail. Use --enable-expat.
-
-Q: How can I install stlink and flash binaries on Mac OS X ?
-
-A: Installed on Mac OS X 10.9.4 with ports method,
-   however STlink v2 does not seem to work with libusb if you upgrade to the newest firmware !!
-   Only older firmware on STlink v2 works.
-
-[https://coderwall.com/p/oznj_q](https://coderwall.com/p/oznj_q)
-
-```
-sudo port install libusb automake autoconf pkgconfig
-aclocal --force -I /opt/local/share/aclocal
-git clone https://github.com/stlink-org/stlink.git stlink-utility
-cd stlink-utility
-./autogen.sh
-./configure
-make
-```
-
-Then trying to flash the image with STLINK v2 :
-
-`./st-flash write ~/Downloads/irq.bin 0x8000000`
-
-> libusb_handle_events() timeout
->
-> [!] send_recv
-
-ST-Link/V2 debugger with downgraded V2.14.3 firmware:
-
-https://drive.google.com/folderview?id=0Bzv7UpKpOQhnbXJVVEg4VUo2M1k
-
-After downgrading the firmware, flashing works as described here:
-
-http://community.spark.io/t/how-to-flash-a-brand-new-freshly-soldered-stm32f103-chip/3906
-
-`./st-flash write ~/Downloads/irq.bin 0x8000000`
-
-> 2014-08-11T23:14:52 INFO src/stlink-common.c: Loading device parameters....
->
-> 2014-08-11T23:14:52 INFO src/stlink-common.c: Device connected is: F1 Medium-density device, id 0x20036410
->
-> 2014-08-11T23:14:52 INFO src/stlink-common.c: SRAM size: 0x5000 bytes (20 KiB), Flash: 0x20000 bytes (128 KiB) in
-> pages of 1024 bytes
->
-> 2014-08-11T23:14:52 INFO src/stlink-common.c: Attempting to write 24904 (0x6148) bytes to stm32 address: 134217728
-> (0x8000000)
->
-> Flash page at addr: 0x08006000 erased
->
-> 2014-08-11T23:14:53 INFO src/stlink-common.c: Finished erasing 25 pages of 1024 (0x400) bytes
->
-> 2014-08-11T23:14:53 INFO src/stlink-common.c: Starting Flash write for VL/F0 core id
->
-> 2014-08-11T23:14:53 INFO src/stlink-common.c: Successfully loaded flash loader in sram 24/24 pages written
->
-> 2014-08-11T23:14:54 INFO src/stlink-common.c: Starting verification of write complete
->
-> 2014-08-11T23:14:54 INFO src/stlink-common.c: Flash written and verified! jolly good!
-
-
-References
-==========
-
--   <http://www.st.com/internet/mcu/product/248823.jsp>
-    documentation related to the STM32L mcu
-
--   <http://www.st.com/internet/evalboard/product/250990.jsp>
-    documentation related to the STM32L discovery kit
-
--   <http://www.libopencm3.org>
-    libopencm3, a project providing a firmware library, with solid examples for Cortex M3, M4 and M0 processors from any vendor.
