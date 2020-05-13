@@ -1,5 +1,5 @@
 ---
-name: Bug Report
+name: Bug Report (only valid if template is reused!)
 about: 'Please read #906 before submitting a ticket.'
 title: "[STM32 device name]: [Title]"
 labels: ''
