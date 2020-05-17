@@ -1225,6 +1225,7 @@ int stlink_status(stlink_t *sl) {
  * @param slv output parsed version object
  */
 void _parse_version(stlink_t *sl, stlink_version_t *slv) {
+    sl->version.flags = 0;
     if (sl->version.stlink_v < 3) {
         uint32_t b0 = sl->q_buf[0]; //lsb
         uint32_t b1 = sl->q_buf[1];
@@ -1242,6 +1243,15 @@ void _parse_version(stlink_t *sl, stlink_version_t *slv) {
         slv->swim_v = b1 & 0x3f;
         slv->st_vid = (b3 << 8) | b2;
         slv->stlink_pid = (b5 << 8) | b4;
+        /* ST-LINK/V1 from J11 switch to api-v2 (and support SWD) */
+        if (slv->stlink_v == 1)
+            slv->jtag_api = slv->jtag_v > 11? STLINK_JTAG_API_V2 : STLINK_JTAG_API_V1;
+        else {
+            slv->jtag_api = STLINK_JTAG_API_V2;
+            /* preferred API to get last R/W status from J15 */
+            if (sl->version.jtag_v >= 15)
+                sl->version.flags |= STLINK_F_HAS_GETLASTRWSTATUS2;
+        }
     } else {
         // V3 uses different version format, for reference see OpenOCD source
         // (that was written from docs available from ST under NDA):
@@ -1251,6 +1261,9 @@ void _parse_version(stlink_t *sl, stlink_version_t *slv) {
         slv->jtag_v = sl->q_buf[2];
         slv->st_vid = (uint32_t)((sl->q_buf[9] << 8) | sl->q_buf[8]);
         slv->stlink_pid = (uint32_t)((sl->q_buf[11] << 8) | sl->q_buf[10]);
+        slv->jtag_api = STLINK_JTAG_API_V3;
+        /* preferred API to get last R/W status */
+        sl->version.flags |= STLINK_F_HAS_GETLASTRWSTATUS2;
     }
     return;
 }
@@ -1408,13 +1421,8 @@ int stlink_write_unsupported_reg(stlink_t *sl, uint32_t val, int r_idx, struct s
 
 bool stlink_is_core_halted(stlink_t *sl)
 {
-    bool ret = false;
-
     stlink_status(sl);
-    if (sl->q_buf[0] == STLINK_CORE_HALTED)
-        ret = true;
-
-    return ret;
+    return sl->core_stat == TARGET_HALTED;
 }
 
 int stlink_step(stlink_t *sl) {
@@ -1481,21 +1489,21 @@ void stlink_run_at(stlink_t *sl, stm32_addr_t addr) {
 // this function is called by stlink_status()
 // do not call stlink_core_stat() directly, always use stlink_status()
 void stlink_core_stat(stlink_t *sl) {
-    if (sl->q_len <= 0)
-        return;
-
-    switch (sl->q_buf[0]) {
-    case STLINK_CORE_RUNNING:
-        sl->core_stat = STLINK_CORE_RUNNING;
+    switch (sl->core_stat ) {
+    case TARGET_RUNNING:
         DLOG("  core status: running\n");
         return;
-    case STLINK_CORE_HALTED:
-        sl->core_stat = STLINK_CORE_HALTED;
+    case TARGET_HALTED:
         DLOG("  core status: halted\n");
         return;
+    case TARGET_RESET:
+        DLOG("  core status: reset\n");
+        return;
+    case TARGET_DEBUG_RUNNING:
+        DLOG("  core status: debug running\n");
+        return;
     default:
-        sl->core_stat = STLINK_CORE_STAT_UNKNOWN;
-        fprintf(stderr, "  core status: unknown\n");
+        DLOG("  core status: unknown\n");
     }
 }
 
@@ -1503,7 +1511,7 @@ void stlink_print_data(stlink_t * sl) {
     if (sl->q_len <= 0 || sl->verbose < UDEBUG)
         return;
     if (sl->verbose > 2)
-        fprintf(stdout, "data_len = %d 0x%x\n", sl->q_len, sl->q_len);
+        DLOG("data_len = %d 0x%x\n", sl->q_len, sl->q_len);
 
     for (int i = 0; i < sl->q_len; i++) {
         if (i % 16 == 0) {
@@ -1514,9 +1522,9 @@ void stlink_print_data(stlink_t * sl) {
                fprintf(stdout, "\n-> 0x%08x ", sl->q_addr + i);
                */
         }
-        fprintf(stdout, " %02x", (unsigned int) sl->q_buf[i]);
+        DLOG(" %02x", (unsigned int) sl->q_buf[i]);
     }
-    fputs("\n\n", stdout);
+    DLOG("\n\n");
 }
 
 /* memory mapped file */
@@ -2464,17 +2472,15 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uint32_t 
     /* erase each page */
     int page_count = 0;
     for (off = 0; off < len; off += stlink_calculate_pagesize(sl, addr + (uint32_t) off)) {
-        /* addr must be an addr inside the page */
+        // addr must be an addr inside the page
         if (stlink_erase_flash_page(sl, addr + (uint32_t) off) == -1) {
             ELOG("Failed to erase_flash_page(%#zx) == -1\n", addr + off);
             return -1;
         }
-        fprintf(stdout,"\rFlash page at addr: 0x%08lx erased",
+        ILOG("Flash page at addr: 0x%08lx erased\n",
                 (unsigned long)(addr + off));
-        fflush(stdout);
         page_count++;
     }
-    fprintf(stdout,"\n");
     ILOG("Finished erasing %d pages of %d (%#x) bytes\n",
             page_count, sl->flash_pgsz, sl->flash_pgsz);
 
