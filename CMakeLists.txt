@@ -19,11 +19,11 @@ set(PROJECT_DESCRIPTION "Open source version of the STMicroelectronics ST-LINK T
 include(GNUInstallDirs) # Define GNU standard installation directories
 
 set(STLINK_UDEV_RULES_DIR "${CMAKE_INSTALL_FULL_SYSCONFDIR}/udev/rules.d" CACHE PATH "udev rules directory")
-set(STLINK_MODPROBED_DIR "${CMAKE_INSTALL_FULL_SYSCONFDIR}/modprobe.d" CACHE PATH "modprobe.d directory")
-set(STLINK_STATIC_LIB ON CACHE BOOL "Install static lib")
-
 option(STLINK_INSTALL_UDEV_RULES "Install udev rules files" ON)
+
+set(STLINK_MODPROBED_DIR "${CMAKE_INSTALL_FULL_SYSCONFDIR}/modprobe.d" CACHE PATH "modprobe.d directory")
 option(STLINK_INSTALL_MODPROBE_CONF "Install modprobe conf files" ON)
+
 option(STLINK_GENERATE_MANPAGES "Generate manpages with pandoc" OFF)
 
 ## Determine project version
@@ -186,16 +186,14 @@ set_target_properties(
         VERSION ${STLINK_SHARED_VERSION}
         )
 
-# Link shared library with Apple macOS libraries
-if (APPLE)
+# Link shared library
+if (APPLE)      # ... with Apple macOS libraries
     find_library(ObjC objc)
     find_library(CoreFoundation CoreFoundation)
     find_library(IOKit IOKit)
-    target_link_libraries(${STLINK_LIB_SHARED} ${CoreFoundation} ${IOKit} ${ObjC} ${SSP_LIB})
-endif ()
-
-if (WIN32 OR MINGW OR MSYS)
-    target_link_libraries(${STLINK_LIB_SHARED} ${LIBUSB_LIBRARY} wsock32 ws2_32 ${SSP_LIB})
+    target_link_libraries(${STLINK_LIB_SHARED} ${LIBUSB_LIBRARY} ${SSP_LIB} ${ObjC} ${CoreFoundation} ${IOKit})
+elseif (WIN32) # ... with Windows libraries
+    target_link_libraries(${STLINK_LIB_SHARED} ${LIBUSB_LIBRARY} ${SSP_LIB} wsock32 ws2_32)
 else ()
     target_link_libraries(${STLINK_LIB_SHARED} ${LIBUSB_LIBRARY} ${SSP_LIB})
 endif ()
@@ -207,6 +205,9 @@ install(TARGETS ${STLINK_LIB_SHARED} DESTINATION ${STLINK_LIBRARY_PATH})
 # Static library
 ###
 
+# Install static library per default
+set(STLINK_STATIC_LIB ON CACHE BOOL "Install static lib")
+
 set(STLINK_LIB_STATIC ${PROJECT_NAME}-static)
 
 add_library(
@@ -215,21 +216,27 @@ add_library(
     ${STLINK_SOURCE}
     )
 
+set(STLINK_STATIC_VERSION ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH})
+
+message(STATUS "STLINK_LIB_STATIC: ${STLINK_LIB_STATIC}")
+message(STATUS "PROJECT_VERSION_MAJOR: ${PROJECT_VERSION_MAJOR}")
+message(STATUS "VERSION: ${STLINK_STATIC_VERSION}")
+
 set_target_properties(
         ${STLINK_LIB_STATIC} PROPERTIES
+        SOVERSION ${PROJECT_VERSION_MAJOR}
+        VERSION ${STLINK_STATIC_VERSION}
         OUTPUT_NAME ${PROJECT_NAME}
         )
 
-# Link static library with Apple macOS libraries
-if (APPLE)
+# Link static library
+if (APPLE)      # ... with Apple macOS libraries
     find_library(ObjC objc)
     find_library(CoreFoundation CoreFoundation)
     find_library(IOKit IOKit)
-    target_link_libraries(${STLINK_LIB_STATIC} ${CoreFoundation} ${IOKit} ${ObjC} ${SSP_LIB})
-endif ()
-
-if (WIN32 OR MINGW OR MSYS)
-    target_link_libraries(${STLINK_LIB_STATIC} ${LIBUSB_LIBRARY} wsock32 ws2_32 ${SSP_LIB})
+    target_link_libraries(${STLINK_LIB_STATIC} ${LIBUSB_LIBRARY} ${SSP_LIB} ${ObjC} ${CoreFoundation} ${IOKit})
+elseif (WIN32) # ... with Windows libraries
+    target_link_libraries(${STLINK_LIB_STATIC} ${LIBUSB_LIBRARY} ${SSP_LIB} wsock32 ws2_32)
 else ()
     target_link_libraries(${STLINK_LIB_STATIC} ${LIBUSB_LIBRARY} ${SSP_LIB})
 endif ()

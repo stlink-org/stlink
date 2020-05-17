@@ -1,6 +1,7 @@
 ##
-# This Makefile is used to drive building of Debug and Release targets of CMake
+# This Makefile is used to drive building of CMake build targets
 ##
+
 MAKEFLAGS += -s
 
 # additional flags for cmake, e.g. install path -DCMAKE_INSTALL_PREFIX=$(HOME)/.local
