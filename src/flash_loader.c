@@ -191,7 +191,7 @@
 
 int stlink_flash_loader_init(stlink_t *sl, flash_loader_t *fl)
 {
-	size_t size;
+	size_t size = 0;
 
 	/* allocate the loader in sram */
 	if (stlink_flash_loader_write_to_sram(sl, &fl->loader_addr, &size) == -1) {
