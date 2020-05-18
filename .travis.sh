@@ -12,17 +12,17 @@ if [ "$TRAVIS_JOB_NAME" == "linux-mingw" ]; then
     echo "--> Building Release for Windows (x86-64) ..."
     mkdir -p build-mingw && cd build-mingw
     echo "-DCMAKE_SYSTEM_NAME=Windows -DTOOLCHAIN_PREFIX=x86_64-w64-mingw32 \
-          -DCMAKE_TOOLCHAIN_FILE=$PWD/../cmake/modules/set_toolchain.cmake -DCMAKE_INSTALL_PREFIX=$PWD/_install $DIR"
+          -DCMAKE_TOOLCHAIN_FILE=$PWD/../cmake/modules/set_toolchain.cmake -DCMAKE_INSTALL_PREFIX=$PWD/install $DIR"
     cmake -DCMAKE_SYSTEM_NAME=Windows -DTOOLCHAIN_PREFIX=x86_64-w64-mingw32 \
-          -DCMAKE_TOOLCHAIN_FILE=$PWD/../cmake/modules/set_toolchain.cmake -DCMAKE_INSTALL_PREFIX=$PWD/_install $DIR
+          -DCMAKE_TOOLCHAIN_FILE=$PWD/../cmake/modules/set_toolchain.cmake -DCMAKE_INSTALL_PREFIX=$PWD/install $DIR
     make && rm -rf build-mingw && cd -
 
     echo "--> Building Release for Windows (i686) ..."
     mkdir -p build-mingw && cd build-mingw
     echo "-DCMAKE_SYSTEM_NAME=Windows -DTOOLCHAIN_PREFIX=i686-w64-mingw32 \
-          -DCMAKE_TOOLCHAIN_FILE=$PWD/../cmake/modules/set_toolchain.cmake -DCMAKE_INSTALL_PREFIX=$PWD/_install $DIR"
+          -DCMAKE_TOOLCHAIN_FILE=$PWD/../cmake/modules/set_toolchain.cmake -DCMAKE_INSTALL_PREFIX=$PWD/install $DIR"
     cmake -DCMAKE_SYSTEM_NAME=Windows -DTOOLCHAIN_PREFIX=i686-w64-mingw32 \
-          -DCMAKE_TOOLCHAIN_FILE=$PWD/../cmake/modules/set_toolchain.cmake -DCMAKE_INSTALL_PREFIX=$PWD/_install $DIR
+          -DCMAKE_TOOLCHAIN_FILE=$PWD/../cmake/modules/set_toolchain.cmake -DCMAKE_INSTALL_PREFIX=$PWD/install $DIR
     make && rm -rf build-mingw && cd -
 
 elif [ "$TRAVIS_OS_NAME" == "linux" ]; then
@@ -31,14 +31,14 @@ elif [ "$TRAVIS_OS_NAME" == "linux" ]; then
 
     echo "--> Building Debug..."
     mkdir -p build/Debug && cd build/Debug
-    echo "-DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=$PWD/_install"
-    cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=$PWD/_install $DIR
+    echo "-DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=$PWD/install"
+    cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=$PWD/install $DIR
     make && make package && cd -
 
     echo "--> Building Release..."
     mkdir -p build/Release && cd build/Release
-    echo "-DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$PWD/_install"
-    cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$PWD/_install $DIR
+    echo "-DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$PWD/install"
+    cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$PWD/install $DIR
     make && make package && cd -
 
 elif [ "$TRAVIS_OS_NAME" == "osx" ]; then
@@ -46,26 +46,26 @@ elif [ "$TRAVIS_OS_NAME" == "osx" ]; then
 
     echo "--> Building Debug..."
     mkdir -p build/Debug && cd build/Debug
-    echo "-DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=$PWD/_install"
-    cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=$PWD/_install $DIR
+    echo "-DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=$PWD/install"
+    cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=$PWD/install $DIR
     make && make package && cd -
 
     echo "--> Building Release..."
     mkdir -p build/Release && cd build/Release
-    echo "-DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$PWD/_install"
-    cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$PWD/_install $DIR
+    echo "-DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$PWD/install"
+    cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$PWD/install $DIR
     make && make package && cd -
 
 else # local test-build
     echo "--> Building Debug..."
     mkdir -p build/Debug && cd build/Debug
-    echo "-DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=$PWD/_install"
-    cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=$PWD/_install ../../
+    echo "-DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=$PWD/install"
+    cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=$PWD/install ../../
     make && make package && cd -
 
     echo "--> Building Release..."
     mkdir -p build/Release && cd build/Release
-    echo "-DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$PWD/_install"
-    cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$PWD/_install ../../
+    echo "-DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$PWD/install"
+    cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$PWD/install ../../
     make && make package && cd -
 fi

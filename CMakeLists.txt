@@ -67,7 +67,7 @@ find_package(libusb REQUIRED)
 
 ## Package configuration (pkg-config) on unix-based systems
 if (NOT WIN32 AND NOT CMAKE_CROSSCOMPILING)
-    add_subdirectory(cmake/pkgconfig)
+    #add_subdirectory(cmake/pkgconfig)
     find_package(PkgConfig)
     pkg_check_modules(GTK3 gtk+-3.0)
 endif ()
@@ -187,7 +187,7 @@ set_target_properties(
         )
 
 # Link shared library
-if (APPLE)      # ... with Apple macOS libraries
+if (APPLE)     # ... with Apple macOS libraries
     find_library(ObjC objc)
     find_library(CoreFoundation CoreFoundation)
     find_library(IOKit IOKit)
@@ -230,7 +230,7 @@ set_target_properties(
         )
 
 # Link static library
-if (APPLE)      # ... with Apple macOS libraries
+if (APPLE)     # ... with Apple macOS libraries
     find_library(ObjC objc)
     find_library(CoreFoundation CoreFoundation)
     find_library(IOKit IOKit)

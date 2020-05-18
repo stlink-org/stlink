@@ -62,20 +62,23 @@ elseif (EXISTS "/etc/debian_version" AND NOT EXISTS WIN32) # Package-build is av
     # CPACK_DEBIAN_PACKAGE_HOMEPAGE      --> Default: CMAKE_PROJECT_HOMEPAGE_URL
     set(CPACK_DEBIAN_PACKAGE_SUGGESTS "libgtk-3-dev, pandoc")
 
-    ## Add CHANGELOG in Debian-specific format
-                                                                                ### TODO
-
-    ## Add license file
-                                                                                ### TODO
-
-    # Include a postinst-script
-    set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_SOURCE_DIR}/cmake/packaging/debian/postinst")
+    ## Additional package files in Debian-specific format:
+    # * changelog (package changelog)
+    # * copyright (license file)
+    # * rules
+    # * postinst-script
+    set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA
+        "${CMAKE_SOURCE_DIR}/cmake/packaging/deb/changelog"
+        "${CMAKE_SOURCE_DIR}/cmake/packaging/deb/copyright"
+        "${CMAKE_SOURCE_DIR}/cmake/packaging/deb/rules"
+        "${CMAKE_SOURCE_DIR}/cmake/packaging/deb/postinst"
+        )
 
     ###
     # Slackware & Redhat (RPM)
     ###
 
-    set(CPACK_SET_DESTDIR "OFF")
+    set(CPACK_SET_DESTDIR "OFF") # Required for relocatable package
 
     # CPACK_RPM_PACKAGE_SUMMARY          --> Default: CPACK_PACKAGE_DESCRIPTION_SUMMARY
     # CPACK_RPM_PACKAGE_NAME             --> Default: CPACK_PACKAGE_NAME
@@ -97,8 +100,9 @@ elseif (EXISTS "/etc/debian_version" AND NOT EXISTS WIN32) # Package-build is av
     # CPACK_RPM_PACKAGE_URL              --> Default: CMAKE_PROJECT_HOMEPAGE_URL
     set(CPACK_RPM_PACKAGE_DESCRIPTION CPACK_DEBIAN_PACKAGE_DESCRIPTION)
 
-    ## Add CHANGELOG in rpm-specific format
-                                                                                ### TODO
+    ## Add package changelog in rpm-specific format
+    set(CPACK_RPM_CHANGELOG_FILE "${CMAKE_SOURCE_DIR}/cmake/packaging/rpm/changelog")
+
 else ()
     # No package configuration on other platforms ...
 endif ()
