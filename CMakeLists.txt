@@ -18,14 +18,6 @@ project(stlink C)
 set(PROJECT_DESCRIPTION "Open source version of the STMicroelectronics ST-LINK Tools")
 include(GNUInstallDirs) # Define GNU standard installation directories
 
-set(STLINK_UDEV_RULES_DIR "${CMAKE_INSTALL_FULL_SYSCONFDIR}/udev/rules.d" CACHE PATH "udev rules directory")
-option(STLINK_INSTALL_UDEV_RULES "Install udev rules files" ON)
-
-set(STLINK_MODPROBED_DIR "${CMAKE_INSTALL_FULL_SYSCONFDIR}/modprobe.d" CACHE PATH "modprobe.d directory")
-option(STLINK_INSTALL_MODPROBE_CONF "Install modprobe conf files" ON)
-
-option(STLINK_GENERATE_MANPAGES "Generate manpages with pandoc" OFF)
-
 ## Determine project version
 include(${CMAKE_MODULE_PATH}/get_version.cmake)
 
@@ -271,19 +263,31 @@ else ()
     target_link_libraries(st-util ${STLINK_LIB_SHARED} ${SSP_LIB})
 endif ()
 
-if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    if (STLINK_INSTALL_MODPROBE_CONF)
-        install(FILES etc/modprobe.d/stlink_v1.conf DESTINATION ${STLINK_MODPROBED_DIR}/)
-    endif ()
-    if (STLINK_INSTALL_UDEV_RULES)
-        file(GLOB RULES_FILES etc/udev/rules.d/*.rules)
-        install(FILES ${RULES_FILES} DESTINATION ${STLINK_UDEV_RULES_DIR}/)
-    endif ()
-endif ()
-
 install(TARGETS st-flash DESTINATION bin)
 install(TARGETS st-info DESTINATION bin)
 install(TARGETS st-util DESTINATION bin)
+
+
+###
+# udev and modprobe.d configuration
+###
+
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    ## modprobe.d rules
+    set(STLINK_MODPROBED_DIR "${CMAKE_INSTALL_FULL_SYSCONFDIR}/modprobe.d" CACHE PATH "modprobe.d directory")
+    option(STLINK_INSTALL_MODPROBE_CONF "Install modprobe conf files" ON)
+    if (STLINK_INSTALL_MODPROBE_CONF)
+        install(FILES ${CMAKE_SOURCE_DIR}/etc/modprobe.d/stlink_v1.conf DESTINATION ${STLINK_MODPROBED_DIR}/)
+    endif ()
+
+    ## udev rules
+    set(STLINK_UDEV_RULES_DIR "${CMAKE_INSTALL_FULL_SYSCONFDIR}/udev/rules.d" CACHE PATH "udev rules directory")
+    option(STLINK_INSTALL_UDEV_RULES "Install udev rules files" ON)
+    if (STLINK_INSTALL_UDEV_RULES)
+        file(GLOB RULES_FILES ${CMAKE_SOURCE_DIR}/etc/udev/rules.d/*.rules)
+        install(FILES ${RULES_FILES} DESTINATION ${STLINK_UDEV_RULES_DIR}/)
+    endif ()
+endif ()
 
 
 ###
@@ -297,8 +301,10 @@ add_subdirectory(include) # contains subordinate CMakeLists for version config a
 
 add_subdirectory(src/stlink-gui)  # contains subordinate CMakeLists to build GUI
 add_subdirectory(tests)           # contains subordinate CMakeLists to build test executables
-add_subdirectory(doc/man)         # contains subordinate CMakeLists to generate manpages
 add_subdirectory(cmake/packaging) # contains subordinate CMakeLists to build packages
+
+option(STLINK_GENERATE_MANPAGES "Generate manpages with pandoc" OFF)
+add_subdirectory(doc/man)         # contains subordinate CMakeLists to generate manpages
 
 
 ###

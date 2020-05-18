@@ -33,7 +33,7 @@ elif [ "$TRAVIS_OS_NAME" == "linux" ]; then
     mkdir -p build/Debug && cd build/Debug
     echo "-DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=$PWD/install"
     cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=$PWD/install $DIR
-    make && make package && cd -
+    make && cd -
 
     echo "--> Building Release..."
     mkdir -p build/Release && cd build/Release
@@ -48,7 +48,7 @@ elif [ "$TRAVIS_OS_NAME" == "osx" ]; then
     mkdir -p build/Debug && cd build/Debug
     echo "-DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=$PWD/install"
     cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=$PWD/install $DIR
-    make && make package && cd -
+    make && cd -
 
     echo "--> Building Release..."
     mkdir -p build/Release && cd build/Release
@@ -61,7 +61,7 @@ else # local test-build
     mkdir -p build/Debug && cd build/Debug
     echo "-DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=$PWD/install"
     cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=$PWD/install ../../
-    make && make package && cd -
+    make && cd -
 
     echo "--> Building Release..."
     mkdir -p build/Release && cd build/Release

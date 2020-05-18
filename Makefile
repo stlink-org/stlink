@@ -55,7 +55,7 @@ build/Debug:
 
 build/Release:
 		@mkdir -p $@
-		@cd $@ && cmake -DCMAKE_BUILD_TYPE=Release $(CMAKEFLAGS) -Wno-dev ../../
+		@cd $@ && cmake -DCMAKE_BUILD_TYPE=Release $(CMAKEFLAGS) ../../
 
 clean:
 		@echo "[CLEAN]"
