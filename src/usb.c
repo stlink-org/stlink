@@ -347,7 +347,7 @@ int _stlink_usb_core_id(stlink_t * sl) {
 int _stlink_usb_status_v2(stlink_t *sl)
 {
     int result;
-    uint32_t status;
+    uint32_t status = 0;
 
     result = _stlink_usb_read_debug32(sl, DCB_DHCSR, &status);
     DLOG("core status: %08X\n", status);

@@ -41,22 +41,7 @@
 
     /* flashloaders/stm32f0.s -- thumb1 only, same sequence as for STM32VL, bank ignored */
     static const uint8_t loader_code_stm32f0[] = {
-#if 1
-        /*
-         * These two NOPs here are a safety precaution, added by Pekka Nikander
-         * while debugging the STM32F05x support.  They may not be needed, but
-         * there were strange problems with simpler programs, like a program
-         * that had just a breakpoint or a program that first moved zero to register r2
-         * and then had a breakpoint.  So, it appears safest to have these two nops.
-         *
-         * Feel free to remove them, if you dare, but then please do test the result
-         * rigorously.  Also, if you remove these, it may be a good idea first to
-         * #if 0 them out, with a comment when these were taken out, and to remove
-         * these only a few months later...  But YMMV.
-         */
-        0x00, 0x30, //     nop     /* add r0,#0 */
-        0x00, 0x30, //     nop     /* add r0,#0 */
-#endif
+        0xc0, 0x46, 0xc0, 0x46, 
         0x13, 0x4f, 0x3c, 0x68, 
         0x13, 0x4f, 0x3e, 0x68, 
         0x36, 0x19, 0x13, 0x4f, 
@@ -77,9 +62,9 @@
         0x00, 0x20, 0x02, 0x40, 
         0x10, 0x00, 0x00, 0x00, 
         0x0c, 0x00, 0x00, 0x00, 
-        0x44, 0x00, 0x00, 0x20, 
         0x48, 0x00, 0x00, 0x20, 
         0x4c, 0x00, 0x00, 0x20, 
+        0x50, 0x00, 0x00, 0x20, 
         0x01, 0x00, 0x00, 0x00, 
         0x02, 0x00, 0x00, 0x00, 
         0x04, 0x00, 0x00, 0x00
@@ -191,7 +176,7 @@
 
 int stlink_flash_loader_init(stlink_t *sl, flash_loader_t *fl)
 {
-	size_t size;
+	size_t size = 0;
 
 	/* allocate the loader in sram */
 	if (stlink_flash_loader_write_to_sram(sl, &fl->loader_addr, &size) == -1) {
