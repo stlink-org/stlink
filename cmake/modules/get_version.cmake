@@ -1,6 +1,5 @@
-# Determine project version
-# * Using Git
-# * Local .version file
+# get_version.cmake
+# Determine project version by using Git or a local .version file
 
 set(__detect_version 0)
 
@@ -77,13 +76,14 @@ if (GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
     endif(GIT_DESCRIBE_RESULT EQUAL 0)
 endif ()
 
+##
 # Failure to read version via git
 # Possible cases:
 # -> git is not found or
 # -> /.git does not exist or
 # -> GIT_DESCRIBE failed or
 # -> version string is of invalid format
-
+##
 if (NOT GIT_FOUND OR NOT EXISTS "${PROJECT_SOURCE_DIR}/.git" OR ERROR_FLAG EQUAL 1)
     message(STATUS "Git and/or repository not found.") # e.g. when building from source package
     message(STATUS "Try to detect version from \"${PROJECT_SOURCE_DIR}/.version\" file instead...")

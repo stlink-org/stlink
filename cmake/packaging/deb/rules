@@ -11,7 +11,7 @@ include /usr/share/dpkg/default.mk
 export DEB_BUILD_MAINT_OPTIONS = hardening=+all
 
 %:
-	dh $@ --buildsystem cmake
+	dh $@ --buildsystem cmake --with cpack
 
 override_dh_auto_configure:
 	dh_auto_configure -- \

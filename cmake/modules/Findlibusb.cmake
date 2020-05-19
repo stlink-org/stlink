@@ -1,4 +1,6 @@
 # Findlibusb.cmake
+# Find and install external libusb library
+
 # Once done this will define
 #
 #  LIBUSB_FOUND         libusb present on system
@@ -8,7 +10,7 @@
 
 include(FindPackageHandleStandardArgs)
 
-if (APPLE)                                      # macOS
+if (APPLE)                                                                      # macOS
     FIND_PATH(
         LIBUSB_INCLUDE_DIR NAMES libusb.h
         HINTS /usr /usr/local /opt
@@ -25,7 +27,7 @@ if (APPLE)                                      # macOS
         message(FATAL_ERROR "No libusb library found on your system! Install libusb-1.0 from Homebrew or MacPorts")
     endif ()
 
-elseif (CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")   # FreeBSD; libusb is integrated into the system
+elseif (CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")                                   # FreeBSD; libusb is integrated into the system
     FIND_PATH(
         LIBUSB_INCLUDE_DIR NAMES libusb.h
         HINTS /usr/include
@@ -41,7 +43,7 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")   # FreeBSD; libusb is integrated 
         message(FATAL_ERROR "Expected libusb library not found on your system! Verify your system integrity.")
     endif ()
 
-elseif (WIN32)                                  # Windows
+elseif (WIN32 OR (EXISTS "/etc/debian_version" AND MINGW))                      # Windows or MinGW-toolchain on Debian
     # for MinGW/MSYS/MSVC: 64-bit or 32-bit?
     if (CMAKE_SIZEOF_VOID_P EQUAL 8)
         set(ARCH 64)
@@ -49,7 +51,7 @@ elseif (WIN32)                                  # Windows
         set(ARCH 32)
     endif ()
 
-    if (NOT EXISTS "/etc/debian_version")
+    if (WIN32 AND NOT EXISTS "/etc/debian_version") # Skip this for Debian...
         FIND_PATH(
             LIBUSB_INCLUDE_DIR NAMES libusb.h
             HINTS /usr /usr/local /opt
@@ -71,12 +73,17 @@ elseif (WIN32)                                  # Windows
         endif ()
     endif ()
 
-    if (NOT LIBUSB_FOUND OR EXISTS "/etc/debian_version")
+    if (NOT LIBUSB_FOUND)
         # Preparations for installing libusb library
         set(LIBUSB_WIN_VERSION 1.0.23)          # set libusb version
         set(LIBUSB_WIN_ARCHIVE libusb-${LIBUSB_WIN_VERSION}.7z)
-        set(LIBUSB_WIN_ARCHIVE_PATH ${CMAKE_BINARY_DIR}/${LIBUSB_WIN_ARCHIVE})
-        set(LIBUSB_WIN_OUTPUT_FOLDER ${CMAKE_BINARY_DIR}/3rdparty/libusb-${LIBUSB_WIN_VERSION})
+        if (WIN32 AND NOT EXISTS "/etc/debian_version") # ... on native Windows systems
+            set(LIBUSB_WIN_ARCHIVE_PATH ${CMAKE_BINARY_DIR}/${LIBUSB_WIN_ARCHIVE})
+            set(LIBUSB_WIN_OUTPUT_FOLDER ${CMAKE_BINARY_DIR}/3rdparty/libusb-${LIBUSB_WIN_VERSION})
+        else (EXISTS "/etc/debian_version" AND MINGW) # ... only for cross-building on Debian
+            set(LIBUSB_WIN_ARCHIVE_PATH ${CMAKE_SOURCE_DIR}/build-mingw/${LIBUSB_WIN_ARCHIVE})
+            set(LIBUSB_WIN_OUTPUT_FOLDER ${CMAKE_SOURCE_DIR}/build-mingw/3rdparty/libusb-${LIBUSB_WIN_VERSION})
+        endif ()
 
         # Get libusb package
         if (EXISTS ${LIBUSB_WIN_ARCHIVE_PATH})  # ... should the package be already there (for whatever reason)
@@ -107,6 +114,7 @@ elseif (WIN32)                                  # Windows
             )
 
         if (MINGW OR MSYS)
+            set(LIBUSB_NAME usb-1.0)
             find_library(
                 LIBUSB_LIBRARY NAMES ${LIBUSB_NAME}
                 HINTS ${LIBUSB_WIN_OUTPUT_FOLDER}/MinGW${ARCH}/static
@@ -115,6 +123,7 @@ elseif (WIN32)                                  # Windows
                 )
 
         else (MSVC)
+            set(LIBUSB_NAME libusb-1.0.lib)
             find_library(
                 LIBUSB_LIBRARY NAMES ${LIBUSB_NAME}
                 HINTS ${LIBUSB_WIN_OUTPUT_FOLDER}/MS${ARCH}/dll
@@ -127,7 +136,7 @@ elseif (WIN32)                                  # Windows
     FIND_PACKAGE_HANDLE_STANDARD_ARGS(libusb DEFAULT_MSG LIBUSB_LIBRARY LIBUSB_INCLUDE_DIR)
     mark_as_advanced(LIBUSB_INCLUDE_DIR LIBUSB_LIBRARY)
 
-else ()                                          # all other OS (unix-based)
+else ()                                                                         # all other OS (unix-based)
     FIND_PATH(
         LIBUSB_INCLUDE_DIR NAMES libusb.h
         HINTS /usr /usr/local /opt
