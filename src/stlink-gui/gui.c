@@ -781,8 +781,7 @@ static void stlink_gui_build_ui (STlinkGUI *gui) {
     GtkListStore *filemem_store;
     gchar *ui_file = STLINK_UI_DIR "/stlink-gui.ui";
 
-    if (!g_file_test (ui_file, G_FILE_TEST_EXISTS))
-        ui_file = "stlink-gui.ui";
+    if (!g_file_test (ui_file, G_FILE_TEST_EXISTS)) ui_file = "stlink-gui.ui";
     builder = gtk_builder_new ();
     if (!gtk_builder_add_from_file (builder, ui_file, NULL)) {
         g_printerr ("Failed to load UI file: %s\n", ui_file);

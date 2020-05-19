@@ -1,3 +1,6 @@
+# c_flags.cmake
+# Configure C compiler flags
+
 include(CheckCCompilerFlag)
 
 function(add_cflag_if_supported flag)
