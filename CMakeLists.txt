@@ -71,7 +71,7 @@ include(CheckLibraryExists)
 
 CHECK_LIBRARY_EXISTS(ssp __stack_chk_fail "" _stack_chk_fail_exists)
 if (_stack_chk_fail_exists)
-    set(SSP_LIB ssp)
+    set(SSP_LIB -static ssp)
 else ()
     set(SSP_LIB "")
 endif ()
