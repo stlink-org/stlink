@@ -16,26 +16,23 @@ set(GUI_SOURCES gui.c gui.h)
 
 ## stlink-gui-local
 add_executable(stlink-gui-local ${GUI_SOURCES})
-set_target_properties(
-    stlink-gui-local PROPERTIES
-    COMPILE_DEFINITIONS STLINK_UI_DIR="${CMAKE_CURRENT_SOURCE_DIR}"
-    # Note: ${CMAKE_CURRENT_SOURCE_DIR} is src/stlink-gui
-    )
-target_link_libraries(stlink-gui-local ${STLINK_LIB_STATIC} ${GTK3_LDFLAGS} ${SSP_LIB})
+set_target_properties(stlink-gui-local PROPERTIES
+        # Note: ${CMAKE_CURRENT_SOURCE_DIR} is src/stlink-gui
+        COMPILE_DEFINITIONS STLINK_UI_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
+target_link_libraries(stlink-gui-local ${STLINK_LIB_SHARED} ${SSP_LIB} ${GTK3_LDFLAGS})
 
 ## stlink-gui
 add_executable(stlink-gui ${GUI_SOURCES})
-set_target_properties(
-    stlink-gui PROPERTIES
-    COMPILE_DEFINITIONS STLINK_UI_DIR="${CMAKE_INSTALL_PREFIX}/bin"
-    # Note: ${CMAKE_INSTALL_PREFIX} defaults to /usr/local
-    )
-target_link_libraries(stlink-gui ${STLINK_LIB_STATIC} ${GTK3_LDFLAGS} ${SSP_LIB})
+set_target_properties(stlink-gui PROPERTIES
+        COMPILE_DEFINITIONS STLINK_UI_DIR="${CMAKE_INSTALL_BINDIR}")
+target_link_libraries(stlink-gui ${STLINK_LIB_SHARED} ${SSP_LIB} ${GTK3_LDFLAGS})
 
-install(TARGETS stlink-gui DESTINATION bin)
-install(FILES stlink-gui.ui DESTINATION bin)
+install(TARGETS stlink-gui DESTINATION ${CMAKE_INSTALL_BINDIR})
+install(FILES stlink-gui.ui DESTINATION ${CMAKE_INSTALL_BINDIR})
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    install(FILES stlink-gui.desktop DESTINATION share/applications)                  # Install desktop application entry
-    install(FILES icons/stlink-gui.svg DESTINATION share/icons/hicolor/scalable/apps) # Install icon
+    # Install desktop application entry
+    install(FILES stlink-gui.desktop DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/${PROJECT_NAME}/applications)
+    # Install icons
+    install(FILES icons/stlink-gui.svg DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/${PROJECT_NAME}/icons/hicolor/scalable/apps)
 endif ()

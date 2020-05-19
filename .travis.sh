@@ -35,11 +35,11 @@ elif [ "$TRAVIS_OS_NAME" == "linux" ]; then
     cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=$PWD/install $DIR
     make && cd -
 
-    echo "--> Building Release..."
+    echo "--> Building Release with package..."
     mkdir -p build/Release && cd build/Release
     echo "-DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$PWD/install"
     cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$PWD/install $DIR
-    make && make package && cd -
+    make package && cd -
 
 elif [ "$TRAVIS_OS_NAME" == "osx" ]; then
     brew install libusb
@@ -50,11 +50,11 @@ elif [ "$TRAVIS_OS_NAME" == "osx" ]; then
     cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=$PWD/install $DIR
     make && cd -
 
-    echo "--> Building Release..."
+    echo "--> Building Release with package..."
     mkdir -p build/Release && cd build/Release
     echo "-DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$PWD/install"
     cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$PWD/install $DIR
-    make && make package && cd -
+    make package && cd -
 
 else # local test-build
     echo "--> Building Debug..."
@@ -63,9 +63,9 @@ else # local test-build
     cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=$PWD/install ../../
     make && cd -
 
-    echo "--> Building Release..."
+    echo "--> Building Release with package..."
     mkdir -p build/Release && cd build/Release
     echo "-DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$PWD/install"
     cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$PWD/install ../../
-    make && make package && cd -
+    make package && cd -
 fi
