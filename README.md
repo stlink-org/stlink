@@ -125,4 +125,4 @@ Here we would appreciate any help and would love to welcome new contributors who
 * Writing external memory connected to an STM32 controller (e.g Quad SPI NOR flash) ([#412](https://github.com/stlink-org/stlink/issues/412))
 * MCU hotplug ([#449](https://github.com/stlink-org/stlink/issues/449))
 * Writing options bytes (region) ([#458](https://github.com/stlink-org/stlink/issues/458))
-* Support for STLINKv3 programmer ([#820](https://github.com/stlink-org/stlink/issues/820))
+* Enhanced support for STLINKv3 programmer ([#820](https://github.com/stlink-org/stlink/issues/820))
