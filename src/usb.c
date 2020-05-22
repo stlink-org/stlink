@@ -937,7 +937,7 @@ static stlink_backend_t _stlink_usb_backend = {
     _stlink_usb_set_swdclk
 };
 
-stlink_t *stlink_open_usb(enum ugly_loglevel verbose, bool reset, char serial[STLINK_SERIAL_MAX_SIZE], int freq) {
+stlink_t *stlink_open_usb(enum ugly_loglevel verbose, int reset, char serial[STLINK_SERIAL_MAX_SIZE], int freq) {
     stlink_t* sl = NULL;
     struct stlink_libusb* slu = NULL;
     int ret = -1;
@@ -1145,9 +1145,10 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, bool reset, char serial[ST
             break;
     }
 
+    if (reset == 2) stlink_jtag_reset(sl,0);
     if (stlink_current_mode(sl) != STLINK_DEV_DEBUG_MODE) stlink_enter_swd_mode(sl);
 
-    if (reset) {
+    if (reset == 1) {
         if ( sl->version.stlink_v > 1) stlink_jtag_reset(sl, 2);
         stlink_reset(sl);
         usleep(10000);
