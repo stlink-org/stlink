@@ -42,11 +42,11 @@ loop:
     adds r1, r1, r7
 
     # wait if FLASH_SR == 1
-mywait:
+wait:
     ldr r7, =0x1
     ldr r3, [r5]
     tst r3, r7
-    beq mywait
+    beq wait
 
     # exit if FLASH_SR != 4
     ldr r7, =0x4

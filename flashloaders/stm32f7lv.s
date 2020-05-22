@@ -25,10 +25,10 @@ loop:
     dsb sy
 
     # wait if FLASH_SR == 1
-mywait:
+wait:
     ldrh r3, [r10]
     tst r3, #0x1
-    beq mywait
+    beq wait
 
     # loop if r2 != 0
     sub r2, r2, #1
