@@ -11,11 +11,11 @@ static void usage(void)
     puts("st-info --probe");
     puts("st-info --serial");
     puts("st-info --hla-serial");
-    puts("st-info --flash");
-    puts("st-info --pagesize");
-    puts("st-info --sram");
-    puts("st-info --chipid");
-    puts("st-info --descr");
+    puts("st-info --flash  [--connect-under-reset]");
+    puts("st-info --pagesize  [--connect-under-reset]");
+    puts("st-info --sram  [--connect-under-reset]");
+    puts("st-info --chipid  [--connect-under-reset]");
+    puts("st-info --descr  [--connect-under-reset]");
 }
 
 /* Print normal or OpenOCD hla_serial with newline */
@@ -76,19 +76,25 @@ static void stlink_probe(void)
     stlink_probe_usb_free(&stdevs, size);
 }
 
-static stlink_t *stlink_open_first(void)
+static stlink_t *stlink_open_first(bool under_reset)
 {
     stlink_t* sl = NULL;
     sl = stlink_v1_open(0, 1);
-    if (sl == NULL)
-        sl = stlink_open_usb(0, 1, NULL, 0);
-
+    if (sl == NULL) {
+        if (under_reset) {
+            sl = stlink_open_usb(0, 2, NULL, 0);
+        } else {
+            sl = stlink_open_usb(0, 1, NULL, 0);
+        }
+    }
+        
     return sl;
 }
 
-static int print_data(char **av)
+static int print_data(int ac, char **av)
 {
     stlink_t* sl = NULL;
+    bool under_reset = false;
 
     // Probe needs all devices unclaimed
     if (strcmp(av[1], "--probe") == 0) {
@@ -99,7 +105,16 @@ static int print_data(char **av)
         return 0;
     }
 
-    sl = stlink_open_first();
+    if (ac == 3) {
+        if (strcmp(av[2],"--connect-under-reset") == 0) {
+            under_reset = true;
+        } else {
+            usage();
+            return -1;
+        }
+    }
+
+    sl = stlink_open_first(under_reset);
 
     if (sl == NULL) {
         return -1;
@@ -149,7 +164,7 @@ int main(int ac, char** av)
         return -1;
     }
 
-    err = print_data(av);
+    err = print_data(ac,av);
 
     return err;
 }

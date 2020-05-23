@@ -1145,7 +1145,15 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, int reset, char serial[STL
             break;
     }
 
-    if (reset == 2) stlink_jtag_reset(sl,0);
+    if (reset == 2) {
+         stlink_jtag_reset(sl,0);
+         if (stlink_current_mode(sl) != STLINK_DEV_DEBUG_MODE) stlink_enter_swd_mode(sl); 
+         stlink_force_debug(sl);
+         stlink_jtag_reset(sl,1);
+         usleep(10000);
+    }
+
+
     if (stlink_current_mode(sl) != STLINK_DEV_DEBUG_MODE) stlink_enter_swd_mode(sl);
 
     if (reset == 1) {
