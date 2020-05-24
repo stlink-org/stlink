@@ -21,6 +21,8 @@ Thus no user interaction regarding libusb is necessary.
 | homebrew | 1.0.23 | 3.17.0 | 3.24.18<br />gtk+3 | 10.12 (Sierra)- 10.15 (Catalina) |
 | MacPorts | 1.0.23 | 3.17.0 | 3.24.18<br />gtk3 | 10.6 (Snow Leopard) - 10.15 (Catalina) |
 
+NOTE: In order to use a STLINK/v1 programmer on macOS, versions 10.13, 10.14 or 10.15 are required.
+
 
 ### Linux-/Unix-based:
 

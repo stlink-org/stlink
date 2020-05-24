@@ -15,16 +15,13 @@ Recent new features and bugfixes can be found in the [Changelog](CHANGELOG.md) o
 
 #### License
 
-The stlink library and tools are licensed under the **[BSD-3 License](LICENSE.md)**.<br />
-The source files **stm32l0x.s** and **stm32lx.s** found in the subdirectory `/flashloaders/`
-are licensed under the **General Public License (GPL v2+)**.
+The stlink library and tools are licensed under the **[BSD-3 License](LICENSE.md)**.
 
 
 ## Introduction
 
 STLink is an open source toolset to program and debug STM32 devices and boards manufactured by STMicroelectronics.
-It supports several so called STLINK programmer boards (and clones thereof) which use a microcontroller chip
-to translate commands from USB to JTAG/SWD. There are four generations available on the market:
+It supports several so called STLINK programmer boards (and clones thereof) which use a microcontroller chip to translate commands from USB to JTAG/SWD. There are four generations available on the market which are _all_ supported by this toolset:
 
 * **STLINK/v1** _(obsolete as of 21-11-2019)_
   - transport layer: SCSI passthru commands over USB
@@ -59,7 +56,7 @@ Supported operating systems are listed in [version_support.md](doc/version_suppo
 
 ## Tutorial & HOWTO
 
-Our [tutorial.md](doc/tutorial.md) may help you along with some advanced tasks and additional info.
+Our [tutorial](doc/tutorial.md) may help you along with some advanced tasks and additional info.
 
 
 ## Installation

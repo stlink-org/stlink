@@ -37,6 +37,7 @@ Ethan Zonca
 Fabien Chouteau
 Florian Hars
 Friedrich Beckmann
+Gabriel Górski [Glaeqen]
 Geoffrey Brown
 George Talusan [gtalusan]
 Georg von Zengen
@@ -60,6 +61,7 @@ Jerome Lambourg
 Jim Paris
 Jiří Netolický
 Jerry Nosky [jnosky]
+Jochen Wilhelmy [Jochen0x90h]
 Johannes Taelman
 Jonas Danielsson
 Jonas Norling
@@ -68,6 +70,7 @@ Karl Palsson [karlp]
 Kevlar Harness
 Kyle Manna
 Lari Lehtomäki
+Lutz Freitag [nerdmaennchen]
 Martin Nowak
 Matteo Collina
 Max Chen
@@ -76,6 +79,7 @@ Maxime Vincent
 Michael Pratt [prattmic]
 Michael Sparmann
 Mike Szczys
+Miklós Márton [martonmiklos]
 Magnus Lundin [mlu]
 mux <freelancer.c@gmail.com>
 Ned Konz
@@ -89,6 +93,7 @@ orangeudav <orangeudav@gmail.com>
 Pavel Kirienko
 Pekka Nikander
 Pete Nelson
+Peter Torelli [petertorelli]
 Peter Zotov
 Petteri Aimonen
 Piotr Haber
@@ -99,6 +104,7 @@ Rob Spanton
 Rytis Karpuska
 Sean Simmons
 Sergey Alirzaev
+Simon Derr [sderr]
 Simon Wright
 Stany Marcel
 Stefan Misik
