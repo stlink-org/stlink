@@ -110,8 +110,9 @@ or execute (Debian-based systems only): `apt-get install gcc build-essential cma
 ### Building
 
 1. Change into the project source directory: `cd stlink`
-2. Run `make release` to create the _Release_ target
-3. Run `make debug` to create the _Debug_ target (_optional_)<br />
+2. Run `make clean` -- required by some linux variants.
+3. Run `make release` to create the _Release_ target
+4. Run `make debug` to create the _Debug_ target (_optional_)<br />
    The debug target is only necessary in order to modify the sources and to run under a debugger.
 
 The top level Makefile is just a handy wrapper for:
