@@ -255,12 +255,12 @@ install(TARGETS st-util DESTINATION ${CMAKE_INSTALL_BINDIR})
 ###
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    ## Install modprobe.d conf files / rules to /usr/local/etc/stlink (default)
-    set(STLINK_MODPROBED_DIR "${CMAKE_INSTALL_SYSCONFDIR}/${PROJECT_NAME}/modprobe.d" CACHE PATH "modprobe.d directory")
+    ## Install modprobe.d conf files to /etc/modprobe.d/ (explicitly hardcoded)
+    set(STLINK_MODPROBED_DIR "/etc/modprobe.d" CACHE PATH "modprobe.d directory")
     install(FILES ${CMAKE_SOURCE_DIR}/config/modprobe.d/stlink_v1.conf DESTINATION ${STLINK_MODPROBED_DIR})
 
-    ## Install udev rules files / rules to /usr/local/etc/stlink (default)
-    set(STLINK_UDEV_RULES_DIR "${CMAKE_INSTALL_SYSCONFDIR}/${PROJECT_NAME}/udev/rules.d" CACHE PATH "udev rules directory")
+    ## Install udev rules files to /etc/udev/rules.d/ (explicitly hardcoded)
+    set(STLINK_UDEV_RULES_DIR "/etc/udev/rules.d" CACHE PATH "udev rules directory")
     file(GLOB RULES_FILES ${CMAKE_SOURCE_DIR}/config/udev/rules.d/*.rules)
     install(FILES ${RULES_FILES} DESTINATION ${STLINK_UDEV_RULES_DIR})
 endif ()
