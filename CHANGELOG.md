@@ -4,7 +4,7 @@ stlink ChangeLog
 v1.6.1
 ======
 
-Release date: 2020-06-xx
+Release date: 2020-06-01
 
 This release drops support for some older operating systems. Check project README for details.
 
@@ -37,6 +37,7 @@ Updates & changes:
 * [doc] Updated tutorial: macOS ST-Link-v1 detection ([#574](https://github.com/stlink-org/stlink/pull/574), [#587](https://github.com/stlink-org/stlink/pull/587))
 * Enhanced error log with file path for map_file() ([#650](https://github.com/stlink-org/stlink/pull/650), [#879](https://github.com/stlink-org/stlink/pull/879), [#921](https://github.com/stlink-org/stlink/pull/921))
 * Enhanced output for error msg "addr not a multiple of pagesize, not supported" ([#663](https://github.com/stlink-org/stlink/pull/663), [#945](https://github.com/stlink-org/stlink/pull/945))
+* Updated STLink-v1 driver for macOS ([#735](https://github.com/stlink-org/stlink/pull/735), [#964](https://github.com/stlink-org/stlink/pull/964))
 * Package distribution: Provide Windows binaries via Debian-based cross-build ([#738](https://github.com/stlink-org/stlink/pull/738), [#795](https://github.com/stlink-org/stlink/pull/795), [#798](https://github.com/stlink-org/stlink/pull/798), [#870](https://github.com/stlink-org/stlink/pull/870), [#955](https://github.com/stlink-org/stlink/pull/955))
   - [refactoring] Update, corrections & cleanup for build settings (see #955 for details)
   - New cpack package-config for DEB and RPM build
