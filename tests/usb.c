@@ -1,15 +1,32 @@
 #include <stdio.h>
 
 #include <stlink.h>
+#include <string.h>
+
+static void usage(void)
+{
+    puts("test-usb --reset");
+    puts("test-usb --no-reset");
+}
 
 int main(int ac, char** av) {
-    (void)ac;
-    (void)av;
 
     stlink_t* sl;
     struct stlink_reg regs;
+    int reset = 0;
 
-    sl = stlink_open_usb(10, 1, NULL, 0);
+    if (ac == 2) {
+        if (strcmp(av[1], "--reset") == 0)
+            reset = 2;
+        if (strcmp(av[1], "--no-reset") == 0) 
+            reset = 1;
+    }
+    if (reset == 0) {
+        usage();
+        return 0;
+    }
+
+    sl = stlink_open_usb(10, reset, NULL, 0);
     if (sl != NULL) {
         printf("-- version\n");
         stlink_version(sl);

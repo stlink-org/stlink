@@ -225,6 +225,9 @@ int flash_get_opts(struct flash_opts* o, int ac, char** av) {
             if (result != 0) return bad_arg ("--flash");
             else o->flash_size = (size_t) flash_size;
         }
+        else if (strcmp(av[0],"--connect-under-reset")== 0){
+            o->connect_under_reset = true;
+        }
         else {
             break;  // non-option found
         }
