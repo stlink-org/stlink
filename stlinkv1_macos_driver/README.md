@@ -21,11 +21,12 @@ In order to deactivate SIP, boot into the recovery mode and run ```csrutil disab
    This should result in the following output:
 
 ```
-Requesting load of /System/Library/Extensions/stlink_shield.kext.
-/System/Library/Extensions/stlink_shield.kext loaded successfully (or already loaded).
+Requesting load of /Library/Extensions/stlink_shield.kext.
+/Library/Extensions/stlink_shield.kext loaded successfully (or already loaded).
 ```
+4) Reboot the system.
 
-4) Verify correct detection of the STLINK/v1 device with the following input: `st-util -1`
+5) Verify correct detection of the STLINK/v1 device with the following input: `st-util -1`
 You should then see a similar output like in this example:
 
 ```

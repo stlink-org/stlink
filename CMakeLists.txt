@@ -143,7 +143,7 @@ endif ()
 set(STLINK_LIBRARY_PATH ${CMAKE_INSTALL_LIBDIR} CACHE PATH "Main library install directory")
 
 # Set the environment variable LD_LIBRARY_PATH to point to /usr/local/lib (per default).
-execute_process (COMMAND bash -c "export LD_LIBRARY_PATH="${CMAKE_INSTALL_LIBDIR}"")
+execute_process (COMMAND bash -c "export LD_LIBRARY_PATH="${CMAKE_INSTALL_LIBDIR}" ")
 
 
 ###
