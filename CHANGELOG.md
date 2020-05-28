@@ -4,89 +4,98 @@ stlink ChangeLog
 v1.6.1
 ======
 
-Release date: (TBD)
+Release date: 2020-06-xx
 
 This release drops support for some older operating systems. Check project README for details.
 
 Features:
 
-- Basic compatibility for STLink-v3 programmer ([#271](https://github.com/stlink-org/stlink/pull/271), [#863](https://github.com/stlink-org/stlink/pull/863), [#954](https://github.com/stlink-org/stlink/pull/954))
+* Basic compatibility for STLink-v3 programmer ([#271](https://github.com/stlink-org/stlink/pull/271), [#863](https://github.com/stlink-org/stlink/pull/863), [#954](https://github.com/stlink-org/stlink/pull/954))
   - Added support for JTAG command API v2 & distinguish protocol versions v1 and v2
   - Compatibility with the STLink-v3 firmware which dropped support for the previous API v1
   - As of firmware version J11 the ST-LINK-V1 programmer supports API v2 commands as well
-- Display programmer serial when no target is connected ([#432](https://github.com/stlink-org/stlink/pull/432), [#933](https://github.com/stlink-org/stlink/pull/933), [#943](https://github.com/stlink-org/stlink/pull/943))
-- Support for STM32L1, SM32L4 option bytes write ([#596](https://github.com/stlink-org/stlink/pull/596), [#844](https://github.com/stlink-org/stlink/pull/844), [#847](https://github.com/stlink-org/stlink/pull/847))
-- CMake now creates an uninstall target ([#619](https://github.com/stlink-org/stlink/pull/619), [#907](https://github.com/stlink-org/stlink/pull/907))
-- Added CMAKEFLAGS and install target ([#804](https://github.com/stlink-org/stlink/pull/804), [#935](https://github.com/stlink-org/stlink/pull/935))
-- Support for STM32G4 ([#822](https://github.com/stlink-org/stlink/pull/822))
-- Add aliased SRAM2 region in the L496 memory map ([#824](https://github.com/stlink-org/stlink/pull/824))
-- Improved support for STM32G0 ([#825](https://github.com/stlink-org/stlink/pull/825), [#850](https://github.com/stlink-org/stlink/pull/850), [#856](https://github.com/stlink-org/stlink/pull/856), [#857](https://github.com/stlink-org/stlink/pull/857))
-- Added postinst script with 'depmod -a' for 'make package' ([#845](https://github.com/stlink-org/stlink/pull/845), [#931](https://github.com/stlink-org/stlink/pull/931))
-- Calculate checksums for flash operations ([#862](https://github.com/stlink-org/stlink/pull/862), [#924](https://github.com/stlink-org/stlink/pull/924))
-- Adjust the JTAG/SWD frequency via cmdline option ([#893](https://github.com/stlink-org/stlink/pull/893), [#953](https://github.com/stlink-org/stlink/pull/953))
-- Added usb PID and udev rules for STlink v2.1 found on Nucleo-L432KC and Nucleo-L552ze boards ([#900](https://github.com/stlink-org/stlink/pull/900))
-- STM32G0/G4 improvements ([#910](https://github.com/stlink-org/stlink/pull/910))
+* Display programmer serial when no target is connected ([#432](https://github.com/stlink-org/stlink/pull/432), [#933](https://github.com/stlink-org/stlink/pull/933), [#943](https://github.com/stlink-org/stlink/pull/943))
+* Added connect under reset to stlink_open_usb( ) ([#577](https://github.com/stlink-org/stlink/pull/577), [#963](https://github.com/stlink-org/stlink/pull/963))
+* Support for STM32L1, SM32L4 option bytes write ([#596](https://github.com/stlink-org/stlink/pull/596), [#844](https://github.com/stlink-org/stlink/pull/844), [#847](https://github.com/stlink-org/stlink/pull/847))
+* Added CMAKEFLAGS and install target ([#804](https://github.com/stlink-org/stlink/pull/804), [#935](https://github.com/stlink-org/stlink/pull/935))
+* Support for STM32G4 ([#822](https://github.com/stlink-org/stlink/pull/822))
+* Add aliased SRAM2 region in the L496 memory map ([#824](https://github.com/stlink-org/stlink/pull/824))
+* Improved support for STM32G0 ([#825](https://github.com/stlink-org/stlink/pull/825), [#850](https://github.com/stlink-org/stlink/pull/850), [#856](https://github.com/stlink-org/stlink/pull/856), [#857](https://github.com/stlink-org/stlink/pull/857))
+* Added postinst script with 'depmod -a' for 'make package' ([#845](https://github.com/stlink-org/stlink/pull/845), [#931](https://github.com/stlink-org/stlink/pull/931))
+* Calculate checksums for flash operations ([#862](https://github.com/stlink-org/stlink/pull/862), [#924](https://github.com/stlink-org/stlink/pull/924))
+* Adjust the JTAG/SWD frequency via cmdline option ([#893](https://github.com/stlink-org/stlink/pull/893), [#953](https://github.com/stlink-org/stlink/pull/953))
+* Added usb PID and udev rules for STlink v2.1 found on Nucleo-L432KC and Nucleo-L552ze boards ([#900](https://github.com/stlink-org/stlink/pull/900))
+* STM32G0/G4 improvements ([#910](https://github.com/stlink-org/stlink/pull/910))
   - Enable mass erase with a flash programming check
   - Handle G4 Cat3 devices with configurable dual bank flash by using a helper
 
 Updates & changes:
 
-- [doc] Update compiling instructions ([#113](https://github.com/stlink-org/stlink/pull/113), commit [#10ae529](https://github.com/stlink-org/stlink/commit/10ae5294cd03aacfc07312010f026d3cb12ea56c))
-- Define libusb version compatibility for supported operating systems via LIBUSB_API_VERSION ([#211](https://github.com/stlink-org/stlink/pull/211), [#782](https://github.com/stlink-org/stlink/pull/782), [#895](https://github.com/stlink-org/stlink/pull/895))
-- Improved argument parsing for CLI tools ([#378](https://github.com/stlink-org/stlink/pull/378), [#922](https://github.com/stlink-org/stlink/pull/922))
-- [doc] Updated tutorial: macOS ST-Link-v1 detection ([#574](https://github.com/stlink-org/stlink/pull/574), [#587](https://github.com/stlink-org/stlink/pull/587))
-- Enhanced error log with file path for map_file() ([#650](https://github.com/stlink-org/stlink/pull/650), [#879](https://github.com/stlink-org/stlink/pull/879), [#921](https://github.com/stlink-org/stlink/pull/921))
-- Enhanced output for error msg "addr not a multiple of pagesize, not supported" ([#663](https://github.com/stlink-org/stlink/pull/663), [#945](https://github.com/stlink-org/stlink/pull/945))
-- [refactoring] Package distribution: Provide Windows binaries via Debian-based cross-build ([#738](https://github.com/stlink-org/stlink/pull/738), [#795](https://github.com/stlink-org/stlink/pull/795), [#798](https://github.com/stlink-org/stlink/pull/798), [#955](https://github.com/stlink-org/stlink/pull/955))
-  - Update, corrections & cleanup for build settings (see #955 for details)
+* [doc] Updated compiling instructions ([#113](https://github.com/stlink-org/stlink/pull/113), commit [#10ae529](https://github.com/stlink-org/stlink/commit/10ae5294cd03aacfc07312010f026d3cb12ea56c))
+* Defined libusb version compatibility for supported systems via LIBUSB_API_VERSION ([#211](https://github.com/stlink-org/stlink/pull/211), [#782](https://github.com/stlink-org/stlink/pull/782), [#895](https://github.com/stlink-org/stlink/pull/895))
+* Improved argument parsing for CLI tools ([#378](https://github.com/stlink-org/stlink/pull/378), [#922](https://github.com/stlink-org/stlink/pull/922))
+* [doc] Updated tutorial: macOS ST-Link-v1 detection ([#574](https://github.com/stlink-org/stlink/pull/574), [#587](https://github.com/stlink-org/stlink/pull/587))
+* Enhanced error log with file path for map_file() ([#650](https://github.com/stlink-org/stlink/pull/650), [#879](https://github.com/stlink-org/stlink/pull/879), [#921](https://github.com/stlink-org/stlink/pull/921))
+* Enhanced output for error msg "addr not a multiple of pagesize, not supported" ([#663](https://github.com/stlink-org/stlink/pull/663), [#945](https://github.com/stlink-org/stlink/pull/945))
+* Package distribution: Provide Windows binaries via Debian-based cross-build ([#738](https://github.com/stlink-org/stlink/pull/738), [#795](https://github.com/stlink-org/stlink/pull/795), [#798](https://github.com/stlink-org/stlink/pull/798), [#870](https://github.com/stlink-org/stlink/pull/870), [#955](https://github.com/stlink-org/stlink/pull/955))
+  - [refactoring] Update, corrections & cleanup for build settings (see #955 for details)
   - New cpack package-config for DEB and RPM build
   - Update for travis build configuration: builds for clang -m32, clang-9, MinGW-cross on linux
   - Updated steps for release preparation
   - Project contributors now listed in separate file
   - Test files & gui now use shared stlink-library
-- [doc] Verify correct udev configuration for device access ([#764](https://github.com/stlink-org/stlink/pull/764))
-- Added more error info to WLOGs during probe ([#883](https://github.com/stlink-org/stlink/pull/883))
-- [doc] Add missing documentation for stlink-gui ([#884](https://github.com/stlink-org/stlink/pull/884))
-- Added check for libssp during compilation ([#885](https://github.com/stlink-org/stlink/pull/885))
-- Silence unnecessary messages ([#886](https://github.com/stlink-org/stlink/pull/886))
-- [doc] Define libusb & cmake version compatibility ([#896](https://github.com/stlink-org/stlink/pull/896), [#897](https://github.com/stlink-org/stlink/pull/897), [#899](https://github.com/stlink-org/stlink/pull/899), commit [#27aa888](https://github.com/stlink-org/stlink/commit/27aa88821197d3ffe82baff4e971c3488ec39899))
-- Update for STM32G471/473/474/483/484 devices ([#901](https://github.com/stlink-org/stlink/pull/901))
-- [doc] st-flash --flash=n[k][m] command line option to override device model ([#902](https://github.com/stlink-org/stlink/pull/902))
-- [refactoring] BSD-License-compliant rewrite of flashloader source files ([#915](https://github.com/stlink-org/stlink/pull/915), [#932](https://github.com/stlink-org/stlink/pull/932))
-- [refactoring] Overall option code rework ([#927](https://github.com/stlink-org/stlink/pull/927))
-- [refactoring] Build settings / GUI-Build on UNIX-based systems if GTK3 is detected ([#929](https://github.com/stlink-org/stlink/pull/929))
-- [refactoring] Reconfiguration of package build process ([#931](https://github.com/stlink-org/stlink/pull/931), [#936](https://github.com/stlink-org/stlink/pull/936), [#940](https://github.com/stlink-org/stlink/pull/940), commit [#9b19f92](https://github.com/stlink-org/stlink/commit/9b19f9225460472af9d98959b7217d0a840ee972))
-- [refactoring] st-util: Removed now useless v1/v2 STLink version stuff ([#934](https://github.com/stlink-org/stlink/pull/934))
-- [refactoring] Cleanup for option bytes and flash settings ([#941](https://github.com/stlink-org/stlink/pull/941))
-- Added compilation guideline for MSVC toolchain ([#942](https://github.com/stlink-org/stlink/pull/942))
-- [refactoring] Cleanup of cmake build process ([#944](https://github.com/stlink-org/stlink/pull/944), [#946](https://github.com/stlink-org/stlink/pull/946), [#947](https://github.com/stlink-org/stlink/pull/947))
-- Set up a libusb log level accordingly to verbosity (commit [#49f887d](https://github.com/stlink-org/stlink/commit/49f887d5247fdd28f163b6317790c4f087e652cc))
-- [doc] Defined version compatibility and installation instructions for macOS (commit [#23c071e](https://github.com/stlink-org/stlink/commit/23c071edea45f6e8852fef52d884a680973d6d8f))
-- Deprecated old appveyor-mingw script (commit [#9748442](https://github.com/stlink-org/stlink/commit/97484422008df0f75c978627054776f35842a075))
-- libusb package extraction no longer requires 7zip as an external unarchiver (commit [#5db2dc4](https://github.com/stlink-org/stlink/commit/5db2dc4c0410ace65308cddcc03d1c0cfa4855cf))
-
+* [doc] Verify correct udev configuration for device access ([#764](https://github.com/stlink-org/stlink/pull/764))
+* Added more error info to WLOGs during probe ([#883](https://github.com/stlink-org/stlink/pull/883))
+* [doc] Added missing documentation for stlink-gui ([#884](https://github.com/stlink-org/stlink/pull/884))
+* Added check for libssp during compilation ([#885](https://github.com/stlink-org/stlink/pull/885))
+* Silenced unnecessary messages ([#886](https://github.com/stlink-org/stlink/pull/886))
+* [doc] Defined libusb & cmake version compatibility ([#896](https://github.com/stlink-org/stlink/pull/896), [#897](https://github.com/stlink-org/stlink/pull/897), [#899](https://github.com/stlink-org/stlink/pull/899), commit [#27aa888](https://github.com/stlink-org/stlink/commit/27aa88821197d3ffe82baff4e971c3488ec39899))
+* Update for STM32G471/473/474/483/484 devices ([#901](https://github.com/stlink-org/stlink/pull/901))
+* [doc] st-flash --flash=n[k][m] command line option to override device model ([#902](https://github.com/stlink-org/stlink/pull/902))
+* [refactoring] Improved cmake build process ([#912](https://github.com/stlink-org/stlink/pull/912))
+  - Set up a libusb log level accordingly to verbosity ([#894](https://github.com/stlink-org/stlink/pull/894)
+  - [compatibility] Updated libusb to v1.0.23 ([#895](https://github.com/stlink-org/stlink/pull/895)
+  -  Updated compiling doc & version support ([#896](https://github.com/stlink-org/stlink/pull/896), [#897](https://github.com/stlink-org/stlink/pull/897), [#899](https://github.com/stlink-org/stlink/pull/899))
+  - Version requirements & pkg-maintainer
+  - Fixed install paths in build script
+  - Updated C-flag -std=gnu99 to gnu11)
+  - Added cmake uninstall target ([#619](https://github.com/stlink-org/stlink/pull/619), [#907](https://github.com/stlink-org/stlink/pull/907))
+  - Integrated module GNUInstallDirs.cmake ([#557](https://github.com/stlink-org/stlink/pull/557))
+  - [doc] Defined version compatibility and installation instructions for macOS
+  - [refactoring] libusb detection
+  - Deprecated old appveyor-mingw script
+* [refactoring] BSD-License-compliant rewrite of flashloader source files ([#915](https://github.com/stlink-org/stlink/pull/915), [#932](https://github.com/stlink-org/stlink/pull/932))
+* [refactoring] Overall option code rework ([#927](https://github.com/stlink-org/stlink/pull/927))
+* [refactoring] Build settings / GUI-Build on UNIX-based systems if GTK3 is detected ([#929](https://github.com/stlink-org/stlink/pull/929))
+* [refactoring] Reconfiguration of package build process ([#931](https://github.com/stlink-org/stlink/pull/931), [#936](https://github.com/stlink-org/stlink/pull/936), [#940](https://github.com/stlink-org/stlink/pull/940), commit [#9b19f92](https://github.com/stlink-org/stlink/commit/9b19f9225460472af9d98959b7217d0a840ee972))
+* [refactoring] st-util: Removed now useless v1/v2 STLink version stuff ([#934](https://github.com/stlink-org/stlink/pull/934))
+* [refactoring] Cleanup for option bytes and flash settings ([#941](https://github.com/stlink-org/stlink/pull/941))
+* Added compilation guideline for MSVC toolchain ([#942](https://github.com/stlink-org/stlink/pull/942))
+* [refactoring] Cleanup of cmake build process ([#944](https://github.com/stlink-org/stlink/pull/944), [#946](https://github.com/stlink-org/stlink/pull/946), [#947](https://github.com/stlink-org/stlink/pull/947))
+  - libusb package extraction no longer requires 7zip as an external unarchiver
 
 Fixes:
 
-- Fixed wait-loop for flash_loader_run() ([#290](https://github.com/stlink-org/stlink/pull/290))
-- Better argument parsing for CLI tools: stlink_open_usb can address v1, v2, v3 ([#378](https://github.com/stlink-org/stlink/pull/378), [#922](https://github.com/stlink-org/stlink/pull/922))
-- Clear the PG bit before setting the PER bit ([#579](https://github.com/stlink-org/stlink/pull/579), [#876](https://github.com/stlink-org/stlink/pull/876))
-- Fixed compilation issues with int length on 32-bit platforms ([#629](https://github.com/stlink-org/stlink/pull/629), [#908](https://github.com/stlink-org/stlink/pull/908))
-- Fixed st-info --probe mechanism ([#679](https://github.com/stlink-org/stlink/pull/679), [#918](https://github.com/stlink-org/stlink/pull/918))
-- [regression] Fixed sign-compare (size != rep_len) in usb.c ([#772](https://github.com/stlink-org/stlink/pull/772), [#869](https://github.com/stlink-org/stlink/pull/869), [#872](https://github.com/stlink-org/stlink/pull/872), [#891](https://github.com/stlink-org/stlink/pull/891))
-- Fixed dead loop after an unexpected unplug ([#780](https://github.com/stlink-org/stlink/pull/780), [#812](https://github.com/stlink-org/stlink/pull/812), [#913](https://github.com/stlink-org/stlink/pull/913))
-- Avoid re-define of O_BINARY on Windows ([#788](https://github.com/stlink-org/stlink/pull/788))
-- Fixed st-flash manpage read example ([#858](https://github.com/stlink-org/stlink/pull/858))
-- Fixed stlink support with no mass storage ([#861](https://github.com/stlink-org/stlink/pull/861))
-- Make Version.cmake more error-resistant ([#872](https://github.com/stlink-org/stlink/pull/872))
-- Error return in failed probe ([#887](https://github.com/stlink-org/stlink/pull/887), [#890](https://github.com/stlink-org/stlink/pull/890))
-- Fixed broken build on 32-bit systems ([#919](https://github.com/stlink-org/stlink/pull/919), [#920](https://github.com/stlink-org/stlink/pull/920))
-- st-flash: Minor usage fix and make cmdline parsing more user friendly ([#925](https://github.com/stlink-org/stlink/pull/925))
-- [regression] Restored functionality of make test builds ([#926](https://github.com/stlink-org/stlink/pull/926), [#929](https://github.com/stlink-org/stlink/pull/929))
-- Fixed compilation error due to uninitialized cpuid ([#937](https://github.com/stlink-org/stlink/pull/937), [#938](https://github.com/stlink-org/stlink/pull/938))
-- Fixes for STM32F0 flashloader ([#958](https://github.com/stlink-org/stlink/pull/958), [#959](https://github.com/stlink-org/stlink/pull/959)
-- Set static link for libssp (stack-smashing protection) ([#960](https://github.com/stlink-org/stlink/pull/960), [#961](https://github.com/stlink-org/stlink/pull/961))
-- Fixed formatting for options display in st-flash & st-info (commits [#c783d0e](https://github.com/stlink-org/stlink/commit/c783d0e777ccc83a7a8be26a4f4d3414e0478560) and [#562cd24](https://github.com/stlink-org/stlink/commit/562cd2496e696dbd22950925866aac662d81ee5f))
+* Fixed wait-loop for flash_loader_run() ([#290](https://github.com/stlink-org/stlink/pull/290))
+* Better argument parsing for CLI tools: stlink_open_usb can address v1, v2, v3 ([#378](https://github.com/stlink-org/stlink/pull/378), [#922](https://github.com/stlink-org/stlink/pull/922))
+* Clear the PG bit before setting the PER bit ([#579](https://github.com/stlink-org/stlink/pull/579), [#876](https://github.com/stlink-org/stlink/pull/876))
+* Fixed compilation issues with int length on 32-bit platforms ([#629](https://github.com/stlink-org/stlink/pull/629), [#908](https://github.com/stlink-org/stlink/pull/908))
+* Fixed st-info --probe mechanism ([#679](https://github.com/stlink-org/stlink/pull/679), [#918](https://github.com/stlink-org/stlink/pull/918))
+* [regression] Fixed sign-compare (size != rep_len) in usb.c ([#772](https://github.com/stlink-org/stlink/pull/772), [#869](https://github.com/stlink-org/stlink/pull/869), [#872](https://github.com/stlink-org/stlink/pull/872), [#891](https://github.com/stlink-org/stlink/pull/891))
+* Fixed dead loop after an unexpected unplug ([#780](https://github.com/stlink-org/stlink/pull/780), [#812](https://github.com/stlink-org/stlink/pull/812), [#913](https://github.com/stlink-org/stlink/pull/913))
+* Avoid re-define of O_BINARY on Windows ([#788](https://github.com/stlink-org/stlink/pull/788))
+* Fixed st-flash manpage read example ([#858](https://github.com/stlink-org/stlink/pull/858))
+* Fixed stlink support with no mass storage ([#861](https://github.com/stlink-org/stlink/pull/861))
+* Make Version.cmake more error-resistant ([#872](https://github.com/stlink-org/stlink/pull/872))
+* Error return in failed probe ([#887](https://github.com/stlink-org/stlink/pull/887), [#890](https://github.com/stlink-org/stlink/pull/890))
+* Fixed broken build on 32-bit systems ([#919](https://github.com/stlink-org/stlink/pull/919), [#920](https://github.com/stlink-org/stlink/pull/920))
+* st-flash: Minor usage fix and make cmdline parsing more user friendly ([#925](https://github.com/stlink-org/stlink/pull/925))
+* [regression] Restored functionality of make test builds ([#926](https://github.com/stlink-org/stlink/pull/926), [#929](https://github.com/stlink-org/stlink/pull/929))
+* Fixed compilation error due to uninitialized cpuid ([#937](https://github.com/stlink-org/stlink/pull/937), [#938](https://github.com/stlink-org/stlink/pull/938))
+* Fixes for STM32F0 flashloader ([#958](https://github.com/stlink-org/stlink/pull/958), [#959](https://github.com/stlink-org/stlink/pull/959))
+* Set static link for libssp (stack-smashing protection) ([#960](https://github.com/stlink-org/stlink/pull/960), [#961](https://github.com/stlink-org/stlink/pull/961))
+* Fixed udev rules installing to wrong directory ([#966](https://github.com/stlink-org/stlink/pull/966))
+* Fixed formatting for options display in st-flash & st-info (commits [#c783d0e](https://github.com/stlink-org/stlink/commit/c783d0e777ccc83a7a8be26a4f4d3414e0478560) and [#562cd24](https://github.com/stlink-org/stlink/commit/562cd2496e696dbd22950925866aac662d81ee5f))
 
 
 v1.6.0
@@ -333,6 +342,7 @@ Updates and fixes:
 * Fixed STM32F2xx memory map (Nicolas Schodet)
 * Memory map for STM32F42xxx and STM32F43xxx devices (Craig Lilley)
 * Stm32l0x flash loader (Robin Kreis)
+* Fixed segfault when programmer is already busy and NULL pointers are in the list ([#256](https://github.com/stlink-org/stlink/pull/256), [#394](https://github.com/stlink-org/stlink/pull/394))
 * Send F4 memory-map and features for STM32F429 ([#188](https://github.com/stlink-org/stlink/pull/188), [#196](https://github.com/stlink-org/stlink/pull/196), [#250](https://github.com/stlink-org/stlink/pull/250), [#251](https://github.com/stlink-org/stlink/pull/251)) (Release v1.1.0)
 * Added AHB3 Peripherals definition for STM32F4 ([#218](https://github.com/stlink-org/stlink/pull/218), [#288](https://github.com/stlink-org/stlink/pull/288)) (Release v1.1.0)
 * Corrected flash size register address for STM32F2 devices ([#278](https://github.com/stlink-org/stlink/pull/278)) (Release v1.0.0)
