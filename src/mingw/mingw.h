@@ -37,7 +37,7 @@ struct pollfd {
     short revents;    /* returned events */
 };
 #endif
-#define poll(x, y, z)        win32_poll(x, y, z)
+#define poll(x, y, z)     win32_poll(x, y, z)
 
 /* These wrappers do nothing special except set the global errno variable if
  * an error occurs (winsock doesn't do this by default). They set errno
@@ -45,12 +45,12 @@ struct pollfd {
  * outside of this file "shouldn't" have to worry about winsock specific error
  * handling.
  */
-#define socket(x, y, z)		win32_socket(x, y, z)
-#define connect(x, y, z)	win32_connect(x, y, z)
-#define accept(x, y, z)		win32_accept(x, y, z)
-#define shutdown(x, y)		win32_shutdown(x, y)
-#define read(x, y, z)			win32_read_socket(x, y, z)
-#define write(x, y, z)			win32_write_socket(x, y, z)
+#define socket(x, y, z)   win32_socket(x, y, z)
+#define connect(x, y, z)  win32_connect(x, y, z)
+#define accept(x, y, z)   win32_accept(x, y, z)
+#define shutdown(x, y)    win32_shutdown(x, y)
+#define read(x, y, z)     win32_read_socket(x, y, z)
+#define write(x, y, z)    win32_write_socket(x, y, z)
 
 /* Winsock uses int instead of the usual socklen_t */
 typedef int socklen_t;

@@ -20,6 +20,9 @@ You can use this instead of st-util(1) if you prefer, but remember to use the
 
 Use hexadecimal format for the *ADDR* and *SIZE*.
 
+The STLink device to use can be specified using the --serial parameter, or via 
+the environment variable STLINK_DEVICE on the format <USB_BUS>:<USB_ADDR>.
+
 # COMMANDS
 
 write *FILE* *ADDR*
@@ -44,6 +47,9 @@ reset
 
 \--reset
 :   TODO
+
+\--opt
+:   Enable ignore ending empty bytes optimization
 
 \--serial *iSerial*
 :   TODO

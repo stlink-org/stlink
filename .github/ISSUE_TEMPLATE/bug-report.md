@@ -1,8 +1,8 @@
 ---
 name: Bug Report
-about: Create a report to help us improve
-title: "[Your device name]: [Title]"
-labels: bug/needs-investigation
+about: 'Please read #906 before submitting a ticket.'
+title: "[STM32 device name]: [Title]"
+labels: ''
 assignees: ''
 
 ---

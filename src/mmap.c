@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include "stlink/mmap.h"
+#include "mmap.h"
 
 void *mmap (void *addr, size_t len, int prot, int flags, int fd, long long  offset) {
 

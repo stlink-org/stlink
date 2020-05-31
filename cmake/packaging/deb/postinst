@@ -1,0 +1,4 @@
+#!/bin/bash
+# This `DEBIAN/postinst` script is run post-installation
+
+depmod -a

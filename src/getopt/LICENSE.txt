@@ -1,3 +1,5 @@
+BSD 3-Clause License
+
 Copyright (c) 2012, Kim Gräsman
 All rights reserved.
 

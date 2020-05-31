@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=stlink
+GenericName=Stlink Tools
+Comment=Open source STM32 MCU programming toolset
+Exec=stlink-gui
+Icon=stlink-gui
+Terminal=false
+Type=Application
+Categories=Development;Electronics;

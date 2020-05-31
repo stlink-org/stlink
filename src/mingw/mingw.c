@@ -27,11 +27,11 @@ int win32_poll(struct pollfd *fds, unsigned int nfds, int timo)
     FD_ZERO(&efds);
     for (i = 0, op = ip = 0; i < nfds; ++i) {
         fds[i].revents = 0;
-        if(fds[i].events & (POLLIN|POLLPRI)) {
+        if (fds[i].events & (POLLIN|POLLPRI)) {
             ip = &ifds;
             FD_SET(fds[i].fd, ip);
         }
-        if(fds[i].events & POLLOUT) {
+        if (fds[i].events & POLLOUT) {
             op = &ofds;
             FD_SET(fds[i].fd, op);
         }
@@ -42,7 +42,7 @@ int win32_poll(struct pollfd *fds, unsigned int nfds, int timo)
 #endif
 
     /* Set up the timeval structure for the timeout parameter */
-    if(timo < 0) {
+    if (timo < 0) {
         toptr = 0;
     } else {
         toptr = &timeout;
@@ -59,17 +59,17 @@ int win32_poll(struct pollfd *fds, unsigned int nfds, int timo)
     printf("Exiting select rc=%d\n", rc);
 #endif
 
-    if(rc <= 0)
+    if (rc <= 0)
         return rc;
 
-    if(rc > 0) {
+    if (rc > 0) {
         for ( i = 0; i < nfds; ++i) {
             int fd = fds[i].fd;
-            if(fds[i].events & (POLLIN|POLLPRI) && FD_ISSET(fd, &ifds))
+            if (fds[i].events & (POLLIN|POLLPRI) && FD_ISSET(fd, &ifds))
                 fds[i].revents |= POLLIN;
-            if(fds[i].events & POLLOUT && FD_ISSET(fd, &ofds))
+            if (fds[i].events & POLLOUT && FD_ISSET(fd, &ofds))
                 fds[i].revents |= POLLOUT;
-            if(FD_ISSET(fd, &efds))
+            if (FD_ISSET(fd, &efds))
                 /* Some error was detected ... should be some way to know. */
                 fds[i].revents |= POLLHUP;
 #ifdef DEBUG_POLL
@@ -118,7 +118,7 @@ SOCKET
 win32_socket(int domain, int type, int protocol)
 {
     SOCKET fd = socket(domain, type, protocol);
-    if(fd == INVALID_SOCKET) {
+    if (fd == INVALID_SOCKET) {
         set_socket_errno(WSAGetLastError());
     }
     return fd;
@@ -133,7 +133,7 @@ win32_connect(SOCKET fd, struct sockaddr *addr, socklen_t addr_len)
 {
     int rc = connect(fd, addr, addr_len);
     assert(rc == 0 || rc == SOCKET_ERROR);
-    if(rc == SOCKET_ERROR) {
+    if (rc == SOCKET_ERROR) {
         set_connect_errno(WSAGetLastError());
     }
     return rc;
@@ -148,7 +148,7 @@ SOCKET
 win32_accept(SOCKET fd, struct sockaddr *addr, socklen_t *addr_len)
 {
     SOCKET newfd = accept(fd, addr, addr_len);
-    if(newfd == INVALID_SOCKET) {
+    if (newfd == INVALID_SOCKET) {
         set_socket_errno(WSAGetLastError());
         newfd = (SOCKET)-1;
     }
@@ -165,7 +165,7 @@ win32_shutdown(SOCKET fd, int mode)
 {
     int rc = shutdown(fd, mode);
     assert(rc == 0 || rc == SOCKET_ERROR);
-    if(rc == SOCKET_ERROR) {
+    if (rc == SOCKET_ERROR) {
         set_socket_errno(WSAGetLastError());
     }
     return rc;
@@ -174,7 +174,7 @@ win32_shutdown(SOCKET fd, int mode)
 int win32_close_socket(SOCKET fd)
 {
     int rc = closesocket(fd);
-    if(rc == SOCKET_ERROR) {
+    if (rc == SOCKET_ERROR) {
         set_socket_errno(WSAGetLastError());
     }
     return rc;
@@ -183,7 +183,7 @@ int win32_close_socket(SOCKET fd)
 ssize_t win32_write_socket(SOCKET fd, void *buf, int n)
 {
     int rc = send(fd, buf, n, 0);
-    if(rc == SOCKET_ERROR) {
+    if (rc == SOCKET_ERROR) {
         set_socket_errno(WSAGetLastError());
     }
     return rc;
@@ -192,7 +192,7 @@ ssize_t win32_write_socket(SOCKET fd, void *buf, int n)
 ssize_t win32_read_socket(SOCKET fd, void *buf, int n)
 {
     int rc = recv(fd, buf, n, 0);
-    if(rc == SOCKET_ERROR) {
+    if (rc == SOCKET_ERROR) {
         set_socket_errno(WSAGetLastError());
     }
     return rc;

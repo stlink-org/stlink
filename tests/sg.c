@@ -1,16 +1,17 @@
-/* 
+/*
  * File:   test_main.c
- * 
+ *
  * main() ripped out of old stlink-hw.c
  */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include <stlink.h>
 
 #if defined(_MSC_VER)
-#define __attribute__(x)
+    #define __attribute__(x)
 #endif
 
 static void __attribute__((unused)) mark_buf(stlink_t *sl) {
@@ -24,24 +25,22 @@ static void __attribute__((unused)) mark_buf(stlink_t *sl) {
     sl->q_buf[16] = 0x33;
     sl->q_buf[63] = 0x44;
     sl->q_buf[64] = 0x69;
-    sl->q_buf[1024 * 6 - 1] = 0x42; //6kB
-    sl->q_buf[1024 * 8 - 1] = 0x42; //8kB
+    sl->q_buf[1024 * 6 - 1] = 0x42; // 6kB
+    sl->q_buf[1024 * 8 - 1] = 0x42; // 8kB
 }
 
 
-int main(void)
-{
+int main(void) {
     /* Avoid unused parameter warning */
     // set scpi lib debug level: 0 for no debug info, 10 for lots
-
-        fputs(
-                "\nUsage: stlink-access-test [anything at all] ...\n"
-                "\n*** Notice: The stlink firmware violates the USB standard.\n"
-                "*** Because we just use libusb, we can just tell the kernel's\n"
-                "*** driver to simply ignore the device...\n"
-                "*** Unplug the stlink and execute once as root:\n"
-                "modprobe -r usb-storage && modprobe usb-storage quirks=483:3744:i\n\n",
-                stderr);
+    fputs(
+            "\nUsage: stlink-access-test [anything at all] ...\n"
+            "\n*** Notice: The stlink firmware violates the USB standard.\n"
+            "*** Because we just use libusb, we can just tell the kernel's\n"
+            "*** driver to simply ignore the device...\n"
+            "*** Unplug the stlink and execute once as root:\n"
+            "modprobe -r usb-storage && modprobe usb-storage quirks=483:3744:i\n\n",
+            stderr);
 
     stlink_t *sl = stlink_v1_open(99, 1);
     if (sl == NULL)
@@ -51,8 +50,6 @@ int main(void)
     stlink_enter_swd_mode(sl);
     stlink_current_mode(sl);
     stlink_core_id(sl);
-    //----------------------------------------------------------------------
-
     stlink_status(sl);
     //stlink_force_debug(sl);
     stlink_reset(sl);
@@ -67,19 +64,19 @@ int main(void)
 #if 0
     stlink_read_mem32(sl, 0xe000edf0, 4);
     DD(sl, "DHCSR = 0x%08x", read_uint32(sl->q_buf, 0));
-
     stlink_read_mem32(sl, 0x4001100c, 4);
     DD(sl, "GPIOC_ODR = 0x%08x", read_uint32(sl->q_buf, 0));
 #endif
+
 #if 0
-    // happy new year 2011: let blink all the leds
+    // let blink all the leds
     // see "RM0041 Reference manual - STM32F100xx advanced ARM-based 32-bit MCUs"
 
-#define GPIOC		0x40011000 // port C
-#define GPIOC_CRH	(GPIOC + 0x04) // port configuration register high
-#define GPIOC_ODR	(GPIOC + 0x0c) // port output data register
-#define LED_BLUE	(1<<8) // pin 8
-#define LED_GREEN	(1<<9) // pin 9
+    #define GPIOC     0x40011000 // port C
+    #define GPIOC_CRH (GPIOC + 0x04) // port configuration register high
+    #define GPIOC_ODR (GPIOC + 0x0c) // port output data register
+    #define LED_BLUE  (1<<8) // pin 8
+    #define LED_GREEN (1<<9) // pin 9
     stlink_read_mem32(sl, GPIOC_CRH, 4);
     uint32_t io_conf = read_uint32(sl->q_buf, 0);
     DLOG("GPIOC_CRH = 0x%08x\n", io_conf);
@@ -92,8 +89,8 @@ int main(void)
     for (int i = 0; i < 100; i++) {
         write_uint32(sl->q_buf, LED_BLUE | LED_GREEN);
         stlink_write_mem32(sl, GPIOC_ODR, 4);
-        /* stlink_read_mem32(sl, 0x4001100c, 4); */
-        /* DD(sl, "GPIOC_ODR = 0x%08x", read_uint32(sl->q_buf, 0)); */
+        //stlink_read_mem32(sl, 0x4001100c, 4);
+        //DD(sl, "GPIOC_ODR = 0x%08x", read_uint32(sl->q_buf, 0));
         usleep(100 * 1000);
 
         memset(sl->q_buf, 0, sizeof(sl->q_buf));
@@ -101,8 +98,8 @@ int main(void)
         usleep(100 * 1000);
     }
     write_uint32(sl->q_buf, io_conf); // set old state
-
 #endif
+
 #if 0
     // TODO rtfm: stlink doesn't have flash write routines
     // writing to the flash area confuses the fw for the next read access
@@ -119,18 +116,19 @@ int main(void)
     stlink_read_mem32(sl, 0x08000c00, 256);
     stlink_read_mem32(sl, 0x08000c00, 256);
 #endif
+
 #if 0
     // sram 0x20000000 8kB
     fputs("\n++++++++++ read/write 8bit, sram at 0x2000 0000 ++++++++++++++++\n\n", stderr);
     memset(sl->q_buf, 0, sizeof(sl->q_buf));
     mark_buf(sl);
     //stlink_write_mem8(sl, 0x20000000, 16);
-
     //stlink_write_mem8(sl, 0x20000000, 1);
     //stlink_write_mem8(sl, 0x20000001, 1);
     stlink_write_mem8(sl, 0x2000000b, 3);
     stlink_read_mem32(sl, 0x20000000, 16);
 #endif
+
 #if 0
     // a not aligned mem32 access doesn't work indeed
     fputs("\n++++++++++ read/write 32bit, sram at 0x2000 0000 ++++++++++++++++\n\n", stderr);
@@ -149,6 +147,7 @@ int main(void)
     stlink_write_mem32(sl, 0x20000000, 17);
     stlink_read_mem32(sl, 0x20000000, 32);
 #endif
+
 #if 0
     // sram 0x20000000 8kB
     fputs("++++++++++ read/write 32bit, sram at 0x2000 0000 ++++++++++++\n", stderr);
@@ -162,26 +161,30 @@ int main(void)
     stlink_read_mem32(sl, 0x20000000, 1024 * 6);
     stlink_read_mem32(sl, 0x20000000 + 1024 * 6, 1024 * 2);
 #endif
+
 #if 0
     stlink_run(sl);
     stlink_status(sl);
-
     stlink_force_debug(sl);
     stlink_status(sl);
 #endif
+
 #if 0 /* read the system bootloader */
     fputs("\n++++++++++ reading bootloader ++++++++++++++++\n\n", stderr);
     stlink_fread(sl, "/tmp/barfoo", sl->sys_base, sl->sys_size);
 #endif
+
 #if 0 /* read the flash memory */
     fputs("\n+++++++ read flash memory\n\n", stderr);
     /* mark_buf(sl); */
     stlink_read_mem32(sl, 0x08000000, 4);
 #endif
+
 #if 0 /* flash programming */
     fputs("\n+++++++ program flash memory\n\n", stderr);
     stlink_fwrite_flash(sl, "/tmp/foobar", 0x08000000);
 #endif
+
 #if 0 /* check file contents */
     fputs("\n+++++++ check flash memory\n\n", stderr);
     {
@@ -189,6 +192,7 @@ int main(void)
         printf("_____ stlink_fcheck_flash() == %d\n", res);
     }
 #endif
+
 #if 0
     fputs("\n+++++++ sram write and execute\n\n", stderr);
     stlink_fwrite_sram(sl, "/tmp/foobar", sl->sram_base);
@@ -198,13 +202,13 @@ int main(void)
 #if 0
     stlink_run(sl);
     stlink_status(sl);
-    //----------------------------------------------------------------------
     // back to mass mode, just in case ...
     stlink_exit_debug_mode(sl);
     stlink_current_mode(sl);
     stlink_close(sl);
 #endif
 
-    //fflush(stderr); fflush(stdout);
+    //fflush(stderr);
+    //fflush(stdout);
     return EXIT_SUCCESS;
 }
