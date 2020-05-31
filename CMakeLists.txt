@@ -49,7 +49,7 @@ find_package(libusb REQUIRED)
 
 ## Package configuration (pkg-config) on unix-based systems
 if (NOT WIN32 AND NOT CMAKE_CROSSCOMPILING)
-    #add_subdirectory(cmake/pkgconfig)
+    add_subdirectory(cmake/pkgconfig)
     find_package(PkgConfig)
     pkg_check_modules(GTK3 gtk+-3.0)
 endif ()
