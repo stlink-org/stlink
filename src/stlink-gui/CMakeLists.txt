@@ -13,11 +13,11 @@ if (NOT WIN32)
 
         # Install desktop application entry
         install(FILES stlink-gui.desktop
-                DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/${PROJECT_NAME}/applications)
+                DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/applications)
 
         # Install icons
         install(FILES icons/stlink-gui.svg
-                DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/${PROJECT_NAME}/icons/hicolor/scalable/apps)
+                DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/scalable/apps)
 
         set(GUI_SOURCES gui.c gui.h)
 
