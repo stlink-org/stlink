@@ -9,70 +9,52 @@
 #include <logging.h>
 #include "semihosting.h"
 
-static int mem_read_u8(stlink_t *sl, uint32_t addr, uint8_t *data)
-{
+static int mem_read_u8(stlink_t *sl, uint32_t addr, uint8_t *data) {
     int offset = addr % 4;
     int len = 4;
 
-    if (sl == NULL || data == NULL) {
-        return -1;
-    }
+    if (sl == NULL || data == NULL) return -1;
 
     /* Read address and length must be aligned */
-    if (stlink_read_mem32(sl, addr - offset, len) != 0) {
-        return -1;
-    }
+    if (stlink_read_mem32(sl, addr - offset, len) != 0) return -1;
 
     *data = sl->q_buf[offset];
     return 0;
 }
 
 #ifdef UNUSED
-static int mem_read_u16(stlink_t *sl, uint32_t addr, uint16_t *data)
-{
+static int mem_read_u16(stlink_t *sl, uint32_t addr, uint16_t *data) {
     int offset = addr % 4;
     int len = (offset > 2 ? 8 : 4);
 
-    if (sl == NULL || data == NULL) {
-        return -1;
-    }
+    if (sl == NULL || data == NULL) return -1;
 
     /* Read address and length must be aligned */
-    if (stlink_read_mem32(sl, addr - offset, len) != 0) {
-        return -1;
-    }
+    if (stlink_read_mem32(sl, addr - offset, len) != 0) return -1;
 
     memcpy(data, &sl->q_buf[offset], sizeof(*data));
     return 0;
 }
 
-static int mem_read_u32(stlink_t *sl, uint32_t addr, uint32_t *data)
-{
+static int mem_read_u32(stlink_t *sl, uint32_t addr, uint32_t *data) {
     int offset = addr % 4;
     int len = (offset > 0 ? 8 : 4);
 
-    if (sl == NULL || data == NULL) {
-        return -1;
-    }
+    if (sl == NULL || data == NULL) return -1;
 
     /* Read address and length must be aligned */
-    if (stlink_read_mem32(sl, addr - offset, len) != 0) {
-        return -1;
-    }
+    if (stlink_read_mem32(sl, addr - offset, len) != 0) return -1;
 
     memcpy(data, &sl->q_buf[offset], sizeof(*data));
     return 0;
 }
 #endif
 
-static int mem_read(stlink_t *sl, uint32_t addr, void *data, uint16_t len)
-{
+static int mem_read(stlink_t *sl, uint32_t addr, void *data, uint16_t len) {
     int offset = addr % 4;
     int read_len = len + offset;
 
-    if (sl == NULL || data == NULL) {
-        return -1;
-    }
+    if (sl == NULL || data == NULL) return -1;
 
     /* Align read size */
     if ((read_len % 4) != 0) {
@@ -80,16 +62,13 @@ static int mem_read(stlink_t *sl, uint32_t addr, void *data, uint16_t len)
     }
 
     /* Address and length must be aligned */
-    if (stlink_read_mem32(sl, addr - offset, read_len) != 0) {
-        return -1;
-    }
+    if (stlink_read_mem32(sl, addr - offset, read_len) != 0) return -1;
 
     memcpy(data, &sl->q_buf[offset], len);
     return 0;
 }
 
-static int mem_write(stlink_t *sl, uint32_t addr, void *data, uint16_t len)
-{
+static int mem_write(stlink_t *sl, uint32_t addr, void *data, uint16_t len) {
     // Note: this function can write more than it is asked to!
     // If addr is not an even 32 bit boundary, or len is not a multiple of 4.
     //
@@ -106,9 +85,7 @@ static int mem_write(stlink_t *sl, uint32_t addr, void *data, uint16_t len)
     int offset = addr % 4;
     int write_len = len + offset;
 
-    if (sl == NULL || data == NULL) {
-        return -1;
-    }
+    if (sl == NULL || data == NULL) return -1;
 
     /* Align read size */
     if ((write_len % 4) != 0) {
@@ -118,9 +95,7 @@ static int mem_write(stlink_t *sl, uint32_t addr, void *data, uint16_t len)
     memcpy(&sl->q_buf[offset], data, len);
 
     /* Address and length must be aligned */
-    if (stlink_write_mem32(sl, addr - offset, write_len) != 0) {
-        return -1;
-    }
+    if (stlink_write_mem32(sl, addr - offset, write_len) != 0) return -1;
 
     return 0;
 }
@@ -162,9 +137,7 @@ static int saved_errno = 0;
 
 int do_semihosting (stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret) {
 
-    if (sl == NULL || ret == NULL) {
-        return -1;
-    }
+    if (sl == NULL || ret == NULL) return -1;
 
     DLOG("Do semihosting R0=0x%08x R1=0x%08x\n", r0, r1);
 

@@ -1,5 +1,5 @@
 #include <stlink.h>
-#include <chipid.h>
+#include "chipid.h"
 
 static const struct stlink_chipid_params devices[] = {
         {

@@ -81,43 +81,41 @@ endif ()
 ## Define include directories to avoid absolute paths for header defines
 include_directories(${LIBUSB_INCLUDE_DIR})
 
-# ====
-include_directories(${PROJECT_SOURCE_DIR}/include)                              ### TODO: Clean this up...
-include_directories(${PROJECT_BINARY_DIR}/include/stlink)
-include_directories(${PROJECT_SOURCE_DIR}/include/stlink)
-include_directories(${PROJECT_SOURCE_DIR}/include/stlink/tools)
-# ====
+include_directories(${PROJECT_SOURCE_DIR}/inc) # contains top-level header files
+include_directories(${PROJECT_BINARY_DIR}/inc) # contains version.h
 
 include_directories(src)
-include_directories(src/tools)                                                  ### TODO: Clean this up...
+include_directories(src/mmap)
+include_directories(src/st-flash)
+include_directories(src/stlink-lib)
 
 set(STLINK_HEADERS
-        include/stlink.h
-        include/stlink/backend.h
-        include/stlink/chipid.h
-        include/stlink/commands.h
-        include/stlink/flash_loader.h
-        include/stlink/reg.h
-        src/logging.h
-        src/md5.h
-        src/sg.h
-        src/usb.h
+        inc/stlink.h
+        src/backend.h
+        src/commands.h
+        src/reg.h
+        src/stlink-lib/chipid.h
+        src/stlink-lib/flash_loader.h
+        src/stlink-lib/logging.h
+        src/stlink-lib/md5.h
+        src/stlink-lib/sg.h
+        src/stlink-lib/usb.h
         )
 
 set(STLINK_SOURCE
         src/common.c
-        src/chipid.c
-        src/flash_loader.c
-        src/logging.c
-        src/md5.c
-        src/sg.c
-        src/usb.c
+        src/stlink-lib/chipid.c
+        src/stlink-lib/flash_loader.c
+        src/stlink-lib/logging.c
+        src/stlink-lib/md5.c
+        src/stlink-lib/sg.c
+        src/stlink-lib/usb.c
         )
 
 if (WIN32 OR MINGW OR MSYS)
     include_directories(src/mingw)
-    set(STLINK_SOURCE "${STLINK_SOURCE};src/mmap.c;src/mingw/mingw.c")
-    set(STLINK_HEADERS "${STLINK_HEADERS};src/mmap.h;src/mingw/mingw.h")
+    set(STLINK_SOURCE "${STLINK_SOURCE};src/mmap/mmap.c;src/mingw/mingw.c")
+    set(STLINK_HEADERS "${STLINK_HEADERS};src/mmap/mmap.h;src/mingw/mingw.h")
 endif ()
 
 if (MSVC)
@@ -140,7 +138,7 @@ endif ()
 set(STLINK_LIBRARY_PATH ${CMAKE_INSTALL_LIBDIR} CACHE PATH "Main library install directory")
 
 # Set the environment variable LD_LIBRARY_PATH to point to /usr/local/lib (per default).
-execute_process (COMMAND bash -c "export LD_LIBRARY_PATH="${CMAKE_INSTALL_LIBDIR}" ")
+execute_process (COMMAND bash -c "export LD_LIBRARY_PATH=${CMAKE_INSTALL_LIBDIR}")
 
 
 ###
@@ -221,6 +219,8 @@ install(TARGETS ${STLINK_LIB_STATIC} ARCHIVE DESTINATION ${STLINK_LIBRARY_PATH})
 # Build toolset executables
 ###
 
+set(ST-FLASH_SOURCES src/st-flash/flash.c src/st-flash/flash_opts.c)
+set(ST-INFO_SOURCES src/st-info/info.c)
 set(ST-UTIL_SOURCES src/st-util/gdb-remote.c src/st-util/gdb-server.c src/st-util/semihosting.c)
 
 if (MSVC)
@@ -228,8 +228,8 @@ if (MSVC)
     set(ST-UTIL_SOURCES "${ST-UTIL_SOURCES};src/getopt/getopt.c")
 endif ()
 
-add_executable(st-flash src/tools/flash.c src/tools/flash_opts.c)
-add_executable(st-info src/tools/info.c)
+add_executable(st-flash ${ST-FLASH_SOURCES})
+add_executable(st-info ${ST-INFO_SOURCES})
 add_executable(st-util ${ST-UTIL_SOURCES})
 
 if (WIN32 OR APPLE)
@@ -267,11 +267,7 @@ endif ()
 # Additional build tasks
 ###
 
-# ====
-add_subdirectory(include) # contains subordinate CMakeLists for version config and old header includes
-                                                                                ### TODO: Clean this up ...
-# ====
-
+add_subdirectory(inc)             # contains subordinate CMakeLists for version config
 add_subdirectory(src/stlink-gui)  # contains subordinate CMakeLists to build GUI
 add_subdirectory(tests)           # contains subordinate CMakeLists to build test executables
 add_subdirectory(cmake/packaging) # contains subordinate CMakeLists to build packages

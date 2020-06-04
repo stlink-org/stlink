@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <flash.h>
+#include "flash.h"
 
 static bool starts_with(const char * str, const char * prefix) {
     size_t n = strlen(prefix);

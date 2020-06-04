@@ -11,7 +11,7 @@
 #include <stdbool.h>
 
 #include <stlink.h>
-#include "libusb_settings.h"
+#include <libusb_settings.h>
 #include "logging.h"
 
 #ifdef __cplusplus

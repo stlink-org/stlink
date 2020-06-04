@@ -8,8 +8,8 @@
 #ifndef STLINK_SG_H
 #define STLINK_SG_H
 
-#include "libusb_settings.h"
 #include <stlink.h>
+#include <libusb_settings.h>
 
 #ifdef __cplusplus
 extern "C" {

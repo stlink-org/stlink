@@ -84,6 +84,7 @@
 
 #include <stlink.h>
 #include "logging.h"
+#include "sg.h"
 
 #define STLINK_OK    0x80
 #define STLINK_FALSE 0x81

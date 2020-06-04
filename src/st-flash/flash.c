@@ -9,7 +9,7 @@
 #include <sys/types.h>
 
 #include <stlink.h>
-#include <flash.h>
+#include "flash.h"
 
 static stlink_t *connected_stlink = NULL;
 

@@ -14,6 +14,7 @@
 #include <mingw.h>
 #endif
 #include <stlink.h>
+#include "usb.h"
 
 enum SCSI_Generic_Direction {SG_DXFER_TO_DEV=0, SG_DXFER_FROM_DEV=0x80};
 
@@ -1147,7 +1148,7 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, int reset, char serial[STL
 
     if (reset == 2) {
          stlink_jtag_reset(sl,0);
-         if (stlink_current_mode(sl) != STLINK_DEV_DEBUG_MODE) stlink_enter_swd_mode(sl); 
+         if (stlink_current_mode(sl) != STLINK_DEV_DEBUG_MODE) stlink_enter_swd_mode(sl);
          stlink_force_debug(sl);
          stlink_jtag_reset(sl,1);
          usleep(10000);

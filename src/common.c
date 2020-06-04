@@ -12,9 +12,9 @@
 #include <sys/stat.h>
 
 #include <stlink.h>
-#include "mmap.h"
-#include "logging.h"
-#include "md5.h"
+#include <mmap.h>
+#include <logging.h>
+#include <md5.h>
 
 #ifndef O_BINARY
 #define O_BINARY 0
