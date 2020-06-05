@@ -48,29 +48,34 @@ endif ()
 find_package(libusb REQUIRED)
 
 ## Check for system-specific additional header files and libraries
+
 include(CheckIncludeFile)
+include(CheckLibraryExists)
+
+CHECK_LIBRARY_EXISTS(ssp __stack_chk_fail "" _stack_chk_fail_exists)
+if (_stack_chk_fail_exists)
+    if (WIN32)
+        set(SSP_LIB -static ssp)
+    else ()
+        set(SSP_LIB ssp)
+    endif ()
+else ()
+    set(SSP_LIB "")
+endif ()
 
 CHECK_INCLUDE_FILE(sys/mman.h STLINK_HAVE_SYS_MMAN_H)
 if (STLINK_HAVE_SYS_MMAN_H)
     add_definitions(-DSTLINK_HAVE_SYS_MMAN_H)
-endif ()
+endif()
 
 CHECK_INCLUDE_FILE(unistd.h STLINK_HAVE_UNISTD_H)
 if (STLINK_HAVE_UNISTD_H)
     add_definitions(-DSTLINK_HAVE_UNISTD_H)
 endif ()
 
-include(CheckLibraryExists)
-
-CHECK_LIBRARY_EXISTS(ssp __stack_chk_fail "" _stack_chk_fail_exists)
-if (_stack_chk_fail_exists)
-    if(WIN32)
-        set(SSP_LIB -static ssp)
-    else()
-        set(SSP_LIB ssp)
-    endif()
-else ()
-    set(SSP_LIB "")
+if (MSVC)
+    # Use string.h rather than strings.h and disable annoying warnings
+    add_definitions(-DHAVE_STRING_H -D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_WARNINGS /wd4710)
 endif ()
 
 
@@ -85,9 +90,13 @@ include_directories(${PROJECT_SOURCE_DIR}/inc) # contains top-level header files
 include_directories(${PROJECT_BINARY_DIR}/inc) # contains version.h
 
 include_directories(src)
-include_directories(src/mmap)
 include_directories(src/st-flash)
 include_directories(src/stlink-lib)
+
+if (MSVC)
+    include_directories(src/win32)
+    include_directories(src/win32/unistd)
+endif ()
 
 set(STLINK_HEADERS
         inc/stlink.h
@@ -112,17 +121,21 @@ set(STLINK_SOURCE
         src/stlink-lib/usb.c
         )
 
-if (WIN32 OR MINGW OR MSYS)
-    include_directories(src/mingw)
-    set(STLINK_SOURCE "${STLINK_SOURCE};src/mmap/mmap.c;src/mingw/mingw.c")
-    set(STLINK_HEADERS "${STLINK_HEADERS};src/mmap/mmap.h;src/mingw/mingw.h")
-endif ()
-
-if (MSVC)
+if (WIN32)
     include_directories(src/win32)
-    include_directories(src/getopt)
-    # Use string.h rather than strings.h and disable annoying warnings
-    add_definitions(-DHAVE_STRING_H -D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_WARNINGS /wd4710)
+    set(STLINK_SOURCE "${STLINK_SOURCE};src/win32/win32_socket.c")
+    set(STLINK_HEADERS "${STLINK_HEADERS};src/win32/win32_socket.h")
+
+    if (MSVC)
+        include_directories(src/win32/unistd)
+        set(STLINK_HEADERS "${STLINK_HEADERS};src/win32/unistd/unistd.h")
+    endif ()
+
+    if (NOT STLINK_HAVE_SYS_MMAN_H)
+        include_directories(src/win32/mmap)
+        set(STLINK_SOURCE "${STLINK_SOURCE};src/win32/mmap.c")
+        set(STLINK_HEADERS "${STLINK_HEADERS};src/win32/mmap.h")
+    endif()
 endif ()
 
 ## Include test execution for test-targets for target Debug
@@ -225,7 +238,8 @@ set(ST-UTIL_SOURCES src/st-util/gdb-remote.c src/st-util/gdb-server.c src/st-uti
 
 if (MSVC)
     # Add getopt to sources
-    set(ST-UTIL_SOURCES "${ST-UTIL_SOURCES};src/getopt/getopt.c")
+    include_directories(src/win32/getopt)
+    set(ST-UTIL_SOURCES "${ST-UTIL_SOURCES};src/win32/getopt/getopt.c")
 endif ()
 
 add_executable(st-flash ${ST-FLASH_SOURCES})

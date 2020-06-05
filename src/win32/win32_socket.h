@@ -9,19 +9,20 @@
 
 #include <io.h>
 #include <winsock2.h>
+
 #if defined(_MSC_VER)
 #pragma comment(lib, "ws2_32.lib")
 #endif
+
 #include <unistd.h>
 
 #if defined(_MSC_VER)
 #pragma warning(pop)
 #endif
 
-/* winsock doesn't feature poll(), so there is a version implemented
- * in terms of select() in mingw.c. The following definitions
- * are copied from linux man pages. A poll() macro is defined to
- * call the version in mingw.c.
+/* winsock doesn't feature poll(), so there is a version implemented in terms of select() in mingw.c.
+ * The following definitions are copied from linux man pages.
+ * A poll() macro is defined to call the version in mingw.c.
  */
 #if !defined(_WIN32_WINNT) || (_WIN32_WINNT < 0x0600)
 
@@ -39,11 +40,10 @@ struct pollfd {
 #endif
 #define poll(x, y, z)     win32_poll(x, y, z)
 
-/* These wrappers do nothing special except set the global errno variable if
- * an error occurs (winsock doesn't do this by default). They set errno
- * to unix-like values (i.e. WSAEWOULDBLOCK is mapped to EAGAIN), so code
- * outside of this file "shouldn't" have to worry about winsock specific error
- * handling.
+/* These wrappers do nothing special except set the global errno variable if an error occurs
+ * (winsock doesn't do this by default).
+ * They set errno to unix-like values (i.e. WSAEWOULDBLOCK is mapped to EAGAIN),
+ * so code outside of this file "shouldn't" have to worry about winsock specific error handling.
  */
 #define socket(x, y, z)   win32_socket(x, y, z)
 #define connect(x, y, z)  win32_connect(x, y, z)
@@ -71,4 +71,4 @@ char *win32_strsep(char **stringp, const char *delim);
 ssize_t win32_read_socket(SOCKET fd, void *buf, int n);
 ssize_t win32_write_socket(SOCKET fd, void *buf, int n);
 
-#endif //defined(__MINGW32__) || defined(_MSC_VER)
+#endif // defined(__MINGW32__) || defined(_MSC_VER)

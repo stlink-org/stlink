@@ -20,7 +20,6 @@ void *mmap (void *addr, size_t len, int prot, int flags, int fd, long long  offs
         return MAP_FAILED;
     }
 
-
     count = read(fd, buf, len);
 
     if (count != (ssize_t)len) {

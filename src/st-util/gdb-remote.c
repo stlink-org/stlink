@@ -9,8 +9,8 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-#if defined(__MINGW32__) || defined(_MSC_VER)
-#include <mingw.h>
+#if defined(_WIN32)
+#include <win32_socket.h>
 #else
 #include <unistd.h>
 #include <sys/poll.h>

@@ -16,7 +16,7 @@
 #endif
 
 #if defined(_WIN32)
-#include <mingw.h>
+#include <win32_socket.h>
 #else
 #include <unistd.h>
 #include <sys/socket.h>

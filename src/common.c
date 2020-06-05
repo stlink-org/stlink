@@ -12,9 +12,14 @@
 #include <sys/stat.h>
 
 #include <stlink.h>
-#include <mmap.h>
 #include <logging.h>
 #include <md5.h>
+
+#ifdef STLINK_HAVE_SYS_MMAN_H
+#include <sys/mman.h>
+#else
+#include <mmap.h>
+#endif
 
 #ifndef O_BINARY
 #define O_BINARY 0
@@ -193,24 +198,26 @@
 #define STM32L4_FLASH_CR        (FLASH_REGS_ADDR + 0x14)
 #define STM32L4_FLASH_OPTR      (FLASH_REGS_ADDR + 0x20)
 
-#define STM32L4_FLASH_SR_BSY            16
-#define STM32L4_FLASH_SR_ERRMASK        0x3f8 /* SR [9:3] */
+#define STM32L4_FLASH_SR_BSY        16
+#define STM32L4_FLASH_SR_ERRMASK 0x3f8 /* SR [9:3] */
 
-#define STM32L4_FLASH_CR_LOCK   31      /* Lock control register */
-#define STM32L4_FLASH_CR_OPTLOCK 30	/* Lock option bytes */
-#define STM32L4_FLASH_CR_PG     0       /* Program */
-#define STM32L4_FLASH_CR_PER    1       /* Page erase */
-#define STM32L4_FLASH_CR_MER1   2       /* Bank 1 erase */
-#define STM32L4_FLASH_CR_MER2   15      /* Bank 2 erase */
-#define STM32L4_FLASH_CR_STRT   16      /* Start command */
-#define STM32L4_FLASH_CR_OPTSTRT 17	/* Start writing option bytes */
-#define STM32L4_FLASH_CR_BKER   11      /* Bank select for page erase */
-#define STM32L4_FLASH_CR_PNB    3       /* Page number (8 bits) */
-#define STM32L4_FLASH_CR_OBL_LAUNCH 27  /* Option bytes reload */
+#define STM32L4_FLASH_CR_LOCK       31 /* Lock control register */
+#define STM32L4_FLASH_CR_OPTLOCK    30 /* Lock option bytes */
+#define STM32L4_FLASH_CR_PG          0 /* Program */
+#define STM32L4_FLASH_CR_PER         1 /* Page erase */
+#define STM32L4_FLASH_CR_MER1        2 /* Bank 1 erase */
+#define STM32L4_FLASH_CR_MER2       15 /* Bank 2 erase */
+#define STM32L4_FLASH_CR_STRT       16 /* Start command */
+#define STM32L4_FLASH_CR_OPTSTRT    17 /* Start writing option bytes */
+#define STM32L4_FLASH_CR_BKER       11 /* Bank select for page erase */
+#define STM32L4_FLASH_CR_PNB         3 /* Page number (8 bits) */
+#define STM32L4_FLASH_CR_OBL_LAUNCH 27 /* Option bytes reload */
 // Bits requesting flash operations (useful when we want to clear them)
-#define STM32L4_FLASH_CR_OPBITS                                     \
-    (uint32_t)((1lu<<STM32L4_FLASH_CR_PG) | (1lu<<STM32L4_FLASH_CR_PER)       \
-    | (1lu<<STM32L4_FLASH_CR_MER1) | (1lu<<STM32L4_FLASH_CR_MER1))
+#define STM32L4_FLASH_CR_OPBITS \
+    (uint32_t)((1lu<<STM32L4_FLASH_CR_PG) | \
+    (1lu<<STM32L4_FLASH_CR_PER) | \
+    (1lu<<STM32L4_FLASH_CR_MER1) | \
+    (1lu<<STM32L4_FLASH_CR_MER1))
 // Page is fully specified by BKER and PNB
 #define STM32L4_FLASH_CR_PAGEMASK (uint32_t)(0x1fflu << STM32L4_FLASH_CR_PNB)
 
@@ -583,8 +590,7 @@ static int lock_flash_option(stlink_t *sl) {
     return 0;
 }
 
-static int unlock_flash_option(stlink_t *sl)
-{
+static int unlock_flash_option(stlink_t *sl) {
     uint32_t optkey_reg;
     uint32_t optkey1 = FLASH_OPTKEY1;
     uint32_t optkey2 = FLASH_OPTKEY2;
@@ -648,11 +654,11 @@ static void set_flash_cr_pg(stlink_t *sl) {
 
     if (sl->flash_type == STLINK_FLASH_TYPE_F4) {
         cr_reg = FLASH_F4_CR;
-        x |= 1 << FLASH_CR_PG;
+        x |= (1 << FLASH_CR_PG);
     } else if (sl->flash_type == STLINK_FLASH_TYPE_L4) {
         cr_reg = STM32L4_FLASH_CR;
         x &= ~STM32L4_FLASH_CR_OPBITS;
-        x |= 1 << STM32L4_FLASH_CR_PG;
+        x |= (1 << STM32L4_FLASH_CR_PG);
     } else if (sl->flash_type == STLINK_FLASH_TYPE_G0 ||
                sl->flash_type == STLINK_FLASH_TYPE_G4) {
         cr_reg = STM32Gx_FLASH_CR;
@@ -662,7 +668,7 @@ static void set_flash_cr_pg(stlink_t *sl) {
         x |= (1 << FLASH_CR_PG);
     } else {
         cr_reg = FLASH_CR;
-        x = 1 << FLASH_CR_PG;
+        x = (1 << FLASH_CR_PG);
     }
 
     stlink_write_debug32(sl, cr_reg, x);
@@ -704,7 +710,7 @@ static void set_flash_cr_per(stlink_t *sl) {
 }
 
 static void set_flash_cr2_per(stlink_t *sl) {
-    const uint32_t n = 1 << FLASH_CR_PER;
+    const uint32_t n = (1 << FLASH_CR_PER);
     stlink_write_debug32(sl, FLASH_CR2, n);
 }
 
@@ -728,12 +734,12 @@ static void set_flash_cr_mer(stlink_t *sl, bool v) {
 
     if (sl->flash_type == STLINK_FLASH_TYPE_F4) {
         cr_reg = FLASH_F4_CR;
-        cr_mer = 1 << FLASH_CR_MER;
-        cr_pg = 1 << FLASH_CR_PG;
+        cr_mer = (1 << FLASH_CR_MER);
+        cr_pg = (1 << FLASH_CR_PG);
     } else if (sl->flash_type == STLINK_FLASH_TYPE_L4) {
         cr_reg = STM32L4_FLASH_CR;
         cr_mer = (1 << STM32L4_FLASH_CR_MER1) | (1 << STM32L4_FLASH_CR_MER2);
-        cr_pg = 1 << STM32L4_FLASH_CR_PG;
+        cr_pg = (1 << STM32L4_FLASH_CR_PG);
     } else if (sl->flash_type == STLINK_FLASH_TYPE_G0 ||
                sl->flash_type == STLINK_FLASH_TYPE_G4) {
         cr_reg = STM32Gx_FLASH_CR;
@@ -748,8 +754,8 @@ static void set_flash_cr_mer(stlink_t *sl, bool v) {
         cr_pg  = (1 << FLASH_CR_PG);
     } else {
         cr_reg = FLASH_CR;
-        cr_mer = 1 << FLASH_CR_MER;
-        cr_pg = 1 << FLASH_CR_PG;
+        cr_mer = (1 << FLASH_CR_MER);
+        cr_pg  = (1 << FLASH_CR_PG);
     }
 
     stlink_read_debug32(sl, cr_reg, &val);
@@ -767,8 +773,8 @@ static void set_flash_cr_mer(stlink_t *sl, bool v) {
 }
 
 static void set_flash_cr2_mer(stlink_t *sl, bool v) {
-    const uint32_t cr_pg = 1 << FLASH_CR_PER;
-    const uint32_t cr_mer = 1 << FLASH_CR_MER;
+    const uint32_t cr_pg  = (1 << FLASH_CR_PER);
+    const uint32_t cr_mer = (1 << FLASH_CR_MER);
     uint32_t val;
 
     stlink_read_debug32(sl, FLASH_CR2, &val);
@@ -785,13 +791,13 @@ static void __attribute__((unused)) clear_flash_cr_mer(stlink_t *sl) {
 
     if (sl->flash_type == STLINK_FLASH_TYPE_F4) {
         cr_reg = FLASH_F4_CR;
-        cr_mer = 1 << FLASH_CR_MER;
+        cr_mer = (1 << FLASH_CR_MER);
     } else if (sl->flash_type == STLINK_FLASH_TYPE_L4) {
         cr_reg = STM32L4_FLASH_CR;
         cr_mer = (1 << STM32L4_FLASH_CR_MER1) | (1 << STM32L4_FLASH_CR_MER2);
     } else {
         cr_reg = FLASH_CR;
-        cr_mer = 1 << FLASH_CR_MER;
+        cr_mer = (1 << FLASH_CR_MER);
     }
 
     stlink_read_debug32(sl, cr_reg, &val);
@@ -804,20 +810,20 @@ static void set_flash_cr_strt(stlink_t *sl) {
 
     if (sl->flash_type == STLINK_FLASH_TYPE_F4) {
         cr_reg = FLASH_F4_CR;
-        cr_strt = 1 << FLASH_F4_CR_STRT;
+        cr_strt = (1 << FLASH_F4_CR_STRT);
     } else if (sl->flash_type == STLINK_FLASH_TYPE_L4) {
         cr_reg = STM32L4_FLASH_CR;
-        cr_strt = 1 << STM32L4_FLASH_CR_STRT;
+        cr_strt = (1 << STM32L4_FLASH_CR_STRT);
     } else if (sl->flash_type == STLINK_FLASH_TYPE_G0 ||
                sl->flash_type == STLINK_FLASH_TYPE_G4) {
         cr_reg = STM32Gx_FLASH_CR;
-        cr_strt = 1 << STM32Gx_FLASH_CR_STRT;
+        cr_strt = (1 << STM32Gx_FLASH_CR_STRT);
     } else if (sl->flash_type == STLINK_FLASH_TYPE_WB) {
         cr_reg = STM32WB_FLASH_CR;
-        cr_strt = 1 << STM32WB_FLASH_CR_STRT;
+        cr_strt = (1 << STM32WB_FLASH_CR_STRT);
     } else {
         cr_reg = FLASH_CR;
-        cr_strt = 1 << FLASH_CR_STRT;
+        cr_strt = (1 << FLASH_CR_STRT);
     }
 
     stlink_read_debug32(sl, cr_reg, &val);
@@ -2377,8 +2383,7 @@ int stlink_verify_write_flash(stlink_t *sl, stm32_addr_t address, uint8_t *data,
 
 }
 
-int stm32l1_write_half_pages(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uint32_t len, uint32_t pagesize)
-{
+int stm32l1_write_half_pages(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uint32_t len, uint32_t pagesize) {
     unsigned int count;
     unsigned int num_half_pages = len / pagesize;
     uint32_t val;
@@ -2742,7 +2747,8 @@ int stlink_parse_ihex(const char* path, uint8_t erased_pattern, uint8_t * * mem,
     uint32_t end = 0;
     bool eof_found = false;
 
-    for (int scan = 0; (res == 0) && (scan < 2); ++scan) { // parse file two times - first to find memory range, second - to fill it
+    for (int scan = 0; (res == 0) && (scan < 2); ++scan) {
+        // parse file two times - first to find memory range, second - to fill it
         if (scan == 1) {
             if (!eof_found) {
                 ELOG("No EoF recond\n");
@@ -3015,8 +3021,7 @@ static int stlink_write_option_bytes_gx(stlink_t *sl, uint8_t* base, stm32_addr_
  * @param base option bytes to write
  * @return 0 on success, -ve on failure.
  */
-static int stlink_write_option_bytes_l0(stlink_t *sl, uint8_t* base, stm32_addr_t addr, uint32_t len)
-{
+static int stlink_write_option_bytes_l0(stlink_t *sl, uint8_t* base, stm32_addr_t addr, uint32_t len) {
     uint32_t flash_base = get_stm32l0_flash_base(sl);
     uint32_t val;
     uint32_t data;
@@ -3162,8 +3167,7 @@ int stlink_read_option_bytes_generic(stlink_t *sl, uint32_t* option_byte) {
  * @param option_byte option value
  * @return 0 on success, -ve on failure.
  */
-int stlink_read_option_bytes32(stlink_t *sl, uint32_t* option_byte)
-{
+int stlink_read_option_bytes32(stlink_t *sl, uint32_t* option_byte) {
     if (sl->option_base == 0) {
         ELOG("Option bytes read is currently not supported for connected chip\n");
         return -1;
@@ -3190,8 +3194,7 @@ int stlink_read_option_bytes32(stlink_t *sl, uint32_t* option_byte)
  * @param option_byte value to write
  * @return 0 on success, -ve on failure.
  */
-int stlink_write_option_bytes32(stlink_t *sl, uint32_t option_byte)
-{
+int stlink_write_option_bytes32(stlink_t *sl, uint32_t option_byte) {
     WLOG("About to write option byte %#10x to target.\n", option_byte);
     return stlink_write_option_bytes(sl, sl->option_base, (uint8_t *) &option_byte, 4);
 }
@@ -3203,8 +3206,7 @@ int stlink_write_option_bytes32(stlink_t *sl, uint32_t option_byte)
  * @param base option bytes to write
  * @return 0 on success, -ve on failure.
  */
-int stlink_write_option_bytes(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uint32_t len)
-{
+int stlink_write_option_bytes(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uint32_t len) {
     int ret = -1;
 
     if (sl->option_base == 0) {
