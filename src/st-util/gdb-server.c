@@ -1,8 +1,8 @@
 /*
  * Copyright (C)  2011 Peter Zotov <whitequark@whitequark.org>
- * Use of this source code is governed by a BSD-style
- * license that can be found in the LICENSE file.
+ * Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
  */
+
 #include <ctype.h>
 #include <getopt.h>
 #include <signal.h>
@@ -10,6 +10,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <sys/types.h>
+
 #if defined(_MSC_VER)
 #include <stdbool.h>
 #define __attribute__(x)
@@ -32,11 +33,11 @@
 
 #define FLASH_BASE 0x08000000
 
-/* Semihosting doesn't have a short option, we define a value to identify it */
+// Semihosting doesn't have a short option, we define a value to identify it
 #define SEMIHOSTING_OPTION 128
 #define SERIAL_OPTION 127
 
-//Allways update the FLASH_PAGE before each use, by calling stlink_calculate_pagesize
+// always update the FLASH_PAGE before each use, by calling stlink_calculate_pagesize
 #define FLASH_PAGE (sl->flash_pgsz)
 
 static stlink_t *connected_stlink = NULL;
@@ -71,7 +72,7 @@ char* make_memory_map(stlink_t *sl);
 static void init_cache (stlink_t *sl);
 
 static void cleanup(int signum) {
-	(void)signum;
+    (void)signum;
 
     if (connected_stlink) {
         /* Switch back to mass storage mode before closing. */
@@ -86,10 +87,10 @@ static void cleanup(int signum) {
 
 static stlink_t* do_connect(st_state_t *st) {
     stlink_t *sl = NULL;
-	if (serial_specified) {
-		sl = stlink_open_usb(st->logging_level, st->reset, serialnumber, 0);
-	} else {
-		sl = stlink_open_usb(st->logging_level, st->reset, NULL, 0);
+    if (serial_specified) {
+        sl = stlink_open_usb(st->logging_level, st->reset, serialnumber, 0);
+    } else {
+        sl = stlink_open_usb(st->logging_level, st->reset, NULL, 0);
     }
     return sl;
 }
@@ -201,18 +202,16 @@ int main(int argc, char** argv) {
     st_state_t state;
     memset(&state, 0, sizeof(state));
 
-    // set defaults...
+    // set defaults ...
     state.logging_level = DEFAULT_LOGGING_LEVEL;
     state.listen_port = DEFAULT_GDB_LISTEN_PORT;
-    state.reset = 1;    /* By default, reset board */
+    state.reset = 1; // by default, reset board
     parse_options(argc, argv, &state);
 
     printf("st-util\n");
 
     sl = do_connect(&state);
-    if (sl == NULL) {
-        return 1;
-    }
+    if (sl == NULL) return 1;
 
     if (sl->chip_id == STLINK_CHIPID_UNKNOWN)  {
         ELOG("Unsupported Target (Chip ID is %#010x, Core ID is %#010x).\n", sl->chip_id, sl->core_id);
@@ -224,42 +223,32 @@ int main(int argc, char** argv) {
     signal(SIGTERM, &cleanup);
     signal(SIGSEGV, &cleanup);
 
-    if (state.reset) {
-        stlink_reset(sl);
-    }
+    if (state.reset) stlink_reset(sl);
 
     DLOG("Chip ID is %#010x, Core ID is %#08x.\n", sl->chip_id, sl->core_id);
 
     sl->verbose=0;
     current_memory_map = make_memory_map(sl);
 
-#if defined(__MINGW32__) || defined(_MSC_VER)
-    WSADATA	wsadata;
-    if (WSAStartup(MAKEWORD(2,2),&wsadata) !=0){
-        goto winsock_error;
-    }
+#if defined(_WIN32)
+    WSADATA    wsadata;
+    if (WSAStartup(MAKEWORD(2,2),&wsadata) !=0) goto winsock_error;
 #endif
 
     init_cache(sl);
 
     do {
-        if (serve(sl, &state)) {
-      usleep (1 * 1000); // don't go bezurk if serve returns with error
-    }
-
-        /* in case serve() changed the connection */
-        sl = connected_stlink;
-
-        /* Continue */
-        stlink_run(sl);
+        if (serve(sl, &state)) { usleep (1 * 1000); } // don't go beserk if serve returns with error
+        sl = connected_stlink; // in case serve() changed the connection
+        stlink_run(sl);        // continue
     } while (state.persistent);
 
-#if defined(__MINGW32__) || defined(_MSC_VER)
+#if defined(_WIN32)
 winsock_error:
     WSACleanup();
 #endif
 
-    /* Switch back to mass storage mode before closing. */
+    // switch back to mass storage mode before closing
     stlink_exit_debug_mode(sl);
     stlink_close(sl);
 
@@ -507,7 +496,7 @@ static const char* const memory_map_template_F4_DE =
     "</memory-map>";
 
 char* make_memory_map(stlink_t *sl) {
-    /* This will be freed in serve() */
+    // this will be freed in serve()
     const size_t sz = 4096;
     char* map = malloc(sz);
     map[0] = '\0';
@@ -544,7 +533,6 @@ char* make_memory_map(stlink_t *sl) {
     }
     return map;
 }
-
 
 /*
  * DWT_COMP0     0xE0001020
@@ -589,8 +577,8 @@ static void init_data_watchpoints(stlink_t *sl) {
     }
 }
 
-static int add_data_watchpoint(stlink_t *sl, enum watchfun wf,
-                               stm32_addr_t addr, unsigned int len) {
+static int add_data_watchpoint(
+        stlink_t *sl, enum watchfun wf, stm32_addr_t addr, unsigned int len) {
     int i = 0;
     uint32_t mask, dummy;
 
@@ -635,8 +623,7 @@ static int add_data_watchpoint(stlink_t *sl, enum watchfun wf,
     return -1;
 }
 
-static int delete_data_watchpoint(stlink_t *sl, stm32_addr_t addr)
-{
+static int delete_data_watchpoint(stlink_t *sl, stm32_addr_t addr) {
     int i;
 
     for (i = 0 ; i < DATA_WATCH_NUM; i++) {
@@ -657,9 +644,9 @@ static int delete_data_watchpoint(stlink_t *sl, stm32_addr_t addr)
 
 static int code_break_num;
 static int code_lit_num;
-#define CODE_BREAK_NUM_MAX	15
-#define CODE_BREAK_LOW	0x01
-#define CODE_BREAK_HIGH	0x02
+#define CODE_BREAK_NUM_MAX    15
+#define CODE_BREAK_LOW    0x01
+#define CODE_BREAK_HIGH    0x02
 
 struct code_hw_breakpoint {
     stm32_addr_t addr;
@@ -687,9 +674,7 @@ static void init_code_breakpoints(stlink_t *sl) {
 static int has_breakpoint(stm32_addr_t addr)
 {
     for (int i = 0; i < code_break_num; i++) {
-        if (code_breaks[i].addr == addr) {
-            return 1;
-        }
+        if (code_breaks[i].addr == addr) return 1;
     }
     return 0;
 }
@@ -704,52 +689,43 @@ static int update_code_breakpoint(stlink_t *sl, stm32_addr_t addr, int set) {
         return -1;
     }
 
-	if (sl->core_id==STM32F7_CORE_ID) {
-		fpb_addr = addr;
-	} else {
-		fpb_addr = addr & ~0x3;
-	}
+    if (sl->core_id==STM32F7_CORE_ID) {
+        fpb_addr = addr;
+    } else {
+        fpb_addr = addr & ~0x3;
+    }
 
     int id = -1;
     for (int i = 0; i < code_break_num; i++) {
-        if (fpb_addr == code_breaks[i].addr ||
-                (set && code_breaks[i].type == 0)) {
+        if (fpb_addr == code_breaks[i].addr || (set && code_breaks[i].type == 0)) {
             id = i;
             break;
         }
     }
 
     if (id == -1) {
-        if (set) return -1; // Free slot not found
-        else	return 0;  // Breakpoint is already removed
+        if (set) { return -1; } // free slot not found
+        else { return 0; } // breakpoint is already removed
     }
 
     struct code_hw_breakpoint* bp = &code_breaks[id];
 
     bp->addr = fpb_addr;
 
-	if (sl->core_id==STM32F7_CORE_ID) {
-		if (set) bp->type = type;
-		else	bp->type = 0;
-
-		mask = (bp->addr) | 1;
-	} else {
-		if (set) bp->type |= type;
-		else	bp->type &= ~type;
-
-		mask = (bp->addr) | 1 | (bp->type << 30);
-	}
+    if (sl->core_id==STM32F7_CORE_ID) {
+        if (set) { bp->type = type; } else { bp->type = 0; }
+        mask = (bp->addr) | 1;
+    } else {
+        if (set) { bp->type |= type; } else { bp->type &= ~type; }
+        mask = (bp->addr) | 1 | (bp->type << 30);
+    }
 
     if (bp->type == 0) {
         DLOG("clearing hw break %d\n", id);
-
         stlink_write_debug32(sl, 0xe0002008 + id * 4, 0);
     } else {
-        DLOG("setting hw break %d at %08x (%d)\n",
-                    id, bp->addr, bp->type);
-        DLOG("reg %08x \n",
-                    mask);
-
+        DLOG("setting hw break %d at %08x (%d)\n", id, bp->addr, bp->type);
+        DLOG("reg %08x \n", mask);
         stlink_write_debug32(sl, 0xe0002008 + id * 4, mask);
     }
 
@@ -782,7 +758,6 @@ static int flash_add_block(stm32_addr_t addr, unsigned length, stlink_t *sl) {
 
     struct flash_block* new = malloc(sizeof(struct flash_block));
     new->next = flash_root;
-
     new->addr   = addr;
     new->length = length;
     new->data   = calloc(length, 1);
@@ -824,8 +799,7 @@ static int flash_populate(stm32_addr_t addr, uint8_t* data, unsigned length) {
     }
 
     if (fit_length != length) {
-        WLOG("data block %08x -> %04x truncated to %04x\n",
-                addr, length, fit_length);
+        WLOG("data block %08x -> %04x truncated to %04x\n", addr, length, fit_length);
         WLOG("(this is not an error, just a GDB glitch)\n");
     }
 
@@ -835,7 +809,7 @@ static int flash_populate(stm32_addr_t addr, uint8_t* data, unsigned length) {
 static int flash_go(stlink_t *sl) {
     int error = -1;
 
-    // Some kinds of clock settings do not allow writing to flash.
+    // some kinds of clock settings do not allow writing to flash.
     stlink_reset(sl);
     stlink_force_debug(sl);
 
@@ -845,14 +819,13 @@ static int flash_go(stlink_t *sl) {
         for (stm32_addr_t page = fb->addr; page < fb->addr + fb->length; page += (uint32_t)FLASH_PAGE) {
             unsigned length = fb->length - (page - fb->addr);
 
-            //Update FLASH_PAGE
+            // update FLASH_PAGE
             stlink_calculate_pagesize(sl, page);
 
             DLOG("flash_do: page %08x\n", page);
             unsigned len = (length > FLASH_PAGE) ? (unsigned int) FLASH_PAGE : length;
             int ret = stlink_write_flash(sl, page, fb->data + (page - fb->addr), len, 0);
-            if (ret < 0)
-                goto error;
+            if (ret < 0) goto error;
         }
     }
 
@@ -882,98 +855,86 @@ error:
 #define DCCSW   0xE000EF6C
 #define ICIALLU 0xE000EF50
 
-struct cache_level_desc
-{
-  unsigned int nsets;
-  unsigned int nways;
-  unsigned int log2_nways;
-  unsigned int width;
+struct cache_level_desc {
+    unsigned int nsets;
+    unsigned int nways;
+    unsigned int log2_nways;
+    unsigned int width;
 };
 
-struct cache_desc_t
-{
-  /* Minimal line size in bytes.  */
-  unsigned int dminline;
-  unsigned int iminline;
+struct cache_desc_t {
+    // Minimal line size in bytes
+    unsigned int dminline;
+    unsigned int iminline;
 
-  /* Last level of unification (uniprocessor).  */
-  unsigned int louu;
+    // Last level of unification (uniprocessor)
+    unsigned int louu;
 
-  struct cache_level_desc icache[7];
-  struct cache_level_desc dcache[7];
+    struct cache_level_desc icache[7];
+    struct cache_level_desc dcache[7];
 };
 
 static struct cache_desc_t cache_desc;
 
-/* Return the smallest R so that V <= (1 << R).  Not performance critical.  */
-static unsigned ceil_log2(unsigned v)
-{
-  unsigned res;
-  for (res = 0; (1U << res) < v; res++)
-    ;
-  return res;
+// return the smallest R so that V <= (1 << R); not performance critical
+static unsigned ceil_log2(unsigned v) {
+    unsigned res;
+    for (res = 0; (1U << res) < v; res++) ;
+    return res;
 }
 
-static void read_cache_level_desc(stlink_t *sl, struct cache_level_desc *desc)
-{
-  unsigned int ccsidr;
-  unsigned int log2_nsets;
+static void read_cache_level_desc(stlink_t *sl, struct cache_level_desc *desc) {
+    unsigned int ccsidr;
+    unsigned int log2_nsets;
 
-  stlink_read_debug32(sl, CCSIDR, &ccsidr);
-  desc->nsets = ((ccsidr >> 13) & 0x3fff) + 1;
-  desc->nways = ((ccsidr >> 3) & 0x1ff) + 1;
-  desc->log2_nways = ceil_log2 (desc->nways);
-  log2_nsets = ceil_log2 (desc->nsets);
-  desc->width = 4 + (ccsidr & 7) + log2_nsets;
-  ILOG("%08x LineSize: %u, ways: %u, sets: %u (width: %u)\n",
-       ccsidr, 4 << (ccsidr & 7), desc->nways, desc->nsets, desc->width);
+    stlink_read_debug32(sl, CCSIDR, &ccsidr);
+    desc->nsets = ((ccsidr >> 13) & 0x3fff) + 1;
+    desc->nways = ((ccsidr >> 3) & 0x1ff) + 1;
+    desc->log2_nways = ceil_log2 (desc->nways);
+    log2_nsets = ceil_log2 (desc->nsets);
+    desc->width = 4 + (ccsidr & 7) + log2_nsets;
+    ILOG("%08x LineSize: %u, ways: %u, sets: %u (width: %u)\n",
+        ccsidr, 4 << (ccsidr & 7), desc->nways, desc->nsets, desc->width);
 }
 
 static void init_cache (stlink_t *sl) {
-  unsigned int clidr;
-  unsigned int ccr;
-  unsigned int ctr;
-  int i;
+    unsigned int clidr;
+    unsigned int ccr;
+    unsigned int ctr;
+    int i;
 
-  /* Assume only F7 has a cache.  */
-  if (sl->core_id!=STM32F7_CORE_ID)
-    return;
+    // Assume only F7 has a cache
+    if (sl->core_id!=STM32F7_CORE_ID) return;
 
-  stlink_read_debug32(sl, CLIDR, &clidr);
-  stlink_read_debug32(sl, CCR, &ccr);
-  stlink_read_debug32(sl, CTR, &ctr);
-  cache_desc.dminline = 4 << ((ctr >> 16) & 0x0f);
-  cache_desc.iminline = 4 << (ctr & 0x0f);
-  cache_desc.louu = (clidr >> 27) & 7;
+    stlink_read_debug32(sl, CLIDR, &clidr);
+    stlink_read_debug32(sl, CCR, &ccr);
+    stlink_read_debug32(sl, CTR, &ctr);
+    cache_desc.dminline = 4 << ((ctr >> 16) & 0x0f);
+    cache_desc.iminline = 4 << (ctr & 0x0f);
+    cache_desc.louu = (clidr >> 27) & 7;
 
-  ILOG("Chip clidr: %08x, I-Cache: %s, D-Cache: %s\n",
-       clidr, ccr & CCR_IC ? "on" : "off", ccr & CCR_DC ? "on" : "off");
-  ILOG(" cache: LoUU: %u, LoC: %u, LoUIS: %u\n",
-       (clidr >> 27) & 7, (clidr >> 24) & 7, (clidr >> 21) & 7);
-  ILOG(" cache: ctr: %08x, DminLine: %u bytes, IminLine: %u bytes\n", ctr,
-       cache_desc.dminline, cache_desc.iminline);
-  for (i = 0; i < 7; i++)
-    {
-      unsigned int ct = (clidr >> (3 * i)) & 0x07;
+    ILOG("Chip clidr: %08x, I-Cache: %s, D-Cache: %s\n",
+        clidr, ccr & CCR_IC ? "on" : "off", ccr & CCR_DC ? "on" : "off");
+    ILOG(" cache: LoUU: %u, LoC: %u, LoUIS: %u\n",
+        (clidr >> 27) & 7, (clidr >> 24) & 7, (clidr >> 21) & 7);
+    ILOG(" cache: ctr: %08x, DminLine: %u bytes, IminLine: %u bytes\n", ctr,
+        cache_desc.dminline, cache_desc.iminline);
+    for (i = 0; i < 7; i++) {
+        unsigned int ct = (clidr >> (3 * i)) & 0x07;
+        cache_desc.dcache[i].width = 0;
+        cache_desc.icache[i].width = 0;
 
-      cache_desc.dcache[i].width = 0;
-      cache_desc.icache[i].width = 0;
+        if (ct == 2 || ct == 3 || ct == 4) { // Data
+            stlink_write_debug32(sl, CSSELR, i << 1);
+            ILOG("D-Cache L%d: ", i);
+            read_cache_level_desc(sl, &cache_desc.dcache[i]);
+        }
 
-      if (ct == 2 || ct == 3 || ct == 4)
-	{
-	  /* Data.  */
-	  stlink_write_debug32(sl, CSSELR, i << 1);
-	  ILOG("D-Cache L%d: ", i);
-	  read_cache_level_desc(sl, &cache_desc.dcache[i]);
-	}
-
-      if (ct == 1 || ct == 3)
-	{
-	  /* Instruction.  */
-	  stlink_write_debug32(sl, CSSELR, (i << 1) | 1);
-	  ILOG("I-Cache L%d: ", i);
-	  read_cache_level_desc(sl, &cache_desc.icache[i]);
-	}
+        if (ct == 1 || ct == 3) { // Instruction
+            stlink_write_debug32(sl, CSSELR, (i << 1) | 1);
+            ILOG("I-Cache L%d: ", i);
+            read_cache_level_desc(sl, &cache_desc.icache[i]);
+        }
     }
 }
 
@@ -987,54 +948,43 @@ static void cache_flush(stlink_t *sl, unsigned ccr) {
             unsigned max_addr = 1 << desc->width;
             unsigned way_sh = 32 - desc->log2_nways;
 
-            /* D-cache clean by set-ways.  */
+            // D-cache clean by set-ways.
             for (addr = (level << 1); addr < max_addr; addr += cache_desc.dminline) {
                 unsigned int way;
-
                 for (way = 0; way < desc->nways; way++)
-                  stlink_write_debug32(sl, DCCSW, addr | (way << way_sh));
-              }
+                    stlink_write_debug32(sl, DCCSW, addr | (way << way_sh));
+            }
         }
 
-    /* Invalidate all I-cache to oPU.  */
-    if (ccr & CCR_IC)
-        stlink_write_debug32(sl, ICIALLU, 0);
+    // invalidate all I-cache to oPU
+    if (ccr & CCR_IC) stlink_write_debug32(sl, ICIALLU, 0);
 }
 
 static int cache_modified;
 
-static void cache_change(stm32_addr_t start, unsigned count)
-{
-  if (count == 0)
-    return;
-  (void)start;
-  cache_modified = 1;
+static void cache_change(stm32_addr_t start, unsigned count) {
+    if (count == 0) return;
+    (void)start;
+    cache_modified = 1;
 }
 
-static void cache_sync(stlink_t *sl)
-{
-  unsigned ccr;
+static void cache_sync(stlink_t *sl) {
+    unsigned ccr;
 
-  if (sl->core_id!=STM32F7_CORE_ID)
-    return;
-  if (!cache_modified)
-    return;
-  cache_modified = 0;
+    if (sl->core_id!=STM32F7_CORE_ID) return;
+    if (!cache_modified) return;
+    cache_modified = 0;
 
-  stlink_read_debug32(sl, CCR, &ccr);
-  if (ccr & (CCR_IC | CCR_DC))
-    cache_flush(sl, ccr);
+    stlink_read_debug32(sl, CCR, &ccr);
+    if (ccr & (CCR_IC | CCR_DC)) cache_flush(sl, ccr);
 }
 
-static size_t unhexify(const char *in, char *out, size_t out_count)
-{
+static size_t unhexify(const char *in, char *out, size_t out_count) {
     size_t i;
     unsigned int c;
 
     for (i = 0; i < out_count; i++) {
-        if (sscanf(in + (2 * i), "%02x", &c) != 1) {
-            return i;
-        }
+        if (sscanf(in + (2 * i), "%02x", &c) != 1) return i;
         out[i] = (char)c;
     }
 
@@ -1082,24 +1032,21 @@ int serve(stlink_t *sl, st_state_t *st) {
     close_socket(sock);
 
     stlink_force_debug(sl);
-    if (st->reset) {
-        stlink_reset(sl);
-    }
+    if (st->reset) stlink_reset(sl);
     init_code_breakpoints(sl);
     init_data_watchpoints(sl);
 
     ILOG("GDB connected.\n");
 
     /*
-     * To allow resetting the chip from GDB it is required to
-     * emulate attaching and detaching to target.
+     * To allow resetting the chip from GDB it is required to emulate attaching
+     * and detaching to target.
      */
     unsigned int attached = 1;
-    /*
-     * If a critical error is detected, break from the loop
-     */
+    // if a critical error is detected, break from the loop
     int critical_error = 0;
     int ret;
+
     while (1) {
         ret = 0;
         char* packet;
@@ -1137,12 +1084,11 @@ int serve(stlink_t *sl, st_state_t *st) {
                 DLOG("query: %s;%s\n", queryName, params);
 
                 if (!strcmp(queryName, "Supported")) {
-                    if (sl->chip_id==STLINK_CHIPID_STM32_F4
-                       || sl->chip_id==STLINK_CHIPID_STM32_F4_HD
-                       || sl->core_id==STM32F7_CORE_ID) {
-                        reply = strdup("PacketSize=3fff;qXfer:memory-map:read+;qXfer:features:read+");
-                    }
-                    else {
+                    if (sl->chip_id==STLINK_CHIPID_STM32_F4 ||
+                        sl->chip_id==STLINK_CHIPID_STM32_F4_HD ||
+                        sl->core_id==STM32F7_CORE_ID) {
+                            reply = strdup("PacketSize=3fff;qXfer:memory-map:read+;qXfer:features:read+");
+                    } else {
                         reply = strdup("PacketSize=3fff;qXfer:memory-map:read+");
                     }
                 } else if (!strcmp(queryName, "Xfer")) {
@@ -1174,7 +1120,6 @@ int serve(stlink_t *sl, st_state_t *st) {
                         unsigned data_length = (unsigned int) strlen(data);
                         if (addr + length > data_length)
                             length = data_length - addr;
-
                         if (length == 0) {
                             reply = strdup("l");
                         } else {
@@ -1208,52 +1153,48 @@ int serve(stlink_t *sl, st_state_t *st) {
 
                     DLOG("unhexified Rcmd: '%s'\n", cmd);
 
-                    if (!strncmp(cmd, "resume", 6)) {// resume
+                    if (!strncmp(cmd, "resume", 6)) { // resume
                         DLOG("Rcmd: resume\n");
                         cache_sync(sl);
                         ret = stlink_run(sl);
                         if (ret) {
                             DLOG("Rcmd: resume failed\n");
                             reply = strdup("E00");
-
                         } else {
                             reply = strdup("OK");
                         }
 
-                    } else if (!strncmp(cmd, "halt", 4)) { //halt
+                    } else if (!strncmp(cmd, "halt", 4)) { // halt
                         ret = stlink_force_debug(sl);
                         if (ret) {
                             DLOG("Rcmd: halt failed\n");
                             reply = strdup("E00");
-
                         } else {
                             reply = strdup("OK");
                             DLOG("Rcmd: halt\n");
                         }
 
-                    } else if (!strncmp(cmd, "jtag_reset", 10)) { //jtag_reset
+                    } else if (!strncmp(cmd, "jtag_reset", 10)) { // jtag_reset
                         reply = strdup("OK");
 
                         ret = stlink_jtag_reset(sl, 0);
                         if (ret) {
                             DLOG("Rcmd: jtag_reset failed with jtag_reset\n");
                             reply = strdup("E00");
-
                         }
 
                         ret = stlink_jtag_reset(sl, 1);
                         if (ret) {
                             DLOG("Rcmd: jtag_reset failed with jtag_reset\n");
                             reply = strdup("E00");
-
                         }
 
                         ret = stlink_force_debug(sl);
                         if (ret) {
                             DLOG("Rcmd: jtag_reset failed with force_debug\n");
                             reply = strdup("E00");
-
                         }
+
                         if (strcmp(reply, "E00")) {
                             // no errors have been found
                             DLOG("Rcmd: jtag_reset\n");
@@ -1284,19 +1225,13 @@ int serve(stlink_t *sl, st_state_t *st) {
                         DLOG("Rcmd: got semihosting cmd '%s'", cmd);
                         char *arg = cmd + 12;
 
-                        /* Skip whitespaces */
-                        while (isspace(*arg)) {
-                            arg++;
-                        }
+                        // Skip whitespaces
+                        while (isspace(*arg)) { arg++; }
 
-                        if (!strncmp(arg, "enable", 6)
-                            || !strncmp(arg, "1", 1))
-                        {
+                        if (!strncmp(arg, "enable", 6) || !strncmp(arg, "1", 1)) {
                             semihosting = true;
                             reply = strdup("OK");
-                        } else if (!strncmp(arg, "disable", 7)
-                            || !strncmp(arg, "0", 1))
-                        {
+                        } else if (!strncmp(arg, "disable", 7) || !strncmp(arg, "0", 1)) {
                             semihosting = false;
                             reply = strdup("OK");
                         } else {
@@ -1350,8 +1285,7 @@ int serve(stlink_t *sl, st_state_t *st) {
                     unsigned addr = (unsigned int) strtoul(__s_addr, NULL, 16);
                     unsigned data_length = status - (unsigned int) (data - packet);
 
-                    // Length of decoded data cannot be more than
-                    // encoded, as escapes are removed.
+                    // Length of decoded data cannot be more than encoded, as escapes are removed.
                     // Additional byte is reserved for alignment fix.
                     uint8_t *decoded = calloc(data_length + 1, 1);
                     unsigned dec_index = 0;
@@ -1364,9 +1298,8 @@ int serve(stlink_t *sl, st_state_t *st) {
                         }
                     }
 
-                    // Fix alignment
-                    if (dec_index % 2 != 0)
-                        dec_index++;
+                    // fix alignment
+                    if (dec_index % 2 != 0) dec_index++;
 
                     DLOG("binary packet %d -> %d\n", data_length, dec_index);
 
@@ -1385,7 +1318,6 @@ int serve(stlink_t *sl, st_state_t *st) {
                     }
                 } else if (!strcmp(cmdName, "Kill")) {
                     attached = 0;
-
                     reply = strdup("OK");
                 }
 
@@ -1398,9 +1330,7 @@ int serve(stlink_t *sl, st_state_t *st) {
             case 'c':
                 cache_sync(sl);
                 ret = stlink_run(sl);
-                if (ret) {
-                    DLOG("Semihost: run failed\n");
-                }
+                if (ret) DLOG("Semihost: run failed\n");
 
                 while (1) {
                     status = gdb_check_for_interrupt(client);
@@ -1416,9 +1346,7 @@ int serve(stlink_t *sl, st_state_t *st) {
                     }
 
                     ret = stlink_status(sl);
-                    if (ret) {
-                        DLOG("Semihost: status failed\n");
-                    }
+                    if (ret) DLOG("Semihost: status failed\n");
                     if(sl->core_stat == TARGET_HALTED) {
                         struct stlink_reg reg;
                         stm32_addr_t pc;
@@ -1426,30 +1354,23 @@ int serve(stlink_t *sl, st_state_t *st) {
                         int offset = 0;
                         uint16_t insn;
 
-                        if (!semihosting) {
-                            break;
-                        }
+                        if (!semihosting) break;
 
                         ret = stlink_read_all_regs (sl, &reg);
-                        if (ret) {
-                            DLOG("Semihost: read_all_regs failed\n");
-                        }
+                        if (ret) DLOG("Semihost: read_all_regs failed\n");
 
-                        /* Read PC */
+                        // Read PC
                         pc = reg.r[15];
 
-                        /* Compute aligned value */
+                        // Compute aligned value
                         offset = pc % 4;
                         addr = pc - offset;
 
-                        /* Read instructions (address and length must be
-                         * aligned).
-                         */
+                        // Read instructions (address and length must be aligned).
                         ret = stlink_read_mem32(sl, addr, (offset > 2 ? 8 : 4));
 
                         if (ret != 0) {
-                            DLOG("Semihost: cannot read instructions at: "
-                                 "0x%08x\n", addr);
+                            DLOG("Semihost: cannot read instructions at: 0x%08x\n", addr);
                             break;
                         }
 
@@ -1458,28 +1379,20 @@ int serve(stlink_t *sl, st_state_t *st) {
                         if (insn == 0xBEAB && !has_breakpoint(addr)) {
 
                             ret = do_semihosting (sl, reg.r[0], reg.r[1], &reg.r[0]);
-                            if (ret) {
-                                DLOG("Semihost: do_semihosting failed\n");
-                            }
+                            if (ret) DLOG("Semihost: do_semihosting failed\n");
 
-                            /* Write return value */
+                            // Write return value
                             ret = stlink_write_reg(sl, reg.r[0], 0);
-                            if (ret) {
-                                DLOG("Semihost: write_reg failed for return value\n");
-                            }
+                            if (ret) DLOG("Semihost: write_reg failed for return value\n");
 
-                            /* Jump over the break instruction */
+                            // Jump over the break instruction
                             ret = stlink_write_reg(sl, reg.r[15] + 2, 15);
-                            if (ret) {
-                                DLOG("Semihost: write_reg failed for jumping over break\n");
-                            }
+                            if (ret) DLOG("Semihost: write_reg failed for jumping over break\n");
 
-                            /* continue execution */
+                            // Continue execution
                             cache_sync(sl);
                             ret = stlink_run(sl);
-                            if (ret) {
-                                DLOG("Semihost: continue execution failed with stlink_run\n");
-                            }
+                            if (ret) DLOG("Semihost: continue execution failed with stlink_run\n");
                         } else {
                             break;
                         }
@@ -1492,10 +1405,10 @@ int serve(stlink_t *sl, st_state_t *st) {
                 break;
 
             case 's':
-	            cache_sync(sl);
+                cache_sync(sl);
                 ret = stlink_step(sl);
                 if (ret) {
-                    // have problem sending step packet
+                    // ... having a problem sending step packet
                     ELOG("Step: cannot send step request\n");
                     reply = strdup("E00");
                     critical_error = 1; // absolutely critical
@@ -1509,21 +1422,18 @@ int serve(stlink_t *sl, st_state_t *st) {
                 if (attached) {
                     reply = strdup("S05"); // TRAP
                 } else {
-                    /* Stub shall reply OK if not attached. */
+                    // Stub shall reply OK if not attached.
                     reply = strdup("OK");
                 }
                 break;
 
             case 'g':
                 ret = stlink_read_all_regs(sl, &regp);
-                if (ret) {
-                    DLOG("g packet: read_all_regs failed\n");
-                }
+                if (ret) DLOG("g packet: read_all_regs failed\n");
 
                 reply = calloc(8 * 16 + 1, 1);
                 for (int i = 0; i < 16; i++)
                     sprintf(&reply[i * 8], "%08x", (uint32_t)htonl(regp.r[i]));
-
                 break;
 
             case 'p': {
@@ -1564,12 +1474,10 @@ int serve(stlink_t *sl, st_state_t *st) {
                     ret = 1;
                     reply = strdup("E00");
                 }
-                if (ret) {
-                    DLOG("p packet: stlink_read_unsupported_reg failed with id %u\n", id);
-                }
+                if (ret) DLOG("p packet: stlink_read_unsupported_reg failed with id %u\n", id);
 
                 if (reply == NULL) {
-                    // if reply is set to "E00", skip
+                    // If reply is set to "E00", skip
                     reply = calloc(8 + 1, 1);
                     sprintf(reply, "%08x", myreg);
                 }
@@ -1609,13 +1517,8 @@ int serve(stlink_t *sl, st_state_t *st) {
                     ret = 1;
                     reply = strdup("E00");
                 }
-                if (ret) {
-                    DLOG("P packet: stlink_write_unsupported_reg failed with reg %u\n", reg);
-                }
-                if (reply == NULL) {
-                    // note that NULL may not be zero
-                    reply = strdup("OK");
-                }
+                if (ret) DLOG("P packet: stlink_write_unsupported_reg failed with reg %u\n", reg);
+                if (reply == NULL) reply = strdup("OK"); // note that NULL may not be zero
 
                 break;
             }
@@ -1626,9 +1529,7 @@ int serve(stlink_t *sl, st_state_t *st) {
                     strncpy(str, &packet[1 + i * 8], 8);
                     uint32_t reg = (uint32_t) strtoul(str, NULL, 16);
                     ret = stlink_write_reg(sl, ntohl(reg), i);
-                    if (ret) {
-                        DLOG("G packet: stlink_write_reg failed");
-                    }
+                    if (ret) DLOG("G packet: stlink_write_reg failed");
                 }
 
                 reply = strdup("OK");
@@ -1643,17 +1544,12 @@ int serve(stlink_t *sl, st_state_t *st) {
 
                 unsigned adj_start = start % 4;
                 unsigned count_rnd = (count + adj_start + 4 - 1) / 4 * 4;
-                if (count_rnd > sl->flash_pgsz)
-                    count_rnd = (unsigned int) sl->flash_pgsz;
-                if (count_rnd > 0x1800)
-                    count_rnd = 0x1800;
-                if (count_rnd < count)
-                    count = count_rnd;
+                if (count_rnd > sl->flash_pgsz) count_rnd = (unsigned int) sl->flash_pgsz;
+                if (count_rnd > 0x1800) count_rnd = 0x1800;
+                if (count_rnd < count) count = count_rnd;
 
-                if (stlink_read_mem32(sl, start - adj_start, count_rnd) != 0) {
-                    /* read failed somehow, don't return stale buffer */
-                    count = 0;
-                }
+                if (stlink_read_mem32(sl, start - adj_start, count_rnd) != 0) count = 0;
+                // read failed somehow, don't return stale buffer
 
                 reply = calloc(count * 2 + 1, 1);
                 for (unsigned int i = 0; i < count; i++) {
@@ -1785,15 +1681,9 @@ int serve(stlink_t *sl, st_state_t *st) {
             }
 
             case '!': {
-                /*
-                 * Enter extended mode which allows restarting.
-                 * We do support that always.
-                 */
+                // Enter extended mode which allows restarting. We do support that always.
 
-                /*
-                 * Also, set to persistent mode
-                 * to allow GDB disconnect.
-                 */
+                // Also, set to persistent mode to allow GDB disconnect.
                 st->persistent = 1;
 
                 reply = strdup("OK");
@@ -1802,9 +1692,7 @@ int serve(stlink_t *sl, st_state_t *st) {
             }
 
             case 'R': {
-
-                /* Reset the core. */
-
+                // Reset the core.
                 ret = stlink_reset(sl);
                 if (ret) {
                     DLOG("R packet : stlink_reset failed\n");
@@ -1819,35 +1707,25 @@ int serve(stlink_t *sl, st_state_t *st) {
                 break;
             }
             case 'k':
-                /* Kill request - reset the connection itself */
+                // Kill request - reset the connection itself
                 ret = stlink_run(sl);
-                if (ret) {
-                    DLOG("Kill: stlink_run failed\n");
-                }
-
+                if (ret) DLOG("Kill: stlink_run failed\n");
                 ret = stlink_exit_debug_mode(sl);
-                if (ret) {
-                    DLOG("Kill: stlink_exit_debug_mode failed\n");
-                }
+                if (ret) DLOG("Kill: stlink_exit_debug_mode failed\n");
                 stlink_close(sl);
 
                 sl = do_connect(st);
-                if (sl == NULL || sl->chip_id == STLINK_CHIPID_UNKNOWN)
-                    cleanup(0);
+                if (sl == NULL || sl->chip_id == STLINK_CHIPID_UNKNOWN) cleanup(0);
                 connected_stlink = sl;
 
-                if (st->reset) {
-                    stlink_reset(sl);
-                }
+                if (st->reset) stlink_reset(sl);
                 ret = stlink_force_debug(sl);
-                if (ret) {
-                    DLOG("Kill: stlink_force_debug failed\n");
-                }
+                if (ret) DLOG("Kill: stlink_force_debug failed\n");
                 init_cache(sl);
                 init_code_breakpoints(sl);
                 init_data_watchpoints(sl);
 
-                reply = NULL;		/* no response */
+                reply = NULL; // no response
 
                 break;
 

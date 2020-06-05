@@ -3,19 +3,23 @@
 
 /*
  * This file intended to serve as a drop-in replacement for unistd.h on Windows
- * Please add functionality as neeeded.
+ * Please add functionality as needed.
  */
 
 #include <stdlib.h>
 #include <stdio.h>
+
 #if defined(_MSC_VER)
 #pragma warning(push)
 #pragma warning(disable: 4820)
 #endif
+
 #include <io.h>
+
 #if defined(_MSC_VER)
 #pragma warning(pop)
 #endif
+
 #include <getopt.h>  // getopt at: https://gist.github.com/ashelly/7776712
 #include <process.h> // for getpid() and the exec..() family
 #include <direct.h>  // for _getcwd() and _chdir()
@@ -23,7 +27,7 @@
 #define srandom srand
 #define random rand
 
-/* Values for the second argument to access. These may be OR'd together. */
+/* values for the second argument to access. These may be OR'd together. */
 #define R_OK    4       // Test for read permission
 #define W_OK    2       // Test for write permission
 // #define X_OK    1    // execute permission - unsupported in windows
@@ -48,7 +52,7 @@
 #define STDIN_FILENO 0
 #define STDOUT_FILENO 1
 #define STDERR_FILENO 2
-/* should be in some equivalent to <sys/types.h> */
+// should be in some equivalent to <sys/types.h>
 typedef __int8            int8_t;
 typedef __int16           int16_t;
 typedef __int32           int32_t;
@@ -62,4 +66,4 @@ typedef unsigned __int64  uint64_t;
 int usleep(unsigned int waitTime);
 #endif
 
-#endif /* unistd.h */
+#endif // _UNISTD_H

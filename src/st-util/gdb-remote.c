@@ -1,7 +1,6 @@
 /*
  * Copyright (C)  2011 Peter Zotov <whitequark@whitequark.org>
- * Use of this source code is governed by a BSD-style
- * license that can be found in the LICENSE file.
+ * Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
  */
 
 #include <stdio.h>
@@ -23,7 +22,7 @@ static const char hex[] = "0123456789abcdef";
 int gdb_send_packet(int fd, char* data) {
     unsigned int data_length = (unsigned int) strlen(data);
     int length = data_length + 4;
-    char* packet = malloc(length); /* '$' data (hex) '#' cksum (hex) */
+    char* packet = malloc(length); // '$' data (hex) '#' cksum (hex)
 
     memset(packet, 0, length);
 
@@ -67,8 +66,7 @@ int gdb_recv_packet(int fd, char** buffer) {
     char* packet_buffer = malloc(packet_size);
     unsigned state;
 
-    if (packet_buffer == NULL)
-        return -2;
+    if (packet_buffer == NULL) return -2;
 
 start:
     state = 0;
@@ -90,11 +88,7 @@ start:
 
         switch(state) {
         case 0:
-            if (c != '$') {
-                // ignore
-            } else {
-                state = 1;
-            }
+            if (c != '$') { /* ignore */ } else { state = 1; }
             break;
 
         case 1:
@@ -107,9 +101,9 @@ start:
                 if (packet_idx == packet_size) {
                     packet_size += ALLOC_STEP;
                     void* p = realloc(packet_buffer, packet_size);
-                    if (p != NULL)
+                    if (p != NULL) {
                         packet_buffer = p;
-                    else {
+                    } else {
                         free(packet_buffer);
                         return -2;
                     }
@@ -136,7 +130,6 @@ start:
             free(packet_buffer);
             return -2;
         }
-
         goto start;
     } else {
         char ack = '+';
@@ -152,9 +145,11 @@ start:
     return packet_idx;
 }
 
-// Here we skip any characters which are not \x03, GDB interrupt.
-// As we use the mode with ACK, in a (very unlikely) situation of a packet
-// lost because of this skipping, it will be resent anyway.
+/*
+ * Here we skip any characters which are not \x03, GDB interrupt.
+ * As we use the mode with ACK, in a (very unlikely) situation of a packet lost
+ * because of this skipping, it will be resent anyway.
+ */
 int gdb_check_for_interrupt(int fd) {
     struct pollfd pfd;
     pfd.fd = fd;
@@ -162,12 +157,8 @@ int gdb_check_for_interrupt(int fd) {
 
     if (poll(&pfd, 1, 0) != 0) {
         char c;
-
-        if (read(fd, &c, 1) != 1)
-            return -2;
-
-        if (c == '\x03') // ^C
-            return 1;
+        if (read(fd, &c, 1) != 1) return -2;
+        if (c == '\x03') return 1; // ^C
     }
 
     return 0;

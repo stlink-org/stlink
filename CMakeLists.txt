@@ -9,6 +9,7 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
+
 ###
 # General project settings
 ###
@@ -93,11 +94,6 @@ include_directories(src)
 include_directories(src/st-flash)
 include_directories(src/stlink-lib)
 
-if (MSVC)
-    include_directories(src/win32)
-    include_directories(src/win32/unistd)
-endif ()
-
 set(STLINK_HEADERS
         inc/stlink.h
         src/backend.h
@@ -127,6 +123,7 @@ if (WIN32)
     set(STLINK_HEADERS "${STLINK_HEADERS};src/win32/win32_socket.h")
 
     if (MSVC)
+        # Add drop-in replacement for unistd.h to sources
         include_directories(src/win32/unistd)
         set(STLINK_HEADERS "${STLINK_HEADERS};src/win32/unistd/unistd.h")
     endif ()

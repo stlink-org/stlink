@@ -1,4 +1,4 @@
-#if defined(__MINGW32__) || defined(_MSC_VER)
+#if defined(_WIN32)
 
 #define _USE_W32_SOCKETS 1
 
@@ -71,4 +71,4 @@ char *win32_strsep(char **stringp, const char *delim);
 ssize_t win32_read_socket(SOCKET fd, void *buf, int n);
 ssize_t win32_write_socket(SOCKET fd, void *buf, int n);
 
-#endif // defined(__MINGW32__) || defined(_MSC_VER)
+#endif // defined(_WIN32)

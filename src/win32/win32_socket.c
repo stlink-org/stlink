@@ -220,7 +220,7 @@ cont:
             }
         } while (sc != 0);
     }
-    /* NOTREACHED */
+    // NOT REACHED
 }
 
 char *win32_strsep (char **stringp, const char *delim) {
@@ -245,7 +245,7 @@ char *win32_strsep (char **stringp, const char *delim) {
             }
         } while (sc != 0);
     }
-    /* NOTREACHED */
+    // NOT REACHED
 }
 
 #ifndef STLINK_HAVE_UNISTD_H
