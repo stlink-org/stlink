@@ -18,6 +18,7 @@ function(add_cflag_if_supported flag)
 endfunction()
 
 add_cflag_if_supported("-std=gnu11")
+add_cflag_if_supported("-std=gnu18")
 add_cflag_if_supported("-Wall")
 add_cflag_if_supported("-Wextra")
 add_cflag_if_supported("-Wshadow")
