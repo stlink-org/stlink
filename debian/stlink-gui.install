@@ -1,4 +1,4 @@
-/usr/bin/stlink-gui*
-/usr/share/stlink/stlink-gui.ui
-/usr/share/applications/stlink-gui.desktop
-/usr/share/icons/hicolor/scalable/apps/stlink-gui.svg
+/usr/bin/stlink-gui
+/usr/bin/stlink-gui.ui /usr/share/stlink/
+/usr/share/stlink/applications/stlink-gui.desktop /usr/share/applications/
+/usr/share/stlink/icons/hicolor/scalable/apps/stlink-gui.svg /usr/share/icons/hicolor/scalable/apps/stlink-gui.svg
