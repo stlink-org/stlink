@@ -1,0 +1,131 @@
+List of contributors to the stlink project:
+
+Alexey Cherevatenko
+Alexey Panarin
+Anatoli Klassen [dev26th]
+Andrea Mucignat
+Andrew Andrianov [necromant]
+Andrey Yurovsky
+Andy Isaacson
+Áron Radics
+A. Sheaff
+Björn Hauffe
+Ihor Bobalo
+Breton M. Saunders
+Bruno Dal Bo
+Brian Team [dot4qu]
+Burns Fisher
+Cheng Guokai (Xim) [chenguokai]
+Chris Dew
+Chris Hiszpanski
+Chris Li
+Chris Samuelson
+Christian Deussen [nullsub]
+Christophe Levantis
+Craig Lilley
+Dan Dev
+Dan Hepler
+Daniel Campoverde [alx741]
+Daniel O'Connor
+Dave Flogeras
+Dave Murphy [WinterMute]
+Dave Vandervies [dj3vande]
+Denis Fokin
+Denis Osterland
+Dmitry Bravikov [bravikov]
+Efe Can İçöz
+Ethan Zonca
+Fabien Chouteau
+Florian Hars
+Friedrich Beckmann
+Gabriel Górski [Glaeqen]
+Geoffrey Brown
+George Talusan [gtalusan]
+Georg von Zengen
+Giuseppe Barba
+Greg Alexander [galexander1]
+Greg Meiste [meisteg]
+Guillaume Revaillot [grevaillot]
+Hakkavélin <hakkavelin@braudrist.lan>
+Halt Hammerzeit
+htk <htk@vdr.fritz.box>
+Ian Griffiths
+Jack Peel
+Jakub Tyszkowski
+Jan Sarenik
+Jean-Luc Béchennec
+Jean-Marie Lemetayer
+Jeff Kent
+Jeffrey Nelson
+Jens Hoffmann
+Jerome Lambourg
+Jim Paris
+Jiří Netolický
+Jerry Nosky [jnosky]
+Jochen Wilhelmy [Jochen0x90h]
+Johannes Taelman
+Jonas Danielsson
+Jonas Norling
+Josh Bialkowski
+Karl Palsson [karlp]
+Kevlar Harness
+Kyle Manna
+Lari Lehtomäki
+Lutz Freitag [nerdmaennchen]
+Martin Nowak
+Matteo Collina
+Max Chen
+Maxime Coquelin [mcoquelin-stm32]
+Maxime Vincent
+Michael Pratt [prattmic]
+Michael Sparmann
+Mike Szczys
+Miklós Márton [martonmiklos]
+Magnus Lundin [mlu]
+mux <freelancer.c@gmail.com>
+Ned Konz
+Nic McDonald
+Nicolas Schodet
+Oleksiy Slyshyk [slyshykO]
+Olivier Croquette
+Olivier Gay
+Onno Kortmann
+orangeudav <orangeudav@gmail.com>
+Pavel Kirienko
+Pekka Nikander
+Pete Nelson
+Peter Torelli [petertorelli]
+Peter Zotov
+Petteri Aimonen
+Piotr Haber
+Rene Hopf [rene-dev]
+Robin Kreis
+Roger Wolff [rewolff]
+Rob Spanton
+Rytis Karpuska
+Sean Simmons
+Sergey Alirzaev
+Simon Derr [sderr]
+Simon Wright
+Stany Marcel
+Stefan Misik
+Sven Wegener
+Joel Bodenmann [Tectu]
+Tuomo Kaikkonen
+Theodore A. Roth
+Thomas Gärtner
+Tobias Badertscher
+Tom de Boer
+Tristan Gingold
+Uli Köhler
+Uwe Bonnes [UweBonnes]
+Vadim Kaushan
+Vasiliy Glazov [Vascom]
+Vegard Storheil Eriksen
+Viacheslav Dobromyslov
+Victor Mayoral Vilches
+William Ransohoff [WRansohoff]
+Wojciech A. Koszek
+Woodrow Douglass
+
+... and others

@@ -1,0 +1,11 @@
+prefix=${CMAKE_INSTALL_PREFIX}
+deb_host_multiarch=${CMAKE_LIBRARY_PATH}
+libdir=${PKG_CONFIG_LIBDIR}
+includedir=${PKG_CONFIG_INCLUDEDIR}
+
+Name: ${PROJECT_NAME}
+Description: ${PROJECT_DESCRIPTION}
+Version: ${PROJECT_VERSION}
+Libs: ${PKG_CONFIG_LIBS}
+Cflags: ${PKG_CONFIG_CFLAGS}
+Requires: ${PKG_CONFIG_REQUIRES}

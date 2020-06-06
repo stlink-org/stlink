@@ -20,6 +20,9 @@ You can use this instead of st-util(1) if you prefer, but remember to use the
 
 Use hexadecimal format for the *ADDR* and *SIZE*.
 
+The STLink device to use can be specified using the --serial parameter, or via 
+the environment variable STLINK_DEVICE on the format <USB_BUS>:<USB_ADDR>.
+
 # COMMANDS
 
 write *FILE* *ADDR*
@@ -45,6 +48,9 @@ reset
 \--reset
 :   TODO
 
+\--opt
+:   Enable ignore ending empty bytes optimization
+
 \--serial *iSerial*
 :   TODO
 
@@ -61,7 +67,7 @@ Flash `firmware.bin` to device
 
 Read firmware from device (4096 bytes)
 
-    $ st-flash read firmware.bin 0x8000000 4096
+    $ st-flash read firmware.bin 0x8000000 0x1000
 
 Erase firmware from device
 

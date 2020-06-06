@@ -2,8 +2,7 @@
 #include <stdlib.h>
 #include <stlink.h>
 
-static stlink_t *stlink_open_first(void)
-{
+static stlink_t *stlink_open_first(void) {
     stlink_t* sl = NULL;
     sl = stlink_v1_open(0, 1);
     if (sl == NULL)
@@ -13,8 +12,7 @@ static stlink_t *stlink_open_first(void)
 }
 
 
-int main()
-{
+int main() {
     stlink_t* sl = NULL;
     sl = stlink_open_first();
 
@@ -25,5 +23,6 @@ int main()
 
     fprintf(stderr, "STlink device opened, that's cool!\n");
     stlink_close(sl);
+
     return 0;
 }

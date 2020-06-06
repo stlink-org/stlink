@@ -1,202 +1,245 @@
-# Compiling
+# Compiling from sources
 
-## Build from sources
+## Microsoft Windows (10, 8.1)
+### Common Requirements
 
-* CMake (minimal v2.8.7)
-* C compiler (gcc, clang, mingw)
-* Libusb 1.0 (minimal v1.0.9)
-* (optional) pandoc for generating manpages from markdown
+On Windows users should ensure that the following software is installed:
 
-Run from the root of the source directory:
+* `git` (_optional, but recommended_)
+* `cmake` (3.17.0 or later)
+* `MinGW-w64` (7.0.0 or later) with GCC toolchain 8.1.0
 
+
+### Installation
+
+1. Install `git` from <https://git-scm.com/download/win>
+2. Install `cmake` from <https://cmake.org/download><br />
+   Ensure that you add cmake to the $PATH system variable when following the instructions by the setup assistant.
+3. Install
+  - _EITHER_: **MinGW-w64** from <https://sourceforge.net/projects/mingw-w64> (mingw-w64-install.exe)<br />
+  - _OR_:     **MSVC toolchain** from Visual Studio Build Tools 2019
+4. Create a new destination folder at a place of your choice
+5. Open the command-line (cmd.exe) and execute `cd C:\$Path-to-your-destination-folder$\`
+6. Fetch the project sourcefiles by running `git clone https://github.com/stlink-org/stlink.git`from the command-line (cmd.exe)<br />
+  or download the stlink zip-sourcefolder from the Release page on GitHub
+
+#### MSVC toolchain - minimal installation
+
+Visual Studio IDE is not necessary, only Windows SDK & build tools are required (~3,3GB).
+
+1. Open <https://visualstudio.microsoft.com/downloads/>
+2. Navigate through menus as follows (might change overtime)
+
+   `All downloads > Tools for Visual Studio 2019 > Build Tools for Visual Studio 2019 > Download`
+3. Start downloaded executable. After Visual Studio Installer bootstraps and main window pops up, open `Individual Components` tab, and pick
+  - latest build tools (eg. `MSVC v142 - VS 2019 C++ x64/x86 build tools (v14.25)`)
+  - latest Windows SDK (eg. `Windows 10 SDK (10.0.18362.0)`)
+4. After installation finishes, you can press `Launch` button in Visual Studio Installer's main menu.
+   - Thus you can open `Developer Command Prompt for VS 2019`. It is `cmd.exe` instance with adjusted PATHs including eg. `msbuild`.
+   - Alternatively, you can use `Developer Powershell for VS 2019` which is the same thing for `powershell.exe`. Both are available from Start menu.
+   - Another option is to add `msbuild` to PATH manually. Its location should be `C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin`. Then, it should be available from any `powershell.exe` or `cmd.exe` session.
+
+### Building
+#### MinGW-w64
+
+1. Use the command-line to move to the `scripts` directory within the source-folder: `cd stlink\scripts\`
+2. Execute `./mingw64-build.bat`
+
+NOTE:<br />
+Per default the build script (currently) uses `C:\Program Files\mingw-w64\x86_64-8.1.0-release-win32-sjlj-rt_v6-rev0\mingw64\bin`.<br />
+When installing different toolchains make sure to update the path in the `mingw64-build.bat`.<br />
+This can be achieved by opening the .bat file with a common text editor.
+
+
+#### MSVC toolchain
+
+1. In a command prompt, change the directory to the folder where the stlink files were cloned (or unzipped) to.
+2. Make sure the build folder exists (`mkdir build` if not).
+3. From the build folder, run cmake (`cd build; cmake ..`).
+
+This will create a solution file `stlink.sln` in the build folder.
+Now, you can build whole `stlink` suite using following command:
 ```
-$ make release
-$ make debug
+msbuild /m /p:Configuration=Release stlink.sln
 ```
+Options:
+- `/m` - compilation runs in parallel utilizing multiple cores
+- `/p:Configuration=Release` - generates *Release*, optimized build.
 
-The debug target should only be necessary for people who want
- to modify the sources and run under a debugger.
+Directory `<project_root>\build\Release` contains final executables.
+(`st-util.exe` is located in `<project_root>\build\src\gdbserver\Release`).
+
+**NOTE 1:**
+
+Executables link against libusb.dll library. It has to be placed in the same directory as binaries or in PATH.
+It can be copied from: `<project_root>\build\3rdparty\libusb-{version}\MS{arch}\dll\libusb-1.0.dll`.
+
+**NOTE 2:**
+
+[ST-LINK drivers](https://www.st.com/en/development-tools/stsw-link009.html) are required for `stlink` to work.
+
+## Linux
+### Common requirements
+
+Install the following packages from your package repository:
+
+* `git`
+* `gcc` or `clang` or `mingw32-gcc` or `mingw64-gcc` (C-compiler; very likely gcc is already present)
+* `build-essential` (on Debian based distros (Debian, Ubuntu))
+* `cmake` (3.4.2 or later, use the latest version available from the repository)
+* `rpm` (on Debian based distros (Debian, Ubuntu), needed for package build with `make package`)
+* `pkg-config`
+* `libusb-1.0`
+* `libusb-1.0-0-dev` (development headers for building)
+* `libgtk-3-dev` (_optional_, needed for `stlink-gui`)
+* `pandoc` (_optional_, needed for generating manpages from markdown)
+
+or execute (Debian-based systems only): `apt-get install gcc build-essential cmake libusb-1.0 libusb-1.0-0-dev libgtk-3-dev pandoc`
+
+(Replace gcc with the intended C-compiler if necessary or leave out any optional package not needed.)
+
+
+### Installation
+
+1. Open a new terminal console
+2. Create a new destination folder at a place of your choice e.g. at `~/git`: `mkdir $HOME/git`
+3. Change to this directory: `cd ~/git`
+4. Fetch the project sourcefiles by running `git clone https://github.com/stlink-org/stlink.git`
+
+
+### Building
+
+1. Change into the project source directory: `cd stlink`
+2. Run `make clean` -- required by some linux variants.
+3. Run `make release` to create the _Release_ target
+4. Run `make debug` to create the _Debug_ target (_optional_)<br />
+   The debug target is only necessary in order to modify the sources and to run under a debugger.
+
 The top level Makefile is just a handy wrapper for:
 
-```
+##### MinGW64:
+
+```sh
 $ mkdir build && cd build
-$ cmake -DCMAKE_BUILD_TYPE=Debug ..
+$ cmake -DCMAKE_BUILD_TYPE=release -DCMAKE_TOOLCHAIN_FILE=./cmake/linux-mingw64.cmake -S ..
 $ make
 ```
 
-You could install to a user folder e.g `$HOME`:
+##### MinGW32:
 
-```
-$ cd build/Release; make install DESTDIR=$HOME
-```
-
-Or system wide:
-
-```
-$ cd build/Release; sudo make install
+```sh
+$ mkdir build && cd build
+$ cmake -DCMAKE_BUILD_TYPE=release -DCMAKE_TOOLCHAIN_FILE=./cmake/linux-mingw32.cmake -S ..
+$ make
 ```
 
-## Linux
+As an alternative you may also install
+- to a user folder e.g `$HOME` with `cd build/Release && make install DESTDIR=$HOME`
+- or system wide with `cd build/Release && sudo make install`.
 
-## Common requirements
+When installing system-wide, the dynamic library cache needs to be updated with the command `ldconfig`.
 
-* Debian based distros (debian, ubuntu)
-  * `build-essential`
-* `cmake`
-* `libusb-1.0` (plus development headers for building, on debian based distros `libusb-1.0-0-dev` package)
-* (optional) for `stlink-gui` we need libgtk-3-dev
 
-### Fixing cannot open shared object file
-
-When installing system-wide (`sudo make install`) the dynamic library cache needs to be updated with the command `ldconfig`.
-
-## Permissions with udev
-
-Make sure you install udev files which are necessary to run the tools without root
- permissions. By default most distributions don't allow access to USB devices. The
- udev rules create devices nodes and set the group of this to `stlink.
-
-The rules are located in the `etc/udev/rules.d` directory. You will need to copy it
-to /etc/udev/rules.d, and then either execute as root (or reboot your machine):
-
-```
-$ udevadm control --reload-rules
-$ udevadm trigger
-```
-
-Udev will now create device node files `/dev/stlinkv2_XX`, `/dev/stlinkv1_XX`. You must
- make sure the `stlink` group exists and the user who is trying to access is added
- to this group.
-
-### Note for STLINKv1 usage
-
-The STLINKv1's SCSI emulation is very broken, so the best thing to do
-is tell your operating system to completely ignore it.
-
-Options (do one of these before you plug it in)
-
-* `modprobe -r usb-storage && modprobe usb-storage quirks=483:3744:i`
-* or 1. `echo "options usb-storage quirks=483:3744:i" >> /etc/modprobe.conf`
-*    2. `modprobe -r usb-storage && modprobe usb-storage`
-* or 1. `cp stlink_v1.modprobe.conf /etc/modprobe.d`
-*    2. `modprobe -r usb-storage && modprobe usb-storage`
-
-### Build Debian Package
+### Build a Debian Package
 
 To build the debian package you need the following extra packages: `devscripts debhelper`.
 
-```
+```sh
 $ git archive --prefix=$(git describe)/ HEAD | bzip2 --stdout > ../libstlink_$(sed -En -e "s/.*\((.*)\).*/\1/" -e "1,1 p" debian/changelog).orig.tar.bz2
 $ debuild -uc -us
 ```
 
-## Mac OS X
 
-When compiling on a mac you need the following:
+### Set permissions with udev
 
-* A compiler toolchain (XCode)
-* CMake
-* Libusb 1.0
+By default most distributions don't allow access to USB devices.
+Therefore make sure you install udev files which are necessary to run the tools without root permissions.<br />
+udev rules create devices nodes and set the group of these to `stlink`.
 
-The best way is to install [homebrew](http://brew.sh) which is a package manager
- for opensource software which is missing from the Apple App Store. Then install
- the dependencies:
-
-```
-brew install libusb cmake
-```
-
-Compile as described in the first section of this document.
-
-## Build using different directories for udev and modprobe
-
-To put the udev or the modprobe configuration files into a different directory
-during installation you can use the following cmake options:
-
-```
-$ cmake -DSTLINK_UDEV_RULES_DIR="/usr/lib/udev/rules.d" \
-        -DSTLINK_MODPROBED_DIR="/usr/lib/modprobe.d" ..
-```
-
-## Build using different directory for shared libs
-
-To put the compiled shared libs into a different directory during installation
-you can use the following cmake option:
-
-```
-$ cmake -DLIB_INSTALL_DIR:PATH="/usr/lib64"  ..
-```
-
-## Windows (MinGW64) 
-
-### Prequistes
-
-* 7Zip
-* CMake 2.8 or higher
-* MinGW64 GCC toolchain (5.3.0)
-
-### Installation
-
-1. Install 7Zip from <http://www.7-zip.org>
-2. Install CMake from <https://cmake.org/download>
-3. Install MinGW64 from <https://sourceforge.net/projects/mingw-w64> (mingw-w64-install.exe)
-4. Git clone or download stlink sourcefiles zip
-
-### Building
-
-Check and execute (in the script folder) `<source-dir>\scripts\mingw64-build.bat`
-
-NOTE: when installing different toolchains make sure you edit the path in the `mingw64-build.bat`
-      the build script uses currently `C:\Program Files\mingw-w64\x86_64-5.3.0-win32-sjlj-rt_v4-rev0\mingw64\bin`
-
-## Windows (Visual Studio) 
-
-### Prerequisites
-
-* 7Zip
-* CMake (tested with version 3.9.0-rc2)
-* Visual Studio 2017 Community (other versions will likely work but are untested; the Community edition is free for open source
-development)
-
-### Installation
-
-1. Install 7Zip from <http://www.7-zip.org>
-2. Install CMake from <https://cmake.org/download>
-3. Git clone or download stlink sourcefiles zip
-
-### Building
-
-These instructions are for a 32bit version.
-
-In a command prompt, change directory to the folder where the stlink files were cloned (or unzipped).
-Make sure the build folder exists (`mkdir build` if not).
-From the build folder, run cmake (`cd build; cmake ..`).
-
-This will create a solution (stlink.sln) in the build folder. Open it in Visual Studio, select the Solution Configuration (Debug or
-Release) and build the solution normally (F7).
-
-NOTES: This solution will link to the dll version of libusb-1.0.  To debug or run the executable, the dll version of libusb-1.0 must
-be either on the path, or in the same folder as the executable.  It can be copied from here:
-`build\3thparty\libusb-1.0.21\MS32\dll\libusb-1.0.dll`.
-
-## Linux (MinGW64)
-
-### Prequistes
-
-* 7Zip
-* CMake 2.8 or higher
-* MinGW64 GCC toolchain (5.3.0)
-
-### Installation (Debian / Ubuntu)
-
-sudo apt install p7zip mingw-w64
-
-### Building
-
-These instructions are for a 32bit version.
+The rules are located in the subdirectory `config/udev/rules.d` within the sourcefolder and are automatically installed along with `sudo make install` on linux.
+Afterwards it may be necessary to reload the udev rules:
 
 ```sh
-cd <source-dir>
-cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=./cmake/linux-mingw32.cmake -S . -B ./build/linux-mingw32
-cmake --build ./build/linux-mingw32 --target all
+$ cp etc/udev/rules.d /etc/udev/rules.d
+$ udevadm control --reload-rules
+$ udevadm trigger
 ```
+
+Udev will now create device node files `/dev/stlinkv2_XX`, `/dev/stlinkv1_XX`.<br />
+You need to ensure that the group `stlink` exists and the user who is trying to access these devices is a member of this group.
+
+
+### Note on the use of STLink-v1 programmers (legacy):
+
+As the STLINKv1's SCSI emulation is somehow broken, the best advice possibly is to tell your operating system to completely ignore it.<br />
+Choose one of the following options _before_ connecting the device to your computer:
+
+* `modprobe -r usb-storage && modprobe usb-storage quirks=483:3744:i`
+* _OR_
+    1. `echo "options usb-storage quirks=483:3744:i" >> /etc/modprobe.conf`
+    2. `modprobe -r usb-storage && modprobe usb-storage`
+* _OR_
+    1. `cp stlink_v1.modprobe.conf /etc/modprobe.d`
+    2. `modprobe -r usb-storage && modprobe usb-storage`
+
+
+## macOS
+### Common requirements
+
+The best and recommended way is to install a package manager for open source software,
+either [homebrew](https://brew.sh) or [MacPorts](https://www.macports.org/).
+
+Then install the following dependencies from the package repository:
+
+* `git`
+* `gcc` or `llvm` (for clang) (C-compiler)
+* `cmake`
+* `pkg-config`
+* `libusb`
+* `gtk+3` or `gtk3` (_optional_, needed for `stlink-gui`)
+
+To do this with only one simple command, type:
+
+* for homebrew:
+    - with gcc:   `sudo brew install git gcc cmake libusb gtk+3` or
+    - with clang: `sudo brew install git llvm cmake libusb gtk+3` or
+* for MacPorts:
+    - with gcc:    `sudo port install git gcc10 cmake libusb gtk3` or
+    - with clang:  `sudo port install git llvm-10 cmake libusb gtk3`
+
+
+### Installation
+
+1. Open a new terminal window
+2. Create a new destination folder at a place of your choice e.g. at `~/git`: `mkdir $HOME/git`
+3. Change to this directory: `cd ~/git`
+4. Fetch the project sourcefiles by running `git clone https://github.com/stlink-org/stlink.git`
+
+
+### Building
+
+1. Change into the project source directory: `cd stlink`
+2. Run `make release` to create the _Release_ target
+3. Run `make debug` to create the _Debug_ target (_optional_)<br />
+   The debug target is only necessary in order to modify the sources and to run under a debugger.
+
+
+## Build options
+### Build using a different directory for shared libs
+
+To put the compiled shared libs into a different directory during installation,
+you can use the cmake option `cmake -DLIB_INSTALL_DIR:PATH="/usr/lib64" ..`.
+
+
+### Standard installation directories
+
+The cmake build system of this toolset includes `GNUInstallDirs` to define GNU standard installation directories.
+This module provides install directory variables as defined by the GNU Coding Standards.
+
+Below are the preset default cmake options, which apply if none of these options are redefined:
+
+* `-DCMAKE_INSTALL_SYSCONFDIR=/etc`
+* `-DCMAKE_INSTALL_PREFIX=/usr/local`
+
+
+Author: nightwalker-87

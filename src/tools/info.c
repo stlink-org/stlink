@@ -8,14 +8,14 @@
 static void usage(void)
 {
     puts("st-info --version");
-    puts("st-info --flash");
-    puts("st-info --sram");
-    puts("st-info --descr");
-    puts("st-info --pagesize");
-    puts("st-info --chipid");
+    puts("st-info --probe");
     puts("st-info --serial");
     puts("st-info --hla-serial");
-    puts("st-info --probe");
+    puts("st-info --flash  [--connect-under-reset]");
+    puts("st-info --pagesize  [--connect-under-reset]");
+    puts("st-info --sram  [--connect-under-reset]");
+    puts("st-info --chipid  [--connect-under-reset]");
+    puts("st-info --descr  [--connect-under-reset]");
 }
 
 /* Print normal or OpenOCD hla_serial with newline */
@@ -45,20 +45,20 @@ static void stlink_print_info(stlink_t *sl)
     if (!sl)
         return;
 
-    printf(" serial: ");
+    printf(" serial:     ");
     stlink_print_serial(sl, false);
-    printf("openocd: ");
+    printf(" hla-serial: ");
     stlink_print_serial(sl, true);
 
-    printf("  flash: %u (pagesize: %u)\n",
-	   (unsigned int)sl->flash_size, (unsigned int)sl->flash_pgsz);
+    printf(" flash:      %u (pagesize: %u)\n",
+	     (unsigned int)sl->flash_size, (unsigned int)sl->flash_pgsz);
 
-    printf("   sram: %u\n",       (unsigned int)sl->sram_size);
-    printf(" chipid: 0x%.4x\n",    sl->chip_id);
+    printf(" sram:       %u\n", (unsigned int)sl->sram_size);
+    printf(" chipid:     0x%.4x\n", sl->chip_id);
 
 	params = stlink_chipid_get_params(sl->chip_id);
 	if (params)
-		printf("  descr: %s\n", params->description);
+		printf(" descr:      %s\n", params->description);
 }
 
 static void stlink_probe(void)
@@ -76,19 +76,25 @@ static void stlink_probe(void)
     stlink_probe_usb_free(&stdevs, size);
 }
 
-static stlink_t *stlink_open_first(void)
+static stlink_t *stlink_open_first(bool under_reset)
 {
     stlink_t* sl = NULL;
     sl = stlink_v1_open(0, 1);
-    if (sl == NULL)
-        sl = stlink_open_usb(0, 1, NULL);
-
+    if (sl == NULL) {
+        if (under_reset) {
+            sl = stlink_open_usb(0, 2, NULL, 0);
+        } else {
+            sl = stlink_open_usb(0, 1, NULL, 0);
+        }
+    }
+        
     return sl;
 }
 
-static int print_data(char **av)
+static int print_data(int ac, char **av)
 {
     stlink_t* sl = NULL;
+    bool under_reset = false;
 
     // Probe needs all devices unclaimed
     if (strcmp(av[1], "--probe") == 0) {
@@ -99,7 +105,16 @@ static int print_data(char **av)
         return 0;
     }
 
-    sl = stlink_open_first();
+    if (ac == 3) {
+        if (strcmp(av[2],"--connect-under-reset") == 0) {
+            under_reset = true;
+        } else {
+            usage();
+            return -1;
+        }
+    }
+
+    sl = stlink_open_first(under_reset);
 
     if (sl == NULL) {
         return -1;
@@ -113,18 +128,18 @@ static int print_data(char **av)
     if (stlink_current_mode(sl) != STLINK_DEV_DEBUG_MODE)
         stlink_enter_swd_mode(sl);
 
-    if (strcmp(av[1], "--flash") == 0)
-        printf("0x%x\n", (unsigned int)sl->flash_size);
-    else if (strcmp(av[1], "--sram") == 0)
-        printf("0x%x\n", (unsigned int)sl->sram_size);
-    else if (strcmp(av[1], "--pagesize") == 0)
-        printf("0x%x\n", (unsigned int)sl->flash_pgsz);
-    else if (strcmp(av[1], "--chipid") == 0)
-        printf("0x%.4x\n", sl->chip_id);
-    else if (strcmp(av[1], "--serial") == 0)
+    if (strcmp(av[1], "--serial") == 0)
         stlink_print_serial(sl, false);
     else if (strcmp(av[1], "--hla-serial") == 0)
         stlink_print_serial(sl, true);
+    else if (strcmp(av[1], "--flash") == 0)
+        printf("0x%x\n", (unsigned int)sl->flash_size);
+    else if (strcmp(av[1], "--pagesize") == 0)
+        printf("0x%x\n", (unsigned int)sl->flash_pgsz);
+    else if (strcmp(av[1], "--sram") == 0)
+        printf("0x%x\n", (unsigned int)sl->sram_size);
+    else if (strcmp(av[1], "--chipid") == 0)
+        printf("0x%.4x\n", sl->chip_id);
     else if (strcmp(av[1], "--descr") == 0) {
         const struct stlink_chipid_params *params = stlink_chipid_get_params(sl->chip_id);
         if (params == NULL)
@@ -149,7 +164,7 @@ int main(int ac, char** av)
         return -1;
     }
 
-    err = print_data(av);
+    err = print_data(ac,av);
 
     return err;
 }
