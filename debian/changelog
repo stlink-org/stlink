@@ -1,3 +1,18 @@
+stlink (1.6.1+ds-1) unstable; urgency=medium
+
+  * Merge tag 'v1.6.1' into debian
+  * Update Files-Excluded in d/copyright for new layout
+  * Fix d/watch intermediary file name
+  * Drop cross.patch, merged upstream in v1.6.1
+  * Bump Build-Depends to cmake >= 3.4.2
+  * Add new symbols from upstream version 1.6.1
+  * Adjust install files, some files moved
+  * Remove unused variable from d/rules
+  * Generate pkgconfig file from d/rules, upstream doesn't do it
+  * Switch to debhelper-compat 12
+
+ -- Luca Boccassi <bluca@debian.org>  Sat, 06 Jun 2020 14:44:54 +0100
+
 stlink (1.6.0+ds-1) unstable; urgency=medium
 
   * Merge tag 'v1.6.0' into debian
