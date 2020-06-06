@@ -15,5 +15,4 @@ export DEB_BUILD_MAINT_OPTIONS = hardening=+all
 
 override_dh_auto_configure:
 	dh_auto_configure -- \
-    -DLIB_INSTALL_DIR=/usr/lib/$(DEB_HOST_MULTIARCH) \
     -DSTLINK_UDEV_RULES_DIR='/lib/udev/rules.d'
