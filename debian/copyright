@@ -4,9 +4,7 @@ Upstream-Contact: Andrew 'Necromant' Andrianov <andrew@ncrmnt.org>
 Source: https://github.com/texane/stlink
 Comment: Upstream tarball has been repackaged to remove binary OSX kernel
          drivers that are of unknown license and of no use to Debian.
-         Upstream's debian directory is also removed.
-Files-Excluded: stlinkv1_macosx_driver
-                debian
+Files-Excluded: stlinkv1_macos_driver
 
 Files: *
 Copyright: 2011-2018 agpanarin <agpanarin@gmail.com>
