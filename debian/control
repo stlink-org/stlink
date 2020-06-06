@@ -1,7 +1,7 @@
 Source: stlink
 Priority: optional
 Maintainer: Luca Boccassi <bluca@debian.org>
-Build-Depends: debhelper (>= 9), cmake (>= 3.4.2), libusb-1.0-0-dev, libgtk-3-dev
+Build-Depends: debhelper-compat (= 12), cmake (>= 3.4.2), libusb-1.0-0-dev, libgtk-3-dev
 Standards-Version: 4.5.0
 Rules-Requires-Root: no
 Section: electronics
