@@ -95,10 +95,11 @@ include_directories(src/st-flash)
 include_directories(src/stlink-lib)
 
 set(STLINK_HEADERS
+        inc/backend.h
+        src/stlink-lib/commands.h
+        src/stlink-lib/libusb_settings.h
+        src/stlink-lib/reg.h
         inc/stlink.h
-        src/backend.h
-        src/commands.h
-        src/reg.h
         src/stlink-lib/chipid.h
         src/stlink-lib/flash_loader.h
         src/stlink-lib/logging.h

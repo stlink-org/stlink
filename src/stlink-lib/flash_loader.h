@@ -1,8 +1,8 @@
 /*
- * File:   stlink.h
+ * File: stlink.h
  *
- * This should contain all the common top level stlink interfaces, regardless
- * of how the backend does the work....
+ * This should contain all the common top level stlink interfaces,
+ * regardless of how the backend does the work....
  */
 #ifndef STLINK_FLASH_LOADER_H_
 #define STLINK_FLASH_LOADER_H_
@@ -24,4 +24,4 @@ int stlink_flash_loader_run(stlink_t *sl, flash_loader_t* fl, stm32_addr_t targe
 }
 #endif
 
-#endif /* STLINK_FLASH_LOADER_H_ */
+#endif // STLINK_FLASH_LOADER_H_

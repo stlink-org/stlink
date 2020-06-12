@@ -1,80 +1,53 @@
 /*
- * Retrieved from https://github.com/WaterJuice/WjCryptLib
+ * WjCryptLib_Md5 (https://github.com/WaterJuice/WjCryptLib)
+ * Implementation of MD5 hash function. Originally written by Alexander Peslyak.
+ * Modified by WaterJuice retaining Public Domain license.
+ * This is free and unencumbered software released into the public domain - June 2013 - waterjuice.org
  */
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//  WjCryptLib_Md5
-//
-//  Implementation of MD5 hash function. Originally written by Alexander Peslyak. Modified by WaterJuice retaining
-//  Public Domain license.
-//
-//  This is free and unencumbered software released into the public domain - June 2013 waterjuice.org
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//  IMPORTS
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include <memory.h>
 
 #include "md5.h"
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//  INTERNAL FUNCTIONS
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/* INTERNAL FUNCTIONS */
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//  F, G, H, I
-//
-//  The basic MD5 functions. F and G are optimised compared to their RFC 1321 definitions for architectures that lack
-//  an AND-NOT instruction, just like in Colin Plumb's implementation.
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-#define F( x, y, z )            ( (z) ^ ((x) & ((y) ^ (z))) )
-#define G( x, y, z )            ( (y) ^ ((z) & ((x) ^ (y))) )
-#define H( x, y, z )            ( (x) ^ (y) ^ (z) )
-#define I( x, y, z )            ( (y) ^ ((x) | ~(z)) )
+/*  F, G, H, I
+ *
+ *  The basic MD5 functions.
+ * F and G are optimised compared to their RFC 1321 definitions for architectures
+ * that lack an AND-NOT instruction, just like in Colin Plumb's implementation.
+ */
+#define F( x, y, z )    ((z) ^ ((x) & ((y) ^ (z))))
+#define G( x, y, z )    ((y) ^ ((z) & ((x) ^ (y))))
+#define H( x, y, z )    ((x) ^ (y) ^ (z))
+#define I( x, y, z )    ((y) ^ ((x) | ~(z)))
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//  STEP
-//
-//  The MD5 transformation for all four rounds.
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/* STEP: The MD5 transformation for all four rounds. */
 #define STEP( f, a, b, c, d, x, t, s )                          \
     (a) += f((b), (c), (d)) + (x) + (t);                        \
     (a) = (((a) << (s)) | (((a) & 0xffffffff) >> (32 - (s))));  \
     (a) += (b);
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//  TransformFunction
-//
-//  This processes one or more 64-byte data blocks, but does NOT update the bit counters. There are no alignment
-//  requirements.
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-static
-void*
-    TransformFunction
-    (
-        Md5Context*     ctx,
-        void const*     data,
-        uintmax_t       size
-    )
-{
+/* TransformFunction
+ * This processes one or more 64-byte data blocks, but does NOT update the bit counters.
+ * There are no alignment requirements.
+ */
+static void* TransformFunction(Md5Context* ctx, void const* data, uintmax_t size) {
     uint8_t*     ptr;
-    uint32_t     a;
-    uint32_t     b;
-    uint32_t     c;
-    uint32_t     d;
-    uint32_t     saved_a;
-    uint32_t     saved_b;
-    uint32_t     saved_c;
-    uint32_t     saved_d;
+    uint32_t a;
+    uint32_t b;
+    uint32_t c;
+    uint32_t d;
+    uint32_t saved_a;
+    uint32_t saved_b;
+    uint32_t saved_c;
+    uint32_t saved_d;
 
     #define GET(n) (ctx->block[(n)])
-    #define SET(n) (ctx->block[(n)] =             \
-            ((uint32_t)ptr[(n)*4 + 0] << 0)     \
-        |   ((uint32_t)ptr[(n)*4 + 1] << 8 )      \
-        |   ((uint32_t)ptr[(n)*4 + 2] << 16)      \
-        |   ((uint32_t)ptr[(n)*4 + 3] << 24) )
+    #define SET(n) (ctx->block[(n)] = ((uint32_t)ptr[(n) * 4 + 0] << 0) |  \
+                                      ((uint32_t)ptr[(n) * 4 + 1] << 8) | \
+                                      ((uint32_t)ptr[(n) * 4 + 2] << 16) | \
+                                      ((uint32_t)ptr[(n) * 4 + 3] << 24))
 
     ptr = (uint8_t*)data;
 
@@ -83,8 +56,7 @@ void*
     c = ctx->c;
     d = ctx->d;
 
-    do
-    {
+    do {
         saved_a = a;
         saved_b = b;
         saved_c = c;
@@ -178,24 +150,16 @@ void*
     #undef GET
     #undef SET
 
-    return ptr;
+    return(ptr);
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//  EXPORTED FUNCTIONS
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*  EXPORTED FUNCTIONS */
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//  Md5Initialise
-//
-//  Initialises an MD5 Context. Use this to initialise/reset a context.
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void
-    Md5Initialise
-    (
-        Md5Context*         Context         // [out]
-    )
-{
+/* Md5Initialise
+ * Initialises an MD5 Context.
+ * Use this to initialise/reset a context.
+ */
+void Md5Initialise(Md5Context* Context /* [out] */) {
     Context->a = 0x67452301;
     Context->b = 0xefcdab89;
     Context->c = 0x98badcfe;
@@ -205,39 +169,31 @@ void
     Context->hi = 0;
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//  Md5Update
-//
-//  Adds data to the MD5 context. This will process the data and update the internal state of the context. Keep on
-//  calling this function until all the data has been added. Then call Md5Finalise to calculate the hash.
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void
-    Md5Update
-    (
-        Md5Context*         Context,        // [in out]
-        void const*         Buffer,         // [in]
-        uint32_t            BufferSize      // [in]
-    )
-{
-    uint32_t    saved_lo;
-    uint32_t    used;
-    uint32_t    free;
+/* Md5Update
+ * Adds data to the MD5 context.
+ * This will process the data and update the internal state of the context.
+ * Keep on calling this function until all the data has been added.
+ * Then call Md5Finalise to calculate the hash.
+ */
+void Md5Update(Md5Context* Context /* [in out] */, void const* Buffer /* [in] */, uint32_t BufferSize /* [in] */) {
+    uint32_t saved_lo;
+    uint32_t used;
+    uint32_t free;
 
     saved_lo = Context->lo;
-    if ( (Context->lo = (saved_lo + BufferSize) & 0x1fffffff) < saved_lo )
-    {
+
+    if ((Context->lo = (saved_lo + BufferSize) & 0x1fffffff) < saved_lo) {
         Context->hi++;
     }
-    Context->hi += (uint32_t)( BufferSize >> 29 );
+
+    Context->hi += (uint32_t)(BufferSize >> 29);
 
     used = saved_lo & 0x3f;
 
-    if ( used )
-    {
+    if ( used ) {
         free = 64 - used;
 
-        if ( BufferSize < free )
-        {
+        if ( BufferSize < free ) {
             memcpy( &Context->buffer[used], Buffer, BufferSize );
             return;
         }
@@ -248,8 +204,7 @@ void
         TransformFunction(Context, Context->buffer, 64);
     }
 
-    if ( BufferSize >= 64 )
-    {
+    if ( BufferSize >= 64 ) {
         Buffer = TransformFunction( Context, Buffer, BufferSize & ~(unsigned long)0x3f );
         BufferSize &= 0x3f;
     }
@@ -257,21 +212,14 @@ void
     memcpy( Context->buffer, Buffer, BufferSize );
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//  Md5Finalise
-//
-//  Performs the final calculation of the hash and returns the digest (16 byte buffer containing 128bit hash). After
-//  calling this, Md5Initialised must be used to reuse the context.
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void
-    Md5Finalise
-    (
-        Md5Context*         Context,        // [in out]
-        MD5_HASH*           Digest          // [in]
-    )
-{
-    uint32_t    used;
-    uint32_t    free;
+/* Md5Finalise
+ * Performs the final calculation of the hash and returns the digest
+ * (16 byte buffer containing 128bit hash).
+ * After calling this, Md5Initialised must be used to reuse the context.
+ */
+void Md5Finalise(Md5Context* Context /* [in out] */, MD5_HASH* Digest /* [in] */) {
+    uint32_t used;
+    uint32_t free;
 
     used = Context->lo & 0x3f;
 
@@ -279,8 +227,7 @@ void
 
     free = 64 - used;
 
-    if (free < 8)
-    {
+    if (free < 8) {
         memset( &Context->buffer[used], 0, free );
         TransformFunction( Context, Context->buffer, 64 );
         used = 0;
@@ -290,48 +237,40 @@ void
     memset( &Context->buffer[used], 0, free - 8 );
 
     Context->lo <<= 3;
-    Context->buffer[56] = (uint8_t)( Context->lo );
-    Context->buffer[57] = (uint8_t)( Context->lo >> 8 );
-    Context->buffer[58] = (uint8_t)( Context->lo >> 16 );
-    Context->buffer[59] = (uint8_t)( Context->lo >> 24 );
-    Context->buffer[60] = (uint8_t)( Context->hi );
-    Context->buffer[61] = (uint8_t)( Context->hi >> 8 );
-    Context->buffer[62] = (uint8_t)( Context->hi >> 16 );
-    Context->buffer[63] = (uint8_t)( Context->hi >> 24 );
+    Context->buffer[56] = (uint8_t)(Context->lo);
+    Context->buffer[57] = (uint8_t)(Context->lo >> 8);
+    Context->buffer[58] = (uint8_t)(Context->lo >> 16);
+    Context->buffer[59] = (uint8_t)(Context->lo >> 24);
+    Context->buffer[60] = (uint8_t)(Context->hi);
+    Context->buffer[61] = (uint8_t)(Context->hi >> 8);
+    Context->buffer[62] = (uint8_t)(Context->hi >> 16);
+    Context->buffer[63] = (uint8_t)(Context->hi >> 24);
 
     TransformFunction( Context, Context->buffer, 64 );
 
-    Digest->bytes[0]  = (uint8_t)( Context->a );
-    Digest->bytes[1]  = (uint8_t)( Context->a >> 8 );
-    Digest->bytes[2]  = (uint8_t)( Context->a >> 16 );
-    Digest->bytes[3]  = (uint8_t)( Context->a >> 24 );
-    Digest->bytes[4]  = (uint8_t)( Context->b );
-    Digest->bytes[5]  = (uint8_t)( Context->b >> 8 );
-    Digest->bytes[6]  = (uint8_t)( Context->b >> 16 );
-    Digest->bytes[7]  = (uint8_t)( Context->b >> 24 );
-    Digest->bytes[8]  = (uint8_t)( Context->c );
-    Digest->bytes[9]  = (uint8_t)( Context->c >> 8 );
-    Digest->bytes[10] = (uint8_t)( Context->c >> 16 );
-    Digest->bytes[11] = (uint8_t)( Context->c >> 24 );
-    Digest->bytes[12] = (uint8_t)( Context->d );
-    Digest->bytes[13] = (uint8_t)( Context->d >> 8 );
-    Digest->bytes[14] = (uint8_t)( Context->d >> 16 );
-    Digest->bytes[15] = (uint8_t)( Context->d >> 24 );
+    Digest->bytes[0]  = (uint8_t)(Context->a);
+    Digest->bytes[1]  = (uint8_t)(Context->a >> 8);
+    Digest->bytes[2]  = (uint8_t)(Context->a >> 16);
+    Digest->bytes[3]  = (uint8_t)(Context->a >> 24);
+    Digest->bytes[4]  = (uint8_t)(Context->b);
+    Digest->bytes[5]  = (uint8_t)(Context->b >> 8);
+    Digest->bytes[6]  = (uint8_t)(Context->b >> 16);
+    Digest->bytes[7]  = (uint8_t)(Context->b >> 24);
+    Digest->bytes[8]  = (uint8_t)(Context->c);
+    Digest->bytes[9]  = (uint8_t)(Context->c >> 8);
+    Digest->bytes[10] = (uint8_t)(Context->c >> 16);
+    Digest->bytes[11] = (uint8_t)(Context->c >> 24);
+    Digest->bytes[12] = (uint8_t)(Context->d);
+    Digest->bytes[13] = (uint8_t)(Context->d >> 8);
+    Digest->bytes[14] = (uint8_t)(Context->d >> 16);
+    Digest->bytes[15] = (uint8_t)(Context->d >> 24);
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//  Md5Calculate
-//
-//  Combines Md5Initialise, Md5Update, and Md5Finalise into one function. Calculates the MD5 hash of the buffer.
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void
-    Md5Calculate
-    (
-        void  const*        Buffer,         // [in]
-        uint32_t            BufferSize,     // [in]
-        MD5_HASH*           Digest          // [in]
-    )
-{
+/* Md5Calculate
+ * Combines Md5Initialise, Md5Update, and Md5Finalise into one function.
+ * Calculates the MD5 hash of the buffer.
+ */
+void Md5Calculate(void const* Buffer /* [in] */, uint32_t BufferSize /* [in] */, MD5_HASH* Digest /* [in] */) {
     Md5Context context;
 
     Md5Initialise( &context );

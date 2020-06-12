@@ -25,16 +25,20 @@ int win32_poll(struct pollfd *fds, unsigned int nfds, int timo) {
     FD_ZERO(&ifds);
     FD_ZERO(&ofds);
     FD_ZERO(&efds);
+
     for (i = 0, op = ip = 0; i < nfds; ++i) {
         fds[i].revents = 0;
+
         if (fds[i].events & (POLLIN | POLLPRI)) {
             ip = &ifds;
             FD_SET(fds[i].fd, ip);
         }
+
         if (fds[i].events & POLLOUT) {
             op = &ofds;
             FD_SET(fds[i].fd, op);
         }
+
         FD_SET(fds[i].fd, &efds);
     }
 
@@ -53,7 +57,7 @@ int win32_poll(struct pollfd *fds, unsigned int nfds, int timo) {
 
 #ifdef DEBUG_POLL
     printf("Entering select() sec=%ld usec=%ld ip=%lx op=%lx\n",
-            (long)timeout.tv_sec, (long)timeout.tv_usec, (long)ip, (long)op);
+           (long)timeout.tv_sec, (long)timeout.tv_usec, (long)ip, (long)op);
 #endif
 
     rc = select(0, ip, op, &efds, toptr);
@@ -62,33 +66,41 @@ int win32_poll(struct pollfd *fds, unsigned int nfds, int timo) {
     printf("Exiting select rc=%d\n", rc);
 #endif
 
-    if (rc <= 0) return rc;
+    if (rc <= 0) { return(rc); }
 
     if (rc > 0) {
         for ( i = 0; i < nfds; ++i) {
             int fd = fds[i].fd;
-            if (fds[i].events & (POLLIN|POLLPRI) && FD_ISSET(fd, &ifds))
+
+            if (fds[i].events & (POLLIN | POLLPRI) && FD_ISSET(fd, &ifds)) {
                 fds[i].revents |= POLLIN;
-            if (fds[i].events & POLLOUT && FD_ISSET(fd, &ofds))
+            }
+
+            if (fds[i].events & POLLOUT && FD_ISSET(fd, &ofds)) {
                 fds[i].revents |= POLLOUT;
-            if (FD_ISSET(fd, &efds))
-                /* Some error was detected ... should be some way to know. */
+            }
+
+            if (FD_ISSET(fd, &efds)) {
+                // Some error was detected ... should be some way to know
                 fds[i].revents |= POLLHUP;
+            }
 
 #ifdef DEBUG_POLL
     printf("%d %d %d revent = %x\n",
-            FD_ISSET(fd, &ifds), FD_ISSET(fd, &ofds), FD_ISSET(fd, &efds),
-            fds[i].revents
-          );
+           FD_ISSET(fd, &ifds),
+           FD_ISSET(fd, &ofds),
+           FD_ISSET(fd, &efds),
+           fds[i].revents);
 #endif
 
         }
     }
-    return rc;
+
+    return(rc);
 }
 
 static void set_connect_errno(int winsock_err) {
-    switch(winsock_err) {
+    switch (winsock_err) {
     case WSAEINVAL:
     case WSAEALREADY:
     case WSAEWOULDBLOCK:
@@ -101,7 +113,7 @@ static void set_connect_errno(int winsock_err) {
 }
 
 static void set_socket_errno(int winsock_err) {
-    switch(winsock_err) {
+    switch (winsock_err) {
     case WSAEWOULDBLOCK:
         errno = EAGAIN;
         break;
@@ -111,71 +123,81 @@ static void set_socket_errno(int winsock_err) {
     }
 }
 
-/*
- * A wrapper around the socket() function.
+/* A wrapper around the socket() function.
  * The purpose of this wrapper is to ensure that the global errno symbol is set if an error occurs,
  * even if we are using winsock.
  */
 SOCKET win32_socket(int domain, int type, int protocol) {
     SOCKET fd = socket(domain, type, protocol);
-    if (fd == INVALID_SOCKET) set_socket_errno(WSAGetLastError());
-    return fd;
+
+    if (fd == INVALID_SOCKET) { set_socket_errno(WSAGetLastError()); }
+
+    return(fd);
 }
 
-/*
- * A wrapper around the connect() function.
+/* A wrapper around the connect() function.
  * The purpose of this wrapper is to ensure that the global errno symbol is set if an error occurs,
  * even if we are using winsock.
  */
 int win32_connect(SOCKET fd, struct sockaddr *addr, socklen_t addr_len) {
     int rc = connect(fd, addr, addr_len);
     assert(rc == 0 || rc == SOCKET_ERROR);
-    if (rc == SOCKET_ERROR) set_connect_errno(WSAGetLastError());
-    return rc;
+
+    if (rc == SOCKET_ERROR) { set_connect_errno(WSAGetLastError()); }
+
+    return(rc);
 }
 
-/*
- * A wrapper around the accept() function.
+/* A wrapper around the accept() function.
  * The purpose of this wrapper is to ensure that the global errno symbol is set if an error occurs,
  * even if we are using winsock.
  */
 SOCKET win32_accept(SOCKET fd, struct sockaddr *addr, socklen_t *addr_len) {
     SOCKET newfd = accept(fd, addr, addr_len);
+
     if (newfd == INVALID_SOCKET) {
         set_socket_errno(WSAGetLastError());
         newfd = (SOCKET)-1;
     }
-    return newfd;
+
+    return(newfd);
 }
 
-/*
- * A wrapper around the shutdown() function.
+/* A wrapper around the shutdown() function.
  * The purpose of this wrapper is to ensure that the global errno symbol is set if an error occurs,
  * even if we are using winsock.
  */
 int win32_shutdown(SOCKET fd, int mode) {
     int rc = shutdown(fd, mode);
     assert(rc == 0 || rc == SOCKET_ERROR);
-    if (rc == SOCKET_ERROR) set_socket_errno(WSAGetLastError());
-    return rc;
+
+    if (rc == SOCKET_ERROR) { set_socket_errno(WSAGetLastError()); }
+
+    return(rc);
 }
 
 int win32_close_socket(SOCKET fd) {
     int rc = closesocket(fd);
-    if (rc == SOCKET_ERROR) set_socket_errno(WSAGetLastError());
-    return rc;
+
+    if (rc == SOCKET_ERROR) { set_socket_errno(WSAGetLastError()); }
+
+    return(rc);
 }
 
 ssize_t win32_write_socket(SOCKET fd, void *buf, int n) {
     int rc = send(fd, buf, n, 0);
-    if (rc == SOCKET_ERROR) set_socket_errno(WSAGetLastError());
-    return rc;
+
+    if (rc == SOCKET_ERROR) { set_socket_errno(WSAGetLastError()); }
+
+    return(rc);
 }
 
 ssize_t win32_read_socket(SOCKET fd, void *buf, int n) {
     int rc = recv(fd, buf, n, 0);
-    if (rc == SOCKET_ERROR) set_socket_errno(WSAGetLastError());
-    return rc;
+
+    if (rc == SOCKET_ERROR) { set_socket_errno(WSAGetLastError()); }
+
+    return(rc);
 }
 
 
@@ -185,41 +207,45 @@ char * win32_strtok_r(char *s, const char *delim, char **lasts) {
     char *tok;
 
 
-    if (s == NULL && (s = *lasts) == NULL) return (NULL);
+    if (s == NULL && (s = *lasts) == NULL) { return (NULL); }
 
-    // Skip (span) leading delimiters (s += strspn(s, delim), sort of).
+    // skip (span) leading delimiters (s += strspn(s, delim), sort of).
 cont:
     c = *s++;
-    for (spanp = (char *)delim; (sc = *spanp++) != 0;) {
-        if (c == sc)
-            goto cont;
-    }
+
+    for (spanp = (char *)delim; (sc = *spanp++) != 0;)
+        if (c == sc) { goto cont; }
+
 
     if (c == 0) { // no non-delimiter characters
         *lasts = NULL;
         return (NULL);
     }
+
     tok = s - 1;
 
-    /*
-     * Scan token (scan for delimiters: s += strcspn(s, delim), sort of).
+    /* Scan token (scan for delimiters: s += strcspn(s, delim), sort of).
      * Note that delim must have one NUL; we stop if we see that, too.
      */
-    for (;;) {
+    for ( ; ;) {
         c = *s++;
         spanp = (char *)delim;
-        do {
+
+        do
             if ((sc = *spanp++) == c) {
                 if (c == 0) {
                     s = NULL;
                 } else {
                     s[-1] = 0;
                 }
+
                 *lasts = s;
-                return (tok);
+                return(tok);
             }
-        } while (sc != 0);
+
+        while (sc != 0);
     }
+
     // NOT REACHED
 }
 
@@ -229,22 +255,29 @@ char *win32_strsep (char **stringp, const char *delim) {
     register int c, sc;
     char *tok;
 
-    if ((s = *stringp) == NULL) return (NULL);
-    for (tok = s;;) {
+    if ((s = *stringp) == NULL) {
+        return(NULL);
+    }
+
+    for (tok = s; ;) {
         c = *s++;
         spanp = delim;
-        do {
+
+        do
             if ((sc = *spanp++) == c) {
                 if (c == 0) {
                     s = NULL;
                 } else {
                     s[-1] = 0;
                 }
+
                 *stringp = s;
-                return (tok);
+                return(tok);
             }
-        } while (sc != 0);
+
+        while (sc != 0);
     }
+
     // NOT REACHED
 }
 
@@ -264,18 +297,19 @@ int usleep(unsigned int waitTime) {
         WaitForSingleObject(timer, INFINITE);
         CloseHandle(timer);
 
-        return 0;
+        return(0);
     }
+
     LARGE_INTEGER perf_cnt, start, now;
 
     QueryPerformanceFrequency(&perf_cnt);
     QueryPerformanceCounter(&start);
 
-    do {
-        QueryPerformanceCounter((LARGE_INTEGER*) &now);
-    } while ((now.QuadPart - start.QuadPart) / (float)perf_cnt.QuadPart * 1000 * 1000 < waitTime);
+    do
+        QueryPerformanceCounter((LARGE_INTEGER*)&now);
+    while ((now.QuadPart - start.QuadPart) / (float)perf_cnt.QuadPart * 1000 * 1000 < waitTime);
 
-    return 0;
+    return(0);
 }
 #endif
 

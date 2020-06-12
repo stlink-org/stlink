@@ -1,8 +1,6 @@
 /*
  * File:   sg.h
  * Author: karl
- *
- * Created on October 1, 2011, 11:29 PM
  */
 
 #ifndef STLINK_SG_H
@@ -15,31 +13,28 @@
 extern "C" {
 #endif
 
-    // device access
-#define RDWR		0
-#define RO		1
-#define SG_TIMEOUT_SEC	1 // actually 1 is about 2 sec
-#define SG_TIMEOUT_MSEC	3 * 1000
-    // Each CDB can be a total of 6, 10, 12, or 16 bytes, later version
-    // of the SCSI standard also allow for variable-length CDBs (min. CDB is 6).
-    // the stlink needs max. 10 bytes.
-#define CDB_6		6
-#define CDB_10		10
-#define CDB_12		12
-#define CDB_16		16
+/* Device access */
+#define RDWR        0
+#define RO      1
+#define SG_TIMEOUT_SEC  1 // actually 1 is about 2 sec
+#define SG_TIMEOUT_MSEC 3 * 1000
 
-#define CDB_SL		10
+// Each CDB can be a total of 6, 10, 12, or 16 bytes, later version of the SCSI standard
+// also allow for variable-length CDBs (min. CDB is 6). The stlink needs max. 10 bytes.
+#define CDB_6       6
+#define CDB_10      10
+#define CDB_12      12
+#define CDB_16      16
 
-    // Query data flow direction.
-#define Q_DATA_OUT	0
-#define Q_DATA_IN	1
+#define CDB_SL      10
 
-    // The SCSI Request Sense command is used to obtain sense data
-    // (error information) from a target device.
-    // http://en.wikipedia.org/wiki/SCSI_Request_Sense_Command
-#define SENSE_BUF_LEN		32
+/* Query data flow direction */
+#define Q_DATA_OUT  0
+#define Q_DATA_IN   1
 
-
+// The SCSI Request Sense command is used to obtain sense data (error information) from
+// a target device. (http://en.wikipedia.org/wiki/SCSI_Request_Sense_Command)
+#define SENSE_BUF_LEN       32
 
 struct stlink_libsg {
     libusb_context* libusb_ctx;
@@ -65,8 +60,8 @@ struct stlink_libsg {
 
 stlink_t* stlink_v1_open(const int verbose, int reset);
 
-#ifdef	__cplusplus
+#ifdef __cplusplus
 }
 #endif
 
-#endif	/* STLINK_SG_H */
+#endif // STLINK_SG_H

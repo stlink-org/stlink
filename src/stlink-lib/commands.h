@@ -33,4 +33,4 @@ enum stlink_debug_commands {
     STLINK_DEBUG_ENTER_SWD               = 0xa3
 };
 
-#endif /* STLINK_COMMANDS_H_ */
+#endif // STLINK_COMMANDS_H_

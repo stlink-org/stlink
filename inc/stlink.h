@@ -18,11 +18,11 @@
 extern "C" {
 #endif
 
-#define STLINK_ARRAY_SIZE(x) (sizeof(x)/sizeof(x[0]))
+#define STLINK_ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
 
 /* Max data transfer size */
 // 6kB = max mem32_read block, 8kB sram
-//#define Q_BUF_LEN	96
+// #define Q_BUF_LEN	96
 #define Q_BUF_LEN (1024 * 100)
 
 // STLINK_DEBUG_RESETSYS, etc:
@@ -103,16 +103,16 @@ enum target_state {
 #define S_RESET_ST  (1 << 25)
 
 /* Map the relevant features, quirks and workaround for specific firmware version of stlink */
-#define STLINK_F_HAS_TRACE              (1<<0)
-#define STLINK_F_HAS_SWD_SET_FREQ       (1<<1)
-#define STLINK_F_HAS_JTAG_SET_FREQ      (1<<2)
-#define STLINK_F_HAS_MEM_16BIT          (1<<3)
-#define STLINK_F_HAS_GETLASTRWSTATUS2   (1<<4)
-#define STLINK_F_HAS_DAP_REG            (1<<5)
-#define STLINK_F_QUIRK_JTAG_DP_READ     (1<<6)
-#define STLINK_F_HAS_AP_INIT            (1<<7)
-#define STLINK_F_HAS_DPBANKSEL          (1<<8)
-#define STLINK_F_HAS_RW8_512BYTES       (1<<9)
+#define STLINK_F_HAS_TRACE              (1 << 0)
+#define STLINK_F_HAS_SWD_SET_FREQ       (1 << 1)
+#define STLINK_F_HAS_JTAG_SET_FREQ      (1 << 2)
+#define STLINK_F_HAS_MEM_16BIT          (1 << 3)
+#define STLINK_F_HAS_GETLASTRWSTATUS2   (1 << 4)
+#define STLINK_F_HAS_DAP_REG            (1 << 5)
+#define STLINK_F_QUIRK_JTAG_DP_READ     (1 << 6)
+#define STLINK_F_HAS_AP_INIT            (1 << 7)
+#define STLINK_F_HAS_DPBANKSEL          (1 << 8)
+#define STLINK_F_HAS_RW8_512BYTES       (1 << 9)
 
 #define C_BUF_LEN 32
 
@@ -146,8 +146,8 @@ struct stlink_reg {
 typedef uint32_t stm32_addr_t;
 
 typedef struct flash_loader {
-stm32_addr_t loader_addr; // loader sram addr
-stm32_addr_t buf_addr;    // buffer sram address
+    stm32_addr_t loader_addr; // loader sram addr
+    stm32_addr_t buf_addr; // buffer sram address
 } flash_loader_t;
 
 typedef struct _cortex_m3_cpuid_ {
@@ -183,16 +183,16 @@ enum transport_type {
 };
 
 typedef struct _stlink stlink_t;
-  
+
 #include <backend.h>
 
 struct _stlink {
     struct _stlink_backend *backend;
     void *backend_data;
 
-    // Room for the command header
+    // room for the command header
     unsigned char c_buf[C_BUF_LEN];
-    // Data transferred from or to device
+    // data transferred from or to device
     unsigned char q_buf[Q_BUF_LEN];
     int q_len;
 
@@ -205,28 +205,29 @@ struct _stlink {
 
     char serial[STLINK_SERIAL_MAX_SIZE];
     int serial_size;
-    int freq;                // set by stlink_open_usb(), values: STLINK_SWDCLK_xxx_DIVISOR
+    int freq;                    // set by stlink_open_usb(), values: STLINK_SWDCLK_xxx_DIVISOR
 
     enum stlink_flash_type flash_type;
     // stlink_chipid_params.flash_type, set by stlink_load_device_params(), values: STLINK_FLASH_TYPE_xxx
     bool has_dual_bank;
 
-    stm32_addr_t flash_base; // STM32_FLASH_BASE, set by stlink_load_device_params()
-    size_t flash_size;       // calculated by stlink_load_device_params()
-    size_t flash_pgsz;       // stlink_chipid_params.flash_pagesize, set by stlink_load_device_params()
+    stm32_addr_t flash_base;     // STM32_FLASH_BASE, set by stlink_load_device_params()
+    size_t flash_size;           // calculated by stlink_load_device_params()
+    size_t flash_pgsz;           // stlink_chipid_params.flash_pagesize, set by stlink_load_device_params()
 
     /* sram settings */
-    stm32_addr_t sram_base;  // STM32_SRAM_BASE, set by stlink_load_device_params()
-    size_t sram_size;        // stlink_chipid_params.sram_size, set by stlink_load_device_params()
+    stm32_addr_t sram_base;      // STM32_SRAM_BASE, set by stlink_load_device_params()
+    size_t sram_size;            // stlink_chipid_params.sram_size, set by stlink_load_device_params()
 
-	/* option settings */
+    /* option settings */
     stm32_addr_t option_base;
     size_t option_size;
 
     // bootloader
-    // sys_base and sys_size are not used by the tools, but are only there to download the bootloader code (see tests/sg.c)
-    stm32_addr_t sys_base;   // stlink_chipid_params.bootrom_base, set by stlink_load_device_params()
-    size_t sys_size;         // stlink_chipid_params.bootrom_size, set by stlink_load_device_params()
+    // sys_base and sys_size are not used by the tools, but are only there to download the bootloader code
+    // (see tests/sg.c)
+    stm32_addr_t sys_base;       // stlink_chipid_params.bootrom_base, set by stlink_load_device_params()
+    size_t sys_size;             // stlink_chipid_params.bootrom_size, set by stlink_load_device_params()
 
     struct stlink_version_ version;
 };
@@ -306,4 +307,4 @@ int stlink_fwrite_option_bytes(stlink_t *sl, const char* path, stm32_addr_t addr
 }
 #endif
 
-#endif /* STLINK_H */
+#endif // STLINK_H

@@ -28,7 +28,7 @@
         int (*current_mode) (stlink_t * stl);
         int (*force_debug) (stlink_t *sl);
         int32_t (*target_voltage) (stlink_t *sl);
-        int (*set_swdclk) (stlink_t * stl, uint16_t divisor);		
+        int (*set_swdclk) (stlink_t * stl, uint16_t divisor);
     } stlink_backend_t;
 
-#endif /* STLINK_BACKEND_H_ */
+#endif // STLINK_BACKEND_H_
