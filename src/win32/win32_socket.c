@@ -231,7 +231,7 @@ cont:
         c = *s++;
         spanp = (char *)delim;
 
-        do
+        do {
             if ((sc = *spanp++) == c) {
                 if (c == 0) {
                     s = NULL;
@@ -243,7 +243,7 @@ cont:
                 return(tok);
             }
 
-        while (sc != 0);
+        } while (sc != 0);
     }
 
     // NOT REACHED
@@ -263,7 +263,7 @@ char *win32_strsep (char **stringp, const char *delim) {
         c = *s++;
         spanp = delim;
 
-        do
+        do {
             if ((sc = *spanp++) == c) {
                 if (c == 0) {
                     s = NULL;
@@ -275,7 +275,7 @@ char *win32_strsep (char **stringp, const char *delim) {
                 return(tok);
             }
 
-        while (sc != 0);
+        } while (sc != 0);
     }
 
     // NOT REACHED
@@ -305,9 +305,9 @@ int usleep(unsigned int waitTime) {
     QueryPerformanceFrequency(&perf_cnt);
     QueryPerformanceCounter(&start);
 
-    do
+    do {
         QueryPerformanceCounter((LARGE_INTEGER*)&now);
-    while ((now.QuadPart - start.QuadPart) / (float)perf_cnt.QuadPart * 1000 * 1000 < waitTime);
+    } while ((now.QuadPart - start.QuadPart) / (float)perf_cnt.QuadPart * 1000 * 1000 < waitTime);
 
     return(0);
 }

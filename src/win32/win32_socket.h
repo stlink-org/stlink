@@ -20,9 +20,9 @@
 #pragma warning(pop)
 #endif
 
-/* winsock doesn't feature poll(), so there is a version implemented in terms of select() in mingw.c.
+/* winsock doesn't feature poll(), so there is a version implemented in terms of select() in win32_socket.c.
  * The following definitions are copied from linux man pages.
- * A poll() macro is defined to call the version in mingw.c.
+ * A poll() macro is defined to call the version in win32_socket.c.
  */
 #if !defined(_WIN32_WINNT) || (_WIN32_WINNT < 0x0600)
 
