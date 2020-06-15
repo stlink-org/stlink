@@ -108,6 +108,7 @@ int parse_options(int argc, char** argv, st_state_t *st) {
         {"version", no_argument, NULL, 'V'},
         {"semihosting", no_argument, NULL, SEMIHOSTING_OPTION},
         {"serial", required_argument, NULL, SERIAL_OPTION},
+        {"connect-under-reset", no_argument, NULL, 'u'},
         {0, 0, 0, 0},
     };
     const char * help_str = "%s - usage:\n\n"
@@ -133,6 +134,8 @@ int parse_options(int argc, char** argv, st_state_t *st) {
                             "The STLINK device to use can be specified in the environment\n"
                             "variable STLINK_DEVICE on the format <USB_BUS>:<USB_ADDR>.\n"
                             "\n"
+                            "  -u, --connect-under-reset\n"
+                            "\t\t\t Keep the board under reset while connecting\n"
     ;
 
 
@@ -140,7 +143,7 @@ int parse_options(int argc, char** argv, st_state_t *st) {
     int c;
     int q;
 
-    while ((c = getopt_long(argc, argv, "hv::p:mn", long_options, &option_index)) != -1)
+    while ((c = getopt_long(argc, argv, "hv::p:mnu", long_options, &option_index)) != -1)
         switch (c) {
         case 0:
             break;
@@ -196,6 +199,9 @@ int parse_options(int argc, char** argv, st_state_t *st) {
             }
 
             serial_specified = true;
+            break;
+        case 'u':
+            st->reset = 2;
             break;
         }
 

@@ -42,6 +42,7 @@ int main(int ac, char** av) {
     struct flash_opts o;
     int err = -1;
     uint8_t * mem = NULL;
+    int reset = 1;
 
     o.size = 0;
 
@@ -53,7 +54,11 @@ int main(int ac, char** av) {
 
     printf("st-flash %s\n", STLINK_VERSION);
 
-    sl = stlink_open_usb(o.log_level, 1, (char *)o.serial, o.freq);
+    if( o.connect_under_reset ) {
+        reset = 2;
+    }
+
+    sl = stlink_open_usb(o.log_level, reset, (char *)o.serial, o.freq);
 
     if (sl == NULL) { return(-1); }
 
