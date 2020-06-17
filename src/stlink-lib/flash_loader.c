@@ -360,11 +360,11 @@ int stlink_flash_loader_run(stlink_t *sl, flash_loader_t* fl, stm32_addr_t targe
  * the OS uses, the wait until the error message is reduced to the same order of magnitude
  * as what was intended. -- REW.
  */
-#define WAIT_ROUNDS 100
+#define WAIT_ROUNDS 30
 
     // wait until done (reaches breakpoint)
     for (i = 0; i < WAIT_ROUNDS; i++) {
-        usleep(1000);
+        usleep(10000);
 
         if (stlink_is_core_halted(sl)) { break; }
     }
