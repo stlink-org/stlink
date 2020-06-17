@@ -32,15 +32,6 @@ else ()
     set(CMAKE_C_FLAGS_RELWITHDEBINFO_INIT "/MT /Zi /O2 /Ob1 /D NDEBUG")
 endif ()
 
-## Set installation directories for header files                                ### TODO: Clean this up...
-if (IS_DIRECTORY ${INCLUDE_INSTALL_DIR})
-    set(INCLUDE_INSTALL_DIR ${INCLUDE_INSTALL_DIR} CACHE PATH "Main include directory")
-    set(STLINK_INCLUDE_PATH "${INCLUDE_INSTALL_DIR}")
-else ()
-    set(INCLUDE_INSTALL_DIR "include" CACHE PATH "Main include directory")
-    set(STLINK_INCLUDE_PATH "${CMAKE_INSTALL_PREFIX}/${INCLUDE_INSTALL_DIR}")
-endif ()
-
 
 ###
 # Dependencies
@@ -94,12 +85,19 @@ include_directories(src)
 include_directories(src/st-flash)
 include_directories(src/stlink-lib)
 
+## Set installation directory for header files
+set(STLINK_INCLUDE_PATH ${CMAKE_INSTALL_INCLUDEDIR} CACHE PATH "Main include install directory")
+
+## Subordinate CMakeLists for version config & header installation
+add_subdirectory(inc)
+
+## Define source- and headerfiles for stlink library
 set(STLINK_HEADERS
         inc/backend.h
+        inc/stlink.h
         src/stlink-lib/commands.h
         src/stlink-lib/libusb_settings.h
         src/stlink-lib/reg.h
-        inc/stlink.h
         src/stlink-lib/chipid.h
         src/stlink-lib/flash_loader.h
         src/stlink-lib/logging.h
@@ -279,7 +277,6 @@ endif ()
 # Additional build tasks
 ###
 
-add_subdirectory(inc)             # contains subordinate CMakeLists for version config
 add_subdirectory(src/stlink-gui)  # contains subordinate CMakeLists to build GUI
 add_subdirectory(tests)           # contains subordinate CMakeLists to build test executables
 add_subdirectory(cmake/packaging) # contains subordinate CMakeLists to build packages
