@@ -496,9 +496,9 @@ static void connect_button_cb(GtkWidget *widget, gpointer data) {
 
     if (gui->sl != NULL) { return; }
 
-    gui->sl = stlink_v1_open(0, 1); // try version 1 then version 2
+    gui->sl = stlink_v1_open(0, 1); // try version 1 then version 2 // TODO: deprecated?
 
-    if (gui->sl == NULL) { gui->sl = stlink_open_usb(0, 1, NULL, 0); }
+    if (gui->sl == NULL) { gui->sl = stlink_open_usb(0, 0, 1, NULL, 0); }
 
     if (gui->sl == NULL) {
         stlink_gui_set_info_error_message(gui, "Failed to connect to STLink.");

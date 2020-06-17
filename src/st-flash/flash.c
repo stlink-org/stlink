@@ -54,11 +54,9 @@ int main(int ac, char** av) {
 
     printf("st-flash %s\n", STLINK_VERSION);
 
-    if( o.connect_under_reset ) {
-        reset = 2;
-    }
+    if(o.connect_under_reset) { reset = 2; }
 
-    sl = stlink_open_usb(o.log_level, reset, (char *)o.serial, o.freq);
+    sl = stlink_open_usb(o.log_level, 0, reset, (char *)o.serial, o.freq);
 
     if (sl == NULL) { return(-1); }
 
