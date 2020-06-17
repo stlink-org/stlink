@@ -53,7 +53,7 @@ int main(int ac, char** av) {
 
     printf("st-flash %s\n", STLINK_VERSION);
 
-    sl = stlink_open_usb(o.log_level, 1, (char *)o.serial, o.freq);
+    sl = stlink_open_usb(o.log_level, 0, 1, (char *)o.serial, o.freq);
 
     if (sl == NULL) { return(-1); }
 

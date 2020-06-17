@@ -89,9 +89,9 @@ static stlink_t* do_connect(st_state_t *st) {
     stlink_t *sl = NULL;
 
     if (serial_specified) {
-        sl = stlink_open_usb(st->logging_level, st->reset, serialnumber, 0);
+        sl = stlink_open_usb(st->logging_level, 0, st->reset, serialnumber, 0);
     } else {
-        sl = stlink_open_usb(st->logging_level, st->reset, NULL, 0);
+        sl = stlink_open_usb(st->logging_level, 0, st->reset, NULL, 0);
     }
 
     return(sl);

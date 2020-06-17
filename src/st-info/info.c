@@ -76,13 +76,13 @@ static void stlink_probe(void) {
 
 static stlink_t *stlink_open_first(bool under_reset) {
     stlink_t* sl = NULL;
-    sl = stlink_v1_open(0, 1);
+    sl = stlink_v1_open(0, 1); // TODO: deprecated?
 
     if (sl == NULL) {
         if (under_reset) {
-            sl = stlink_open_usb(0, 2, NULL, 0);
+            sl = stlink_open_usb(0, 1, 2, NULL, 0);
         } else {
-            sl = stlink_open_usb(0, 1, NULL, 0);
+            sl = stlink_open_usb(0, 0, 1, NULL, 0);
         }
     }
 
