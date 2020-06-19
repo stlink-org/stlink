@@ -3,6 +3,18 @@
 
 static const struct stlink_chipid_params devices[] = {
         {
+            //RM0433 document was used to find these paramaters
+            .chip_id = STLINK_CHIPID_STM32_H74XXX,
+            .description = "H743xx device",
+            .flash_type = STLINK_FLASH_TYPE_H7,
+            .flash_size_reg = 0x1FF1E880,      // section 60.2
+            .flash_pagesize = 0x20000,           // No flash pages
+            .sram_size = 0x100000,             // "SRAM" byte size in hex from
+            .bootrom_base = 0x1FFF0000,        //! "System memory" starting address from 
+            .bootrom_size = 0x1E800            //! @todo "System memory" byte size in hex from 
+        },
+
+        {
             //RM0410 document was used to find these paramaters
             .chip_id = STLINK_CHIPID_STM32_F7XXXX,
             .description = "F76xxx",

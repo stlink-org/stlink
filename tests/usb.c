@@ -26,7 +26,7 @@ int main(int ac, char** av) {
         return 0;
     }
 
-    sl = stlink_open_usb(10, reset, NULL, 0);
+    sl = stlink_open_usb(100, reset, NULL, 0);
     if (sl != NULL) {
         printf("-- version\n");
         stlink_version(sl);
@@ -93,9 +93,15 @@ int main(int ac, char** av) {
         stlink_reset(sl);
         stlink_force_debug(sl);
         /* Test reg write */
+        stlink_read_reg(sl, 1, &regs);
+        stlink_write_reg(sl, 0xE00E0003, 3);
+        stlink_load_device_params(sl);
+
+
         stlink_write_reg(sl, 0x01234567, 3);
         stlink_write_reg(sl, 0x89abcdef, 4);
         stlink_write_reg(sl, 0x12345678, 15);
+
         for (off = 0; off < 21; off += 1)
             stlink_read_reg(sl, off, &regs);
 
