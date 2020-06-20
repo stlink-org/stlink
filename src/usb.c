@@ -202,13 +202,11 @@ int _stlink_usb_read_debug32(stlink_t *sl, uint32_t addr, uint32_t *data) {
     ssize_t size;
     const int rep_len = 8;
 
-    //add by wliang
     memset(rdata, 0, rep_len);
-    //add by wliang
 
     int i = fill_command(sl, SG_DXFER_FROM_DEV, rep_len);
     cmd[i++] = STLINK_DEBUG_COMMAND;
-    cmd[i++] = STLINK_JTAG_READDEBUG_32BIT; //0x36
+    cmd[i++] = STLINK_JTAG_READDEBUG_32BIT; 
     write_uint32(&cmd[i], addr);
     size = send_recv(slu, 1, cmd, slu->cmd_len, rdata, rep_len);
     if (size == -1) {
@@ -333,7 +331,7 @@ int _stlink_usb_core_id(stlink_t * sl) {
     if (sl->version.jtag_api == STLINK_JTAG_API_V1) {
         cmd[i++] = STLINK_DEBUG_READCOREID;
     } else {
-        cmd[i++] = STLINK_DEBUG_APIV2_READ_IDCODES; //0x31
+        cmd[i++] = STLINK_DEBUG_APIV2_READ_IDCODES; 
     }
     size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len);
     if (size == -1) {
@@ -738,12 +736,6 @@ int _stlink_usb_read_reg(stlink_t *sl, int r_idx, struct stlink_reg *regp) {
     } else {
         cmd[i++] = STLINK_DEBUG_APIV2_READREG;
     }
-    //     cmd[i++] = STLINK_DEBUG_APIV2_READ_DAP_REG;
-    // }
-    // cmd[i++] = (uint8_t) 0xff;
-    // cmd[i++] = (uint8_t) 0xff;
-    // cmd[i++] = (uint8_t) 0x00;
-    // cmd[i++] = (uint8_t) 0xf8;
     cmd[i++] = (uint8_t) r_idx;
     size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len);
 
@@ -956,12 +948,6 @@ int _stlink_usb_write_reg(stlink_t *sl, uint32_t reg, int idx) {
     } else {
         cmd[i++] = STLINK_DEBUG_APIV2_WRITEREG;
     }
-    //     cmd[i++] = STLINK_DEBUG_APIV2_WRITE_DAP_REG;
-    // }
-    // cmd[i++] = (uint8_t) 0xff;
-    // cmd[i++] = (uint8_t) 0xff;
-    // cmd[i++] = (uint8_t) 0x00;
-    // cmd[i++] = (uint8_t) 0xf8;
     cmd[i++] = idx;
     write_uint32(&cmd[i], reg);
     size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len);

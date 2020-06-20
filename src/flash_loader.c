@@ -271,9 +271,7 @@ int stlink_flash_loader_write_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* 
                sl->chip_id == STLINK_CHIPID_STM32_F7 ||
                sl->chip_id == STLINK_CHIPID_STM32_F7XXXX ||
                sl->chip_id == STLINK_CHIPID_STM32_F72XXX ||
-               // add by wliang
                sl->chip_id == STLINK_CHIPID_STM32_H74XXX
-               // add by wliang
                ) {
         int retval;
         retval = loader_v_dependent_assignment(sl,
@@ -346,7 +344,6 @@ int stlink_flash_loader_run(stlink_t *sl, flash_loader_t* fl, stm32_addr_t targe
         if (size % sizeof(uint64_t))
             ++count;
     } else if (sl->flash_type == STLINK_FLASH_TYPE_H7) {
-        //add by wliang
         count = size / sizeof(uint32_t);
         if (size % sizeof(uint32_t))
             ++count;
@@ -376,7 +373,7 @@ int stlink_flash_loader_run(stlink_t *sl, flash_loader_t* fl, stm32_addr_t targe
 // by increasing the sleep-per-round to the same order-of-magnitude as
 // the tick-rounding that the OS uses, the wait until the error message is
 // reduced to the same order of magnitude as what was intended. -- REW.
-#define WAIT_ROUNDS 1000
+#define WAIT_ROUNDS 100
     /* wait until done (reaches breakpoint) */
     for (i = 0; i < WAIT_ROUNDS; i++) {
         usleep(1000);
