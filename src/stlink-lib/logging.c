@@ -66,7 +66,7 @@ int ugly_log(int level, const char *tag, const char *format, ...) {
  *  - LIBUSB_LOG_LEVEL_DEBUG (4)   : debug and informational messages are printed to stderr
  */
 int ugly_libusb_log_level(enum ugly_loglevel v) {
-#if __FreeBSD__
+#ifdef __FreeBSD__
     // FreeBSD includes its own reimplementation of libusb.
     // Its libusb_set_debug() function expects a lib_debug_level
     // instead of a lib_log_level and is verbose enough to drown out
