@@ -1,0 +1,11 @@
+--- a/src/stlink-gui/CMakeLists.txt
++++ b/src/stlink-gui/CMakeLists.txt
+@@ -32,7 +32,7 @@
+         add_executable(stlink-gui ${GUI_SOURCES})
+         install(FILES stlink-gui.ui DESTINATION ${CMAKE_INSTALL_BINDIR})
+         set_target_properties(stlink-gui PROPERTIES
+-                COMPILE_DEFINITIONS STLINK_UI_DIR="${CMAKE_INSTALL_PREFIX}/bin")
++                COMPILE_DEFINITIONS STLINK_UI_DIR="/usr/share/stlink")
+         target_link_libraries(stlink-gui ${STLINK_LIB_SHARED} ${SSP_LIB} ${GTK3_LDFLAGS})
+         install(TARGETS stlink-gui DESTINATION ${CMAKE_INSTALL_BINDIR})
+ 
