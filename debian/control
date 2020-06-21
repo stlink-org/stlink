@@ -5,7 +5,7 @@ Build-Depends: debhelper-compat (= 12), cmake (>= 3.4.2), libusb-1.0-0-dev, libg
 Standards-Version: 4.5.0
 Rules-Requires-Root: no
 Section: electronics
-Homepage: https://github.com/texane/stlink
+Homepage: https://github.com/stlink-org/stlink
 Vcs-Git: https://github.com/bluca/stlink.git -b debian
 Vcs-Browser: https://github.com/bluca/stlink
 
