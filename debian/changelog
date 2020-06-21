@@ -1,3 +1,12 @@
+stlink (1.6.1+ds-2) unstable; urgency=medium
+
+  * Update d/copyright to remove GPL-2+ stanza about flashloaders
+  * Update upstream URLs for new Github org
+  * Patch CMake's hard-coded define of XML gui file location (Closes:
+    #963219)
+
+ -- Luca Boccassi <bluca@debian.org>  Sun, 21 Jun 2020 13:41:37 +0100
+
 stlink (1.6.1+ds-1) unstable; urgency=medium
 
   * Merge tag 'v1.6.1' into debian
