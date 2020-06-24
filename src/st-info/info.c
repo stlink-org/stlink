@@ -28,12 +28,9 @@ static void stlink_print_serial(stlink_t *sl, bool openocd) {
         fmt = "%02x";
     }
 
-    for (int n = 0; n < sl->serial_size; n++)
-        printf(fmt, sl->serial[n]);
+    for (int n = 0; n < sl->serial_size; n++) { printf(fmt, sl->serial[n]); }
 
-    if (openocd) {
-        printf("\"");
-    }
+    if (openocd) { printf("\""); }
 
     printf("\n");
 }
@@ -41,19 +38,15 @@ static void stlink_print_serial(stlink_t *sl, bool openocd) {
 static void stlink_print_info(stlink_t *sl) {
     const struct stlink_chipid_params *params = NULL;
 
-    if (!sl) {
-        return;
-    }
+    if (!sl) { return; }
 
     printf(" serial:     ");
     stlink_print_serial(sl, false);
     printf(" hla-serial: ");
     stlink_print_serial(sl, true);
-
     printf(" flash:      %u (pagesize: %u)\n",
-           (unsigned int)sl->flash_size, (unsigned int)sl->flash_pgsz);
-
-    printf(" sram:       %u\n", (unsigned int)sl->sram_size);
+           (uint32_t)sl->flash_size, (uint32_t)sl->flash_pgsz);
+    printf(" sram:       %u\n", (uint32_t)sl->sram_size);
     printf(" chipid:     0x%.4x\n", sl->chip_id);
 
     params = stlink_chipid_get_params(sl->chip_id);
@@ -69,7 +62,7 @@ static void stlink_probe(void) {
 
     printf("Found %u stlink programmers\n", (unsigned int)size);
 
-    for (size_t n = 0; n < size; n++) stlink_print_info(stdevs[n]);
+    for (size_t n = 0; n < size; n++) { stlink_print_info(stdevs[n]); }
 
     stlink_probe_usb_free(&stdevs, size);
 }
@@ -126,11 +119,11 @@ static int print_data(int ac, char **av) {
     } else if (strcmp(av[1], "--hla-serial") == 0) {
         stlink_print_serial(sl, true);
     } else if (strcmp(av[1], "--flash") == 0) {
-        printf("0x%x\n", (unsigned int)sl->flash_size);
+        printf("0x%x\n", (uint32_t)sl->flash_size);
     } else if (strcmp(av[1], "--pagesize") == 0) {
-        printf("0x%x\n", (unsigned int)sl->flash_pgsz);
+        printf("0x%x\n", (uint32_t)sl->flash_pgsz);
     } else if (strcmp(av[1], "--sram") == 0) {
-        printf("0x%x\n", (unsigned int)sl->sram_size);
+        printf("0x%x\n", (uint32_t)sl->sram_size);
     } else if (strcmp(av[1], "--chipid") == 0) {
         printf("0x%.4x\n", sl->chip_id);
     } else if (strcmp(av[1], "--descr") == 0) {

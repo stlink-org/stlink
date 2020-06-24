@@ -52,7 +52,7 @@ if (GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
 
                 # ...the version does not match with git-version string
                 if (NOT __version_str STREQUAL __version_file)
-                    message(STATUS "Rewrite ${PROJECT_SOURCE_DIR}/.version with ${__version_str}.")
+                    message(STATUS "Rewrite ${PROJECT_SOURCE_DIR}/.version with ${__version_str}!")
                 endif ()
 
             else (NOT EXISTS "${PROJECT_SOURCE_DIR}/.version")
