@@ -145,6 +145,12 @@ int flash_get_opts(struct flash_opts* o, int ac, char** av) {
                 o->area = FLASH_OTP;
             else if (strcmp(area, "option") == 0)
                 o->area = FLASH_OPTION_BYTES;
+            else if (strcmp(area, "option_boot_add") == 0)
+                o->area = FLASH_OPTION_BYTES_BOOT_ADD;
+            else if (strcmp(area, "optcr") == 0)
+                o->area = FLASH_OPTCR;
+            else if (strcmp(area, "optcr1") == 0)
+                o->area = FLASH_OPTCR1;
             else
                 return -1;
 
@@ -236,19 +242,19 @@ int flash_get_opts(struct flash_opts* o, int ac, char** av) {
     // command and (optional) device name
     while (ac >= 1) {
         if (strcmp(av[0], "erase") == 0) {
-            if (o->cmd != FLASH_CMD_NONE) return -1;
+            if (FLASH_CMD_NONE != o->cmd) return -1;
             o->cmd = FLASH_CMD_ERASE;
         }
         else if (strcmp(av[0], "read") == 0) {
-            if (o->cmd != FLASH_CMD_NONE) return -1;
+            if (FLASH_CMD_NONE != o->cmd) return -1;
             o->cmd = FLASH_CMD_READ;
         }
         else if (strcmp(av[0], "write") == 0) {
-            if (o->cmd != FLASH_CMD_NONE) return -1;
+            if (FLASH_CMD_NONE != o->cmd) return -1;
             o->cmd = FLASH_CMD_WRITE;
         }
         else if (strcmp(av[0], "reset") == 0) {
-            if (o->cmd != FLASH_CMD_NONE) return -1;
+            if (FLASH_CMD_NONE != o->cmd) return -1;
             o->cmd = CMD_RESET;
         }
         else {
@@ -268,33 +274,93 @@ int flash_get_opts(struct flash_opts* o, int ac, char** av) {
             break;
 
         case FLASH_CMD_READ:     // expect filename, addr and size
-            if ((o->area == FLASH_OPTION_BYTES) &&(ac == 0)) break;
-            if (ac != 3) return invalid_args("read <path> <addr> <size>");
-            if (ac != 3) return -1;
-            o->filename = av[0];
-            uint32_t address;
-            result = get_integer_from_char_array(av[1], &address);
-            if (result != 0) return bad_arg ("addr");
-            else o->addr = (stm32_addr_t) address;
+            if ((FLASH_MAIN_MEMORY == o->area) || (FLASH_SYSTEM_MEMORY == o->area)) {
+                if (ac != 3) return invalid_args("read <path> <addr> <size>");
+                o->filename = av[0];
+                uint32_t address;
+                result = get_integer_from_char_array(av[1], &address);
+                if (result != 0) return bad_arg ("addr");
+                else o->addr = (stm32_addr_t) address;
 
-            uint32_t size;
-            result = get_integer_from_char_array(av[2], &size);
-            if (result != 0) return bad_arg ("size");
-            else o->size = (size_t) size;
+                uint32_t size;
+                result = get_integer_from_char_array(av[2], &size);
+                if (result != 0) return bad_arg ("size");
+                else o->size = (size_t) size;
 
+                break;
+            }
+            else if ((FLASH_OTP == o->area)) {
+                return bad_arg("TODO: otp not implemented yet");
+                if (ac > 1) return invalid_args("otp read: [path]");
+                if (ac > 0) o->filename = av[0];
+                break;
+            }
+            else if ((FLASH_OPTION_BYTES == o->area)) {
+                if (ac > 2) return invalid_args("option bytes read: [path] [size]");
+                if (ac > 0) o->filename = av[0];
+                if (ac > 1) {
+                    uint32_t size;
+                    result = get_integer_from_char_array(av[1], &size);
+                    if (result != 0) return bad_arg("option bytes read: invalid size");
+                    else o->size = (size_t) size;
+                }
+                break;
+            }
+            else if ((FLASH_OPTION_BYTES_BOOT_ADD == o->area)) {
+                if (ac > 0) return invalid_args("option bytes boot_add read");
+                break;
+            }
+            else if ((FLASH_OPTCR == o->area)) {
+                if (ac > 0) return invalid_args("option control register read");
+                break;
+            }
+            else if ((FLASH_OPTCR1 == o->area)) {
+                if (ac > 0) return invalid_args("option control register 1 read");
+                break;
+            }
             break;
 
         case FLASH_CMD_WRITE:
-            if (o->area == FLASH_OPTION_BYTES){
-                if (ac != 1) return -1;
-
+            // TODO: should be boot add 0 and boot add 1 uint32
+            if (FLASH_OPTION_BYTES == o->area) { // expect filename and optional address
+                if (ac >=1 && ac <= 2) {
+                    o->filename = av[0];
+                }
+                else
+                    return invalid_args("write <path> [addr]");
+                
+                if (ac == 2) {
+                    uint32_t addr;
+                    result = get_integer_from_char_array(av[1], &addr);
+                    if (result != 0) return bad_arg ("addr");
+                    else o->addr = (stm32_addr_t) addr;
+                }
+            }
+            else if (FLASH_OPTION_BYTES_BOOT_ADD == o->area) { // expect option bytes boot address
+                if (ac != 1) return invalid_args("option bytes boot_add write <value>");
+                
                 uint32_t val;
                 result = get_integer_from_char_array(av[0], &val);
                 if (result != 0) return bad_arg ("val");
                 else o->val = (uint32_t) val;
-
             }
-            else if (o->format == FLASH_FORMAT_BINARY) {    // expect filename and addr
+            else if (FLASH_OPTCR == o->area) { // expect option control register value
+                if (ac != 1) return invalid_args("option control register write <value>");
+                
+                uint32_t val;
+                result = get_integer_from_char_array(av[0], &val);
+                if (result != 0) return bad_arg ("val");
+                else o->val = (uint32_t) val;
+            }
+            else if (FLASH_OPTCR1 == o->area) { // expect option control register 1 value
+                if (ac != 1) return invalid_args("option control register 1 write <value>");
+                
+                uint32_t val;
+                result = get_integer_from_char_array(av[0], &val);
+                if (result != 0) return bad_arg ("val");
+                else o->val = (uint32_t) val;
+            }
+            else if (FLASH_FORMAT_BINARY == o->format) {    // expect filename and addr
                 if (ac != 2) return invalid_args("write <path> <addr>");
                 o->filename = av[0];
                 uint32_t addr;
@@ -302,7 +368,7 @@ int flash_get_opts(struct flash_opts* o, int ac, char** av) {
                 if (result != 0) return bad_arg ("addr");
                 else o->addr = (stm32_addr_t) addr;
             }
-            else if (o->format == FLASH_FORMAT_IHEX) { // expect filename
+            else if (FLASH_FORMAT_IHEX == o->format) { // expect filename
                 if (ac != 1) return invalid_args("write <path>");
                 o->filename = av[0];
             }

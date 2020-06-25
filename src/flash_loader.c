@@ -176,19 +176,19 @@
 
 int stlink_flash_loader_init(stlink_t *sl, flash_loader_t *fl)
 {
-	size_t size = 0;
+    size_t size = 0;
 
-	/* allocate the loader in sram */
-	if (stlink_flash_loader_write_to_sram(sl, &fl->loader_addr, &size) == -1) {
-		WLOG("Failed to write flash loader to sram!\n");
-		return -1;
-	}
+    /* allocate the loader in sram */
+    if (stlink_flash_loader_write_to_sram(sl, &fl->loader_addr, &size) == -1) {
+        WLOG("Failed to write flash loader to sram!\n");
+        return -1;
+    }
 
-	/* allocate a one page buffer in sram right after loader */
-	fl->buf_addr = fl->loader_addr + (uint32_t) size;
-	ILOG("Successfully loaded flash loader in sram\n");
+    /* allocate a one page buffer in sram right after loader */
+    fl->buf_addr = fl->loader_addr + (uint32_t) size;
+    ILOG("Successfully loaded flash loader in sram\n");
 
-	return 0;
+    return 0;
 }
 
 static int loader_v_dependent_assignment(stlink_t *sl,
