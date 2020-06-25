@@ -1,0 +1,410 @@
+=== Compilation with pkg-config ===
+
+In order to use pkg-config for development purposes, add the following lines to the toplevel CMakeLists.txt file:
+
+###
+# Additional build tasks
+###
+
+## Package configuration (pkg-config) on unix-based systems
+if (NOT WIN32 AND NOT CMAKE_CROSSCOMPILING)
+    add_subdirectory(doc/dev/pkg-config) # external tool pkg-config
+endif ()
+
+=== Target Identification ===
+
+The following information is available about the target:
+- chip id: 0xE0042000 or 0x40015800, primary information to derive flash and sram architection
+- core id: Result from the STLINK_DEBUGREADCOREID call, additionally used for flash/sram architection
+- cpu id: 0xE000ED00 (CMSIS System Control Block CPU ID), not used in stlink
+
+
+=== Backend ===
+
+The "backend" implements the interface to the adapter hardware.
+There are two backends for two different adapters: "sg" (stlink v1?) and "usb" (stlink v2?).
+
+
+
+Include stlink/backend.h
+    typedef struct _stlink_backend {
+        void (*close) (stlink_t * sl);
+        int (*exit_debug_mode) (stlink_t * sl);
+        int (*enter_swd_mode) (stlink_t * sl);
+        int (*enter_jtag_mode) (stlink_t * stl);
+        int (*exit_dfu_mode) (stlink_t * stl);
+        int (*core_id) (stlink_t * stl);
+        int (*reset) (stlink_t * stl);
+        int (*jtag_reset) (stlink_t * stl, int value);
+        int (*run) (stlink_t * stl);
+        int (*status) (stlink_t * stl);
+        int (*version) (stlink_t *sl);
+        int (*read_debug32) (stlink_t *sl, uint32_t addr, uint32_t *data);
+        int (*read_mem32) (stlink_t *sl, uint32_t addr, uint16_t len);
+        int (*write_debug32) (stlink_t *sl, uint32_t addr, uint32_t data);
+        int (*write_mem32) (stlink_t *sl, uint32_t addr, uint16_t len);
+        int (*write_mem8) (stlink_t *sl, uint32_t addr, uint16_t len);
+        int (*read_all_regs) (stlink_t *sl, struct stlink_reg * regp);
+        int (*read_reg) (stlink_t *sl, int r_idx, struct stlink_reg * regp);
+        int (*read_all_unsupported_regs) (stlink_t *sl, struct stlink_reg *regp);
+        int (*read_unsupported_reg) (stlink_t *sl, int r_idx, struct stlink_reg *regp);
+        int (*write_unsupported_reg) (stlink_t *sl, uint32_t value, int idx, struct stlink_reg *regp);
+        int (*write_reg) (stlink_t *sl, uint32_t reg, int idx);
+        int (*step) (stlink_t * stl);
+        int (*current_mode) (stlink_t * stl);
+        int (*force_debug) (stlink_t *sl);
+        int32_t (*target_voltage) (stlink_t *sl);
+        int (*set_swdclk) (stlink_t * stl, uint16_t divisor);
+    } stlink_backend_t;
+
+Descriptions below describe the actions of the usb.h backend:
+
+void (*close) (stlink_t * sl);
+int (*exit_debug_mode) (stlink_t * sl);
+  __stlink_usb_exit_debug_mode: Send STLINK_DEBUG_EXIT
+  returns -1 or 0
+
+int (*enter_swd_mode) (stlink_t * sl);
+  _stlink_usb_enter_swd_mode: Send STLINK_DEBUG_ENTER+STLINK_DEBUG_ENTER_SWD
+  returns -1 or 0
+
+int (*enter_jtag_mode) (stlink_t * stl);
+
+int (*exit_dfu_mode) (stlink_t * stl);
+  _stlink_usb_exit_dfu_mode: Send STLINK_DFU_EXIT
+  returns -1 or 0
+
+int (*core_id) (stlink_t * stl);
+  _stlink_usb_core_id: Assign the result from STLINK_DEBUG_READCOREID to stl->core_id
+  returns -1 or 0
+
+int (*reset) (stlink_t * stl);
+  _stlink_usb_reset: Send STLINK_DEBUG_RESETSYS and reset via AIRCR
+  AIRCR is part of the CMSIS System Control Block (SCB), which is located in
+  the System Control Space at 0xE000ED0C
+  returns -1 or 0 ?
+
+int (*jtag_reset) (stlink_t * stl, int value);
+  _stlink_usb_jtag_reset: Send STLINK_JTAG_DRIVE_NRST.
+  "value" is sent as argument for STLINK_JTAG_DRIVE_NRST and probably contains
+  the status of the NRST line (0: low, 1: high). Also the value 2 is used in the software.
+  returns -1 or 0
+
+int (*run) (stlink_t * stl);
+  _stlink_usb_run: Send STLINK_DEBUG_RUNCORE
+  returns -1 or 0
+
+int (*status) (stlink_t * stl);
+  _stlink_usb_status: Assign the result from STLINK_DEBUG_GETSTATUS to stl->q_len
+  returns -1 or 0
+
+int (*version) (stlink_t *sl);
+  _stlink_usb_version: Read version with STLINK_GET_VERSION.
+  Result is stored in sl->q_buf (6 bytes????)
+  returns -1 or 0
+
+int (*read_debug32) (stlink_t *sl, uint32_t addr, uint32_t *data);
+  _stlink_usb_read_debug32: Send STLINK_JTAG_READDEBUG_32BIT
+  to read 32 bits from "addr". The result data is stored at "*data".
+  returns -1 or 0
+
+int (*read_mem32) (stlink_t *sl, uint32_t addr, uint16_t len);
+  _stlink_usb_read_mem32: Use STLINK_DEBUG_READMEM_32BIT
+  to read "len" bytes from "addr"
+  Result is returned in sl->q_buf, sl->q_len returns the size of the data (should be
+  equal to "len"???).
+  returns -1 or 0
+
+int (*write_debug32) (stlink_t *sl, uint32_t addr, uint32_t data);
+  _stlink_usb_write_debug32: Use STLINK_JTAG_WRITEDEBUG_32BIT
+  to store "data" at "addr"
+  returns -1 or 0
+
+int (*write_mem32) (stlink_t *sl, uint32_t addr, uint16_t len);
+  _stlink_usb_write_mem32: Use STLINK_DEBUG_WRITEMEM_32BIT to
+  send data stored in sl->q_buf to the target at "addr".
+  "len" is the size data (???? not clear whether this are bytes )
+  returns -1 or 0
+
+int (*write_mem8) (stlink_t *sl, uint32_t addr, uint16_t len);
+  _stlink_usb_write_mem8: Use STLINK_DEBUG_WRITEMEM_8BIT to
+  send data stored in sl->q_buf to the target at "addr".
+  "len" is the size in bytes (probably).
+  returns -1 or 0
+
+int (*read_all_regs) (stlink_t *sl, struct stlink_reg * regp);
+  _stlink_usb_read_all_regs: Send STLINK_DEBUG_READALLREGS to read
+  all register values and store them into *regp;
+  returns -1 or 0
+
+int (*read_reg) (stlink_t *sl, int r_idx, struct stlink_reg * regp);
+  _stlink_usb_read_reg: Send STLINK_DEBUG_READREG to read specific register "r_idx".
+  The result is then stored in *regp in the correct register.
+  Example if "r_idx" is 18, then the result is stored in regp->process_sp
+  returns -1 or 0
+
+int (*read_all_unsupported_regs) (stlink_t *sl, struct stlink_reg *regp);
+  _stlink_usb_read_all_unsupported_regs: Calls "_stlink_usb_read_unsupported_reg"
+  (see below) to read all registers.
+  returns -1 or 0
+
+int (*read_unsupported_reg) (stlink_t *sl, int r_idx, struct stlink_reg *regp);
+  _stlink_usb_read_unsupported_reg Use DCRSR and DCRDR to access some
+  of the internal registers (primask, basepri, faultmask, control, fpscr).
+  Also will fill regp->s (???) for some specific "r_idx" values.
+  WARNING: Some r_idx values may lead to a out of array bound problem in C.
+  returns -1 or 0
+
+int (*write_unsupported_reg) (stlink_t *sl, uint32_t value, int idx, struct stlink_reg *regp);
+  _stlink_usb_write_unsupported_reg:
+  Updates one of the following registers:
+    primask (idx=0x1c), basepri (idx=0x1d), faultmask (idx=0x1e), control (idx=0x1f)
+  The new value is given as "value" as fn argument.
+  Corresponding values are refreshed in regp, however the old value for is kept in regp:
+  If basepri has to be updated (idx=0x1d), then all register values are fetched and
+  basepri is updated in the core, but not in *regp (BUG???).
+  returns -1 or 0
+
+int (*write_reg) (stlink_t *sl, uint32_t reg, int idx);
+  _stlink_usb_write_reg: Use STLINK_DEBUG_WRITEREG to update register "idx"
+  with value "reg".
+  returns -1 or 0
+
+int (*step) (stlink_t * stl);
+  _stlink_usb_step: Send STLINK_DEBUG_STEPCORE
+  returns -1 or 0
+
+int (*current_mode) (stlink_t * stl);
+  _stlink_usb_current_mode: Send STLINK_GET_CURRENT_MODE and return
+  the current mode.
+  returns -1 or the value for the current mode.
+  Modes probably are:
+    STLINK_DEV_DFU_MODE		0x00
+    STLINK_DEV_MASS_MODE		0x01
+    STLINK_DEV_DEBUG_MODE		0x02
+
+int (*force_debug) (stlink_t *sl);
+  _stlink_usb_force_debug: Sends STLINK_DEBUG_FORCEDEBUG. No other side effects
+  returns -1 or 0
+
+int32_t (*target_voltage) (stlink_t *sl);
+  _stlink_usb_target_voltage: Send STLINK_GET_TARGET_VOLTAGE
+  returns -1 or the target voltage. (??? dimension is not clear...)
+
+int (*set_swdclk) (stlink_t * stl, uint16_t divisor);
+  _stlink_usb_set_swdclk: Send STLINK_DEBUG_APIV2_SWD_SET_FREQ and "divisor" value
+  returns -1 or 0
+
+
+=== Other Functions ===
+
+
+Include: stlink.h
+
+
+Prototype:	void stlink_close(stlink_t *sl);
+Include:		inc/stlink.h
+Definition: 	src/common.c
+Description:
+  Calls the backend "close" procedure and frees 'sl'
+Backend:		"close"
+Arguments:
+  sl:	Pointer to the stlink data structure, returned by stlink_v1_open() or stlink_open_usb()
+Return:		-
+
+Include:		inc/stlink.h
+Prototype:	int stlink_core_id(stlink_t *sl);
+Definition: 	src/common.c
+Description:
+  Calls the backend "core_id", calls stlink_print_data() on higher verbose levels.
+  Assigns the core id returned by STLINK_DEBUGREADCOREID to sl->core_id
+  Only some specific core ids are used: See include/stm32.h
+  Usage includes the selection of the correct flash algorithm.
+Backend:		"core_id"
+Arguments:
+  sl:	Pointer to the stlink data structure, returned by stlink_v1_open() or stlink_open_usb()
+Return:		-1 for error. 0 for success.
+
+Include:		inc/stlink.h
+Prototype:	int stlink_reset(stlink_t *sl);
+Definition: 	src/common.c
+Description:
+  Just calls the backend "reset" procedure (reset via STLINK_DEBUG_RESETSYS
+  and reset via AIRCR register at 0xE000ED0C)
+Backend:		"reset"
+Arguments:
+  sl:	Pointer to the stlink data structure, returned by stlink_v1_open() or stlink_open_usb()
+Return:		-1 for error. 0 for success.
+
+Include:		inc/stlink.h
+Prototype:	int stlink_jtag_reset(stlink_t *sl, int value);
+Definition: 	src/common.c
+Description:
+  Just calls the backend "jtag_reset" procedure
+Backend:		"jtag_reset"
+Arguments:
+  sl:		Pointer to the stlink data structure, returned by stlink_v1_open() or stlink_open_usb()
+  value: 	0: drive low, 1: drive high, 2: ????
+Return:		-1 for error. 0 for success.
+
+
+Include:		inc/stlink.h
+Prototype:	int stlink_run(stlink_t *sl);
+Definition: 	src/common.c
+Description:
+  Just calls the backend "run" procedure.
+Backend:		"run"
+Arguments:
+  sl:	Pointer to the stlink data structure, returned by stlink_v1_open() or stlink_open_usb()
+Return:		-1 for error. 0 for success.
+
+Include:		inc/stlink.h
+Prototype:	int stlink_status(stlink_t *sl);
+Definition: 	src/common.c
+Description:
+  Calls the backend "status" procedure and the procedure "stlink_core_stat()" to
+  store the status in "sl->core_stat". Possible value for "sl->core_stat" are:
+    STLINK_CORE_RUNNING
+    STLINK_CORE_HALTED
+    STLINK_CORE_STAT_UNKNOWN
+Backend:		"status"
+Arguments:
+  sl:	Pointer to the stlink data structure, returned by stlink_v1_open() or stlink_open_usb()
+Return:		-1 for error. 0 for success.
+
+
+Include:		inc/stlink.h
+Prototype:	int stlink_version(stlink_t *sl);
+Definition: 	src/common.c
+Description:
+  Calls the backend "version" procedure, parses the result and puts the result into sl->version
+  This version probably refers to the version of the adapter.
+Backend:		"version"
+Arguments:
+  sl:	Pointer to the stlink data structure, returned by stlink_v1_open() or stlink_open_usb()
+Return:		-1 for error. 0 for success.
+
+
+    int stlink_read_debug32(stlink_t *sl, uint32_t addr, uint32_t *data);
+    int stlink_read_mem32(stlink_t *sl, uint32_t addr, uint16_t len);
+    int stlink_write_debug32(stlink_t *sl, uint32_t addr, uint32_t data);
+    int stlink_write_mem32(stlink_t *sl, uint32_t addr, uint16_t len);
+    int stlink_write_mem8(stlink_t *sl, uint32_t addr, uint16_t len);
+    int stlink_read_all_regs(stlink_t *sl, struct stlink_reg *regp);
+    int stlink_read_all_unsupported_regs(stlink_t *sl, struct stlink_reg *regp);
+    int stlink_read_reg(stlink_t *sl, int r_idx, struct stlink_reg *regp);
+    int stlink_read_unsupported_reg(stlink_t *sl, int r_idx, struct stlink_reg *regp);
+    int stlink_write_unsupported_reg(stlink_t *sl, uint32_t value, int r_idx, struct stlink_reg *regp);
+    int stlink_write_reg(stlink_t *sl, uint32_t reg, int idx);
+    int stlink_step(stlink_t *sl);
+    int stlink_current_mode(stlink_t *sl);
+    int stlink_force_debug(stlink_t *sl);
+    int stlink_target_voltage(stlink_t *sl);
+    int stlink_set_swdclk(stlink_t *sl, uint16_t divisor);
+
+    int stlink_erase_flash_mass(stlink_t* sl);
+    int stlink_write_flash(stlink_t* sl, stm32_addr_t address, uint8_t* data, uint32_t length, uint8_t eraseonly);
+    int stlink_parse_ihex(const char* path, uint8_t erased_pattern, uint8_t * * mem, size_t * size, uint32_t * begin);
+    uint8_t stlink_get_erased_pattern(stlink_t *sl);
+    int stlink_mwrite_flash(stlink_t *sl, uint8_t* data, uint32_t length, stm32_addr_t addr);
+    int stlink_fwrite_flash(stlink_t *sl, const char* path, stm32_addr_t addr);
+    int stlink_fwrite_option_bytes(stlink_t *sl, const char* path, stm32_addr_t addr);
+    int stlink_fwrite_option_bytes_32bit(stlink_t *sl,uint32_t val);
+    int stlink_mwrite_sram(stlink_t *sl, uint8_t* data, uint32_t length, stm32_addr_t addr);
+    int stlink_fwrite_sram(stlink_t *sl, const char* path, stm32_addr_t addr);
+    int stlink_verify_write_flash(stlink_t *sl, stm32_addr_t address, uint8_t *data, uint32_t length);
+
+Include:		inc/stlink.h
+Prototype:	int stlink_chip_id(stlink_t *sl, uint32_t *chip_id);
+Definition: 	src/common.c
+Description:
+  Tries to read out the chip id via memory read from the device.
+  Note: sl->chip_id is NOT updated by this procedure. Instead this happens in stlink_load_device_params():
+  Do not call this function, but instead call stlink_load_device_params()
+Backend:		-
+Arguments:
+  sl:		Pointer to the stlink data structure, returned by stlink_v1_open() or stlink_open_usb()
+  chip_id:	Pointer. Result is stored via this pointer.
+Return:		-1 for error. 0 for success.
+
+
+Include:		inc/stlink.h
+Prototype:	int stlink_cpu_id(stlink_t *sl, cortex_m3_cpuid_t *cpuid);
+Definition: 	src/common.c
+Description:
+  Reads the CPU id from STLINK_REG_CM3_CPUID (0xE000ED00, first value of
+  the SCB, system control block) and splits this into
+    cpuid->implementer_id
+    cpuid->variant
+    cpuid->part
+    cpuid->revision
+  The result is not used in the tools, but only in the usb test program.
+Backend:		-
+Arguments:
+  sl:		Pointer to the stlink data structure, returned by stlink_v1_open() or stlink_open_usb()
+  cpuid:	Pointer. Result is stored via this pointer.
+Return:		-1 for error. 0 for success.
+
+
+
+
+    int stlink_erase_flash_page(stlink_t* sl, stm32_addr_t flashaddr);
+    uint32_t stlink_calculate_pagesize(stlink_t *sl, uint32_t flashaddr);
+    uint16_t read_uint16(const unsigned char *c, const int pt);
+    void stlink_core_stat(stlink_t *sl);
+
+
+Include:		inc/stlink.h
+Prototype:	void stlink_print_data(stlink_t *sl);
+Definition: 	src/common.c
+Description:
+  If debug logging is enabled: Print the HEX content of the q_buf array.
+  q_buf will contain the result of the last "backend" command.
+Backend:		-
+Arguments:
+  sl:	Pointer to the stlink data structure, returned by stlink_v1_open() or stlink_open_usb()
+Return:		-
+
+
+    unsigned int is_bigendian(void);
+    uint32_t read_uint32(const unsigned char *c, const int pt);
+    void write_uint32(unsigned char* buf, uint32_t ui);
+    void write_uint16(unsigned char* buf, uint16_t ui);
+    bool stlink_is_core_halted(stlink_t *sl);
+    int write_buffer_to_sram(stlink_t *sl, flash_loader_t* fl, const uint8_t* buf, size_t size);
+    int write_loader_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* size);
+    int stlink_fread(stlink_t* sl, const char* path, bool is_ihex, stm32_addr_t addr, size_t size);
+
+
+Include:		inc/stlink.h
+Prototype:	int stlink_load_device_params(stlink_t *sl);
+Definition: 	src/common.c
+Description:
+  This is one of the most important procedures. It will get all the device info
+  and store the results in the "sl" structure. Many other procedures will depend
+  on this information.
+  The identification is based on the stlink_chip_id() result and the flash_size register value
+Backend:		-
+Arguments:
+  sl:	Pointer to the stlink data structure, returned by stlink_v1_open() or stlink_open_usb()
+Return:		-1 for error. 0 for success.
+
+    int stlink_read_option_bytes_f2(stlink_t *sl, uint32_t* option_byte);
+    int stlink_read_option_bytes_f4(stlink_t *sl, uint32_t* option_byte);
+
+
+Include "flash_loader.h"
+
+int stlink_flash_loader_init(stlink_t *sl, flash_loader_t* fl);
+int stlink_flash_loader_write_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* size);
+int stlink_flash_loader_run(stlink_t *sl, flash_loader_t* fl, stm32_addr_t target, const uint8_t* buf, size_t size);
+
+
+Inlcude "sg.h"
+stlink_t* stlink_v1_open(const int verbose, int reset);
+
+Include "usb.h"
+
+stlink_t *stlink_open_usb(enum ugly_loglevel verbose, bool reset, char serial[STLINK_SERIAL_MAX_SIZE]);
+size_t stlink_probe_usb(stlink_t **stdevs[]);
+void stlink_probe_usb_free(stlink_t **stdevs[], size_t size);

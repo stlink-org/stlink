@@ -1,5 +1,5 @@
 build
 build-mingw
+.project
 obj-*
 *.user*
-.project

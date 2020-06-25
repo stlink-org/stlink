@@ -8,6 +8,7 @@ stlink Tools Tutorial
 | --flash=n[k][m] | st-flash | One can specify `--flash=128k` for example, to override the default value of 64k<br />for the STM32F103C8T6 to assume 128k of flash being present. This option accepts<br />decimal (128k), octal 0200k, or hex 0x80k values. Leaving the multiplier out is<br />equally valid, e.g.: `--flash=0x20000`. The size may be followed by an optional "k"<br />or "m" to multiply the given value by 1k (1024) or 1M respectively. | v1.4.0 |
 | --freq=n[k][m] | st-flash,<br />st-util | The frequency of the SWD/JTAG interface can be specified, to override the default<br />1800 kHz configuration. This option solely accepts decimal values (5K or 1.8M) with<br />the unit `Hz` being left out. Valid frequencies are `5K, 15K, 25K, 50K, 100K,`<br />`125K, 240K, 480K, 950K, 1200K(1.2M), 1800K(1.8M), 4000K(4M)`. | v1.6.1 |
 | --opt | st-flash | Optimisation can be enabled in order to skip flashing empty (0x00 or 0xff) bytes at<br />the end of binary file. This may cause some garbage data left after a flash operation.<br />This option was enabled by default in earlier releases. | v1.6.1 |
+| --reset | st-flash | Trigger a reset both before and after flashing. | v1.0.0 |
 | --version | st-info,<br />st-flash,<br />st-util | Print version information. | |
 | --help | st-flash,<br />st-util | Print list of available commands. _(To be added to this table.)_ | |
 
@@ -29,70 +30,7 @@ Within the GUI main window tooltips explain the available user elements.
 
 
 ## Solutions to common problems
-### a) STLINK/v1 driver: Issue with Kernel Extension (kext) (macOS 10.11 and later only)
-#### Problem:
-
-st-util fails to detect a STLINK/v1 device:
-
-```
-st-util -1
-st-util $VERSION-STRING$
-WARN src/sg.c: Failed to find an stlink v1 by VID:PID
-ERROR src/sg.c: Could not open stlink device
-```
-
-#### Solution (clean setup):
-
-1) Configure System Integrity Protection (SIP)
-
-The root of this problem is a system security setting introduced by Apple with OS X El Capitan (10.11) in 2015.
-The so called System Integrity Protection (SIP) is active per default
-and prevents the operating system amongst other things to load unsigned Kernel Extension Modules (kext).
-Thus the STLINK/v1 driver supplied with the tools, which installs as a kext, remains not functional,
-while SIP is fully activated (as is per default).
-
-Action needs to be taken here by booting into the recovery mode where a terminal console window needs to be opened.
-
-For macOS 10.11 - 10.13 it is not recommended to disable SIP completely as with the command `csrutil disable`,
-because this leaves the system more vulnerable to common threats.
-Instead there is a more adequate and reasonable option implemented by Apple.
-Running `csrutil enable --without kext`, allows to load unsigned kernel extensions
-while leaving SIP active with all other security features.
-Unfortunately this option has been removed in macOS 10.14, which leaves the only option to disable SIP completely.
-
-So who ever intends to run the STLINK/v1 programmer on macOS please take this into account.
-
-Further details can be found here: https://forums.developer.apple.com/thread/17452
-
-2) Install the ST-Link-v1 driver from the subdirectory `/stlinkv1_macosx_driver`
-   by referring to the instructions in the README file available there.
-
-3) Move the $OS_VERSION$.kext file to `/System/Library/Extensions`.
-
-4) Load the Kernel Extension (kext): `$ sudo kextload -v /System/Library/Extensions/stlink_shield10_x.kext`
-
-```
-Requesting load of /System/Library/Extensions/stlink_shield10_x.kext.
-/System/Library/Extensions/stlink_shield10_x.kext loaded successfully (or already loaded).
-```
-
-5) Enter the command `$ sudo touch /System/Library/Extensions`
-
-
-7) Verify correct detection of the STLINK/v1 device with the following input: `st-util -1`
-
-You should then see a similar output like in this example:
-
-```
-INFO common.c: Loading device parameters....
-INFO common.c: Device connected is: F1 High-density device, id 0x10036414
-INFO common.c: SRAM size: 0x10000 bytes (64 KiB), Flash: 0x80000 bytes (512 KiB) in pages of 2048 bytes
-INFO sg.c: Successfully opened a stlink v1 debugger
-INFO gdb-server.c: Chip ID is 00000414, Core ID is  1ba01477.
-INFO gdb-server.c: Listening at *:4242...
-```
-
-### b) Verify if udev rules are set correctly (by Dave Hylands)
+### a) Verify if udev rules are set correctly (by Dave Hylands)
 
 To investigate, start by plugging your STLINK device into the usb port. Then run `lsusb`. You should see an entry something like the following:
 

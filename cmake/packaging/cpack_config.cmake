@@ -12,6 +12,7 @@ set(CPACK_PACKAGE_VENDOR "stlink-org")
 set(CMAKE_PROJECT_HOMEPAGE_URL "https://github.com/stlink-org/stlink")
 
 set(CPACK_SET_DESTDIR "ON")
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/dist)
 set(CPACK_OUTPUT_FILE_PREFIX "${CMAKE_BINARY_DIR}/dist")
 
 if (APPLE)                                                                      # macOS

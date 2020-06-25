@@ -2,7 +2,10 @@
 # Build GUI
 ###
 
-if (NOT WIN32)
+if (NOT WIN32 AND NOT CMAKE_CROSSCOMPILING)
+    find_package(PkgConfig)
+    pkg_check_modules(GTK3 gtk+-3.0)
+
     ## GUI-Building requires the presence of a GTK3 toolset
     if (NOT GTK3_FOUND)
         message(STATUS "GTK3 not found!")
@@ -13,11 +16,11 @@ if (NOT WIN32)
 
         # Install desktop application entry
         install(FILES stlink-gui.desktop
-                DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/${PROJECT_NAME}/applications)
+                DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/applications)
 
         # Install icons
         install(FILES icons/stlink-gui.svg
-                DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/${PROJECT_NAME}/icons/hicolor/scalable/apps)
+                DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/scalable/apps)
 
         set(GUI_SOURCES gui.c gui.h)
 
@@ -35,7 +38,5 @@ if (NOT WIN32)
                 COMPILE_DEFINITIONS STLINK_UI_DIR="${CMAKE_INSTALL_PREFIX}/bin")
         target_link_libraries(stlink-gui ${STLINK_LIB_SHARED} ${SSP_LIB} ${GTK3_LDFLAGS})
         install(TARGETS stlink-gui DESTINATION ${CMAKE_INSTALL_BINDIR})
-
-
     endif ()
 endif ()
