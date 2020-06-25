@@ -3637,8 +3637,9 @@ int stlink_write_option_bytes(stlink_t *sl, stm32_addr_t addr, uint8_t* base, ui
 
     if (ret) {
         ELOG("Flash option write failed!\n");
-    else
+    } else {
         ILOG("Wrote %d option bytes to %#010x!\n", len, addr);
+    }
 
     /* Re-lock flash. */
     lock_flash_option(sl);
