@@ -3421,7 +3421,7 @@ int stlink_read_option_bytes_f7(stlink_t *sl, uint32_t* option_byte) {
         }
     }
 
-    return stlink_read_debug32(sl, sl->option_base + (sl->option_size / 4 - 1) * sizeof(uint32_t), option_byte);
+    return stlink_read_debug32(sl, sl->option_base + (uint32_t) (sl->option_size / 4 - 1) * sizeof(uint32_t), option_byte);
 }
 
 /**
