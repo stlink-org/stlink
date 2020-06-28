@@ -14,9 +14,7 @@ Section: libdevel
 Architecture: linux-any
 Multi-Arch: same
 Depends: libstlink1 (= ${binary:Version}), ${misc:Depends}
-Description: OpenSource ST-Link tools replacement.
- Flashing tools for STMicroelectronics STM32VL and STM32L. The transport layers
- STLINKv1 and STLINKv2 are supported.
+Description: Open source STM32 MCU programming toolset.
  .
  This package contains the development files for stlink.
 
@@ -25,28 +23,22 @@ Section: libs
 Architecture: linux-any
 Multi-Arch: same
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: OpenSource ST-Link tools replacement.
- Flashing tools for STMicroelectronics STM32VL and STM32L. The transport layers
- STLINKv1 and STLINKv2 are supported.
+Description: Open source STM32 MCU programming toolset.
  .
  This package contains the shared library for stlink.
 
 Package: stlink-tools
 Architecture: linux-any
 Depends: libstlink1 (= ${binary:Version}), ${shlibs:Depends}, ${misc:Depends}
-Description: OpenSource ST-Link tools replacement.
- Flashing tools for STMicroelectronics STM32VL and STM32L. The transport layers
- STLINKv1 and STLINKv2 are supported.
+Description: Open source STM32 MCU programming toolset.
  .
- This package contains commandline utilities for stlink, and modprobe and
- udev rules.
+ This package contains commandline utilities for stlink, modprobe- and
+ udev-rules.
 
 Package: stlink-gui
 Architecture: linux-any
 Depends: libstlink1 (= ${binary:Version}), stlink-tools (= ${binary:Version}),
  ${shlibs:Depends}, ${misc:Depends}
-Description: OpenSource ST-Link tools replacement.
- Flashing tools for STMicroelectronics STM32VL and STM32L. The transport layers
- STLINKv1 and STLINKv2 are supported.
+Description: Open source STM32 MCU programming toolset.
  .
- This package contains a GUI tool for stlink.
+ This package contains a GUI for stlink.
