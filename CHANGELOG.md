@@ -19,7 +19,7 @@ Features:
 * Support for STM32L1, SM32L4 option bytes write ([#596](https://github.com/stlink-org/stlink/pull/596), [#844](https://github.com/stlink-org/stlink/pull/844), [#847](https://github.com/stlink-org/stlink/pull/847))
 * Added CMAKEFLAGS and install target ([#804](https://github.com/stlink-org/stlink/pull/804), [#935](https://github.com/stlink-org/stlink/pull/935))
 * Support for STM32G4 ([#822](https://github.com/stlink-org/stlink/pull/822))
-* Add aliased SRAM2 region in the L496 memory map ([#824](https://github.com/stlink-org/stlink/pull/824))
+* Added aliased SRAM2 region in the L496 memory map ([#824](https://github.com/stlink-org/stlink/pull/824))
 * Improved support for STM32G0 ([#825](https://github.com/stlink-org/stlink/pull/825), [#850](https://github.com/stlink-org/stlink/pull/850), [#856](https://github.com/stlink-org/stlink/pull/856), [#857](https://github.com/stlink-org/stlink/pull/857))
 * Added postinst script with 'depmod -a' for 'make package' ([#845](https://github.com/stlink-org/stlink/pull/845), [#931](https://github.com/stlink-org/stlink/pull/931))
 * Calculate checksums for flash operations ([#862](https://github.com/stlink-org/stlink/pull/862), [#924](https://github.com/stlink-org/stlink/pull/924))
@@ -358,6 +358,7 @@ Chip support added for:
 * STM32F469/STM32F479 ([#345](https://github.com/stlink-org/stlink/pull/345), [#555](https://github.com/stlink-org/stlink/pull/555)) (Release v1.2.0)
 * STM32L1xx Cat.2 devices (Nicolas Schodet)
 * STM32L1xx (chip-ID 0x427) ([#152](https://github.com/stlink-org/stlink/pull/152), [#163](https://github.com/stlink-org/stlink/pull/163), [#165](https://github.com/stlink-org/stlink/pull/165)) (Release v1.0.0)
+* Added SIGINT handler for stlink cleanup ([#31](https://github.com/stlink-org/stlink/pull/31), [#135](https://github.com/stlink-org/stlink/pull/135)) (Release v1.0.0)
 
 Board support added for:
 

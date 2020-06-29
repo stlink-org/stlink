@@ -68,7 +68,7 @@ NOTE: In order to use a STLINK/v1 programmer on macOS, versions 10.13, 10.14 or 
 
 ## Unsupported Operating Systems (as of Release v1.6.1)
 
-| Operating System | libusb<br />version | cmake<br />version | End of OS-Support | Notes |
+| Operating System | libusb<br />version | cmake<br />version | End of<br />OS-Support | Notes |
 | --- | --- | --- | --- | --- |
 | CentOS 7 | 1.0.21 | **2.8.12.2** | | named `libusbx`, but<br />`libusb`-codebase is used |
 | Debian 8 (Jessie) | 1.0.**19** | 3.**0.2** | Jun 2020 |
