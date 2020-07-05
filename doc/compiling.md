@@ -88,7 +88,6 @@ Install the following packages from your package repository:
 * `build-essential` (on Debian based distros (Debian, Ubuntu))
 * `cmake` (3.4.2 or later, use the latest version available from the repository)
 * `rpm` (on Debian based distros (Debian, Ubuntu), needed for package build with `make package`)
-* `pkg-config`
 * `libusb-1.0`
 * `libusb-1.0-0-dev` (development headers for building)
 * `libgtk-3-dev` (_optional_, needed for `stlink-gui`)
@@ -194,7 +193,6 @@ Then install the following dependencies from the package repository:
 * `git`
 * `gcc` or `llvm` (for clang) (C-compiler)
 * `cmake`
-* `pkg-config`
 * `libusb`
 * `gtk+3` or `gtk3` (_optional_, needed for `stlink-gui`)
 

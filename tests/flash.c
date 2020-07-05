@@ -6,7 +6,7 @@
 #include <flash.h>
 
 #if defined(_MSC_VER)
-    #include <malloc.h>
+#include <malloc.h>
 #endif
 
 struct Test {
@@ -37,25 +37,25 @@ static bool execute_test(const struct Test * test) {
 
     /* parse (tokenize) the test command line */
     #if defined(_MSC_VER)
-        char *cmd_line = alloca(strlen(test->cmd_line) + 1);
+    char *cmd_line = alloca(strlen(test->cmd_line) + 1);
     #else
-        char cmd_line[strlen(test->cmd_line) + 1];
+    char cmd_line[strlen(test->cmd_line) + 1];
     #endif
 
     strcpy(cmd_line, test->cmd_line);
 
     for (char * tok = strtok(cmd_line, " "); tok; tok = strtok(NULL, " ")) {
-        if ((size_t)ac >= sizeof(av)/sizeof(av[0]))
-            return false;
+        if ((size_t)ac >= sizeof(av) / sizeof(av[0])) return(false);
+
         av[ac] = tok;
         ++ac;
     }
 
-    /* call */
+    /* Call */
     struct flash_opts opts;
     int res = flash_get_opts(&opts, ac, av);
 
-    /* compare results */
+    /* Compare results */
     bool ret = (res == test->res);
 
     if (ret && (res == 0)) {
@@ -71,87 +71,87 @@ static bool execute_test(const struct Test * test) {
     }
 
     printf("[%s] (%d) %s\n", ret ? "OK" : "ERROR", res, test->cmd_line);
-    return ret;
+    return(ret);
 }
 
 static struct Test tests[] = {
     { "", -1, FLASH_OPTS_INITIALIZER },
     { "--debug --reset read test.bin 0x80000000 0x1000", 0,
-        { .cmd = FLASH_CMD_READ,
-          .serial = { 0 },
-          .filename = "test.bin",
-          .addr = 0x80000000,
-          .size = 0x1000,
-          .reset = 1,
-          .log_level = DEBUG_LOG_LEVEL,
-          .freq = 0,
-          .format = FLASH_FORMAT_BINARY }
+      { .cmd = FLASH_CMD_READ,
+        .serial = { 0 },
+        .filename = "test.bin",
+        .addr = 0x80000000,
+        .size = 0x1000,
+        .reset = 1,
+        .log_level = DEBUG_LOG_LEVEL,
+        .freq = 0,
+        .format = FLASH_FORMAT_BINARY }
     },
     { "--debug --reset write test.bin 0x80000000", 0,
-        { .cmd = FLASH_CMD_WRITE,
-          .serial = { 0 },
-          .filename = "test.bin",
-          .addr = 0x80000000,
-          .size = 0,
-          .reset = 1,
-          .log_level = DEBUG_LOG_LEVEL,
-          .freq = 0,
-          .format = FLASH_FORMAT_BINARY }
+      { .cmd = FLASH_CMD_WRITE,
+        .serial = { 0 },
+        .filename = "test.bin",
+        .addr = 0x80000000,
+        .size = 0,
+        .reset = 1,
+        .log_level = DEBUG_LOG_LEVEL,
+        .freq = 0,
+        .format = FLASH_FORMAT_BINARY }
     },
     { "--debug --freq 5k --reset write test.bin 0x80000000", 0,
-        { .cmd = FLASH_CMD_WRITE,
-          .serial = { 0 },
-          .filename = "test.bin",
-          .addr = 0x80000000,
-          .size = 0,
-          .reset = 1,
-          .log_level = DEBUG_LOG_LEVEL,
-          .freq = 5,
-          .format = FLASH_FORMAT_BINARY }
+      { .cmd = FLASH_CMD_WRITE,
+        .serial = { 0 },
+        .filename = "test.bin",
+        .addr = 0x80000000,
+        .size = 0,
+        .reset = 1,
+        .log_level = DEBUG_LOG_LEVEL,
+        .freq = 5,
+        .format = FLASH_FORMAT_BINARY }
     },
     { "--debug --freq 15K --reset write test.bin 0x80000000", 0,
-        { .cmd = FLASH_CMD_WRITE,
-          .serial = { 0 },
-          .filename = "test.bin",
-          .addr = 0x80000000,
-          .size = 0,
-          .reset = 1,
-          .log_level = DEBUG_LOG_LEVEL,
-          .freq = 15,
-          .format = FLASH_FORMAT_BINARY }
+      { .cmd = FLASH_CMD_WRITE,
+        .serial = { 0 },
+        .filename = "test.bin",
+        .addr = 0x80000000,
+        .size = 0,
+        .reset = 1,
+        .log_level = DEBUG_LOG_LEVEL,
+        .freq = 15,
+        .format = FLASH_FORMAT_BINARY }
     },
     { "--debug --freq=5k --reset write test.bin 0x80000000", 0,
-        { .cmd = FLASH_CMD_WRITE,
-          .serial = { 0 },
-          .filename = "test.bin",
-          .addr = 0x80000000,
-          .size = 0,
-          .reset = 1,
-          .log_level = DEBUG_LOG_LEVEL,
-          .freq = 5,
-          .format = FLASH_FORMAT_BINARY }
+      { .cmd = FLASH_CMD_WRITE,
+        .serial = { 0 },
+        .filename = "test.bin",
+        .addr = 0x80000000,
+        .size = 0,
+        .reset = 1,
+        .log_level = DEBUG_LOG_LEVEL,
+        .freq = 5,
+        .format = FLASH_FORMAT_BINARY }
     },
     { "--debug --freq=6k --reset write test.bin 0x80000000", -1,
-        { .cmd = FLASH_CMD_WRITE,
-          .serial = { 0 },
-          .filename = "test.bin",
-          .addr = 0x80000000,
-          .size = 0,
-          .reset = 1,
-          .log_level = DEBUG_LOG_LEVEL,
-          .freq = 6,
-          .format = FLASH_FORMAT_BINARY }
+      { .cmd = FLASH_CMD_WRITE,
+        .serial = { 0 },
+        .filename = "test.bin",
+        .addr = 0x80000000,
+        .size = 0,
+        .reset = 1,
+        .log_level = DEBUG_LOG_LEVEL,
+        .freq = 6,
+        .format = FLASH_FORMAT_BINARY }
     },
     { "--debug --reset read test.bin 0x80000000 1000", 0,
-        { .cmd = FLASH_CMD_READ,
-          .serial = { 0 },
-          .filename = "test.bin",
-          .addr = 0x80000000,
-          .size = 1000,
-          .reset = 1,
-          .log_level = DEBUG_LOG_LEVEL,
-          .freq = 0,
-          .format = FLASH_FORMAT_BINARY }
+      { .cmd = FLASH_CMD_READ,
+        .serial = { 0 },
+        .filename = "test.bin",
+        .addr = 0x80000000,
+        .size = 1000,
+        .reset = 1,
+        .log_level = DEBUG_LOG_LEVEL,
+        .freq = 0,
+        .format = FLASH_FORMAT_BINARY }
     },
     { "--debug --reset read test.bin 0x80000000 1k", 0,
       { .cmd = FLASH_CMD_READ,
@@ -176,71 +176,72 @@ static struct Test tests[] = {
         .format = FLASH_FORMAT_BINARY }
     },
     { "--debug --reset write test.bin 0x80000000", 0,
-        { .cmd = FLASH_CMD_WRITE,
-          .serial = { 0 },
-          .filename = "test.bin",
-          .addr = 0x80000000,
-          .size = 0,
-          .reset = 1,
-          .log_level = DEBUG_LOG_LEVEL,
-          .freq = 0,
-          .format = FLASH_FORMAT_BINARY }
+      { .cmd = FLASH_CMD_WRITE,
+        .serial = { 0 },
+        .filename = "test.bin",
+        .addr = 0x80000000,
+        .size = 0,
+        .reset = 1,
+        .log_level = DEBUG_LOG_LEVEL,
+        .freq = 0,
+        .format = FLASH_FORMAT_BINARY }
     },
     { "erase", 0,
-        { .cmd = FLASH_CMD_ERASE,
-          .serial = { 0 },
-          .filename = NULL,
-          .addr = 0,
-          .size = 0,
-          .reset = 0,
-          .log_level = STND_LOG_LEVEL,
-          .freq = 0,
-          .format = FLASH_FORMAT_BINARY }
+      { .cmd = FLASH_CMD_ERASE,
+        .serial = { 0 },
+        .filename = NULL,
+        .addr = 0,
+        .size = 0,
+        .reset = 0,
+        .log_level = STND_LOG_LEVEL,
+        .freq = 0,
+        .format = FLASH_FORMAT_BINARY }
     },
     { "--debug --reset --format=ihex write test.hex", 0,
-        { .cmd = FLASH_CMD_WRITE,
-          .serial = { 0 },
-          .filename = "test.hex",
-          .addr = 0,
-          .size = 0,
-          .reset = 1,
-          .log_level = DEBUG_LOG_LEVEL,
-          .freq = 0,
-          .format = FLASH_FORMAT_IHEX }
+      { .cmd = FLASH_CMD_WRITE,
+        .serial = { 0 },
+        .filename = "test.hex",
+        .addr = 0,
+        .size = 0,
+        .reset = 1,
+        .log_level = DEBUG_LOG_LEVEL,
+        .freq = 0,
+        .format = FLASH_FORMAT_IHEX }
     },
     { "--debug --reset --format=binary write test.hex", -1, FLASH_OPTS_INITIALIZER },
     { "--debug --reset --format=ihex write test.hex 0x80000000", -1, FLASH_OPTS_INITIALIZER },
     { "--debug --reset write test.hex sometext", -1, FLASH_OPTS_INITIALIZER },
     { "--serial A1020304 erase sometext", -1, FLASH_OPTS_INITIALIZER },
     { "--serial A1020304 erase", 0,
-        { .cmd = FLASH_CMD_ERASE,
-          .serial = "\xA1\x02\x03\x04",
-          .filename = NULL,
-          .addr = 0,
-          .size = 0,
-          .reset = 0,
-          .log_level = STND_LOG_LEVEL,
-          .freq = 0,
-          .format = FLASH_FORMAT_BINARY }
+      { .cmd = FLASH_CMD_ERASE,
+        .serial = "\xA1\x02\x03\x04",
+        .filename = NULL,
+        .addr = 0,
+        .size = 0,
+        .reset = 0,
+        .log_level = STND_LOG_LEVEL,
+        .freq = 0,
+        .format = FLASH_FORMAT_BINARY }
     },
     { "--serial=A1020304 erase", 0,
-        { .cmd = FLASH_CMD_ERASE,
-          .serial = "\xA1\x02\x03\x04",
-          .filename = NULL,
-          .addr = 0,
-          .size = 0,
-          .reset = 0,
-          .log_level = STND_LOG_LEVEL,
-          .freq = 0,
-          .format = FLASH_FORMAT_BINARY }
+      { .cmd = FLASH_CMD_ERASE,
+        .serial = "\xA1\x02\x03\x04",
+        .filename = NULL,
+        .addr = 0,
+        .size = 0,
+        .reset = 0,
+        .log_level = STND_LOG_LEVEL,
+        .freq = 0,
+        .format = FLASH_FORMAT_BINARY }
     },
 };
 
 int main() {
     bool allOk = true;
-    for (size_t i = 0; i < sizeof(tests)/sizeof(tests[0]); ++i) {
+
+    for (size_t i = 0; i < sizeof(tests) / sizeof(tests[0]); ++i)
         if (!execute_test(&tests[i]))
             allOk = false;
-    }
+
     return (allOk ? 0 : 1);
 }

@@ -1,4 +1,4 @@
-stlink (1.6.1+ds-1) unstable; urgency=medium
+stlink (1.6.1) unstable; urgency=medium
 
   * Initial cpack-based package release for Debian/Ubuntu
 
