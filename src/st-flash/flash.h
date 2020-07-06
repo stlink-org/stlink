@@ -26,10 +26,11 @@ struct flash_opts {
     size_t flash_size;  // --flash=n[k][m]
     int opt;            // enable empty tail data drop optimization
     int freq;           // --freq=n[k][m] frequency of JTAG/SWD
+    int speed;          // --speed=nk speed of comm freq
     bool connect_under_reset;
 };
 
-#define FLASH_OPTS_INITIALIZER {0, { 0 }, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+#define FLASH_OPTS_INITIALIZER {0, { 0 }, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 
 int flash_get_opts(struct flash_opts* o, int ac, char** av);
 

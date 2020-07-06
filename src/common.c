@@ -1250,6 +1250,11 @@ int stlink_jtag_reset(stlink_t *sl, int value) {
     return(sl->backend->jtag_reset(sl, value));
 }
 
+int stlink_halt(stlink_t *sl) {
+    DLOG("*** stlink_halt ***\n");
+    return(sl->backend->halt(sl));
+}
+
 int stlink_run(stlink_t *sl) {
     DLOG("*** stlink_run ***\n");
     return(sl->backend->run(sl));

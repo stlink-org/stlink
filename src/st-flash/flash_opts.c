@@ -190,6 +190,25 @@ int flash_get_opts(struct flash_opts* o, int ac, char** av) {
             } else {
                 return(-1);
             }
+        } else if (strcmp(av[0], "--speed") == 0 || starts_with(av[0], "--speed=")) {
+            const char* speed_str;
+            char *end = NULL;
+
+            if (strcmp(av[0], "--speed") == 0) {
+                ac--;
+                av++;
+
+                if (ac < 1) {
+                    return(-1);
+                }
+
+                speed_str = av[0];
+            } else {
+                speed_str = av[0] + strlen("--speed=");
+            }
+            o->speed = strtol(speed_str, &end, 10);
+            if (end == NULL || *end || o->speed == 0)
+                return -1;
         } else if (strcmp(av[0], "--format") == 0 || starts_with(av[0], "--format=")) {
             const char * format;
 

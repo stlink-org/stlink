@@ -73,9 +73,9 @@ static stlink_t *stlink_open_first(bool under_reset) {
 
     if (sl == NULL) {
         if (under_reset) {
-            sl = stlink_open_usb(0, 2, NULL, 0);
+            sl = stlink_open_usb(0, 2, NULL, 0, 0);
         } else {
-            sl = stlink_open_usb(0, 1, NULL, 0);
+            sl = stlink_open_usb(0, 1, NULL, 0, 0);
         }
     }
 
