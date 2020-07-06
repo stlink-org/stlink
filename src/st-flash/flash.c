@@ -236,7 +236,7 @@ int main(int ac, char** av) {
             err = stlink_fread(sl, o.filename, o.format == FLASH_FORMAT_IHEX, o.addr, o.size);
 
             if (err == -1) {
-                printf("stlink_fread() == -1\n");
+                printf("could not read main memory (%d)\n", err);
                 goto on_error;
             }
         } else if (o.area == FLASH_OPTION_BYTES) {
