@@ -274,7 +274,7 @@ int flash_get_opts(struct flash_opts* o, int ac, char** av) {
         break;
 
     case FLASH_CMD_READ:     // expect filename, addr and size
-        if ((FLASH_MAIN_MEMORY == o->area) || (FLASH_SYSTEM_MEMORY == o->area)) {
+        if ((o->area == FLASH_MAIN_MEMORY) || (o->area == FLASH_SYSTEM_MEMORY)) {
             if (ac != 3) { return invalid_args("read <path> <addr> <size>"); }
             
             o->filename = av[0];
@@ -295,12 +295,12 @@ int flash_get_opts(struct flash_opts* o, int ac, char** av) {
             }
 
             break;
-        } else if ((FLASH_OTP == o->area)) {
+        } else if ((o->area == FLASH_OTP)) {
             return bad_arg("TODO: otp not implemented yet");
             if (ac > 1) { return invalid_args("otp read: [path]"); }
             if (ac > 0) { o->filename = av[0]; }
             break;
-        } else if ((FLASH_OPTION_BYTES == o->area)) {
+        } else if ((o->area == FLASH_OPTION_BYTES)) {
             if (ac > 2) { return invalid_args("option bytes read: [path] [size]"); }
             if (ac > 0) { o->filename = av[0]; }
             if (ac > 1) {
@@ -313,13 +313,13 @@ int flash_get_opts(struct flash_opts* o, int ac, char** av) {
                 }
             }
             break;
-        } else if ((FLASH_OPTION_BYTES_BOOT_ADD == o->area)) {
+        } else if ((o->area == FLASH_OPTION_BYTES_BOOT_ADD)) {
             if (ac > 0) { return invalid_args("option bytes boot_add read"); }
             break;
-        } else if ((FLASH_OPTCR == o->area)) {
+        } else if ((o->area == FLASH_OPTCR)) {
             if (ac > 0) { return invalid_args("option control register read"); }
             break;
-        } else if ((FLASH_OPTCR1 == o->area)) {
+        } else if ((o->area == FLASH_OPTCR1)) {
             if (ac > 0) { return invalid_args("option control register 1 read"); }
             break;
         }
@@ -328,7 +328,7 @@ int flash_get_opts(struct flash_opts* o, int ac, char** av) {
 
     case FLASH_CMD_WRITE:
         // TODO: should be boot add 0 and boot add 1 uint32
-        if (FLASH_OPTION_BYTES == o->area) { // expect filename and optional address
+        if (o->area == FLASH_OPTION_BYTES) { // expect filename and optional address
             if (ac >=1 && ac <= 2) {
                 o->filename = av[0];
             } else {
@@ -344,7 +344,7 @@ int flash_get_opts(struct flash_opts* o, int ac, char** av) {
                     o->addr = (stm32_addr_t) addr;
                 }
             }
-        } else if (FLASH_OPTION_BYTES_BOOT_ADD == o->area) { // expect option bytes boot address
+        } else if (o->area == FLASH_OPTION_BYTES_BOOT_ADD) { // expect option bytes boot address
             if (ac != 1) { return invalid_args("option bytes boot_add write <value>"); }
 
             uint32_t val;
@@ -355,7 +355,7 @@ int flash_get_opts(struct flash_opts* o, int ac, char** av) {
             } else {
                 o->val = (uint32_t)val;
             }
-        } else if (FLASH_OPTCR == o->area) { // expect option control register value
+        } else if (o->area == FLASH_OPTCR) { // expect option control register value
             if (ac != 1) { return invalid_args("option control register write <value>"); }
             
             uint32_t val;
@@ -366,7 +366,7 @@ int flash_get_opts(struct flash_opts* o, int ac, char** av) {
             } else {
                 o->val = (uint32_t) val;
             }
-        } else if (FLASH_OPTCR1 == o->area) { // expect option control register 1 value
+        } else if (o->area == FLASH_OPTCR1) { // expect option control register 1 value
             if (ac != 1) { return invalid_args("option control register 1 write <value>"); }
             
             uint32_t val;
@@ -376,7 +376,7 @@ int flash_get_opts(struct flash_opts* o, int ac, char** av) {
             } else {
                 o->val = (uint32_t) val;
             }
-        } else if (FLASH_FORMAT_BINARY == o->format) {    // expect filename and addr
+        } else if (o->format == FLASH_FORMAT_BINARY) {    // expect filename and addr
             if (ac != 2) { return invalid_args("write <path> <addr>"); }
             
             o->filename = av[0];

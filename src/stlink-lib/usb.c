@@ -710,7 +710,6 @@ int _stlink_usb_read_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
 
     cmd[i++] = STLINK_DEBUG_COMMAND;
     cmd[i++] = STLINK_DEBUG_READMEM_32BIT;
-    DLOG("using address %#010x\n", addr);
     write_uint32(&cmd[i], addr);
     write_uint16(&cmd[i + 4], len);
     size = send_recv(slu, 1, cmd, slu->cmd_len, data, len);
