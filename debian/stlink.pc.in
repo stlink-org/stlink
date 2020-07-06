@@ -1,0 +1,10 @@
+prefix=/usr
+includedir=${prefix}/include/stlink
+libdir=${prefix}/lib/@DEB_HOST_MULTIARCH@
+
+Name: stlink
+Description: Open source STM32 MCU programming toolset
+Version: @VERSION@
+Requires: libusb-1.0
+Libs: -L${libdir} -lstlink
+Cflags: -I${includedir}
