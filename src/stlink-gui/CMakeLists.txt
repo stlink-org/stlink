@@ -33,9 +33,9 @@ if (NOT WIN32 AND NOT CMAKE_CROSSCOMPILING)
 
         ## stlink-gui
         add_executable(stlink-gui ${GUI_SOURCES})
-        install(FILES stlink-gui.ui DESTINATION ${CMAKE_INSTALL_BINDIR})
+        install(FILES stlink-gui.ui DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/${PROJECT_NAME})
         set_target_properties(stlink-gui PROPERTIES
-                COMPILE_DEFINITIONS STLINK_UI_DIR="${CMAKE_INSTALL_PREFIX}/bin")
+                COMPILE_DEFINITIONS STLINK_UI_DIR="${CMAKE_INSTALL_DATAROOTDIR}/${PROJECT_NAME}")
         target_link_libraries(stlink-gui ${STLINK_LIB_SHARED} ${SSP_LIB} ${GTK3_LDFLAGS})
         install(TARGETS stlink-gui DESTINATION ${CMAKE_INSTALL_BINDIR})
     endif ()
