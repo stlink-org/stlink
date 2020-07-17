@@ -23,7 +23,7 @@ The stlink library and tools are licensed under the **[BSD-3 License](LICENSE.md
 STLink is an open source toolset to program and debug STM32 devices and boards manufactured by STMicroelectronics.
 It supports several so called STLINK programmer boards (and clones thereof) which use a microcontroller chip to translate commands from USB to JTAG/SWD. There are four generations available on the market which are _all_ supported by this toolset:
 
-* **STLINK/v1** _(obsolete as of 21-11-2019)_
+* **STLINK/v1** _(obsolete as of 21-11-2019, continued support by this toolset)_
   - transport layer: SCSI passthru commands over USB
   - stand-alone programmer and present on STM32VL Discovery boards
 * **STLINK/v2**
@@ -83,8 +83,10 @@ Alternatively one can compile and install from source as described in our [compi
 
 We recommend to install `stlink-tools` from the package repository of the used distribution:
 
-* Debian Linux: [(Link)](https://packages.debian.org/buster/stlink-tools)
-* Ubuntu Linux: [(Link)](https://packages.ubuntu.com/stlink-tools)
+**Note:** As packages distributed via the [Debian](https://packages.debian.org/buster/stlink-tools) and [Ubuntu](https://packages.ubuntu.com/stlink-tools) repositories differ from our self-maintained deb-package, we recommend to use the latter instead (see link below). It provides the opportunity to handle and fix user-reported package issues directly within the project and is not redundant to any limitations deriving from external maintenance guidelines.
+
+* Debian Linux: [(Link)](https://github.com/stlink-org/stlink/releases)
+* Ubuntu Linux: [(Link)](https://github.com/stlink-org/stlink/releases)
 * Arch Linux:   [(Link)](https://www.archlinux.org/packages/community/x86_64/stlink)
 * Alpine Linux: [(Link)](https://pkgs.alpinelinux.org/packages?name=stlink)
 * Fedora:       [(Link)](https://src.fedoraproject.org/rpms/stlink)
