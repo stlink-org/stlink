@@ -86,7 +86,7 @@ include_directories(src/st-flash)
 include_directories(src/stlink-lib)
 
 ## Set installation directory for header files
-set(STLINK_INCLUDE_PATH ${CMAKE_INSTALL_INCLUDEDIR} CACHE PATH "Main include install directory")
+set(STLINK_INCLUDE_PATH ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME} CACHE PATH "Main include install directory")
 
 ## Subordinate CMakeLists for version config & header installation
 add_subdirectory(inc)
@@ -147,7 +147,7 @@ endif ()
 set(STLINK_LIBRARY_PATH ${CMAKE_INSTALL_LIBDIR} CACHE PATH "Main library install directory")
 
 # Set the environment variable LD_LIBRARY_PATH to point to /usr/local/lib (per default).
-execute_process (COMMAND bash -c "export LD_LIBRARY_PATH=${CMAKE_INSTALL_LIBDIR}")
+execute_process(COMMAND bash -c "export LD_LIBRARY_PATH=${CMAKE_INSTALL_LIBDIR}")
 
 
 ###
