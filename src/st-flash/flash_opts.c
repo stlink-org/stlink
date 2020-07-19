@@ -242,18 +242,18 @@ int flash_get_opts(struct flash_opts* o, int ac, char** av) {
     // command and (optional) device name
     while (ac >= 1) {
         if (strcmp(av[0], "erase") == 0) {
-            if (FLASH_CMD_NONE != o->cmd) { return(-1); }
+            if (o->cmd != FLASH_CMD_NONE) { return(-1); }
             o->cmd = FLASH_CMD_ERASE;
         } else if (strcmp(av[0], "read") == 0) {
-            if (FLASH_CMD_NONE != o->cmd) { return(-1); }
+            if (o->cmd != FLASH_CMD_NONE) { return(-1); }
 
             o->cmd = FLASH_CMD_READ;
         } else if (strcmp(av[0], "write") == 0) {
-            if (FLASH_CMD_NONE != o->cmd) { return(-1); }
+            if (o->cmd != FLASH_CMD_NONE) { return(-1); }
 
             o->cmd = FLASH_CMD_WRITE;
         } else if (strcmp(av[0], "reset") == 0) {
-            if (FLASH_CMD_NONE != o->cmd) { return(-1); }
+            if (o->cmd != FLASH_CMD_NONE) { return(-1); }
 
             o->cmd = CMD_RESET;
         } else {
