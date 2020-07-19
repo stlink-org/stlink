@@ -26,15 +26,23 @@ static void cleanup(int signum) {
 }
 
 static void usage(void) {
-    puts("command line:   ./st-flash [--debug] [--reset] [--opt] [--serial <serial>] [--format <format>] [--flash=<fsize>] [--freq=<Hz>] {read|write} <path> [addr] [size]");
+    puts("command line:   ./st-flash [--debug] [--reset] [--opt] [--serial <serial>] [--format <format>] [--flash=<fsize>] [--freq=<Hz>] [--area=<area>] {read|write} [path] [addr] [size]");
     puts("command line:   ./st-flash [--debug] [--freq=<Hz>] [--serial <serial>] erase");
     puts("command line:   ./st-flash [--debug] [--freq=<Hz>] [--serial <serial>] reset");
     puts("   <addr>, <serial> and <size>: Use hex format.");
     puts("   <fsize>: Use decimal, octal or hex (prefix 0xXXX) format, optionally followed by k=KB, or m=MB (eg. --flash=128k)");
     puts("   <format>: Can be 'binary' (default) or 'ihex', although <addr> must be specified for binary format only.");
+    puts("   <area>: Can be 'main' (default), 'system', 'otp', 'optcr', 'optcr1', 'option' or 'option_boot_add'");
     puts("print tool version info:   ./st-flash [--version]");
-    puts("example write option byte: ./st-flash --debug --reset --area=option write 0xXXXXXXXX");
-    puts("example read option byte:  ./st-flash --debug --reset --area=option read > option_byte");
+    puts("example read option byte: ./st-flash --area=option read [path] [size]");
+    puts("example write option byte: ./st-flash --area=option write 0xXXXXXXXX");
+    puts("On selected targets:");
+    puts("example read boot_add option byte:  ./st-flash --area=option_boot_add read");
+    puts("example write boot_add option byte: ./st-flash --area=option_boot_add write 0xXXXXXXXX");
+    puts("example read option control register byte:  ./st-flash --area=optcr read");
+    puts("example write option control register1 byte:  ./st-flash --area=optcr write 0xXXXXXXXX");
+    puts("example read option control register1 byte:  ./st-flash --area=optcr1 read");
+    puts("example write option control register1 byte:  ./st-flash --area=optcr1 write 0xXXXXXXXX");
 }
 
 int main(int ac, char** av) {
@@ -106,12 +114,13 @@ int main(int ac, char** av) {
     // disable DMA - Set All DMA CCR Registers to zero. - AKS 1/7/2013
     if (sl->chip_id == STLINK_CHIPID_STM32_F4) {
         memset(sl->q_buf, 0, 4);
-
+        
         for (int i = 0; i < 8; i++) {
             stlink_write_mem32(sl, 0x40026000 + 0x10 + 0x18 * i, 4);
             stlink_write_mem32(sl, 0x40026400 + 0x10 + 0x18 * i, 4);
             stlink_write_mem32(sl, 0x40026000 + 0x24 + 0x18 * i, 4);
             stlink_write_mem32(sl, 0x40026400 + 0x24 + 0x18 * i, 4);
+
         }
     }
 
@@ -128,7 +137,6 @@ int main(int ac, char** av) {
 
     if (o.cmd == FLASH_CMD_WRITE) {                                             // write
         size_t size = 0;
-
         if (o.format == FLASH_FORMAT_IHEX) {
             err = stlink_parse_ihex(o.filename, stlink_get_erased_pattern(sl), &mem, &size, &o.addr);
 
@@ -137,7 +145,6 @@ int main(int ac, char** av) {
                 goto on_error;
             }
         }
-
         if ((o.addr >= sl->flash_base) &&
             (o.addr < sl->flash_base + sl->flash_size)) {
             if (o.format == FLASH_FORMAT_IHEX) {
@@ -182,6 +189,18 @@ int main(int ac, char** av) {
                 printf("stlink_write_option_bytes32() == -1\n");
                 goto on_error;
             }
+        } else if (o.area == FLASH_OPTCR) {
+            DLOG("@@@@ Write %d (%0#10x) to option control register\n", o.val, o.val);
+          
+            err = stlink_write_option_control_register32(sl, o.val);
+        } else if (o.area == FLASH_OPTCR1) {
+            DLOG("@@@@ Write %d (%0#10x) to option control register 1\n", o.val, o.val);
+            
+            err = stlink_write_option_control_register1_32(sl, o.val);
+        } else if (o.area == FLASH_OPTION_BYTES_BOOT_ADD) {
+            DLOG("@@@@ Write %d (%0#10x) to option bytes boot address\n", o.val, o.val);
+          
+            err = stlink_write_option_bytes_boot_add32(sl, o.val);
         } else {
             err = -1;
             printf("Unknown memory region\n");
@@ -207,30 +226,64 @@ int main(int ac, char** av) {
             goto on_error;
         }
     } else {                                                                    // read
-        if (o.area == FLASH_OPTION_BYTES) {
-            uint32_t option_byte;
-            err = stlink_read_option_bytes32(sl, &option_byte);
-
-            if (err == -1) {
-                printf("could not read option bytes (%d)\n", err);
-                goto on_error;
-            } else {
-                printf("%x\n", option_byte);
-            }
-        } else {
-            if ((o.addr >= sl->flash_base) && (o.size == 0) &&
-                (o.addr < sl->flash_base + sl->flash_size)) {
+        if ((o.area == FLASH_MAIN_MEMORY) || (o.area == FLASH_SYSTEM_MEMORY)) {
+            if ((o.size == 0) && (o.addr >= sl->flash_base) && (o.addr < sl->flash_base + sl->flash_size)) {
                 o.size = sl->flash_size;
-            } else if ((o.addr >= sl->sram_base) && (o.size == 0) &&
-                       (o.addr < sl->sram_base + sl->sram_size)) {
+            }
+            else if ((o.size == 0) && (o.addr >= sl->sram_base) && (o.addr < sl->sram_base + sl->sram_size)) {
                 o.size = sl->sram_size;
             }
-
             err = stlink_fread(sl, o.filename, o.format == FLASH_FORMAT_IHEX, o.addr, o.size);
 
             if (err == -1) {
-                printf("stlink_fread() == -1\n");
+                printf("could not read main memory (%d)\n", err);
                 goto on_error;
+            }
+        } else if (o.area == FLASH_OPTION_BYTES) {
+            uint8_t remaining_option_length = sl->option_size / 4;
+            DLOG("@@@@ Read %d (%#x) option bytes from %#10x\n", remaining_option_length, remaining_option_length, sl->option_base);
+            
+            if (NULL != o.filename) {
+                if (0 == o.size) {
+                    o.size = sl->option_size;
+                }
+                err = stlink_fread(sl, o.filename, o.format == FLASH_FORMAT_IHEX, sl->option_base, o.size);
+            } else {
+                uint32_t option_byte = 0;
+                err = stlink_read_option_bytes32(sl, &option_byte);
+                if (err == -1) {
+                    printf("could not read option bytes (%d)\n", err);
+                    goto on_error;
+                } else {
+                    printf("%08x\n", option_byte);
+                }
+            }
+        } else if (o.area == FLASH_OPTION_BYTES_BOOT_ADD) {
+            uint32_t option_byte = 0;
+            err = stlink_read_option_bytes_boot_add32(sl, &option_byte);
+            if (err == -1) {
+                printf("could not read option bytes boot address (%d)\n", err);
+                goto on_error;
+            } else {
+                printf("%08x\n",option_byte);
+            }
+        } else if (o.area == FLASH_OPTCR) {
+            uint32_t option_byte = 0;
+            err = stlink_read_option_control_register32(sl, &option_byte);
+            if (err == -1) {
+                printf("could not read option control register (%d)\n", err);
+                goto on_error;
+            } else {
+                printf("%08x\n",option_byte);
+            }
+        } else if (o.area == FLASH_OPTCR1) {
+            uint32_t option_byte = 0;
+            err = stlink_read_option_control_register1_32(sl, &option_byte);
+            if (err == -1) {
+                printf("could not read option control register (%d)\n", err);
+                goto on_error;
+            } else {
+                printf("%08x\n",option_byte);
             }
         }
     }
