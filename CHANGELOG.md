@@ -1,6 +1,31 @@
 stlink ChangeLog
 ================
 
+v1.6.2
+======
+
+Release date: (TBD)
+
+Features:
+
+Updates & changes:
+
+* [doc] st-flash --reset parameter (one solution for #356) ([#642](https://github.com/stlink-org/stlink/pull/642))
+* [refactoring] General maintenance ([#864](https://github.com/stlink-org/stlink/pull/864), [#976](https://github.com/stlink-org/stlink/pull/976), [#978](https://github.com/stlink-org/stlink/pull/978))
+* Imported debian pkg-settings ([#986](https://github.com/stlink-org/stlink/pull/986))
+* Add support for FreeBSD's libusb reimplementation ([#992](https://github.com/stlink-org/stlink/pull/992), [#993](https://github.com/stlink-org/stlink/pull/993))
+
+Fixes:
+
+* [regression] Changed timeout on flash write ([#787](https://github.com/stlink-org/stlink/pull/787), [#981](https://github.com/stlink-org/stlink/pull/981), [#987](https://github.com/stlink-org/stlink/pull/987))
+* cmake compile failure with external CMAKE_MODULE_PATH set ([#962](https://github.com/stlink-org/stlink/pull/962))
+* doc/man: Fixed installation directory ([#970](https://github.com/stlink-org/stlink/pull/970))
+* Fixed installation path for desktop-file and icons ([#972](https://github.com/stlink-org/stlink/pull/972))
+* Fix for static linking of libssp ([#973](https://github.com/stlink-org/stlink/pull/973), [#974](https://github.com/stlink-org/stlink/pull/974))
+* Fixed connect under reset for st-flash and st-util ([#983](https://github.com/stlink-org/stlink/pull/983))
+* Fix for mmap() size_t overflow in st-flash ([#988](https://github.com/stlink-org/stlink/pull/988), [#989](https://github.com/stlink-org/stlink/pull/989))
+
+
 v1.6.1
 ======
 
@@ -139,7 +164,7 @@ Updates and fixes:
 * Fixed relative path to the UI files needed by stlink-gui-local (GUI) ([#770](https://github.com/stlink-org/stlink/pull/770), [#771](https://github.com/stlink-org/stlink/pull/771))
 * Added howto for sending NRST signal through GDB ([#774](https://github.com/stlink-org/stlink/pull/774), [#776](https://github.com/stlink-org/stlink/pull/776), [#779](https://github.com/stlink-org/stlink/pull/779))
 * Fixed package name "devscripts" in doc/compiling.md ([#775](https://github.com/stlink-org/stlink/pull/775))
-* Fixed few potential memory/resource leaks ([#803](https://github.com/stlink-org/stlink/pull/803))
+* Fixed few potential memory/resource leaks ([#803](https://github.com/stlink-org/stlink/pull/803), [#831](https://github.com/stlink-org/stlink/pull/831))
 * Updated Linux source repositories in README.md: Debian and Ubuntu ([#821](https://github.com/stlink-org/stlink/pull/821), [#835](https://github.com/stlink-org/stlink/pull/835), [#859](https://github.com/stlink-org/stlink/pull/859))
 * Do not issue JTAG reset on stlink-v1 ([#828](https://github.com/stlink-org/stlink/pull/828))
 * Fixed flash size of STM32 Discovery vl ([#829](https://github.com/stlink-org/stlink/pull/829))

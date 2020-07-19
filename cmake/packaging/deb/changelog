@@ -1,5 +1,5 @@
-stlink (1.6.1+ds-1) unstable; urgency=medium
+stlink (1.6.1) unstable; urgency=medium
 
   * Initial cpack-based package release for Debian/Ubuntu
 
- -- Nightwalker-87 <stlink-org>  Sat, 06 Jun 2020 00:00:00 +0100
+ -- Nightwalker-87 <stlink-org>  Mon, 01 Jun 2020 00:00:00 +0100
