@@ -295,12 +295,12 @@ int flash_get_opts(struct flash_opts* o, int ac, char** av) {
             }
 
             break;
-        } else if ((o->area == FLASH_OTP)) {
+        } else if (o->area == FLASH_OTP) {
             return bad_arg("TODO: otp not implemented yet");
             if (ac > 1) { return invalid_args("otp read: [path]"); }
             if (ac > 0) { o->filename = av[0]; }
             break;
-        } else if ((o->area == FLASH_OPTION_BYTES)) {
+        } else if (o->area == FLASH_OPTION_BYTES) {
             if (ac > 2) { return invalid_args("option bytes read: [path] [size]"); }
             if (ac > 0) { o->filename = av[0]; }
             if (ac > 1) {
@@ -313,13 +313,13 @@ int flash_get_opts(struct flash_opts* o, int ac, char** av) {
                 }
             }
             break;
-        } else if ((o->area == FLASH_OPTION_BYTES_BOOT_ADD)) {
+        } else if (o->area == FLASH_OPTION_BYTES_BOOT_ADD) {
             if (ac > 0) { return invalid_args("option bytes boot_add read"); }
             break;
-        } else if ((o->area == FLASH_OPTCR)) {
+        } else if (o->area == FLASH_OPTCR) {
             if (ac > 0) { return invalid_args("option control register read"); }
             break;
-        } else if ((o->area == FLASH_OPTCR1)) {
+        } else if (o->area == FLASH_OPTCR1) {
             if (ac > 0) { return invalid_args("option control register 1 read"); }
             break;
         }
