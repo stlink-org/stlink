@@ -159,7 +159,7 @@ The rules are located in the subdirectory `config/udev/rules.d` within the sourc
 Afterwards it may be necessary to reload the udev rules:
 
 ```sh
-$ cp etc/udev/rules.d /etc/udev/rules.d
+$ cp config/udev/rules.d /etc/udev/rules.d
 $ udevadm control --reload-rules
 $ udevadm trigger
 ```
