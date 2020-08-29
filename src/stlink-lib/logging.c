@@ -73,7 +73,7 @@ int ugly_libusb_log_level(enum ugly_loglevel v) {
     // all other output.
     switch (v) {
     case UDEBUG: return (3); // LIBUSB_DEBUG_FUNCTION + LIBUSB_DEBUG_TRANSFER
-    case UINFO: return (1);  // LIBUSB_DEBUG_FUNCTION only
+    case UINFO: return (0);  // LIBUSB_DEBUG_FUNCTION only
     case UWARN: return (0);  // LIBUSB_DEBUG_NO
     case UERROR: return (0); // LIBUSB_DEBUG_NO
     }
