@@ -71,18 +71,29 @@ int serve(stlink_t *sl, st_state_t *st);
 char* make_memory_map(stlink_t *sl);
 static void init_cache(stlink_t *sl);
 
-static void cleanup(int signum) {
-    (void)signum;
-
+static void _cleanup() {
     if (connected_stlink) {
         // Switch back to mass storage mode before closing
         stlink_run(connected_stlink);
         stlink_exit_debug_mode(connected_stlink);
         stlink_close(connected_stlink);
     }
-
-    exit(1);
 }
+
+static void cleanup(int signum) {
+    printf("Receive signal %i. Exiting...\n", signum);
+    _cleanup();
+    exit(1);
+    (void)signum;
+}
+
+#if defined(_WIN32)
+BOOL WINAPI CtrlHandler(DWORD fdwCtrlType) {
+    printf("Receive signal %i. Exiting...\r\n", (int)fdwCtrlType);
+    _cleanup();
+    return FALSE;
+}
+#endif
 
 
 static stlink_t* do_connect(st_state_t *st) {
@@ -234,9 +245,13 @@ int main(int argc, char** argv) {
     }
 
     connected_stlink = sl;
+#if defined(_WIN32)
+    SetConsoleCtrlHandler((PHANDLER_ROUTINE) CtrlHandler, TRUE);
+#else
     signal(SIGINT, &cleanup);
     signal(SIGTERM, &cleanup);
     signal(SIGSEGV, &cleanup);
+#endif
 
     if (state.reset) { stlink_reset(sl); }
 
