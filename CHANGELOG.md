@@ -1,6 +1,33 @@
 stlink ChangeLog
 ================
 
+v1.6.2
+======
+
+Release date: (TBD)
+
+Features:
+
+* Option bytes on the STM32F767 ZIT6 Nucleo-144 ([#968](https://github.com/stlink-org/stlink/pull/968), [#997](https://github.com/stlink-org/stlink/pull/997))
+
+Updates & changes:
+
+* [doc] st-flash --reset parameter (one solution for #356) ([#642](https://github.com/stlink-org/stlink/pull/642))
+* [refactoring] General maintenance ([#864](https://github.com/stlink-org/stlink/pull/864), [#976](https://github.com/stlink-org/stlink/pull/976), [#978](https://github.com/stlink-org/stlink/pull/978))
+* Imported debian pkg-settings ([#986](https://github.com/stlink-org/stlink/pull/986))
+* Add support for FreeBSD's libusb reimplementation ([#992](https://github.com/stlink-org/stlink/pull/992), [#993](https://github.com/stlink-org/stlink/pull/993))
+
+Fixes:
+
+* [regression] Changed timeout on flash write ([#787](https://github.com/stlink-org/stlink/pull/787), [#981](https://github.com/stlink-org/stlink/pull/981), [#987](https://github.com/stlink-org/stlink/pull/987))
+* cmake compile failure with external CMAKE_MODULE_PATH set ([#962](https://github.com/stlink-org/stlink/pull/962))
+* doc/man: Fixed installation directory ([#970](https://github.com/stlink-org/stlink/pull/970))
+* Fixed installation path for desktop-file and icons ([#972](https://github.com/stlink-org/stlink/pull/972))
+* Fix for static linking of libssp ([#973](https://github.com/stlink-org/stlink/pull/973), [#974](https://github.com/stlink-org/stlink/pull/974))
+* Fixed connect under reset for st-flash and st-util ([#983](https://github.com/stlink-org/stlink/pull/983))
+* Fix for mmap() size_t overflow in st-flash ([#988](https://github.com/stlink-org/stlink/pull/988), [#989](https://github.com/stlink-org/stlink/pull/989))
+
+
 v1.6.1
 ======
 
@@ -19,7 +46,7 @@ Features:
 * Support for STM32L1, SM32L4 option bytes write ([#596](https://github.com/stlink-org/stlink/pull/596), [#844](https://github.com/stlink-org/stlink/pull/844), [#847](https://github.com/stlink-org/stlink/pull/847))
 * Added CMAKEFLAGS and install target ([#804](https://github.com/stlink-org/stlink/pull/804), [#935](https://github.com/stlink-org/stlink/pull/935))
 * Support for STM32G4 ([#822](https://github.com/stlink-org/stlink/pull/822))
-* Add aliased SRAM2 region in the L496 memory map ([#824](https://github.com/stlink-org/stlink/pull/824))
+* Added aliased SRAM2 region in the L496 memory map ([#824](https://github.com/stlink-org/stlink/pull/824))
 * Improved support for STM32G0 ([#825](https://github.com/stlink-org/stlink/pull/825), [#850](https://github.com/stlink-org/stlink/pull/850), [#856](https://github.com/stlink-org/stlink/pull/856), [#857](https://github.com/stlink-org/stlink/pull/857))
 * Added postinst script with 'depmod -a' for 'make package' ([#845](https://github.com/stlink-org/stlink/pull/845), [#931](https://github.com/stlink-org/stlink/pull/931))
 * Calculate checksums for flash operations ([#862](https://github.com/stlink-org/stlink/pull/862), [#924](https://github.com/stlink-org/stlink/pull/924))
@@ -139,7 +166,7 @@ Updates and fixes:
 * Fixed relative path to the UI files needed by stlink-gui-local (GUI) ([#770](https://github.com/stlink-org/stlink/pull/770), [#771](https://github.com/stlink-org/stlink/pull/771))
 * Added howto for sending NRST signal through GDB ([#774](https://github.com/stlink-org/stlink/pull/774), [#776](https://github.com/stlink-org/stlink/pull/776), [#779](https://github.com/stlink-org/stlink/pull/779))
 * Fixed package name "devscripts" in doc/compiling.md ([#775](https://github.com/stlink-org/stlink/pull/775))
-* Fixed few potential memory/resource leaks ([#803](https://github.com/stlink-org/stlink/pull/803))
+* Fixed few potential memory/resource leaks ([#803](https://github.com/stlink-org/stlink/pull/803), [#831](https://github.com/stlink-org/stlink/pull/831))
 * Updated Linux source repositories in README.md: Debian and Ubuntu ([#821](https://github.com/stlink-org/stlink/pull/821), [#835](https://github.com/stlink-org/stlink/pull/835), [#859](https://github.com/stlink-org/stlink/pull/859))
 * Do not issue JTAG reset on stlink-v1 ([#828](https://github.com/stlink-org/stlink/pull/828))
 * Fixed flash size of STM32 Discovery vl ([#829](https://github.com/stlink-org/stlink/pull/829))
@@ -358,6 +385,7 @@ Chip support added for:
 * STM32F469/STM32F479 ([#345](https://github.com/stlink-org/stlink/pull/345), [#555](https://github.com/stlink-org/stlink/pull/555)) (Release v1.2.0)
 * STM32L1xx Cat.2 devices (Nicolas Schodet)
 * STM32L1xx (chip-ID 0x427) ([#152](https://github.com/stlink-org/stlink/pull/152), [#163](https://github.com/stlink-org/stlink/pull/163), [#165](https://github.com/stlink-org/stlink/pull/165)) (Release v1.0.0)
+* Added SIGINT handler for stlink cleanup ([#31](https://github.com/stlink-org/stlink/pull/31), [#135](https://github.com/stlink-org/stlink/pull/135)) (Release v1.0.0)
 
 Board support added for:
 
