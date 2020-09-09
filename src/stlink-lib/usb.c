@@ -754,7 +754,7 @@ int _stlink_usb_read_all_regs(stlink_t *sl, struct stlink_reg *regp) {
     sl->q_len = (int)size;
     stlink_print_data(sl);
 
-    for (i = reg_offset; i < 16; i++) regp->r[i] = read_uint32(sl->q_buf, i * 4);
+    for (i = 0; i < 16; i++) regp->r[i] = read_uint32(sl->q_buf, reg_offset + i * 4);
 
     regp->xpsr       = read_uint32(sl->q_buf, reg_offset + 64);
     regp->main_sp    = read_uint32(sl->q_buf, reg_offset + 68);
