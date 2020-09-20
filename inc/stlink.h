@@ -60,6 +60,11 @@ enum target_state {
 
 #define STLINK_DEBUG_APIV2_SWD_SET_FREQ 0x43
 
+//add by wliang
+#define STLINK_DEBUG_APIV2_READ_DAP_REG    0x45
+#define STLINK_DEBUG_APIV2_WRITE_DAP_REG   0x46
+//add by wliang
+
 #define STLINK_APIV3_SET_COM_FREQ       0x61
 #define STLINK_APIV3_GET_COM_FREQ       0x62
 
@@ -120,13 +125,16 @@ enum stlink_flash_type {
     STLINK_FLASH_TYPE_UNKNOWN = 0,
     STLINK_FLASH_TYPE_F0,    // used by f0, f1 (except f1xl),f3. */
     STLINK_FLASH_TYPE_F1_XL, // f0 flash with dual bank, apparently */
-    STLINK_FLASH_TYPE_F4,    // used by f2, f4, f7 */
+    STLINK_FLASH_TYPE_F4,    // used by f2, f4 */
+    STLINK_FLASH_TYPE_F7,
     STLINK_FLASH_TYPE_L0,    // l0, l1 */
     STLINK_FLASH_TYPE_L4,    // l4, l4+ */
     STLINK_FLASH_TYPE_L5,    // l5x2 */
     STLINK_FLASH_TYPE_G0,
     STLINK_FLASH_TYPE_G4,
-    STLINK_FLASH_TYPE_WB
+    STLINK_FLASH_TYPE_WB, 
+    //add by wliang
+    STLINK_FLASH_TYPE_H7
 };
 
 struct stlink_reg {
@@ -290,7 +298,14 @@ int stlink_fread(stlink_t* sl, const char* path, bool is_ihex, stm32_addr_t addr
 int stlink_load_device_params(stlink_t *sl);
 
 int stlink_read_option_bytes32(stlink_t *sl, uint32_t* option_byte);
+int stlink_read_option_bytes_boot_add32(stlink_t *sl, uint32_t* option_byte);
+int stlink_read_option_control_register32(stlink_t *sl, uint32_t* option_byte);
+int stlink_read_option_control_register1_32(stlink_t *sl, uint32_t* option_byte);
+
 int stlink_write_option_bytes32(stlink_t *sl, uint32_t option_byte);
+int stlink_write_option_bytes_boot_add32(stlink_t *sl, uint32_t option_bytes_boot_add);
+int stlink_write_option_control_register32(stlink_t *sl, uint32_t option_control_register);
+int stlink_write_option_control_register1_32(stlink_t *sl, uint32_t option_control_register1);
 
 int stlink_write_option_bytes(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uint32_t len);
 int stlink_fwrite_option_bytes(stlink_t *sl, const char* path, stm32_addr_t addr);

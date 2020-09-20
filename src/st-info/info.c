@@ -19,20 +19,17 @@ static void usage(void) {
 
 /* Print normal or OpenOCD hla_serial with newline */
 static void stlink_print_serial(stlink_t *sl, bool openocd) {
-    const char *fmt;
 
     if (openocd) {
         printf("\"");
-        fmt = "\\x%02x";
+        for (int n = 0; n < sl->serial_size; n+=2) {
+            printf("\\x%c%c", sl->serial[n], sl->serial[n+1]);
+        }
+        printf("\"");
+        printf("\n");
     } else {
-        fmt = "%02x";
+        printf("%s\n", sl->serial);
     }
-
-    for (int n = 0; n < sl->serial_size; n++) { printf(fmt, sl->serial[n]); }
-
-    if (openocd) { printf("\""); }
-
-    printf("\n");
 }
 
 static void stlink_print_info(stlink_t *sl) {

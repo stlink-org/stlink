@@ -1,0 +1,3 @@
+version=3
+opts=dversionmangle=s/\+ds$//,repacksuffix=+ds,filenamemangle=s/.+\/v?(\d\S+)\.tar\.gz/stlink-$1\.tar\.gz/ \
+  https://github.com/stlink-org/stlink/tags .*/v?(\d\S+)\.tar\.gz

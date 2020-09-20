@@ -103,6 +103,7 @@ Robin Kreis
 Roger Wolff [rewolff]
 Rob Spanton
 Rytis Karpuska
+Rutger Hendriks [rutgerhendriks]
 Sean Simmons
 Sergey Alirzaev
 Simon Derr [sderr]

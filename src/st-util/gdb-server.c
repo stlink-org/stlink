@@ -43,7 +43,7 @@
 static stlink_t *connected_stlink = NULL;
 static bool semihosting = false;
 static bool serial_specified = false;
-static char serialnumber[28] = {0};
+static char serialnumber[STLINK_SERIAL_MAX_SIZE] = {0};
 
 #if defined(_WIN32)
 #define close_socket win32_close_socket
@@ -71,18 +71,29 @@ int serve(stlink_t *sl, st_state_t *st);
 char* make_memory_map(stlink_t *sl);
 static void init_cache(stlink_t *sl);
 
-static void cleanup(int signum) {
-    (void)signum;
-
+static void _cleanup() {
     if (connected_stlink) {
         // Switch back to mass storage mode before closing
         stlink_run(connected_stlink);
         stlink_exit_debug_mode(connected_stlink);
         stlink_close(connected_stlink);
     }
-
-    exit(1);
 }
+
+static void cleanup(int signum) {
+    printf("Receive signal %i. Exiting...\n", signum);
+    _cleanup();
+    exit(1);
+    (void)signum;
+}
+
+#if defined(_WIN32)
+BOOL WINAPI CtrlHandler(DWORD fdwCtrlType) {
+    printf("Receive signal %i. Exiting...\r\n", (int)fdwCtrlType);
+    _cleanup();
+    return FALSE;
+}
+#endif
 
 
 static stlink_t* do_connect(st_state_t *st) {
@@ -142,61 +153,45 @@ int parse_options(int argc, char** argv, st_state_t *st) {
 
     while ((c = getopt_long(argc, argv, "hv::p:mn", long_options, &option_index)) != -1)
         switch (c) {
-        case 0:
-            break;
-        case 'h':
-            printf(help_str, argv[0]);
-            exit(EXIT_SUCCESS);
-            break;
-        case 'v':
-
-            if (optarg) {
-                st->logging_level = atoi(optarg);
-            } else {
-                st->logging_level = DEBUG_LOGGING_LEVEL;
-            }
-
-            break;
-        case 'p':
-            sscanf(optarg, "%i", &q);
-
-            if (q < 0) {
-                fprintf(stderr, "Can't use a negative port to listen on: %d\n", q);
-                exit(EXIT_FAILURE);
-            }
-
-            st->listen_port = q;
-            break;
-        case 'm':
-            st->persistent = 1;
-            break;
-        case 'n':
-            st->reset = 0;
-            break;
-        case 'V':
-            printf("v%s\n", STLINK_VERSION);
-            exit(EXIT_SUCCESS);
-        case SEMIHOSTING_OPTION:
-            semihosting = true;
-            break;
-        case SERIAL_OPTION:
-            printf("use serial %s\n", optarg);
-            /* TODO: This is not really portable, as strlen really returns size_t,
-             * we need to obey and not cast it to a signed type.
-             */
-            int j = (int)strlen(optarg);
-            int length = j / 2;      // the length of the destination-array
-
-            if (j % 2 != 0) { return(-1); }
-
-            for (size_t k = 0; j >= 0 && k < sizeof(serialnumber); ++k, j -= 2) {
-                char buffer[3] = {0};
-                memcpy(buffer, optarg + j, 2);
-                serialnumber[length - k] = (uint8_t)strtol(buffer, NULL, 16);
-            }
-
-            serial_specified = true;
-            break;
+            case 0:
+                break;
+            case 'h':
+                printf(help_str, argv[0]);
+                exit(EXIT_SUCCESS);
+                break;
+            case 'v':
+                if (optarg) {
+                    st->logging_level = atoi(optarg);
+                } else {
+                    st->logging_level = DEBUG_LOGGING_LEVEL;
+                }
+                break;
+            case 'p':
+                sscanf(optarg, "%i", &q);
+                if (q < 0) {
+                    fprintf(stderr, "Can't use a negative port to listen on: %d\n", q);
+                    exit(EXIT_FAILURE);
+                }
+                st->listen_port = q;
+                break;
+            case 'm':
+                st->persistent = 1;
+                break;
+            case 'n':
+                st->reset = 0;
+                break;
+            case 'V':
+                printf("v%s\n", STLINK_VERSION);
+                exit(EXIT_SUCCESS);
+            case SEMIHOSTING_OPTION:
+                semihosting = true;
+                break;
+            case SERIAL_OPTION:
+                printf("use serial %s\n",optarg);
+                strncpy((char*)serialnumber, optarg, STLINK_SERIAL_MAX_SIZE - 1);
+                serialnumber[STLINK_SERIAL_MAX_SIZE - 1] = '\0';
+                serial_specified = true;
+                break;
         }
 
 
@@ -234,9 +229,13 @@ int main(int argc, char** argv) {
     }
 
     connected_stlink = sl;
+#if defined(_WIN32)
+    SetConsoleCtrlHandler((PHANDLER_ROUTINE) CtrlHandler, TRUE);
+#else
     signal(SIGINT, &cleanup);
     signal(SIGTERM, &cleanup);
     signal(SIGSEGV, &cleanup);
+#endif
 
     if (state.reset) { stlink_reset(sl); }
 
