@@ -159,7 +159,7 @@ The rules are located in the subdirectory `config/udev/rules.d` within the sourc
 Afterwards it may be necessary to reload the udev rules:
 
 ```sh
-$ sudo cp -a config/udev/rules.d/. /etc/udev/rules.d
+$ sudo cp -a config/udev/rules.d/* /etc/udev/rules.d/
 $ sudo udevadm control --reload-rules
 $ sudo udevadm trigger
 ```
@@ -217,8 +217,9 @@ To do this with only one simple command, type:
 ### Building
 
 1. Change into the project source directory: `cd stlink`
-2. Run `make release` to create the _Release_ target
-3. Run `make debug` to create the _Debug_ target (_optional_)<br />
+2. Run `make clean` to clean remnants of any previous builds.
+3. Run `make release` to create the _Release_ target
+4. Run `make debug` to create the _Debug_ target (_optional_)<br />
    The debug target is only necessary in order to modify the sources and to run under a debugger.
 
 
