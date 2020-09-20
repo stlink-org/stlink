@@ -129,6 +129,7 @@ enum stlink_flash_type {
     STLINK_FLASH_TYPE_F7,
     STLINK_FLASH_TYPE_L0,    // l0, l1 */
     STLINK_FLASH_TYPE_L4,    // l4, l4+ */
+    STLINK_FLASH_TYPE_L5,    // l5x2 */
     STLINK_FLASH_TYPE_G0,
     STLINK_FLASH_TYPE_G4,
     STLINK_FLASH_TYPE_WB, 

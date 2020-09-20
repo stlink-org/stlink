@@ -663,6 +663,24 @@ static const struct stlink_chipid_params devices[] = {
         .bootrom_size = 0x7000                 // 28k (per bank), same source as base
     },
 
+    /* == STM32L5 == */
+  
+    {
+        // STM32L5x2
+        // RM0438
+        .chip_id = STLINK_CHIPID_STM32_L5x2,
+        .description = "L5x2",
+        .flash_type = STLINK_FLASH_TYPE_L5,
+        .has_dual_bank = true,
+        .flash_size_reg = 0x0BFA05E0,
+        .flash_pagesize = 0x800, // 2 banks of 128 x 2K pages
+        .sram_size = 0x40000,
+        .bootrom_base = 0x0BF90000, // see memory map
+        .bootrom_size = 0x8000,
+        .option_base = STM32_L5_OPTION_BYTES_BASE,
+        .option_size = 4,
+    },
+  
     /* == STM32H7 == */
 
     {
@@ -691,7 +709,6 @@ static const struct stlink_chipid_params devices[] = {
         .bootrom_base = 0x1fff0000,           // see the memory map
         .bootrom_size = 0x7000
     },
-
 };
 
 const struct stlink_chipid_params *stlink_chipid_get_params(uint32_t chipid) {
