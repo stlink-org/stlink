@@ -3,3 +3,4 @@ build-mingw
 .project
 obj-*
 *.user*
+.cmake/

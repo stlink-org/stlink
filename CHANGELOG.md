@@ -8,6 +8,8 @@ Release date: (TBD)
 
 Features:
 
+* Option bytes on the STM32F767 ZIT6 Nucleo-144 ([#968](https://github.com/stlink-org/stlink/pull/968), [#997](https://github.com/stlink-org/stlink/pull/997))
+
 Updates & changes:
 
 * [doc] st-flash --reset parameter (one solution for #356) ([#642](https://github.com/stlink-org/stlink/pull/642))
