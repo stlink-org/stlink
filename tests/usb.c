@@ -3,14 +3,12 @@
 #include <stlink.h>
 #include <string.h>
 
-static void usage(void)
-{
+static void usage(void) {
     puts("test-usb --reset");
     puts("test-usb --no-reset");
 }
 
 int main(int ac, char** av) {
-
     stlink_t* sl;
     struct stlink_reg regs;
     int reset = 0;
@@ -18,15 +16,18 @@ int main(int ac, char** av) {
     if (ac == 2) {
         if (strcmp(av[1], "--reset") == 0)
             reset = 2;
-        if (strcmp(av[1], "--no-reset") == 0) 
+
+        if (strcmp(av[1], "--no-reset") == 0)
             reset = 1;
     }
+
     if (reset == 0) {
         usage();
-        return 0;
+        return(0);
     }
 
     sl = stlink_open_usb(10, reset, NULL, 0);
+
     if (sl != NULL) {
         printf("-- version\n");
         stlink_version(sl);
@@ -47,6 +48,7 @@ int main(int ac, char** av) {
         printf("-- core_id: %#x\n", sl->core_id);
 
         cortex_m3_cpuid_t cpuid;
+
         if (stlink_cpu_id(sl, &cpuid)) {
             printf("Failed reading stlink_cpu_id\n");
         } else {
@@ -57,6 +59,7 @@ int main(int ac, char** av) {
         printf("-- read_sram\n");
         static const uint32_t sram_base = STM32_SRAM_BASE;
         uint32_t off;
+
         for (off = 0; off < 16; off += 4)
             stlink_read_mem32(sl, sram_base + off, 4);
 
@@ -64,24 +67,24 @@ int main(int ac, char** av) {
         stlink_read_mem32(sl, STLINK_REG_CM3_FP_CTRL, 4);
 
         // no idea what reg this is...
-        //stlink_read_mem32(sl, 0xe000ed90, 4);
+        // stlink_read_mem32(sl, 0xe000ed90, 4);
         // no idea what register this is...
-        //stlink_read_mem32(sl, 0xe000edf0, 4);
+        // stlink_read_mem32(sl, 0xe000edf0, 4);
         // offset 0xC into TIM11 register? TIMx_DIER?
-        //stlink_read_mem32(sl, 0x4001100c, 4);
+        // stlink_read_mem32(sl, 0x4001100c, 4);
 
-        /* Test 32 bit Write */
-        write_uint32(sl->q_buf,0x01234567);
-        stlink_write_mem32(sl,0x200000a8,4);
-        write_uint32(sl->q_buf,0x89abcdef);
-        stlink_write_mem32(sl,0x200000ac, 4);
+        /* Test 32 bit write */
+        write_uint32(sl->q_buf, 0x01234567);
+        stlink_write_mem32(sl, 0x200000a8, 4);
+        write_uint32(sl->q_buf, 0x89abcdef);
+        stlink_write_mem32(sl, 0x200000ac, 4);
         stlink_read_mem32(sl, 0x200000a8, 4);
         stlink_read_mem32(sl, 0x200000ac, 4);
 
         /* Test 8 bit write */
-        write_uint32(sl->q_buf,0x01234567);
-        stlink_write_mem8(sl,0x200001a8,3);
-        write_uint32(sl->q_buf,0x89abcdef);
+        write_uint32(sl->q_buf, 0x01234567);
+        stlink_write_mem8(sl, 0x200001a8, 3);
+        write_uint32(sl->q_buf, 0x89abcdef);
         stlink_write_mem8(sl, 0x200001ac, 3);
         stlink_read_mem32(sl, 0x200001a8, 4);
         stlink_read_mem32(sl, 0x200001ac, 4);
@@ -96,8 +99,8 @@ int main(int ac, char** av) {
         stlink_write_reg(sl, 0x01234567, 3);
         stlink_write_reg(sl, 0x89abcdef, 4);
         stlink_write_reg(sl, 0x12345678, 15);
-        for (off = 0; off < 21; off += 1)
-            stlink_read_reg(sl, off, &regs);
+
+        for (off = 0; off < 21; off += 1) stlink_read_reg(sl, off, &regs);
 
         stlink_read_all_regs(sl, &regs);
 
@@ -115,5 +118,6 @@ int main(int ac, char** av) {
 
         stlink_close(sl);
     }
-    return 0;
+
+    return(0);
 }

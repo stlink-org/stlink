@@ -88,7 +88,6 @@ Install the following packages from your package repository:
 * `build-essential` (on Debian based distros (Debian, Ubuntu))
 * `cmake` (3.4.2 or later, use the latest version available from the repository)
 * `rpm` (on Debian based distros (Debian, Ubuntu), needed for package build with `make package`)
-* `pkg-config`
 * `libusb-1.0`
 * `libusb-1.0-0-dev` (development headers for building)
 * `libgtk-3-dev` (_optional_, needed for `stlink-gui`)
@@ -160,9 +159,9 @@ The rules are located in the subdirectory `config/udev/rules.d` within the sourc
 Afterwards it may be necessary to reload the udev rules:
 
 ```sh
-$ cp etc/udev/rules.d /etc/udev/rules.d
-$ udevadm control --reload-rules
-$ udevadm trigger
+$ sudo cp -a config/udev/rules.d/* /etc/udev/rules.d/
+$ sudo udevadm control --reload-rules
+$ sudo udevadm trigger
 ```
 
 Udev will now create device node files `/dev/stlinkv2_XX`, `/dev/stlinkv1_XX`.<br />
@@ -194,7 +193,6 @@ Then install the following dependencies from the package repository:
 * `git`
 * `gcc` or `llvm` (for clang) (C-compiler)
 * `cmake`
-* `pkg-config`
 * `libusb`
 * `gtk+3` or `gtk3` (_optional_, needed for `stlink-gui`)
 
@@ -219,8 +217,9 @@ To do this with only one simple command, type:
 ### Building
 
 1. Change into the project source directory: `cd stlink`
-2. Run `make release` to create the _Release_ target
-3. Run `make debug` to create the _Debug_ target (_optional_)<br />
+2. Run `make clean` to clean remnants of any previous builds.
+3. Run `make release` to create the _Release_ target
+4. Run `make debug` to create the _Debug_ target (_optional_)<br />
    The debug target is only necessary in order to modify the sources and to run under a debugger.
 
 

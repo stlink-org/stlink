@@ -1,0 +1,44 @@
+Source: stlink
+Priority: optional
+Maintainer: Luca Boccassi <bluca@debian.org>
+Build-Depends: debhelper-compat (= 12), cmake (>= 3.4.2), libusb-1.0-0-dev, libgtk-3-dev
+Standards-Version: 4.5.0
+Rules-Requires-Root: no
+Section: electronics
+Homepage: https://github.com/stlink-org/stlink
+Vcs-Git: https://github.com/bluca/stlink.git -b debian
+Vcs-Browser: https://github.com/bluca/stlink
+
+Package: libstlink-dev
+Section: libdevel
+Architecture: linux-any
+Multi-Arch: same
+Depends: libstlink1 (= ${binary:Version}), ${misc:Depends}
+Description: Open source STM32 MCU programming toolset.
+ .
+ This package contains the development files for stlink.
+
+Package: libstlink1
+Section: libs
+Architecture: linux-any
+Multi-Arch: same
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Open source STM32 MCU programming toolset.
+ .
+ This package contains the shared library for stlink.
+
+Package: stlink-tools
+Architecture: linux-any
+Depends: libstlink1 (= ${binary:Version}), ${shlibs:Depends}, ${misc:Depends}
+Description: Open source STM32 MCU programming toolset.
+ .
+ This package contains commandline utilities for stlink, modprobe- and
+ udev-rules.
+
+Package: stlink-gui
+Architecture: linux-any
+Depends: libstlink1 (= ${binary:Version}), stlink-tools (= ${binary:Version}),
+ ${shlibs:Depends}, ${misc:Depends}
+Description: Open source STM32 MCU programming toolset.
+ .
+ This package contains a GUI for stlink.
