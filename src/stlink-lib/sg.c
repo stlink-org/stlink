@@ -745,6 +745,12 @@ int _stlink_sg_run(stlink_t *sl) {
     return(0);
 }
 
+// force the core the halt into debug mode.a
+int _stlink_sg_halt(stlink_t *sl) {
+    (void)sl;
+    return -1; // unsupported
+}
+ 
 // step the arm-core.
 int _stlink_sg_step(stlink_t *sl) {
     struct stlink_libsg *sg = sl->backend_data;
@@ -927,6 +933,7 @@ static stlink_backend_t _stlink_sg_backend = {
     _stlink_sg_reset,
     _stlink_sg_jtag_reset,
     _stlink_sg_run,
+    _stlink_sg_halt,
     _stlink_sg_status,
     _stlink_sg_version,
     _stlink_sg_read_debug32,

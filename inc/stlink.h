@@ -215,6 +215,7 @@ struct _stlink {
     char serial[STLINK_SERIAL_MAX_SIZE];
     int serial_size;
     int freq;                    // set by stlink_open_usb(), values: STLINK_SWDCLK_xxx_DIVISOR
+    int speed;                   // set by stlink_open_usb(), used for matching speed map
 
     enum stlink_flash_type flash_type;
     // stlink_chipid_params.flash_type, set by stlink_load_device_params(), values: STLINK_FLASH_TYPE_xxx
@@ -249,6 +250,7 @@ void stlink_close(stlink_t *sl);
 int stlink_core_id(stlink_t *sl);
 int stlink_reset(stlink_t *sl);
 int stlink_jtag_reset(stlink_t *sl, int value);
+int stlink_halt(stlink_t *sl);
 int stlink_run(stlink_t *sl);
 int stlink_status(stlink_t *sl);
 int stlink_version(stlink_t *sl);

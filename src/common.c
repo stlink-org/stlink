@@ -1486,6 +1486,11 @@ int stlink_jtag_reset(stlink_t *sl, int value) {
     return(sl->backend->jtag_reset(sl, value));
 }
 
+int stlink_halt(stlink_t *sl) {
+    DLOG("*** stlink_halt ***\n");
+    return(sl->backend->halt(sl));
+}
+
 int stlink_run(stlink_t *sl) {
     DLOG("*** stlink_run ***\n");
     return(sl->backend->run(sl));
@@ -2399,7 +2404,6 @@ int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr) {
 
             fprintf(stderr, "EraseFlash - Page:0x%x Size:0x%x ",
                     page, stlink_calculate_pagesize(sl, flashaddr));
-
             write_flash_cr_bker_pnb(sl, page);
         } else if (sl->chip_id == STLINK_CHIPID_STM32_F7 ||
                    sl->chip_id == STLINK_CHIPID_STM32_F7XXXX) {
@@ -2411,11 +2415,10 @@ int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr) {
             write_flash_cr_snb(sl, sector);
         } else if (sl->chip_id == STLINK_CHIPID_STM32_H74XXX) {
 
-            // add by wliang
             uint32_t sector=calculate_H7_sectornum(flashaddr);
 
-            fprintf(stderr, "EraseFlash - Sector:0x%x Size:0x%x ", sector, stlink_calculate_pagesize(sl, flashaddr));
-
+            fprintf(stderr, "EraseFlash - Sector:0x%x Size:0x%x ",
+                    sector, stlink_calculate_pagesize(sl, flashaddr));
             write_flash_cr_ber_snb(sl, sector);
             
         } else {
