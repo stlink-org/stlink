@@ -26,7 +26,8 @@ int main(int ac, char** av) {
         return(0);
     }
 
-    sl = stlink_open_usb(100, reset, NULL, 0);
+    sl = stlink_open_usb(10, 0, reset, NULL, 0);
+
     if (sl != NULL) {
         printf("-- version\n");
         stlink_version(sl);

@@ -1057,7 +1057,7 @@ static stlink_backend_t _stlink_usb_backend = {
     _stlink_usb_set_swdclk
 };
 
-stlink_t *stlink_open_usb(enum ugly_loglevel verbose, int reset, char serial[STLINK_SERIAL_MAX_SIZE], int freq) {
+stlink_t *stlink_open_usb(enum ugly_loglevel verbose, bool connect_under_reset, int reset, char serial[STLINK_SERIAL_MAX_SIZE], int freq) {
     stlink_t* sl = NULL;
     struct stlink_libusb* slu = NULL;
     int ret = -1;
@@ -1281,7 +1281,11 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, int reset, char serial[STL
     if (reset == 2) {
         stlink_jtag_reset(sl, 0);
 
-        if (stlink_current_mode(sl) != STLINK_DEV_DEBUG_MODE) { stlink_enter_swd_mode(sl); }
+        if (stlink_current_mode(sl) != STLINK_DEV_DEBUG_MODE) {
+            if (connect_under_reset) { stlink_jtag_reset(sl, 0); }
+            stlink_enter_swd_mode(sl);
+            if (connect_under_reset) { stlink_jtag_reset(sl, 1); }
+        }
 
         stlink_force_debug(sl);
         stlink_jtag_reset(sl, 1);
@@ -1387,7 +1391,7 @@ static size_t stlink_probe_usb_devs(libusb_device **devs, stlink_t **sldevs[]) {
 
         if (ret < 0) { continue; }
 
-        stlink_t *sl = stlink_open_usb(0, 1, serial, 0);
+        stlink_t *sl = stlink_open_usb(0, 0, 1, serial, 0);
 
         if (!sl) {
             ELOG("Failed to open USB device %#06x:%#06x\n", desc.idVendor, desc.idProduct);

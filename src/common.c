@@ -1477,6 +1477,7 @@ int stlink_load_device_params(stlink_t *sl) {
 
 int stlink_reset(stlink_t *sl) {
     DLOG("*** stlink_reset ***\n");
+    stlink_write_debug32(sl, 0xE000ED0C, (0x5FA << 16) | (1 << 2)); // Write SYSRESETREQ to NVIC AIRCR.
     return(sl->backend->reset(sl));
 }
 

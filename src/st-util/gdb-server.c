@@ -100,9 +100,9 @@ static stlink_t* do_connect(st_state_t *st) {
     stlink_t *sl = NULL;
 
     if (serial_specified) {
-        sl = stlink_open_usb(st->logging_level, st->reset, serialnumber, 0);
+        sl = stlink_open_usb(st->logging_level, 0, st->reset, serialnumber, 0);
     } else {
-        sl = stlink_open_usb(st->logging_level, st->reset, NULL, 0);
+        sl = stlink_open_usb(st->logging_level, 0, st->reset, NULL, 0);
     }
 
     return(sl);
@@ -119,6 +119,7 @@ int parse_options(int argc, char** argv, st_state_t *st) {
         {"version", no_argument, NULL, 'V'},
         {"semihosting", no_argument, NULL, SEMIHOSTING_OPTION},
         {"serial", required_argument, NULL, SERIAL_OPTION},
+        {"connect-under-reset", no_argument, NULL, 'u'},
         {0, 0, 0, 0},
     };
     const char * help_str = "%s - usage:\n\n"
@@ -144,6 +145,8 @@ int parse_options(int argc, char** argv, st_state_t *st) {
                             "The STLINK device to use can be specified in the environment\n"
                             "variable STLINK_DEVICE on the format <USB_BUS>:<USB_ADDR>.\n"
                             "\n"
+                            "  -u, --connect-under-reset\n"
+                            "\t\t\t Keep the board under reset while connecting\n"
     ;
 
 
@@ -151,7 +154,7 @@ int parse_options(int argc, char** argv, st_state_t *st) {
     int c;
     int q;
 
-    while ((c = getopt_long(argc, argv, "hv::p:mn", long_options, &option_index)) != -1)
+    while ((c = getopt_long(argc, argv, "hv::p:mnu", long_options, &option_index)) != -1)
         switch (c) {
             case 0:
                 break;
@@ -192,8 +195,10 @@ int parse_options(int argc, char** argv, st_state_t *st) {
                 serialnumber[STLINK_SERIAL_MAX_SIZE - 1] = '\0';
                 serial_specified = true;
                 break;
+            case 'u':
+                st->reset = 2;
+                break;
         }
-
 
     if (optind < argc) {
         printf("non-option ARGV-elements: ");
