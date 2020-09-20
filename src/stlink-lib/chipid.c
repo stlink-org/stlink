@@ -398,9 +398,9 @@ static const struct stlink_chipid_params devices[] = {
         .flash_type = STLINK_FLASH_TYPE_G0,
         .flash_size_reg = 0x1FFF75E0,          // Section 38.2
         .flash_pagesize = 0x800,               // 2k (Section 3.2)
-        .sram_size = 0x2000,                   // 8k (Section 2.3)
+        .sram_size = 0x2000,                   // 8k, set to 0x9000 for 36k (Section 2.3)
         .bootrom_base = 0x1fff0000,
-        .bootrom_size = 0x2000,                // 8k (Section 2.2.2 Table 3)
+        .bootrom_size = 0x2000,                // 8k, set to 0x7000 for 28k (Section 2.2.2 Table 2 and 3)
         .option_base = STM32_G0_OPTION_BYTES_BASE,
         .option_size = 4,
     },
