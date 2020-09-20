@@ -42,7 +42,19 @@ static const uint8_t loader_code_stm32vl[] = {
 
 /* flashloaders/stm32f0.s -- thumb1 only, same sequence as for STM32VL, bank ignored */
 static const uint8_t loader_code_stm32f0[] = {
-    0xc0, 0x46, 0xc0, 0x46,
+    /*
+     * These two NOPs here are a safety precaution, added by Pekka Nikander
+     * while debugging the STM32F05x support.  They may not be needed, but
+     * there were strange problems with simpler programs, like a program
+     * that had just a breakpoint or a program that first moved zero to register r2
+     * and then had a breakpoint.  So, it appears safest to have these two nops.
+     *
+     * Feel free to remove them, if you dare, but then please do test the result
+     * rigorously.  Also, if you remove these, it may be a good idea first to
+     * #if 0 them out, with a comment when these were taken out, and to remove
+     * these only a few months later...  But YMMV.
+     */
+
     0x13, 0x4f, 0x3c, 0x68,
     0x13, 0x4f, 0x3e, 0x68,
     0x36, 0x19, 0x13, 0x4f,
@@ -63,9 +75,9 @@ static const uint8_t loader_code_stm32f0[] = {
     0x00, 0x20, 0x02, 0x40,
     0x10, 0x00, 0x00, 0x00,
     0x0c, 0x00, 0x00, 0x00,
+    0x44, 0x00, 0x00, 0x20,
     0x48, 0x00, 0x00, 0x20,
     0x4c, 0x00, 0x00, 0x20,
-    0x50, 0x00, 0x00, 0x20,
     0x01, 0x00, 0x00, 0x00,
     0x02, 0x00, 0x00, 0x00,
     0x04, 0x00, 0x00, 0x00
@@ -79,7 +91,7 @@ static const uint8_t loader_code_stm32l[] = {
     0x38, 0x44, 0x39, 0x44,
     0x4f, 0xf0, 0x01, 0x07,
     0xd2, 0x1b, 0x00, 0x2a,
-    0xf4, 0xd1, 0x00, 0xbe,
+    0xf4, 0xd1, 0x00, 0xbe
 };
 
 static const uint8_t loader_code_stm32f4[] = {
@@ -173,7 +185,6 @@ static const uint8_t loader_code_stm32f7_lv[] = {
     0x0e, 0x00, 0x00, 0x00
 };
 
-
 int stlink_flash_loader_init(stlink_t *sl, flash_loader_t *fl) {
     size_t size = 0;
 
@@ -206,7 +217,7 @@ static int loader_v_dependent_assignment(stlink_t *sl,
         if (voltage == -1) {
             retval = -1;
             printf("Failed to read Target voltage\n");
-        } else   {
+        } else {
             if (voltage > 2700) {
                 *loader_code = high_v_loader;
                 *loader_size = high_v_loader_size;
