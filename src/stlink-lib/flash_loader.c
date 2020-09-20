@@ -305,13 +305,49 @@ int stlink_flash_loader_write_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* 
     return(0); // success
 }
 
+
+static int wait_for_halt(stlink_t *sl)
+{
+    int i;
+
+    if (stlink_is_core_halted(sl))
+        return 0;
+/* This piece of code used to try to spin for .1 second by waiting doing 10000 rounds of 10 µs.
+ * But because this usually runs on Unix-like OSes, the 10 µs get rounded up to the "tick"
+ * (actually almost two ticks) of the system. 1 ms. Thus, the ten thousand attempts, when
+ * "something goes wrong" that requires the error message "flash loader run error" would wait
+ * for something like 20 seconds before coming up with the error.
+ * By increasing the sleep-per-round to the same order-of-magnitude as the tick-rounding that
+ * the OS uses, the wait until the error message is reduced to the same order of magnitude
+ * as what was intended. -- REW.
+ */
+#define WAIT_ROUNDS 60
+
+    // wait until done (reaches breakpoint)
+    for (i = 0; i < WAIT_ROUNDS; i++) {
+        usleep(10000);
+
+        if (stlink_is_core_halted(sl)) { break; }
+    }
+    if (i >=WAIT_ROUNDS)
+        return -1;
+    return 0;
+}
+
 int stlink_flash_loader_run(stlink_t *sl, flash_loader_t* fl, stm32_addr_t target, const uint8_t* buf, size_t size) {
     struct stlink_reg rr;
-    int i = 0;
     size_t count = 0;
     uint32_t flash_base = 0;
 
     DLOG("Running flash loader, write address:%#x, size: %u\n", target, (unsigned int)size);
+
+    // Halt the core or you will never be able to write registers
+    if (!stlink_is_core_halted(sl)) {
+        if (stlink_halt(sl) == -1 || wait_for_halt(sl) == -1) {
+            ELOG("core cannot be halted!\n");
+            return(-1);
+        }
+    }
 
     // TODO: This can never return -1
     if (write_buffer_to_sram(sl, fl, buf, size) == -1) {
@@ -351,25 +387,7 @@ int stlink_flash_loader_run(stlink_t *sl, flash_loader_t* fl, stm32_addr_t targe
     /* Run loader */
     stlink_run(sl);
 
-/* This piece of code used to try to spin for .1 second by waiting doing 10000 rounds of 10 µs.
- * But because this usually runs on Unix-like OSes, the 10 µs get rounded up to the "tick"
- * (actually almost two ticks) of the system. 1 ms. Thus, the ten thousand attempts, when
- * "something goes wrong" that requires the error message "flash loader run error" would wait
- * for something like 20 seconds before coming up with the error.
- * By increasing the sleep-per-round to the same order-of-magnitude as the tick-rounding that
- * the OS uses, the wait until the error message is reduced to the same order of magnitude
- * as what was intended. -- REW.
- */
-#define WAIT_ROUNDS 30
-
-    // wait until done (reaches breakpoint)
-    for (i = 0; i < WAIT_ROUNDS; i++) {
-        usleep(10000);
-
-        if (stlink_is_core_halted(sl)) { break; }
-    }
-
-    if (i >= WAIT_ROUNDS) {
+    if (wait_for_halt(sl) == -1) {
         ELOG("flash loader run error\n");
         return(-1);
     }
