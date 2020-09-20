@@ -26,6 +26,8 @@ Fixes:
 * Fix for static linking of libssp ([#973](https://github.com/stlink-org/stlink/pull/973), [#974](https://github.com/stlink-org/stlink/pull/974))
 * Fixed connect under reset for st-flash and st-util ([#983](https://github.com/stlink-org/stlink/pull/983))
 * Fix for mmap() size_t overflow in st-flash ([#988](https://github.com/stlink-org/stlink/pull/988), [#989](https://github.com/stlink-org/stlink/pull/989))
+* [regression] stlink-gui installation issue on Ubuntu-18.04 ([#1006](https://github.com/stlink-org/stlink/pull/1006))
+* st-util: wrong register values passed to gdb (st-link v2) ([#1026](https://github.com/stlink-org/stlink/pull/1026), [#1027](https://github.com/stlink-org/stlink/pull/1027))
 
 
 v1.6.1
