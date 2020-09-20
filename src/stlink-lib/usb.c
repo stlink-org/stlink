@@ -444,7 +444,7 @@ int _stlink_usb_force_debug(stlink_t *sl) {
     ssize_t size;
     int rep_len = 2;
     int i = fill_command(sl, SG_DXFER_FROM_DEV, rep_len);
-
+    
     cmd[i++] = STLINK_DEBUG_COMMAND;
     cmd[i++] = STLINK_DEBUG_FORCEDEBUG;
     size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len);
@@ -606,6 +606,16 @@ int _stlink_usb_run(stlink_t* sl) {
     return(0);
 }
 
+int _stlink_usb_halt(stlink_t* sl) {
+    int res;
+
+    if (sl->version.jtag_api == STLINK_JTAG_API_V1) {
+        return -1;
+    }
+    res = _stlink_usb_write_debug32(sl, DCB_DHCSR, DBGKEY | C_HALT | C_DEBUGEN);
+    return(res);
+}
+
 int _stlink_usb_set_swdclk(stlink_t* sl, uint16_t clk_divisor) {
     struct stlink_libusb * const slu = sl->backend_data;
     unsigned char* const data = sl->q_buf;
@@ -656,26 +666,33 @@ int _stlink_usb_set_swdclk(stlink_t* sl, uint16_t clk_divisor) {
         // Set to zero all the next entries
         for (i = speeds_size; i < STLINK_V3_MAX_FREQ_NB; i++) map[i] = 0;
 
-        speed_index = _stlink_match_speed_map(map, STLINK_ARRAY_SIZE(map), 1800);
-
-        i = fill_command(sl, SG_DXFER_FROM_DEV, 16);
-
-        cmd[i++] = STLINK_DEBUG_COMMAND;
-        cmd[i++] = STLINK_APIV3_SET_COM_FREQ;
-        cmd[i++] = 0; // SWD mode
-        cmd[i++] = 0;
-        cmd[i++] = (uint8_t)((map[speed_index] >> 0) & 0xFF);
-        cmd[i++] = (uint8_t)((map[speed_index] >> 8) & 0xFF);
-        cmd[i++] = (uint8_t)((map[speed_index] >> 16) & 0xFF);
-        cmd[i++] = (uint8_t)((map[speed_index] >> 24) & 0xFF);
-
-        size = send_recv(slu, 1, cmd, slu->cmd_len, data, 8);
-
-        if (size == -1) {
-            printf("[!] send_recv STLINK_APIV3_SET_COM_FREQ\n");
-            return((int)size);
+        for (i = 0; i < speeds_size; i++) {
+            ILOG("MAP[%d]=%u\n", i,  map[i]);
         }
 
+        if (sl->speed)
+        {
+            ILOG("Set speed to %u\n", sl->speed);
+            speed_index = _stlink_match_speed_map(map, STLINK_ARRAY_SIZE(map), sl->speed ? sl->speed : 1800);
+
+            i = fill_command(sl, SG_DXFER_FROM_DEV, 16);
+
+            cmd[i++] = STLINK_DEBUG_COMMAND;
+            cmd[i++] = STLINK_APIV3_SET_COM_FREQ;
+            cmd[i++] = 0; // SWD mode
+            cmd[i++] = 0;
+            cmd[i++] = (uint8_t)((map[speed_index] >> 0) & 0xFF);
+            cmd[i++] = (uint8_t)((map[speed_index] >> 8) & 0xFF);
+            cmd[i++] = (uint8_t)((map[speed_index] >> 16) & 0xFF);
+            cmd[i++] = (uint8_t)((map[speed_index] >> 24) & 0xFF);
+
+            size = send_recv(slu, 1, cmd, slu->cmd_len, data, 8);
+
+            if (size == -1) {
+                printf("[!] send_recv STLINK_APIV3_SET_COM_FREQ\n");
+                return((int)size);
+            }
+        }
         return(0);
     }
 
@@ -982,6 +999,7 @@ static stlink_backend_t _stlink_usb_backend = {
     _stlink_usb_reset,
     _stlink_usb_jtag_reset,
     _stlink_usb_run,
+    _stlink_usb_halt,
     _stlink_usb_status,
     _stlink_usb_version,
     _stlink_usb_read_debug32,
@@ -1002,7 +1020,7 @@ static stlink_backend_t _stlink_usb_backend = {
     _stlink_usb_set_swdclk
 };
 
-stlink_t *stlink_open_usb(enum ugly_loglevel verbose, int reset, char serial[STLINK_SERIAL_MAX_SIZE], int freq) {
+stlink_t *stlink_open_usb(enum ugly_loglevel verbose, int reset, char serial[STLINK_SERIAL_MAX_SIZE], int freq, int speed) {
     stlink_t* sl = NULL;
     struct stlink_libusb* slu = NULL;
     int ret = -1;
@@ -1179,6 +1197,7 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, int reset, char serial[STL
     }
 
     sl->freq = freq;
+    sl->speed = speed;
     // set the speed before entering the mode as the chip discovery phase
     // should be done at this speed too
     // set the stlink clock speed (default is 1800kHz)
@@ -1332,7 +1351,7 @@ static size_t stlink_probe_usb_devs(libusb_device **devs, stlink_t **sldevs[]) {
 
         if (ret < 0) { continue; }
 
-        stlink_t *sl = stlink_open_usb(0, 1, serial, 0);
+        stlink_t *sl = stlink_open_usb(0, 1, serial, 0, 0);
 
         if (!sl) {
             ELOG("Failed to open USB device %#06x:%#06x\n", desc.idVendor, desc.idProduct);
