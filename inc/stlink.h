@@ -60,6 +60,11 @@ enum target_state {
 
 #define STLINK_DEBUG_APIV2_SWD_SET_FREQ 0x43
 
+//add by wliang
+#define STLINK_DEBUG_APIV2_READ_DAP_REG    0x45
+#define STLINK_DEBUG_APIV2_WRITE_DAP_REG   0x46
+//add by wliang
+
 #define STLINK_APIV3_SET_COM_FREQ       0x61
 #define STLINK_APIV3_GET_COM_FREQ       0x62
 
@@ -126,7 +131,9 @@ enum stlink_flash_type {
     STLINK_FLASH_TYPE_L4,    // l4, l4+ */
     STLINK_FLASH_TYPE_G0,
     STLINK_FLASH_TYPE_G4,
-    STLINK_FLASH_TYPE_WB
+    STLINK_FLASH_TYPE_WB, 
+    //add by wliang
+    STLINK_FLASH_TYPE_H7
 };
 
 struct stlink_reg {

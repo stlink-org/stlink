@@ -222,9 +222,11 @@ int _stlink_usb_read_debug32(stlink_t *sl, uint32_t addr, uint32_t *data) {
     ssize_t size;
     const int rep_len = 8;
 
+    memset(rdata, 0, rep_len);
+
     int i = fill_command(sl, SG_DXFER_FROM_DEV, rep_len);
     cmd[i++] = STLINK_DEBUG_COMMAND;
-    cmd[i++] = STLINK_JTAG_READDEBUG_32BIT;
+    cmd[i++] = STLINK_JTAG_READDEBUG_32BIT; 
     write_uint32(&cmd[i], addr);
     size = send_recv(slu, 1, cmd, slu->cmd_len, rdata, rep_len);
 
@@ -362,7 +364,7 @@ int _stlink_usb_core_id(stlink_t * sl) {
     if (sl->version.jtag_api == STLINK_JTAG_API_V1) {
         cmd[i++] = STLINK_DEBUG_READCOREID;
     } else {
-        cmd[i++] = STLINK_DEBUG_APIV2_READ_IDCODES;
+        cmd[i++] = STLINK_DEBUG_APIV2_READ_IDCODES; 
     }
 
     size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len);
@@ -790,8 +792,7 @@ int _stlink_usb_read_reg(stlink_t *sl, int r_idx, struct stlink_reg *regp) {
     } else {
         cmd[i++] = STLINK_DEBUG_APIV2_READREG;
     }
-
-    cmd[i++] = (uint8_t)r_idx;
+    cmd[i++] = (uint8_t) r_idx;
     size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len);
 
     if (size == -1) {
@@ -825,6 +826,61 @@ int _stlink_usb_read_reg(stlink_t *sl, int r_idx, struct stlink_reg *regp) {
     }
 
     return(0);
+}
+
+//add by wliang
+int _stlink_usb_read_dap_reg(stlink_t *sl, int r_idx, struct stlink_reg *regp) {
+    struct stlink_libusb * const slu = sl->backend_data;
+    unsigned char* const data = sl->q_buf;
+    unsigned char* const cmd  = sl->c_buf;
+    ssize_t size;
+    uint32_t r;
+    uint32_t rep_len = sl->version.jtag_api == STLINK_JTAG_API_V1 ? 4 : 8;
+    int reg_offset = sl->version.jtag_api == STLINK_JTAG_API_V1 ? 0 : 4;
+    int i = fill_command(sl, SG_DXFER_FROM_DEV, rep_len);
+
+    cmd[i++] = STLINK_DEBUG_COMMAND;
+
+    if (sl->version.jtag_api == STLINK_JTAG_API_V1) {
+        cmd[i++] = STLINK_DEBUG_APIV1_READREG;
+    } else {
+        cmd[i++] = STLINK_DEBUG_APIV2_READ_DAP_REG;
+    }
+    cmd[i++] = (uint8_t) 0xff;
+    cmd[i++] = (uint8_t) 0xf8;
+    size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len);
+
+    if (size == -1) {
+        printf("[!] send_recv STLINK_DEBUG_READREG\n");
+        return (int) size;
+    }
+
+    sl->q_len = (int) size;
+    stlink_print_data(sl);
+    r = read_uint32(sl->q_buf, reg_offset);
+    DLOG("r_idx (%2d) = 0x%08x\n", r_idx, r);
+
+    switch (r_idx) {
+    case 16:
+        regp->xpsr = r;
+        break;
+    case 17:
+        regp->main_sp = r;
+        break;
+    case 18:
+        regp->process_sp = r;
+        break;
+    case 19:
+        regp->rw = r; // XXX ?(primask, basemask etc.)
+        break;
+    case 20:
+        regp->rw2 = r; // XXX ?(primask, basemask etc.)
+        break;
+    default:
+        regp->r[r_idx] = r;
+    }
+
+    return 0;
 }
 
 /* See section C1.6 of the ARMv7-M Architecture Reference Manual */
@@ -956,7 +1012,6 @@ int _stlink_usb_write_reg(stlink_t *sl, uint32_t reg, int idx) {
     } else {
         cmd[i++] = STLINK_DEBUG_APIV2_WRITEREG;
     }
-
     cmd[i++] = idx;
     write_uint32(&cmd[i], reg);
     size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len);
