@@ -248,6 +248,12 @@ int stlink_flash_loader_write_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* 
         loader_size = sizeof(loader_code_stm32l);
     } else if (sl->core_id == STM32VL_CORE_ID ||
                sl->chip_id == STLINK_CHIPID_STM32_F1_MEDIUM ||
+               sl->chip_id == STLINK_CHIPID_STM32_F1_HIGH ||
+               sl->chip_id == STLINK_CHIPID_STM32_F1_LOW ||
+               sl->chip_id == STLINK_CHIPID_STM32_F1_VL_MEDIUM_LOW ||
+               sl->chip_id == STLINK_CHIPID_STM32_F1_VL_HIGH ||
+               sl->chip_id == STLINK_CHIPID_STM32_F1_XL ||
+               sl->chip_id == STLINK_CHIPID_STM32_F1_CONN ||
                sl->chip_id == STLINK_CHIPID_STM32_F3 ||
                sl->chip_id == STLINK_CHIPID_STM32_F3_SMALL ||
                sl->chip_id == STLINK_CHIPID_STM32_F303_HIGH ||
