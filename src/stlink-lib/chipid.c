@@ -386,7 +386,7 @@ static const struct stlink_chipid_params devices[] = {
         .bootrom_base = 0x1ff0000,
         .bootrom_size = 0x1000,
         .option_base = STM32_L0_CATx_OPTION_BYTES_BASE,
-        .option_size = 4,
+        .option_size = 20,
     },
     {
         // STM32L0x Category 5
@@ -400,7 +400,7 @@ static const struct stlink_chipid_params devices[] = {
         .bootrom_base = 0x1ff0000,
         .bootrom_size = 0x2000,
         .option_base = STM32_L0_CATx_OPTION_BYTES_BASE,
-        .option_size = 4,
+        .option_size = 20,
     },
     {
         // STM32L0x Category 2
@@ -414,7 +414,7 @@ static const struct stlink_chipid_params devices[] = {
         .bootrom_base = 0x1ff0000,
         .bootrom_size = 0x1000,
         .option_base = STM32_L0_CATx_OPTION_BYTES_BASE,
-        .option_size = 4,
+        .option_size = 20,
     },
     {
         // STM32F334, STM32F303x6/8, and STM32F328
