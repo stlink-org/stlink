@@ -302,6 +302,22 @@
 #define FLASH_F2_CR_SNB_MASK 0x78
 #define FLASH_F2_SR_BSY 16
 
+// STM32H7xx
+#define FLASH_H7_CR_LOCK 0
+#define FLASH_H7_CR_PG 1
+#define FLASH_H7_CR_SER 2
+#define FLASH_H7_CR_PSIZE 4
+#define FLASH_H7_CR_START 7
+#define FLASH_H7_CR_SNB 8
+#define FLASH_H7_CR_SNB_MASK 0x700
+
+#define FLASH_H7_SR_QW  2
+
+#define FLASH_H7_REGS_ADDR ((uint32_t)0x52002000)
+#define FLASH_H7_KEYR1 (FLASH_H7_REGS_ADDR + 0x04)
+#define FLASH_H7_CR1 (FLASH_H7_REGS_ADDR + 0x0c)
+#define FLASH_H7_SR1 (FLASH_H7_REGS_ADDR + 0x10)
+
 #define L1_WRITE_BLOCK_SIZE 0x80
 #define L0_WRITE_BLOCK_SIZE 0x40
 
@@ -381,6 +397,8 @@ static inline uint32_t read_flash_cr(stlink_t *sl) {
         reg = STM32Gx_FLASH_CR;
     } else if (sl->flash_type == STLINK_FLASH_TYPE_WB) {
         reg = STM32WB_FLASH_CR;
+    } else if (sl->flash_type == STLINK_FLASH_TYPE_H7) {
+        reg = FLASH_H7_CR1;
     } else {
         reg = FLASH_CR;
     }
@@ -431,6 +449,9 @@ static inline unsigned int is_flash_locked(stlink_t *sl) {
     } else if (sl->flash_type == STLINK_FLASH_TYPE_WB) {
         cr_reg = STM32WB_FLASH_CR;
         cr_lock_shift = STM32WB_FLASH_CR_LOCK;
+    } else if (sl->flash_type == STLINK_FLASH_TYPE_H7) {
+        cr_reg = FLASH_H7_CR1;
+        cr_lock_shift = FLASH_H7_CR_LOCK;
     } else {
         ELOG("unsupported flash method, abort\n");
         return(-1);
@@ -467,6 +488,8 @@ static void unlock_flash(stlink_t *sl) {
         key_reg = STM32Gx_FLASH_KEYR;
     } else if (sl->flash_type == STLINK_FLASH_TYPE_WB) {
         key_reg = STM32WB_FLASH_KEYR;
+    } else if (sl->flash_type == STLINK_FLASH_TYPE_H7) {
+        key_reg = FLASH_H7_KEYR1;
     } else {
         ELOG("unsupported flash method, abort\n");
         return;
@@ -498,6 +521,7 @@ static int unlock_flash_if(stlink_t *sl) {
 
 static void lock_flash(stlink_t *sl) {
     uint32_t cr_lock_shift, cr_reg, n;
+    uint32_t cr_mask = 0xffffffffu;
 
     if (sl->flash_type == STLINK_FLASH_TYPE_F0 ||
         sl->flash_type == STLINK_FLASH_TYPE_F1_XL) {
@@ -522,12 +546,17 @@ static void lock_flash(stlink_t *sl) {
     } else if (sl->flash_type == STLINK_FLASH_TYPE_WB) {
         cr_reg = STM32WB_FLASH_CR;
         cr_lock_shift = STM32WB_FLASH_CR_LOCK;
+    } else if (sl->flash_type == STLINK_FLASH_TYPE_H7) {
+        cr_reg = FLASH_H7_CR1;
+        cr_lock_shift = FLASH_H7_CR_LOCK;
+        cr_mask = ~(1u << FLASH_H7_CR_SER);
     } else {
         ELOG("unsupported flash method, abort\n");
         return;
     }
 
     stlink_read_debug32(sl, cr_reg, &n);
+    n &= cr_mask;
     n |= (1u << cr_lock_shift);
     stlink_write_debug32(sl, cr_reg, n);
 
@@ -724,6 +753,9 @@ static void set_flash_cr_pg(stlink_t *sl) {
     } else if (sl->flash_type == STLINK_FLASH_TYPE_WB) {
         cr_reg = STM32WB_FLASH_CR;
         x |= (1 << FLASH_CR_PG);
+    } else if (sl->flash_type == STLINK_FLASH_TYPE_H7) {
+        cr_reg = FLASH_H7_CR1;
+        x |= (1 << FLASH_H7_CR_PG);
     } else {
         cr_reg = FLASH_CR;
         x = (1 << FLASH_CR_PG);
@@ -902,6 +934,9 @@ static void set_flash_cr_strt(stlink_t *sl) {
     } else if (sl->flash_type == STLINK_FLASH_TYPE_WB) {
         cr_reg = STM32WB_FLASH_CR;
         cr_strt = (1 << STM32WB_FLASH_CR_STRT);
+    } else if (sl->flash_type == STLINK_FLASH_TYPE_H7) {
+        cr_reg = FLASH_H7_CR1;
+        cr_strt = 1 << FLASH_H7_CR_START;
     } else {
         cr_reg = FLASH_CR;
         cr_strt = (1 << FLASH_CR_STRT);
@@ -939,6 +974,8 @@ static inline uint32_t read_flash_sr(stlink_t *sl) {
         sr_reg = STM32Gx_FLASH_SR;
     } else if (sl->flash_type == STLINK_FLASH_TYPE_WB) {
         sr_reg = STM32WB_FLASH_SR;
+    } else if (sl->flash_type == STLINK_FLASH_TYPE_H7) {
+        sr_reg = FLASH_H7_SR1;
     } else {
         ELOG("unsupported flash method, abort");
         return(-1);
@@ -973,6 +1010,8 @@ static inline unsigned int is_flash_busy(stlink_t *sl) {
         sr_busy_shift = STM32Gx_FLASH_SR_BSY;
     } else if (sl->flash_type == STLINK_FLASH_TYPE_WB) {
         sr_busy_shift = STM32WB_FLASH_SR_BSY;
+    } else if (sl->flash_type == STLINK_FLASH_TYPE_H7) {
+        sr_busy_shift = FLASH_H7_SR_QW;
     } else {
         ELOG("unsupported flash method, abort");
         return(-1);
@@ -1064,25 +1103,48 @@ static inline void write_flash_ar2(stlink_t *sl, uint32_t n) {
 }
 
 static inline void write_flash_cr_psiz(stlink_t *sl, uint32_t n) {
+    uint32_t cr_reg, psize_shift;
     uint32_t x = read_flash_cr(sl);
-    x &= ~(0x03 << 8);
-    x |= (n << 8);
+
+    if (sl->flash_type == STLINK_FLASH_TYPE_H7) {
+        cr_reg = FLASH_H7_CR1;
+        psize_shift = FLASH_H7_CR_PSIZE;
+    } else {
+        cr_reg = FLASH_F4_CR;
+        psize_shift = 8;
+    }
+
+    x &= ~(0x03 << psize_shift);
+    x |= (n << psize_shift);
 #if DEBUG_FLASH
     fprintf(stdout, "PSIZ:0x%x 0x%x\n", x, n);
 #endif
-    stlink_write_debug32(sl, FLASH_F4_CR, x);
+    stlink_write_debug32(sl, cr_reg, x);
 }
 
-
 static inline void write_flash_cr_snb(stlink_t *sl, uint32_t n) {
+    uint32_t cr_reg, snb_mask, snb_shift, ser_shift;
     uint32_t x = read_flash_cr(sl);
-    x &= ~FLASH_F4_CR_SNB_MASK;
-    x |= (n << FLASH_F4_CR_SNB);
-    x |= (1 << FLASH_F4_CR_SER);
+
+    if (sl->flash_type == STLINK_FLASH_TYPE_H7) {
+        cr_reg = FLASH_H7_CR1;
+        snb_mask = FLASH_H7_CR_SNB_MASK;
+        snb_shift = FLASH_H7_CR_SNB;
+        ser_shift = FLASH_H7_CR_SER;
+    } else {
+        cr_reg = FLASH_F4_CR;
+        snb_mask = FLASH_F4_CR_SNB_MASK;
+        snb_shift = FLASH_F4_CR_SNB;
+        ser_shift = FLASH_F4_CR_SER;
+    }
+
+    x &= ~snb_mask;
+    x |= (n << snb_shift);
+    x |= (1 << ser_shift);
 #if DEBUG_FLASH
     fprintf(stdout, "SNB:0x%x 0x%x\n", x, n);
 #endif
-    stlink_write_debug32(sl, FLASH_F4_CR, x);
+    stlink_write_debug32(sl, cr_reg, x);
 }
 
 static inline void write_flash_cr_bker_pnb(stlink_t *sl, uint32_t n) {
@@ -2141,6 +2203,11 @@ uint32_t calculate_F7_sectornum(uint32_t flashaddr) {
 
 }
 
+uint32_t calculate_H7_sectornum(uint32_t flashaddr) {
+    flashaddr &= ~STM32_FLASH_BASE; // sector holding the flash address
+    return(flashaddr / 0x20000);
+}
+
 // returns BKER:PNB for the given page address
 uint32_t calculate_L4_page(stlink_t *sl, uint32_t flashaddr) {
     uint32_t bker = 0;
@@ -2214,7 +2281,8 @@ uint32_t stlink_calculate_pagesize(stlink_t *sl, uint32_t flashaddr) {
 int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr) {
     if (sl->flash_type == STLINK_FLASH_TYPE_F4 ||
         sl->flash_type == STLINK_FLASH_TYPE_F7 ||
-        sl->flash_type == STLINK_FLASH_TYPE_L4) {
+        sl->flash_type == STLINK_FLASH_TYPE_L4 ||
+        sl->flash_type == STLINK_FLASH_TYPE_H7) {
         // wait for ongoing op to finish
         wait_flash_busy(sl);
 
@@ -2238,6 +2306,13 @@ int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr) {
                    sl->chip_id == STLINK_CHIPID_STM32_F7XXXX) {
             // calculate the actual page from the address
             uint32_t sector = calculate_F7_sectornum(flashaddr);
+
+            fprintf(stderr, "EraseFlash - Sector:0x%x Size:0x%x ",
+                    sector, stlink_calculate_pagesize(sl, flashaddr));
+            write_flash_cr_snb(sl, sector);
+        } else if (sl->chip_id == STLINK_CHIPID_STM32_H74XXX) {
+            // calculate the actual page from the address
+            uint32_t sector = calculate_H7_sectornum(flashaddr);
 
             fprintf(stderr, "EraseFlash - Sector:0x%x Size:0x%x ",
                     sector, stlink_calculate_pagesize(sl, flashaddr));
@@ -2854,6 +2929,31 @@ int stlink_write_flash(
         }
 
         fprintf(stdout, "\n");
+    } else if (sl->flash_type == STLINK_FLASH_TYPE_H7) {
+        ILOG("Starting Flash write for H7 core id\n");
+
+        unlock_flash_if(sl);    // unlock the cr
+        set_flash_cr_pg(sl);    // set programming mode
+
+        for (off = 0; off < len;) {
+            // Program STM32H7x with 32-byte Flash words
+            size_t chunk = (len - off > 32) ? 32 : len - off;
+            memcpy(sl->q_buf, base + off, chunk);
+            stlink_write_mem32(sl, addr + (uint32_t)off, 32);
+            wait_flash_busy(sl);
+
+            off += chunk;
+
+            if (sl->verbose >= 1) {
+                // show progress
+                fprintf(stdout, "\r%u/%u bytes written", (unsigned int)off, (unsigned int)len);
+                fflush(stdout);
+            }
+        }
+        fprintf(stdout, "\n");
+
+        clear_flash_cr_pg(sl);
+        lock_flash(sl);
     } else {
         ELOG("unknown coreid, not sure how to write: %x\n", sl->core_id);
         return(-1);
