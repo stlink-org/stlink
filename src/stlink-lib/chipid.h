@@ -53,6 +53,7 @@ enum stlink_stm32_chipids {
     STLINK_CHIPID_STM32_L0_CAT5          = 0x447,
     STLINK_CHIPID_STM32_F0_CAN           = 0x448,
     STLINK_CHIPID_STM32_F7               = 0x449, /* ID found on the NucleoF746ZG board */
+    STLINK_CHIPID_STM32_H74XXX           = 0x450, /* Found on page 3189 in the RM0433*/
     STLINK_CHIPID_STM32_F7XXXX           = 0x451,
     STLINK_CHIPID_STM32_F72XXX           = 0x452, /* ID found on the NucleoF722ZE board */
     STLINK_CHIPID_STM32_L011             = 0x457,

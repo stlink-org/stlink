@@ -1173,6 +1173,11 @@ int stlink_chip_id(stlink_t *sl, uint32_t *chip_id) {
     }
 
     if (*chip_id == 0) {
+        // STM32H7 chipid in 0x5c001000 (RM0433 pg3189)
+        ret = stlink_read_debug32(sl, 0x5c001000, chip_id);
+    }
+
+    if (*chip_id == 0) {
         // Try Corex M0 DBGMCU_IDCODE register address
         ret = stlink_read_debug32(sl, 0x40015800, chip_id);
     }
