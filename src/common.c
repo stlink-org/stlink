@@ -313,10 +313,23 @@
 
 #define FLASH_H7_SR_QW  2
 
+#define FLASH_H7_OPTCR_OPTLOCK 0
+#define FLASH_H7_OPTCR_OPTSTART 1
+#define FLASH_H7_OPTCR_MER 4
+
+#define FLASH_H7_OPTSR_OPT_BUSY 0
+#define FLASH_H7_OPTSR_OPTCHANGEERR 30
+
+#define FLASH_H7_OPTCCR_CLR_OPTCHANGEERR 30
+
 #define FLASH_H7_REGS_ADDR ((uint32_t)0x52002000)
 #define FLASH_H7_KEYR1 (FLASH_H7_REGS_ADDR + 0x04)
+#define FLASH_H7_OPT_KEYR (FLASH_H7_REGS_ADDR + 0x08)
 #define FLASH_H7_CR1 (FLASH_H7_REGS_ADDR + 0x0c)
 #define FLASH_H7_SR1 (FLASH_H7_REGS_ADDR + 0x10)
+#define FLASH_H7_OPTCR (FLASH_H7_REGS_ADDR + 0x18)
+#define FLASH_H7_OPTSR_CUR (FLASH_H7_REGS_ADDR + 0x1c)
+#define FLASH_H7_OPTCCR (FLASH_H7_REGS_ADDR + 0x24)
 
 #define L1_WRITE_BLOCK_SIZE 0x80
 #define L0_WRITE_BLOCK_SIZE 0x40
@@ -603,6 +616,10 @@ static bool is_flash_option_locked(stlink_t *sl) {
         optcr_reg = STM32WB_FLASH_CR;
         optlock_shift = STM32WB_FLASH_CR_OPTLOCK;
         break;
+    case STLINK_FLASH_TYPE_H7:
+        optcr_reg = FLASH_H7_OPTCR;
+        optlock_shift = FLASH_H7_OPTCR_OPTLOCK;
+        break;
     default:
         ELOG("unsupported flash method, abort\n");
         return -1;
@@ -654,6 +671,10 @@ static int lock_flash_option(stlink_t *sl) {
         optcr_reg = STM32WB_FLASH_CR;
         optlock_shift = STM32WB_FLASH_CR_OPTLOCK;
         break;
+    case STLINK_FLASH_TYPE_H7:
+        optcr_reg = FLASH_H7_OPTCR;
+        optlock_shift = FLASH_H7_OPTCR_OPTLOCK;
+        break;
     default:
         ELOG("unsupported flash method, abort\n");
         return -1;
@@ -703,6 +724,9 @@ static int unlock_flash_option(stlink_t *sl) {
         break;
     case STLINK_FLASH_TYPE_WB:
         optkey_reg = STM32WB_FLASH_OPT_KEYR;
+        break;
+    case STLINK_FLASH_TYPE_H7:
+        optkey_reg = FLASH_H7_OPT_KEYR;
         break;
     default:
         ELOG("unsupported flash method, abort\n");
@@ -3414,6 +3438,74 @@ static int stlink_write_option_bytes_f7(stlink_t *sl, uint8_t* base, stm32_addr_
 }
 
 /**
+ * Write STM32H7xx option bytes
+ * @param sl
+ * @param base option bytes to write
+ * @param addr of the memory mapped option bytes
+ * @param len number of bytes to write (must be multiple of 4)
+ * @return 0 on success, -ve on failure.
+ */
+static int stlink_write_option_bytes_h7(
+        stlink_t *sl, uint8_t* base, stm32_addr_t addr, uint32_t len) {
+    uint32_t val;
+    uint32_t data;
+
+    // Wait until previous flash option has completed
+    wait_flash_busy(sl);
+
+    // Clear previous error
+    stlink_write_debug32(sl, FLASH_H7_OPTCCR, 1 << FLASH_H7_OPTCCR_CLR_OPTCHANGEERR);
+
+    while (len != 0) {
+        switch (addr) {
+        case FLASH_H7_REGS_ADDR + 0x20:  // FLASH_OPTSR_PRG
+        case FLASH_H7_REGS_ADDR + 0x2c:  // FLASH_PRAR_PRG1
+        case FLASH_H7_REGS_ADDR + 0x34:  // FLASH_SCAR_PRG1
+        case FLASH_H7_REGS_ADDR + 0x3c:  // FLASH_WPSN_PRG1
+        case FLASH_H7_REGS_ADDR + 0x44:  // FLASH_BOOT_PRG
+            /* Write to FLASH_xxx_PRG registers */
+            write_uint32((unsigned char*)&data, *(uint32_t*)(base)); // write options bytes
+
+            WLOG("Writing option bytes %#10x to %#10x\n", data, addr);
+
+            /* Skip if the value in the CUR register is identical */
+            stlink_read_debug32(sl, addr - 4, &val);
+            if (val == data) {
+                break;
+            }
+
+            /* Write new option byte values and start modification */
+            stlink_write_debug32(sl, addr, data);
+            stlink_read_debug32(sl, FLASH_H7_OPTCR, &val);
+            val |= (1 << FLASH_H7_OPTCR_OPTSTART);
+            stlink_write_debug32(sl, FLASH_H7_OPTCR, val);
+
+            /* Wait for the option bytes modification to complete */
+            do {
+                stlink_read_debug32(sl, FLASH_H7_OPTSR_CUR, &val);
+            } while ((val & (1 << FLASH_H7_OPTSR_OPT_BUSY)) != 0);
+
+            /* Check for errors */
+            if ((val & (1 << FLASH_H7_OPTSR_OPTCHANGEERR)) != 0) {
+                stlink_write_debug32(sl, FLASH_H7_OPTCCR, 1 << FLASH_H7_OPTCCR_CLR_OPTCHANGEERR);
+                return -1;
+            }
+            break;
+
+        default:
+            /* Skip non-programmable registers */
+            break;
+        }
+
+        len -= 4;
+        addr += 4;
+        base += 4;
+    }
+
+    return 0;
+}
+
+/**
  * Read option bytes
  * @param sl
  * @param option_byte value to write
@@ -3734,6 +3826,9 @@ int stlink_write_option_bytes(stlink_t *sl, stm32_addr_t addr, uint8_t* base, ui
     case STLINK_FLASH_TYPE_G0:
     case STLINK_FLASH_TYPE_G4:
         ret = stlink_write_option_bytes_gx(sl, base, addr, len);
+        break;
+    case STLINK_FLASH_TYPE_H7:
+        ret = stlink_write_option_bytes_h7(sl, base, addr, len);
         break;
     default:
         ELOG("Option bytes writing is currently not implemented for connected chip\n");

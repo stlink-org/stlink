@@ -623,7 +623,9 @@ static const struct stlink_chipid_params devices[] = {
         .flash_pagesize = 0x20000,             // 128k sector (pg147)
         .sram_size = 0x20000,                  // 128k "DTCM" from Table 7
         .bootrom_base = 0x1ff00000,            // "System memory" starting address from Table 7
-        .bootrom_size = 0x20000                // "System memory" byte size in hex from Table 7
+        .bootrom_size = 0x20000,               // "System memory" byte size in hex from Table 7
+        .option_base = STM32_H7_OPTION_BYTES_BASE,
+        .option_size = 44,                     // FLASH_OPTSR_CUR to FLASH_BOOT_PRGR from Table 28
     },
     {
         // unknown
