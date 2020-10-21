@@ -615,6 +615,19 @@ static const struct stlink_chipid_params devices[] = {
         .bootrom_size = 0x7000
     },
     {
+        // STM32H742/743/753 (from RM0433)
+        .chip_id = STLINK_CHIPID_STM32_H74XXX,
+        .description = "H742/743/753",
+        .flash_type = STLINK_FLASH_TYPE_H7,
+        .flash_size_reg = 0x1ff1e880,          // "Flash size register" (pg3272)
+        .flash_pagesize = 0x20000,             // 128k sector (pg147)
+        .sram_size = 0x20000,                  // 128k "DTCM" from Table 7
+        .bootrom_base = 0x1ff00000,            // "System memory" starting address from Table 7
+        .bootrom_size = 0x20000,               // "System memory" byte size in hex from Table 7
+        .option_base = STM32_H7_OPTION_BYTES_BASE,
+        .option_size = 44,                     // FLASH_OPTSR_CUR to FLASH_BOOT_PRGR from Table 28
+    },
+    {
         // unknown
         .chip_id = STLINK_CHIPID_UNKNOWN,
         .description = "unknown device",

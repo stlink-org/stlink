@@ -126,7 +126,8 @@ enum stlink_flash_type {
     STLINK_FLASH_TYPE_L4,    // l4, l4+ */
     STLINK_FLASH_TYPE_G0,
     STLINK_FLASH_TYPE_G4,
-    STLINK_FLASH_TYPE_WB
+    STLINK_FLASH_TYPE_WB,
+    STLINK_FLASH_TYPE_H7,
 };
 
 struct stlink_reg {
