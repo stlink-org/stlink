@@ -3680,6 +3680,7 @@ int stlink_read_option_bytes32(stlink_t *sl, uint32_t* option_byte) {
     switch (sl->chip_id) {
     case STLINK_CHIPID_STM32_F2:
         return stlink_read_option_bytes_f2(sl, option_byte);
+    case STLINK_CHIPID_STM32_F4:
     case STLINK_CHIPID_STM32_F446:
         return stlink_read_option_bytes_f4(sl, option_byte);
     case STLINK_CHIPID_STM32_F7XXXX:
