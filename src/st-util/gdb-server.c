@@ -575,21 +575,6 @@ char* make_memory_map(stlink_t *sl) {
     return(map);
 }
 
-/*
- * DWT_COMP0     0xE0001020
- * DWT_MASK0     0xE0001024
- * DWT_FUNCTION0 0xE0001028
- * DWT_COMP1     0xE0001030
- * DWT_MASK1     0xE0001034
- * DWT_FUNCTION1 0xE0001038
- * DWT_COMP2     0xE0001040
- * DWT_MASK2     0xE0001044
- * DWT_FUNCTION2 0xE0001048
- * DWT_COMP3     0xE0001050
- * DWT_MASK3     0xE0001054
- * DWT_FUNCTION3 0xE0001058
- */
-
 #define DATA_WATCH_NUM 4
 
 enum watchfun { WATCHDISABLED = 0, WATCHREAD = 5, WATCHWRITE = 6, WATCHACCESS = 7 };
@@ -606,15 +591,15 @@ static void init_data_watchpoints(stlink_t *sl) {
     uint32_t data;
     DLOG("init watchpoints\n");
 
-    stlink_read_debug32(sl, 0xE000EDFC, &data);
+    stlink_read_debug32(sl, STLINK_REG_CM3_DEMCR, &data);
     data |= 1 << 24;
-    // set trcena in debug command to turn on dwt unit
-    stlink_write_debug32(sl, 0xE000EDFC, data);
+    // set TRCENA in debug command to turn on DWT unit
+    stlink_write_debug32(sl, STLINK_REG_CM3_DEMCR, data);
 
     // make sure all watchpoints are cleared
     for (int i = 0; i < DATA_WATCH_NUM; i++) {
         data_watches[i].fun = WATCHDISABLED;
-        stlink_write_debug32(sl, 0xe0001028 + i * 16, 0);
+        stlink_write_debug32(sl, STLINK_REG_CM3_DWT_FUNn(i), 0);
     }
 }
 
@@ -645,16 +630,16 @@ static int add_data_watchpoint(stlink_t *sl, enum watchfun wf, stm32_addr_t addr
                 data_watches[i].mask = mask;
 
                 // insert comparator address
-                stlink_write_debug32(sl, 0xE0001020 + i * 16, addr);
+                stlink_write_debug32(sl, STLINK_REG_CM3_DWT_COMPn(i), addr);
 
                 // insert mask
-                stlink_write_debug32(sl, 0xE0001024 + i * 16, mask);
+                stlink_write_debug32(sl, STLINK_REG_CM3_DWT_MASKn(i), mask);
 
                 // insert function
-                stlink_write_debug32(sl, 0xE0001028 + i * 16, wf);
+                stlink_write_debug32(sl, STLINK_REG_CM3_DWT_FUNn(i), wf);
 
                 // just to make sure the matched bit is clear !
-                stlink_read_debug32(sl,  0xE0001028 + i * 16, &dummy);
+                stlink_read_debug32(sl,  STLINK_REG_CM3_DWT_FUNn(i), &dummy);
                 return(0);
             }
     }
@@ -671,7 +656,7 @@ static int delete_data_watchpoint(stlink_t *sl, stm32_addr_t addr) {
             DLOG("delete watchpoint %d addr %x\n", i, addr);
 
             data_watches[i].fun = WATCHDISABLED;
-            stlink_write_debug32(sl, 0xe0001028 + i * 16, 0);
+            stlink_write_debug32(sl, STLINK_REG_CM3_DWT_FUNn(i), 0);
 
             return(0);
         }
@@ -705,9 +690,15 @@ static void init_code_breakpoints(stlink_t *sl) {
 
     ILOG("Found %i hw breakpoint registers\n", code_break_num);
 
+    if (sl->core_id == STM32F7_CORE_ID || sl->core_id == STM32H7_CORE_ID) {
+        // Cortex-M7 can have locked to write FP_* registers
+        // IHI0029D, p. 48, Lock Access Register
+        stlink_write_debug32(sl, STLINK_REG_CM7_FP_LAR, STLINK_REG_CM7_FP_LAR_KEY);
+    }
+    
     for (int i = 0; i < code_break_num; i++) {
         code_breaks[i].type = 0;
-        stlink_write_debug32(sl, STLINK_REG_CM3_FP_COMP0 + i * 4, 0);
+        stlink_write_debug32(sl, STLINK_REG_CM3_FP_COMPn(i), 0);
     }
 }
 
@@ -719,69 +710,46 @@ static int has_breakpoint(stm32_addr_t addr) {
 }
 
 static int update_code_breakpoint(stlink_t *sl, stm32_addr_t addr, int set) {
-    stm32_addr_t fpb_addr;
     uint32_t mask;
     int type = (addr & 0x2) ? CODE_BREAK_HIGH : CODE_BREAK_LOW;
+    stm32_addr_t fpb_addr = addr & 0x1FFFFFFC;
 
     if (addr & 1) {
         ELOG("update_code_breakpoint: unaligned address %08x\n", addr);
         return(-1);
     }
 
-    if (sl->core_id == STM32F7_CORE_ID) {
-        fpb_addr = addr;
-    } else {
-        fpb_addr = addr & ~0x3;
-    }
-
     int id = -1;
-
     for (int i = 0; i < code_break_num; i++)
         if (fpb_addr == code_breaks[i].addr || (set && code_breaks[i].type == 0)) {
             id = i;
             break;
         }
 
-
     if (id == -1) {
-        if (set) {
-            return(-1);
-        } // free slot not found
-        else {
-            return(0);
-        } // breakpoint is already removed
-
+        if (set)
+            return(-1); // free slot not found
+        else
+            return(0); // breakpoint is already removed
     }
 
     struct code_hw_breakpoint* bp = &code_breaks[id];
-
     bp->addr = fpb_addr;
-
-    if (sl->core_id == STM32F7_CORE_ID) {
-        if (set) {
-            bp->type = type;
-        } else {
-            bp->type = 0;
-        }
-
-        mask = (bp->addr) | 1;
-    } else {
-        if (set) {
-            bp->type |= type;
-        } else {
-            bp->type &= ~type;
-        }
-
-        mask = (bp->addr) | 1 | (bp->type << 30);
-    }
+    if (set)
+        bp->type |= type;
+    else
+        bp->type &= ~type;
+    
+    // DDI0403E, p. 759, FP_COMPn register description
+    mask = (bp->type << 30) | (bp->addr) | 1;
 
     if (bp->type == 0) {
         DLOG("clearing hw break %d\n", id);
-        stlink_write_debug32(sl, 0xe0002008 + id * 4, 0);
+        stlink_write_debug32(sl, STLINK_REG_CM3_FP_COMPn(id), 0);
     } else {
         DLOG("setting hw break %d at %08x (%d)\n", id, bp->addr, bp->type);
         DLOG("reg %08x \n", mask);
-        stlink_write_debug32(sl, 0xe0002008 + id * 4, mask);
+        stlink_write_debug32(sl, STLINK_REG_CM3_FP_COMPn(id), mask);
     }
 
     return(0);

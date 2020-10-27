@@ -1252,7 +1252,13 @@ int stlink_core_id(stlink_t *sl) {
 int stlink_chip_id(stlink_t *sl, uint32_t *chip_id) {
     int ret;
 
-    ret = stlink_read_debug32(sl, 0xE0042000, chip_id);
+    if (sl->core_id == STM32H7_CORE_ID) {
+        // STM32H7 chipid in 0x5c001000 (RM0433 pg3189)
+        ret = stlink_read_debug32(sl, 0x5c001000, chip_id);
+    } else {
+        // default chipid address
+        ret = stlink_read_debug32(sl, 0xE0042000, chip_id);
+    }
 
     if (ret == -1) {
         return(ret);
