@@ -6,7 +6,7 @@
 #define STLINK_REG_CM3_FP_CTRL         0xE0002000
 #define STLINK_REG_CM3_FP_COMPn(n)    (0xE0002008 + n*4)
 #define STLINK_REG_CM7_FP_LAR          0xE0000FB0
-#define STLINK_REG_CM7_FP_LAR_KEY      0xC5ACCE55
+#define STLINK_REG_CM7_FP_LAR_KEY           0xC5ACCE55
 
 #define STLINK_REG_CM3_DEMCR           0xE000EDFC
 #define STLINK_REG_CM3_DWT_COMPn(n)   (0xE0001020 + n*16)
@@ -24,5 +24,17 @@
 #define STLINK_REG_AIRCR               0xe000ed0c
 #define STLINK_REG_AIRCR_VECTKEY       0x05fa0000
 #define STLINK_REG_AIRCR_SYSRESETREQ   0x00000004
+
+/* ARM Cortex-M7 Processor Technical Reference Manual */
+/* Cache Control and Status Register */
+#define STLINK_REG_CM7_CTR             0xE000ED7C
+#define STLINK_REG_CM7_CLIDR           0xE000ED78
+#define STLINK_REG_CM7_CCR             0xE000ED14
+#define STLINK_REG_CM7_CCR_DC              (1 << 16)
+#define STLINK_REG_CM7_CCR_IC              (1 << 17)
+#define STLINK_REG_CM7_CSSELR          0xE000ED84
+#define STLINK_REG_CM7_DCCSW           0xE000EF6C
+#define STLINK_REG_CM7_ICIALLU         0xE000EF50
+#define STLINK_REG_CM7_CCSIDR          0xE000ED80
 
 #endif // STLINK_REG_H_
