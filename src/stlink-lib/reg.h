@@ -17,6 +17,7 @@
 /* Debug Halting Control and Status Register */
 #define STLINK_REG_DHCSR               0xe000edf0
 #define STLINK_REG_DHCSR_DBGKEY        0xa05f0000
+#define STLINK_REG_DHCSR_S_RESET_ST    0x02000000
 #define STLINK_REG_DCRSR               0xe000edf4
 #define STLINK_REG_DCRDR               0xe000edf8
 

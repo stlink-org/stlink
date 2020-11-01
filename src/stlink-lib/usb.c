@@ -508,9 +508,14 @@ int _stlink_usb_reset(stlink_t * sl) {
     unsigned char* const data = sl->q_buf;
     unsigned char* const cmd = sl->c_buf;
     ssize_t size;
-    int rep_len = 2;
-    int i = fill_command(sl, SG_DXFER_FROM_DEV, rep_len);
+    uint32_t dhcsr;
+    int ret, i, rep_len = 2;
 
+    // clear S_RESET_ST in DHCSR registr
+    stlink_read_debug32(sl, STLINK_REG_DHCSR, &dhcsr);
+
+    // send reset command
+    i = fill_command(sl, SG_DXFER_FROM_DEV, rep_len);
     cmd[i++] = STLINK_DEBUG_COMMAND;
 
     if (sl->version.jtag_api == STLINK_JTAG_API_V1) {
@@ -526,9 +531,37 @@ int _stlink_usb_reset(stlink_t * sl) {
         return((int)size);
     }
 
-    // reset through AIRCR so that NRST does not need to be connected
-    return(stlink_write_debug32(sl, STLINK_REG_AIRCR, STLINK_REG_AIRCR_VECTKEY |
-                                STLINK_REG_AIRCR_SYSRESETREQ));
+    usleep(10000);
+
+    dhcsr = 0;
+    ret = stlink_read_debug32(sl, STLINK_REG_DHCSR, &dhcsr);
+    if ((dhcsr & STLINK_REG_DHCSR_S_RESET_ST) == 0) {
+        // reset not done yet
+        // try reset through AIRCR so that NRST does not need to be connected
+        
+        WLOG("NRST is not connected\n");
+        DLOG("Using reset through SYSRESETREQ\n");
+        ret = stlink_write_debug32(sl, STLINK_REG_AIRCR, STLINK_REG_AIRCR_VECTKEY |
+                                STLINK_REG_AIRCR_SYSRESETREQ);
+        if (ret)
+            return(ret);
+
+        usleep(10000);
+    }
+
+    // waiting for a reset within 500ms
+    for (i=0; i<50; i++) {
+        // DDI0337E, p. 10-4, Debug Halting Control and Status Register
+        dhcsr = STLINK_REG_DHCSR_S_RESET_ST;
+        stlink_read_debug32(sl, STLINK_REG_DHCSR, &dhcsr);
+        if ((dhcsr&STLINK_REG_DHCSR_S_RESET_ST) == 0)
+            break;
+        usleep(10000);
+    }
+
+    if (i >= 50)
+        return(-1);
+    return(0);
 }
 
 int _stlink_usb_jtag_reset(stlink_t * sl, int value) {
