@@ -2669,9 +2669,299 @@ int stm32l1_write_half_pages(
     return(0);
 }
 
+int stlink_flashloader_start(stlink_t *sl, flash_loader_t *fl) {
+    if ((sl->flash_type == STLINK_FLASH_TYPE_F4) ||
+        (sl->flash_type == STLINK_FLASH_TYPE_F7) ||
+        (sl->flash_type == STLINK_FLASH_TYPE_L4)) {
+        ILOG("Starting Flash write for F2/F4/F7/L4\n");
+        
+        // Flash loader initialisation
+        if (stlink_flash_loader_init(sl, fl) == -1) {
+            ELOG("stlink_flash_loader_init() == -1\n");
+            return(-1);
+        }
+
+        unlock_flash_if(sl); // first unlock the cr
+
+        int voltage;
+        if (sl->version.stlink_v == 1) {
+            WLOG("STLINK V1 cannot read voltage, use default voltage 3.2V\n");
+            voltage = 3200;
+        } else {
+            voltage = stlink_target_voltage(sl);
+        }
+        
+        if (voltage == -1) {
+            ELOG("Failed to read Target voltage\n");
+            return(voltage);
+        }
+
+        if (sl->flash_type == STLINK_FLASH_TYPE_L4) {
+            // L4 does not have a byte-write mode
+            if (voltage < 1710) {
+                ELOG("Target voltage (%d mV) too low for flash writes!\n", voltage);
+                return(-1);
+            }
+        } else {
+            if (voltage > 2700) {
+                ILOG("enabling 32-bit flash writes\n");
+                write_flash_cr_psiz(sl, 2);
+            } else {
+                ILOG("Target voltage (%d mV) too low for 32-bit flash, "
+                       "using 8-bit flash writes\n", voltage);
+                write_flash_cr_psiz(sl, 0);
+            }
+        } 
+
+        // set programming mode
+        set_flash_cr_pg(sl);
+    } else if (sl->flash_type == STLINK_FLASH_TYPE_WB ||
+               sl->flash_type == STLINK_FLASH_TYPE_G0 ||
+               sl->flash_type == STLINK_FLASH_TYPE_G4) {
+        ILOG("Starting Flash write for WB/G0/G4\n");
+
+        wait_flash_busy(sl);
+        unlock_flash_if(sl); // unlock flash if necessary
+        set_flash_cr_pg(sl); // set PG 'allow programming' bit
+    } else if (sl->flash_type == STLINK_FLASH_TYPE_L0) {
+        ILOG("Starting Flash write for L0\n");
+
+        uint32_t val;
+        uint32_t flash_regs_base;
+        if (sl->chip_id == STLINK_CHIPID_STM32_L0 ||
+            sl->chip_id == STLINK_CHIPID_STM32_L0_CAT5 ||
+            sl->chip_id == STLINK_CHIPID_STM32_L0_CAT2 ||
+            sl->chip_id == STLINK_CHIPID_STM32_L011) {
+            flash_regs_base = STM32L0_FLASH_REGS_ADDR;
+        } else {
+            flash_regs_base = STM32L_FLASH_REGS_ADDR;
+        }
+
+        // disable pecr protection
+        stlink_write_debug32(sl, flash_regs_base + FLASH_PEKEYR_OFF, FLASH_L0_PEKEY1);
+        stlink_write_debug32(sl, flash_regs_base + FLASH_PEKEYR_OFF, FLASH_L0_PEKEY2);
+
+        // check pecr.pelock is cleared
+        stlink_read_debug32(sl, flash_regs_base + FLASH_PECR_OFF, &val);
+        if (val & (1 << 0)) {
+            ELOG("pecr.pelock not clear\n");
+            return(-1);
+        }
+
+        // unlock program memory
+        stlink_write_debug32(sl, flash_regs_base + FLASH_PRGKEYR_OFF, FLASH_L0_PRGKEY1);
+        stlink_write_debug32(sl, flash_regs_base + FLASH_PRGKEYR_OFF, FLASH_L0_PRGKEY2);
+
+        // check pecr.prglock is cleared
+        stlink_read_debug32(sl, flash_regs_base + FLASH_PECR_OFF, &val);
+        if (val & (1 << 1)) {
+            ELOG("pecr.prglock not clear\n");
+            return(-1);
+        }
+    } else if ((sl->flash_type == STLINK_FLASH_TYPE_F0) ||
+               (sl->flash_type == STLINK_FLASH_TYPE_F1_XL)) {
+        ILOG("Starting Flash write for VL/F0/F3/F1_XL\n");
+
+        // flash loader initialisation
+        if (stlink_flash_loader_init(sl, fl) == -1) {
+            ELOG("stlink_flash_loader_init() == -1\n");
+            return(-1);
+        }
+    } else if (sl->flash_type == STLINK_FLASH_TYPE_H7) {
+        ILOG("Starting Flash write for H7\n");
+
+        unlock_flash_if(sl);    // unlock the cr
+        set_flash_cr_pg(sl);    // set programming mode
+    } else {
+        ELOG("unknown coreid, not sure how to write: %x\n", sl->core_id);
+        return(-1);
+    }
+
+    return(0);
+}
+
+int stlink_flashloader_write(stlink_t *sl, flash_loader_t *fl, stm32_addr_t addr, 
+        uint8_t* base, uint32_t len) {
+    size_t off;
+    if ((sl->flash_type == STLINK_FLASH_TYPE_F4) ||
+        (sl->flash_type == STLINK_FLASH_TYPE_F7) ||
+        (sl->flash_type == STLINK_FLASH_TYPE_L4)) {
+        size_t buf_size = (sl->sram_size > 0x8000) ? 0x8000 : 0x4000;
+        for (off = 0; off < len;) {
+            size_t size = len - off > buf_size ? buf_size : len - off;
+            if (stlink_flash_loader_run(sl, fl, addr + (uint32_t)off, base + off, size) == -1) {
+                ELOG("stlink_flash_loader_run(%#zx) failed! == -1\n", addr + off);
+                return(-1);
+            }
+
+            off += size;
+        }
+    } else if (sl->flash_type == STLINK_FLASH_TYPE_WB ||
+               sl->flash_type == STLINK_FLASH_TYPE_G0 ||
+               sl->flash_type == STLINK_FLASH_TYPE_G4) {
+        DLOG("Starting %3u page write\r\n", (unsigned int)(len / sl->flash_pgsz));
+        for (off = 0; off < len; off += sizeof(uint32_t)) {
+            uint32_t data;
+
+            if ((off % sl->flash_pgsz) > (sl->flash_pgsz - 5)) {
+                fprintf(stdout, "\r%3u/%3u pages written",
+                        (unsigned int)(off / sl->flash_pgsz),
+                        (unsigned int)(len / sl->flash_pgsz));
+                fflush(stdout);
+            }
+
+            write_uint32((unsigned char*)&data, *(uint32_t*)(base + off));
+            stlink_write_debug32(sl, addr + (uint32_t)off, data);
+            wait_flash_busy(sl); // wait for 'busy' bit in FLASH_SR to clear
+        }
+        fprintf(stdout, "\n");
+
+        // flash writes happen as 2 words at a time
+        if ((off / sizeof(uint32_t)) % 2 != 0) {
+            stlink_write_debug32(sl, addr + (uint32_t)off, 0); // write a single word of zeros
+            wait_flash_busy(sl); // wait for 'busy' bit in FLASH_SR to clear
+        }
+    } else if (sl->flash_type == STLINK_FLASH_TYPE_L0) {
+        uint32_t val;
+        uint32_t flash_regs_base;
+        uint32_t pagesize;
+
+        if (sl->chip_id == STLINK_CHIPID_STM32_L0 ||
+            sl->chip_id == STLINK_CHIPID_STM32_L0_CAT5 ||
+            sl->chip_id == STLINK_CHIPID_STM32_L0_CAT2 ||
+            sl->chip_id == STLINK_CHIPID_STM32_L011) {
+            flash_regs_base = STM32L0_FLASH_REGS_ADDR;
+            pagesize = L0_WRITE_BLOCK_SIZE;
+        } else {
+            flash_regs_base = STM32L_FLASH_REGS_ADDR;
+            pagesize = L1_WRITE_BLOCK_SIZE;
+        }
+
+        off = 0;
+
+        if (len > pagesize) {
+            if (stm32l1_write_half_pages(sl, addr, base, len, pagesize) == -1) {
+                // this may happen on a blank device!
+                WLOG("\nwrite_half_pages failed == -1\n");
+            } else {
+                off = (len / pagesize) * pagesize;
+            }
+        }
+
+        // write remaining word in program memory
+        for ( ; off < len; off += sizeof(uint32_t)) {
+            uint32_t data;
+            
+            if ((off % sl->flash_pgsz) > (sl->flash_pgsz - 5)) {
+                fprintf(stdout, "\r%3u/%3u pages written",
+                        (unsigned int)(off / sl->flash_pgsz),
+                        (unsigned int)(len / sl->flash_pgsz));
+                fflush(stdout);
+            }
+
+            write_uint32((unsigned char*)&data, *(uint32_t*)(base + off));
+            stlink_write_debug32(sl, addr + (uint32_t)off, data);
+
+            // wait for sr.busy to be cleared
+            do {
+                stlink_read_debug32(sl, flash_regs_base + FLASH_SR_OFF, &val);
+            } while ((val & (1 << 0)) != 0);
+
+            // TODO: check redo write operation
+        }
+        fprintf(stdout, "\n");
+    } else if ((sl->flash_type == STLINK_FLASH_TYPE_F0) ||
+               (sl->flash_type == STLINK_FLASH_TYPE_F1_XL)) {
+        int write_block_count = 0;
+        for (off = 0; off < len; off += sl->flash_pgsz) {
+            // adjust last write size
+            size_t size = len - off > sl->flash_pgsz ? sl->flash_pgsz : len - off;
+
+            // unlock and set programming mode
+            unlock_flash_if(sl);
+
+            if (sl->flash_type != STLINK_FLASH_TYPE_F1_XL) { set_flash_cr_pg(sl); }
+
+            DLOG("Finished unlocking flash, running loader!\n");
+
+            if (stlink_flash_loader_run(sl, fl, addr + (uint32_t)off, base + off, size) == -1) {
+                ELOG("stlink_flash_loader_run(%#zx) failed! == -1\n", addr + off);
+                return(-1);
+            }
+
+            lock_flash(sl);
+
+            if (sl->verbose >= 1) {
+                // show progress; writing procedure is slow and previous errors are misleading
+                fprintf(stdout, "\r%3u/%3u pages written", ++write_block_count,
+                        (unsigned int)((len + sl->flash_pgsz - 1) / sl->flash_pgsz));
+                fflush(stdout);
+            }
+        }
+        if (sl->verbose >= 1) {
+			fprintf(stdout, "\n");
+		}
+    } else if (sl->flash_type == STLINK_FLASH_TYPE_H7) {
+        for (off = 0; off < len;) {
+            // Program STM32H7x with 32-byte Flash words
+            size_t chunk = (len - off > 32) ? 32 : len - off;
+            memcpy(sl->q_buf, base + off, chunk);
+            stlink_write_mem32(sl, addr + (uint32_t)off, 32);
+            wait_flash_busy(sl);
+
+            off += chunk;
+
+            if (sl->verbose >= 1) {
+                // show progress
+                fprintf(stdout, "\r%u/%u bytes written", (unsigned int)off, (unsigned int)len);
+                fflush(stdout);
+            }
+        }
+        if (sl->verbose >= 1) {
+			fprintf(stdout, "\n");
+		}
+    } else {
+        return(-1);
+    }
+
+    return(0);
+}
+
+int stlink_flashloader_stop(stlink_t *sl) {
+        if ((sl->flash_type == STLINK_FLASH_TYPE_F4) ||
+        (sl->flash_type == STLINK_FLASH_TYPE_F7) ||
+        (sl->flash_type == STLINK_FLASH_TYPE_L4) ||
+        (sl->flash_type == STLINK_FLASH_TYPE_WB) ||
+        (sl->flash_type == STLINK_FLASH_TYPE_G0) ||
+        (sl->flash_type == STLINK_FLASH_TYPE_G4) || 
+        (sl->flash_type == STLINK_FLASH_TYPE_H7)) {
+
+        clear_flash_cr_pg(sl);
+        lock_flash(sl);
+    } else if (sl->flash_type == STLINK_FLASH_TYPE_L0) {
+        uint32_t val;
+        uint32_t flash_regs_base;
+        if (sl->chip_id == STLINK_CHIPID_STM32_L0 ||
+            sl->chip_id == STLINK_CHIPID_STM32_L0_CAT5 ||
+            sl->chip_id == STLINK_CHIPID_STM32_L0_CAT2 ||
+            sl->chip_id == STLINK_CHIPID_STM32_L011) {
+            flash_regs_base = STM32L0_FLASH_REGS_ADDR;
+        } else {
+            flash_regs_base = STM32L_FLASH_REGS_ADDR;
+        }
+        // reset lock bits
+        stlink_read_debug32(sl, flash_regs_base + FLASH_PECR_OFF, &val);
+        val |= (1 << 0) | (1 << 1) | (1 << 2);
+        stlink_write_debug32(sl, flash_regs_base + FLASH_PECR_OFF, val);
+    }
+
+    return(0);
+}
+
 int stlink_write_flash(
         stlink_t *sl, stm32_addr_t addr, uint8_t* base, uint32_t len, uint8_t eraseonly) {
     size_t off;
+    int ret;
     flash_loader_t fl;
     ILOG("Attempting to write %d (%#x) bytes to stm32 address: %u (%#x)\n", len, len, addr, addr);
     // check addr range is inside the flash
@@ -2721,273 +3011,15 @@ int stlink_write_flash(
 
     if (eraseonly) { return(0); }
 
-    if ((sl->flash_type == STLINK_FLASH_TYPE_F4) ||
-        (sl->flash_type == STLINK_FLASH_TYPE_F7) ||
-        (sl->flash_type == STLINK_FLASH_TYPE_L4)) {
-        // TODO: check write operation
-
-        ILOG("Starting Flash write for F2/F4/F7/L4\n");
-        // Flash loader initialisation
-        if (stlink_flash_loader_init(sl, &fl) == -1) {
-            ELOG("stlink_flash_loader_init() == -1\n");
-            return(-1);
-        }
-
-        unlock_flash_if(sl); // first unlock the cr
-
-        // TODO: Check that Voltage range is 2.7 - 3.6 V
-        if ((sl->chip_id != STLINK_CHIPID_STM32_L4) &&
-            (sl->chip_id != STLINK_CHIPID_STM32_L43X) &&
-            (sl->chip_id != STLINK_CHIPID_STM32_L46X) &&
-            (sl->chip_id != STLINK_CHIPID_STM32_L496X) &&
-            (sl->chip_id != STLINK_CHIPID_STM32_L4RX)) {
-
-            if ( sl->version.stlink_v == 1) {
-                printf("STLINK V1 cannot read voltage, defaulting to 32-bit "
-                       "writes on F4 devices\n");
-                write_flash_cr_psiz(sl, 2);
-            } else {
-                // set parallelism to 32 bit
-                int voltage = stlink_target_voltage(sl);
-
-                if (voltage == -1) {
-                    printf("Failed to read Target voltage\n");
-                    return(voltage);
-                } else if (voltage > 2700) {
-                    printf("enabling 32-bit flash writes\n");
-                    write_flash_cr_psiz(sl, 2);
-                } else {
-                    printf("Target voltage (%d mV) too low for 32-bit flash, "
-                           "using 8-bit flash writes\n", voltage);
-                    write_flash_cr_psiz(sl, 0);
-                }
-            }
-        } else {
-            // L4 does not have a byte-write mode
-            int voltage = stlink_target_voltage(sl);
-
-            if (voltage == -1) {
-                printf("Failed to read Target voltage\n");
-                return(voltage);
-            } else if (voltage < 1710) {
-                printf("Target voltage (%d mV) too low for flash writes!\n", voltage);
-                return(-1);
-            }
-        }
-
-        // set programming mode
-        set_flash_cr_pg(sl);
-
-        size_t buf_size = (sl->sram_size > 0x8000) ? 0x8000 : 0x4000;
-
-        for (off = 0; off < len;) {
-            size_t size = len - off > buf_size ? buf_size : len - off;
-            printf("size: %u\n", (unsigned int)size);
-
-            if (stlink_flash_loader_run(sl, &fl, addr + (uint32_t)off, base + off, size) == -1) {
-                ELOG("stlink_flash_loader_run(%#zx) failed! == -1\n", addr + off);
-                return(-1);
-            }
-
-            off += size;
-        }
-
-        clear_flash_cr_pg(sl);
-        lock_flash(sl);
-
-    // STM32F4END
-    } else if (sl->flash_type == STLINK_FLASH_TYPE_WB ||
-               sl->flash_type == STLINK_FLASH_TYPE_G0 ||
-               sl->flash_type == STLINK_FLASH_TYPE_G4) {
-        fprintf(stdout, "Writing\r\n");
-        fflush(stdout);
-        wait_flash_busy(sl);
-        unlock_flash_if(sl); // unlock flash if necessary
-        set_flash_cr_pg(sl); // set PG 'allow programming' bit
-        // write all words.
-        off = 0;
-        fprintf(stdout, "Starting %3u page write\r\n", (unsigned int)(len / sl->flash_pgsz));
-        fflush(stdout);
-
-        for ( ; off < len; off += sizeof(uint32_t)) {
-            uint32_t data;
-
-            if (off > 254) { fprintf(stdout, "\r"); }
-
-            if ((off % sl->flash_pgsz) > (sl->flash_pgsz - 5)) {
-                fprintf(stdout, "\r%3u/%3u pages written",
-                        (unsigned int)(off / sl->flash_pgsz),
-                        (unsigned int)(len / sl->flash_pgsz));
-                fflush(stdout);
-            }
-
-            write_uint32((unsigned char*)&data, *(uint32_t*)(base + off));
-            stlink_write_debug32(sl, addr + (uint32_t)off, data);
-            wait_flash_busy(sl); // wait for 'busy' bit in FLASH_SR to clear
-        }
-
-        // flash writes happen as 2 words at a time
-        if ((off / sizeof(uint32_t)) % 2 != 0) {
-            stlink_write_debug32(sl, addr + (uint32_t)off, 0); // write a single word of zeros
-            wait_flash_busy(sl); // wait for 'busy' bit in FLASH_SR to clear
-        }
-
-        clear_flash_cr_pg(sl); // reset PG bit.
-        lock_flash(sl);
-    } else if (sl->flash_type == STLINK_FLASH_TYPE_L0) {
-        // use fast word write
-        // TODO: half page
-        uint32_t val;
-        uint32_t flash_regs_base;
-        uint32_t pagesize;
-
-        if (sl->chip_id == STLINK_CHIPID_STM32_L0 ||
-            sl->chip_id == STLINK_CHIPID_STM32_L0_CAT5 ||
-            sl->chip_id == STLINK_CHIPID_STM32_L0_CAT2 ||
-            sl->chip_id == STLINK_CHIPID_STM32_L011) {
-            flash_regs_base = STM32L0_FLASH_REGS_ADDR;
-            pagesize = L0_WRITE_BLOCK_SIZE;
-        } else {
-            flash_regs_base = STM32L_FLASH_REGS_ADDR;
-            pagesize = L1_WRITE_BLOCK_SIZE;
-        }
-
-        // TODO: check write operation
-
-        // disable pecr protection
-        stlink_write_debug32(sl, flash_regs_base + FLASH_PEKEYR_OFF, FLASH_L0_PEKEY1);
-        stlink_write_debug32(sl, flash_regs_base + FLASH_PEKEYR_OFF, FLASH_L0_PEKEY2);
-
-        // check pecr.pelock is cleared
-        stlink_read_debug32(sl, flash_regs_base + FLASH_PECR_OFF, &val);
-
-        if (val & (1 << 0)) {
-            fprintf(stderr, "pecr.pelock not clear\n");
-            return(-1);
-        }
-
-        // unlock program memory
-        stlink_write_debug32(sl, flash_regs_base + FLASH_PRGKEYR_OFF, FLASH_L0_PRGKEY1);
-        stlink_write_debug32(sl, flash_regs_base + FLASH_PRGKEYR_OFF, FLASH_L0_PRGKEY2);
-
-        // check pecr.prglock is cleared
-        stlink_read_debug32(sl, flash_regs_base + FLASH_PECR_OFF, &val);
-
-        if (val & (1 << 1)) {
-            fprintf(stderr, "pecr.prglock not clear\n");
-            return(-1);
-        }
-
-        off = 0;
-
-        if (len > pagesize) {
-            if (stm32l1_write_half_pages(sl, addr, base, len, pagesize) == -1) {
-                // this may happen on a blank device!
-                WLOG("\nwrite_half_pages failed == -1\n");
-            } else {
-                off = (len / pagesize) * pagesize;
-            }
-        }
-
-        // write remaining word in program memory
-        for ( ; off < len; off += sizeof(uint32_t)) {
-            uint32_t data;
-
-            if (off > 254) { fprintf(stdout, "\r"); }
-
-            if ((off % sl->flash_pgsz) > (sl->flash_pgsz - 5)) {
-                fprintf(stdout, "\r%3u/%3u pages written",
-                        (unsigned int)(off / sl->flash_pgsz),
-                        (unsigned int)(len / sl->flash_pgsz));
-                fflush(stdout);
-            }
-
-            write_uint32((unsigned char*)&data, *(uint32_t*)(base + off));
-            stlink_write_debug32(sl, addr + (uint32_t)off, data);
-
-            // wait for sr.busy to be cleared
-            do {
-                stlink_read_debug32(sl, flash_regs_base + FLASH_SR_OFF, &val);
-            } while ((val & (1 << 0)) != 0);
-
-            // TODO: check redo write operation
-        }
-
-        fprintf(stdout, "\n");
-        // reset lock bits
-        stlink_read_debug32(sl, flash_regs_base + FLASH_PECR_OFF, &val);
-        val |= (1 << 0) | (1 << 1) | (1 << 2);
-        stlink_write_debug32(sl, flash_regs_base + FLASH_PECR_OFF, val);
-    } else if ((sl->flash_type == STLINK_FLASH_TYPE_F0) ||
-               (sl->flash_type == STLINK_FLASH_TYPE_F1_XL)) {
-        ILOG("Starting Flash write for VL/F0/F3/F1_XL core id\n");
-
-        // flash loader initialisation
-        if (stlink_flash_loader_init(sl, &fl) == -1) {
-            ELOG("stlink_flash_loader_init() == -1\n");
-            return(-1);
-        }
-
-        int write_block_count = 0;
-
-        for (off = 0; off < len; off += sl->flash_pgsz) {
-            // adjust last write size
-            size_t size = sl->flash_pgsz;
-
-            if ((off + sl->flash_pgsz) > len) { size = len - off; }
-
-            // unlock and set programming mode
-            unlock_flash_if(sl);
-
-            if (sl->flash_type != STLINK_FLASH_TYPE_F1_XL) { set_flash_cr_pg(sl); }
-
-            DLOG("Finished unlocking flash, running loader!\n");
-
-            if (stlink_flash_loader_run(sl, &fl, addr + (uint32_t)off, base + off, size) == -1) {
-                ELOG("stlink_flash_loader_run(%#zx) failed! == -1\n", addr + off);
-                return(-1);
-            }
-
-            lock_flash(sl);
-
-            if (sl->verbose >= 1) {
-                // show progress; writing procedure is slow and previous errors are misleading
-                fprintf(stdout, "\r%3u/%lu pages written", ++write_block_count,
-                        (unsigned long)((len + sl->flash_pgsz - 1) / sl->flash_pgsz));
-                fflush(stdout);
-            }
-        }
-
-        fprintf(stdout, "\n");
-    } else if (sl->flash_type == STLINK_FLASH_TYPE_H7) {
-        ILOG("Starting Flash write for H7 core id\n");
-
-        unlock_flash_if(sl);    // unlock the cr
-        set_flash_cr_pg(sl);    // set programming mode
-
-        for (off = 0; off < len;) {
-            // Program STM32H7x with 32-byte Flash words
-            size_t chunk = (len - off > 32) ? 32 : len - off;
-            memcpy(sl->q_buf, base + off, chunk);
-            stlink_write_mem32(sl, addr + (uint32_t)off, 32);
-            wait_flash_busy(sl);
-
-            off += chunk;
-
-            if (sl->verbose >= 1) {
-                // show progress
-                fprintf(stdout, "\r%u/%u bytes written", (unsigned int)off, (unsigned int)len);
-                fflush(stdout);
-            }
-        }
-        fprintf(stdout, "\n");
-
-        clear_flash_cr_pg(sl);
-        lock_flash(sl);
-    } else {
-        ELOG("unknown coreid, not sure how to write: %x\n", sl->core_id);
-        return(-1);
-    }
+    ret = stlink_flashloader_start(sl, &fl);
+    if (ret)
+        return ret;
+    ret = stlink_flashloader_write(sl, &fl, addr, base, len);
+    if (ret)
+        return ret;
+    ret = stlink_flashloader_stop(sl);
+    if (ret)
+        return ret;    
 
     return(stlink_verify_write_flash(sl, addr, base, len));
 }

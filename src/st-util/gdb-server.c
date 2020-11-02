@@ -847,13 +847,31 @@ static int flash_populate(stm32_addr_t addr, uint8_t* data, unsigned length) {
 
 static int flash_go(stlink_t *sl) {
     int error = -1;
-
+    int ret;
+    flash_loader_t fl;
+    
     // some kinds of clock settings do not allow writing to flash.
     stlink_reset(sl);
     stlink_force_debug(sl);
 
     for (struct flash_block* fb = flash_root; fb; fb = fb->next) {
-        DLOG("flash_do: block %08x -> %04x\n", fb->addr, fb->length);
+        ILOG("flash_erase: block %08x -> %04x\n", fb->addr, fb->length);
+
+        for (stm32_addr_t page = fb->addr; page < fb->addr + fb->length; page += (uint32_t)FLASH_PAGE) {
+            // update FLASH_PAGE
+            stlink_calculate_pagesize(sl, page);
+
+            ILOG("flash_erase: page %08x\n", page);
+            ret = stlink_erase_flash_page(sl, page);
+            if (ret < 0) { goto error; }
+        }
+    }
+
+    ret = stlink_flashloader_start(sl, &fl);
+    if (ret < 0) { goto error; }
+
+    for (struct flash_block* fb = flash_root; fb; fb = fb->next) {
+        ILOG("flash_do: block %08x -> %04x\n", fb->addr, fb->length);
 
         for (stm32_addr_t page = fb->addr; page < fb->addr + fb->length; page += (uint32_t)FLASH_PAGE) {
             unsigned length = fb->length - (page - fb->addr);
@@ -861,14 +879,14 @@ static int flash_go(stlink_t *sl) {
             // update FLASH_PAGE
             stlink_calculate_pagesize(sl, page);
 
-            DLOG("flash_do: page %08x\n", page);
+            ILOG("flash_do: page %08x\n", page);
             unsigned len = (length > FLASH_PAGE) ? (unsigned int)FLASH_PAGE : length;
-            int ret = stlink_write_flash(sl, page, fb->data + (page - fb->addr), len, 0);
-
+            ret = stlink_flashloader_write(sl, &fl, page, fb->data + (page - fb->addr), len);
             if (ret < 0) { goto error; }
         }
     }
 
+    stlink_flashloader_stop(sl);
     stlink_reset(sl);
     error = 0;
 
