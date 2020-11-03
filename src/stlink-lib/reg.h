@@ -9,6 +9,8 @@
 #define STLINK_REG_CM7_FP_LAR_KEY           0xC5ACCE55
 
 #define STLINK_REG_CM3_DEMCR           0xE000EDFC
+#define STLINK_REG_CM3_DEMCR_TRCENA        (1 << 24)
+#define STLINK_REG_CM3_DEMCR_VC_CORERESET  (1 << 0)
 #define STLINK_REG_CM3_DWT_COMPn(n)   (0xE0001020 + n*16)
 #define STLINK_REG_CM3_DWT_MASKn(n)   (0xE0001024 + n*16)
 #define STLINK_REG_CM3_DWT_FUNn(n)    (0xE0001028 + n*16)

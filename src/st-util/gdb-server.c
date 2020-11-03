@@ -591,9 +591,9 @@ static void init_data_watchpoints(stlink_t *sl) {
     uint32_t data;
     DLOG("init watchpoints\n");
 
+	// set TRCENA in debug command to turn on DWT unit
     stlink_read_debug32(sl, STLINK_REG_CM3_DEMCR, &data);
-    data |= 1 << 24;
-    // set TRCENA in debug command to turn on DWT unit
+    data |= STLINK_REG_CM3_DEMCR_TRCENA;
     stlink_write_debug32(sl, STLINK_REG_CM3_DEMCR, data);
 
     // make sure all watchpoints are cleared
@@ -887,7 +887,7 @@ static int flash_go(stlink_t *sl) {
     }
 
     stlink_flashloader_stop(sl);
-    stlink_reset(sl);
+    //stlink_reset(sl);
     error = 0;
 
 error:
@@ -1804,12 +1804,15 @@ int serve(stlink_t *sl, st_state_t *st) {
 
         case 'R': {
             // reset the core.
-            ret = stlink_reset(sl);
-
+            ret = stlink_soft_reset(sl, 1 /* halt on reset */);
             if (ret) { DLOG("R packet : stlink_reset failed\n"); }
 
             init_code_breakpoints(sl);
             init_data_watchpoints(sl);
+
+			if (stlink_status(sl) == TARGET_HALTED) {
+				stlink_run(sl);
+			}
 
             attached = 1;
 

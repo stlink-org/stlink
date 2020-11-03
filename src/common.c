@@ -1416,6 +1416,48 @@ int stlink_jtag_reset(stlink_t *sl, int value) {
     return(sl->backend->jtag_reset(sl, value));
 }
 
+int stlink_soft_reset(stlink_t *sl, int halt_on_reset) {
+    int ret;
+    uint32_t dhcsr, demcr;
+
+    DLOG("*** stlink_soft_reset ***\n");
+
+    // halt core and enable debugging (if not already done) 
+    // C_DEBUGEN is required to Halt on reset (DDI0337E, p. 10-6)
+    _stlink_usb_write_debug32(sl, STLINK_REG_DHCSR, STLINK_REG_DHCSR_DBGKEY | 
+                            STLINK_REG_DHCSR_C_HALT | STLINK_REG_DHCSR_C_DEBUGEN);
+    
+    // enable Halt on reset by set VC_CORERESET and TRCENA (DDI0337E, p. 10-10)
+    stlink_read_debug32(sl, STLINK_REG_CM3_DEMCR, &demcr);
+    if (halt_on_reset) {
+        demcr |= STLINK_REG_CM3_DEMCR_TRCENA | STLINK_REG_CM3_DEMCR_VC_CORERESET;
+    } else {
+        demcr &= ~STLINK_REG_CM3_DEMCR_VC_CORERESET;
+    }
+    stlink_write_debug32(sl, STLINK_REG_CM3_DEMCR, demcr);
+
+    // clear S_RESET_ST in DHCSR register
+    stlink_read_debug32(sl, STLINK_REG_DHCSR, &dhcsr);
+    
+    // soft reset (core reset) by SYSRESETREQ (DDI0337E, p. 8-23)
+    ret = stlink_write_debug32(sl, STLINK_REG_AIRCR, STLINK_REG_AIRCR_VECTKEY |
+                            STLINK_REG_AIRCR_SYSRESETREQ);
+    if (ret)
+        return(ret);
+
+    // waiting for a reset within 500ms
+    timeout = time_ms() + 500;
+    while (time_ms() < timeout) {
+        // DDI0337E, p. 10-4, Debug Halting Control and Status Register
+        dhcsr = STLINK_REG_DHCSR_S_RESET_ST;
+        stlink_read_debug32(sl, STLINK_REG_DHCSR, &dhcsr);
+        if ((dhcsr&STLINK_REG_DHCSR_S_RESET_ST) == 0)
+            return(0);
+    }
+
+    return(-1);
+}
+
 int stlink_run(stlink_t *sl) {
     DLOG("*** stlink_run ***\n");
     return(sl->backend->run(sl));
@@ -2899,8 +2941,8 @@ int stlink_flashloader_write(stlink_t *sl, flash_loader_t *fl, stm32_addr_t addr
             }
         }
         if (sl->verbose >= 1) {
-			fprintf(stdout, "\n");
-		}
+            fprintf(stdout, "\n");
+        }
     } else if (sl->flash_type == STLINK_FLASH_TYPE_H7) {
         for (off = 0; off < len;) {
             // Program STM32H7x with 32-byte Flash words
@@ -2918,8 +2960,8 @@ int stlink_flashloader_write(stlink_t *sl, flash_loader_t *fl, stm32_addr_t addr
             }
         }
         if (sl->verbose >= 1) {
-			fprintf(stdout, "\n");
-		}
+            fprintf(stdout, "\n");
+        }
     } else {
         return(-1);
     }

@@ -223,6 +223,7 @@ void stlink_close(stlink_t *sl);
 int stlink_core_id(stlink_t *sl);
 int stlink_reset(stlink_t *sl);
 int stlink_jtag_reset(stlink_t *sl, int value);
+int stlink_soft_reset(stlink_t *sl, int halt_on_reset);
 int stlink_run(stlink_t *sl);
 int stlink_status(stlink_t *sl);
 int stlink_version(stlink_t *sl);
