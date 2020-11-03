@@ -385,15 +385,15 @@ int _stlink_usb_status_v2(stlink_t *sl) {
     int result;
     uint32_t status = 0;
 
-    result = _stlink_usb_read_debug32(sl, DCB_DHCSR, &status);
+    result = _stlink_usb_read_debug32(sl, STLINK_REG_DHCSR, &status);
     DLOG("core status: %08X\n", status);
 
     if (result != 0) {
         sl->core_stat = TARGET_UNKNOWN;
     } else {
-        if (status & S_HALT) {
+        if (status & STLINK_REG_DHCSR_C_HALT) {
             sl->core_stat = TARGET_HALTED;
-        } else if (status & S_RESET_ST) {
+        } else if (status & STLINK_REG_DHCSR_S_RESET_ST) {
             sl->core_stat = TARGET_RESET;
         } else {
             sl->core_stat = TARGET_RUNNING;
@@ -616,7 +616,7 @@ int _stlink_usb_run(stlink_t* sl) {
     int res;
 
     if (sl->version.jtag_api != STLINK_JTAG_API_V1) {
-        res = _stlink_usb_write_debug32(sl, DCB_DHCSR, DBGKEY | C_DEBUGEN);
+        res = _stlink_usb_write_debug32(sl, STLINK_REG_DHCSR, STLINK_REG_DHCSR_DBGKEY | STLINK_REG_DHCSR_C_DEBUGEN);
         return(res);
     }
 

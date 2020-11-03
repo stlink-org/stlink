@@ -16,8 +16,17 @@
 /* Cortex™-M3 Technical Reference Manual */
 /* Debug Halting Control and Status Register */
 #define STLINK_REG_DHCSR               0xe000edf0
-#define STLINK_REG_DHCSR_DBGKEY        0xa05f0000
-#define STLINK_REG_DHCSR_S_RESET_ST    0x02000000
+#define STLINK_REG_DHCSR_DBGKEY            (0xA05F << 16)
+#define STLINK_REG_DHCSR_C_DEBUGEN         (1 << 0)
+#define STLINK_REG_DHCSR_C_HALT            (1 << 1)
+#define STLINK_REG_DHCSR_C_STEP            (1 << 2)
+#define STLINK_REG_DHCSR_C_MASKINTS        (1 << 3)
+#define STLINK_REG_DHCSR_S_REGRDY          (1 << 16)
+#define STLINK_REG_DHCSR_S_HALT            (1 << 17)
+#define STLINK_REG_DHCSR_S_SLEEP           (1 << 18)
+#define STLINK_REG_DHCSR_S_LOCKUP          (1 << 19)
+#define STLINK_REG_DHCSR_S_RETIRE_ST       (1 << 24)
+#define STLINK_REG_DHCSR_S_RESET_ST        (1 << 25)
 #define STLINK_REG_DCRSR               0xe000edf4
 #define STLINK_REG_DCRDR               0xe000edf8
 
