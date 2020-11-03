@@ -17,6 +17,7 @@
 #endif
 
 #include <stlink.h>
+#include <helper.h>
 #include "usb.h"
 
 enum SCSI_Generic_Direction {SG_DXFER_TO_DEV = 0, SG_DXFER_FROM_DEV = 0x80};
@@ -509,10 +510,10 @@ int _stlink_usb_reset(stlink_t * sl) {
     unsigned char* const cmd = sl->c_buf;
     ssize_t size;
     uint32_t dhcsr;
-    int ret, i, rep_len = 2;
+    int ret, timeout, i, rep_len = 2;
 
     // clear S_RESET_ST in DHCSR registr
-    stlink_read_debug32(sl, STLINK_REG_DHCSR, &dhcsr);
+    _stlink_usb_read_debug32(sl, STLINK_REG_DHCSR, &dhcsr);
 
     // send reset command
     i = fill_command(sl, SG_DXFER_FROM_DEV, rep_len);
@@ -534,14 +535,14 @@ int _stlink_usb_reset(stlink_t * sl) {
     usleep(10000);
 
     dhcsr = 0;
-    ret = stlink_read_debug32(sl, STLINK_REG_DHCSR, &dhcsr);
+    ret = _stlink_usb_read_debug32(sl, STLINK_REG_DHCSR, &dhcsr);
     if ((dhcsr & STLINK_REG_DHCSR_S_RESET_ST) == 0) {
         // reset not done yet
         // try reset through AIRCR so that NRST does not need to be connected
         
         WLOG("NRST is not connected\n");
         DLOG("Using reset through SYSRESETREQ\n");
-        ret = stlink_write_debug32(sl, STLINK_REG_AIRCR, STLINK_REG_AIRCR_VECTKEY |
+        ret = _stlink_usb_write_debug32(sl, STLINK_REG_AIRCR, STLINK_REG_AIRCR_VECTKEY |
                                 STLINK_REG_AIRCR_SYSRESETREQ);
         if (ret)
             return(ret);
@@ -550,18 +551,16 @@ int _stlink_usb_reset(stlink_t * sl) {
     }
 
     // waiting for a reset within 500ms
-    for (i=0; i<50; i++) {
+    timeout = time_ms() + 500;
+    while (time_ms() < timeout) {
         // DDI0337E, p. 10-4, Debug Halting Control and Status Register
         dhcsr = STLINK_REG_DHCSR_S_RESET_ST;
-        stlink_read_debug32(sl, STLINK_REG_DHCSR, &dhcsr);
+        _stlink_usb_read_debug32(sl, STLINK_REG_DHCSR, &dhcsr);
         if ((dhcsr&STLINK_REG_DHCSR_S_RESET_ST) == 0)
-            break;
-        usleep(10000);
+            return(0);
     }
 
-    if (i >= 50)
-        return(-1);
-    return(0);
+    return(-1);
 }
 
 int _stlink_usb_jtag_reset(stlink_t * sl, int value) {

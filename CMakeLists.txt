@@ -60,6 +60,11 @@ if (STLINK_HAVE_SYS_MMAN_H)
     add_definitions(-DSTLINK_HAVE_SYS_MMAN_H)
 endif()
 
+CHECK_INCLUDE_FILE(sys/time.h STLINK_HAVE_SYS_TIME_H)
+if (STLINK_HAVE_SYS_TIME_H)
+    add_definitions(-DSTLINK_HAVE_SYS_TIME_H)
+endif()
+
 CHECK_INCLUDE_FILE(unistd.h STLINK_HAVE_UNISTD_H)
 if (STLINK_HAVE_UNISTD_H)
     add_definitions(-DSTLINK_HAVE_UNISTD_H)
@@ -104,6 +109,7 @@ set(STLINK_HEADERS
         src/stlink-lib/md5.h
         src/stlink-lib/sg.h
         src/stlink-lib/usb.h
+		src/stlink-lib/helper.h
         )
 
 set(STLINK_SOURCE
@@ -114,6 +120,7 @@ set(STLINK_SOURCE
         src/stlink-lib/md5.c
         src/stlink-lib/sg.c
         src/stlink-lib/usb.c
+		src/stlink-lib/helper.c
         )
 
 if (WIN32)
@@ -131,6 +138,11 @@ if (WIN32)
         include_directories(src/win32/mmap)
         set(STLINK_SOURCE "${STLINK_SOURCE};src/win32/mmap.c")
         set(STLINK_HEADERS "${STLINK_HEADERS};src/win32/mmap.h")
+    endif()
+
+    if (NOT STLINK_HAVE_SYS_TIME_H)
+        set(STLINK_SOURCE "${STLINK_SOURCE};src/win32/sys_time.c")
+        set(STLINK_HEADERS "${STLINK_HEADERS};src/win32/sys_time.h")
     endif()
 endif ()
 
