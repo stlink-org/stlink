@@ -316,6 +316,8 @@ int stlink_flash_loader_run(stlink_t *sl, flash_loader_t* fl, stm32_addr_t targe
     int i = 0;
     size_t count = 0;
     uint32_t flash_base = 0;
+    const char *error = NULL;
+    uint32_t dhcsr, dfsr;
 
     DLOG("Running flash loader, write address:%#x, size: %u\n", target, (unsigned int)size);
 
@@ -354,6 +356,13 @@ int stlink_flash_loader_run(stlink_t *sl, flash_loader_t* fl, stm32_addr_t targe
                                                // only used on VL/F1_XL, but harmless for others
     stlink_write_reg(sl, fl->loader_addr, 15); // pc register
 
+    /* Make sure we are in Thumb mode */
+    stlink_read_reg(sl, 16, &rr);
+    if ((rr.xpsr & (1 << 24)) == 0) {
+        ILOG("Go to Thumb mode\n");
+        stlink_write_reg(sl, rr.xpsr | (1 << 24), 16);
+    }
+
     /* Run loader */
     stlink_run(sl);
 
@@ -376,17 +385,26 @@ int stlink_flash_loader_run(stlink_t *sl, flash_loader_t* fl, stm32_addr_t targe
     }
 
     if (i >= WAIT_ROUNDS) {
-        ELOG("flash loader run error\n");
-        return(-1);
+        error = "Flash loader run error";
+        goto error;
     }
 
     // check written byte count
     stlink_read_reg(sl, 2, &rr);
 
     if (rr.r[2] != 0) {
-        ELOG("write error, count == %u\n", rr.r[2]);
-        return(-1);
+        error = "Write error";
+        goto error;
     }
 
     return(0);
+
+error:
+    dhcsr = dfsr = 0;
+    stlink_read_debug32(sl, STLINK_REG_DHCSR, &dhcsr);
+    stlink_read_debug32(sl, STLINK_REG_DFSR, &dfsr);
+    stlink_read_all_regs(sl, &rr);
+    ELOG("%s (R2 0x%08X R15 0x%08X DHCSR 0x%08X DFSR 0x%08X)\n", error, rr.r[2], rr.r[15], dhcsr, dfsr);
+
+    return(-1);
 }
