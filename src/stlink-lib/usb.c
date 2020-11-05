@@ -262,7 +262,7 @@ int _stlink_usb_write_debug32(stlink_t *sl, uint32_t addr, uint32_t data) {
 }
 
 int _stlink_usb_get_rw_status(stlink_t *sl) {
-    if (sl->version.jtag_api == STLINK_JTAG_API_V1) { return(-1); }
+    if (sl->version.jtag_api == STLINK_JTAG_API_V1) { return(0); }
 
     unsigned char* const rdata = sl->q_buf;
     struct stlink_libusb * const slu = sl->backend_data;
@@ -355,15 +355,17 @@ int _stlink_usb_core_id(stlink_t * sl) {
     unsigned char* const cmd  = sl->c_buf;
     unsigned char* const data = sl->q_buf;
     ssize_t size;
-    int rep_len = sl->version.jtag_api == STLINK_JTAG_API_V1 ? 4 : 12;
+    int offset, rep_len = sl->version.jtag_api == STLINK_JTAG_API_V1 ? 4 : 12;
     int i = fill_command(sl, SG_DXFER_FROM_DEV, rep_len);
 
     cmd[i++] = STLINK_DEBUG_COMMAND;
 
     if (sl->version.jtag_api == STLINK_JTAG_API_V1) {
         cmd[i++] = STLINK_DEBUG_READCOREID;
+        offset = 0;
     } else {
         cmd[i++] = STLINK_DEBUG_APIV2_READ_IDCODES;
+        offset = 4;
     }
 
     size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len);
@@ -373,11 +375,7 @@ int _stlink_usb_core_id(stlink_t * sl) {
         return(-1);
     }
 
-    if (sl->version.jtag_api == STLINK_JTAG_API_V1) {
-        sl->core_id = read_uint32(data, 0);
-    } else {
-        sl->core_id = read_uint32(data, 4);
-    }
+    sl->core_id = read_uint32(data, offset);
 
     return(0);
 }
@@ -440,6 +438,14 @@ int _stlink_usb_status(stlink_t * sl) {
 
 int _stlink_usb_force_debug(stlink_t *sl) {
     struct stlink_libusb *slu = sl->backend_data;
+
+    int res;
+
+    if (sl->version.jtag_api != STLINK_JTAG_API_V1) {
+        res = _stlink_usb_write_debug32(sl, STLINK_REG_DHCSR, STLINK_REG_DHCSR_DBGKEY | STLINK_REG_DHCSR_C_HALT | STLINK_REG_DHCSR_C_DEBUGEN);
+        return(res);
+    }
+
     unsigned char* const data = sl->q_buf;
     unsigned char* const cmd  = sl->c_buf;
     ssize_t size;
@@ -583,6 +589,17 @@ int _stlink_usb_jtag_reset(stlink_t * sl, int value) {
 
 int _stlink_usb_step(stlink_t* sl) {
     struct stlink_libusb * const slu = sl->backend_data;
+
+    if (sl->version.jtag_api != STLINK_JTAG_API_V1) {
+        // emulates the JTAG v1 API by using DHCSR
+        _stlink_usb_write_debug32(sl, STLINK_REG_DHCSR, STLINK_REG_DHCSR_DBGKEY | STLINK_REG_DHCSR_C_HALT |
+                                                        STLINK_REG_DHCSR_C_MASKINTS | STLINK_REG_DHCSR_C_DEBUGEN);
+        _stlink_usb_write_debug32(sl, STLINK_REG_DHCSR, STLINK_REG_DHCSR_DBGKEY | STLINK_REG_DHCSR_C_STEP |
+                                                        STLINK_REG_DHCSR_C_MASKINTS | STLINK_REG_DHCSR_C_DEBUGEN);
+        return _stlink_usb_write_debug32(sl, STLINK_REG_DHCSR, STLINK_REG_DHCSR_DBGKEY | STLINK_REG_DHCSR_C_HALT |
+                                                                STLINK_REG_DHCSR_C_DEBUGEN);
+    }
+
     unsigned char* const data = sl->q_buf;
     unsigned char* const cmd = sl->c_buf;
     ssize_t size;
@@ -792,11 +809,11 @@ int _stlink_usb_read_all_regs(stlink_t *sl, struct stlink_reg *regp) {
 
     if (sl->verbose < 2) { return(0); }
 
-    DLOG("xpsr       = 0x%08x\n", read_uint32(sl->q_buf, reg_offset + 64));
-    DLOG("main_sp    = 0x%08x\n", read_uint32(sl->q_buf, reg_offset + 68));
-    DLOG("process_sp = 0x%08x\n", read_uint32(sl->q_buf, reg_offset + 72));
-    DLOG("rw         = 0x%08x\n", read_uint32(sl->q_buf, reg_offset + 76));
-    DLOG("rw2        = 0x%08x\n", read_uint32(sl->q_buf, reg_offset + 80));
+    DLOG("xpsr       = 0x%08x\n", regp->xpsr);
+    DLOG("main_sp    = 0x%08x\n", regp->main_sp);
+    DLOG("process_sp = 0x%08x\n", regp->process_sp);
+    DLOG("rw         = 0x%08x\n", regp->rw);
+    DLOG("rw2        = 0x%08x\n", regp->rw2);
 
     return(0);
 }
