@@ -1,5 +1,7 @@
 #include <helper.h>
 
+#include <stddef.h>
+
 #ifdef STLINK_HAVE_SYS_TIME_H
 #include <sys/time.h>
 #else

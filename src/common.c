@@ -14,6 +14,7 @@
 #include <stlink.h>
 #include <logging.h>
 #include <md5.h>
+#include <helper.h>
 
 #ifdef STLINK_HAVE_SYS_MMAN_H
 #include <sys/mman.h>
@@ -1418,44 +1419,71 @@ int stlink_jtag_reset(stlink_t *sl, int value) {
 
 int stlink_soft_reset(stlink_t *sl, int halt_on_reset) {
     int ret;
-    uint32_t dhcsr, demcr;
+    unsigned timeout;
+    uint32_t dhcsr, dfsr;
 
-    DLOG("*** stlink_soft_reset ***\n");
+    ELOG("*** stlink_soft_reset %s***\n", halt_on_reset?"(halt) ":"");
 
     // halt core and enable debugging (if not already done) 
     // C_DEBUGEN is required to Halt on reset (DDI0337E, p. 10-6)
-    _stlink_usb_write_debug32(sl, STLINK_REG_DHCSR, STLINK_REG_DHCSR_DBGKEY | 
+    stlink_write_debug32(sl, STLINK_REG_DHCSR, STLINK_REG_DHCSR_DBGKEY |
                             STLINK_REG_DHCSR_C_HALT | STLINK_REG_DHCSR_C_DEBUGEN);
-    
-    // enable Halt on reset by set VC_CORERESET and TRCENA (DDI0337E, p. 10-10)
-    stlink_read_debug32(sl, STLINK_REG_CM3_DEMCR, &demcr);
-    if (halt_on_reset) {
-        demcr |= STLINK_REG_CM3_DEMCR_TRCENA | STLINK_REG_CM3_DEMCR_VC_CORERESET;
-    } else {
-        demcr &= ~STLINK_REG_CM3_DEMCR_VC_CORERESET;
-    }
-    stlink_write_debug32(sl, STLINK_REG_CM3_DEMCR, demcr);
 
-    // clear S_RESET_ST in DHCSR register
+    // enable Halt on reset by set VC_CORERESET and TRCENA (DDI0337E, p. 10-10)
+    if (halt_on_reset) {
+        stlink_write_debug32(sl, STLINK_REG_CM3_DEMCR, STLINK_REG_CM3_DEMCR_TRCENA |
+                STLINK_REG_CM3_DEMCR_VC_HARDERR | STLINK_REG_CM3_DEMCR_VC_BUSERR |
+                STLINK_REG_CM3_DEMCR_VC_CORERESET);
+
+        // clear VCATCH in the DFSR register
+        stlink_write_debug32(sl,  STLINK_REG_DFSR, STLINK_REG_DFSR_VCATCH);
+    } else {
+        stlink_write_debug32(sl, STLINK_REG_CM3_DEMCR, STLINK_REG_CM3_DEMCR_TRCENA |
+                STLINK_REG_CM3_DEMCR_VC_HARDERR | STLINK_REG_CM3_DEMCR_VC_BUSERR);
+    }
+
+    // clear S_RESET_ST in the DHCSR register
     stlink_read_debug32(sl, STLINK_REG_DHCSR, &dhcsr);
-    
+
     // soft reset (core reset) by SYSRESETREQ (DDI0337E, p. 8-23)
     ret = stlink_write_debug32(sl, STLINK_REG_AIRCR, STLINK_REG_AIRCR_VECTKEY |
                             STLINK_REG_AIRCR_SYSRESETREQ);
-    if (ret)
+    if (ret) {
+        ELOG("Soft reset failed: error write to AIRCR\n");
         return(ret);
+    }
 
     // waiting for a reset within 500ms
+    // DDI0337E, p. 10-4, Debug Halting Control and Status Register
     timeout = time_ms() + 500;
     while (time_ms() < timeout) {
         // DDI0337E, p. 10-4, Debug Halting Control and Status Register
         dhcsr = STLINK_REG_DHCSR_S_RESET_ST;
         stlink_read_debug32(sl, STLINK_REG_DHCSR, &dhcsr);
-        if ((dhcsr&STLINK_REG_DHCSR_S_RESET_ST) == 0)
-            return(0);
+        if ((dhcsr&STLINK_REG_DHCSR_S_RESET_ST) == 0) {
+            if (halt_on_reset) {
+                // waiting halt by the SYSRESETREQ exception
+                // DDI0403E, p. C1-699, Debug Fault Status Register
+                dfsr = 0;
+                stlink_read_debug32(sl, STLINK_REG_DFSR, &dfsr);
+                if ((dfsr&STLINK_REG_DFSR_VCATCH) == 0) {
+                    continue;
+                }
+            }
+            timeout = 0;
+            break;
+        }
     }
 
-    return(-1);
+    // reset DFSR register. DFSR is power-on reset only (DDI0337H, p. 7-5)
+    stlink_write_debug32(sl,  STLINK_REG_DFSR, STLINK_REG_DFSR_CLEAR);
+
+    if (timeout) {
+        ELOG("Soft reset failed: timeout\n");
+        return(-1);
+    }
+
+    return(0);
 }
 
 int stlink_run(stlink_t *sl) {
@@ -2735,7 +2763,7 @@ int stlink_flashloader_start(stlink_t *sl, flash_loader_t *fl) {
         
         if (voltage == -1) {
             ELOG("Failed to read Target voltage\n");
-            return(voltage);
+            return(-1);
         }
 
         if (sl->flash_type == STLINK_FLASH_TYPE_L4) {

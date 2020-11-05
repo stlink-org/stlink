@@ -591,7 +591,7 @@ static void init_data_watchpoints(stlink_t *sl) {
     uint32_t data;
     DLOG("init watchpoints\n");
 
-	// set TRCENA in debug command to turn on DWT unit
+    // set TRCENA in debug command to turn on DWT unit
     stlink_read_debug32(sl, STLINK_REG_CM3_DEMCR, &data);
     data |= STLINK_REG_CM3_DEMCR_TRCENA;
     stlink_write_debug32(sl, STLINK_REG_CM3_DEMCR, data);
@@ -849,7 +849,7 @@ static int flash_go(stlink_t *sl) {
     int error = -1;
     int ret;
     flash_loader_t fl;
-    
+
     // some kinds of clock settings do not allow writing to flash.
     stlink_reset(sl);
     stlink_force_debug(sl);
@@ -863,12 +863,12 @@ static int flash_go(stlink_t *sl) {
 
             ILOG("flash_erase: page %08x\n", page);
             ret = stlink_erase_flash_page(sl, page);
-            if (ret < 0) { goto error; }
+            if (ret) { goto error; }
         }
     }
 
     ret = stlink_flashloader_start(sl, &fl);
-    if (ret < 0) { goto error; }
+    if (ret) { goto error; }
 
     for (struct flash_block* fb = flash_root; fb; fb = fb->next) {
         ILOG("flash_do: block %08x -> %04x\n", fb->addr, fb->length);
@@ -882,12 +882,12 @@ static int flash_go(stlink_t *sl) {
             ILOG("flash_do: page %08x\n", page);
             unsigned len = (length > FLASH_PAGE) ? (unsigned int)FLASH_PAGE : length;
             ret = stlink_flashloader_write(sl, &fl, page, fb->data + (page - fb->addr), len);
-            if (ret < 0) { goto error; }
+            if (ret) { goto error; }
         }
     }
 
     stlink_flashloader_stop(sl);
-    //stlink_reset(sl);
+    stlink_soft_reset(sl, 1 /* halt on reset */);
     error = 0;
 
 error:
@@ -1390,8 +1390,8 @@ int serve(stlink_t *sl, st_state_t *st) {
 
                 free(decoded);
             } else if (!strcmp(cmdName, "FlashDone")) {
-                if (flash_go(sl) < 0) {
-                    reply = strdup("E00");
+                if (flash_go(sl)) {
+                    reply = strdup("E08");
                 } else {
                     reply = strdup("OK");
                 }
@@ -1804,15 +1804,11 @@ int serve(stlink_t *sl, st_state_t *st) {
 
         case 'R': {
             // reset the core.
-            ret = stlink_soft_reset(sl, 1 /* halt on reset */);
+            ret = stlink_reset(sl);
             if (ret) { DLOG("R packet : stlink_reset failed\n"); }
 
             init_code_breakpoints(sl);
             init_data_watchpoints(sl);
-
-			if (stlink_status(sl) == TARGET_HALTED) {
-				stlink_run(sl);
-			}
 
             attached = 1;
 

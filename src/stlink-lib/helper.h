@@ -3,4 +3,4 @@
 
 unsigned time_ms();
 
-#endif SYS_HELPER_H
+#endif /* SYS_HELPER_H */

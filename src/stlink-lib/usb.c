@@ -510,7 +510,8 @@ int _stlink_usb_reset(stlink_t * sl) {
     unsigned char* const cmd = sl->c_buf;
     ssize_t size;
     uint32_t dhcsr;
-    int ret, timeout, i, rep_len = 2;
+    unsigned timeout;
+    int i, rep_len = 2;
 
     // clear S_RESET_ST in DHCSR registr
     _stlink_usb_read_debug32(sl, STLINK_REG_DHCSR, &dhcsr);
@@ -535,19 +536,14 @@ int _stlink_usb_reset(stlink_t * sl) {
     usleep(10000);
 
     dhcsr = 0;
-    ret = _stlink_usb_read_debug32(sl, STLINK_REG_DHCSR, &dhcsr);
+    _stlink_usb_read_debug32(sl, STLINK_REG_DHCSR, &dhcsr);
     if ((dhcsr & STLINK_REG_DHCSR_S_RESET_ST) == 0) {
         // reset not done yet
         // try reset through AIRCR so that NRST does not need to be connected
-        
+
         WLOG("NRST is not connected\n");
         DLOG("Using reset through SYSRESETREQ\n");
-        ret = _stlink_usb_write_debug32(sl, STLINK_REG_AIRCR, STLINK_REG_AIRCR_VECTKEY |
-                                STLINK_REG_AIRCR_SYSRESETREQ);
-        if (ret)
-            return(ret);
-
-        usleep(10000);
+        return stlink_soft_reset(sl, 0);
     }
 
     // waiting for a reset within 500ms
