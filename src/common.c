@@ -1422,7 +1422,7 @@ int stlink_soft_reset(stlink_t *sl, int halt_on_reset) {
     unsigned timeout;
     uint32_t dhcsr, dfsr;
 
-    ELOG("*** stlink_soft_reset %s***\n", halt_on_reset?"(halt) ":"");
+    DLOG("*** stlink_soft_reset %s***\n", halt_on_reset?"(halt) ":"");
 
     // halt core and enable debugging (if not already done) 
     // C_DEBUGEN is required to Halt on reset (DDI0337E, p. 10-6)

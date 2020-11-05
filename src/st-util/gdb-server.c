@@ -853,6 +853,8 @@ static int flash_go(stlink_t *sl) {
     // some kinds of clock settings do not allow writing to flash.
     stlink_reset(sl);
     stlink_force_debug(sl);
+    // delay to ensure that STM32 HSI clock and others have started up fully
+    usleep(10000);
 
     for (struct flash_block* fb = flash_root; fb; fb = fb->next) {
         ILOG("flash_erase: block %08x -> %04x\n", fb->addr, fb->length);
