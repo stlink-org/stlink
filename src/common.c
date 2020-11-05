@@ -1491,9 +1491,9 @@ int stlink_run(stlink_t *sl) {
     return(sl->backend->run(sl));
 }
 
-int stlink_set_swdclk(stlink_t *sl, uint16_t divisor) {
+int stlink_set_swdclk(stlink_t *sl, int freq_khz) {
     DLOG("*** set_swdclk ***\n");
-    return(sl->backend->set_swdclk(sl, divisor));
+    return(sl->backend->set_swdclk(sl, freq_khz));
 }
 
 int stlink_status(stlink_t *sl) {

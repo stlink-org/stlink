@@ -651,7 +651,7 @@ int _stlink_usb_run(stlink_t* sl) {
     return(0);
 }
 
-int _stlink_usb_set_swdclk(stlink_t* sl, uint16_t clk_divisor) {
+int _stlink_usb_set_swdclk(stlink_t* sl, int clk_freq) {
     struct stlink_libusb * const slu = sl->backend_data;
     unsigned char* const data = sl->q_buf;
     unsigned char* const cmd = sl->c_buf;
@@ -661,6 +661,28 @@ int _stlink_usb_set_swdclk(stlink_t* sl, uint16_t clk_divisor) {
 
     // clock speed only supported by stlink/v2 and for firmware >= 22
     if (sl->version.stlink_v == 2 && sl->version.jtag_v >= 22) {
+        uint16_t clk_divisor;
+        if (clk_freq) {
+            const uint32_t map[] = {5, 15, 25, 50, 100, 125, 240, 480, 950, 1200, 1800, 4000};
+            int speed_index = _stlink_match_speed_map(map, STLINK_ARRAY_SIZE(map), clk_freq);
+            switch (map[speed_index]) {
+            case 5:   clk_divisor = STLINK_SWDCLK_5KHZ_DIVISOR; break;
+            case 15:  clk_divisor = STLINK_SWDCLK_15KHZ_DIVISOR; break;
+            case 25:  clk_divisor = STLINK_SWDCLK_25KHZ_DIVISOR; break;
+            case 50:  clk_divisor = STLINK_SWDCLK_50KHZ_DIVISOR; break;
+            case 100: clk_divisor = STLINK_SWDCLK_100KHZ_DIVISOR; break;
+            case 125: clk_divisor = STLINK_SWDCLK_125KHZ_DIVISOR; break;
+            case 240: clk_divisor = STLINK_SWDCLK_240KHZ_DIVISOR; break;
+            case 480: clk_divisor = STLINK_SWDCLK_480KHZ_DIVISOR; break;
+            case 950: clk_divisor = STLINK_SWDCLK_950KHZ_DIVISOR; break;
+            case 1200: clk_divisor = STLINK_SWDCLK_1P2MHZ_DIVISOR; break;
+            default:
+            case 1800: clk_divisor = STLINK_SWDCLK_1P8MHZ_DIVISOR; break;
+            case 4000: clk_divisor = STLINK_SWDCLK_4MHZ_DIVISOR; break;
+            }
+        } else
+            clk_divisor = STLINK_SWDCLK_1P8MHZ_DIVISOR;
+
         i = fill_command(sl, SG_DXFER_FROM_DEV, rep_len);
 
         cmd[i++] = STLINK_DEBUG_COMMAND;
@@ -691,7 +713,6 @@ int _stlink_usb_set_swdclk(stlink_t* sl, uint16_t clk_divisor) {
         }
 
         int speeds_size = data[8];
-
         if (speeds_size > STLINK_V3_MAX_FREQ_NB) {
             speeds_size = STLINK_V3_MAX_FREQ_NB;
         }
@@ -701,7 +722,8 @@ int _stlink_usb_set_swdclk(stlink_t* sl, uint16_t clk_divisor) {
         // Set to zero all the next entries
         for (i = speeds_size; i < STLINK_V3_MAX_FREQ_NB; i++) map[i] = 0;
 
-        speed_index = _stlink_match_speed_map(map, STLINK_ARRAY_SIZE(map), 1800);
+        if (!clk_freq) clk_freq = 1800; // set default frequency
+        speed_index = _stlink_match_speed_map(map, STLINK_ARRAY_SIZE(map), clk_freq);
 
         i = fill_command(sl, SG_DXFER_FROM_DEV, 16);
 
@@ -1228,45 +1250,7 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, int reset, char serial[STL
     // should be done at this speed too
     // set the stlink clock speed (default is 1800kHz)
     DLOG("JTAG/SWD freq set to %d\n", freq);
-
-    switch (freq) {
-    case 5:
-        stlink_set_swdclk(sl, STLINK_SWDCLK_5KHZ_DIVISOR);
-        break;
-    case 15:
-        stlink_set_swdclk(sl, STLINK_SWDCLK_15KHZ_DIVISOR);
-        break;
-    case 25:
-        stlink_set_swdclk(sl, STLINK_SWDCLK_25KHZ_DIVISOR);
-        break;
-    case 50:
-        stlink_set_swdclk(sl, STLINK_SWDCLK_50KHZ_DIVISOR);
-        break;
-    case 100:
-        stlink_set_swdclk(sl, STLINK_SWDCLK_100KHZ_DIVISOR);
-        break;
-    case 125:
-        stlink_set_swdclk(sl, STLINK_SWDCLK_125KHZ_DIVISOR);
-        break;
-    case 240:
-        stlink_set_swdclk(sl, STLINK_SWDCLK_240KHZ_DIVISOR);
-        break;
-    case 480:
-        stlink_set_swdclk(sl, STLINK_SWDCLK_480KHZ_DIVISOR);
-        break;
-    case 950:
-        stlink_set_swdclk(sl, STLINK_SWDCLK_950KHZ_DIVISOR);
-        break;
-    case 1200:
-        stlink_set_swdclk(sl, STLINK_SWDCLK_1P2MHZ_DIVISOR);
-        break;
-    case 0: case 1800:
-        stlink_set_swdclk(sl, STLINK_SWDCLK_1P8MHZ_DIVISOR);
-        break;
-    case 4000:
-        stlink_set_swdclk(sl, STLINK_SWDCLK_4MHZ_DIVISOR);
-        break;
-    }
+    stlink_set_swdclk(sl, freq);
 
     if (reset == 2) {
         stlink_jtag_reset(sl, 0);
