@@ -504,6 +504,24 @@ static const char* const memory_map_template_F7 =
     "  <memory type=\"rom\" start=\"0x1fff0000\" length=\"0x20\"/>"         // option byte area
     "</memory-map>";
 
+static const char* const memory_map_template_H7 =
+    "<?xml version=\"1.0\"?>"
+    "<!DOCTYPE memory-map PUBLIC \"+//IDN gnu.org//DTD GDB Memory Map V1.0//EN\""
+    "     \"http://sourceware.org/gdb/gdb-memory-map.dtd\">"
+    "<memory-map>"
+    "  <memory type=\"rom\" start=\"0x00000000\" length=\"0x10000\"/>"         // ITCMRAM 64kB
+    "  <memory type=\"ram\" start=\"0x20000000\" length=\"0x20000\"/>"         // DTCMRAM 128kB
+    "  <memory type=\"ram\" start=\"0x24000000\" length=\"0x80000\"/>"         // RAM D1 512kB
+    "  <memory type=\"ram\" start=\"0x30000000\" length=\"0x48000\"/>"         // RAM D2 288kB
+    "  <memory type=\"ram\" start=\"0x38000000\" length=\"0x10000\"/>"         // RAM D3 64kB
+    "  <memory type=\"flash\" start=\"0x08000000\" length=\"0x%x\">"
+    "    <property name=\"blocksize\">0x%x</property>"
+    "  </memory>"
+    "  <memory type=\"ram\" start=\"0x40000000\" length=\"0x1fffffff\"/>"   // peripheral regs
+    "  <memory type=\"ram\" start=\"0xe0000000\" length=\"0x1fffffff\"/>"   // cortex regs
+    "  <memory type=\"rom\" start=\"0x1ff00000\" length=\"0x20000\"/>"      // bootrom
+    "</memory-map>";
+
 
 static const char* const memory_map_template_F4_DE =
     "<?xml version=\"1.0\"?>"
@@ -543,6 +561,10 @@ char* make_memory_map(stlink_t *sl) {
     } else if (sl->core_id == STM32F7_CORE_ID) {
         snprintf(map, sz, memory_map_template_F7,
                  (unsigned int)sl->sram_size);
+    } else if (sl->chip_id == STLINK_CHIPID_STM32_H74XXX) {
+        snprintf(map, sz, memory_map_template_H7,
+                 (unsigned int)sl->flash_size,
+                 (unsigned int)sl->flash_pgsz);
     } else if (sl->chip_id == STLINK_CHIPID_STM32_F4_HD) {
         strcpy(map, memory_map_template_F4_HD);
     } else if (sl->chip_id == STLINK_CHIPID_STM32_F2) {
