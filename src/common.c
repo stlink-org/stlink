@@ -1487,7 +1487,7 @@ int stlink_soft_reset(stlink_t *sl, int halt_on_reset) {
 }
 
 int stlink_run(stlink_t *sl) {
-	struct stlink_reg rr;
+    struct stlink_reg rr;
     DLOG("*** stlink_run ***\n");
 
     stlink_read_reg(sl, 16, &rr);
