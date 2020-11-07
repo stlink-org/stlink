@@ -1490,8 +1490,14 @@ int stlink_run(stlink_t *sl) {
     struct stlink_reg rr;
     DLOG("*** stlink_run ***\n");
 
+    /* Make sure we are in Thumb mode
+     * Cortex-M chips don't support ARM mode instructions
+     * xPSR may be incorrect if the vector table has invalid data */
     stlink_read_reg(sl, 16, &rr);
-    DLOG("Run in %s mode\n", (rr.xpsr & (1 << 24))?"ARM":"THUMB");
+    if ((rr.xpsr & (1 << 24)) == 0) {
+        ILOG("Go to Thumb mode\n");
+        stlink_write_reg(sl, rr.xpsr | (1 << 24), 16);
+    }
 
     return(sl->backend->run(sl));
 }

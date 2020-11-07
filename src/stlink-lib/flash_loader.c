@@ -356,13 +356,6 @@ int stlink_flash_loader_run(stlink_t *sl, flash_loader_t* fl, stm32_addr_t targe
                                                // only used on VL/F1_XL, but harmless for others
     stlink_write_reg(sl, fl->loader_addr, 15); // pc register
 
-    /* Make sure we are in Thumb mode */
-    stlink_read_reg(sl, 16, &rr);
-    if ((rr.xpsr & (1 << 24)) == 0) {
-        ILOG("Go to Thumb mode\n");
-        stlink_write_reg(sl, rr.xpsr | (1 << 24), 16);
-    }
-
     /* Run loader */
     stlink_run(sl);
 
