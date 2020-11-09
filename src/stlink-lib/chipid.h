@@ -64,6 +64,8 @@ enum stlink_stm32_chipids {
     STLINK_CHIPID_STM32_G4_CAT2          = 0x468, /* See: RM 0440 s46.6.1 "MCU device ID code" */
     STLINK_CHIPID_STM32_G4_CAT3          = 0x469,
     STLINK_CHIPID_STM32_L4RX             = 0x470, /* ID found on the STM32L4R9I-DISCO board */
+    STLINK_CHIPID_STM32_H7AX             = 0x480, /* RM0455, p. 2863 */
+    STLINK_CHIPID_STM32_H72X             = 0x483, /* RM0468, p. 3199 */
     STLINK_CHIPID_STM32_WB55             = 0x495
 };
 
