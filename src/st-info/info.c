@@ -38,11 +38,11 @@ static void stlink_print_serial(stlink_t *sl, bool openocd) {
 static void stlink_print_version(stlink_t *sl) {
     // Implementation of version printing is minimalistic
     // but contains all available information from sl->version
-    printf("V%d", sl->version.stlink_v);
+    printf("V%u", sl->version.stlink_v);
     if (sl->version.jtag_v > 0)
-        printf("J%d", sl->version.jtag_v);
+        printf("J%u", sl->version.jtag_v);
     if (sl->version.swim_v > 0)
-        printf("S%d", sl->version.swim_v);
+        printf("S%u", sl->version.swim_v);
     printf("\n");
 }
 
