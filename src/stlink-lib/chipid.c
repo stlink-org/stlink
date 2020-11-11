@@ -77,7 +77,9 @@ static const struct stlink_chipid_params devices[] = {
         .flash_pagesize = 0x4000,
         .sram_size = 0x30000,
         .bootrom_base = 0x1fff0000,
-        .bootrom_size = 0x7800
+        .bootrom_size = 0x7800,
+        .option_base = STM32_F4_OPTION_BYTES_BASE,
+        .option_size = 4,
     },
     {
         .chip_id = STLINK_CHIPID_STM32_F4_DSI,
