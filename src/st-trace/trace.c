@@ -12,8 +12,9 @@
 #define DEFAULT_LOGGING_LEVEL 50
 #define DEBUG_LOGGING_LEVEL 100
 
-#define APP_RESULT_SUCCESS 0
-#define APP_RESULT_INVALID_PARAMS 1
+#define APP_RESULT_SUCCESS          0
+#define APP_RESULT_INVALID_PARAMS   1
+#define APP_RESULT_STLINK_NOT_FOUND 2
 
 
 struct _st_settings_t
@@ -30,15 +31,15 @@ typedef struct _st_settings_t st_settings_t;
 
 
 static void usage(void) {
-    puts("st-trace - usage:");
-    puts("  -h, --help            Print this help");
-    puts("  -V, --version         Print this version");
-    puts("  -vXX, --verbose=XX    Specify a specific verbosity level (0..99)");
-    puts("  -v, --verbose         Specify a generally verbose logging");
-    puts("  -cXX, --clock=XX      Specify the core frequency in MHz");
-    puts("  -n, --no-reset        Do not reset board on connection");
-    puts("  -sXX, --serial=XX     Use a specific serial number");
-    puts("  -a, --no-sync         Do not wait for a sync packet");
+	puts("st-trace - usage:");
+	puts("  -h, --help            Print this help");
+	puts("  -V, --version         Print this version");
+	puts("  -vXX, --verbose=XX    Specify a specific verbosity level (0..99)");
+	puts("  -v, --verbose         Specify a generally verbose logging");
+	puts("  -cXX, --clock=XX      Specify the core frequency in MHz");
+	puts("  -n, --no-reset        Do not reset board on connection");
+	puts("  -sXX, --serial=XX     Use a specific serial number");
+	puts("  -a, --no-sync         Do not wait for a sync packet");
 }
 
 bool parse_options(int argc, char** argv, st_settings_t *settings) {
@@ -110,6 +111,33 @@ bool parse_options(int argc, char** argv, st_settings_t *settings) {
 	return true;
 }
 
+static bool FindStLink(const st_settings_t* settings, stlink_t* link) {
+	stlink_t **stdevs;
+	size_t size;
+	bool result = false;
+
+	size = stlink_probe_usb(&stdevs);
+	if (settings->logging_level >= UDEBUG) {
+		printf("Found %u stlink programmers\n", (unsigned int)size);
+	}
+
+	if (!settings->serial_number && size > 0) {
+		*link = *stdevs[0];
+		result = true;
+	} else {
+		for (size_t n = 0; n < size; n++) {
+			if (strncmp(stdevs[n]->serial, settings->serial_number, stdevs[n]->serial_size) == 0) {
+				*link = *stdevs[n];
+				result = true;
+			}
+		}
+	}
+
+	stlink_probe_usb_free(&stdevs, size);
+
+	return result;
+}
+
 int main(int argc, char** argv)
 {
 	st_settings_t settings;
@@ -119,14 +147,15 @@ int main(int argc, char** argv)
 		return APP_RESULT_INVALID_PARAMS;
 	}
 
-	/* if (settings.logging_level >= UDEBUG) */
-	printf("show_help = %s\n", settings.show_help ? "true" : "false");
-	printf("show_version = %s\n", settings.show_version ? "true" : "false");
-	printf("logging_level = %d\n", settings.logging_level);
-	printf("core_frequency = %d MHz\n", settings.core_frequency_mhz);
-	printf("reset_board = %s\n", settings.reset_board ? "true" : "false");
-	printf("serial_number = %s\n", settings.serial_number ? settings.serial_number : "any");
-	printf("wait_sync = %s\n", settings.wait_sync ? "true" : "false");
+	if (settings.logging_level >= UDEBUG) {
+		printf("show_help = %s\n", settings.show_help ? "true" : "false");
+		printf("show_version = %s\n", settings.show_version ? "true" : "false");
+		printf("logging_level = %d\n", settings.logging_level);
+		printf("core_frequency = %d MHz\n", settings.core_frequency_mhz);
+		printf("reset_board = %s\n", settings.reset_board ? "true" : "false");
+		printf("serial_number = %s\n", settings.serial_number ? settings.serial_number : "any");
+		printf("wait_sync = %s\n", settings.wait_sync ? "true" : "false");
+	}
 
 	if (settings.show_help) {
 		usage();
@@ -137,6 +166,19 @@ int main(int argc, char** argv)
 		printf("v%s\n", STLINK_VERSION);
 		return APP_RESULT_SUCCESS;
 	}
+
+	stlink_t link;
+	if (!FindStLink(&settings, &link)) {
+		if (settings.serial_number) {
+			printf("ERROR: Unable to locate st-link '%s'\n", settings.serial_number);
+		} else {
+			printf("ERROR: Unable to locate st-link\n");
+		}
+		return APP_RESULT_STLINK_NOT_FOUND;
+	}
+
+
+
 	
 	return APP_RESULT_SUCCESS;
 }
