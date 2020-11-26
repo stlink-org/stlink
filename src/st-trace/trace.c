@@ -113,12 +113,26 @@ bool parse_options(int argc, char** argv, st_settings_t *settings) {
 	return true;
 }
 
+static const char* GetSerialString(const stlink_t* link) {
+	const char kHexChars[16] = "0123456789abcdef";
+	static char serial[2 * sizeof(link->serial) + 1];
+
+	size_t cursor = 0;
+	for (size_t n = 0; n < link->serial_size; n++) {
+		serial[cursor++] = kHexChars[(link->serial[n] >> 4) & 0x0f];
+		serial[cursor++] = kHexChars[(link->serial[n] >> 0) & 0x0f];
+	}
+	serial[cursor++] = 0;
+
+	return serial;
+}
+
 static bool CompareStlink(const st_settings_t* settings, const stlink_t* link) {
 	if (!settings->serial_number) {
 		return true;
 	}
 
-	if (strncmp(link->serial, settings->serial_number, link->serial_size) == 0) {
+	if (strncmp(GetSerialString(link), settings->serial_number, strlen(settings->serial_number)) == 0) {
 		return true;
 	}
 
@@ -131,16 +145,17 @@ static bool FindStLink(const st_settings_t* settings, stlink_t* link) {
 	bool result = false;
 
 	size = stlink_probe_usb(&stdevs);
-	LOG(settings, UDEBUG, "Found %u stlink programmers\n", (unsigned int)size);
+	LOG(settings, UDEBUG, "Found %u stlink programmer(s)\n", (unsigned int)size);
 
 	for (size_t n = 0; n < size; n++) {
 		if (CompareStlink(settings, stdevs[n])) {
-			LOG(settings, UDEBUG, "Matching stlink '%*s'\n", stdevs[n]->serial_size, stdevs[n]->serial);
+			LOG(settings, UDEBUG, "Matching stlink '%s'\n", GetSerialString(stdevs[n]));
 			if (result) {
-				LOG(settings, UWARN, "WARNING: Multiple matching stlinks\n");
+				LOG(settings, UWARN, "WARNING: Multiple matching stlink programmers. Using '%s'\n", GetSerialString(link));
+			} else {
+				*link = *stdevs[n];
+				result = true;
 			}
-			*link = *stdevs[n];
-			result = true;
 		}
 	}
 
