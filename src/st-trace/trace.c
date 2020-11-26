@@ -16,8 +16,6 @@
 #define APP_RESULT_INVALID_PARAMS   1
 #define APP_RESULT_STLINK_NOT_FOUND 2
 
-#define LOG(SETTINGS, LEVEL, ARGS...) if ((SETTINGS)->logging_level >= (LEVEL)) printf(ARGS)
-
 
 struct _st_settings_t
 {
@@ -66,6 +64,7 @@ bool parse_options(int argc, char** argv, st_settings_t *settings) {
 	settings->reset_board = true;
 	settings->serial_number = NULL;
 	settings->wait_sync = true;
+	ugly_init(settings->logging_level);
 
 	while ((c = getopt_long(argc, argv, "hVv::c:ns:a", long_options, &option_index)) != -1) {
 		switch (c) {
@@ -81,6 +80,7 @@ bool parse_options(int argc, char** argv, st_settings_t *settings) {
 			} else {
 				settings->logging_level = DEBUG_LOGGING_LEVEL;
 			}
+			ugly_init(settings->logging_level);
 			break;
 		case 'c':
 			settings->core_frequency_mhz = atoi(optarg);
@@ -98,14 +98,14 @@ bool parse_options(int argc, char** argv, st_settings_t *settings) {
 			return false;
 			break;
 		default:
-			LOG(settings, UERROR, "ERROR: Unknown command line option: '%c' (0x%02x)\n", c, c);
+			ELOG("Unknown command line option: '%c' (0x%02x)\n", c, c);
 			return false;
 		}
 	}
 
 	if (optind < argc) {
 		while (optind < argc) {
-			LOG(settings, UERROR, "ERROR: Unknown command line argument: '%s'\n", argv[optind++]);
+			ELOG("Unknown command line argument: '%s'\n", argv[optind++]);
 		}
 		return false;
 	}
@@ -145,13 +145,13 @@ static bool FindStLink(const st_settings_t* settings, stlink_t* link) {
 	bool result = false;
 
 	size = stlink_probe_usb(&stdevs);
-	LOG(settings, UDEBUG, "Found %u stlink programmer(s)\n", (unsigned int)size);
+	DLOG("Found %u stlink programmer(s)\n", (unsigned int)size);
 
 	for (size_t n = 0; n < size; n++) {
 		if (CompareStlink(settings, stdevs[n])) {
-			LOG(settings, UDEBUG, "Matching stlink '%s'\n", GetSerialString(stdevs[n]));
+			DLOG("Matching stlink '%s'\n", GetSerialString(stdevs[n]));
 			if (result) {
-				LOG(settings, UWARN, "WARNING: Multiple matching stlink programmers. Using '%s'\n", GetSerialString(link));
+				WLOG("Multiple matching stlink programmers. Using '%s'\n", GetSerialString(link));
 			} else {
 				*link = *stdevs[n];
 				result = true;
@@ -173,13 +173,13 @@ int main(int argc, char** argv)
 		return APP_RESULT_INVALID_PARAMS;
 	}
 
-	LOG(&settings, UDEBUG, "show_help = %s\n", settings.show_help ? "true" : "false");
-	LOG(&settings, UDEBUG, "show_version = %s\n", settings.show_version ? "true" : "false");
-	LOG(&settings, UDEBUG, "logging_level = %d\n", settings.logging_level);
-	LOG(&settings, UDEBUG, "core_frequency = %d MHz\n", settings.core_frequency_mhz);
-	LOG(&settings, UDEBUG, "reset_board = %s\n", settings.reset_board ? "true" : "false");
-	LOG(&settings, UDEBUG, "serial_number = %s\n", settings.serial_number ? settings.serial_number : "any");
-	LOG(&settings, UDEBUG, "wait_sync = %s\n", settings.wait_sync ? "true" : "false");
+	DLOG("show_help = %s\n", settings.show_help ? "true" : "false");
+	DLOG("show_version = %s\n", settings.show_version ? "true" : "false");
+	DLOG("logging_level = %d\n", settings.logging_level);
+	DLOG("core_frequency = %d MHz\n", settings.core_frequency_mhz);
+	DLOG("reset_board = %s\n", settings.reset_board ? "true" : "false");
+	DLOG("serial_number = %s\n", settings.serial_number ? settings.serial_number : "any");
+	DLOG("wait_sync = %s\n", settings.wait_sync ? "true" : "false");
 
 	if (settings.show_help) {
 		usage();
@@ -193,7 +193,7 @@ int main(int argc, char** argv)
 
 	stlink_t link;
 	if (!FindStLink(&settings, &link)) {
-		LOG(&settings, UERROR, "ERROR: Unable to locate st-link\n");
+		ELOG("Unable to locate st-link\n");
 		return APP_RESULT_STLINK_NOT_FOUND;
 	}
 
