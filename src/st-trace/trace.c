@@ -16,6 +16,8 @@
 #define APP_RESULT_INVALID_PARAMS   1
 #define APP_RESULT_STLINK_NOT_FOUND 2
 
+#define LOG(SETTINGS, LEVEL, ARGS...) if (settings->logging_level >= LEVEL) printf(ARGS)
+
 
 struct _st_settings_t
 {
@@ -111,25 +113,34 @@ bool parse_options(int argc, char** argv, st_settings_t *settings) {
 	return true;
 }
 
+static bool CompareStlink(const st_settings_t* settings, const stlink_t* link) {
+	if (!settings->serial_number) {
+		return true;
+	}
+
+	if (strncmp(link->serial, settings->serial_number, link->serial_size) == 0) {
+		return true;
+	}
+
+	return false;
+}
+
 static bool FindStLink(const st_settings_t* settings, stlink_t* link) {
 	stlink_t **stdevs;
 	size_t size;
 	bool result = false;
 
 	size = stlink_probe_usb(&stdevs);
-	if (settings->logging_level >= UDEBUG) {
-		printf("Found %u stlink programmers\n", (unsigned int)size);
-	}
+	LOG(settings, UDEBUG, "Found %u stlink programmers\n", (unsigned int)size);
 
-	if (!settings->serial_number && size > 0) {
-		*link = *stdevs[0];
-		result = true;
-	} else {
-		for (size_t n = 0; n < size; n++) {
-			if (strncmp(stdevs[n]->serial, settings->serial_number, stdevs[n]->serial_size) == 0) {
-				*link = *stdevs[n];
-				result = true;
+	for (size_t n = 0; n < size; n++) {
+		if (CompareStlink(settings, stdevs[n])) {
+			LOG(settings, UDEBUG, "Matching stlink '%*s'\n", stdevs[n]->serial_size, stdevs[n]->serial);
+			if (result) {
+				LOG(settings, UWARN, "WARNING: Multiple matching stlinks\n");
 			}
+			*link = *stdevs[n];
+			result = true;
 		}
 	}
 
