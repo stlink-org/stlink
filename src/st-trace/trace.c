@@ -113,60 +113,25 @@ bool parse_options(int argc, char** argv, st_settings_t *settings) {
 	return true;
 }
 
-static const char* GetSerialString(const stlink_t* link) {
-	const char kHexChars[16] = "0123456789abcdef";
-	static char serial[2 * sizeof(link->serial) + 1];
-
-	size_t cursor = 0;
-	for (size_t n = 0; n < link->serial_size; n++) {
-		serial[cursor++] = kHexChars[(link->serial[n] >> 4) & 0x0f];
-		serial[cursor++] = kHexChars[(link->serial[n] >> 0) & 0x0f];
-	}
-	serial[cursor++] = 0;
-
-	return serial;
-}
-
-static bool CompareStlink(const st_settings_t* settings, const stlink_t* link) {
-	if (!settings->serial_number) {
-		return true;
-	}
-
-	if (strncmp(GetSerialString(link), settings->serial_number, strlen(settings->serial_number)) == 0) {
-		return true;
-	}
-
-	return false;
-}
-
-static bool FindStLink(const st_settings_t* settings, stlink_t* link) {
-	stlink_t **stdevs;
-	size_t size;
-	bool result = false;
-
-	size = stlink_probe_usb(&stdevs);
-	DLOG("Found %u stlink programmer(s)\n", (unsigned int)size);
-
-	for (size_t n = 0; n < size; n++) {
-		if (CompareStlink(settings, stdevs[n])) {
-			DLOG("Matching stlink '%s'\n", GetSerialString(stdevs[n]));
-			if (result) {
-				WLOG("Multiple matching stlink programmers. Using '%s'\n", GetSerialString(link));
-			} else {
-				*link = *stdevs[n];
-				result = true;
-			}
+static stlink_t* StLinkConnect(const st_settings_t* settings) {
+	if (settings->serial_number) {
+		char serial_number[STLINK_SERIAL_MAX_SIZE] = { 0 };
+		size_t length = 0;
+		for (uint32_t n = 0; n < strlen(settings->serial_number) && length < STLINK_SERIAL_MAX_SIZE; n += 2) {
+			char buffer[3] = { 0 };
+			memcpy(buffer, settings->serial_number + n, 2);
+			serial_number[length++] = (uint8_t)strtol(buffer, NULL, 16);
 		}
+		return stlink_open_usb(settings->logging_level, false, serial_number, 0);
+	} else {
+		return stlink_open_usb(settings->logging_level, false, NULL, 0);
 	}
-
-	stlink_probe_usb_free(&stdevs, size);
-
-	return result;
 }
 
 int main(int argc, char** argv)
 {
 	st_settings_t settings;
+	stlink_t* link = NULL;
 
 	if (!parse_options(argc, argv, &settings)) {
 		usage();
@@ -191,15 +156,12 @@ int main(int argc, char** argv)
 		return APP_RESULT_SUCCESS;
 	}
 
-	stlink_t link;
-	if (!FindStLink(&settings, &link)) {
+	link = StLinkConnect(&settings);
+	if (!link) {
 		ELOG("Unable to locate st-link\n");
 		return APP_RESULT_STLINK_NOT_FOUND;
 	}
-
-
-
-	
+		
 	return APP_RESULT_SUCCESS;
 }
 
