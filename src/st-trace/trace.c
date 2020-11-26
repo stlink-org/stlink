@@ -16,7 +16,7 @@
 #define APP_RESULT_INVALID_PARAMS   1
 #define APP_RESULT_STLINK_NOT_FOUND 2
 
-#define LOG(SETTINGS, LEVEL, ARGS...) if (settings->logging_level >= LEVEL) printf(ARGS)
+#define LOG(SETTINGS, LEVEL, ARGS...) if ((SETTINGS)->logging_level >= (LEVEL)) printf(ARGS)
 
 
 struct _st_settings_t
@@ -98,14 +98,14 @@ bool parse_options(int argc, char** argv, st_settings_t *settings) {
 			return false;
 			break;
 		default:
-			printf("ERROR: Unknown command line option: '%c' (0x%02x)\n", c, c);
+			LOG(settings, UERROR, "ERROR: Unknown command line option: '%c' (0x%02x)\n", c, c);
 			return false;
 		}
 	}
 
 	if (optind < argc) {
 		while (optind < argc) {
-			printf("ERROR: Unknown command line argument: '%s'\n", argv[optind++]);
+			LOG(settings, UERROR, "ERROR: Unknown command line argument: '%s'\n", argv[optind++]);
 		}
 		return false;
 	}
@@ -173,15 +173,13 @@ int main(int argc, char** argv)
 		return APP_RESULT_INVALID_PARAMS;
 	}
 
-	if (settings.logging_level >= UDEBUG) {
-		printf("show_help = %s\n", settings.show_help ? "true" : "false");
-		printf("show_version = %s\n", settings.show_version ? "true" : "false");
-		printf("logging_level = %d\n", settings.logging_level);
-		printf("core_frequency = %d MHz\n", settings.core_frequency_mhz);
-		printf("reset_board = %s\n", settings.reset_board ? "true" : "false");
-		printf("serial_number = %s\n", settings.serial_number ? settings.serial_number : "any");
-		printf("wait_sync = %s\n", settings.wait_sync ? "true" : "false");
-	}
+	LOG(&settings, UDEBUG, "show_help = %s\n", settings.show_help ? "true" : "false");
+	LOG(&settings, UDEBUG, "show_version = %s\n", settings.show_version ? "true" : "false");
+	LOG(&settings, UDEBUG, "logging_level = %d\n", settings.logging_level);
+	LOG(&settings, UDEBUG, "core_frequency = %d MHz\n", settings.core_frequency_mhz);
+	LOG(&settings, UDEBUG, "reset_board = %s\n", settings.reset_board ? "true" : "false");
+	LOG(&settings, UDEBUG, "serial_number = %s\n", settings.serial_number ? settings.serial_number : "any");
+	LOG(&settings, UDEBUG, "wait_sync = %s\n", settings.wait_sync ? "true" : "false");
 
 	if (settings.show_help) {
 		usage();
@@ -195,11 +193,7 @@ int main(int argc, char** argv)
 
 	stlink_t link;
 	if (!FindStLink(&settings, &link)) {
-		if (settings.serial_number) {
-			printf("ERROR: Unable to locate st-link '%s'\n", settings.serial_number);
-		} else {
-			printf("ERROR: Unable to locate st-link\n");
-		}
+		LOG(&settings, UERROR, "ERROR: Unable to locate st-link\n");
 		return APP_RESULT_STLINK_NOT_FOUND;
 	}
 
