@@ -972,6 +972,82 @@ int _stlink_usb_write_reg(stlink_t *sl, uint32_t reg, int idx) {
     return(0);
 }
 
+int _stlink_usb_enable_trace(stlink_t* sl) {
+    struct stlink_libusb * const slu = sl->backend_data;
+    unsigned char* const cmd  = sl->c_buf;
+    ssize_t size;
+
+    int i = fill_command(sl, SG_DXFER_FROM_DEV, 0);
+    cmd[i++] = STLINK_DEBUG_COMMAND;
+    cmd[i++] = STLINK_DEBUG_APIV2_START_TRACE_RX;
+    write_uint16(&cmd[i + 0], STLINK_TRACE_BUF_LEN);
+    write_uint32(&cmd[i + 2], STLINK_TRACE_FREQUENCY);
+
+    size = send_only(slu, 1, cmd, slu->cmd_len);
+
+    if (size == -1) {
+        printf("[!] send_only STLINK_DEBUG_APIV2_START_TRACE_RX\n");
+        return((int)size);
+    }
+
+    return(0);
+}
+
+int _stlink_usb_disable_trace(stlink_t* sl) {
+    struct stlink_libusb * const slu = sl->backend_data;
+    unsigned char* const cmd  = sl->c_buf;
+    ssize_t size;
+
+    int i = fill_command(sl, SG_DXFER_FROM_DEV, 0);
+    cmd[i++] = STLINK_DEBUG_COMMAND;
+    cmd[i++] = STLINK_DEBUG_APIV2_STOP_TRACE_RX;
+
+    size = send_only(slu, 1, cmd, slu->cmd_len);
+
+    if (size == -1) {
+        printf("[!] send_only STLINK_DEBUG_APIV2_STOP_TRACE_RX\n");
+        return((int)size);
+    }
+
+    return(0);
+}
+
+int _stlink_usb_read_trace(stlink_t* sl, uint8_t* buf, size_t size) {
+    struct stlink_libusb * const slu = sl->backend_data;
+    unsigned char* const data = sl->q_buf;
+    unsigned char* const cmd  = sl->c_buf;
+    uint32_t rep_len = 2;
+    int i = fill_command(sl, SG_DXFER_FROM_DEV, rep_len);
+
+    cmd[i++] = STLINK_DEBUG_COMMAND;
+    cmd[i++] = STLINK_DEBUG_APIV2_GET_TRACE_NB;
+    ssize_t send_size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len);
+
+    if (send_size == -1) {
+        printf("[!] send_recv STLINK_DEBUG_APIV2_GET_TRACE_NB\n");
+        return((int)send_size);
+    }
+
+    stlink_print_data(sl);
+    size_t trace_count = read_uint16(sl->q_buf, 0);
+    DLOG("trace_count = 0x%08x\n", trace_count);
+
+    if (trace_count > size) {
+        ELOG("read_trace insufficient buffer length\n");
+        return -1;
+    }
+
+    int res = 0;
+    int t = libusb_bulk_transfer(slu->usb_handle, slu->ep_trace, buf, trace_count, &res, 3000);
+
+    if (t) {
+        ELOG("read_trace read error\n");
+        return(-1);
+    }
+
+    return trace_count;
+}
+
 static stlink_backend_t _stlink_usb_backend = {
     _stlink_usb_close,
     _stlink_usb_exit_debug_mode,
@@ -999,7 +1075,10 @@ static stlink_backend_t _stlink_usb_backend = {
     _stlink_usb_current_mode,
     _stlink_usb_force_debug,
     _stlink_usb_target_voltage,
-    _stlink_usb_set_swdclk
+    _stlink_usb_set_swdclk,
+    _stlink_usb_enable_trace,
+    _stlink_usb_disable_trace,
+    _stlink_usb_read_trace
 };
 
 stlink_t *stlink_open_usb(enum ugly_loglevel verbose, int reset, char serial[STLINK_SERIAL_MAX_SIZE], int freq) {
@@ -1161,8 +1240,10 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, int reset, char serial[STL
         desc.idProduct == STLINK_USB_PID_STLINK_V3S_PID ||
         desc.idProduct == STLINK_USB_PID_STLINK_V3_2VCP_PID) {
         slu->ep_req = 1 /* ep req */ | LIBUSB_ENDPOINT_OUT;
+        slu->ep_trace = 2 | LIBUSB_ENDPOINT_IN;
     } else {
         slu->ep_req = 2 /* ep req */ | LIBUSB_ENDPOINT_OUT;
+        slu->ep_trace = 3 | LIBUSB_ENDPOINT_IN;
     }
 
     slu->sg_transfer_idx = 0;

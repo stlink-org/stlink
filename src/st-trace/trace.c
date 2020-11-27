@@ -156,7 +156,6 @@ static bool IsDeviceTraceSupported(int chip_id) {
 }
 
 static bool EnableTrace(stlink_t* stlink, int core_frequency_mhz, bool reset_board) {
-	struct stlink_read_reg regp = {};
 
 	if (stlink_force_debug(stlink)) {
 		return false;
@@ -193,20 +192,15 @@ static bool EnableTrace(stlink_t* stlink, int core_frequency_mhz, bool reset_boa
 	stlink_write_debug32(stlink, 0xE0001018, 0x00000000);
 
 	// We should be checking these regisers.
+	struct stlink_reg regp = {};
 	stlink_read_reg(stlink, 15, &regp); // Read program counter
 	stlink_read_reg(stlink, 16, &regp); // Read xpsr register
 
 	// Set DBGMCU_CR to enable asynchronous transmission
 	stlink_write_debug32(stlink, 0xE0042004, 0x00000027);
 
-
-	// STLINK_DEBUG_APIV2_START_TRACE_RX
-	// ????
-	unsigned char txBuffer3[] = {STLINK_DEBUG_COMMAND, 0x40, 0x00, 0x10, 0x80, 0x84, 0x1E, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-	unsigned char rxBuffer3[100];
-	SendAndReceive(&txBuffer3[0], 16, &rxBuffer3[0], 64);
-
-
+	// Actually start tracing.
+	stlink_trace_enable(stlink);
 
 	// Set TPIU_CSPSR to enable trace port width of 2
 	stlink_write_debug32(stlink, 0xE0040004, 0x00000001);
@@ -241,6 +235,8 @@ static bool EnableTrace(stlink_t* stlink, int core_frequency_mhz, bool reset_boa
 
 	// Enable tracing (DEMCR - TRCENA bit)
 	stlink_write_debug32(stlink, 0xE000EDFC, 0x01000000);
+
+	return true;
 }
 
 int main(int argc, char** argv)

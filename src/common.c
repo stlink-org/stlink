@@ -1677,6 +1677,21 @@ int stlink_current_mode(stlink_t *sl) {
     return(STLINK_DEV_UNKNOWN_MODE);
 }
 
+int stlink_trace_enable(stlink_t* sl) {
+    DLOG("*** stlink_trace_enable ***\n");
+    return(sl->backend->trace_enable(sl));
+}
+
+int stlink_trace_disable(stlink_t* sl) {
+    DLOG("*** stlink_trace_disable ***\n");
+    return(sl->backend->trace_disable(sl));
+}
+
+int stlink_trace_read(stlink_t* sl, uint8_t* buf, size_t size) {
+    DLOG("*** stlink_trace_read ***\n");
+    return(sl->backend->trace_read(sl, buf, size));
+}
+
 
 // End of delegates....  Common code below here...
 
@@ -4070,3 +4085,4 @@ int stlink_fwrite_option_bytes(stlink_t *sl, const char* path, stm32_addr_t addr
 
     return(err);
 }
+

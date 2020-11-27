@@ -83,6 +83,9 @@ enum target_state {
 
 #define STLINK_V3_MAX_FREQ_NB            10
 
+#define STLINK_TRACE_BUF_LEN           4096
+#define STLINK_TRACE_FREQUENCY      2000000
+
 /* Cortex Debug Control Block */
 #define DCB_DHCSR 0xE000EDF0
 #define DCB_DCRSR 0xE000EDF4
@@ -261,6 +264,9 @@ int stlink_current_mode(stlink_t *sl);
 int stlink_force_debug(stlink_t *sl);
 int stlink_target_voltage(stlink_t *sl);
 int stlink_set_swdclk(stlink_t *sl, uint16_t divisor);
+int stlink_trace_enable(stlink_t* sl);
+int stlink_trace_disable(stlink_t* sl);
+int stlink_trace_read(stlink_t* sl, uint8_t* buf, size_t size);
 
 int stlink_erase_flash_mass(stlink_t* sl);
 int stlink_write_flash(stlink_t* sl, stm32_addr_t address, uint8_t* data, uint32_t length, uint8_t eraseonly);
@@ -302,6 +308,7 @@ int stlink_write_option_control_register1_32(stlink_t *sl, uint32_t option_contr
 
 int stlink_write_option_bytes(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uint32_t len);
 int stlink_fwrite_option_bytes(stlink_t *sl, const char* path, stm32_addr_t addr);
+
 
 #include <sg.h>
 #include <usb.h>
