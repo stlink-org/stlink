@@ -155,6 +155,11 @@ static bool IsDeviceTraceSupported(int chip_id) {
 	}
 }
 
+static void Write32(stlink_t* stlink, uint32_t address, uint32_t data) {
+	write_uint32(stlink->q_buf, data);
+	stlink_write_mem32(stlink, address, 4);
+}
+
 static bool EnableTrace(stlink_t* stlink, int core_frequency_mhz, bool reset_board) {
 
 	if (stlink_force_debug(stlink)) {
@@ -168,28 +173,28 @@ static bool EnableTrace(stlink_t* stlink, int core_frequency_mhz, bool reset_boa
 	// The remainder of the items in this function were taken directly from https://github.com/avrhack/stlink-trace/blob/master/stlink-trace.c#L386
 
 	// Set DHCSR to C_HALT and C_DEBUGEN
-	stlink_write_debug32(stlink, 0xE000EDF0, 0xA05F0003);
+	Write32(stlink, 0xE000EDF0, 0xA05F0003);
 
 	// Set TRCENA flag to enable global DWT and ITM
-	stlink_write_debug32(stlink, 0xE000EDFC, 0x01000000);
+	Write32(stlink, 0xE000EDFC, 0x01000000);
 
 	// Set FP_CTRL to enable write
-	stlink_write_debug32(stlink, 0xE0002000, 0x00000002);
+	Write32(stlink, 0xE0002000, 0x00000002);
 
 	// Set DWT_FUNCTION0 to DWT_FUNCTION3 to disable sampling
-	stlink_write_debug32(stlink, 0xE0001028, 0x00000000);
-	stlink_write_debug32(stlink, 0xE0001038, 0x00000000);
-	stlink_write_debug32(stlink, 0xE0001048, 0x00000000);
-	stlink_write_debug32(stlink, 0xE0001058, 0x00000000);
+	Write32(stlink, 0xE0001028, 0x00000000);
+	Write32(stlink, 0xE0001038, 0x00000000);
+	Write32(stlink, 0xE0001048, 0x00000000);
+	Write32(stlink, 0xE0001058, 0x00000000);
 
 	// Clear DWT_CTRL and other registers
-	stlink_write_debug32(stlink, 0xE0001000, 0x00000000);
-	stlink_write_debug32(stlink, 0xE0001004, 0x00000000);
-	stlink_write_debug32(stlink, 0xE0001008, 0x00000000);
-	stlink_write_debug32(stlink, 0xE000100C, 0x00000000);
-	stlink_write_debug32(stlink, 0xE0001010, 0x00000000);
-	stlink_write_debug32(stlink, 0xE0001014, 0x00000000);
-	stlink_write_debug32(stlink, 0xE0001018, 0x00000000);
+	Write32(stlink, 0xE0001000, 0x00000000);
+	Write32(stlink, 0xE0001004, 0x00000000);
+	Write32(stlink, 0xE0001008, 0x00000000);
+	Write32(stlink, 0xE000100C, 0x00000000);
+	Write32(stlink, 0xE0001010, 0x00000000);
+	Write32(stlink, 0xE0001014, 0x00000000);
+	Write32(stlink, 0xE0001018, 0x00000000);
 
 	// We should be checking these regisers.
 	struct stlink_reg regp = {};
@@ -197,44 +202,44 @@ static bool EnableTrace(stlink_t* stlink, int core_frequency_mhz, bool reset_boa
 	stlink_read_reg(stlink, 16, &regp); // Read xpsr register
 
 	// Set DBGMCU_CR to enable asynchronous transmission
-	stlink_write_debug32(stlink, 0xE0042004, 0x00000027);
+	Write32(stlink, 0xE0042004, 0x00000027);
 
 	// Actually start tracing.
 	stlink_trace_enable(stlink);
 
 	// Set TPIU_CSPSR to enable trace port width of 2
-	stlink_write_debug32(stlink, 0xE0040004, 0x00000001);
+	Write32(stlink, 0xE0040004, 0x00000001);
 
 	if (core_frequency_mhz)
 	// Set TPIU_ACPR clock divisor
-	stlink_write_debug32(stlink, 0xE0040010, core_frequency_mhz / 2 - 1);
+	Write32(stlink, 0xE0040010, core_frequency_mhz / 2 - 1);
 
 	// Set TPIU_SPPR to Asynchronous SWO (NRZ)
-	stlink_write_debug32(stlink, 0xE00400F0, 0x00000002);
+	Write32(stlink, 0xE00400F0, 0x00000002);
 
 	// Set TPIU_FFCR continuous formatting)
-	stlink_write_debug32(stlink, 0xE0040304, 0x00000100);
+	Write32(stlink, 0xE0040304, 0x00000100);
 
 	// Unlock the ITM registers for write
-	stlink_write_debug32(stlink, 0xE0000FB0, 0xC5ACCE55);
+	Write32(stlink, 0xE0000FB0, 0xC5ACCE55);
 
 	// Set sync counter
-	stlink_write_debug32(stlink, 0xE0000E90, 0x00000400);
+	Write32(stlink, 0xE0000E90, 0x00000400);
 
 	// Set ITM_TCR flags : ITMENA,TSENA ATB=0
-	stlink_write_debug32(stlink, 0xE0000E80, 0x00010003);
+	Write32(stlink, 0xE0000E80, 0x00010003);
 
 	// Enable all trace ports in ITM_TER
-	stlink_write_debug32(stlink, 0xE0000E00, 0xFFFFFFFF);
+	Write32(stlink, 0xE0000E00, 0xFFFFFFFF);
 
 	// Enable unprivileged access to trace ports 31:0 in ITM_TPR
-	stlink_write_debug32(stlink, 0xE0000E40, 0x0000000F);
+	Write32(stlink, 0xE0000E40, 0x0000000F);
 
 	// Set DWT_CTRL flags)
-	stlink_write_debug32(stlink, 0xE0000E40, 0x400003FE);		// Keil one
+	Write32(stlink, 0xE0000E40, 0x400003FE);		// Keil one
 
 	// Enable tracing (DEMCR - TRCENA bit)
-	stlink_write_debug32(stlink, 0xE000EDFC, 0x01000000);
+	Write32(stlink, 0xE000EDFC, 0x01000000);
 
 	return true;
 }

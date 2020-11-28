@@ -977,7 +977,7 @@ int _stlink_usb_enable_trace(stlink_t* sl) {
     unsigned char* const cmd  = sl->c_buf;
     ssize_t size;
 
-    int i = fill_command(sl, SG_DXFER_FROM_DEV, 0);
+    int i = fill_command(sl, SG_DXFER_TO_DEV, 0);
     cmd[i++] = STLINK_DEBUG_COMMAND;
     cmd[i++] = STLINK_DEBUG_APIV2_START_TRACE_RX;
     write_uint16(&cmd[i + 0], STLINK_TRACE_BUF_LEN);
@@ -998,7 +998,7 @@ int _stlink_usb_disable_trace(stlink_t* sl) {
     unsigned char* const cmd  = sl->c_buf;
     ssize_t size;
 
-    int i = fill_command(sl, SG_DXFER_FROM_DEV, 0);
+    int i = fill_command(sl, SG_DXFER_TO_DEV, 0);
     cmd[i++] = STLINK_DEBUG_COMMAND;
     cmd[i++] = STLINK_DEBUG_APIV2_STOP_TRACE_RX;
 
