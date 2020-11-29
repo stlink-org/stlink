@@ -15,28 +15,61 @@
 #define DEFAULT_LOGGING_LEVEL 50
 #define DEBUG_LOGGING_LEVEL 100
 
-#define APP_RESULT_SUCCESS                   0
-#define APP_RESULT_INVALID_PARAMS            1
-#define APP_RESULT_STLINK_NOT_FOUND          2
-#define APP_RESULT_STLINK_MISSING_DEVICE     3
-#define APP_RESULT_STLINK_UNSUPPORTED_DEVICE 4
-#define APP_RESULT_STLINK_STATE_ERROR        5
+#define APP_RESULT_SUCCESS						0
+#define APP_RESULT_INVALID_PARAMS				1
+#define APP_RESULT_STLINK_NOT_FOUND				2
+#define APP_RESULT_STLINK_MISSING_DEVICE		3
+#define APP_RESULT_STLINK_UNSUPPORTED_DEVICE	4
+#define APP_RESULT_STLINK_STATE_ERROR			5
+
+// See https://developer.arm.com/documentation/ddi0403/ed/
+#define TRACE_OP_IS_OVERFLOW(c)			((c) == 0x70)
+#define TRACE_OP_IS_LOCAL_TIME(c)		(((c) & 0x0f) == 0x00 && ((c) & 0x70) != 0x00)
+#define TRACE_OP_IS_EXTENSION(c)		(((c) & 0x0b) == 0x08)
+#define TRACE_OP_IS_GLOBAL_TIME(c)		(((c) & 0xdf) == 0x94)
+#define TRACE_OP_IS_SOURCE(c)			(((c) & 0x03) != 0x00)
+#define TRACE_OP_IS_SW_SOURCE(c)		(((c) & 0x03) != 0x00 && ((c) & 0x04) == 0x00)
+#define TRACE_OP_IS_HW_SOURCE(c)		(((c) & 0x03) != 0x00 && ((c) & 0x04) == 0x04)
+#define TRACE_OP_IS_TARGET_SOURCE(c)	((c) == 0x01)
+
+#define TRACE_OP_GET_CONTINUATION(c)	((c) & 0x80)
+#define TRACE_OP_GET_SOURCE_SIZE(c)		((c) & 0x03)
+#define TRACE_OP_GET_SW_SOURCE_ADDR(c)	((c) >> 3)
 
 
+// We use a global flag to allow communicating to the main thread from the signal handler.
 static bool g_done = false;
 
 
-struct _st_settings_t
-{
+struct _st_settings_t {
 	bool  show_help;
 	bool  show_version;
 	int   logging_level;
 	int   core_frequency_mhz;
 	bool  reset_board;
 	char* serial_number;
-	bool  wait_sync;
 };
 typedef struct _st_settings_t st_settings_t;
+
+
+// We use a simple state machine to parse the trace data.
+enum _trace_step {
+	TRACE_STEP_IDLE,
+	TRACE_STEP_TARGET_SOURCE,
+	TRACE_STEP_SKIP_FRAME,
+	TRACE_STEP_SKIP_4,
+	TRACE_STEP_SKIP_3,
+	TRACE_STEP_SKIP_2,
+	TRACE_STEP_SKIP_1,
+};
+typedef enum _trace_step trace_step;
+
+struct _st_trace_state_t {
+	trace_step	step;
+	bool		overflow;
+	bool		error;
+};
+typedef struct _st_trace_state_t st_trace_state_t;
 
 
 static void usage(void) {
@@ -48,7 +81,6 @@ static void usage(void) {
 	puts("  -cXX, --clock=XX      Specify the core frequency in MHz");
 	puts("  -n, --no-reset        Do not reset board on connection");
 	puts("  -sXX, --serial=XX     Use a specific serial number");
-	puts("  -a, --no-sync         Do not wait for a sync packet");
 }
 
 static void cleanup() {
@@ -64,7 +96,6 @@ bool parse_options(int argc, char** argv, st_settings_t *settings) {
 		{"clock",    required_argument, NULL, 'c'},
 		{"no-reset", no_argument,       NULL, 'n'},
 		{"serial",   required_argument, NULL, 's'},
-		{"no-sync",  no_argument,       NULL, 'a'},
 		{0, 0, 0, 0},
 	};
 	int option_index = 0;
@@ -76,10 +107,9 @@ bool parse_options(int argc, char** argv, st_settings_t *settings) {
 	settings->core_frequency_mhz = 0;
 	settings->reset_board = true;
 	settings->serial_number = NULL;
-	settings->wait_sync = true;
 	ugly_init(settings->logging_level);
 
-	while ((c = getopt_long(argc, argv, "hVv::c:ns:a", long_options, &option_index)) != -1) {
+	while ((c = getopt_long(argc, argv, "hVv::c:ns:", long_options, &option_index)) != -1) {
 		switch (c) {
 		case 'h':
 			settings->show_help = true;
@@ -104,9 +134,6 @@ bool parse_options(int argc, char** argv, st_settings_t *settings) {
 		case 's':
 			settings->serial_number = optarg;
 			break;
-		case 'a':
-			settings->wait_sync = false;
-			break;
 		case '?':
 			return false;
 			break;
@@ -128,6 +155,7 @@ bool parse_options(int argc, char** argv, st_settings_t *settings) {
 
 static stlink_t* StLinkConnect(const st_settings_t* settings) {
 	if (settings->serial_number) {
+		// Convert our serial number string to a binary value.
 		char serial_number[STLINK_SERIAL_MAX_SIZE] = { 0 };
 		size_t length = 0;
 		for (uint32_t n = 0; n < strlen(settings->serial_number) && length < STLINK_SERIAL_MAX_SIZE; n += 2) {
@@ -135,13 +163,16 @@ static stlink_t* StLinkConnect(const st_settings_t* settings) {
 			memcpy(buffer, settings->serial_number + n, 2);
 			serial_number[length++] = (uint8_t)strtol(buffer, NULL, 16);
 		}
+
+		// Open this specific stlink.
 		return stlink_open_usb(settings->logging_level, false, serial_number, 0);
 	} else {
+		// Otherwise, open any stlink.
 		return stlink_open_usb(settings->logging_level, false, NULL, 0);
 	}
 }
 
-// TODO: Move this to device table.
+// TODO: Consider moving this to the device table.
 static bool IsDeviceTraceSupported(int chip_id) {
 	switch (chip_id) {
 	case STLINK_CHIPID_STM32_F4:
@@ -228,7 +259,7 @@ static bool EnableTrace(stlink_t* stlink, int core_frequency_mhz, bool reset_boa
 	return true;
 }
 
-static bool ReadTrace(stlink_t* stlink) {
+static bool ReadTrace(stlink_t* stlink, st_trace_state_t* state) {
 	uint8_t buffer[STLINK_TRACE_BUF_LEN];
 	int length = stlink_trace_read(stlink, buffer, sizeof(buffer));
 
@@ -244,14 +275,55 @@ static bool ReadTrace(stlink_t* stlink) {
 
 	DLOG("Trace Length: %d\n", length);
 
-	printf("Data: ");
-	for (int i = 0; i < length; i++)
-		printf("%02x ", buffer[i]);
-	printf(" '");
-	for (int i = 0; i < length; i++)
-		printf("%c", isprint(buffer[i]) ? buffer[i] : '?');
-	printf("'\n");
+	for (int i = 0; i < length; i++) {
+		uint8_t c = buffer[i];
 
+		// Parse the input using a state machine.
+		switch (state->step)
+		{
+		case TRACE_STEP_IDLE:
+			if (TRACE_OP_IS_TARGET_SOURCE(c)) {
+				state->step = TRACE_STEP_TARGET_SOURCE;
+			} else if (TRACE_OP_IS_SOURCE(c)) {
+				const trace_step kSourceSkip[] = { TRACE_STEP_IDLE, TRACE_STEP_SKIP_1, TRACE_STEP_SKIP_2, TRACE_STEP_SKIP_4 };
+				const char* type = TRACE_OP_IS_SW_SOURCE(c) ? "sw" : "hw";
+				uint8_t addr = TRACE_OP_GET_SW_SOURCE_ADDR(c);
+				uint8_t size = TRACE_OP_GET_SOURCE_SIZE(c);
+				WLOG("Unsupported %s source 0x%x size %d", type, addr, size);
+				state->step = kSourceSkip[size];
+			} else if (TRACE_OP_IS_LOCAL_TIME(c) || TRACE_OP_IS_EXTENSION(c) || TRACE_OP_IS_GLOBAL_TIME(c)) {
+				if (TRACE_OP_GET_CONTINUATION(c))
+					state->step = TRACE_STEP_SKIP_FRAME;
+			} else if (TRACE_OP_IS_OVERFLOW(c)) {
+				state->overflow = true;
+			} else {
+				WLOG("Unknown opcode 0x%02x\n", c);
+				if (TRACE_OP_GET_CONTINUATION(c))
+					state->step = TRACE_STEP_SKIP_FRAME;
+			}
+			break;
+		case TRACE_STEP_TARGET_SOURCE:
+			putchar(c);
+			state->step = TRACE_STEP_IDLE;
+			break;
+		case TRACE_STEP_SKIP_FRAME:
+			if (TRACE_OP_GET_CONTINUATION(c) == 0)
+				state->step = TRACE_STEP_IDLE;
+			break;
+		case TRACE_STEP_SKIP_4:
+			state->step = TRACE_STEP_SKIP_3;
+			break;
+		case TRACE_STEP_SKIP_3:
+			state->step = TRACE_STEP_SKIP_2;
+			break;
+		case TRACE_STEP_SKIP_2:
+			state->step = TRACE_STEP_SKIP_1;
+			break;
+		case TRACE_STEP_SKIP_1:
+			state->step = TRACE_STEP_IDLE;
+			break;
+		}
+	}
 
 	return true;
 }
@@ -276,7 +348,6 @@ int main(int argc, char** argv)
 	DLOG("core_frequency = %d MHz\n", settings.core_frequency_mhz);
 	DLOG("reset_board = %s\n", settings.reset_board ? "true" : "false");
 	DLOG("serial_number = %s\n", settings.serial_number ? settings.serial_number : "any");
-	DLOG("wait_sync = %s\n", settings.wait_sync ? "true" : "false");
 
 	if (settings.show_help) {
 		usage();
@@ -319,10 +390,11 @@ int main(int argc, char** argv)
 		return APP_RESULT_STLINK_STATE_ERROR;
 	}
 
-	ILOG("Reading SWO Data\n");
+	ILOG("Reading.\n");
 
+	st_trace_state_t state = {};
 	while (!g_done) {
-		if (!ReadTrace(stlink))
+		if (!ReadTrace(stlink, &state))
 			g_done = true;
 	}
 	
