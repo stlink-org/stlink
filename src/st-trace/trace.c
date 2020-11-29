@@ -4,6 +4,9 @@
 #include <sys/types.h>
 #include <stdbool.h>
 #include <getopt.h>
+#include <signal.h>
+#include <unistd.h>
+#include <ctype.h>
 
 #include <stlink.h>
 #include <logging.h>
@@ -18,6 +21,9 @@
 #define APP_RESULT_STLINK_MISSING_DEVICE     3
 #define APP_RESULT_STLINK_UNSUPPORTED_DEVICE 4
 #define APP_RESULT_STLINK_STATE_ERROR        5
+
+
+static bool g_done = false;
 
 
 struct _st_settings_t
@@ -43,6 +49,10 @@ static void usage(void) {
 	puts("  -n, --no-reset        Do not reset board on connection");
 	puts("  -sXX, --serial=XX     Use a specific serial number");
 	puts("  -a, --no-sync         Do not wait for a sync packet");
+}
+
+static void cleanup() {
+	g_done = true;
 }
 
 bool parse_options(int argc, char** argv, st_settings_t *settings) {
@@ -161,6 +171,7 @@ static void Write32(stlink_t* stlink, uint32_t address, uint32_t data) {
 }
 
 static bool EnableTrace(stlink_t* stlink, int core_frequency_mhz, bool reset_board) {
+	struct stlink_reg regp = {};
 
 	if (stlink_force_debug(stlink)) {
 		return false;
@@ -172,23 +183,14 @@ static bool EnableTrace(stlink_t* stlink, int core_frequency_mhz, bool reset_boa
 
 	// The remainder of the items in this function were taken directly from https://github.com/avrhack/stlink-trace/blob/master/stlink-trace.c#L386
 
-	// Set DHCSR to C_HALT and C_DEBUGEN
-	Write32(stlink, 0xE000EDF0, 0xA05F0003);
-
-	// Set TRCENA flag to enable global DWT and ITM
-	Write32(stlink, 0xE000EDFC, 0x01000000);
-
-	// Set FP_CTRL to enable write
-	Write32(stlink, 0xE0002000, 0x00000002);
-
-	// Set DWT_FUNCTION0 to DWT_FUNCTION3 to disable sampling
-	Write32(stlink, 0xE0001028, 0x00000000);
+	Write32(stlink, 0xE000EDF0, 0xA05F0003); // Set DHCSR to C_HALT and C_DEBUGEN
+	Write32(stlink, 0xE000EDFC, 0x01000000); // Set TRCENA flag to enable global DWT and ITM
+	Write32(stlink, 0xE0002000, 0x00000002); // Set FP_CTRL to enable write
+	Write32(stlink, 0xE0001028, 0x00000000); // Set DWT_FUNCTION0 to DWT_FUNCTION3 to disable sampling
 	Write32(stlink, 0xE0001038, 0x00000000);
 	Write32(stlink, 0xE0001048, 0x00000000);
 	Write32(stlink, 0xE0001058, 0x00000000);
-
-	// Clear DWT_CTRL and other registers
-	Write32(stlink, 0xE0001000, 0x00000000);
+	Write32(stlink, 0xE0001000, 0x00000000); // Clear DWT_CTRL and other registers
 	Write32(stlink, 0xE0001004, 0x00000000);
 	Write32(stlink, 0xE0001008, 0x00000000);
 	Write32(stlink, 0xE000100C, 0x00000000);
@@ -196,50 +198,60 @@ static bool EnableTrace(stlink_t* stlink, int core_frequency_mhz, bool reset_boa
 	Write32(stlink, 0xE0001014, 0x00000000);
 	Write32(stlink, 0xE0001018, 0x00000000);
 
-	// We should be checking these regisers.
-	struct stlink_reg regp = {};
 	stlink_read_reg(stlink, 15, &regp); // Read program counter
 	stlink_read_reg(stlink, 16, &regp); // Read xpsr register
 
-	// Set DBGMCU_CR to enable asynchronous transmission
-	Write32(stlink, 0xE0042004, 0x00000027);
+	Write32(stlink, 0xE0042004, 0x00000027); // Set DBGMCU_CR to enable asynchronous transmission
 
 	// Actually start tracing.
-	stlink_trace_enable(stlink);
+	if (stlink_trace_enable(stlink)) {
+		return false;
+	}
 
-	// Set TPIU_CSPSR to enable trace port width of 2
-	Write32(stlink, 0xE0040004, 0x00000001);
+	Write32(stlink, 0xE0040004, 0x00000001); // Set TPIU_CSPSR to enable trace port width of 2
 
-	if (core_frequency_mhz)
-	// Set TPIU_ACPR clock divisor
-	Write32(stlink, 0xE0040010, core_frequency_mhz / 2 - 1);
+	if (core_frequency_mhz) {
+		uint32_t clock_divisor = core_frequency_mhz / 2 - 1;
+		Write32(stlink, 0xE0040010, clock_divisor); // Set TPIU_ACPR clock divisor
+	}
 
-	// Set TPIU_SPPR to Asynchronous SWO (NRZ)
-	Write32(stlink, 0xE00400F0, 0x00000002);
+	Write32(stlink, 0xE00400F0, 0x00000002); // Set TPIU_SPPR to Asynchronous SWO (NRZ)
+	Write32(stlink, 0xE0040304, 0x00000100); // Set TPIU_FFCR continuous formatting)
+	Write32(stlink, 0xE0000FB0, 0xC5ACCE55); // Unlock the ITM registers for write
+	Write32(stlink, 0xE0000E90, 0x00000400); // Set sync counter
+	Write32(stlink, 0xE0000E80, 0x00010003); // Set ITM_TCR flags : ITMENA,TSENA ATB=0
+	Write32(stlink, 0xE0000E00, 0xFFFFFFFF); // Enable all trace ports in ITM_TER
+	Write32(stlink, 0xE0000E40, 0x0000000F); // Enable unprivileged access to trace ports 31:0 in ITM_TPR
+	Write32(stlink, 0xE0000E40, 0x400003FE); // Set DWT_CTRL flags)
+	Write32(stlink, 0xE000EDFC, 0x01000000); // Enable tracing (DEMCR - TRCENA bit)
 
-	// Set TPIU_FFCR continuous formatting)
-	Write32(stlink, 0xE0040304, 0x00000100);
+	return true;
+}
 
-	// Unlock the ITM registers for write
-	Write32(stlink, 0xE0000FB0, 0xC5ACCE55);
+static bool ReadTrace(stlink_t* stlink) {
+	uint8_t buffer[STLINK_TRACE_BUF_LEN];
+	int length = stlink_trace_read(stlink, buffer, sizeof(buffer));
 
-	// Set sync counter
-	Write32(stlink, 0xE0000E90, 0x00000400);
+	if (length < 0) {
+		ELOG("Error reading trace (%d)\n", length);
+		return false;
+	}
 
-	// Set ITM_TCR flags : ITMENA,TSENA ATB=0
-	Write32(stlink, 0xE0000E80, 0x00010003);
+	if (length == 0) {
+		usleep(1000);
+		return true;
+	}
 
-	// Enable all trace ports in ITM_TER
-	Write32(stlink, 0xE0000E00, 0xFFFFFFFF);
+	DLOG("Trace Length: %d\n", length);
 
-	// Enable unprivileged access to trace ports 31:0 in ITM_TPR
-	Write32(stlink, 0xE0000E40, 0x0000000F);
+	printf("Data: ");
+	for (int i = 0; i < length; i++)
+		printf("%02x ", buffer[i]);
+	printf(" '");
+	for (int i = 0; i < length; i++)
+		printf("%c", isprint(buffer[i]) ? buffer[i] : '?');
+	printf("'\n");
 
-	// Set DWT_CTRL flags)
-	Write32(stlink, 0xE0000E40, 0x400003FE);		// Keil one
-
-	// Enable tracing (DEMCR - TRCENA bit)
-	Write32(stlink, 0xE000EDFC, 0x01000000);
 
 	return true;
 }
@@ -248,6 +260,10 @@ int main(int argc, char** argv)
 {
 	st_settings_t settings;
 	stlink_t* stlink = NULL;
+
+	signal(SIGINT, &cleanup);
+	signal(SIGTERM, &cleanup);
+	signal(SIGSEGV, &cleanup);
 
 	if (!parse_options(argc, argv, &settings)) {
 		usage();
@@ -278,6 +294,8 @@ int main(int argc, char** argv)
 		return APP_RESULT_STLINK_NOT_FOUND;
 	}
 
+	stlink->verbose = settings.logging_level;
+
 	if (stlink->chip_id == STLINK_CHIPID_UNKNOWN) {
 		ELOG("st-link not connected\n");
 		return APP_RESULT_STLINK_MISSING_DEVICE;
@@ -295,16 +313,20 @@ int main(int argc, char** argv)
 		ELOG("Unable to enable trace mode\n");
 		return APP_RESULT_STLINK_STATE_ERROR;
 	}
- 	
+
 	if (stlink_run(stlink)) {
 		ELOG("Unable to run device\n");
 		return APP_RESULT_STLINK_STATE_ERROR;
 	}
 
+	ILOG("Reading SWO Data\n");
 
-	// Read SWO output
+	while (!g_done) {
+		if (!ReadTrace(stlink))
+			g_done = true;
+	}
 	
-	
+	stlink_trace_disable(stlink);
 	stlink_close(stlink);
 
 	return APP_RESULT_SUCCESS;
