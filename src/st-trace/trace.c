@@ -20,9 +20,10 @@
 #define APP_RESULT_STLINK_NOT_FOUND             2
 #define APP_RESULT_STLINK_MISSING_DEVICE        3
 #define APP_RESULT_STLINK_UNSUPPORTED_DEVICE    4
-#define APP_RESULT_STLINK_STATE_ERROR           5
+#define APP_RESULT_STLINK_UNSUPPORTED_LINK      5
+#define APP_RESULT_STLINK_STATE_ERROR           6
 
-// See https://developer.arm.com/documentation/ddi0403/ed/
+// See D4.2 of https://developer.arm.com/documentation/ddi0403/ed/
 #define TRACE_OP_IS_OVERFLOW(c)         ((c) == 0x70)
 #define TRACE_OP_IS_SYNC(c)             ((c) == 0x00)
 #define TRACE_OP_IS_LOCAL_TIME(c)       (((c) & 0x0f) == 0x00 && ((c) & 0x70) != 0x00)
@@ -32,7 +33,6 @@
 #define TRACE_OP_IS_SW_SOURCE(c)        (((c) & 0x03) != 0x00 && ((c) & 0x04) == 0x00)
 #define TRACE_OP_IS_HW_SOURCE(c)        (((c) & 0x03) != 0x00 && ((c) & 0x04) == 0x04)
 #define TRACE_OP_IS_TARGET_SOURCE(c)    ((c) == 0x01)
-
 #define TRACE_OP_GET_CONTINUATION(c)    ((c) & 0x80)
 #define TRACE_OP_GET_SOURCE_SIZE(c)     ((c) & 0x03)
 #define TRACE_OP_GET_SW_SOURCE_ADDR(c)  ((c) >> 3)
@@ -293,7 +293,10 @@ static void UpdateTrace(st_trace_t* trace, uint8_t c) {
             if (TRACE_OP_IS_SW_SOURCE(c))
                 WLOG("Unsupported %s source 0x%x size %d\n", type, addr, size);
             trace->state = kSourceSkip[size];
-        } else if (TRACE_OP_IS_LOCAL_TIME(c) || TRACE_OP_IS_EXTENSION(c) || TRACE_OP_IS_GLOBAL_TIME(c)) {
+        } else if (TRACE_OP_IS_LOCAL_TIME(c) || TRACE_OP_IS_GLOBAL_TIME(c)) {
+            if (TRACE_OP_GET_CONTINUATION(c))
+                trace->state = TRACE_STATE_SKIP_FRAME;
+        } else if (TRACE_OP_IS_EXTENSION(c)) {
             if (TRACE_OP_GET_CONTINUATION(c))
                 trace->state = TRACE_STATE_SKIP_FRAME;
         } else if (TRACE_OP_IS_SYNC(c)) {
@@ -393,18 +396,21 @@ int main(int argc, char** argv)
 
     stlink = StLinkConnect(&settings);
     if (!stlink) {
-        ELOG("Unable to locate st-link\n");
+        ELOG("Unable to locate an stlink\n");
         return APP_RESULT_STLINK_NOT_FOUND;
     }
 
     stlink->verbose = settings.logging_level;
 
     if (stlink->chip_id == STLINK_CHIPID_UNKNOWN) {
-        ELOG("st-link not connected\n");
+        ELOG("Your stlink is not connected to a device\n");
         return APP_RESULT_STLINK_MISSING_DEVICE;
     }
 
-    // TODO: Check if trace is supported by stlink.
+    if (!(stlink->version.flags & STLINK_F_HAS_TRACE)) {
+        ELOG("Your stlink does not support tracing\n");
+        return APP_RESULT_STLINK_UNSUPPORTED_LINK;
+    }
 
     if (!IsDeviceTraceSupported(stlink->chip_id)) {
         const struct stlink_chipid_params *params = stlink_chipid_get_params(stlink->chip_id);
@@ -422,12 +428,10 @@ int main(int argc, char** argv)
         return APP_RESULT_STLINK_STATE_ERROR;
     }
 
-    ILOG("Reading.\n");
-
+    ILOG("Reading Trace\n");
     st_trace_t trace = {};
-    while (!g_done) {
-        if (!ReadTrace(stlink, &trace))
-            g_done = true;
+    while (!g_done && ReadTrace(stlink, &trace)) {
+        // TODO: Check that things are roughly working.
     }
 
     stlink_trace_disable(stlink);

@@ -1465,6 +1465,10 @@ void _parse_version(stlink_t *sl, stlink_version_t *slv) {
             if (sl->version.jtag_v >= 15) {
                 sl->version.flags |= STLINK_F_HAS_GETLASTRWSTATUS2;
             }
+
+            if (sl->version.jtag_v >= 13) {
+                sl->version.flags |= STLINK_F_HAS_TRACE;
+            }
         }
     } else {
         // V3 uses different version format, for reference see OpenOCD source
@@ -1478,6 +1482,7 @@ void _parse_version(stlink_t *sl, stlink_version_t *slv) {
         slv->jtag_api = STLINK_JTAG_API_V3;
         /* preferred API to get last R/W status */
         sl->version.flags |= STLINK_F_HAS_GETLASTRWSTATUS2;
+        sl->version.flags |= STLINK_F_HAS_TRACE;
     }
 
     return;
