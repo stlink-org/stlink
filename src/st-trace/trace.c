@@ -199,7 +199,16 @@ static bool IsDeviceTraceSupported(int chip_id) {
 
 static void Write32(stlink_t* stlink, uint32_t address, uint32_t data) {
     write_uint32(stlink->q_buf, data);
-    stlink_write_mem32(stlink, address, 4);
+    if (stlink_write_mem32(stlink, address, 4)) {
+        ELOG("Unable to set address 0x%08x to 0x%08x\n", address, data);
+    }
+}
+
+static uint32_t Read32(stlink_t* stlink, uint32_t address) {
+    if (stlink_read_mem32(stlink, address, 4)) {
+        ELOG("Unable to read from address 0x%08x\n", address);
+    }
+    return read_uint32(stlink->q_buf, 0);
 }
 
 static bool EnableTrace(stlink_t* stlink, int core_frequency_mhz, bool reset_board) {
@@ -243,9 +252,17 @@ static bool EnableTrace(stlink_t* stlink, int core_frequency_mhz, bool reset_boa
     Write32(stlink, 0xE0040004, 0x00000001); // Set TPIU_CSPSR to enable trace port width of 2
 
     if (core_frequency_mhz) {
-        uint32_t clock_divisor = core_frequency_mhz * 1000000 / STLINK_TRACE_FREQUENCY - 1;
-        Write32(stlink, 0xE0040010, clock_divisor); // Set TPIU_ACPR clock divisor
+        uint32_t prescaler = core_frequency_mhz * 1000000 / STLINK_TRACE_FREQUENCY - 1;
+        Write32(stlink, 0xE0040010, prescaler); // Set TPIU_ACPR clock divisor
+    }
+    uint32_t prescaler = Read32(stlink, 0xE0040010);
+    if (prescaler) {
+        uint32_t system_clock_speed = (prescaler + 1) * STLINK_TRACE_FREQUENCY;
+        ILOG("Trace Port Interface configured to expect a %d MHz system clock.\n", (system_clock_speed + 500000) / 1000000);
     } else {
+        WLOG("Trace Port Interface not configured.  Specify the system clock with a --clock=XX command\n");
+        WLOG("line option or set it in your device's clock initialization routine, such as with:\n");
+        WLOG("  TPI->ACPR = HAL_RCC_GetHCLKFreq() / 2000000 - 1;\n");
     }
 
     Write32(stlink, 0xE00400F0, 0x00000002); // Set TPIU_SPPR to Asynchronous SWO (NRZ)
