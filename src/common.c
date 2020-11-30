@@ -1688,7 +1688,6 @@ int stlink_trace_disable(stlink_t* sl) {
 }
 
 int stlink_trace_read(stlink_t* sl, uint8_t* buf, size_t size) {
-    DLOG("*** stlink_trace_read ***\n");
     return(sl->backend->trace_read(sl, buf, size));
 }
 

@@ -24,6 +24,7 @@
 
 // See https://developer.arm.com/documentation/ddi0403/ed/
 #define TRACE_OP_IS_OVERFLOW(c)         ((c) == 0x70)
+#define TRACE_OP_IS_SYNC(c)             ((c) == 0x00)
 #define TRACE_OP_IS_LOCAL_TIME(c)       (((c) & 0x0f) == 0x00 && ((c) & 0x70) != 0x00)
 #define TRACE_OP_IS_EXTENSION(c)        (((c) & 0x0b) == 0x08)
 #define TRACE_OP_IS_GLOBAL_TIME(c)      (((c) & 0xdf) == 0x94)
@@ -53,23 +54,23 @@ typedef struct _st_settings_t st_settings_t;
 
 
 // We use a simple state machine to parse the trace data.
-enum _trace_step {
-    TRACE_STEP_IDLE,
-    TRACE_STEP_TARGET_SOURCE,
-    TRACE_STEP_SKIP_FRAME,
-    TRACE_STEP_SKIP_4,
-    TRACE_STEP_SKIP_3,
-    TRACE_STEP_SKIP_2,
-    TRACE_STEP_SKIP_1,
+enum _trace_state {
+    TRACE_STATE_IDLE,
+    TRACE_STATE_TARGET_SOURCE,
+    TRACE_STATE_SKIP_FRAME,
+    TRACE_STATE_SKIP_4,
+    TRACE_STATE_SKIP_3,
+    TRACE_STATE_SKIP_2,
+    TRACE_STATE_SKIP_1,
 };
-typedef enum _trace_step trace_step;
+typedef enum _trace_state trace_state;
 
-struct _st_trace_state_t {
-    trace_step    step;
+struct _st_trace_t {
+    trace_state state;
     bool        overflow;
     bool        error;
 };
-typedef struct _st_trace_state_t st_trace_state_t;
+typedef struct _st_trace_t st_trace_t;
 
 
 static void usage(void) {
@@ -242,8 +243,9 @@ static bool EnableTrace(stlink_t* stlink, int core_frequency_mhz, bool reset_boa
     Write32(stlink, 0xE0040004, 0x00000001); // Set TPIU_CSPSR to enable trace port width of 2
 
     if (core_frequency_mhz) {
-        uint32_t clock_divisor = core_frequency_mhz / 2 - 1;
+        uint32_t clock_divisor = core_frequency_mhz * 1000000 / STLINK_TRACE_FREQUENCY - 1;
         Write32(stlink, 0xE0040010, clock_divisor); // Set TPIU_ACPR clock divisor
+    } else {
     }
 
     Write32(stlink, 0xE00400F0, 0x00000002); // Set TPIU_SPPR to Asynchronous SWO (NRZ)
@@ -259,7 +261,67 @@ static bool EnableTrace(stlink_t* stlink, int core_frequency_mhz, bool reset_boa
     return true;
 }
 
-static bool ReadTrace(stlink_t* stlink, st_trace_state_t* state) {
+static void UpdateTrace(st_trace_t* trace, uint8_t c) {
+    // Parse the input using a state machine.
+    switch (trace->state)
+    {
+    case TRACE_STATE_IDLE:
+        if (TRACE_OP_IS_TARGET_SOURCE(c)) {
+            trace->state = TRACE_STATE_TARGET_SOURCE;
+        } else if (TRACE_OP_IS_SOURCE(c)) {
+            const trace_state kSourceSkip[] = { TRACE_STATE_IDLE, TRACE_STATE_SKIP_1, TRACE_STATE_SKIP_2, TRACE_STATE_SKIP_4 };
+            const char* type = TRACE_OP_IS_SW_SOURCE(c) ? "sw" : "hw";
+            uint8_t addr = TRACE_OP_GET_SW_SOURCE_ADDR(c);
+            uint8_t size = TRACE_OP_GET_SOURCE_SIZE(c);
+            if (TRACE_OP_IS_SW_SOURCE(c))
+                WLOG("Unsupported %s source 0x%x size %d\n", type, addr, size);
+            trace->state = kSourceSkip[size];
+        } else if (TRACE_OP_IS_LOCAL_TIME(c) || TRACE_OP_IS_EXTENSION(c) || TRACE_OP_IS_GLOBAL_TIME(c)) {
+            if (TRACE_OP_GET_CONTINUATION(c))
+                trace->state = TRACE_STATE_SKIP_FRAME;
+        } else if (TRACE_OP_IS_SYNC(c)) {
+        } else if (TRACE_OP_IS_OVERFLOW(c)) {
+            trace->overflow = true;
+        } else {
+            WLOG("Unknown opcode 0x%02x\n", c);
+            if (TRACE_OP_GET_CONTINUATION(c))
+                trace->state = TRACE_STATE_SKIP_FRAME;
+        }
+        break;
+
+    case TRACE_STATE_TARGET_SOURCE:
+        putchar(c);
+        trace->state = TRACE_STATE_IDLE;
+        break;
+
+    case TRACE_STATE_SKIP_FRAME:
+        if (TRACE_OP_GET_CONTINUATION(c) == 0)
+            trace->state = TRACE_STATE_IDLE;
+        break;
+
+    case TRACE_STATE_SKIP_4:
+        trace->state = TRACE_STATE_SKIP_3;
+        break;
+
+    case TRACE_STATE_SKIP_3:
+        trace->state = TRACE_STATE_SKIP_2;
+        break;
+
+    case TRACE_STATE_SKIP_2:
+        trace->state = TRACE_STATE_SKIP_1;
+        break;
+
+    case TRACE_STATE_SKIP_1:
+        trace->state = TRACE_STATE_IDLE;
+        break;
+
+    default:
+        ELOG("Invalid state %d", trace->state);
+        trace->state = TRACE_STATE_IDLE;
+    }
+}
+
+static bool ReadTrace(stlink_t* stlink, st_trace_t* trace) {
     uint8_t buffer[STLINK_TRACE_BUF_LEN];
     int length = stlink_trace_read(stlink, buffer, sizeof(buffer));
 
@@ -274,55 +336,8 @@ static bool ReadTrace(stlink_t* stlink, st_trace_state_t* state) {
     }
 
     DLOG("Trace Length: %d\n", length);
-
     for (int i = 0; i < length; i++) {
-        uint8_t c = buffer[i];
-
-        // Parse the input using a state machine.
-        switch (state->step)
-        {
-        case TRACE_STEP_IDLE:
-            if (TRACE_OP_IS_TARGET_SOURCE(c)) {
-                state->step = TRACE_STEP_TARGET_SOURCE;
-            } else if (TRACE_OP_IS_SOURCE(c)) {
-                const trace_step kSourceSkip[] = { TRACE_STEP_IDLE, TRACE_STEP_SKIP_1, TRACE_STEP_SKIP_2, TRACE_STEP_SKIP_4 };
-                const char* type = TRACE_OP_IS_SW_SOURCE(c) ? "sw" : "hw";
-                uint8_t addr = TRACE_OP_GET_SW_SOURCE_ADDR(c);
-                uint8_t size = TRACE_OP_GET_SOURCE_SIZE(c);
-                WLOG("Unsupported %s source 0x%x size %d", type, addr, size);
-                state->step = kSourceSkip[size];
-            } else if (TRACE_OP_IS_LOCAL_TIME(c) || TRACE_OP_IS_EXTENSION(c) || TRACE_OP_IS_GLOBAL_TIME(c)) {
-                if (TRACE_OP_GET_CONTINUATION(c))
-                    state->step = TRACE_STEP_SKIP_FRAME;
-            } else if (TRACE_OP_IS_OVERFLOW(c)) {
-                state->overflow = true;
-            } else {
-                WLOG("Unknown opcode 0x%02x\n", c);
-                if (TRACE_OP_GET_CONTINUATION(c))
-                    state->step = TRACE_STEP_SKIP_FRAME;
-            }
-            break;
-        case TRACE_STEP_TARGET_SOURCE:
-            putchar(c);
-            state->step = TRACE_STEP_IDLE;
-            break;
-        case TRACE_STEP_SKIP_FRAME:
-            if (TRACE_OP_GET_CONTINUATION(c) == 0)
-                state->step = TRACE_STEP_IDLE;
-            break;
-        case TRACE_STEP_SKIP_4:
-            state->step = TRACE_STEP_SKIP_3;
-            break;
-        case TRACE_STEP_SKIP_3:
-            state->step = TRACE_STEP_SKIP_2;
-            break;
-        case TRACE_STEP_SKIP_2:
-            state->step = TRACE_STEP_SKIP_1;
-            break;
-        case TRACE_STEP_SKIP_1:
-            state->step = TRACE_STEP_IDLE;
-            break;
-        }
+        UpdateTrace(trace, buffer[i]);
     }
 
     return true;
@@ -376,7 +391,7 @@ int main(int argc, char** argv)
 
     if (!IsDeviceTraceSupported(stlink->chip_id)) {
         const struct stlink_chipid_params *params = stlink_chipid_get_params(stlink->chip_id);
-        ELOG("We do not support SWO output for device '%s'", params->description);
+        ELOG("We do not support SWO output for device '%s'\n", params->description);
         return APP_RESULT_STLINK_UNSUPPORTED_DEVICE;
     }
 
@@ -392,9 +407,9 @@ int main(int argc, char** argv)
 
     ILOG("Reading.\n");
 
-    st_trace_state_t state = {};
+    st_trace_t trace = {};
     while (!g_done) {
-        if (!ReadTrace(stlink, &state))
+        if (!ReadTrace(stlink, &trace))
             g_done = true;
     }
 
