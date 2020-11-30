@@ -48,6 +48,7 @@ struct _st_settings_t {
     int   logging_level;
     int   core_frequency_mhz;
     bool  reset_board;
+    bool  force;
     char* serial_number;
 };
 typedef struct _st_settings_t st_settings_t;
@@ -82,6 +83,7 @@ static void usage(void) {
     puts("  -cXX, --clock=XX      Specify the core frequency in MHz");
     puts("  -n, --no-reset        Do not reset board on connection");
     puts("  -sXX, --serial=XX     Use a specific serial number");
+    puts("  -f, --force           Ignore some errors");
 }
 
 static void cleanup() {
@@ -97,20 +99,23 @@ bool parse_options(int argc, char** argv, st_settings_t *settings) {
         {"clock",    required_argument, NULL, 'c'},
         {"no-reset", no_argument,       NULL, 'n'},
         {"serial",   required_argument, NULL, 's'},
+        {"force",    no_argument,       NULL, 'f'},
         {0, 0, 0, 0},
     };
     int option_index = 0;
     int c;
+    bool error = false;
 
     settings->show_help = false;
     settings->show_version = false;
     settings->logging_level = DEFAULT_LOGGING_LEVEL;
     settings->core_frequency_mhz = 0;
     settings->reset_board = true;
+    settings->force = false;
     settings->serial_number = NULL;
     ugly_init(settings->logging_level);
 
-    while ((c = getopt_long(argc, argv, "hVv::c:ns:", long_options, &option_index)) != -1) {
+    while ((c = getopt_long(argc, argv, "hVv::c:ns:f", long_options, &option_index)) != -1) {
         switch (c) {
         case 'h':
             settings->show_help = true;
@@ -132,15 +137,19 @@ bool parse_options(int argc, char** argv, st_settings_t *settings) {
         case 'n':
             settings->reset_board = false;
             break;
+        case 'f':
+            settings->force = true;
+            break;
         case 's':
             settings->serial_number = optarg;
             break;
         case '?':
-            return false;
+            error = true;
             break;
         default:
             ELOG("Unknown command line option: '%c' (0x%02x)\n", c, c);
-            return false;
+            error = true;
+            break;
         }
     }
 
@@ -148,8 +157,11 @@ bool parse_options(int argc, char** argv, st_settings_t *settings) {
         while (optind < argc) {
             ELOG("Unknown command line argument: '%s'\n", argv[optind++]);
         }
-        return false;
+        error = true;
     }
+
+    if (error && !settings->force)
+        return false;
 
     return true;
 }
@@ -211,15 +223,19 @@ static uint32_t Read32(stlink_t* stlink, uint32_t address) {
     return read_uint32(stlink->q_buf, 0);
 }
 
-static bool EnableTrace(stlink_t* stlink, int core_frequency_mhz, bool reset_board) {
+static bool EnableTrace(stlink_t* stlink, const st_settings_t* settings) {
     struct stlink_reg regp = {};
 
     if (stlink_force_debug(stlink)) {
-        return false;
+        ELOG("Unable to debug device\n");
+        if (!settings->force)
+            return false;
     }
 
-    if (reset_board && stlink_reset(stlink)) {
-        return false;
+    if (settings->reset_board && stlink_reset(stlink)) {
+        ELOG("Unable to reset device\n");
+        if (!settings->force)
+            return false;
     }
 
     // The order and values to set were taken from https://github.com/avrhack/stlink-trace/blob/master/stlink-trace.c#L386
@@ -246,13 +262,15 @@ static bool EnableTrace(stlink_t* stlink, int core_frequency_mhz, bool reset_boa
 
     // Actually start tracing.
     if (stlink_trace_enable(stlink)) {
-        return false;
+        ELOG("Unable to trace device\n");
+        if (!settings->force)
+            return false;
     }
 
     Write32(stlink, 0xE0040004, 0x00000001); // Set TPIU_CSPSR to enable trace port width of 2
 
-    if (core_frequency_mhz) {
-        uint32_t prescaler = core_frequency_mhz * 1000000 / STLINK_TRACE_FREQUENCY - 1;
+    if (settings->core_frequency_mhz) {
+        uint32_t prescaler = settings->core_frequency_mhz * 1000000 / STLINK_TRACE_FREQUENCY - 1;
         Write32(stlink, 0xE0040010, prescaler); // Set TPIU_ACPR clock divisor
     }
     uint32_t prescaler = Read32(stlink, 0xE0040010);
@@ -304,6 +322,7 @@ static void UpdateTrace(st_trace_t* trace, uint8_t c) {
             trace->overflow = true;
         } else {
             WLOG("Unknown opcode 0x%02x\n", c);
+            trace->error = true;
             if (TRACE_OP_GET_CONTINUATION(c))
                 trace->state = TRACE_STATE_SKIP_FRAME;
         }
@@ -336,7 +355,7 @@ static void UpdateTrace(st_trace_t* trace, uint8_t c) {
         break;
 
     default:
-        ELOG("Invalid state %d", trace->state);
+        ELOG("Invalid state %d.  This should never happen\n", trace->state);
         trace->state = TRACE_STATE_IDLE;
     }
 }
@@ -382,6 +401,7 @@ int main(int argc, char** argv)
     DLOG("logging_level = %d\n", settings.logging_level);
     DLOG("core_frequency = %d MHz\n", settings.core_frequency_mhz);
     DLOG("reset_board = %s\n", settings.reset_board ? "true" : "false");
+    DLOG("force = %s\n", settings.force ? "true" : "false");
     DLOG("serial_number = %s\n", settings.serial_number ? settings.serial_number : "any");
 
     if (settings.show_help) {
@@ -404,28 +424,33 @@ int main(int argc, char** argv)
 
     if (stlink->chip_id == STLINK_CHIPID_UNKNOWN) {
         ELOG("Your stlink is not connected to a device\n");
-        return APP_RESULT_STLINK_MISSING_DEVICE;
+        if (!settings.force)
+            return APP_RESULT_STLINK_MISSING_DEVICE;
     }
 
     if (!(stlink->version.flags & STLINK_F_HAS_TRACE)) {
         ELOG("Your stlink does not support tracing\n");
-        return APP_RESULT_STLINK_UNSUPPORTED_LINK;
+        if (!settings.force)
+            return APP_RESULT_STLINK_UNSUPPORTED_LINK;
     }
 
     if (!IsDeviceTraceSupported(stlink->chip_id)) {
         const struct stlink_chipid_params *params = stlink_chipid_get_params(stlink->chip_id);
         ELOG("We do not support SWO output for device '%s'\n", params->description);
-        return APP_RESULT_STLINK_UNSUPPORTED_DEVICE;
+        if (!settings.force)
+            return APP_RESULT_STLINK_UNSUPPORTED_DEVICE;
     }
 
-    if (!EnableTrace(stlink, settings.core_frequency_mhz, settings.reset_board)) {
+    if (!EnableTrace(stlink, &settings)) {
         ELOG("Unable to enable trace mode\n");
-        return APP_RESULT_STLINK_STATE_ERROR;
+        if (!settings.force)
+            return APP_RESULT_STLINK_STATE_ERROR;
     }
 
     if (stlink_run(stlink)) {
         ELOG("Unable to run device\n");
-        return APP_RESULT_STLINK_STATE_ERROR;
+        if (!settings.force)
+            return APP_RESULT_STLINK_STATE_ERROR;
     }
 
     ILOG("Reading Trace\n");
