@@ -982,7 +982,7 @@ int _stlink_usb_enable_trace(stlink_t* sl) {
     int i = fill_command(sl, SG_DXFER_TO_DEV, rep_len);
     cmd[i++] = STLINK_DEBUG_COMMAND;
     cmd[i++] = STLINK_DEBUG_APIV2_START_TRACE_RX;
-    write_uint16(&cmd[i + 0], STLINK_TRACE_BUF_LEN);
+    write_uint16(&cmd[i + 0], 2 * STLINK_TRACE_BUF_LEN);
     write_uint32(&cmd[i + 2], STLINK_TRACE_FREQUENCY);
 
     size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len);
@@ -1053,8 +1053,8 @@ int _stlink_usb_read_trace(stlink_t* sl, uint8_t* buf, size_t size) {
         int res = 0;
         int t = libusb_bulk_transfer(slu->usb_handle, slu->ep_trace, buf, trace_count, &res, 3000);
 
-        if (t) {
-            ELOG("read_trace read error\n");
+        if (t || res != trace_count) {
+            ELOG("read_trace read error %d\n", t);
             return(-1);
         }
     }

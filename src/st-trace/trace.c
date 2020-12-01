@@ -252,20 +252,6 @@ static stlink_t* StLinkConnect(const st_settings_t* settings) {
     }
 }
 
-static void Write32(stlink_t* stlink, uint32_t address, uint32_t data) {
-    write_uint32(stlink->q_buf, data);
-    if (stlink_write_mem32(stlink, address, 4)) {
-        ELOG("Unable to set address 0x%08x to 0x%08x\n", address, data);
-    }
-}
-
-static uint32_t Read32(stlink_t* stlink, uint32_t address) {
-    if (stlink_read_mem32(stlink, address, 4)) {
-        ELOG("Unable to read from address 0x%08x\n", address);
-    }
-    return read_uint32(stlink->q_buf, 0);
-}
-
 static bool EnableTrace(stlink_t* stlink, const st_settings_t* settings) {
 
     if (stlink_force_debug(stlink)) {
@@ -274,23 +260,23 @@ static bool EnableTrace(stlink_t* stlink, const st_settings_t* settings) {
             return false;
     }
 
-    if (settings->reset_board && stlink_reset(stlink)) {
+    if (settings->reset_board && stlink_jtag_reset(stlink, 2)) {
         ELOG("Unable to reset device\n");
         if (!settings->force)
             return false;
     }
 
-    Write32(stlink, DCB_DHCSR, DBGKEY | C_DEBUGEN | C_HALT);
-    Write32(stlink, DCB_DEMCR, DEMCR_TRCENA);
-    Write32(stlink, FP_CTRL, FP_CTRL_KEY);
-    Write32(stlink, DWT_FUNCTION0, 0);
-    Write32(stlink, DWT_FUNCTION1, 0);
-    Write32(stlink, DWT_FUNCTION2, 0);
-    Write32(stlink, DWT_FUNCTION3, 0);
-    Write32(stlink, DWT_CTRL, 0);
-    Write32(stlink, DBGMCU_CR, DBGMCU_CR_DBG_SLEEP | DBGMCU_CR_DBG_STOP |
-                               DBGMCU_CR_DBG_STANDBY | DBGMCU_CR_TRACE_IOEN |
-                               DBGMCU_CR_TRACE_MODE_ASYNC); // Enable async tracing
+    stlink_write_debug32(stlink, DCB_DHCSR, DBGKEY | C_DEBUGEN | C_HALT);
+    stlink_write_debug32(stlink, DCB_DEMCR, DEMCR_TRCENA);
+    stlink_write_debug32(stlink, FP_CTRL, FP_CTRL_KEY);
+    stlink_write_debug32(stlink, DWT_FUNCTION0, 0);
+    stlink_write_debug32(stlink, DWT_FUNCTION1, 0);
+    stlink_write_debug32(stlink, DWT_FUNCTION2, 0);
+    stlink_write_debug32(stlink, DWT_FUNCTION3, 0);
+    stlink_write_debug32(stlink, DWT_CTRL, 0);
+    stlink_write_debug32(stlink, DBGMCU_CR, DBGMCU_CR_DBG_SLEEP | DBGMCU_CR_DBG_STOP |
+                                            DBGMCU_CR_DBG_STANDBY | DBGMCU_CR_TRACE_IOEN |
+                                            DBGMCU_CR_TRACE_MODE_ASYNC); // Enable async tracing
 
     if (stlink_trace_enable(stlink)) {
         ELOG("Unable to turn on tracing in stlink\n");
@@ -298,13 +284,26 @@ static bool EnableTrace(stlink_t* stlink, const st_settings_t* settings) {
             return false;
     }
 
-    Write32(stlink, TPI_CSPSR, TPI_TPI_CSPSR_PORT_SIZE_1);
+    stlink_write_debug32(stlink, TPI_CSPSR, TPI_TPI_CSPSR_PORT_SIZE_1);
 
     if (settings->core_frequency_mhz) {
         uint32_t prescaler = settings->core_frequency_mhz * 1000000 / STLINK_TRACE_FREQUENCY - 1;
-        Write32(stlink, TPI_ACPR, prescaler); // Set TPIU_ACPR clock divisor
+        stlink_write_debug32(stlink, TPI_ACPR, prescaler); // Set TPIU_ACPR clock divisor
     }
-    uint32_t prescaler = Read32(stlink, TPI_ACPR);
+    stlink_write_debug32(stlink, TPI_FFCR, TPI_FFCR_TRIG_IN);
+    stlink_write_debug32(stlink, TPI_SPPR, TPI_SPPR_SWO_NRZ);
+    stlink_write_debug32(stlink, ITM_LAR, ITM_LAR_KEY);
+    stlink_write_debug32(stlink, ITM_TCC, 0x00000400); // Set sync counter
+    stlink_write_debug32(stlink, ITM_TCR, ITM_TCR_TRACE_BUS_ID_1 | ITM_TCR_TS_ENA | ITM_TCR_ITM_ENA);
+    stlink_write_debug32(stlink, ITM_TER, ITM_TER_PORTS_ALL);
+    stlink_write_debug32(stlink, ITM_TPR, ITM_TPR_PORTS_ALL);
+    stlink_write_debug32(stlink, DWT_CTRL, 4 * DWT_CTRL_NUM_COMP | DWT_CTRL_CYC_TAP |
+                                           0xF * DWT_CTRL_POST_INIT | 0xF * DWT_CTRL_POST_PRESET |
+                                           DWT_CTRL_CYCCNT_ENA);
+    stlink_write_debug32(stlink, DCB_DEMCR, DEMCR_TRCENA);
+
+    uint32_t prescaler;
+    stlink_read_debug32(stlink, TPI_ACPR, &prescaler);
     if (prescaler) {
         uint32_t system_clock_speed = (prescaler + 1) * STLINK_TRACE_FREQUENCY;
         uint32_t system_clock_speed_mhz = (system_clock_speed + 500000) / 1000000;
@@ -312,20 +311,8 @@ static bool EnableTrace(stlink_t* stlink, const st_settings_t* settings) {
     } else {
         WLOG("Trace Port Interface not configured.  Specify the system clock with a --clock=XX command\n");
         WLOG("line option or set it in your device's clock initialization routine, such as with:\n");
-        WLOG("  TPI->ACPR = HAL_RCC_GetHCLKFreq() / 2000000 - 1;\n");
+        WLOG("  TPI->ACPR = HAL_RCC_GetHCLKFreq() / %d - 1;\n", STLINK_TRACE_FREQUENCY);
     }
-
-    Write32(stlink, TPI_FFCR, TPI_FFCR_TRIG_IN);
-    Write32(stlink, TPI_SPPR, TPI_SPPR_SWO_NRZ);
-    Write32(stlink, ITM_LAR, ITM_LAR_KEY);
-    Write32(stlink, ITM_TCC, 0x00000400); // Set sync counter
-    Write32(stlink, ITM_TCR, ITM_TCR_TRACE_BUS_ID_1 | ITM_TCR_TS_ENA | ITM_TCR_ITM_ENA);
-    Write32(stlink, ITM_TER, ITM_TER_PORTS_ALL);
-    Write32(stlink, ITM_TPR, ITM_TPR_PORTS_ALL);
-    Write32(stlink, DWT_CTRL, 4 * DWT_CTRL_NUM_COMP | DWT_CTRL_CYC_TAP |
-                              0xF * DWT_CTRL_POST_INIT | 0xF * DWT_CTRL_POST_PRESET |
-                              DWT_CTRL_CYCCNT_ENA);
-    Write32(stlink, DCB_DEMCR, DEMCR_TRCENA);
 
     return true;
 }
@@ -417,8 +404,9 @@ static bool ReadTrace(stlink_t* stlink, st_trace_t* trace) {
         return false;
     }
 
+    DLOG("Trace Length %d\n", length);
     if (length == 0) {
-        usleep(1000); // Our buffer could fill in around 2ms, so sleep half that.
+    //    usleep(100);
         return true;
     }
 
@@ -525,15 +513,16 @@ int main(int argc, char** argv)
             return APP_RESULT_STLINK_STATE_ERROR;
     }
 
+    ILOG("Reading Trace\n");
+    st_trace_t trace = {};
+    trace.start_time = time(NULL);
+
     if (stlink_run(stlink)) {
         ELOG("Unable to run device\n");
         if (!settings.force)
             return APP_RESULT_STLINK_STATE_ERROR;
     }
 
-    ILOG("Reading Trace\n");
-    st_trace_t trace = {};
-    trace.start_time = time(NULL);
     while (!g_abort_trace && ReadTrace(stlink, &trace)) {
         CheckForConfigurationError(&trace);
     }

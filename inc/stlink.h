@@ -83,7 +83,7 @@ enum target_state {
 
 #define STLINK_V3_MAX_FREQ_NB            10
 
-#define STLINK_TRACE_BUF_LEN           4096
+#define STLINK_TRACE_BUF_LEN           2048
 #define STLINK_TRACE_FREQUENCY      2000000
 
 /* Cortex Debug Control Block */
