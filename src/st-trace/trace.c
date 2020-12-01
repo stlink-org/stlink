@@ -135,6 +135,7 @@ typedef struct {
     uint32_t    count_error;
 
     uint8_t     unknown_opcodes[256 / 8];
+    uint32_t    unknown_sources;
 } st_trace_t;
 
 
@@ -364,8 +365,11 @@ static void UpdateTrace(st_trace_t* trace, uint8_t c) {
             const char* type = TRACE_OP_IS_SW_SOURCE(c) ? "sw" : "hw";
             uint8_t addr = TRACE_OP_GET_SW_SOURCE_ADDR(c);
             uint8_t size = TRACE_OP_GET_SOURCE_SIZE(c);
-            if (TRACE_OP_IS_SW_SOURCE(c))
-                WLOG("Unsupported %s source 0x%x size %d\n", type, addr, size);
+            if (TRACE_OP_IS_SW_SOURCE(c)) {
+                if (!(trace->unknown_sources & (1 << addr)))
+                    WLOG("Unsupported %s source 0x%x size %d\n", type, addr, size);
+                trace->unknown_sources |= (1 << addr);
+            }
             trace->state = kSourceSkip[size];
         } else if (TRACE_OP_IS_LOCAL_TIME(c) || TRACE_OP_IS_GLOBAL_TIME(c)) {
             trace->count_time_packets++;
@@ -460,6 +464,9 @@ static void CheckForConfigurationError(stlink_t* stlink, st_trace_t* trace) {
         for (uint32_t i = 0; i <= 0xFF; i++)
             if (trace->unknown_opcodes[i / 8] & (1 << i % 8))
                 WLOG("Unknown Opcode 0x%02x\n", i);
+        for (uint32_t i = 0; i < 32; i++)
+            if (trace->unknown_sources & (1 << i))
+                WLOG("Unknown Source %d\n", i);
         uint32_t prescaler = Read32(stlink, TPI_ACPR);
         if (prescaler) {
             uint32_t system_clock_speed = (prescaler + 1) * STLINK_TRACE_FREQUENCY;
