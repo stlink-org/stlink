@@ -444,7 +444,7 @@ static bool ReadTrace(stlink_t* stlink, st_trace_t* trace) {
     return true;
 }
 
-static void CheckForConfigurationError(stlink_t* stlink, st_trace_t* trace) {
+static void CheckForConfigurationError(st_trace_t* trace) {
     uint32_t elapsed_time_s = time(NULL) - trace->start_time;
     if (trace->configuration_checked || elapsed_time_s < 10) {
         return;
@@ -467,18 +467,9 @@ static void CheckForConfigurationError(stlink_t* stlink, st_trace_t* trace) {
         for (uint32_t i = 0; i < 32; i++)
             if (trace->unknown_sources & (1 << i))
                 WLOG("Unknown Source %d\n", i);
-        uint32_t prescaler = Read32(stlink, TPI_ACPR);
-        if (prescaler) {
-            uint32_t system_clock_speed = (prescaler + 1) * STLINK_TRACE_FREQUENCY;
-            uint32_t system_clock_speed_mhz = (system_clock_speed + 500000) / 1000000;
-            WLOG("Trace Port Interface configured to expect a %d MHz system clock.\n", system_clock_speed_mhz);
-        } else {
-            WLOG("Trace Port Interface not configured.  Specify the system clock with a --clock=XX command\n");
-            WLOG("line option or set it in your device's clock initialization routine, such as with:\n");
-            WLOG("  TPI->ACPR = HAL_RCC_GetHCLKFreq() / 2000000 - 1;\n");
-        }
-        // TODO: Include clock configuration information here.
-        // TODO: Include TRACE/DEBUG register values here.
+        WLOG("Check that the clock frequency is set correctly.  Either with the --clock=XX\n");
+        WLOG("command line option, or by adding the following to your device's clock initialization:\n");
+        WLOG("  TPI->ACPR = HAL_RCC_GetHCLKFreq() / 2000000 - 1;\n");
         WLOG("****\n");
     }
 }
@@ -491,6 +482,7 @@ int main(int argc, char** argv)
     signal(SIGINT, &cleanup);
     signal(SIGTERM, &cleanup);
     signal(SIGSEGV, &cleanup);
+    signal(SIGPIPE, &cleanup);
 
     if (!parse_options(argc, argv, &settings)) {
         usage();
@@ -558,7 +550,7 @@ int main(int argc, char** argv)
     st_trace_t trace = {};
     trace.start_time = time(NULL);
     while (!g_done && ReadTrace(stlink, &trace)) {
-        CheckForConfigurationError(stlink, &trace);
+        CheckForConfigurationError(&trace);
     }
 
     stlink_trace_disable(stlink);
