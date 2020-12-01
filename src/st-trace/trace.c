@@ -390,6 +390,8 @@ static void UpdateTrace(st_trace_t* trace, uint8_t c) {
 
     case TRACE_STATE_TARGET_SOURCE:
         putchar(c);
+        if (c == '\n')
+            fflush(stdout);
         trace->count_target_data++;
         trace->state = TRACE_STATE_IDLE;
         break;
