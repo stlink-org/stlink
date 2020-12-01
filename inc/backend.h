@@ -29,7 +29,7 @@
         int (*force_debug) (stlink_t *sl);
         int32_t (*target_voltage) (stlink_t *sl);
         int (*set_swdclk) (stlink_t * stl, uint16_t divisor);
-        int (*trace_enable) (stlink_t * sl);
+        int (*trace_enable) (stlink_t * sl, uint32_t frequency);
         int (*trace_disable) (stlink_t * sl);
         int (*trace_read) (stlink_t * sl, uint8_t* buf, size_t size);
 

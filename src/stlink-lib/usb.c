@@ -972,7 +972,7 @@ int _stlink_usb_write_reg(stlink_t *sl, uint32_t reg, int idx) {
     return(0);
 }
 
-int _stlink_usb_enable_trace(stlink_t* sl) {
+int _stlink_usb_enable_trace(stlink_t* sl, uint32_t frequency) {
     struct stlink_libusb * const slu = sl->backend_data;
     unsigned char* const data = sl->q_buf;
     unsigned char* const cmd  = sl->c_buf;
@@ -983,7 +983,7 @@ int _stlink_usb_enable_trace(stlink_t* sl) {
     cmd[i++] = STLINK_DEBUG_COMMAND;
     cmd[i++] = STLINK_DEBUG_APIV2_START_TRACE_RX;
     write_uint16(&cmd[i + 0], 2 * STLINK_TRACE_BUF_LEN);
-    write_uint32(&cmd[i + 2], STLINK_TRACE_FREQUENCY);
+    write_uint32(&cmd[i + 2], frequency);
 
     size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len);
 

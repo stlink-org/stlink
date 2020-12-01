@@ -83,8 +83,10 @@ enum target_state {
 
 #define STLINK_V3_MAX_FREQ_NB            10
 
-#define STLINK_TRACE_BUF_LEN           2048
-#define STLINK_TRACE_FREQUENCY      2000000
+#define STLINK_TRACE_BUF_LEN               2048
+#define STLINK_V2_MAX_TRACE_FREQUENCY   2000000
+#define STLINK_V3_MAX_TRACE_FREQUENCY  24000000
+#define STLINK_DEFAULT_TRACE_FREQUENCY  2000000
 
 /* Cortex Debug Control Block */
 #define DCB_DHCSR 0xE000EDF0
@@ -214,6 +216,7 @@ struct _stlink {
     char serial[STLINK_SERIAL_MAX_SIZE];
     int serial_size;
     int freq;                    // set by stlink_open_usb(), values: STLINK_SWDCLK_xxx_DIVISOR
+    uint32_t max_trace_freq;     // set by stlink_open_usb()
 
     enum stlink_flash_type flash_type;
     // stlink_chipid_params.flash_type, set by stlink_load_device_params(), values: STLINK_FLASH_TYPE_xxx
@@ -267,7 +270,7 @@ int stlink_current_mode(stlink_t *sl);
 int stlink_force_debug(stlink_t *sl);
 int stlink_target_voltage(stlink_t *sl);
 int stlink_set_swdclk(stlink_t *sl, uint16_t divisor);
-int stlink_trace_enable(stlink_t* sl);
+int stlink_trace_enable(stlink_t* sl, uint32_t frequency);
 int stlink_trace_disable(stlink_t* sl);
 int stlink_trace_read(stlink_t* sl, uint8_t* buf, size_t size);
 

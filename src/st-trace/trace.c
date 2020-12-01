@@ -22,7 +22,8 @@
 #define APP_RESULT_STLINK_MISSING_DEVICE        3
 #define APP_RESULT_STLINK_UNSUPPORTED_DEVICE    4
 #define APP_RESULT_STLINK_UNSUPPORTED_LINK      5
-#define APP_RESULT_STLINK_STATE_ERROR           6
+#define APP_RESULT_UNSUPPORTED_TRACE_FREQUENCY  6
+#define APP_RESULT_STLINK_STATE_ERROR           7
 
 // See D4.2 of https://developer.arm.com/documentation/ddi0403/ed/
 #define TRACE_OP_IS_OVERFLOW(c)         ((c) == 0x70)
@@ -98,13 +99,14 @@
 
 
 typedef struct {
-    bool  show_help;
-    bool  show_version;
-    int   logging_level;
-    int   core_frequency_mhz;
-    bool  reset_board;
-    bool  force;
-    char* serial_number;
+    bool        show_help;
+    bool        show_version;
+    int         logging_level;
+    uint32_t    core_frequency;
+    uint32_t    trace_frequency;
+    bool        reset_board;
+    bool        force;
+    char*       serial_number;
 } st_settings_t;
 
 
@@ -150,6 +152,7 @@ static void usage(void) {
     puts("  -vXX, --verbose=XX    Specify a specific verbosity level (0..99)");
     puts("  -v, --verbose         Specify a generally verbose logging");
     puts("  -cXX, --clock=XX      Specify the core frequency in MHz");
+    puts("  -tXX, --trace=XX      Specify the trace frequency in Hz");
     puts("  -n, --no-reset        Do not reset board on connection");
     puts("  -sXX, --serial=XX     Use a specific serial number");
     puts("  -f, --force           Ignore most initialization errors");
@@ -162,6 +165,7 @@ bool parse_options(int argc, char** argv, st_settings_t *settings) {
         {"version",  no_argument,       NULL, 'V'},
         {"verbose",  optional_argument, NULL, 'v'},
         {"clock",    required_argument, NULL, 'c'},
+        {"trace",    required_argument, NULL, 't'},
         {"no-reset", no_argument,       NULL, 'n'},
         {"serial",   required_argument, NULL, 's'},
         {"force",    no_argument,       NULL, 'f'},
@@ -174,7 +178,8 @@ bool parse_options(int argc, char** argv, st_settings_t *settings) {
     settings->show_help = false;
     settings->show_version = false;
     settings->logging_level = DEFAULT_LOGGING_LEVEL;
-    settings->core_frequency_mhz = 0;
+    settings->core_frequency = 0;
+    settings->trace_frequency = 0;
     settings->reset_board = true;
     settings->force = false;
     settings->serial_number = NULL;
@@ -197,7 +202,10 @@ bool parse_options(int argc, char** argv, st_settings_t *settings) {
             ugly_init(settings->logging_level);
             break;
         case 'c':
-            settings->core_frequency_mhz = atoi(optarg);
+            settings->core_frequency = atoi(optarg) * 1000000;
+            break;
+        case 't':
+            settings->trace_frequency = atoi(optarg);
             break;
         case 'n':
             settings->reset_board = false;
@@ -252,7 +260,7 @@ static stlink_t* StLinkConnect(const st_settings_t* settings) {
     }
 }
 
-static bool EnableTrace(stlink_t* stlink, const st_settings_t* settings) {
+static bool EnableTrace(stlink_t* stlink, const st_settings_t* settings, uint32_t trace_frequency) {
 
     if (stlink_force_debug(stlink)) {
         ELOG("Unable to debug device\n");
@@ -278,7 +286,8 @@ static bool EnableTrace(stlink_t* stlink, const st_settings_t* settings) {
                                             DBGMCU_CR_DBG_STANDBY | DBGMCU_CR_TRACE_IOEN |
                                             DBGMCU_CR_TRACE_MODE_ASYNC); // Enable async tracing
 
-    if (stlink_trace_enable(stlink)) {
+    DLOG("Setting trace frequency to %d Hz.\n", trace_frequency);
+    if (stlink_trace_enable(stlink, trace_frequency)) {
         ELOG("Unable to turn on tracing in stlink\n");
         if (!settings->force)
             return false;
@@ -286,8 +295,8 @@ static bool EnableTrace(stlink_t* stlink, const st_settings_t* settings) {
 
     stlink_write_debug32(stlink, TPI_CSPSR, TPI_TPI_CSPSR_PORT_SIZE_1);
 
-    if (settings->core_frequency_mhz) {
-        uint32_t prescaler = settings->core_frequency_mhz * 1000000 / STLINK_TRACE_FREQUENCY - 1;
+    if (settings->core_frequency) {
+        uint32_t prescaler = settings->core_frequency / trace_frequency - 1;
         stlink_write_debug32(stlink, TPI_ACPR, prescaler); // Set TPIU_ACPR clock divisor
     }
     stlink_write_debug32(stlink, TPI_FFCR, TPI_FFCR_TRIG_IN);
@@ -305,13 +314,13 @@ static bool EnableTrace(stlink_t* stlink, const st_settings_t* settings) {
     uint32_t prescaler;
     stlink_read_debug32(stlink, TPI_ACPR, &prescaler);
     if (prescaler) {
-        uint32_t system_clock_speed = (prescaler + 1) * STLINK_TRACE_FREQUENCY;
+        uint32_t system_clock_speed = (prescaler + 1) * trace_frequency;
         uint32_t system_clock_speed_mhz = (system_clock_speed + 500000) / 1000000;
         ILOG("Trace Port Interface configured to expect a %d MHz system clock.\n", system_clock_speed_mhz);
     } else {
         WLOG("Trace Port Interface not configured.  Specify the system clock with a --clock=XX command\n");
         WLOG("line option or set it in your device's clock initialization routine, such as with:\n");
-        WLOG("  TPI->ACPR = HAL_RCC_GetHCLKFreq() / %d - 1;\n", STLINK_TRACE_FREQUENCY);
+        WLOG("  TPI->ACPR = HAL_RCC_GetHCLKFreq() / %d - 1;\n", trace_frequency);
     }
 
     return true;
@@ -404,10 +413,12 @@ static bool ReadTrace(stlink_t* stlink, st_trace_t* trace) {
         return false;
     }
 
-    DLOG("Trace Length %d\n", length);
     if (length == 0) {
-    //    usleep(100);
+        usleep(100);
         return true;
+    }
+
+    if (length == sizeof(buffer)) {
     }
 
     for (int i = 0; i < length; i++) {
@@ -417,7 +428,7 @@ static bool ReadTrace(stlink_t* stlink, st_trace_t* trace) {
     return true;
 }
 
-static void CheckForConfigurationError(st_trace_t* trace) {
+static void CheckForConfigurationError(st_trace_t* trace, uint32_t trace_frequency) {
     uint32_t elapsed_time_s = time(NULL) - trace->start_time;
     if (trace->configuration_checked || elapsed_time_s < 10) {
         return;
@@ -442,7 +453,7 @@ static void CheckForConfigurationError(st_trace_t* trace) {
                 WLOG("Unknown Source %d\n", i);
         WLOG("Check that the clock frequency is set correctly.  Either with the --clock=XX\n");
         WLOG("command line option, or by adding the following to your device's clock initialization:\n");
-        WLOG("  TPI->ACPR = HAL_RCC_GetHCLKFreq() / 2000000 - 1;\n");
+        WLOG("  TPI->ACPR = HAL_RCC_GetHCLKFreq() / %d - 1;\n", trace_frequency);
         WLOG("****\n");
     }
 }
@@ -465,7 +476,8 @@ int main(int argc, char** argv)
     DLOG("show_help = %s\n", settings.show_help ? "true" : "false");
     DLOG("show_version = %s\n", settings.show_version ? "true" : "false");
     DLOG("logging_level = %d\n", settings.logging_level);
-    DLOG("core_frequency = %d MHz\n", settings.core_frequency_mhz);
+    DLOG("core_frequency = %d Hz\n", settings.core_frequency);
+    DLOG("trace_frequency = %d Hz\n", settings.trace_frequency);
     DLOG("reset_board = %s\n", settings.reset_board ? "true" : "false");
     DLOG("force = %s\n", settings.force ? "true" : "false");
     DLOG("serial_number = %s\n", settings.serial_number ? settings.serial_number : "any");
@@ -507,7 +519,16 @@ int main(int argc, char** argv)
             return APP_RESULT_STLINK_UNSUPPORTED_DEVICE;
     }
 
-    if (!EnableTrace(stlink, &settings)) {
+    uint32_t trace_frequency = settings.trace_frequency;
+    if (!trace_frequency)
+        trace_frequency = STLINK_DEFAULT_TRACE_FREQUENCY;
+    if (trace_frequency > stlink->max_trace_freq) {
+        ELOG("Invalid trace frequency %d (max %d)\n", trace_frequency, stlink->max_trace_freq);
+        if (!settings.force)
+            return APP_RESULT_UNSUPPORTED_TRACE_FREQUENCY;
+    }
+
+    if (!EnableTrace(stlink, &settings, trace_frequency)) {
         ELOG("Unable to enable trace mode\n");
         if (!settings.force)
             return APP_RESULT_STLINK_STATE_ERROR;
@@ -524,7 +545,7 @@ int main(int argc, char** argv)
     }
 
     while (!g_abort_trace && ReadTrace(stlink, &trace)) {
-        CheckForConfigurationError(&trace);
+        CheckForConfigurationError(&trace, trace_frequency);
     }
 
     stlink_trace_disable(stlink);

@@ -1468,6 +1468,7 @@ void _parse_version(stlink_t *sl, stlink_version_t *slv) {
 
             if (sl->version.jtag_v >= 13) {
                 sl->version.flags |= STLINK_F_HAS_TRACE;
+                sl->max_trace_freq = STLINK_V2_MAX_TRACE_FREQUENCY;
             }
         }
     } else {
@@ -1483,6 +1484,7 @@ void _parse_version(stlink_t *sl, stlink_version_t *slv) {
         /* preferred API to get last R/W status */
         sl->version.flags |= STLINK_F_HAS_GETLASTRWSTATUS2;
         sl->version.flags |= STLINK_F_HAS_TRACE;
+        sl->max_trace_freq = STLINK_V3_MAX_TRACE_FREQUENCY;
     }
 
     return;
@@ -1682,9 +1684,9 @@ int stlink_current_mode(stlink_t *sl) {
     return(STLINK_DEV_UNKNOWN_MODE);
 }
 
-int stlink_trace_enable(stlink_t* sl) {
+int stlink_trace_enable(stlink_t* sl, uint32_t frequency) {
     DLOG("*** stlink_trace_enable ***\n");
-    return(sl->backend->trace_enable(sl));
+    return(sl->backend->trace_enable(sl, frequency));
 }
 
 int stlink_trace_disable(stlink_t* sl) {
