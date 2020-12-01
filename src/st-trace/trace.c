@@ -7,6 +7,7 @@
 #include <signal.h>
 #include <unistd.h>
 #include <ctype.h>
+#include <time.h>
 
 #include <stlink.h>
 #include <logging.h>
@@ -25,7 +26,6 @@
 
 // See D4.2 of https://developer.arm.com/documentation/ddi0403/ed/
 #define TRACE_OP_IS_OVERFLOW(c)         ((c) == 0x70)
-#define TRACE_OP_IS_SYNC(c)             ((c) == 0x00)
 #define TRACE_OP_IS_LOCAL_TIME(c)       (((c) & 0x0f) == 0x00 && ((c) & 0x70) != 0x00)
 #define TRACE_OP_IS_EXTENSION(c)        (((c) & 0x0b) == 0x08)
 #define TRACE_OP_IS_GLOBAL_TIME(c)      (((c) & 0xdf) == 0x94)
@@ -100,7 +100,7 @@
 static bool g_done = false;
 
 
-struct _st_settings_t {
+typedef struct {
     bool  show_help;
     bool  show_version;
     int   logging_level;
@@ -108,12 +108,11 @@ struct _st_settings_t {
     bool  reset_board;
     bool  force;
     char* serial_number;
-};
-typedef struct _st_settings_t st_settings_t;
+} st_settings_t;
 
 
 // We use a simple state machine to parse the trace data.
-enum _trace_state {
+typedef enum {
     TRACE_STATE_IDLE,
     TRACE_STATE_TARGET_SOURCE,
     TRACE_STATE_SKIP_FRAME,
@@ -121,15 +120,22 @@ enum _trace_state {
     TRACE_STATE_SKIP_3,
     TRACE_STATE_SKIP_2,
     TRACE_STATE_SKIP_1,
-};
-typedef enum _trace_state trace_state;
+} trace_state;
 
-struct _st_trace_t {
+typedef struct {
+    time_t      start_time;
+    bool        configuration_checked;
+
     trace_state state;
-    bool        overflow;
-    bool        error;
-};
-typedef struct _st_trace_t st_trace_t;
+
+    uint32_t    count_raw_bytes;
+    uint32_t    count_target_data;
+    uint32_t    count_time_packets;
+    uint32_t    count_overflow;
+    uint32_t    count_error;
+
+    uint8_t     unknown_opcodes[256 / 8];
+} st_trace_t;
 
 
 static void usage(void) {
@@ -295,14 +301,14 @@ static bool EnableTrace(stlink_t* stlink, const st_settings_t* settings) {
             return false;
     }
 
-    Write32(stlink, DCB_DHCSR, DBGKEY | C_DEBUGEN | C_HALT); // Debug and halt the CPU
-    Write32(stlink, DCB_DEMCR, DEMCR_TRCENA); // Enable tracing
-    Write32(stlink, FP_CTRL, FP_CTRL_KEY); // Disable flash patch unit.
-    Write32(stlink, DWT_FUNCTION0, 0); // Disable sampling units
+    Write32(stlink, DCB_DHCSR, DBGKEY | C_DEBUGEN | C_HALT);
+    Write32(stlink, DCB_DEMCR, DEMCR_TRCENA);
+    Write32(stlink, FP_CTRL, FP_CTRL_KEY);
+    Write32(stlink, DWT_FUNCTION0, 0);
     Write32(stlink, DWT_FUNCTION1, 0);
     Write32(stlink, DWT_FUNCTION2, 0);
     Write32(stlink, DWT_FUNCTION3, 0);
-    Write32(stlink, DWT_CTRL, 0); // Disable other watchpoint and trace features
+    Write32(stlink, DWT_CTRL, 0);
     Write32(stlink, DBGMCU_CR, DBGMCU_CR_DBG_SLEEP | DBGMCU_CR_DBG_STOP |
                                DBGMCU_CR_DBG_STANDBY | DBGMCU_CR_TRACE_IOEN |
                                DBGMCU_CR_TRACE_MODE_ASYNC); // Enable async tracing
@@ -322,7 +328,8 @@ static bool EnableTrace(stlink_t* stlink, const st_settings_t* settings) {
     uint32_t prescaler = Read32(stlink, TPI_ACPR);
     if (prescaler) {
         uint32_t system_clock_speed = (prescaler + 1) * STLINK_TRACE_FREQUENCY;
-        ILOG("Trace Port Interface configured to expect a %d MHz system clock.\n", (system_clock_speed + 500000) / 1000000);
+        uint32_t system_clock_speed_mhz = (system_clock_speed + 500000) / 1000000;
+        ILOG("Trace Port Interface configured to expect a %d MHz system clock.\n", system_clock_speed_mhz);
     } else {
         WLOG("Trace Port Interface not configured.  Specify the system clock with a --clock=XX command\n");
         WLOG("line option or set it in your device's clock initialization routine, such as with:\n");
@@ -331,7 +338,7 @@ static bool EnableTrace(stlink_t* stlink, const st_settings_t* settings) {
 
     Write32(stlink, TPI_FFCR, TPI_FFCR_TRIG_IN | TPI_FFCR_EN_F_CONT);
     Write32(stlink, TPI_SPPR, TPI_SPPR_SWO_NRZ);
-    Write32(stlink, ITM_LAR, ITM_LAR_KEY); // Unlocks the following registers.
+    Write32(stlink, ITM_LAR, ITM_LAR_KEY);
     Write32(stlink, ITM_TCC, 0x00000400); // Set sync counter
     Write32(stlink, ITM_TCR, ITM_TCR_TRACE_BUS_ID_1 | ITM_TCR_TS_ENA | ITM_TCR_ITM_ENA);
     Write32(stlink, ITM_TER, ITM_TER_PORTS_ALL);
@@ -339,13 +346,14 @@ static bool EnableTrace(stlink_t* stlink, const st_settings_t* settings) {
     Write32(stlink, DWT_CTRL, 4 * DWT_CTRL_NUM_COMP | DWT_CTRL_CYC_TAP |
                               0xF * DWT_CTRL_POST_INIT | 0xF * DWT_CTRL_POST_PRESET |
                               DWT_CTRL_CYCCNT_ENA);
-    Write32(stlink, DCB_DEMCR, DEMCR_TRCENA); // Enable tracing (again...?)
+    Write32(stlink, DCB_DEMCR, DEMCR_TRCENA);
 
     return true;
 }
 
 static void UpdateTrace(st_trace_t* trace, uint8_t c) {
     // Parse the input using a state machine.
+    trace->count_raw_bytes++;
     switch (trace->state)
     {
     case TRACE_STATE_IDLE:
@@ -360,17 +368,19 @@ static void UpdateTrace(st_trace_t* trace, uint8_t c) {
                 WLOG("Unsupported %s source 0x%x size %d\n", type, addr, size);
             trace->state = kSourceSkip[size];
         } else if (TRACE_OP_IS_LOCAL_TIME(c) || TRACE_OP_IS_GLOBAL_TIME(c)) {
+            trace->count_time_packets++;
             if (TRACE_OP_GET_CONTINUATION(c))
                 trace->state = TRACE_STATE_SKIP_FRAME;
         } else if (TRACE_OP_IS_EXTENSION(c)) {
             if (TRACE_OP_GET_CONTINUATION(c))
                 trace->state = TRACE_STATE_SKIP_FRAME;
-        } else if (TRACE_OP_IS_SYNC(c)) {
         } else if (TRACE_OP_IS_OVERFLOW(c)) {
-            trace->overflow = true;
+            trace->count_overflow++;
         } else {
-            WLOG("Unknown opcode 0x%02x\n", c);
-            trace->error = true;
+            if (!(trace->unknown_opcodes[c / 8] & (1 << c % 8)))
+                WLOG("Unknown opcode 0x%02x\n", c);
+            trace->unknown_opcodes[c / 8] |= (1 << c % 8);
+            trace->count_error++;
             if (TRACE_OP_GET_CONTINUATION(c))
                 trace->state = TRACE_STATE_SKIP_FRAME;
         }
@@ -378,6 +388,7 @@ static void UpdateTrace(st_trace_t* trace, uint8_t c) {
 
     case TRACE_STATE_TARGET_SOURCE:
         putchar(c);
+        trace->count_target_data++;
         trace->state = TRACE_STATE_IDLE;
         break;
 
@@ -422,12 +433,47 @@ static bool ReadTrace(stlink_t* stlink, st_trace_t* trace) {
         return true;
     }
 
-    DLOG("Trace Length: %d\n", length);
     for (int i = 0; i < length; i++) {
         UpdateTrace(trace, buffer[i]);
     }
 
     return true;
+}
+
+static void CheckForConfigurationError(stlink_t* stlink, st_trace_t* trace) {
+    uint32_t elapsed_time_s = time(NULL) - trace->start_time;
+    if (trace->configuration_checked || elapsed_time_s < 10) {
+        return;
+    }
+    trace->configuration_checked = true;
+
+    // Simple huristic to determine if we are configured poorly.
+    if (trace->count_raw_bytes < 100 || trace->count_error > 1 || trace->count_time_packets < 10) {
+        // Output Diagnostic Information
+        WLOG("****\n");
+        WLOG("We do not appear to be retrieving data from the stlink correctly.\n");
+        WLOG("Raw Bytes: %d\n", trace->count_raw_bytes);
+        WLOG("Target Data: %d\n", trace->count_target_data);
+        WLOG("Time Packets: %d\n", trace->count_time_packets);
+        WLOG("Overlow Count: %d\n", trace->count_overflow);
+        WLOG("Errors: %d\n", trace->count_error);
+        for (uint32_t i = 0; i <= 0xFF; i++)
+            if (trace->unknown_opcodes[i / 8] & (1 << i % 8))
+                WLOG("Unknown Opcode 0x%02x\n", i);
+        uint32_t prescaler = Read32(stlink, TPI_ACPR);
+        if (prescaler) {
+            uint32_t system_clock_speed = (prescaler + 1) * STLINK_TRACE_FREQUENCY;
+            uint32_t system_clock_speed_mhz = (system_clock_speed + 500000) / 1000000;
+            WLOG("Trace Port Interface configured to expect a %d MHz system clock.\n", system_clock_speed_mhz);
+        } else {
+            WLOG("Trace Port Interface not configured.  Specify the system clock with a --clock=XX command\n");
+            WLOG("line option or set it in your device's clock initialization routine, such as with:\n");
+            WLOG("  TPI->ACPR = HAL_RCC_GetHCLKFreq() / 2000000 - 1;\n");
+        }
+        // TODO: Include clock configuration information here.
+        // TODO: Include TRACE/DEBUG register values here.
+        WLOG("****\n");
+    }
 }
 
 int main(int argc, char** argv)
@@ -503,8 +549,9 @@ int main(int argc, char** argv)
 
     ILOG("Reading Trace\n");
     st_trace_t trace = {};
+    trace.start_time = time(NULL);
     while (!g_done && ReadTrace(stlink, &trace)) {
-        // TODO: Check that things are roughly working.
+        CheckForConfigurationError(stlink, &trace);
     }
 
     stlink_trace_disable(stlink);
