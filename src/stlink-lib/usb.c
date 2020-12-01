@@ -1053,7 +1053,7 @@ int _stlink_usb_read_trace(stlink_t* sl, uint8_t* buf, size_t size) {
         int res = 0;
         int t = libusb_bulk_transfer(slu->usb_handle, slu->ep_trace, buf, trace_count, &res, 3000);
 
-        if (t || res != trace_count) {
+        if (t || res != (int)trace_count) {
             ELOG("read_trace read error %d\n", t);
             return(-1);
         }
