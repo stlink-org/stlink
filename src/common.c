@@ -868,7 +868,7 @@ static void set_flash_cr_mer(stlink_t *sl, bool v) {
         cr_reg = STM32Gx_FLASH_CR;
         cr_mer = (1 <<  STM32Gx_FLASH_CR_MER1);
 
-        if (sl->has_dual_bank) {
+        if (sl->chip_flags & CHIP_F_HAS_DUAL_BANK) {
             cr_mer |= (1 << STM32Gx_FLASH_CR_MER2);
         }
 
@@ -1363,7 +1363,7 @@ int stlink_load_device_params(stlink_t *sl) {
     }
 
     sl->flash_type = params->flash_type;
-    sl->has_dual_bank = params->has_dual_bank;
+    sl->chip_flags = params->flags;
     sl->flash_pgsz = params->flash_pagesize;
     sl->sram_size = params->sram_size;
     sl->sys_base = params->bootrom_base;

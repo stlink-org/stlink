@@ -67,12 +67,15 @@ enum stlink_stm32_chipids {
     STLINK_CHIPID_STM32_WB55             = 0x495
 };
 
+#define CHIP_F_HAS_DUAL_BANK    (1 << 0)
+#define CHIP_F_HAS_SWO_TRACING  (1 << 1)
+
 /** Chipid parameters */
 struct stlink_chipid_params {
     uint32_t chip_id;
     char *description;
     enum stlink_flash_type flash_type;
-    bool has_dual_bank;
+    uint32_t flags;
     uint32_t flash_size_reg;
     uint32_t flash_pagesize;
     uint32_t sram_size;

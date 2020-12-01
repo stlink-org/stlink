@@ -217,7 +217,7 @@ struct _stlink {
 
     enum stlink_flash_type flash_type;
     // stlink_chipid_params.flash_type, set by stlink_load_device_params(), values: STLINK_FLASH_TYPE_xxx
-    bool has_dual_bank;
+    uint32_t chip_flags;
 
     stm32_addr_t flash_base;     // STM32_FLASH_BASE, set by stlink_load_device_params()
     size_t flash_size;           // calculated by stlink_load_device_params()
