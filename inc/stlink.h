@@ -105,6 +105,9 @@ enum target_state {
 #define S_RETIRE_ST (1 << 24)
 #define S_RESET_ST  (1 << 25)
 
+/* DCB_DEMCR field definitions */
+#define DEMCR_TRCENA    (1 << 24)
+
 /* Map the relevant features, quirks and workaround for specific firmware version of stlink */
 #define STLINK_F_HAS_TRACE              (1 << 0)
 #define STLINK_F_HAS_SWD_SET_FREQ       (1 << 1)

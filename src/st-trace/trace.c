@@ -38,6 +38,64 @@
 #define TRACE_OP_GET_SW_SOURCE_ADDR(c)  ((c) >> 3)
 
 
+// Instrumentation Trace Macrocell (ITM) Registers
+#define ITM_TER 0xE0000E00 // ITM Trace Enable Register
+#define ITM_TPR 0xE0000E40 // ITM Trace Privilege Register
+#define ITM_TCR 0xE0000E80 // ITM Trace Control Register
+#define ITM_TCC 0xE0000E90 // ITM Trace Cycle Count
+#define ITM_LAR 0xE0000FB0 // ITM Lock Access Register
+
+// ITM field definitions
+#define ITM_TER_PORTS_ALL       (0xFFFFFFFF)
+#define ITM_TPR_PORTS_ALL       (0x0F)
+#define ITM_TCR_TRACE_BUS_ID_1  (0x01 << 16)
+#define ITM_TCR_SWO_ENA         (1 << 4)
+#define ITM_TCR_DWT_ENA         (1 << 3)
+#define ITM_TCR_SYNC_ENA        (1 << 2)
+#define ITM_TCR_TS_ENA          (1 << 1)
+#define ITM_TCR_ITM_ENA         (1 << 0)
+#define ITM_LAR_KEY             0xC5ACCE55
+
+// Data Watchpoint and Trace (DWT) Registers
+#define DWT_CTRL      0xE0001000 // DWT Control Register
+#define DWT_FUNCTION0 0xE0001028 // DWT Function Register 0
+#define DWT_FUNCTION1 0xE0001038 // DWT Function Register 1
+#define DWT_FUNCTION2 0xE0001048 // DWT Function Register 2
+#define DWT_FUNCTION3 0xE0001058 // DWT Function Register 3
+
+// DWT field definitions
+#define DWT_CTRL_NUM_COMP       (1 << 28)
+#define DWT_CTRL_CYC_TAP        (1 << 9)
+#define DWT_CTRL_POST_INIT      (1 << 5)
+#define DWT_CTRL_POST_PRESET    (1 << 1)
+#define DWT_CTRL_CYCCNT_ENA     (1 << 0)
+
+// Trace Port Interface (TPI) Registers
+#define TPI_CSPSR 0xE0040004 // TPI Current Parallel Port Size Register
+#define TPI_ACPR  0xE0040010 // TPI Asynchronous Clock Prescaler Register
+#define TPI_SPPR  0xE00400F0 // TPI Selected Pin Protocol Register
+#define TPI_FFCR  0xE0040304 // TPI Formatter and Flush Control Register
+
+// TPI field definitions
+#define TPI_TPI_CSPSR_PORT_SIZE_1   (0x01 << 0)
+#define TPI_SPPR_SWO_MANCHESTER     (0x01 << 0)
+#define TPI_SPPR_SWO_NRZ            (0x02 << 0)
+#define TPI_FFCR_EN_F_CONT          (0x01 << 1)
+#define TPI_FFCR_F_ON_MAN           (0x01 << 6)
+#define TPI_FFCR_TRIG_IN            (0x01 << 8)
+
+// Other Registers
+#define FP_CTRL   0xE0002000 // Flash Patch Control Register  [WHY DO WE NEED THIS?]
+#define DBGMCU_CR 0xE0042004 // Debug MCU Configuration Register
+
+// Other register field definitions
+#define FP_CTRL_KEY                 (1 << 1)
+#define DBGMCU_CR_DBG_SLEEP         (1 << 0)
+#define DBGMCU_CR_DBG_STOP          (1 << 1)
+#define DBGMCU_CR_DBG_STANDBY       (1 << 2)
+#define DBGMCU_CR_TRACE_IOEN        (1 << 5)
+#define DBGMCU_CR_TRACE_MODE_ASYNC  (0x00 << 6)
+
 // We use a global flag to allow communicating to the main thread from the signal handler.
 static bool g_done = false;
 
@@ -185,8 +243,8 @@ static stlink_t* StLinkConnect(const st_settings_t* settings) {
     }
 }
 
-// TODO: Consider moving this to the device table.
 static bool IsDeviceTraceSupported(int chip_id) {
+    // TODO: Consider moving this to a flag in the device table.
     switch (chip_id) {
     case STLINK_CHIPID_STM32_F4:
     case STLINK_CHIPID_STM32_F4_DSI:
@@ -224,7 +282,6 @@ static uint32_t Read32(stlink_t* stlink, uint32_t address) {
 }
 
 static bool EnableTrace(stlink_t* stlink, const st_settings_t* settings) {
-    struct stlink_reg regp = {};
 
     if (stlink_force_debug(stlink)) {
         ELOG("Unable to debug device\n");
@@ -238,42 +295,31 @@ static bool EnableTrace(stlink_t* stlink, const st_settings_t* settings) {
             return false;
     }
 
-    // The order and values to set were taken from https://github.com/avrhack/stlink-trace/blob/master/stlink-trace.c#L386
+    Write32(stlink, DCB_DHCSR, DBGKEY | C_DEBUGEN | C_HALT); // Debug and halt the CPU
+    Write32(stlink, DCB_DEMCR, DEMCR_TRCENA); // Enable tracing
+    Write32(stlink, FP_CTRL, FP_CTRL_KEY); // Disable flash patch unit.
+    Write32(stlink, DWT_FUNCTION0, 0); // Disable sampling units
+    Write32(stlink, DWT_FUNCTION1, 0);
+    Write32(stlink, DWT_FUNCTION2, 0);
+    Write32(stlink, DWT_FUNCTION3, 0);
+    Write32(stlink, DWT_CTRL, 0); // Disable other watchpoint and trace features
+    Write32(stlink, DBGMCU_CR, DBGMCU_CR_DBG_SLEEP | DBGMCU_CR_DBG_STOP |
+                               DBGMCU_CR_DBG_STANDBY | DBGMCU_CR_TRACE_IOEN |
+                               DBGMCU_CR_TRACE_MODE_ASYNC); // Enable async tracing
 
-    Write32(stlink, 0xE000EDF0, 0xA05F0003); // Set DHCSR to C_HALT and C_DEBUGEN
-    Write32(stlink, 0xE000EDFC, 0x01000000); // Set TRCENA flag to enable global DWT and ITM
-    Write32(stlink, 0xE0002000, 0x00000002); // Set FP_CTRL to enable write
-    Write32(stlink, 0xE0001028, 0x00000000); // Set DWT_FUNCTION0 to DWT_FUNCTION3 to disable sampling
-    Write32(stlink, 0xE0001038, 0x00000000);
-    Write32(stlink, 0xE0001048, 0x00000000);
-    Write32(stlink, 0xE0001058, 0x00000000);
-    Write32(stlink, 0xE0001000, 0x00000000); // Clear DWT_CTRL and other registers
-    Write32(stlink, 0xE0001004, 0x00000000);
-    Write32(stlink, 0xE0001008, 0x00000000);
-    Write32(stlink, 0xE000100C, 0x00000000);
-    Write32(stlink, 0xE0001010, 0x00000000);
-    Write32(stlink, 0xE0001014, 0x00000000);
-    Write32(stlink, 0xE0001018, 0x00000000);
-
-    stlink_read_reg(stlink, 15, &regp); // Read program counter
-    stlink_read_reg(stlink, 16, &regp); // Read xpsr register
-
-    Write32(stlink, 0xE0042004, 0x00000027); // Set DBGMCU_CR to enable asynchronous transmission
-
-    // Actually start tracing.
     if (stlink_trace_enable(stlink)) {
-        ELOG("Unable to trace device\n");
+        ELOG("Unable to turn on tracing in stlink\n");
         if (!settings->force)
             return false;
     }
 
-    Write32(stlink, 0xE0040004, 0x00000001); // Set TPIU_CSPSR to enable trace port width of 2
+    Write32(stlink, TPI_CSPSR, TPI_TPI_CSPSR_PORT_SIZE_1);
 
     if (settings->core_frequency_mhz) {
         uint32_t prescaler = settings->core_frequency_mhz * 1000000 / STLINK_TRACE_FREQUENCY - 1;
-        Write32(stlink, 0xE0040010, prescaler); // Set TPIU_ACPR clock divisor
+        Write32(stlink, TPI_ACPR, prescaler); // Set TPIU_ACPR clock divisor
     }
-    uint32_t prescaler = Read32(stlink, 0xE0040010);
+    uint32_t prescaler = Read32(stlink, TPI_ACPR);
     if (prescaler) {
         uint32_t system_clock_speed = (prescaler + 1) * STLINK_TRACE_FREQUENCY;
         ILOG("Trace Port Interface configured to expect a %d MHz system clock.\n", (system_clock_speed + 500000) / 1000000);
@@ -283,15 +329,17 @@ static bool EnableTrace(stlink_t* stlink, const st_settings_t* settings) {
         WLOG("  TPI->ACPR = HAL_RCC_GetHCLKFreq() / 2000000 - 1;\n");
     }
 
-    Write32(stlink, 0xE00400F0, 0x00000002); // Set TPIU_SPPR to Asynchronous SWO (NRZ)
-    Write32(stlink, 0xE0040304, 0x00000100); // Set TPIU_FFCR continuous formatting)
-    Write32(stlink, 0xE0000FB0, 0xC5ACCE55); // Unlock the ITM registers for write
-    Write32(stlink, 0xE0000E90, 0x00000400); // Set sync counter
-    Write32(stlink, 0xE0000E80, 0x00010003); // Set ITM_TCR flags : ITMENA,TSENA ATB=0
-    Write32(stlink, 0xE0000E00, 0xFFFFFFFF); // Enable all trace ports in ITM_TER
-    Write32(stlink, 0xE0000E40, 0x0000000F); // Enable unprivileged access to trace ports 31:0 in ITM_TPR
-    Write32(stlink, 0xE0000E40, 0x400003FE); // Set DWT_CTRL flags)
-    Write32(stlink, 0xE000EDFC, 0x01000000); // Enable tracing (DEMCR - TRCENA bit)
+    Write32(stlink, TPI_FFCR, TPI_FFCR_TRIG_IN | TPI_FFCR_EN_F_CONT);
+    Write32(stlink, TPI_SPPR, TPI_SPPR_SWO_NRZ);
+    Write32(stlink, ITM_LAR, ITM_LAR_KEY); // Unlocks the following registers.
+    Write32(stlink, ITM_TCC, 0x00000400); // Set sync counter
+    Write32(stlink, ITM_TCR, ITM_TCR_TRACE_BUS_ID_1 | ITM_TCR_TS_ENA | ITM_TCR_ITM_ENA);
+    Write32(stlink, ITM_TER, ITM_TER_PORTS_ALL);
+    Write32(stlink, ITM_TPR, ITM_TPR_PORTS_ALL);
+    Write32(stlink, DWT_CTRL, 4 * DWT_CTRL_NUM_COMP | DWT_CTRL_CYC_TAP |
+                              0xF * DWT_CTRL_POST_INIT | 0xF * DWT_CTRL_POST_PRESET |
+                              DWT_CTRL_CYCCNT_ENA);
+    Write32(stlink, DCB_DEMCR, DEMCR_TRCENA); // Enable tracing (again...?)
 
     return true;
 }
