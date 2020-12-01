@@ -38,6 +38,8 @@
 #define TRACE_OP_GET_SW_SOURCE_ADDR(c)  ((c) >> 3)
 
 
+// TODO: Ideally all register and field definitions would be in a common header file.
+
 // Instrumentation Trace Macrocell (ITM) Registers
 #define ITM_TER 0xE0000E00 // ITM Trace Enable Register
 #define ITM_TPR 0xE0000E40 // ITM Trace Privilege Register
@@ -83,7 +85,7 @@
 #define TPI_FFCR_TRIG_IN            (0x01 << 8)
 
 // Other Registers
-#define FP_CTRL   0xE0002000 // Flash Patch Control Register  [WHY DO WE NEED THIS?]
+#define FP_CTRL   0xE0002000 // Flash Patch Control Register
 #define DBGMCU_CR 0xE0042004 // Debug MCU Configuration Register
 
 // Other register field definitions
@@ -94,8 +96,9 @@
 #define DBGMCU_CR_TRACE_IOEN        (1 << 5)
 #define DBGMCU_CR_TRACE_MODE_ASYNC  (0x00 << 6)
 
+
 // We use a global flag to allow communicating to the main thread from the signal handler.
-static bool g_done = false;
+static bool g_abort_trace = false;
 
 
 typedef struct {
@@ -149,8 +152,8 @@ static void usage(void) {
     puts("  -f, --force           Ignore most initialization errors");
 }
 
-static void cleanup() {
-    g_done = true;
+static void abort_trace() {
+    g_abort_trace = true;
 }
 
 bool parse_options(int argc, char** argv, st_settings_t *settings) {
@@ -229,19 +232,21 @@ bool parse_options(int argc, char** argv, st_settings_t *settings) {
     return true;
 }
 
+static void ConvertSerialNumberTextToBinary(const char* text, char binary_out[STLINK_SERIAL_MAX_SIZE]) {
+    size_t length = 0;
+    for (uint32_t n = 0; n < strlen(text) && length < STLINK_SERIAL_MAX_SIZE; n += 2) {
+        char buffer[3] = { 0 };
+        memcpy(buffer, text + n, 2);
+        binary_out[length++] = (uint8_t)strtol(buffer, NULL, 16);
+    }
+}
+
 static stlink_t* StLinkConnect(const st_settings_t* settings) {
     if (settings->serial_number) {
-        // Convert our serial number string to a binary value.
-        char serial_number[STLINK_SERIAL_MAX_SIZE] = { 0 };
-        size_t length = 0;
-        for (uint32_t n = 0; n < strlen(settings->serial_number) && length < STLINK_SERIAL_MAX_SIZE; n += 2) {
-            char buffer[3] = { 0 };
-            memcpy(buffer, settings->serial_number + n, 2);
-            serial_number[length++] = (uint8_t)strtol(buffer, NULL, 16);
-        }
-
         // Open this specific stlink.
-        return stlink_open_usb(settings->logging_level, false, serial_number, 0);
+        char binary_serial_number[STLINK_SERIAL_MAX_SIZE] = { 0 };
+        ConvertSerialNumberTextToBinary(settings->serial_number, binary_serial_number);
+        return stlink_open_usb(settings->logging_level, false, binary_serial_number, 0);
     } else {
         // Otherwise, open any stlink.
         return stlink_open_usb(settings->logging_level, false, NULL, 0);
@@ -350,76 +355,75 @@ static bool EnableTrace(stlink_t* stlink, const st_settings_t* settings) {
     return true;
 }
 
-static void UpdateTrace(st_trace_t* trace, uint8_t c) {
-    // Parse the input using a state machine.
+static trace_state UpdateTraceIdle(st_trace_t* trace, uint8_t c) {
+    if (TRACE_OP_IS_TARGET_SOURCE(c)) {
+        return TRACE_STATE_TARGET_SOURCE;
+    }
+    if (TRACE_OP_IS_SOURCE(c)) {
+        uint8_t size = TRACE_OP_GET_SOURCE_SIZE(c);
+        if (TRACE_OP_IS_SW_SOURCE(c)) {
+            uint8_t addr = TRACE_OP_GET_SW_SOURCE_ADDR(c);
+            if (!(trace->unknown_sources & (1 << addr)))
+                WLOG("Unsupported source 0x%x size %d\n", addr, size);
+            trace->unknown_sources |= (1 << addr);
+        }
+        if (size == 1) return TRACE_STATE_SKIP_1;
+        if (size == 2) return TRACE_STATE_SKIP_2;
+        if (size == 3) return TRACE_STATE_SKIP_4;
+    }
+    if (TRACE_OP_IS_LOCAL_TIME(c) || TRACE_OP_IS_GLOBAL_TIME(c)) {
+        trace->count_time_packets++;
+        return TRACE_OP_GET_CONTINUATION(c) ? TRACE_STATE_SKIP_FRAME : TRACE_STATE_IDLE;
+    }
+    if (TRACE_OP_IS_EXTENSION(c)) {
+        return TRACE_OP_GET_CONTINUATION(c) ? TRACE_STATE_SKIP_FRAME : TRACE_STATE_IDLE;
+    }
+    if (TRACE_OP_IS_OVERFLOW(c)) {
+        trace->count_overflow++;
+    }
+
+    if (!(trace->unknown_opcodes[c / 8] & (1 << c % 8)))
+        WLOG("Unknown opcode 0x%02x\n", c);
+    trace->unknown_opcodes[c / 8] |= (1 << c % 8);
+
+    trace->count_error++;
+    return TRACE_OP_GET_CONTINUATION(c) ? TRACE_STATE_SKIP_FRAME : TRACE_STATE_IDLE;
+}
+
+static trace_state UpdateTrace(st_trace_t* trace, uint8_t c) {
     trace->count_raw_bytes++;
+
+    // Parse the input using a state machine.
     switch (trace->state)
     {
     case TRACE_STATE_IDLE:
-        if (TRACE_OP_IS_TARGET_SOURCE(c)) {
-            trace->state = TRACE_STATE_TARGET_SOURCE;
-        } else if (TRACE_OP_IS_SOURCE(c)) {
-            const trace_state kSourceSkip[] = { TRACE_STATE_IDLE, TRACE_STATE_SKIP_1, TRACE_STATE_SKIP_2, TRACE_STATE_SKIP_4 };
-            const char* type = TRACE_OP_IS_SW_SOURCE(c) ? "sw" : "hw";
-            uint8_t addr = TRACE_OP_GET_SW_SOURCE_ADDR(c);
-            uint8_t size = TRACE_OP_GET_SOURCE_SIZE(c);
-            if (TRACE_OP_IS_SW_SOURCE(c)) {
-                if (!(trace->unknown_sources & (1 << addr)))
-                    WLOG("Unsupported %s source 0x%x size %d\n", type, addr, size);
-                trace->unknown_sources |= (1 << addr);
-            }
-            trace->state = kSourceSkip[size];
-        } else if (TRACE_OP_IS_LOCAL_TIME(c) || TRACE_OP_IS_GLOBAL_TIME(c)) {
-            trace->count_time_packets++;
-            if (TRACE_OP_GET_CONTINUATION(c))
-                trace->state = TRACE_STATE_SKIP_FRAME;
-        } else if (TRACE_OP_IS_EXTENSION(c)) {
-            if (TRACE_OP_GET_CONTINUATION(c))
-                trace->state = TRACE_STATE_SKIP_FRAME;
-        } else if (TRACE_OP_IS_OVERFLOW(c)) {
-            trace->count_overflow++;
-        } else {
-            if (!(trace->unknown_opcodes[c / 8] & (1 << c % 8)))
-                WLOG("Unknown opcode 0x%02x\n", c);
-            trace->unknown_opcodes[c / 8] |= (1 << c % 8);
-            trace->count_error++;
-            if (TRACE_OP_GET_CONTINUATION(c))
-                trace->state = TRACE_STATE_SKIP_FRAME;
-        }
-        break;
+        return UpdateTraceIdle(trace, c);
 
     case TRACE_STATE_TARGET_SOURCE:
         putchar(c);
         if (c == '\n')
             fflush(stdout);
         trace->count_target_data++;
-        trace->state = TRACE_STATE_IDLE;
-        break;
+        return TRACE_STATE_IDLE;
 
     case TRACE_STATE_SKIP_FRAME:
-        if (TRACE_OP_GET_CONTINUATION(c) == 0)
-            trace->state = TRACE_STATE_IDLE;
-        break;
+        return TRACE_OP_GET_CONTINUATION(c) ? TRACE_STATE_SKIP_FRAME : TRACE_STATE_IDLE;
 
     case TRACE_STATE_SKIP_4:
-        trace->state = TRACE_STATE_SKIP_3;
-        break;
+        return TRACE_STATE_SKIP_3;
 
     case TRACE_STATE_SKIP_3:
-        trace->state = TRACE_STATE_SKIP_2;
-        break;
+        return TRACE_STATE_SKIP_2;
 
     case TRACE_STATE_SKIP_2:
-        trace->state = TRACE_STATE_SKIP_1;
-        break;
+        return TRACE_STATE_SKIP_1;
 
     case TRACE_STATE_SKIP_1:
-        trace->state = TRACE_STATE_IDLE;
-        break;
+        return TRACE_STATE_IDLE;
 
     default:
         ELOG("Invalid state %d.  This should never happen\n", trace->state);
-        trace->state = TRACE_STATE_IDLE;
+        return TRACE_STATE_IDLE;
     }
 }
 
@@ -438,7 +442,7 @@ static bool ReadTrace(stlink_t* stlink, st_trace_t* trace) {
     }
 
     for (int i = 0; i < length; i++) {
-        UpdateTrace(trace, buffer[i]);
+        trace->state = UpdateTrace(trace, buffer[i]);
     }
 
     return true;
@@ -479,10 +483,10 @@ int main(int argc, char** argv)
     st_settings_t settings;
     stlink_t* stlink = NULL;
 
-    signal(SIGINT, &cleanup);
-    signal(SIGTERM, &cleanup);
-    signal(SIGSEGV, &cleanup);
-    signal(SIGPIPE, &cleanup);
+    signal(SIGINT, &abort_trace);
+    signal(SIGTERM, &abort_trace);
+    signal(SIGSEGV, &abort_trace);
+    signal(SIGPIPE, &abort_trace);
 
     if (!parse_options(argc, argv, &settings)) {
         usage();
@@ -549,7 +553,7 @@ int main(int argc, char** argv)
     ILOG("Reading Trace\n");
     st_trace_t trace = {};
     trace.start_time = time(NULL);
-    while (!g_done && ReadTrace(stlink, &trace)) {
+    while (!g_abort_trace && ReadTrace(stlink, &trace)) {
         CheckForConfigurationError(&trace);
     }
 
