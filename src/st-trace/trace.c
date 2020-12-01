@@ -80,8 +80,6 @@
 #define TPI_TPI_CSPSR_PORT_SIZE_1   (0x01 << 0)
 #define TPI_SPPR_SWO_MANCHESTER     (0x01 << 0)
 #define TPI_SPPR_SWO_NRZ            (0x02 << 0)
-#define TPI_FFCR_EN_F_CONT          (0x01 << 1)
-#define TPI_FFCR_F_ON_MAN           (0x01 << 6)
 #define TPI_FFCR_TRIG_IN            (0x01 << 8)
 
 // Other Registers
@@ -337,7 +335,7 @@ static bool EnableTrace(stlink_t* stlink, const st_settings_t* settings) {
         WLOG("  TPI->ACPR = HAL_RCC_GetHCLKFreq() / 2000000 - 1;\n");
     }
 
-    Write32(stlink, TPI_FFCR, TPI_FFCR_TRIG_IN | TPI_FFCR_EN_F_CONT);
+    Write32(stlink, TPI_FFCR, TPI_FFCR_TRIG_IN);
     Write32(stlink, TPI_SPPR, TPI_SPPR_SWO_NRZ);
     Write32(stlink, ITM_LAR, ITM_LAR_KEY);
     Write32(stlink, ITM_TCC, 0x00000400); // Set sync counter
