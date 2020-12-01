@@ -97,10 +97,6 @@
 #define DBGMCU_CR_TRACE_MODE_ASYNC  (0x00 << 6)
 
 
-// We use a global flag to allow communicating to the main thread from the signal handler.
-static bool g_abort_trace = false;
-
-
 typedef struct {
     bool  show_help;
     bool  show_version;
@@ -140,6 +136,13 @@ typedef struct {
 } st_trace_t;
 
 
+// We use a global flag to allow communicating to the main thread from the signal handler.
+static bool g_abort_trace = false;
+
+static void abort_trace() {
+    g_abort_trace = true;
+}
+
 static void usage(void) {
     puts("st-trace - usage:");
     puts("  -h, --help            Print this help");
@@ -150,10 +153,6 @@ static void usage(void) {
     puts("  -n, --no-reset        Do not reset board on connection");
     puts("  -sXX, --serial=XX     Use a specific serial number");
     puts("  -f, --force           Ignore most initialization errors");
-}
-
-static void abort_trace() {
-    g_abort_trace = true;
 }
 
 bool parse_options(int argc, char** argv, st_settings_t *settings) {
@@ -332,9 +331,12 @@ static bool EnableTrace(stlink_t* stlink, const st_settings_t* settings) {
 }
 
 static trace_state UpdateTraceIdle(st_trace_t* trace, uint8_t c) {
+    // Handle a trace byte when we are in the idle state.
+
     if (TRACE_OP_IS_TARGET_SOURCE(c)) {
         return TRACE_STATE_TARGET_SOURCE;
     }
+
     if (TRACE_OP_IS_SOURCE(c)) {
         uint8_t size = TRACE_OP_GET_SOURCE_SIZE(c);
         if (TRACE_OP_IS_SW_SOURCE(c)) {
@@ -347,13 +349,16 @@ static trace_state UpdateTraceIdle(st_trace_t* trace, uint8_t c) {
         if (size == 2) return TRACE_STATE_SKIP_2;
         if (size == 3) return TRACE_STATE_SKIP_4;
     }
+
     if (TRACE_OP_IS_LOCAL_TIME(c) || TRACE_OP_IS_GLOBAL_TIME(c)) {
         trace->count_time_packets++;
         return TRACE_OP_GET_CONTINUATION(c) ? TRACE_STATE_SKIP_FRAME : TRACE_STATE_IDLE;
     }
+
     if (TRACE_OP_IS_EXTENSION(c)) {
         return TRACE_OP_GET_CONTINUATION(c) ? TRACE_STATE_SKIP_FRAME : TRACE_STATE_IDLE;
     }
+
     if (TRACE_OP_IS_OVERFLOW(c)) {
         trace->count_overflow++;
     }
