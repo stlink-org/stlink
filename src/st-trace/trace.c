@@ -130,7 +130,8 @@ typedef struct {
     uint32_t    count_raw_bytes;
     uint32_t    count_target_data;
     uint32_t    count_time_packets;
-    uint32_t    count_overflow;
+    uint32_t    count_hw_overflow;
+    uint32_t    count_sw_overflow;
     uint32_t    count_error;
 
     uint8_t     unknown_opcodes[256 / 8];
@@ -356,7 +357,7 @@ static trace_state UpdateTraceIdle(st_trace_t* trace, uint8_t c) {
     }
 
     if (TRACE_OP_IS_OVERFLOW(c)) {
-        trace->count_overflow++;
+        trace->count_hw_overflow++;
     }
 
     if (!(trace->unknown_opcodes[c / 8] & (1 << c % 8)))
@@ -419,6 +420,10 @@ static bool ReadTrace(stlink_t* stlink, st_trace_t* trace) {
     }
 
     if (length == sizeof(buffer)) {
+        if (trace->count_sw_overflow++)
+            DLOG("Buffer overflow.\n");
+        else
+            WLOG("Buffer overflow.  Try using a slower trace frequency.\n");
     }
 
     for (int i = 0; i < length; i++) {
@@ -428,7 +433,8 @@ static bool ReadTrace(stlink_t* stlink, st_trace_t* trace) {
     return true;
 }
 
-static void CheckForConfigurationError(st_trace_t* trace, uint32_t trace_frequency) {
+static void CheckForConfigurationError(stlink_t* stlink, st_trace_t* trace, uint32_t trace_frequency) {
+    // Only check configuration one time after the first 10 seconds of running.
     uint32_t elapsed_time_s = time(NULL) - trace->start_time;
     if (trace->configuration_checked || elapsed_time_s < 10) {
         return;
@@ -436,38 +442,68 @@ static void CheckForConfigurationError(st_trace_t* trace, uint32_t trace_frequen
     trace->configuration_checked = true;
 
     // Simple huristic to determine if we are configured poorly.
-    if (trace->count_raw_bytes < 100 || trace->count_error > 1 || trace->count_time_packets < 10) {
-        // Output Diagnostic Information
-        WLOG("****\n");
-        WLOG("We do not appear to be retrieving data from the stlink correctly.\n");
-        WLOG("Raw Bytes: %d\n", trace->count_raw_bytes);
-        WLOG("Target Data: %d\n", trace->count_target_data);
-        WLOG("Time Packets: %d\n", trace->count_time_packets);
-        WLOG("Overlow Count: %d\n", trace->count_overflow);
-        WLOG("Errors: %d\n", trace->count_error);
-        for (uint32_t i = 0; i <= 0xFF; i++)
-            if (trace->unknown_opcodes[i / 8] & (1 << i % 8))
-                WLOG("Unknown Opcode 0x%02x\n", i);
-        for (uint32_t i = 0; i < 32; i++)
-            if (trace->unknown_sources & (1 << i))
-                WLOG("Unknown Source %d\n", i);
-        WLOG("Check that the clock frequency is set correctly.  Either with the --clock=XX\n");
-        WLOG("command line option, or by adding the following to your device's clock initialization:\n");
-        WLOG("  TPI->ACPR = HAL_RCC_GetHCLKFreq() / %d - 1;\n", trace_frequency);
-        WLOG("****\n");
+    bool error_no_data = (trace->count_raw_bytes < 100);
+    bool error_bad_data = (trace->count_error > 1 || trace->count_time_packets < 10 || trace->unknown_sources > 0);
+    bool error_dropped_data = (trace->count_sw_overflow > 0);
+
+    if (!error_no_data && !error_bad_data && !error_dropped_data)
+        return;
+
+    WLOG("****\n");
+    WLOG("We do not appear to be retrieving data from the stlink correctly.\n");
+
+    if (error_dropped_data) {
+        WLOG("Try setting a slower trace frequency with the --trace=%d command line option.\n", trace_frequency / 2);
     }
+
+    if (error_no_data || error_bad_data) {
+        uint32_t prescaler;
+        stlink_read_debug32(stlink, TPI_ACPR, &prescaler);
+        if (prescaler) {
+            uint32_t system_clock_speed = (prescaler + 1) * trace_frequency;
+            uint32_t system_clock_speed_mhz = (system_clock_speed + 500000) / 1000000;
+            WLOG("Verify the system clock is running at %d MHz.\n", system_clock_speed_mhz);
+        }
+        WLOG("Try specifying the system clock with the --clock=XX command line option.\n");
+        WLOG("Try setting the trace speed in your device's clock initialization routine:\n");
+        WLOG("  TPI->ACPR = HAL_RCC_GetHCLKFreq() / %d - 1;\n", trace_frequency);
+    }
+
+    WLOG("Diagnostic Information:\n");
+    WLOG("Raw Bytes: %d\n", trace->count_raw_bytes);
+    WLOG("Target Data: %d\n", trace->count_target_data);
+    WLOG("Time Packets: %d\n", trace->count_time_packets);
+    WLOG("Hardware Overflow Count: %d\n", trace->count_hw_overflow);
+    WLOG("Software Overflow Count: %d\n", trace->count_sw_overflow);
+    WLOG("Errors: %d\n", trace->count_error);
+
+    char buffer[1024];
+    memset(buffer, 0, sizeof(buffer));
+    uint32_t offset = 0;
+    for (uint32_t i = 0; i <= 0xFF; i++)
+        if (trace->unknown_opcodes[i / 8] & (1 << i % 8))
+            offset += snprintf(buffer + offset, sizeof(buffer) - offset, "%02x, ", i);
+    WLOG("Unknown Opcodes: %s\n", buffer);
+
+    memset(buffer, 0, sizeof(buffer));
+    offset = 0;
+    for (uint32_t i = 0; i < 32; i++)
+        if (trace->unknown_sources & (1 << i))
+            offset += snprintf(buffer + offset, sizeof(buffer) - offset, "%d, ", i);
+    WLOG("Unknown Sources: %s\n", buffer);
+
+    WLOG("Chip ID: 0x%04x\n", stlink->chip_id);
+    WLOG("****\n");
 }
 
 int main(int argc, char** argv)
 {
-    st_settings_t settings;
-    stlink_t* stlink = NULL;
-
     signal(SIGINT, &abort_trace);
     signal(SIGTERM, &abort_trace);
     signal(SIGSEGV, &abort_trace);
     signal(SIGPIPE, &abort_trace);
 
+    st_settings_t settings;
     if (!parse_options(argc, argv, &settings)) {
         usage();
         return APP_RESULT_INVALID_PARAMS;
@@ -492,7 +528,7 @@ int main(int argc, char** argv)
         return APP_RESULT_SUCCESS;
     }
 
-    stlink = StLinkConnect(&settings);
+    stlink_t* stlink = StLinkConnect(&settings);
     if (!stlink) {
         ELOG("Unable to locate an stlink\n");
         return APP_RESULT_STLINK_NOT_FOUND;
@@ -545,7 +581,7 @@ int main(int argc, char** argv)
     }
 
     while (!g_abort_trace && ReadTrace(stlink, &trace)) {
-        CheckForConfigurationError(&trace, trace_frequency);
+        CheckForConfigurationError(stlink, &trace, trace_frequency);
     }
 
     stlink_trace_disable(stlink);
