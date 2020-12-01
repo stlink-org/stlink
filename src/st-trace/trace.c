@@ -253,30 +253,6 @@ static stlink_t* StLinkConnect(const st_settings_t* settings) {
     }
 }
 
-static bool IsDeviceTraceSupported(int chip_id) {
-    // TODO: Consider moving this to a flag in the device table.
-    switch (chip_id) {
-    case STLINK_CHIPID_STM32_F4:
-    case STLINK_CHIPID_STM32_F4_DSI:
-    case STLINK_CHIPID_STM32_F4_HD:
-    case STLINK_CHIPID_STM32_F4_LP:
-    case STLINK_CHIPID_STM32_F411RE:
-    case STLINK_CHIPID_STM32_F4_DE:
-    case STLINK_CHIPID_STM32_F446:
-    case STLINK_CHIPID_STM32_F410:
-    case STLINK_CHIPID_STM32_F3:
-    case STLINK_CHIPID_STM32_F37x:
-    case STLINK_CHIPID_STM32_F412:
-    case STLINK_CHIPID_STM32_F413:
-    case STLINK_CHIPID_STM32_F3_SMALL:
-    case STLINK_CHIPID_STM32_F334:
-    case STLINK_CHIPID_STM32_F303_HIGH:
-        return true;
-    default:
-        return false;
-    }
-}
-
 static void Write32(stlink_t* stlink, uint32_t address, uint32_t data) {
     write_uint32(stlink->q_buf, data);
     if (stlink_write_mem32(stlink, address, 4)) {
@@ -531,7 +507,7 @@ int main(int argc, char** argv)
             return APP_RESULT_STLINK_UNSUPPORTED_LINK;
     }
 
-    if (!IsDeviceTraceSupported(stlink->chip_id)) {
+    if (!(stlink->chip_flags & CHIP_F_HAS_SWO_TRACING)) {
         const struct stlink_chipid_params *params = stlink_chipid_get_params(stlink->chip_id);
         ELOG("We do not support SWO output for device '%s'\n", params->description);
         if (!settings.force)
