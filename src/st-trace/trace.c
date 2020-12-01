@@ -141,7 +141,7 @@ static void usage(void) {
     puts("  -cXX, --clock=XX      Specify the core frequency in MHz");
     puts("  -n, --no-reset        Do not reset board on connection");
     puts("  -sXX, --serial=XX     Use a specific serial number");
-    puts("  -f, --force           Ignore some errors");
+    puts("  -f, --force           Ignore most initialization errors");
 }
 
 static void cleanup() {
@@ -418,7 +418,7 @@ static bool ReadTrace(stlink_t* stlink, st_trace_t* trace) {
     }
 
     if (length == 0) {
-        usleep(1000);
+        usleep(1000); // Our buffer could fill in around 2ms, so sleep half that.
         return true;
     }
 
