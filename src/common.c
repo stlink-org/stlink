@@ -1305,7 +1305,7 @@ int stlink_load_device_params(stlink_t *sl) {
     DLOG("Loading device parameters....\n");
     const struct stlink_chipid_params *params = NULL;
     stlink_core_id(sl);
-    uint32_t chip_id;
+    uint32_t chip_id = 0;
     uint32_t flash_size;
 
     stlink_chip_id(sl, &chip_id);
