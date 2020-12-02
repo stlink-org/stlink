@@ -289,7 +289,6 @@ static bool EnableTrace(stlink_t* stlink, const st_settings_t* settings, uint32_
                                             DBGMCU_CR_DBG_STANDBY | DBGMCU_CR_TRACE_IOEN |
                                             DBGMCU_CR_TRACE_MODE_ASYNC); // Enable async tracing
 
-    DLOG("Setting trace frequency to %d Hz.\n", trace_frequency);
     if (stlink_trace_enable(stlink, trace_frequency)) {
         ELOG("Unable to turn on tracing in stlink\n");
         if (!settings->force)
@@ -330,6 +329,7 @@ static bool EnableTrace(stlink_t* stlink, const st_settings_t* settings, uint32_
         WLOG("line option or set it in your device's clock initialization routine, such as with:\n");
         WLOG("  TPI->ACPR = HAL_RCC_GetHCLKFreq() / %d - 1;\n", trace_frequency);
     }
+    ILOG("Trace frequency set to %d Hz.\n", trace_frequency);
 
     return true;
 }
@@ -460,10 +460,11 @@ static void CheckForConfigurationError(stlink_t* stlink, st_trace_t* trace, uint
 
     // Simple huristic to determine if we are configured poorly.
     bool error_no_data = (trace->count_raw_bytes < 100);
-    bool error_bad_data = (trace->count_error > 1 || trace->count_time_packets < 10 || trace->unknown_sources > 0);
+    bool error_low_data = (trace->count_time_packets < 10 && trace->count_target_data < 1000);
+    bool error_bad_data = (trace->count_error > 1 || trace->unknown_sources > 0);
     bool error_dropped_data = (trace->count_sw_overflow > 0);
 
-    if (!error_no_data && !error_bad_data && !error_dropped_data)
+    if (!error_no_data && !error_low_data && !error_bad_data && !error_dropped_data)
         return;
 
     WLOG("****\n");
@@ -473,7 +474,7 @@ static void CheckForConfigurationError(stlink_t* stlink, st_trace_t* trace, uint
         WLOG("Try setting a slower trace frequency with the --trace=%d command line option.\n", trace_frequency / 2);
     }
 
-    if (error_no_data || error_bad_data) {
+    if (error_no_data || error_low_data || error_bad_data) {
         uint32_t prescaler;
         stlink_read_debug32(stlink, TPI_ACPR, &prescaler);
         if (prescaler) {
