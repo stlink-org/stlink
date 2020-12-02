@@ -84,6 +84,7 @@
 #define TPI_SPPR_SWO_MANCHESTER     (0x01 << 0)
 #define TPI_SPPR_SWO_NRZ            (0x02 << 0)
 #define TPI_FFCR_TRIG_IN            (0x01 << 8)
+#define TPI_ACPR_MAX                (0x1FFF)
 
 // Other Registers
 #define FP_CTRL   0xE0002000 // Flash Patch Control Register
@@ -112,6 +113,7 @@ typedef struct {
 
 // We use a simple state machine to parse the trace data.
 typedef enum {
+    TRACE_STATE_UNKNOWN,
     TRACE_STATE_IDLE,
     TRACE_STATE_TARGET_SOURCE,
     TRACE_STATE_SKIP_FRAME,
@@ -298,6 +300,11 @@ static bool EnableTrace(stlink_t* stlink, const st_settings_t* settings, uint32_
 
     if (settings->core_frequency) {
         uint32_t prescaler = settings->core_frequency / trace_frequency - 1;
+        if (prescaler > TPI_ACPR_MAX) {
+            ELOG("Trace frequency prescaler %d out of range.  Try setting a faster trace frequency.\n", prescaler);
+            if (!settings->force)
+                return false;
+        }
         stlink_write_debug32(stlink, TPI_ACPR, prescaler); // Set TPIU_ACPR clock divisor
     }
     stlink_write_debug32(stlink, TPI_FFCR, TPI_FFCR_TRIG_IN);
@@ -372,6 +379,12 @@ static trace_state UpdateTrace(st_trace_t* trace, uint8_t c) {
     trace->count_raw_bytes++;
 
     // Parse the input using a state machine.
+
+    if (trace->state == TRACE_STATE_UNKNOWN) {
+        if (TRACE_OP_IS_TARGET_SOURCE(c) || TRACE_OP_IS_LOCAL_TIME(c) || TRACE_OP_IS_GLOBAL_TIME(c))
+            trace->state = TRACE_STATE_IDLE;
+    }
+
     switch (trace->state)
     {
     case TRACE_STATE_IDLE:
@@ -399,6 +412,9 @@ static trace_state UpdateTrace(st_trace_t* trace, uint8_t c) {
     case TRACE_STATE_SKIP_1:
         return TRACE_STATE_IDLE;
 
+    case TRACE_STATE_UNKNOWN:
+        return TRACE_STATE_UNKNOWN;
+
     default:
         ELOG("Invalid state %d.  This should never happen\n", trace->state);
         return TRACE_STATE_IDLE;
@@ -424,6 +440,7 @@ static bool ReadTrace(stlink_t* stlink, st_trace_t* trace) {
             DLOG("Buffer overflow.\n");
         else
             WLOG("Buffer overflow.  Try using a slower trace frequency.\n");
+        trace->state = TRACE_STATE_UNKNOWN;
     }
 
     for (int i = 0; i < length; i++) {
