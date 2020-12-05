@@ -109,7 +109,7 @@ set(STLINK_HEADERS
         src/stlink-lib/md5.h
         src/stlink-lib/sg.h
         src/stlink-lib/usb.h
-		src/stlink-lib/helper.h
+        src/stlink-lib/helper.h
         )
 
 set(STLINK_SOURCE
