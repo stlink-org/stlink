@@ -7,6 +7,7 @@ Andrea Mucignat
 Andrew Andrianov [necromant]
 Andrey Yurovsky
 Andy Isaacson
+Anton [Ant-ON]
 Áron Radics
 A. Sheaff
 Björn Hauffe
@@ -35,7 +36,7 @@ Denis Osterland
 Dmitry Bravikov [bravikov]
 Efe Can İçöz
 Ethan Zonca
-Fabien Chouteau
+Fabien Chouteau [Fabien-Chouteau]
 Florian Hars
 Friedrich Beckmann
 Gabriel Górski [Glaeqen]
@@ -63,6 +64,7 @@ Jim Paris
 Jiří Netolický
 Jerry Nosky [jnosky]
 Jochen Wilhelmy [Jochen0x90h]
+Joel Bodenmann [Tectu]
 Johannes Taelman
 Jonas Danielsson
 Jonas Norling
@@ -71,7 +73,6 @@ Karl Palsson [karlp]
 Kevlar Harness
 Kyle Manna
 Lari Lehtomäki
-Lutz Freitag [nerdmaennchen]
 Martin Nowak
 Matteo Collina
 Max Chen
@@ -80,7 +81,6 @@ Maxime Vincent
 Michael Pratt [prattmic]
 Michael Sparmann
 Mike Szczys
-Miklós Márton [martonmiklos]
 Magnus Lundin [mlu]
 mux <freelancer.c@gmail.com>
 Ned Konz
@@ -111,7 +111,7 @@ Simon Wright
 Stany Marcel
 Stefan Misik
 Sven Wegener
-Joel Bodenmann [Tectu]
+Timothy Lee [timothytylee]
 Tuomo Kaikkonen
 Theodore A. Roth
 Thomas Gärtner
