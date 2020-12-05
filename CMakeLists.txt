@@ -120,7 +120,7 @@ set(STLINK_SOURCE
         src/stlink-lib/md5.c
         src/stlink-lib/sg.c
         src/stlink-lib/usb.c
-		src/stlink-lib/helper.c
+        src/stlink-lib/helper.c
         )
 
 if (WIN32)
