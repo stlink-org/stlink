@@ -83,25 +83,6 @@ enum target_state {
 
 #define STLINK_V3_MAX_FREQ_NB            10
 
-/* Cortex Debug Control Block */
-#define DCB_DHCSR 0xE000EDF0
-#define DCB_DCRSR 0xE000EDF4
-#define DCB_DCRDR 0xE000EDF8
-#define DCB_DEMCR 0xE000EDFC
-
-/* DCB_DHCSR bit and field definitions */
-#define DBGKEY      (0xA05F << 16)
-#define C_DEBUGEN   (1 << 0)
-#define C_HALT      (1 << 1)
-#define C_STEP      (1 << 2)
-#define C_MASKINTS  (1 << 3)
-#define S_REGRDY    (1 << 16)
-#define S_HALT      (1 << 17)
-#define S_SLEEP     (1 << 18)
-#define S_LOCKUP    (1 << 19)
-#define S_RETIRE_ST (1 << 24)
-#define S_RESET_ST  (1 << 25)
-
 /* Map the relevant features, quirks and workaround for specific firmware version of stlink */
 #define STLINK_F_HAS_TRACE              (1 << 0)
 #define STLINK_F_HAS_SWD_SET_FREQ       (1 << 1)
@@ -242,6 +223,7 @@ void stlink_close(stlink_t *sl);
 int stlink_core_id(stlink_t *sl);
 int stlink_reset(stlink_t *sl);
 int stlink_jtag_reset(stlink_t *sl, int value);
+int stlink_soft_reset(stlink_t *sl, int halt_on_reset);
 int stlink_run(stlink_t *sl);
 int stlink_status(stlink_t *sl);
 int stlink_version(stlink_t *sl);
@@ -260,7 +242,7 @@ int stlink_step(stlink_t *sl);
 int stlink_current_mode(stlink_t *sl);
 int stlink_force_debug(stlink_t *sl);
 int stlink_target_voltage(stlink_t *sl);
-int stlink_set_swdclk(stlink_t *sl, uint16_t divisor);
+int stlink_set_swdclk(stlink_t *sl, int freq_khz);
 
 int stlink_erase_flash_mass(stlink_t* sl);
 int stlink_write_flash(stlink_t* sl, stm32_addr_t address, uint8_t* data, uint32_t length, uint8_t eraseonly);
@@ -302,6 +284,10 @@ int stlink_write_option_control_register1_32(stlink_t *sl, uint32_t option_contr
 
 int stlink_write_option_bytes(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uint32_t len);
 int stlink_fwrite_option_bytes(stlink_t *sl, const char* path, stm32_addr_t addr);
+
+int stlink_flashloader_start(stlink_t *sl, flash_loader_t *fl);
+int stlink_flashloader_write(stlink_t *sl, flash_loader_t *fl, stm32_addr_t addr, uint8_t* base, uint32_t len);
+int stlink_flashloader_stop(stlink_t *sl);
 
 #include <sg.h>
 #include <usb.h>

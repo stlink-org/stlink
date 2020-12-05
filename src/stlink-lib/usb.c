@@ -17,6 +17,7 @@
 #endif
 
 #include <stlink.h>
+#include <helper.h>
 #include "usb.h"
 
 enum SCSI_Generic_Direction {SG_DXFER_TO_DEV = 0, SG_DXFER_FROM_DEV = 0x80};
@@ -261,7 +262,7 @@ int _stlink_usb_write_debug32(stlink_t *sl, uint32_t addr, uint32_t data) {
 }
 
 int _stlink_usb_get_rw_status(stlink_t *sl) {
-    if (sl->version.jtag_api == STLINK_JTAG_API_V1) { return(-1); }
+    if (sl->version.jtag_api == STLINK_JTAG_API_V1) { return(0); }
 
     unsigned char* const rdata = sl->q_buf;
     struct stlink_libusb * const slu = sl->backend_data;
@@ -354,15 +355,17 @@ int _stlink_usb_core_id(stlink_t * sl) {
     unsigned char* const cmd  = sl->c_buf;
     unsigned char* const data = sl->q_buf;
     ssize_t size;
-    int rep_len = sl->version.jtag_api == STLINK_JTAG_API_V1 ? 4 : 12;
+    int offset, rep_len = sl->version.jtag_api == STLINK_JTAG_API_V1 ? 4 : 12;
     int i = fill_command(sl, SG_DXFER_FROM_DEV, rep_len);
 
     cmd[i++] = STLINK_DEBUG_COMMAND;
 
     if (sl->version.jtag_api == STLINK_JTAG_API_V1) {
         cmd[i++] = STLINK_DEBUG_READCOREID;
+        offset = 0;
     } else {
         cmd[i++] = STLINK_DEBUG_APIV2_READ_IDCODES;
+        offset = 4;
     }
 
     size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len);
@@ -372,11 +375,7 @@ int _stlink_usb_core_id(stlink_t * sl) {
         return(-1);
     }
 
-    if (sl->version.jtag_api == STLINK_JTAG_API_V1) {
-        sl->core_id = read_uint32(data, 0);
-    } else {
-        sl->core_id = read_uint32(data, 4);
-    }
+    sl->core_id = read_uint32(data, offset);
 
     return(0);
 }
@@ -385,15 +384,15 @@ int _stlink_usb_status_v2(stlink_t *sl) {
     int result;
     uint32_t status = 0;
 
-    result = _stlink_usb_read_debug32(sl, DCB_DHCSR, &status);
+    result = _stlink_usb_read_debug32(sl, STLINK_REG_DHCSR, &status);
     DLOG("core status: %08X\n", status);
 
     if (result != 0) {
         sl->core_stat = TARGET_UNKNOWN;
     } else {
-        if (status & S_HALT) {
+        if (status & STLINK_REG_DHCSR_C_HALT) {
             sl->core_stat = TARGET_HALTED;
-        } else if (status & S_RESET_ST) {
+        } else if (status & STLINK_REG_DHCSR_S_RESET_ST) {
             sl->core_stat = TARGET_RESET;
         } else {
             sl->core_stat = TARGET_RUNNING;
@@ -439,6 +438,14 @@ int _stlink_usb_status(stlink_t * sl) {
 
 int _stlink_usb_force_debug(stlink_t *sl) {
     struct stlink_libusb *slu = sl->backend_data;
+
+    int res;
+
+    if (sl->version.jtag_api != STLINK_JTAG_API_V1) {
+        res = _stlink_usb_write_debug32(sl, STLINK_REG_DHCSR, STLINK_REG_DHCSR_DBGKEY | STLINK_REG_DHCSR_C_HALT | STLINK_REG_DHCSR_C_DEBUGEN);
+        return(res);
+    }
+
     unsigned char* const data = sl->q_buf;
     unsigned char* const cmd  = sl->c_buf;
     ssize_t size;
@@ -508,9 +515,15 @@ int _stlink_usb_reset(stlink_t * sl) {
     unsigned char* const data = sl->q_buf;
     unsigned char* const cmd = sl->c_buf;
     ssize_t size;
-    int rep_len = 2;
-    int i = fill_command(sl, SG_DXFER_FROM_DEV, rep_len);
+    uint32_t dhcsr;
+    unsigned timeout;
+    int i, rep_len = 2;
 
+    // clear S_RESET_ST in DHCSR registr
+    _stlink_usb_read_debug32(sl, STLINK_REG_DHCSR, &dhcsr);
+
+    // send reset command
+    i = fill_command(sl, SG_DXFER_FROM_DEV, rep_len);
     cmd[i++] = STLINK_DEBUG_COMMAND;
 
     if (sl->version.jtag_api == STLINK_JTAG_API_V1) {
@@ -526,9 +539,30 @@ int _stlink_usb_reset(stlink_t * sl) {
         return((int)size);
     }
 
-    // reset through AIRCR so that NRST does not need to be connected
-    return(stlink_write_debug32(sl, STLINK_REG_AIRCR, STLINK_REG_AIRCR_VECTKEY |
-                                STLINK_REG_AIRCR_SYSRESETREQ));
+    usleep(10000);
+
+    dhcsr = 0;
+    _stlink_usb_read_debug32(sl, STLINK_REG_DHCSR, &dhcsr);
+    if ((dhcsr & STLINK_REG_DHCSR_S_RESET_ST) == 0) {
+        // reset not done yet
+        // try reset through AIRCR so that NRST does not need to be connected
+
+        WLOG("NRST is not connected\n");
+        DLOG("Using reset through SYSRESETREQ\n");
+        return stlink_soft_reset(sl, 0);
+    }
+
+    // waiting for a reset within 500ms
+    timeout = time_ms() + 500;
+    while (time_ms() < timeout) {
+        // DDI0337E, p. 10-4, Debug Halting Control and Status Register
+        dhcsr = STLINK_REG_DHCSR_S_RESET_ST;
+        _stlink_usb_read_debug32(sl, STLINK_REG_DHCSR, &dhcsr);
+        if ((dhcsr&STLINK_REG_DHCSR_S_RESET_ST) == 0)
+            return(0);
+    }
+
+    return(-1);
 }
 
 int _stlink_usb_jtag_reset(stlink_t * sl, int value) {
@@ -555,6 +589,17 @@ int _stlink_usb_jtag_reset(stlink_t * sl, int value) {
 
 int _stlink_usb_step(stlink_t* sl) {
     struct stlink_libusb * const slu = sl->backend_data;
+
+    if (sl->version.jtag_api != STLINK_JTAG_API_V1) {
+        // emulates the JTAG v1 API by using DHCSR
+        _stlink_usb_write_debug32(sl, STLINK_REG_DHCSR, STLINK_REG_DHCSR_DBGKEY | STLINK_REG_DHCSR_C_HALT |
+                                                        STLINK_REG_DHCSR_C_MASKINTS | STLINK_REG_DHCSR_C_DEBUGEN);
+        _stlink_usb_write_debug32(sl, STLINK_REG_DHCSR, STLINK_REG_DHCSR_DBGKEY | STLINK_REG_DHCSR_C_STEP |
+                                                        STLINK_REG_DHCSR_C_MASKINTS | STLINK_REG_DHCSR_C_DEBUGEN);
+        return _stlink_usb_write_debug32(sl, STLINK_REG_DHCSR, STLINK_REG_DHCSR_DBGKEY | STLINK_REG_DHCSR_C_HALT |
+                                                                STLINK_REG_DHCSR_C_DEBUGEN);
+    }
+
     unsigned char* const data = sl->q_buf;
     unsigned char* const cmd = sl->c_buf;
     ssize_t size;
@@ -583,7 +628,7 @@ int _stlink_usb_run(stlink_t* sl) {
     int res;
 
     if (sl->version.jtag_api != STLINK_JTAG_API_V1) {
-        res = _stlink_usb_write_debug32(sl, DCB_DHCSR, DBGKEY | C_DEBUGEN);
+        res = _stlink_usb_write_debug32(sl, STLINK_REG_DHCSR, STLINK_REG_DHCSR_DBGKEY | STLINK_REG_DHCSR_C_DEBUGEN);
         return(res);
     }
 
@@ -606,7 +651,7 @@ int _stlink_usb_run(stlink_t* sl) {
     return(0);
 }
 
-int _stlink_usb_set_swdclk(stlink_t* sl, uint16_t clk_divisor) {
+int _stlink_usb_set_swdclk(stlink_t* sl, int clk_freq) {
     struct stlink_libusb * const slu = sl->backend_data;
     unsigned char* const data = sl->q_buf;
     unsigned char* const cmd = sl->c_buf;
@@ -616,6 +661,28 @@ int _stlink_usb_set_swdclk(stlink_t* sl, uint16_t clk_divisor) {
 
     // clock speed only supported by stlink/v2 and for firmware >= 22
     if (sl->version.stlink_v == 2 && sl->version.jtag_v >= 22) {
+        uint16_t clk_divisor;
+        if (clk_freq) {
+            const uint32_t map[] = {5, 15, 25, 50, 100, 125, 240, 480, 950, 1200, 1800, 4000};
+            int speed_index = _stlink_match_speed_map(map, STLINK_ARRAY_SIZE(map), clk_freq);
+            switch (map[speed_index]) {
+            case 5:   clk_divisor = STLINK_SWDCLK_5KHZ_DIVISOR; break;
+            case 15:  clk_divisor = STLINK_SWDCLK_15KHZ_DIVISOR; break;
+            case 25:  clk_divisor = STLINK_SWDCLK_25KHZ_DIVISOR; break;
+            case 50:  clk_divisor = STLINK_SWDCLK_50KHZ_DIVISOR; break;
+            case 100: clk_divisor = STLINK_SWDCLK_100KHZ_DIVISOR; break;
+            case 125: clk_divisor = STLINK_SWDCLK_125KHZ_DIVISOR; break;
+            case 240: clk_divisor = STLINK_SWDCLK_240KHZ_DIVISOR; break;
+            case 480: clk_divisor = STLINK_SWDCLK_480KHZ_DIVISOR; break;
+            case 950: clk_divisor = STLINK_SWDCLK_950KHZ_DIVISOR; break;
+            case 1200: clk_divisor = STLINK_SWDCLK_1P2MHZ_DIVISOR; break;
+            default:
+            case 1800: clk_divisor = STLINK_SWDCLK_1P8MHZ_DIVISOR; break;
+            case 4000: clk_divisor = STLINK_SWDCLK_4MHZ_DIVISOR; break;
+            }
+        } else
+            clk_divisor = STLINK_SWDCLK_1P8MHZ_DIVISOR;
+
         i = fill_command(sl, SG_DXFER_FROM_DEV, rep_len);
 
         cmd[i++] = STLINK_DEBUG_COMMAND;
@@ -646,7 +713,6 @@ int _stlink_usb_set_swdclk(stlink_t* sl, uint16_t clk_divisor) {
         }
 
         int speeds_size = data[8];
-
         if (speeds_size > STLINK_V3_MAX_FREQ_NB) {
             speeds_size = STLINK_V3_MAX_FREQ_NB;
         }
@@ -656,7 +722,8 @@ int _stlink_usb_set_swdclk(stlink_t* sl, uint16_t clk_divisor) {
         // Set to zero all the next entries
         for (i = speeds_size; i < STLINK_V3_MAX_FREQ_NB; i++) map[i] = 0;
 
-        speed_index = _stlink_match_speed_map(map, STLINK_ARRAY_SIZE(map), 1800);
+        if (!clk_freq) clk_freq = 1800; // set default frequency
+        speed_index = _stlink_match_speed_map(map, STLINK_ARRAY_SIZE(map), clk_freq);
 
         i = fill_command(sl, SG_DXFER_FROM_DEV, 16);
 
@@ -764,11 +831,11 @@ int _stlink_usb_read_all_regs(stlink_t *sl, struct stlink_reg *regp) {
 
     if (sl->verbose < 2) { return(0); }
 
-    DLOG("xpsr       = 0x%08x\n", read_uint32(sl->q_buf, reg_offset + 64));
-    DLOG("main_sp    = 0x%08x\n", read_uint32(sl->q_buf, reg_offset + 68));
-    DLOG("process_sp = 0x%08x\n", read_uint32(sl->q_buf, reg_offset + 72));
-    DLOG("rw         = 0x%08x\n", read_uint32(sl->q_buf, reg_offset + 76));
-    DLOG("rw2        = 0x%08x\n", read_uint32(sl->q_buf, reg_offset + 80));
+    DLOG("xpsr       = 0x%08x\n", regp->xpsr);
+    DLOG("main_sp    = 0x%08x\n", regp->main_sp);
+    DLOG("process_sp = 0x%08x\n", regp->process_sp);
+    DLOG("rw         = 0x%08x\n", regp->rw);
+    DLOG("rw2        = 0x%08x\n", regp->rw2);
 
     return(0);
 }
@@ -1183,45 +1250,7 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, int reset, char serial[STL
     // should be done at this speed too
     // set the stlink clock speed (default is 1800kHz)
     DLOG("JTAG/SWD freq set to %d\n", freq);
-
-    switch (freq) {
-    case 5:
-        stlink_set_swdclk(sl, STLINK_SWDCLK_5KHZ_DIVISOR);
-        break;
-    case 15:
-        stlink_set_swdclk(sl, STLINK_SWDCLK_15KHZ_DIVISOR);
-        break;
-    case 25:
-        stlink_set_swdclk(sl, STLINK_SWDCLK_25KHZ_DIVISOR);
-        break;
-    case 50:
-        stlink_set_swdclk(sl, STLINK_SWDCLK_50KHZ_DIVISOR);
-        break;
-    case 100:
-        stlink_set_swdclk(sl, STLINK_SWDCLK_100KHZ_DIVISOR);
-        break;
-    case 125:
-        stlink_set_swdclk(sl, STLINK_SWDCLK_125KHZ_DIVISOR);
-        break;
-    case 240:
-        stlink_set_swdclk(sl, STLINK_SWDCLK_240KHZ_DIVISOR);
-        break;
-    case 480:
-        stlink_set_swdclk(sl, STLINK_SWDCLK_480KHZ_DIVISOR);
-        break;
-    case 950:
-        stlink_set_swdclk(sl, STLINK_SWDCLK_950KHZ_DIVISOR);
-        break;
-    case 1200:
-        stlink_set_swdclk(sl, STLINK_SWDCLK_1P2MHZ_DIVISOR);
-        break;
-    case 0: case 1800:
-        stlink_set_swdclk(sl, STLINK_SWDCLK_1P8MHZ_DIVISOR);
-        break;
-    case 4000:
-        stlink_set_swdclk(sl, STLINK_SWDCLK_4MHZ_DIVISOR);
-        break;
-    }
+    stlink_set_swdclk(sl, freq);
 
     if (reset == 2) {
         stlink_jtag_reset(sl, 0);
