@@ -907,7 +907,7 @@ static void set_flash_cr_mer(stlink_t *sl, bool v, unsigned bank) {
         cr_reg = STM32Gx_FLASH_CR;
         cr_mer = (1 <<  STM32Gx_FLASH_CR_MER1);
 
-        if (sl->chip_flags & CHIP_F_HAS_DUAL_BANK) {
+        if (sl->has_dual_bank) {
             cr_mer |= (1 << STM32Gx_FLASH_CR_MER2);
         }
 
@@ -1355,13 +1355,14 @@ int stlink_load_device_params(stlink_t *sl) {
     }
 
     sl->flash_type = params->flash_type;
-    sl->chip_flags = params->flags;
+    sl->has_dual_bank = params->has_dual_bank;
     sl->flash_pgsz = params->flash_pagesize;
     sl->sram_size = params->sram_size;
     sl->sys_base = params->bootrom_base;
     sl->sys_size = params->bootrom_size;
     sl->option_base = params->option_base;
     sl->option_size = params->option_size;
+    sl->has_swo_tracing = params->has_swo_tracing;
 
     // medium and low devices have the same chipid. ram size depends on flash size.
     // STM32F100xx datasheet Doc ID 16455 Table 2

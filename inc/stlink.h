@@ -220,7 +220,7 @@ struct _stlink {
 
     enum stlink_flash_type flash_type;
     // stlink_chipid_params.flash_type, set by stlink_load_device_params(), values: STLINK_FLASH_TYPE_xxx
-    uint32_t chip_flags;
+    bool has_dual_bank;
 
     stm32_addr_t flash_base;     // STM32_FLASH_BASE, set by stlink_load_device_params()
     size_t flash_size;           // calculated by stlink_load_device_params()
@@ -233,6 +233,8 @@ struct _stlink {
     /* option settings */
     stm32_addr_t option_base;
     size_t option_size;
+
+    bool has_swo_tracing;
 
     // bootloader
     // sys_base and sys_size are not used by the tools, but are only there to download the bootloader code
@@ -270,7 +272,7 @@ int stlink_step(stlink_t *sl);
 int stlink_current_mode(stlink_t *sl);
 int stlink_force_debug(stlink_t *sl);
 int stlink_target_voltage(stlink_t *sl);
-int stlink_set_swdclk(stlink_t *sl, uint16_t divisor);
+int stlink_set_swdclk(stlink_t *sl, int freq_khz);
 int stlink_trace_enable(stlink_t* sl, uint32_t frequency);
 int stlink_trace_disable(stlink_t* sl);
 int stlink_trace_read(stlink_t* sl, uint8_t* buf, size_t size);
