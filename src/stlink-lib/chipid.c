@@ -657,8 +657,9 @@ static const struct stlink_chipid_params devices[] = {
     {
         // STM32H742/743/753 (from RM0433)
         .chip_id = STLINK_CHIPID_STM32_H74XXX,
-        .description = "H742/743/753",
+        .description = "H74x/H75x",
         .flash_type = STLINK_FLASH_TYPE_H7,
+        .has_dual_bank = true,
         .flash_size_reg = 0x1ff1e880,          // "Flash size register" (pg3272)
         .flash_pagesize = 0x20000,             // 128k sector (pg147)
         .sram_size = 0x20000,                  // 128k "DTCM" from Table 7
@@ -668,6 +669,34 @@ static const struct stlink_chipid_params devices[] = {
         .option_size = 44,                     // FLASH_OPTSR_CUR to FLASH_BOOT_PRGR from Table 28
         .flags = CHIP_F_HAS_SWO_TRACING,
     },
+    {
+        // STM32H7A3/7B3 (from RM0455)
+        .chip_id = STLINK_CHIPID_STM32_H7AX,
+        .description = "H7Ax/H7Bx",
+        .flash_type = STLINK_FLASH_TYPE_H7,
+        .has_dual_bank = true,
+        .flash_size_reg = 0x08FFF80C,          // "Flash size register" (p.2949)
+        .flash_pagesize = 0x2000,              // 8k sector (p.146)
+        .sram_size = 0x20000,                  // 128k "DTCM" (Figure 1)
+        .bootrom_base = 0x1FF00000,            // "System memory" starting address (Table 12-14)
+        .bootrom_size = 0x20000,               // "System memory" byte size in hex splitted to two banks (Table 12-14)
+        .option_base = STM32_H7_OPTION_BYTES_BASE,
+        .option_size = 44,
+    },
+    {
+        // STM32H72x/H73x (from RM0468)
+        .chip_id = STLINK_CHIPID_STM32_H72X,
+        .description = "H72x/H73x",
+        .flash_type = STLINK_FLASH_TYPE_H7,
+        .flash_size_reg = 0x1FF1E880,          // "Flash size register" (p.3286)
+        .flash_pagesize = 0x20000,             // 128k sector (p.152)
+        .sram_size = 0x20000,                  // 128k "DTCM" (Figure 1)
+        .bootrom_base = 0x1FF00000,            // "System memory" starting address (Table 6)
+        .bootrom_size = 0x20000,               // "System memory" byte size in hex (Table 6)
+        .option_base = STM32_H7_OPTION_BYTES_BASE,
+        .option_size = 44,
+    },
+
     {
         // unknown
         .chip_id = STLINK_CHIPID_UNKNOWN,

@@ -35,23 +35,36 @@ static void stlink_print_serial(stlink_t *sl, bool openocd) {
     printf("\n");
 }
 
+static void stlink_print_version(stlink_t *sl) {
+    // Implementation of version printing is minimalistic
+    // but contains all available information from sl->version
+    printf("V%u", sl->version.stlink_v);
+    if (sl->version.jtag_v > 0)
+        printf("J%u", sl->version.jtag_v);
+    if (sl->version.swim_v > 0)
+        printf("S%u", sl->version.swim_v);
+    printf("\n");
+}
+
 static void stlink_print_info(stlink_t *sl) {
     const struct stlink_chipid_params *params = NULL;
 
     if (!sl) { return; }
 
-    printf(" serial:     ");
+    printf("  version:    ");
+    stlink_print_version(sl);
+    printf("  serial:     ");
     stlink_print_serial(sl, false);
-    printf(" hla-serial: ");
+    printf("  hla-serial: ");
     stlink_print_serial(sl, true);
-    printf(" flash:      %u (pagesize: %u)\n",
+    printf("  flash:      %u (pagesize: %u)\n",
            (uint32_t)sl->flash_size, (uint32_t)sl->flash_pgsz);
-    printf(" sram:       %u\n", (uint32_t)sl->sram_size);
-    printf(" chipid:     0x%.4x\n", sl->chip_id);
+    printf("  sram:       %u\n", (uint32_t)sl->sram_size);
+    printf("  chipid:     0x%.4x\n", sl->chip_id);
 
     params = stlink_chipid_get_params(sl->chip_id);
 
-    if (params) { printf(" descr:      %s\n", params->description); }
+    if (params) { printf("  descr:      %s\n", params->description); }
 }
 
 static void stlink_probe(void) {
@@ -62,7 +75,10 @@ static void stlink_probe(void) {
 
     printf("Found %u stlink programmers\n", (unsigned int)size);
 
-    for (size_t n = 0; n < size; n++) { stlink_print_info(stdevs[n]); }
+    for (size_t n = 0; n < size; n++) {
+        if (size>1) printf("%lu.\n", n+1);
+        stlink_print_info(stdevs[n]);
+    }
 
     stlink_probe_usb_free(&stdevs, size);
 }

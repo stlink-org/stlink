@@ -251,6 +251,7 @@ void stlink_close(stlink_t *sl);
 int stlink_core_id(stlink_t *sl);
 int stlink_reset(stlink_t *sl);
 int stlink_jtag_reset(stlink_t *sl, int value);
+int stlink_soft_reset(stlink_t *sl, int halt_on_reset);
 int stlink_run(stlink_t *sl);
 int stlink_status(stlink_t *sl);
 int stlink_version(stlink_t *sl);
@@ -273,7 +274,6 @@ int stlink_set_swdclk(stlink_t *sl, uint16_t divisor);
 int stlink_trace_enable(stlink_t* sl, uint32_t frequency);
 int stlink_trace_disable(stlink_t* sl);
 int stlink_trace_read(stlink_t* sl, uint8_t* buf, size_t size);
-
 int stlink_erase_flash_mass(stlink_t* sl);
 int stlink_write_flash(stlink_t* sl, stm32_addr_t address, uint8_t* data, uint32_t length, uint8_t eraseonly);
 int stlink_parse_ihex(const char* path, uint8_t erased_pattern, uint8_t * * mem, size_t * size, uint32_t * begin);
@@ -315,6 +315,9 @@ int stlink_write_option_control_register1_32(stlink_t *sl, uint32_t option_contr
 int stlink_write_option_bytes(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uint32_t len);
 int stlink_fwrite_option_bytes(stlink_t *sl, const char* path, stm32_addr_t addr);
 
+int stlink_flashloader_start(stlink_t *sl, flash_loader_t *fl);
+int stlink_flashloader_write(stlink_t *sl, flash_loader_t *fl, stm32_addr_t addr, uint8_t* base, uint32_t len);
+int stlink_flashloader_stop(stlink_t *sl);
 
 #include <sg.h>
 #include <usb.h>
