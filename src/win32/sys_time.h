@@ -5,10 +5,7 @@
 #include <sys/time.h>
 #else
 
-struct timeval {
-    long tv_sec;
-    long tv_usec;
-};
+#include <windows.h>
 
 struct timezone {
     int tz_minuteswest;
