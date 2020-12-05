@@ -76,7 +76,7 @@ static void stlink_probe(void) {
     printf("Found %u stlink programmers\n", (unsigned int)size);
 
     for (size_t n = 0; n < size; n++) {
-        if (size>1) printf("%lu.\n", n+1);
+        if (size > 1) printf("%u.\n", (unsigned int)n+1);
         stlink_print_info(stdevs[n]);
     }
 
