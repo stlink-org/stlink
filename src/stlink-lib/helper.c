@@ -11,5 +11,5 @@
 unsigned time_ms() {
     struct timeval tv;
     gettimeofday(&tv, NULL);
-    return (unsigned)tv.tv_sec * 1000 + tv.tv_usec / 1000;
+    return (unsigned)(tv.tv_sec * 1000 + tv.tv_usec / 1000);
 }
