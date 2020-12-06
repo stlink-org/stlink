@@ -14,7 +14,7 @@ static const struct stlink_chipid_params devices[] = {
         .bootrom_size = 0xEDC0,                      // ! @todo "System memory" byte size in hex from
         .option_base = STM32_F7_OPTION_BYTES_BASE,  // Used for reading back the option bytes, writing uses FLASH_F7_OPTCR and FLASH_F7_OPTCR1
         .option_size = 0x20,
-        .has_swo_tracing = true,
+        .flags = CHIP_F_HAS_SWO_TRACING,
     },
     {
         // RM0385 and DS10916 document was used to find these paramaters
@@ -26,7 +26,7 @@ static const struct stlink_chipid_params devices[] = {
         .sram_size = 0x50000,                  // "SRAM" byte size in hex from DS Fig 18
         .bootrom_base = 0x00100000,            // "System memory" starting address from DS Fig 18
         .bootrom_size = 0xEDC0,                // "System memory" byte size in hex from DS Fig 18
-        .has_swo_tracing = true,
+        .flags = CHIP_F_HAS_SWO_TRACING,
     },
     {
         // RM0431 and DS document was used to find these paramaters
@@ -38,7 +38,7 @@ static const struct stlink_chipid_params devices[] = {
         .sram_size = 0x40000,                  // "SRAM" byte size in hex from DS Fig 24
         .bootrom_base = 0x00100000,            // "System memory" starting address from DS Fig 24
         .bootrom_size = 0xEDC0,                // "System memory" byte size in hex from DS Fig 24
-        .has_swo_tracing = true,
+        .flags = CHIP_F_HAS_SWO_TRACING,
     },
     {   // table 2, PM0063
         .chip_id = STLINK_CHIPID_STM32_F1_MEDIUM,
@@ -49,7 +49,7 @@ static const struct stlink_chipid_params devices[] = {
         .sram_size = 0x5000,
         .bootrom_base = 0x1ffff000,
         .bootrom_size = 0x800,
-        .has_swo_tracing = true,
+        .flags = CHIP_F_HAS_SWO_TRACING,
     },
     {   // table 1, PM0059
         .chip_id = STLINK_CHIPID_STM32_F2,
@@ -62,7 +62,7 @@ static const struct stlink_chipid_params devices[] = {
         .bootrom_size = 0x7800,
         .option_base = 0x1FFFC000,
         .option_size = 4,
-        .has_swo_tracing = true,
+        .flags = CHIP_F_HAS_SWO_TRACING,
     },
     {   // PM0063
         .chip_id = STLINK_CHIPID_STM32_F1_LOW,
@@ -73,7 +73,7 @@ static const struct stlink_chipid_params devices[] = {
         .sram_size = 0x2800,
         .bootrom_base = 0x1ffff000,
         .bootrom_size = 0x800,
-        .has_swo_tracing = true,
+        .flags = CHIP_F_HAS_SWO_TRACING,
     },
     {
         .chip_id = STLINK_CHIPID_STM32_F4,
@@ -86,7 +86,7 @@ static const struct stlink_chipid_params devices[] = {
         .bootrom_size = 0x7800,
         .option_base = STM32_F4_OPTION_BYTES_BASE,
         .option_size = 4,
-        .has_swo_tracing = true,
+        .flags = CHIP_F_HAS_SWO_TRACING,
     },
     {
         .chip_id = STLINK_CHIPID_STM32_F4_DSI,
@@ -97,7 +97,7 @@ static const struct stlink_chipid_params devices[] = {
         .sram_size = 0x40000,
         .bootrom_base = 0x1fff0000,
         .bootrom_size = 0x7800,
-        .has_swo_tracing = true,
+        .flags = CHIP_F_HAS_SWO_TRACING,
     },
     {
         .chip_id = STLINK_CHIPID_STM32_F4_HD,
@@ -108,7 +108,7 @@ static const struct stlink_chipid_params devices[] = {
         .sram_size = 0x40000,
         .bootrom_base = 0x1fff0000,
         .bootrom_size = 0x7800,
-        .has_swo_tracing = true,
+        .flags = CHIP_F_HAS_SWO_TRACING,
     },
     {
         .chip_id = STLINK_CHIPID_STM32_F4_LP,
@@ -119,7 +119,7 @@ static const struct stlink_chipid_params devices[] = {
         .sram_size = 0x10000,
         .bootrom_base = 0x1fff0000,
         .bootrom_size = 0x7800,
-        .has_swo_tracing = true,
+        .flags = CHIP_F_HAS_SWO_TRACING,
     },
     {
         .chip_id = STLINK_CHIPID_STM32_F411RE,
@@ -130,7 +130,7 @@ static const struct stlink_chipid_params devices[] = {
         .sram_size = 0x20000,
         .bootrom_base = 0x1fff0000,
         .bootrom_size = 0x7800,
-        .has_swo_tracing = true,
+        .flags = CHIP_F_HAS_SWO_TRACING,
     },
     {
         .chip_id = STLINK_CHIPID_STM32_F4_DE,
@@ -141,7 +141,7 @@ static const struct stlink_chipid_params devices[] = {
         .sram_size = 0x18000,
         .bootrom_base = 0x1fff0000,
         .bootrom_size = 0x7800,
-        .has_swo_tracing = true,
+        .flags = CHIP_F_HAS_SWO_TRACING,
     },
     {
         .chip_id = STLINK_CHIPID_STM32_F1_HIGH,
@@ -152,7 +152,7 @@ static const struct stlink_chipid_params devices[] = {
         .sram_size = 0x10000,
         .bootrom_base = 0x1ffff000,
         .bootrom_size = 0x800,
-        .has_swo_tracing = true,
+        .flags = CHIP_F_HAS_SWO_TRACING,
     },
     {
         // This ignores the EEPROM! (and uses the page erase size,
@@ -165,7 +165,7 @@ static const struct stlink_chipid_params devices[] = {
         .sram_size = 0x4000,
         .bootrom_base = 0x1ff00000,
         .bootrom_size = 0x1000,
-        .has_swo_tracing = true,
+        .flags = CHIP_F_HAS_SWO_TRACING,
     },
     {
         .chip_id = STLINK_CHIPID_STM32_L1_CAT2,
@@ -176,7 +176,7 @@ static const struct stlink_chipid_params devices[] = {
         .sram_size = 0x8000,
         .bootrom_base = 0x1ff00000,
         .bootrom_size = 0x1000,
-        .has_swo_tracing = true,
+        .flags = CHIP_F_HAS_SWO_TRACING,
     },
     {
         .chip_id = STLINK_CHIPID_STM32_L1_MEDIUM_PLUS,
@@ -187,7 +187,7 @@ static const struct stlink_chipid_params devices[] = {
         .sram_size = 0x8000, // not completely clear if there are some with 48k
         .bootrom_base = 0x1ff00000,
         .bootrom_size = 0x1000,
-        .has_swo_tracing = true,
+        .flags = CHIP_F_HAS_SWO_TRACING,
     },
     {
         .chip_id = STLINK_CHIPID_STM32_L1_HIGH,
@@ -200,7 +200,7 @@ static const struct stlink_chipid_params devices[] = {
         .bootrom_size = 0x1000,
         .option_base = STM32_L1_OPTION_BYTES_BASE,
         .option_size = 8,
-        .has_swo_tracing = true,
+        .flags = CHIP_F_HAS_SWO_TRACING,
     },
     {
         .chip_id = STLINK_CHIPID_STM32_L152_RE,
@@ -211,7 +211,7 @@ static const struct stlink_chipid_params devices[] = {
         .sram_size = 0x14000, // not completely clear if there are some with 32k
         .bootrom_base = 0x1ff00000,
         .bootrom_size = 0x1000,
-        .has_swo_tracing = true,
+        .flags = CHIP_F_HAS_SWO_TRACING,
     },
     {
         .chip_id = STLINK_CHIPID_STM32_F1_CONN,
@@ -222,7 +222,7 @@ static const struct stlink_chipid_params devices[] = {
         .sram_size = 0x10000,
         .bootrom_base = 0x1fffb000,
         .bootrom_size = 0x4800,
-        .has_swo_tracing = true,
+        .flags = CHIP_F_HAS_SWO_TRACING,
     },
     {    // Low and Medium density VL have same chipid. RM0041 25.6.1
         .chip_id = STLINK_CHIPID_STM32_F1_VL_MEDIUM_LOW,
@@ -233,7 +233,7 @@ static const struct stlink_chipid_params devices[] = {
         .sram_size = 0x2000, // 0x1000 for low density devices
         .bootrom_base = 0x1ffff000,
         .bootrom_size = 0x800,
-        .has_swo_tracing = true,
+        .flags = CHIP_F_HAS_SWO_TRACING,
     },
     {
         // STM32F446x family. Support based on DM00135183.pdf (RM0390) document.
@@ -247,7 +247,7 @@ static const struct stlink_chipid_params devices[] = {
         .bootrom_size = 0x7800,
         .option_base = 0x1FFFC000,
         .option_size = 4,
-        .has_swo_tracing = true,
+        .flags = CHIP_F_HAS_SWO_TRACING,
     },
     {
         // STM32F410 MCUs. Support based on DM00180366.pdf (RM0401) document.
@@ -259,7 +259,7 @@ static const struct stlink_chipid_params devices[] = {
         .sram_size = 0x8000,
         .bootrom_base = 0x1fff0000,
         .bootrom_size = 0x7800,
-        .has_swo_tracing = true,
+        .flags = CHIP_F_HAS_SWO_TRACING,
     },
     {
         // This is STK32F303VCT6 device from STM32 F3 Discovery board.
@@ -272,7 +272,7 @@ static const struct stlink_chipid_params devices[] = {
         .sram_size = 0xa000,
         .bootrom_base = 0x1ffff000,
         .bootrom_size = 0x800,
-        .has_swo_tracing = true,
+        .flags = CHIP_F_HAS_SWO_TRACING,
     },
     {
         // This is STK32F373VCT6 device from STM32 F373 eval board
@@ -285,7 +285,7 @@ static const struct stlink_chipid_params devices[] = {
         .sram_size = 0xa000,
         .bootrom_base = 0x1ffff000,
         .bootrom_size = 0x800,
-        .has_swo_tracing = true,
+        .flags = CHIP_F_HAS_SWO_TRACING,
     },
     {
         .chip_id = STLINK_CHIPID_STM32_F1_VL_HIGH,
@@ -296,7 +296,7 @@ static const struct stlink_chipid_params devices[] = {
         .sram_size = 0x8000,
         .bootrom_base = 0x1ffff000,
         .bootrom_size = 0x800,
-        .has_swo_tracing = true,
+        .flags = CHIP_F_HAS_SWO_TRACING,
     },
     {
         .chip_id = STLINK_CHIPID_STM32_F1_XL,
@@ -307,7 +307,7 @@ static const struct stlink_chipid_params devices[] = {
         .sram_size = 0x18000,
         .bootrom_base = 0x1fffe000,
         .bootrom_size = 0x1800,
-        .has_swo_tracing = true,
+        .flags = CHIP_F_HAS_SWO_TRACING,
     },
     {
         // Use this as an example for mapping future chips:
@@ -344,7 +344,7 @@ static const struct stlink_chipid_params devices[] = {
         .sram_size = 0x40000,                  // "SRAM" byte size in hex from Table 4
         .bootrom_base = 0x1FFF0000,            // "System memory" starting address from Table 4
         .bootrom_size = 0x7800,                // "System memory" byte size in hex from Table 4
-        .has_swo_tracing = true,
+        .flags = CHIP_F_HAS_SWO_TRACING,
     },
     {
         // RM0430 DocID029473 Rev 2 document was used to find these parameters
@@ -357,7 +357,7 @@ static const struct stlink_chipid_params devices[] = {
         .sram_size = 0x50000,                  // "SRAM" byte size in hex from Figure 2 (Table 4 only says 0x40000)
         .bootrom_base = 0x1FFF0000,            // "System memory" starting address from Table 4
         .bootrom_size = 0x7800,                // "System memory" byte size in hex from Table 4
-        .has_swo_tracing = true,
+        .flags = CHIP_F_HAS_SWO_TRACING,
     },
     {
         .chip_id = STLINK_CHIPID_STM32_F09X,
@@ -403,7 +403,7 @@ static const struct stlink_chipid_params devices[] = {
         .sram_size = 0xa000,
         .bootrom_base = 0x1fffd800,
         .bootrom_size = 0x2000,
-        .has_swo_tracing = true,
+        .flags = CHIP_F_HAS_SWO_TRACING,
     },
     {
         // STM32L0x
@@ -458,7 +458,7 @@ static const struct stlink_chipid_params devices[] = {
         .sram_size = 0x3000,
         .bootrom_base = 0x1fffd800,
         .bootrom_size = 0x2000,
-        .has_swo_tracing = true,
+        .flags = CHIP_F_HAS_SWO_TRACING,
     },
     {
         // This is STK32F303RET6 device from STM32 F3 Nucelo board.
@@ -471,7 +471,7 @@ static const struct stlink_chipid_params devices[] = {
         .sram_size = 0x10000,                  // 3.3 Embedded SRAM
         .bootrom_base = 0x1fffd800,            // 3.3.2 / Table 4 System Memory
         .bootrom_size = 0x2000,
-        .has_swo_tracing = true,
+        .flags = CHIP_F_HAS_SWO_TRACING,
     },
     {
         // STM32L4x6
@@ -490,7 +490,7 @@ static const struct stlink_chipid_params devices[] = {
         .bootrom_size = 0x7000,                // 28k (per bank), same source as base
         .option_base = STM32_L4_OPTION_BYTES_BASE,
         .option_size = 4,
-        .has_swo_tracing = true,
+        .flags = CHIP_F_HAS_SWO_TRACING,
     },
     {
         // STM32L4RX
@@ -503,7 +503,7 @@ static const struct stlink_chipid_params devices[] = {
         .sram_size = 0xa0000,                  // 192k (SRAM1) + 64k SRAM2 + 384k SRAM3 = 640k, or 0xA0000
         .bootrom_base = 0x1fff0000,            // 3.3.1, pg 99
         .bootrom_size = 0x7000,                // 28k (per bank), same source as base (pg 99)
-        .has_swo_tracing = true,
+        .flags = CHIP_F_HAS_SWO_TRACING,
     },
     {
         // STLINK_CHIPID_STM32_L41X
@@ -518,7 +518,7 @@ static const struct stlink_chipid_params devices[] = {
         .sram_size = 0xa000,                   // 40k (DS12469, sec 3.5, page 18)
         .bootrom_base = 0x1fff0000,            // System Memory (RM0394, sec 3.3.1, table 8)
         .bootrom_size = 0x7000,                // 28k, same source as base
-        .has_swo_tracing = true,
+        .flags = CHIP_F_HAS_SWO_TRACING,
     },
     {
         // STLINK_CHIPID_STM32_L43X
@@ -537,7 +537,7 @@ static const struct stlink_chipid_params devices[] = {
         .bootrom_size = 0x7000,                // 28k (per bank), same source as base
         .option_base = STM32_L4_OPTION_BYTES_BASE,
         .option_size = 4,
-        .has_swo_tracing = true,
+        .flags = CHIP_F_HAS_SWO_TRACING,
     },
     {
         // STLINK_CHIPID_STM32_L496X
@@ -554,7 +554,7 @@ static const struct stlink_chipid_params devices[] = {
         .bootrom_size = 0x7000,                // 28k (per bank), same source as base
         .option_base = STM32_L4_OPTION_BYTES_BASE,
         .option_size = 4,
-        .has_swo_tracing = true,
+        .flags = CHIP_F_HAS_SWO_TRACING,
     },
     {
         // STLINK_CHIPID_STM32_L46X
@@ -570,7 +570,7 @@ static const struct stlink_chipid_params devices[] = {
         .sram_size = 0x20000,
         .bootrom_base = 0x1fff0000,            // Tables 6, pages 71-72 (Bank 1 system memory, also fig 2 on page 63)
         .bootrom_size = 0x7000,                // 28k (per bank), same source as base
-        .has_swo_tracing = true,
+        .flags = CHIP_F_HAS_SWO_TRACING,
     },
     {
         // STM32L011
@@ -624,7 +624,7 @@ static const struct stlink_chipid_params devices[] = {
         .bootrom_size = 0x7000,                // 28k (table 2)
         .option_base = STM32_G4_OPTION_BYTES_BASE,
         .option_size = 4,
-        .has_swo_tracing = true,
+        .flags = CHIP_F_HAS_SWO_TRACING,
     },
     {
         // STM32G471/473/474/483/484 (from RM0440)
@@ -642,7 +642,7 @@ static const struct stlink_chipid_params devices[] = {
         .bootrom_size = 0x7000,                // 28k (table 2)
         .option_base = STM32_G4_OPTION_BYTES_BASE,
         .option_size = 4,
-        .has_swo_tracing = true,
+        .flags = CHIP_F_HAS_SWO_TRACING,
     },
     {
         // STM32WB55 (from RM0434)
@@ -654,7 +654,7 @@ static const struct stlink_chipid_params devices[] = {
         .sram_size = 0x40000,
         .bootrom_base = 0x1fff0000, // see the memory map
         .bootrom_size = 0x7000,
-        .has_swo_tracing = true,
+        .flags = CHIP_F_HAS_SWO_TRACING,
     },
     {
         // STM32H742/743/753 (from RM0433)
@@ -669,7 +669,7 @@ static const struct stlink_chipid_params devices[] = {
         .bootrom_size = 0x20000,               // "System memory" byte size in hex from Table 7
         .option_base = STM32_H7_OPTION_BYTES_BASE,
         .option_size = 44,                     // FLASH_OPTSR_CUR to FLASH_BOOT_PRGR from Table 28
-        .has_swo_tracing = true,
+        .flags = CHIP_F_HAS_SWO_TRACING,
     },
     {
         // STM32H7A3/7B3 (from RM0455)
@@ -684,7 +684,7 @@ static const struct stlink_chipid_params devices[] = {
         .bootrom_size = 0x20000,               // "System memory" byte size in hex splitted to two banks (Table 12-14)
         .option_base = STM32_H7_OPTION_BYTES_BASE,
         .option_size = 44,
-        .has_swo_tracing = true,
+        .flags = CHIP_F_HAS_SWO_TRACING,
     },
     {
         // STM32H72x/H73x (from RM0468)
@@ -698,7 +698,7 @@ static const struct stlink_chipid_params devices[] = {
         .bootrom_size = 0x20000,               // "System memory" byte size in hex (Table 6)
         .option_base = STM32_H7_OPTION_BYTES_BASE,
         .option_size = 44,
-        .has_swo_tracing = true,
+        .flags = CHIP_F_HAS_SWO_TRACING,
     },
 
     {

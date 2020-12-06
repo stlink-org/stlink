@@ -22,7 +22,7 @@ extern "C" {
 
 /* Max data transfer size */
 // 6kB = max mem32_read block, 8kB sram
-// #define Q_BUF_LEN	96
+// #define Q_BUF_LEN    96
 #define Q_BUF_LEN (1024 * 100)
 
 // STLINK_DEBUG_RESETSYS, etc:
@@ -234,8 +234,6 @@ struct _stlink {
     stm32_addr_t option_base;
     size_t option_size;
 
-    bool has_swo_tracing;
-
     // bootloader
     // sys_base and sys_size are not used by the tools, but are only there to download the bootloader code
     // (see tests/sg.c)
@@ -243,6 +241,8 @@ struct _stlink {
     size_t sys_size;             // stlink_chipid_params.bootrom_size, set by stlink_load_device_params()
 
     struct stlink_version_ version;
+
+    uint32_t chip_flags;         // stlink_chipid_params.flags, set by stlink_load_device_params(), values: CHIP_F_xxx
 };
 
 int stlink_enter_swd_mode(stlink_t *sl);

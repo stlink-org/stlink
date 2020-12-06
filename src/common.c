@@ -1362,7 +1362,7 @@ int stlink_load_device_params(stlink_t *sl) {
     sl->sys_size = params->bootrom_size;
     sl->option_base = params->option_base;
     sl->option_size = params->option_size;
-    sl->has_swo_tracing = params->has_swo_tracing;
+    sl->chip_flags = params->flags;
 
     // medium and low devices have the same chipid. ram size depends on flash size.
     // STM32F100xx datasheet Doc ID 16455 Table 2

@@ -70,6 +70,9 @@ enum stlink_stm32_chipids {
 };
 
 
+#define CHIP_F_HAS_SWO_TRACING  (1 << 0)
+
+
 /** Chipid parameters */
 struct stlink_chipid_params {
     uint32_t chip_id;
@@ -83,7 +86,7 @@ struct stlink_chipid_params {
     uint32_t bootrom_size;
     uint32_t option_base;
     uint32_t option_size;
-    bool has_swo_tracing;
+    uint32_t flags;
 };
 
 const struct stlink_chipid_params *stlink_chipid_get_params(uint32_t chipid);
