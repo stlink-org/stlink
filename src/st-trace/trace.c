@@ -242,7 +242,7 @@ bool parse_options(int argc, char** argv, st_settings_t *settings) {
     return true;
 }
 
-static void ConvertSerialNumberTextToBinary(const char* text, char binary_out[STLINK_SERIAL_MAX_SIZE]) {
+static void convert_serial_number_text_to_binary(const char* text, char binary_out[STLINK_SERIAL_MAX_SIZE]) {
     size_t length = 0;
     for (uint32_t n = 0; n < strlen(text) && length < STLINK_SERIAL_MAX_SIZE; n += 2) {
         char buffer[3] = { 0 };
@@ -251,11 +251,11 @@ static void ConvertSerialNumberTextToBinary(const char* text, char binary_out[ST
     }
 }
 
-static stlink_t* StLinkConnect(const st_settings_t* settings) {
+static stlink_t* stlink_connect(const st_settings_t* settings) {
     if (settings->serial_number) {
         // Open this specific stlink.
         char binary_serial_number[STLINK_SERIAL_MAX_SIZE] = { 0 };
-        ConvertSerialNumberTextToBinary(settings->serial_number, binary_serial_number);
+        convert_serial_number_text_to_binary(settings->serial_number, binary_serial_number);
         return stlink_open_usb(settings->logging_level, false, binary_serial_number, 0);
     } else {
         // Otherwise, open any stlink.
@@ -263,7 +263,7 @@ static stlink_t* StLinkConnect(const st_settings_t* settings) {
     }
 }
 
-static bool EnableTrace(stlink_t* stlink, const st_settings_t* settings, uint32_t trace_frequency) {
+static bool enable_trace(stlink_t* stlink, const st_settings_t* settings, uint32_t trace_frequency) {
 
     if (stlink_force_debug(stlink)) {
         ELOG("Unable to debug device\n");
@@ -334,7 +334,7 @@ static bool EnableTrace(stlink_t* stlink, const st_settings_t* settings, uint32_
     return true;
 }
 
-static trace_state UpdateTraceIdle(st_trace_t* trace, uint8_t c) {
+static trace_state update_trace_idle(st_trace_t* trace, uint8_t c) {
     // Handle a trace byte when we are in the idle state.
 
     if (TRACE_OP_IS_TARGET_SOURCE(c)) {
@@ -375,7 +375,7 @@ static trace_state UpdateTraceIdle(st_trace_t* trace, uint8_t c) {
     return TRACE_OP_GET_CONTINUATION(c) ? TRACE_STATE_SKIP_FRAME : TRACE_STATE_IDLE;
 }
 
-static trace_state UpdateTrace(st_trace_t* trace, uint8_t c) {
+static trace_state update_trace(st_trace_t* trace, uint8_t c) {
     trace->count_raw_bytes++;
 
     // Parse the input using a state machine.
@@ -388,7 +388,7 @@ static trace_state UpdateTrace(st_trace_t* trace, uint8_t c) {
     switch (trace->state)
     {
     case TRACE_STATE_IDLE:
-        return UpdateTraceIdle(trace, c);
+        return update_trace_idle(trace, c);
 
     case TRACE_STATE_TARGET_SOURCE:
         putchar(c);
@@ -421,7 +421,7 @@ static trace_state UpdateTrace(st_trace_t* trace, uint8_t c) {
     }
 }
 
-static bool ReadTrace(stlink_t* stlink, st_trace_t* trace) {
+static bool read_trace(stlink_t* stlink, st_trace_t* trace) {
     uint8_t buffer[STLINK_TRACE_BUF_LEN];
     int length = stlink_trace_read(stlink, buffer, sizeof(buffer));
 
@@ -444,13 +444,13 @@ static bool ReadTrace(stlink_t* stlink, st_trace_t* trace) {
     }
 
     for (int i = 0; i < length; i++) {
-        trace->state = UpdateTrace(trace, buffer[i]);
+        trace->state = update_trace(trace, buffer[i]);
     }
 
     return true;
 }
 
-static void CheckForConfigurationError(stlink_t* stlink, st_trace_t* trace, uint32_t trace_frequency) {
+static void check_for_configuration_error(stlink_t* stlink, st_trace_t* trace, uint32_t trace_frequency) {
     // Only check configuration one time after the first 10 seconds of running.
     uint32_t elapsed_time_s = time(NULL) - trace->start_time;
     if (trace->configuration_checked || elapsed_time_s < 10) {
@@ -546,7 +546,7 @@ int main(int argc, char** argv)
         return APP_RESULT_SUCCESS;
     }
 
-    stlink_t* stlink = StLinkConnect(&settings);
+    stlink_t* stlink = stlink_connect(&settings);
     if (!stlink) {
         ELOG("Unable to locate an stlink\n");
         return APP_RESULT_STLINK_NOT_FOUND;
@@ -582,7 +582,7 @@ int main(int argc, char** argv)
             return APP_RESULT_UNSUPPORTED_TRACE_FREQUENCY;
     }
 
-    if (!EnableTrace(stlink, &settings, trace_frequency)) {
+    if (!enable_trace(stlink, &settings, trace_frequency)) {
         ELOG("Unable to enable trace mode\n");
         if (!settings.force)
             return APP_RESULT_STLINK_STATE_ERROR;
@@ -598,8 +598,8 @@ int main(int argc, char** argv)
             return APP_RESULT_STLINK_STATE_ERROR;
     }
 
-    while (!g_abort_trace && ReadTrace(stlink, &trace)) {
-        CheckForConfigurationError(stlink, &trace, trace_frequency);
+    while (!g_abort_trace && read_trace(stlink, &trace)) {
+        check_for_configuration_error(stlink, &trace, trace_frequency);
     }
 
     stlink_trace_disable(stlink);
