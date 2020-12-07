@@ -194,7 +194,6 @@ struct _stlink {
     char serial[STLINK_SERIAL_MAX_SIZE];
     int serial_size;
     int freq;                    // set by stlink_open_usb(), values: STLINK_SWDCLK_xxx_DIVISOR
-    uint32_t max_trace_freq;     // set by stlink_open_usb()
 
     enum stlink_flash_type flash_type;
     // stlink_chipid_params.flash_type, set by stlink_load_device_params(), values: STLINK_FLASH_TYPE_xxx
@@ -220,6 +219,8 @@ struct _stlink {
     struct stlink_version_ version;
 
     uint32_t chip_flags;         // stlink_chipid_params.flags, set by stlink_load_device_params(), values: CHIP_F_xxx
+
+    uint32_t max_trace_freq;     // set by stlink_open_usb()
 };
 
 int stlink_enter_swd_mode(stlink_t *sl);
