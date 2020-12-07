@@ -148,6 +148,13 @@ static void abort_trace() {
     g_abort_trace = true;
 }
 
+#if defined(_WIN32)
+BOOL WINAPI CtrlHandler(DWORD fdwCtrlType) {
+    abort_trace();
+    return FALSE;
+}
+#endif
+
 static void usage(void) {
     puts("st-trace - usage:");
     puts("  -h, --help            Print this help");
@@ -516,10 +523,15 @@ static void check_for_configuration_error(stlink_t* stlink, st_trace_t* trace, u
 
 int main(int argc, char** argv)
 {
+#if defined(_WIN32)
+    SetConsoleCtrlHandler((PHANDLER_ROUTINE)abort_trace, TRUE);
+#else
     signal(SIGINT, &abort_trace);
     signal(SIGTERM, &abort_trace);
     signal(SIGSEGV, &abort_trace);
     signal(SIGPIPE, &abort_trace);
+#endif
+
 
     st_settings_t settings;
     if (!parse_options(argc, argv, &settings)) {
