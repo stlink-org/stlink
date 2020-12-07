@@ -511,7 +511,7 @@ static void unlock_flash(stlink_t *sl) {
         key_reg = STM32WB_FLASH_KEYR;
     } else if (sl->flash_type == STLINK_FLASH_TYPE_H7) {
         key_reg = FLASH_H7_KEYR1;
-        if (sl->has_dual_bank) {
+        if (sl->chip_flags & CHIP_F_HAS_DUAL_BANK) {
             key2_reg = FLASH_H7_KEYR2;
         }
     } else {
@@ -575,7 +575,7 @@ static void lock_flash(stlink_t *sl) {
         cr_lock_shift = STM32WB_FLASH_CR_LOCK;
     } else if (sl->flash_type == STLINK_FLASH_TYPE_H7) {
         cr_reg = FLASH_H7_CR1;
-        if (sl->has_dual_bank) {
+        if (sl->chip_flags & CHIP_F_HAS_DUAL_BANK) {
             cr2_reg = FLASH_H7_CR2;
         }
         cr_lock_shift = FLASH_H7_CR_LOCK;
@@ -691,7 +691,7 @@ static int lock_flash_option(stlink_t *sl) {
     case STLINK_FLASH_TYPE_H7:
         optcr_reg = FLASH_H7_OPTCR;
         optlock_shift = FLASH_H7_OPTCR_OPTLOCK;
-        if (sl->has_dual_bank)
+        if (sl->chip_flags & CHIP_F_HAS_DUAL_BANK)
             optcr2_reg = FLASH_H7_OPTCR2;
         break;
     default:
@@ -759,7 +759,7 @@ static int unlock_flash_option(stlink_t *sl) {
         break;
     case STLINK_FLASH_TYPE_H7:
         optkey_reg = FLASH_H7_OPT_KEYR;
-        if (sl->has_dual_bank)
+        if (sl->chip_flags & CHIP_F_HAS_DUAL_BANK)
             optkey2_reg = FLASH_H7_OPT_KEYR2;
         break;
     default:
@@ -907,7 +907,7 @@ static void set_flash_cr_mer(stlink_t *sl, bool v, unsigned bank) {
         cr_reg = STM32Gx_FLASH_CR;
         cr_mer = (1 <<  STM32Gx_FLASH_CR_MER1);
 
-        if (sl->has_dual_bank) {
+        if (sl->chip_flags & CHIP_F_HAS_DUAL_BANK) {
             cr_mer |= (1 << STM32Gx_FLASH_CR_MER2);
         }
 
@@ -1034,7 +1034,7 @@ static inline unsigned int is_flash_busy(stlink_t *sl) {
     res = read_flash_sr(sl, BANK_1) & (1 << sr_busy_shift);
 
     if (sl->flash_type == STLINK_FLASH_TYPE_F1_XL ||
-            (sl->flash_type == STLINK_FLASH_TYPE_H7 && sl->has_dual_bank)) {
+            (sl->flash_type == STLINK_FLASH_TYPE_H7 && sl->chip_flags & CHIP_F_HAS_DUAL_BANK)) {
         res |= read_flash_sr(sl, BANK_2) & (1 << sr_busy_shift);
     }
 
@@ -1085,13 +1085,13 @@ static int check_flash_error(stlink_t *sl)
         break;
     case STLINK_FLASH_TYPE_H7:
         res = read_flash_sr(sl, BANK_1) & FLASH_H7_SR_ERROR_MASK;
-        if (sl->has_dual_bank) {
+        if (sl->chip_flags & CHIP_F_HAS_DUAL_BANK) {
             res |= read_flash_sr(sl, BANK_2) & FLASH_H7_SR_ERROR_MASK;
         }
         if (res) {
             // Clear errors
             stlink_write_debug32(sl, FLASH_H7_CCR1, res);
-            if (sl->has_dual_bank) {
+            if (sl->chip_flags & CHIP_F_HAS_DUAL_BANK) {
                 stlink_write_debug32(sl, FLASH_H7_CCR2, res);
             }
         }
@@ -1355,7 +1355,6 @@ int stlink_load_device_params(stlink_t *sl) {
     }
 
     sl->flash_type = params->flash_type;
-    sl->has_dual_bank = params->has_dual_bank;
     sl->flash_pgsz = params->flash_pagesize;
     sl->sram_size = params->sram_size;
     sl->sys_base = params->bootrom_base;
@@ -1378,8 +1377,9 @@ int stlink_load_device_params(stlink_t *sl) {
     }
 
     // H7 devices with small flash has one bank
-    if (sl->has_dual_bank && sl->flash_type == STLINK_FLASH_TYPE_H7) {
-        sl->has_dual_bank = (flash_size/sl->flash_pgsz) > 1;
+    if (sl->chip_flags & CHIP_F_HAS_DUAL_BANK && sl->flash_type == STLINK_FLASH_TYPE_H7) {
+        if ((flash_size/sl->flash_pgsz) <= 1)
+            sl->chip_flags &= ~CHIP_F_HAS_DUAL_BANK;
     }
 
 #if 0
@@ -2621,7 +2621,7 @@ int stlink_erase_flash_mass(stlink_t *sl) {
         if (sl->flash_type == STLINK_FLASH_TYPE_H7 && sl->chip_id != STLINK_CHIPID_STM32_H7AX) {
             // set parallelism
             write_flash_cr_psiz(sl, 3 /*64it*/, BANK_1);
-            if (sl->has_dual_bank) {
+            if (sl->chip_flags & CHIP_F_HAS_DUAL_BANK) {
                 write_flash_cr_psiz(sl, 3 /*64bit*/, BANK_2);
             }
         }
@@ -2630,7 +2630,7 @@ int stlink_erase_flash_mass(stlink_t *sl) {
         set_flash_cr_strt(sl, BANK_1);   // start erase operation, reset by hw with busy bit
 
         if (sl->flash_type == STLINK_FLASH_TYPE_F1_XL ||
-                (sl->flash_type == STLINK_FLASH_TYPE_H7 && sl->has_dual_bank)) {
+                (sl->flash_type == STLINK_FLASH_TYPE_H7 && sl->chip_flags & CHIP_F_HAS_DUAL_BANK)) {
             set_flash_cr_mer(sl, 1, BANK_2); // set the mass erase bit in bank 2
             set_flash_cr_strt(sl, BANK_2);   // start erase operation in bank 2
         }
@@ -2642,7 +2642,7 @@ int stlink_erase_flash_mass(stlink_t *sl) {
         // reset the mass erase bit
         set_flash_cr_mer(sl, 0, BANK_1);
         if (sl->flash_type == STLINK_FLASH_TYPE_F1_XL ||
-                (sl->flash_type == STLINK_FLASH_TYPE_H7 && sl->has_dual_bank)) {
+                (sl->flash_type == STLINK_FLASH_TYPE_H7 && sl->chip_flags & CHIP_F_HAS_DUAL_BANK)) {
             set_flash_cr_mer(sl, 0, BANK_2);
         }
 
@@ -2872,13 +2872,13 @@ int stlink_flashloader_start(stlink_t *sl, flash_loader_t *fl) {
 
         unlock_flash_if(sl);    // unlock the cr
         set_flash_cr_pg(sl, BANK_1);   // set programming mode
-        if (sl->has_dual_bank) {
+        if (sl->chip_flags & CHIP_F_HAS_DUAL_BANK) {
             set_flash_cr_pg(sl, BANK_2);
         }
         if (sl->chip_id != STLINK_CHIPID_STM32_H7AX) {
             // set parallelism
             write_flash_cr_psiz(sl, 3 /*64it*/, BANK_1);
-            if (sl->has_dual_bank) {
+            if (sl->chip_flags & CHIP_F_HAS_DUAL_BANK) {
                 write_flash_cr_psiz(sl, 3 /*64bit*/, BANK_2);
             }
         }
@@ -3047,7 +3047,7 @@ int stlink_flashloader_stop(stlink_t *sl) {
         (sl->flash_type == STLINK_FLASH_TYPE_H7)) {
 
         clear_flash_cr_pg(sl, BANK_1);
-        if (sl->flash_type == STLINK_FLASH_TYPE_H7 && sl->has_dual_bank) {
+        if (sl->flash_type == STLINK_FLASH_TYPE_H7 && sl->chip_flags & CHIP_F_HAS_DUAL_BANK) {
             clear_flash_cr_pg(sl, BANK_2);
         }
         lock_flash(sl);

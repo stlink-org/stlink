@@ -631,7 +631,6 @@ static const struct stlink_chipid_params devices[] = {
         .chip_id = STLINK_CHIPID_STM32_G4_CAT3,
         .description = "G4 Category-3",
         .flash_type = STLINK_FLASH_TYPE_G4,
-        .has_dual_bank = true,
         .flash_size_reg = 0x1FFF75E0,          // Section 47.2
         .flash_pagesize = 0x800,               // 2k (sec 3.3.1)
         // SRAM1 is 80k at 0x20000000
@@ -642,7 +641,7 @@ static const struct stlink_chipid_params devices[] = {
         .bootrom_size = 0x7000,                // 28k (table 2)
         .option_base = STM32_G4_OPTION_BYTES_BASE,
         .option_size = 4,
-        .flags = CHIP_F_HAS_SWO_TRACING,
+        .flags = CHIP_F_HAS_DUAL_BANK | CHIP_F_HAS_SWO_TRACING,
     },
     {
         // STM32WB55 (from RM0434)
@@ -661,7 +660,6 @@ static const struct stlink_chipid_params devices[] = {
         .chip_id = STLINK_CHIPID_STM32_H74XXX,
         .description = "H74x/H75x",
         .flash_type = STLINK_FLASH_TYPE_H7,
-        .has_dual_bank = true,
         .flash_size_reg = 0x1ff1e880,          // "Flash size register" (pg3272)
         .flash_pagesize = 0x20000,             // 128k sector (pg147)
         .sram_size = 0x20000,                  // 128k "DTCM" from Table 7
@@ -669,14 +667,13 @@ static const struct stlink_chipid_params devices[] = {
         .bootrom_size = 0x20000,               // "System memory" byte size in hex from Table 7
         .option_base = STM32_H7_OPTION_BYTES_BASE,
         .option_size = 44,                     // FLASH_OPTSR_CUR to FLASH_BOOT_PRGR from Table 28
-        .flags = CHIP_F_HAS_SWO_TRACING,
+        .flags = CHIP_F_HAS_DUAL_BANK | CHIP_F_HAS_SWO_TRACING,
     },
     {
         // STM32H7A3/7B3 (from RM0455)
         .chip_id = STLINK_CHIPID_STM32_H7AX,
         .description = "H7Ax/H7Bx",
         .flash_type = STLINK_FLASH_TYPE_H7,
-        .has_dual_bank = true,
         .flash_size_reg = 0x08FFF80C,          // "Flash size register" (p.2949)
         .flash_pagesize = 0x2000,              // 8k sector (p.146)
         .sram_size = 0x20000,                  // 128k "DTCM" (Figure 1)
@@ -684,7 +681,7 @@ static const struct stlink_chipid_params devices[] = {
         .bootrom_size = 0x20000,               // "System memory" byte size in hex splitted to two banks (Table 12-14)
         .option_base = STM32_H7_OPTION_BYTES_BASE,
         .option_size = 44,
-        .flags = CHIP_F_HAS_SWO_TRACING,
+        .flags = CHIP_F_HAS_DUAL_BANK | CHIP_F_HAS_SWO_TRACING,
     },
     {
         // STM32H72x/H73x (from RM0468)
