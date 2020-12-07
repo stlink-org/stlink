@@ -524,7 +524,7 @@ static void check_for_configuration_error(stlink_t* stlink, st_trace_t* trace, u
 int main(int argc, char** argv)
 {
 #if defined(_WIN32)
-    SetConsoleCtrlHandler((PHANDLER_ROUTINE)abort_trace, TRUE);
+    SetConsoleCtrlHandler((PHANDLER_ROUTINE)CtrlHandler, TRUE);
 #else
     signal(SIGINT, &abort_trace);
     signal(SIGTERM, &abort_trace);
