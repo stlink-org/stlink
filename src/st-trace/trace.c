@@ -10,6 +10,7 @@
 #include <time.h>
 
 #include <stlink.h>
+#include <reg.h>
 #include <logging.h>
 
 
@@ -37,66 +38,6 @@
 #define TRACE_OP_GET_CONTINUATION(c)    ((c) & 0x80)
 #define TRACE_OP_GET_SOURCE_SIZE(c)     ((c) & 0x03)
 #define TRACE_OP_GET_SW_SOURCE_ADDR(c)  ((c) >> 3)
-
-
-// TODO: Ideally all register and field definitions would be in a common header file.
-
-// Instrumentation Trace Macrocell (ITM) Registers
-#define ITM_TER 0xE0000E00 // ITM Trace Enable Register
-#define ITM_TPR 0xE0000E40 // ITM Trace Privilege Register
-#define ITM_TCR 0xE0000E80 // ITM Trace Control Register
-#define ITM_TCC 0xE0000E90 // ITM Trace Cycle Count
-#define ITM_LAR 0xE0000FB0 // ITM Lock Access Register
-
-// ITM field definitions
-#define ITM_TER_PORTS_ALL       (0xFFFFFFFF)
-#define ITM_TPR_PORTS_ALL       (0x0F)
-#define ITM_TCR_TRACE_BUS_ID_1  (0x01 << 16)
-#define ITM_TCR_SWO_ENA         (1 << 4)
-#define ITM_TCR_DWT_ENA         (1 << 3)
-#define ITM_TCR_SYNC_ENA        (1 << 2)
-#define ITM_TCR_TS_ENA          (1 << 1)
-#define ITM_TCR_ITM_ENA         (1 << 0)
-#define ITM_LAR_KEY             0xC5ACCE55
-
-// Data Watchpoint and Trace (DWT) Registers
-#define DWT_CTRL      0xE0001000 // DWT Control Register
-#define DWT_FUNCTION0 0xE0001028 // DWT Function Register 0
-#define DWT_FUNCTION1 0xE0001038 // DWT Function Register 1
-#define DWT_FUNCTION2 0xE0001048 // DWT Function Register 2
-#define DWT_FUNCTION3 0xE0001058 // DWT Function Register 3
-
-// DWT field definitions
-#define DWT_CTRL_NUM_COMP       (1 << 28)
-#define DWT_CTRL_CYC_TAP        (1 << 9)
-#define DWT_CTRL_POST_INIT      (1 << 5)
-#define DWT_CTRL_POST_PRESET    (1 << 1)
-#define DWT_CTRL_CYCCNT_ENA     (1 << 0)
-
-// Trace Port Interface (TPI) Registers
-#define TPI_CSPSR 0xE0040004 // TPI Current Parallel Port Size Register
-#define TPI_ACPR  0xE0040010 // TPI Asynchronous Clock Prescaler Register
-#define TPI_SPPR  0xE00400F0 // TPI Selected Pin Protocol Register
-#define TPI_FFCR  0xE0040304 // TPI Formatter and Flush Control Register
-
-// TPI field definitions
-#define TPI_TPI_CSPSR_PORT_SIZE_1   (0x01 << 0)
-#define TPI_SPPR_SWO_MANCHESTER     (0x01 << 0)
-#define TPI_SPPR_SWO_NRZ            (0x02 << 0)
-#define TPI_FFCR_TRIG_IN            (0x01 << 8)
-#define TPI_ACPR_MAX                (0x1FFF)
-
-// Other Registers
-#define FP_CTRL   0xE0002000 // Flash Patch Control Register
-#define DBGMCU_CR 0xE0042004 // Debug MCU Configuration Register
-
-// Other register field definitions
-#define FP_CTRL_KEY                 (1 << 1)
-#define DBGMCU_CR_DBG_SLEEP         (1 << 0)
-#define DBGMCU_CR_DBG_STOP          (1 << 1)
-#define DBGMCU_CR_DBG_STANDBY       (1 << 2)
-#define DBGMCU_CR_TRACE_IOEN        (1 << 5)
-#define DBGMCU_CR_TRACE_MODE_ASYNC  (0x00 << 6)
 
 
 typedef struct {
@@ -284,17 +225,22 @@ static bool enable_trace(stlink_t* stlink, const st_settings_t* settings, uint32
             return false;
     }
 
-    stlink_write_debug32(stlink, DCB_DHCSR, DBGKEY | C_DEBUGEN | C_HALT);
-    stlink_write_debug32(stlink, DCB_DEMCR, DEMCR_TRCENA);
-    stlink_write_debug32(stlink, FP_CTRL, FP_CTRL_KEY);
-    stlink_write_debug32(stlink, DWT_FUNCTION0, 0);
-    stlink_write_debug32(stlink, DWT_FUNCTION1, 0);
-    stlink_write_debug32(stlink, DWT_FUNCTION2, 0);
-    stlink_write_debug32(stlink, DWT_FUNCTION3, 0);
-    stlink_write_debug32(stlink, DWT_CTRL, 0);
-    stlink_write_debug32(stlink, DBGMCU_CR, DBGMCU_CR_DBG_SLEEP | DBGMCU_CR_DBG_STOP |
-                                            DBGMCU_CR_DBG_STANDBY | DBGMCU_CR_TRACE_IOEN |
-                                            DBGMCU_CR_TRACE_MODE_ASYNC); // Enable async tracing
+
+    stlink_write_debug32(stlink, STLINK_REG_DHCSR, STLINK_REG_DHCSR_DBGKEY |
+                                                   STLINK_REG_DHCSR_C_DEBUGEN |
+                                                   STLINK_REG_DHCSR_C_HALT);
+    stlink_write_debug32(stlink, STLINK_REG_DEMCR, STLINK_REG_DEMCR_TRCENA);
+    stlink_write_debug32(stlink, STLINK_REG_CM3_FP_CTRL, STLINK_REG_CM3_FP_CTRL_KEY);
+    stlink_write_debug32(stlink, STLINK_REG_DWT_FUNCTION0, 0);
+    stlink_write_debug32(stlink, STLINK_REG_DWT_FUNCTION1, 0);
+    stlink_write_debug32(stlink, STLINK_REG_DWT_FUNCTION2, 0);
+    stlink_write_debug32(stlink, STLINK_REG_DWT_FUNCTION3, 0);
+    stlink_write_debug32(stlink, STLINK_REG_DWT_CTRL, 0);
+    stlink_write_debug32(stlink, STLINK_REG_DBGMCU_CR, STLINK_REG_DBGMCU_CR_DBG_SLEEP |
+                                                       STLINK_REG_DBGMCU_CR_DBG_STOP |
+                                                       STLINK_REG_DBGMCU_CR_DBG_STANDBY |
+                                                       STLINK_REG_DBGMCU_CR_TRACE_IOEN |
+                                                       STLINK_REG_DBGMCU_CR_TRACE_MODE_ASYNC);
 
     if (stlink_trace_enable(stlink, trace_frequency)) {
         ELOG("Unable to turn on tracing in stlink\n");
@@ -302,31 +248,35 @@ static bool enable_trace(stlink_t* stlink, const st_settings_t* settings, uint32
             return false;
     }
 
-    stlink_write_debug32(stlink, TPI_CSPSR, TPI_TPI_CSPSR_PORT_SIZE_1);
+    stlink_write_debug32(stlink, STLINK_REG_TPI_CSPSR, STLINK_REG_TPI_CSPSR_PORT_SIZE_1);
 
     if (settings->core_frequency) {
         uint32_t prescaler = settings->core_frequency / trace_frequency - 1;
-        if (prescaler > TPI_ACPR_MAX) {
+        if (prescaler > STLINK_REG_TPI_ACPR_MAX) {
             ELOG("Trace frequency prescaler %d out of range.  Try setting a faster trace frequency.\n", prescaler);
             if (!settings->force)
                 return false;
         }
-        stlink_write_debug32(stlink, TPI_ACPR, prescaler); // Set TPIU_ACPR clock divisor
+        stlink_write_debug32(stlink, STLINK_REG_TPI_ACPR, prescaler); // Set TPIU_ACPR clock divisor
     }
-    stlink_write_debug32(stlink, TPI_FFCR, TPI_FFCR_TRIG_IN);
-    stlink_write_debug32(stlink, TPI_SPPR, TPI_SPPR_SWO_NRZ);
-    stlink_write_debug32(stlink, ITM_LAR, ITM_LAR_KEY);
-    stlink_write_debug32(stlink, ITM_TCC, 0x00000400); // Set sync counter
-    stlink_write_debug32(stlink, ITM_TCR, ITM_TCR_TRACE_BUS_ID_1 | ITM_TCR_TS_ENA | ITM_TCR_ITM_ENA);
-    stlink_write_debug32(stlink, ITM_TER, ITM_TER_PORTS_ALL);
-    stlink_write_debug32(stlink, ITM_TPR, ITM_TPR_PORTS_ALL);
-    stlink_write_debug32(stlink, DWT_CTRL, 4 * DWT_CTRL_NUM_COMP | DWT_CTRL_CYC_TAP |
-                                           0xF * DWT_CTRL_POST_INIT | 0xF * DWT_CTRL_POST_PRESET |
-                                           DWT_CTRL_CYCCNT_ENA);
-    stlink_write_debug32(stlink, DCB_DEMCR, DEMCR_TRCENA);
+    stlink_write_debug32(stlink, STLINK_REG_TPI_FFCR, STLINK_REG_TPI_FFCR_TRIG_IN);
+    stlink_write_debug32(stlink, STLINK_REG_TPI_SPPR, STLINK_REG_TPI_SPPR_SWO_NRZ);
+    stlink_write_debug32(stlink, STLINK_REG_ITM_LAR, STLINK_REG_ITM_LAR_KEY);
+    stlink_write_debug32(stlink, STLINK_REG_ITM_TCC, 0x00000400); // Set sync counter
+    stlink_write_debug32(stlink, STLINK_REG_ITM_TCR, STLINK_REG_ITM_TCR_TRACE_BUS_ID_1 |
+                                                     STLINK_REG_ITM_TCR_TS_ENA |
+                                                     STLINK_REG_ITM_TCR_ITM_ENA);
+    stlink_write_debug32(stlink, STLINK_REG_ITM_TER, STLINK_REG_ITM_TER_PORTS_ALL);
+    stlink_write_debug32(stlink, STLINK_REG_ITM_TPR, STLINK_REG_ITM_TPR_PORTS_ALL);
+    stlink_write_debug32(stlink, STLINK_REG_DWT_CTRL, 4 * STLINK_REG_DWT_CTRL_NUM_COMP |
+                                                      STLINK_REG_DWT_CTRL_CYC_TAP |
+                                                      0xF * STLINK_REG_DWT_CTRL_POST_INIT |
+                                                      0xF * STLINK_REG_DWT_CTRL_POST_PRESET |
+                                                      STLINK_REG_DWT_CTRL_CYCCNT_ENA);
+    stlink_write_debug32(stlink, STLINK_REG_DEMCR, STLINK_REG_DEMCR_TRCENA);
 
     uint32_t prescaler;
-    stlink_read_debug32(stlink, TPI_ACPR, &prescaler);
+    stlink_read_debug32(stlink, STLINK_REG_TPI_ACPR_MAX, &prescaler);
     if (prescaler) {
         uint32_t system_clock_speed = (prescaler + 1) * trace_frequency;
         uint32_t system_clock_speed_mhz = (system_clock_speed + 500000) / 1000000;
@@ -483,7 +433,7 @@ static void check_for_configuration_error(stlink_t* stlink, st_trace_t* trace, u
 
     if (error_no_data || error_low_data || error_bad_data) {
         uint32_t prescaler;
-        stlink_read_debug32(stlink, TPI_ACPR, &prescaler);
+        stlink_read_debug32(stlink, STLINK_REG_TPI_ACPR, &prescaler);
         if (prescaler) {
             uint32_t system_clock_speed = (prescaler + 1) * trace_frequency;
             uint32_t system_clock_speed_mhz = (system_clock_speed + 500000) / 1000000;

@@ -88,28 +88,6 @@ enum target_state {
 #define STLINK_V3_MAX_TRACE_FREQUENCY  24000000
 #define STLINK_DEFAULT_TRACE_FREQUENCY  2000000
 
-/* Cortex Debug Control Block */
-#define DCB_DHCSR 0xE000EDF0
-#define DCB_DCRSR 0xE000EDF4
-#define DCB_DCRDR 0xE000EDF8
-#define DCB_DEMCR 0xE000EDFC
-
-/* DCB_DHCSR bit and field definitions */
-#define DBGKEY      (0xA05F << 16)
-#define C_DEBUGEN   (1 << 0)
-#define C_HALT      (1 << 1)
-#define C_STEP      (1 << 2)
-#define C_MASKINTS  (1 << 3)
-#define S_REGRDY    (1 << 16)
-#define S_HALT      (1 << 17)
-#define S_SLEEP     (1 << 18)
-#define S_LOCKUP    (1 << 19)
-#define S_RETIRE_ST (1 << 24)
-#define S_RESET_ST  (1 << 25)
-
-/* DCB_DEMCR field definitions */
-#define DEMCR_TRCENA    (1 << 24)
-
 /* Map the relevant features, quirks and workaround for specific firmware version of stlink */
 #define STLINK_F_HAS_TRACE              (1 << 0)
 #define STLINK_F_HAS_SWD_SET_FREQ       (1 << 1)
