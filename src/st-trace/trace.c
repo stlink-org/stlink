@@ -91,6 +91,7 @@ static void abort_trace() {
 
 #if defined(_WIN32)
 BOOL WINAPI CtrlHandler(DWORD fdwCtrlType) {
+    (void)fdwCtrlType;
     abort_trace();
     return FALSE;
 }
