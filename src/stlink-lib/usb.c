@@ -1109,7 +1109,7 @@ int _stlink_usb_read_trace(stlink_t* sl, uint8_t* buf, size_t size) {
         return -1;
     }
 
-    size_t trace_count = read_uint16(sl->q_buf, 0);
+    uint16_t trace_count = read_uint16(sl->q_buf, 0);
 
     if (trace_count > size) {
         ELOG("read_trace insufficient buffer length\n");

@@ -410,7 +410,7 @@ static bool read_trace(stlink_t* stlink, st_trace_t* trace) {
 
 static void check_for_configuration_error(stlink_t* stlink, st_trace_t* trace, uint32_t trace_frequency) {
     // Only check configuration one time after the first 10 seconds of running.
-    uint32_t elapsed_time_s = time(NULL) - trace->start_time;
+    time_t elapsed_time_s = time(NULL) - trace->start_time;
     if (trace->configuration_checked || elapsed_time_s < 10) {
         return;
     }
