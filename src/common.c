@@ -511,7 +511,7 @@ static void unlock_flash(stlink_t *sl) {
         key_reg = STM32WB_FLASH_KEYR;
     } else if (sl->flash_type == STLINK_FLASH_TYPE_H7) {
         key_reg = FLASH_H7_KEYR1;
-        if (sl->has_dual_bank) {
+        if (sl->chip_flags & CHIP_F_HAS_DUAL_BANK) {
             key2_reg = FLASH_H7_KEYR2;
         }
     } else {
@@ -575,7 +575,7 @@ static void lock_flash(stlink_t *sl) {
         cr_lock_shift = STM32WB_FLASH_CR_LOCK;
     } else if (sl->flash_type == STLINK_FLASH_TYPE_H7) {
         cr_reg = FLASH_H7_CR1;
-        if (sl->has_dual_bank) {
+        if (sl->chip_flags & CHIP_F_HAS_DUAL_BANK) {
             cr2_reg = FLASH_H7_CR2;
         }
         cr_lock_shift = FLASH_H7_CR_LOCK;
@@ -691,7 +691,7 @@ static int lock_flash_option(stlink_t *sl) {
     case STLINK_FLASH_TYPE_H7:
         optcr_reg = FLASH_H7_OPTCR;
         optlock_shift = FLASH_H7_OPTCR_OPTLOCK;
-        if (sl->has_dual_bank)
+        if (sl->chip_flags & CHIP_F_HAS_DUAL_BANK)
             optcr2_reg = FLASH_H7_OPTCR2;
         break;
     default:
@@ -759,7 +759,7 @@ static int unlock_flash_option(stlink_t *sl) {
         break;
     case STLINK_FLASH_TYPE_H7:
         optkey_reg = FLASH_H7_OPT_KEYR;
-        if (sl->has_dual_bank)
+        if (sl->chip_flags & CHIP_F_HAS_DUAL_BANK)
             optkey2_reg = FLASH_H7_OPT_KEYR2;
         break;
     default:
@@ -907,7 +907,7 @@ static void set_flash_cr_mer(stlink_t *sl, bool v, unsigned bank) {
         cr_reg = STM32Gx_FLASH_CR;
         cr_mer = (1 <<  STM32Gx_FLASH_CR_MER1);
 
-        if (sl->has_dual_bank) {
+        if (sl->chip_flags & CHIP_F_HAS_DUAL_BANK) {
             cr_mer |= (1 << STM32Gx_FLASH_CR_MER2);
         }
 
@@ -1034,7 +1034,7 @@ static inline unsigned int is_flash_busy(stlink_t *sl) {
     res = read_flash_sr(sl, BANK_1) & (1 << sr_busy_shift);
 
     if (sl->flash_type == STLINK_FLASH_TYPE_F1_XL ||
-            (sl->flash_type == STLINK_FLASH_TYPE_H7 && sl->has_dual_bank)) {
+            (sl->flash_type == STLINK_FLASH_TYPE_H7 && sl->chip_flags & CHIP_F_HAS_DUAL_BANK)) {
         res |= read_flash_sr(sl, BANK_2) & (1 << sr_busy_shift);
     }
 
@@ -1085,13 +1085,13 @@ static int check_flash_error(stlink_t *sl)
         break;
     case STLINK_FLASH_TYPE_H7:
         res = read_flash_sr(sl, BANK_1) & FLASH_H7_SR_ERROR_MASK;
-        if (sl->has_dual_bank) {
+        if (sl->chip_flags & CHIP_F_HAS_DUAL_BANK) {
             res |= read_flash_sr(sl, BANK_2) & FLASH_H7_SR_ERROR_MASK;
         }
         if (res) {
             // Clear errors
             stlink_write_debug32(sl, FLASH_H7_CCR1, res);
-            if (sl->has_dual_bank) {
+            if (sl->chip_flags & CHIP_F_HAS_DUAL_BANK) {
                 stlink_write_debug32(sl, FLASH_H7_CCR2, res);
             }
         }
@@ -1297,7 +1297,7 @@ int stlink_load_device_params(stlink_t *sl) {
     DLOG("Loading device parameters....\n");
     const struct stlink_chipid_params *params = NULL;
     stlink_core_id(sl);
-    uint32_t chip_id;
+    uint32_t chip_id = 0;
     uint32_t flash_size;
 
     stlink_chip_id(sl, &chip_id);
@@ -1355,13 +1355,13 @@ int stlink_load_device_params(stlink_t *sl) {
     }
 
     sl->flash_type = params->flash_type;
-    sl->has_dual_bank = params->has_dual_bank;
     sl->flash_pgsz = params->flash_pagesize;
     sl->sram_size = params->sram_size;
     sl->sys_base = params->bootrom_base;
     sl->sys_size = params->bootrom_size;
     sl->option_base = params->option_base;
     sl->option_size = params->option_size;
+    sl->chip_flags = params->flags;
 
     // medium and low devices have the same chipid. ram size depends on flash size.
     // STM32F100xx datasheet Doc ID 16455 Table 2
@@ -1377,8 +1377,9 @@ int stlink_load_device_params(stlink_t *sl) {
     }
 
     // H7 devices with small flash has one bank
-    if (sl->has_dual_bank && sl->flash_type == STLINK_FLASH_TYPE_H7) {
-        sl->has_dual_bank = (flash_size/sl->flash_pgsz) > 1;
+    if (sl->chip_flags & CHIP_F_HAS_DUAL_BANK && sl->flash_type == STLINK_FLASH_TYPE_H7) {
+        if ((flash_size/sl->flash_pgsz) <= 1)
+            sl->chip_flags &= ~CHIP_F_HAS_DUAL_BANK;
     }
 
 #if 0
@@ -1542,6 +1543,11 @@ void _parse_version(stlink_t *sl, stlink_version_t *slv) {
             if (sl->version.jtag_v >= 15) {
                 sl->version.flags |= STLINK_F_HAS_GETLASTRWSTATUS2;
             }
+
+            if (sl->version.jtag_v >= 13) {
+                sl->version.flags |= STLINK_F_HAS_TRACE;
+                sl->max_trace_freq = STLINK_V2_MAX_TRACE_FREQUENCY;
+            }
         }
     } else {
         // V3 uses different version format, for reference see OpenOCD source
@@ -1555,6 +1561,8 @@ void _parse_version(stlink_t *sl, stlink_version_t *slv) {
         slv->jtag_api = STLINK_JTAG_API_V3;
         /* preferred API to get last R/W status */
         sl->version.flags |= STLINK_F_HAS_GETLASTRWSTATUS2;
+        sl->version.flags |= STLINK_F_HAS_TRACE;
+        sl->max_trace_freq = STLINK_V3_MAX_TRACE_FREQUENCY;
     }
 
     return;
@@ -1752,6 +1760,20 @@ int stlink_current_mode(stlink_t *sl) {
 
     DLOG("stlink mode: unknown!\n");
     return(STLINK_DEV_UNKNOWN_MODE);
+}
+
+int stlink_trace_enable(stlink_t* sl, uint32_t frequency) {
+    DLOG("*** stlink_trace_enable ***\n");
+    return(sl->backend->trace_enable(sl, frequency));
+}
+
+int stlink_trace_disable(stlink_t* sl) {
+    DLOG("*** stlink_trace_disable ***\n");
+    return(sl->backend->trace_disable(sl));
+}
+
+int stlink_trace_read(stlink_t* sl, uint8_t* buf, size_t size) {
+    return(sl->backend->trace_read(sl, buf, size));
 }
 
 
@@ -2599,7 +2621,7 @@ int stlink_erase_flash_mass(stlink_t *sl) {
         if (sl->flash_type == STLINK_FLASH_TYPE_H7 && sl->chip_id != STLINK_CHIPID_STM32_H7AX) {
             // set parallelism
             write_flash_cr_psiz(sl, 3 /*64it*/, BANK_1);
-            if (sl->has_dual_bank) {
+            if (sl->chip_flags & CHIP_F_HAS_DUAL_BANK) {
                 write_flash_cr_psiz(sl, 3 /*64bit*/, BANK_2);
             }
         }
@@ -2608,7 +2630,7 @@ int stlink_erase_flash_mass(stlink_t *sl) {
         set_flash_cr_strt(sl, BANK_1);   // start erase operation, reset by hw with busy bit
 
         if (sl->flash_type == STLINK_FLASH_TYPE_F1_XL ||
-                (sl->flash_type == STLINK_FLASH_TYPE_H7 && sl->has_dual_bank)) {
+                (sl->flash_type == STLINK_FLASH_TYPE_H7 && sl->chip_flags & CHIP_F_HAS_DUAL_BANK)) {
             set_flash_cr_mer(sl, 1, BANK_2); // set the mass erase bit in bank 2
             set_flash_cr_strt(sl, BANK_2);   // start erase operation in bank 2
         }
@@ -2620,7 +2642,7 @@ int stlink_erase_flash_mass(stlink_t *sl) {
         // reset the mass erase bit
         set_flash_cr_mer(sl, 0, BANK_1);
         if (sl->flash_type == STLINK_FLASH_TYPE_F1_XL ||
-                (sl->flash_type == STLINK_FLASH_TYPE_H7 && sl->has_dual_bank)) {
+                (sl->flash_type == STLINK_FLASH_TYPE_H7 && sl->chip_flags & CHIP_F_HAS_DUAL_BANK)) {
             set_flash_cr_mer(sl, 0, BANK_2);
         }
 
@@ -2850,13 +2872,13 @@ int stlink_flashloader_start(stlink_t *sl, flash_loader_t *fl) {
 
         unlock_flash_if(sl);    // unlock the cr
         set_flash_cr_pg(sl, BANK_1);   // set programming mode
-        if (sl->has_dual_bank) {
+        if (sl->chip_flags & CHIP_F_HAS_DUAL_BANK) {
             set_flash_cr_pg(sl, BANK_2);
         }
         if (sl->chip_id != STLINK_CHIPID_STM32_H7AX) {
             // set parallelism
             write_flash_cr_psiz(sl, 3 /*64it*/, BANK_1);
-            if (sl->has_dual_bank) {
+            if (sl->chip_flags & CHIP_F_HAS_DUAL_BANK) {
                 write_flash_cr_psiz(sl, 3 /*64bit*/, BANK_2);
             }
         }
@@ -3025,7 +3047,7 @@ int stlink_flashloader_stop(stlink_t *sl) {
         (sl->flash_type == STLINK_FLASH_TYPE_H7)) {
 
         clear_flash_cr_pg(sl, BANK_1);
-        if (sl->flash_type == STLINK_FLASH_TYPE_H7 && sl->has_dual_bank) {
+        if (sl->flash_type == STLINK_FLASH_TYPE_H7 && sl->chip_flags & CHIP_F_HAS_DUAL_BANK) {
             clear_flash_cr_pg(sl, BANK_2);
         }
         lock_flash(sl);
@@ -4199,3 +4221,4 @@ int stlink_fwrite_option_bytes(stlink_t *sl, const char* path, stm32_addr_t addr
 
     return(err);
 }
+
