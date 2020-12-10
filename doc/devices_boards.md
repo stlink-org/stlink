@@ -50,7 +50,7 @@ Tested boards [incl. STLink programmers]:
 | 0x418   | STM32F105xx/107xx    | x8 xB xC  |      |      |       |      | F105<br />F107 |
 | 0x420   | Medium density value | x8 xB     | F100 |      |       |      |     |
 | 0x428   | High density Value   | xC xD xE  | F100 |      |       |      |     |
-| 0x430   | XL-Density           | xF XG     |      | F101 |       | F103 |     |
+| 0x430   | XL-Density           | xF xG     |      | F101 |       | F103 |     |
 
 Tested boards [incl. STLink programmers]:
 * STM32VL-Discovery (STM32F100RBT6) with STLink-v1 [v1, v2]

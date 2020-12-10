@@ -8,7 +8,16 @@ Release date: (TBD)
 
 Features:
 
+* Added support for STM32H742/743/753 ([#671](https://github.com/stlink-org/stlink/pull/671), [#793](https://github.com/stlink-org/stlink/pull/793), [#823](https://github.com/stlink-org/stlink/pull/823), [#998](https://github.com/stlink-org/stlink/pull/998),  [#1052](https://github.com/stlink-org/stlink/pull/1052))
+* Added preliminary support for STM32L5x2 ([#904](https://github.com/stlink-org/stlink/pull/904), [#999](https://github.com/stlink-org/stlink/pull/999))
 * Option bytes on the STM32F767 ZIT6 Nucleo-144 ([#968](https://github.com/stlink-org/stlink/pull/968), [#997](https://github.com/stlink-org/stlink/pull/997))
+* Use SetConsoleCtrlHandler for Windows ([#1021](https://github.com/stlink-org/stlink/pull/1021))
+* Increase STM32L0 option_size to 20 ([#1046](https://github.com/stlink-org/stlink/pull/1046))
+* st-util: Add specialized memory map for STM32H7 devices ([#1060](https://github.com/stlink-org/stlink/pull/1060))
+* Support for STM32F4 option bytes ([#1062](https://github.com/stlink-org/stlink/pull/1062))
+* Link for WIN32 & APPLE with stlink-static ([#1069](https://github.com/stlink-org/stlink/pull/1069))
+* Extended support for STM32H7 ([#1059](https://github.com/stlink-org/stlink/pull/1059), [#1063](https://github.com/stlink-org/stlink/pull/1063), [#1071](https://github.com/stlink-org/stlink/pull/1071))
+* ITM functionality for ST-Link V2 and STM32Fxx chipsets ([#136](https://github.com/stlink-org/stlink/pull/136), [#179](https://github.com/stlink-org/stlink/pull/179), [#815](https://github.com/stlink-org/stlink/pull/815), [#1072](https://github.com/stlink-org/stlink/pull/1072))
 
 Updates & changes:
 
@@ -16,6 +25,7 @@ Updates & changes:
 * [refactoring] General maintenance ([#864](https://github.com/stlink-org/stlink/pull/864), [#976](https://github.com/stlink-org/stlink/pull/976), [#978](https://github.com/stlink-org/stlink/pull/978))
 * Imported debian pkg-settings ([#986](https://github.com/stlink-org/stlink/pull/986))
 * Add support for FreeBSD's libusb reimplementation ([#992](https://github.com/stlink-org/stlink/pull/992), [#993](https://github.com/stlink-org/stlink/pull/993))
+* [doc] Added example for output of 'st-info --probe' ([#1007](https://github.com/stlink-org/stlink/pull/1007), [#1049](https://github.com/stlink-org/stlink/pull/1049))
 
 Fixes:
 
@@ -26,8 +36,10 @@ Fixes:
 * Fix for static linking of libssp ([#973](https://github.com/stlink-org/stlink/pull/973), [#974](https://github.com/stlink-org/stlink/pull/974))
 * Fixed connect under reset for st-flash and st-util ([#983](https://github.com/stlink-org/stlink/pull/983))
 * Fix for mmap() size_t overflow in st-flash ([#988](https://github.com/stlink-org/stlink/pull/988), [#989](https://github.com/stlink-org/stlink/pull/989))
-* [regression] stlink-gui installation issue on Ubuntu-18.04 ([#1006](https://github.com/stlink-org/stlink/pull/1006))
-* st-util: wrong register values passed to gdb (st-link v2) ([#1026](https://github.com/stlink-org/stlink/pull/1026), [#1027](https://github.com/stlink-org/stlink/pull/1027))
+* [regression] stlink-gui installation issue on Ubuntu-18.04 ([#1001](https://github.com/stlink-org/stlink/pull/1001), [#1004](https://github.com/stlink-org/stlink/pull/1004), [#1006](https://github.com/stlink-org/stlink/pull/1006))
+* st-util: wrong register values passed to gdb (st-link v2) ([#1002](https://github.com/stlink-org/stlink/pull/1002), [#1011](https://github.com/stlink-org/stlink/pull/1011), [#1026](https://github.com/stlink-org/stlink/pull/1026), [#1027](https://github.com/stlink-org/stlink/pull/1027))
+* [doc] Fixed wrong path for rules.d folder ([#1020](https://github.com/stlink-org/stlink/pull/1020))
+* Use vl flashloader for all STM32F1 series ([#1041](https://github.com/stlink-org/stlink/pull/1041), [#1044](https://github.com/stlink-org/stlink/pull/1044))
 
 
 v1.6.1

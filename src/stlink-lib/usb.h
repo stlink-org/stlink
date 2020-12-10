@@ -53,6 +53,7 @@ struct stlink_libusb {
     libusb_device_handle* usb_handle;
     unsigned int ep_req;
     unsigned int ep_rep;
+    unsigned int ep_trace;
     int protocoll;
     unsigned int sg_transfer_idx;
     unsigned int cmd_len;

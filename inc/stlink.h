@@ -22,7 +22,7 @@ extern "C" {
 
 /* Max data transfer size */
 // 6kB = max mem32_read block, 8kB sram
-// #define Q_BUF_LEN	96
+// #define Q_BUF_LEN    96
 #define Q_BUF_LEN (1024 * 100)
 
 // STLINK_DEBUG_RESETSYS, etc:
@@ -82,6 +82,11 @@ enum target_state {
 #define STLINK_SERIAL_MAX_SIZE           64
 
 #define STLINK_V3_MAX_FREQ_NB            10
+
+#define STLINK_TRACE_BUF_LEN               2048
+#define STLINK_V2_MAX_TRACE_FREQUENCY   2000000
+#define STLINK_V3_MAX_TRACE_FREQUENCY  24000000
+#define STLINK_DEFAULT_TRACE_FREQUENCY  2000000
 
 /* Map the relevant features, quirks and workaround for specific firmware version of stlink */
 #define STLINK_F_HAS_TRACE              (1 << 0)
@@ -192,7 +197,6 @@ struct _stlink {
 
     enum stlink_flash_type flash_type;
     // stlink_chipid_params.flash_type, set by stlink_load_device_params(), values: STLINK_FLASH_TYPE_xxx
-    bool has_dual_bank;
 
     stm32_addr_t flash_base;     // STM32_FLASH_BASE, set by stlink_load_device_params()
     size_t flash_size;           // calculated by stlink_load_device_params()
@@ -213,6 +217,10 @@ struct _stlink {
     size_t sys_size;             // stlink_chipid_params.bootrom_size, set by stlink_load_device_params()
 
     struct stlink_version_ version;
+
+    uint32_t chip_flags;         // stlink_chipid_params.flags, set by stlink_load_device_params(), values: CHIP_F_xxx
+
+    uint32_t max_trace_freq;     // set by stlink_open_usb()
 };
 
 int stlink_enter_swd_mode(stlink_t *sl);
@@ -243,7 +251,9 @@ int stlink_current_mode(stlink_t *sl);
 int stlink_force_debug(stlink_t *sl);
 int stlink_target_voltage(stlink_t *sl);
 int stlink_set_swdclk(stlink_t *sl, int freq_khz);
-
+int stlink_trace_enable(stlink_t* sl, uint32_t frequency);
+int stlink_trace_disable(stlink_t* sl);
+int stlink_trace_read(stlink_t* sl, uint8_t* buf, size_t size);
 int stlink_erase_flash_mass(stlink_t* sl);
 int stlink_write_flash(stlink_t* sl, stm32_addr_t address, uint8_t* data, uint32_t length, uint8_t eraseonly);
 int stlink_parse_ihex(const char* path, uint8_t erased_pattern, uint8_t * * mem, size_t * size, uint32_t * begin);

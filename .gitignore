@@ -4,3 +4,4 @@ build-mingw
 obj-*
 *.user*
 .cmake/
+*.swp

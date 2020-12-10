@@ -23,7 +23,7 @@ The stlink library and tools are licensed under the **[BSD-3 License](LICENSE.md
 STLink is an open source toolset to program and debug STM32 devices and boards manufactured by STMicroelectronics.
 It supports several so called STLINK programmer boards (and clones thereof) which use a microcontroller chip to translate commands from USB to JTAG/SWD. There are four generations available on the market which are _all_ supported by this toolset:
 
-* **STLINK/v1** _(obsolete as of 21-11-2019, continued support by this toolset)_
+* **STLINK/v1** _[obsolete as of 21-11-2019, continued support by this toolset] *)_
   - transport layer: SCSI passthru commands over USB
   - stand-alone programmer and present on STM32VL Discovery boards
 * **STLINK/v2**
@@ -35,6 +35,8 @@ It supports several so called STLINK programmer boards (and clones thereof) whic
 * **STLINK/v3**
   - transport layer: raw USB commands
   - stand-alone programmer
+
+_*)_ **Note: Support on macOS is limited to 10.13 - 10.15. Any later versions are no longer compatible with the STLINK/v1 due to technical reasons.**
 
 On the user level there is no difference in handling or operation between these different revisions.
 
@@ -112,18 +114,3 @@ When there is no executable available for your platform or you need the latest (
 * Please start new forks from the develop branch, as pull requests will go into this branch as well.
 
 Please also refer to our [Contribution Guidelines](CONTRIBUTING.md).
-
-
-# Current state of the project
-## Known missing features
-
-Some features are currently missing from the `stlink-org/stlink` toolset.
-Here we would appreciate any help and would love to welcome new contributors who want to get involved:
-
-* Instrumentation Trace Macro (ITM) Cell ([#136](https://github.com/stlink-org/stlink/issues/136))
-* OTP & EEPROM area programming ([#202](https://github.com/stlink-org/stlink/issues/202), [#333](https://github.com/stlink-org/stlink/issues/333), [#686](https://github.com/stlink-org/stlink/issues/686))
-* Protection bits area reading ([#346](https://github.com/stlink-org/stlink/issues/346))
-* Writing external memory connected to an STM32 controller (e.g Quad SPI NOR flash) ([#412](https://github.com/stlink-org/stlink/issues/412))
-* MCU hotplug ([#449](https://github.com/stlink-org/stlink/issues/449))
-* Writing options bytes (region) ([#458](https://github.com/stlink-org/stlink/issues/458))
-* Enhanced support for STLINKv3 programmer ([#820](https://github.com/stlink-org/stlink/issues/820))

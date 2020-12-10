@@ -944,7 +944,10 @@ static stlink_backend_t _stlink_sg_backend = {
     _stlink_sg_current_mode,
     _stlink_sg_force_debug,
     NULL,                   // target_voltage
-    NULL                    // set_swdclk
+    NULL,                   // set_swdclk
+    NULL,                   // trace_enable
+    NULL,                   // trace_disable
+    NULL,                   // trace_read
 };
 
 static stlink_t* stlink_open(const int verbose) {
