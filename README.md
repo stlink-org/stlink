@@ -42,11 +42,11 @@ On the user level there is no difference in handling or operation between these 
 
 The STlink toolset includes:
 
-* a communication library (libstlink.a),
-* a programmer and chip information tool (st-info),
-* a flash manipulation tool (st-flash),
-* a GDB server (st-util) and
-* a GUI-Interface (stlink-gui) _[optional]_
+* `libstlink` - a communication library
+* `st-info` - a programmer and chip information tool
+* `st-flash` - a flash manipulation tool
+* `st-util` - a GDB server (supported in Visual Studio Code / VSCodium via the [Cortex-Debug](https://github.com/Marus/cortex-debug) plugin
+* `stlink-gui` - a GUI-Interface [optional]_
 
 
 ## Supported operating systems and hardware combinations
@@ -57,6 +57,7 @@ Supported operating systems are listed in [version_support.md](doc/version_suppo
 
 The `stlink` toolset continues to maintain backwards compatibility with the **STLINK/v1** programmer.<br />
 Please note that on macOS this support is limited to versions 10.13 - 10.15.
+
 
 ## Tutorial & HOWTO
 

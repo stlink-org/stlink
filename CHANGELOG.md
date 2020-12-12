@@ -40,6 +40,8 @@ Fixes:
 * st-util: wrong register values passed to gdb (st-link v2) ([#1002](https://github.com/stlink-org/stlink/pull/1002), [#1011](https://github.com/stlink-org/stlink/pull/1011), [#1026](https://github.com/stlink-org/stlink/pull/1026), [#1027](https://github.com/stlink-org/stlink/pull/1027))
 * [doc] Fixed wrong path for rules.d folder ([#1020](https://github.com/stlink-org/stlink/pull/1020))
 * Use vl flashloader for all STM32F1 series ([#1041](https://github.com/stlink-org/stlink/pull/1041), [#1044](https://github.com/stlink-org/stlink/pull/1044))
+* Fixed gettimeofday for MSVC ([#1074](https://github.com/stlink-org/stlink/pull/1074))
+* Fixed compilation with GCC 11 ([#1077](https://github.com/stlink-org/stlink/pull/1077))
 
 
 v1.6.1

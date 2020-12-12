@@ -64,6 +64,7 @@ Jim Paris
 Jiří Netolický
 Jerry Nosky [jnosky]
 Jochen Wilhelmy [Jochen0x90h]
+John Hall [simplerobot]
 Joel Bodenmann [Tectu]
 Johannes Taelman
 Jonas Danielsson
