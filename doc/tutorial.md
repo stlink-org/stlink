@@ -78,6 +78,28 @@ to ensure that the rules actually take effect. Using the trigger command means t
 If the VID:PID of your device doesn't match those in any of the 3 files, then you may need to create a custom rule file to match your VID:PID.
 
 
+### b) NOTE: Chinese Fake-Chips CKS32F103C8T6 or CS32F103C8T6 being marked as "STM32F103C8T6"
+
+In contrast to "Clone chips" which identify themselves as such by their official marking (manufacturer, model, etc.), so called "Fake chips" do not.
+Instead counterfeiters try to copy the outer appearance of the original and thus are very hard to detect.
+Possible malfunction then may lead to various effects and issues during operation also in in connection with this toolset.
+
+As of December 2019 several so called "Bluepill-Boards" with a STM32F103C8T6 appeared on the market that do not hold the original part.
+In this known example one finds the counterfeited "STM32F103C8T6" MCUs to identify themselves with chip-id `0x2ba01477` instead of `0x1ba01477`.
+
+In the following you find some hints on how to identify your chip and track down fraud:
+
+* [How to Detect STM32 Fakes](https://www.cnx-software.com/2020/03/22/how-to-detect-stm32-fakes/)
+* [Confirmation by STMicroelectronics](https://www.mikrocontroller.net/attachment/442839/couterfeit_STM.png) (Marking: 991KA 93 MYS 807)
+
+However it appears that not all counterfeited parts cause problems during operation, but some are known to not even being able to execute a basic "blinky" example binary. Further there can be problems that may not even show up or affect you directly, but somewhen later in time (or maybe never).
+This demonstrates there is no guarantee for a proper working chip with equal functionality compared to the original.
+
+Please keep this in mind and be sceptical when facing problems with this type of boards.
+Check your hardware and try to identify what you have in front of you before assuming a bug in the `stlink` toolset.
+
+Please let us know, if you come across any further websites or tutorials that help to identify STM32 fake chips so we can list them here to help others.
+
 ------
 ( Content below is currently unrevised and may be outdated as of Apr 2020. )
 
