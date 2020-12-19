@@ -552,7 +552,7 @@ int main(int argc, char** argv)
     }
 
     ILOG("Reading Trace\n");
-    st_trace_t trace = {};
+    st_trace_t trace = {0};
     trace.start_time = time(NULL);
 
     if (stlink_run(stlink)) {
