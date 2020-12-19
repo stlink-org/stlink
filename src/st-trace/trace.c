@@ -552,7 +552,8 @@ int main(int argc, char** argv)
     }
 
     ILOG("Reading Trace\n");
-    st_trace_t trace = {0};
+    st_trace_t trace;
+    memset(&trace, 0, sizeof(trace));
     trace.start_time = time(NULL);
 
     if (stlink_run(stlink)) {
