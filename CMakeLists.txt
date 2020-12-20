@@ -249,6 +249,7 @@ if (MSVC)
     # Add getopt to sources
     include_directories(src/win32/getopt)
     set(ST-UTIL_SOURCES "${ST-UTIL_SOURCES};src/win32/getopt/getopt.c")
+    set(ST-TRACE_SOURCES "${ST-TRACE_SOURCES};src/win32/getopt/getopt.c")
 endif ()
 
 add_executable(st-flash ${ST-FLASH_SOURCES})
