@@ -349,48 +349,31 @@
 #define L1_WRITE_BLOCK_SIZE 0x80
 #define L0_WRITE_BLOCK_SIZE 0x40
 
+
+// Endianness
+// https://commandcenter.blogspot.com/2012/04/byte-order-fallacy.html
+// These functions encode and decode little endian uint16 and uint32 values.
+
 void write_uint32(unsigned char* buf, uint32_t ui) {
-    if (!is_bigendian()) { // le -> le (don't swap)
-        buf[0] = ((unsigned char*)&ui)[0];
-        buf[1] = ((unsigned char*)&ui)[1];
-        buf[2] = ((unsigned char*)&ui)[2];
-        buf[3] = ((unsigned char*)&ui)[3];
-    } else {
-        buf[0] = ((unsigned char*)&ui)[3];
-        buf[1] = ((unsigned char*)&ui)[2];
-        buf[2] = ((unsigned char*)&ui)[1];
-        buf[3] = ((unsigned char*)&ui)[0];
-    }
+        buf[0] = ui;
+        buf[1] = ui >> 8;
+        buf[2] = ui >> 16;
+        buf[3] = ui >> 24;
 }
 
 void write_uint16(unsigned char* buf, uint16_t ui) {
-    if (!is_bigendian()) { // le -> le (don't swap)
-        buf[0] = ((unsigned char*)&ui)[0];
-        buf[1] = ((unsigned char*)&ui)[1];
-    } else {
-        buf[0] = ((unsigned char*)&ui)[1];
-        buf[1] = ((unsigned char*)&ui)[0];
-    }
+        buf[0] = ui ;
+        buf[1] = ui >> 8;
 }
 
 uint32_t read_uint32(const unsigned char *c, const int pt) {
-    uint32_t ui;
-    char *p = (char *)&ui;
-
-    if (!is_bigendian()) { // le -> le (don't swap)
-        p[0] = c[pt + 0];
-        p[1] = c[pt + 1];
-        p[2] = c[pt + 2];
-        p[3] = c[pt + 3];
-    } else {
-        p[0] = c[pt + 3];
-        p[1] = c[pt + 2];
-        p[2] = c[pt + 1];
-        p[3] = c[pt + 0];
-    }
-
-    return(ui);
+    return ((uint32_t)c[pt]) | ((uint32_t)c[pt+1] << 8) | ((uint32_t)c[pt+2] << 16) | ((uint32_t)c[pt+3] << 24) ;
 }
+
+uint16_t read_uint16(const unsigned char *c, const int pt) {
+    return ((uint16_t)c[pt]) | ((uint16_t)c[pt+1] << 8);
+}
+
 
 static uint32_t get_stm32l0_flash_base(stlink_t *sl)
 {
@@ -1779,30 +1762,7 @@ int stlink_trace_read(stlink_t* sl, uint8_t* buf, size_t size) {
 
 // End of delegates....  Common code below here...
 
-// Endianness
-// http://www.ibm.com/developerworks/aix/library/au-endianc/index.html
-// const int i = 1;
-// #define is_bigendian() ( (*(char*)&i) == 0 )
 
-unsigned int is_bigendian(void) {
-    static volatile const unsigned int i = 1;
-    return(*(volatile const char*)&i == 0);
-}
-
-uint16_t read_uint16(const unsigned char *c, const int pt) {
-    uint32_t ui;
-    char *p = (char *)&ui;
-
-    if (!is_bigendian()) { // le -> le (don't swap)
-        p[0] = c[pt + 0];
-        p[1] = c[pt + 1];
-    } else {
-        p[0] = c[pt + 1];
-        p[1] = c[pt + 0];
-    }
-
-    return(ui);
-}
 
 // same as above with entrypoint.
 
