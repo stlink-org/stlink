@@ -317,13 +317,13 @@ Major changes and added features:
 * Added intel hex file reading for `st-flash` ([#110](https://github.com/stlink-org/stlink/pull/110), [#157](https://github.com/stlink-org/stlink/pull/157), [#457](https://github.com/stlink-org/stlink/pull/547), [#459](https://github.com/stlink-org/stlink/pull/549))
 * Added support for ARM semihosting to `st-util` ([#147](https://github.com/stlink-org/stlink/pull/147), [#227](https://github.com/stlink-org/stlink/pull/227), [#454](https://github.com/stlink-org/stlink/pull/454), [#455](https://github.com/stlink-org/stlink/pull/455))
 * Added manpages (generated with pandoc from Markdown) ([#208](https://github.com/stlink-org/stlink/pull/208), [#464](https://github.com/stlink-org/stlink/pull/464), [#466](https://github.com/stlink-org/stlink/pull/466), [#467](https://github.com/stlink-org/stlink/pull/467))
-* Removal of undocumented `st-term` utility, which is now replaced by `st-util` ARM semihosting feature ([#228](https://github.com/stlink-org/stlink/pull/228), ([#507](https://github.com/stlink-org/stlink/pull/507), commit [#3fd0f09](https://github.com/stlink-org/stlink/commit/3fd0f099782506532198473b24f643a3f68d5ff9))
+* Removal of undocumented `st-term` utility, which is now replaced by `st-util` ARM semihosting feature ([#228](https://github.com/stlink-org/stlink/pull/228), [#507](https://github.com/stlink-org/stlink/pull/507), commit [#3fd0f09](https://github.com/stlink-org/stlink/commit/3fd0f099782506532198473b24f643a3f68d5ff9))
 * Support serial numbers argument for `st-util` and `st-flash` to probe and control multiple connected programmers ([#318](https://github.com/stlink-org/stlink/pull/318), [#398](https://github.com/stlink-org/stlink/pull/398), [#541](https://github.com/stlink-org/stlink/pull/541))
 * Merge st-probe tool into st-info ([#398](https://github.com/stlink-org/stlink/pull/398))
 * Added support for native debian packaging ([#444](https://github.com/stlink-org/stlink/pull/444), [#472](https://github.com/stlink-org/stlink/pull/472), [#473](https://github.com/stlink-org/stlink/pull/473), [#482](https://github.com/stlink-org/stlink/pull/482), [#483](https://github.com/stlink-org/stlink/pull/483), [#484](https://github.com/stlink-org/stlink/pull/484), [#485](https://github.com/stlink-org/stlink/pull/485))
 * Rewritten commandline parsing for `st-flash` ([#459](https://github.com/stlink-org/stlink/pull/459))
 * Added `--reset` command to `st-flash` ([#505](https://github.com/stlink-org/stlink/pull/505))
-* st-util should detect when USB commands fail ([#525](https://github.com/stlink-org/stlink/pull/525), ([#527](https://github.com/stlink-org/stlink/pull/527), ([#528](https://github.com/stlink-org/stlink/pull/528))
+* st-util should detect when USB commands fail ([#525](https://github.com/stlink-org/stlink/pull/525), [#527](https://github.com/stlink-org/stlink/pull/527), [#528](https://github.com/stlink-org/stlink/pull/528))
 
 Chip support added for:
 

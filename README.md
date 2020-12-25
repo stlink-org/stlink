@@ -42,11 +42,11 @@ On the user level there is no difference in handling or operation between these 
 
 The STlink toolset includes:
 
-* `libstlink` - a communication library
 * `st-info` - a programmer and chip information tool
 * `st-flash` - a flash manipulation tool
-* `st-util` - a GDB server (supported in Visual Studio Code / VSCodium via the [Cortex-Debug](https://github.com/Marus/cortex-debug) plugin
-* `stlink-gui` - a GUI-Interface [optional]_
+* `st-util` - a GDB server (supported in Visual Studio Code / VSCodium via the [Cortex-Debug](https://github.com/Marus/cortex-debug) plugin)
+* `stlink-lib` - a communication library
+* `stlink-gui` - a GUI-Interface _[optional]_
 
 
 ## Supported operating systems and hardware combinations
