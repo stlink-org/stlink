@@ -3,7 +3,9 @@
 <plist version="1.0">
 <dict>
 	<key>BuildLocationStyle</key>
-	<string>UseAppPreferences</string>
+	<string>UseTargetSettings</string>
+	<key>BuildSystemType</key>
+	<string>Latest</string>
 	<key>CustomBuildIntermediatesPath</key>
 	<string>Build/Intermediates.noindex</string>
 	<key>CustomBuildLocationType</key>
@@ -13,7 +15,7 @@
 	<key>DerivedDataLocationStyle</key>
 	<string>Default</string>
 	<key>IssueFilterStyle</key>
-	<string>ShowActiveSchemeOnly</string>
+	<string>ShowAll</string>
 	<key>LiveSourceIssuesEnabled</key>
 	<true/>
 	<key>SharedBuildFolderName</key>

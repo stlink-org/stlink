@@ -36,7 +36,7 @@ It supports several so called STLINK programmer boards (and clones thereof) whic
   - transport layer: raw USB commands
   - stand-alone programmer
 
-_*)_ **Note: Support on macOS is limited to 10.13 - 10.15. Any later versions are no longer compatible with the STLINK/v1 due to technical reasons.**
+_*)_ **Note: Support on macOS is limited to 10.14 - 10.15. Any later versions are no longer compatible with the STLINK/v1 due to technical reasons.**
 
 On the user level there is no difference in handling or operation between these different revisions.
 
