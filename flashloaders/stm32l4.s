@@ -21,7 +21,7 @@ loop:
 wait:
     ldrh r3, [r10]
     tst r3, #0x1
-    beq wait
+    bne wait
 
     # loop if r2 != 0
     sub r2, r2, #1
