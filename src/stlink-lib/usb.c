@@ -1442,7 +1442,7 @@ static size_t stlink_probe_usb_devs(libusb_device **devs, stlink_t **sldevs[]) {
 
         if (ret < 0) {
             if (ret == LIBUSB_ERROR_ACCESS) {
-                ELOG("Could not open USB device %#06x:%#06x, access error.\n", desc.idVendor, desc.idProduct, ret);
+                ELOG("Could not open USB device %#06x:%#06x, access error.\n", desc.idVendor, desc.idProduct);
             } else {
                 ELOG("Failed to open USB device %#06x:%#06x, libusb error: %d)\n", desc.idVendor, desc.idProduct, ret);
             }

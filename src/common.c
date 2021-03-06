@@ -1373,9 +1373,9 @@ int stlink_load_device_params(stlink_t *sl) {
          sl->sram_size, sl->sram_size / 1024, sl->flash_size, sl->flash_size / 1024,
          (unsigned int)sl->flash_pgsz);
 #else
-    ILOG("%s: %zd KiB SRAM, %zd KiB flash in at least %zd %s pages.\n",
-         params->description, sl->sram_size / 1024, sl->flash_size / 1024,
-         (sl->flash_pgsz < 1024) ? sl->flash_pgsz  :  sl->flash_pgsz / 1024,
+    ILOG("%s: %u KiB SRAM, %u KiB flash in at least %u %s pages.\n",
+         params->description, (unsigned)(sl->sram_size / 1024), (unsigned)(sl->flash_size / 1024),
+         (sl->flash_pgsz < 1024) ? (unsigned)(sl->flash_pgsz)  :  (unsigned)(sl->flash_pgsz / 1024),
          (sl->flash_pgsz < 1024) ?  "byte"         :  "KiB");
 #endif
     return(0);
@@ -1398,7 +1398,7 @@ int stlink_soft_reset(stlink_t *sl, int halt_on_reset) {
 
     DLOG("*** stlink_soft_reset %s***\n", halt_on_reset?"(halt) ":"");
 
-    // halt core and enable debugging (if not already done) 
+    // halt core and enable debugging (if not already done)
     // C_DEBUGEN is required to Halt on reset (DDI0337E, p. 10-6)
     stlink_write_debug32(sl, STLINK_REG_DHCSR, STLINK_REG_DHCSR_DBGKEY |
                             STLINK_REG_DHCSR_C_HALT | STLINK_REG_DHCSR_C_DEBUGEN);
@@ -1585,7 +1585,7 @@ int stlink_target_voltage(stlink_t *sl) {
         voltage = sl->backend->target_voltage(sl);
 
         if (voltage != -1) {
-            DLOG("target voltage = %ldmV\n", voltage);
+            DLOG("target voltage = %imV\n", voltage);
         } else {
             DLOG("error reading target voltage\n");
         }
@@ -2201,8 +2201,8 @@ static bool stlink_fread_ihex_finalize(struct stlink_fread_ihex_worker_arg* the_
 
 int stlink_fread(stlink_t* sl, const char* path, bool is_ihex, stm32_addr_t addr, size_t size) {
     // read size bytes from addr to file
-    ILOG("read from address %#010x size %d\n", addr, size);
-    
+    ILOG("read from address %#010x size %u\n", addr, (unsigned)size);
+
     int error;
     int fd = open(path, O_RDWR | O_TRUNC | O_CREAT | O_BINARY, 00700);
 
@@ -2565,7 +2565,7 @@ int stlink_erase_flash_mass(stlink_t *sl) {
             stm32_addr_t addr = (stm32_addr_t)sl->flash_base + i * (stm32_addr_t)sl->flash_pgsz;
 
             if (stlink_erase_flash_page(sl, addr) == -1) {
-                WLOG("Failed to erase_flash_page(%#zx) == -1\n", addr);
+                WLOG("Failed to erase_flash_page(%#x) == -1\n", addr);
                 return(-1);
             }
 
@@ -2701,7 +2701,7 @@ int stm32l1_write_half_pages(
     for (count = 0; count  < num_half_pages; count++) {
         if (stlink_flash_loader_run(
                 sl, &fl, addr + count * pagesize, base + count * pagesize, pagesize) == -1) {
-            WLOG("l1_stlink_flash_loader_run(%#zx) failed! == -1\n", addr + count * pagesize);
+            WLOG("l1_stlink_flash_loader_run(%#x) failed! == -1\n", addr + count * pagesize);
             stlink_read_debug32(sl, flash_regs_base + FLASH_PECR_OFF, &val);
             val &= ~((1 << FLASH_L1_FPRG) | (1 << FLASH_L1_PROG));
             stlink_write_debug32(sl, flash_regs_base + FLASH_PECR_OFF, val);
@@ -2734,7 +2734,7 @@ int stlink_flashloader_start(stlink_t *sl, flash_loader_t *fl) {
         (sl->flash_type == STLINK_FLASH_TYPE_F7) ||
         (sl->flash_type == STLINK_FLASH_TYPE_L4)) {
         ILOG("Starting Flash write for F2/F4/F7/L4\n");
-        
+
         // Flash loader initialisation
         if (stlink_flash_loader_init(sl, fl) == -1) {
             ELOG("stlink_flash_loader_init() == -1\n");
@@ -2750,7 +2750,7 @@ int stlink_flashloader_start(stlink_t *sl, flash_loader_t *fl) {
         } else {
             voltage = stlink_target_voltage(sl);
         }
-        
+
         if (voltage == -1) {
             ELOG("Failed to read Target voltage\n");
             return(-1);
@@ -2771,7 +2771,7 @@ int stlink_flashloader_start(stlink_t *sl, flash_loader_t *fl) {
                        "using 8-bit flash writes\n", voltage);
                 write_flash_cr_psiz(sl, 0, BANK_1);
             }
-        } 
+        }
 
         // set programming mode
         set_flash_cr_pg(sl, BANK_1);
@@ -2850,7 +2850,7 @@ int stlink_flashloader_start(stlink_t *sl, flash_loader_t *fl) {
     return(0);
 }
 
-int stlink_flashloader_write(stlink_t *sl, flash_loader_t *fl, stm32_addr_t addr, 
+int stlink_flashloader_write(stlink_t *sl, flash_loader_t *fl, stm32_addr_t addr,
         uint8_t* base, uint32_t len) {
     size_t off;
     if ((sl->flash_type == STLINK_FLASH_TYPE_F4) ||
@@ -2860,7 +2860,7 @@ int stlink_flashloader_write(stlink_t *sl, flash_loader_t *fl, stm32_addr_t addr
         for (off = 0; off < len;) {
             size_t size = len - off > buf_size ? buf_size : len - off;
             if (stlink_flash_loader_run(sl, fl, addr + (uint32_t)off, base + off, size) == -1) {
-                ELOG("stlink_flash_loader_run(%#zx) failed! == -1\n", addr + off);
+                ELOG("stlink_flash_loader_run(%#x) failed! == -1\n", (unsigned)(addr + off));
                 return(-1);
             }
 
@@ -2921,7 +2921,7 @@ int stlink_flashloader_write(stlink_t *sl, flash_loader_t *fl, stm32_addr_t addr
         // write remaining word in program memory
         for ( ; off < len; off += sizeof(uint32_t)) {
             uint32_t data;
-            
+
             if ((off % sl->flash_pgsz) > (sl->flash_pgsz - 5)) {
                 fprintf(stdout, "\r%3u/%3u pages written",
                         (unsigned int)(off / sl->flash_pgsz),
@@ -2955,7 +2955,7 @@ int stlink_flashloader_write(stlink_t *sl, flash_loader_t *fl, stm32_addr_t addr
             DLOG("Finished unlocking flash, running loader!\n");
 
             if (stlink_flash_loader_run(sl, fl, addr + (uint32_t)off, base + off, size) == -1) {
-                ELOG("stlink_flash_loader_run(%#zx) failed! == -1\n", addr + off);
+                ELOG("stlink_flash_loader_run(%#x) failed! == -1\n", (unsigned)(addr + off));
                 return(-1);
             }
 
@@ -3003,7 +3003,7 @@ int stlink_flashloader_stop(stlink_t *sl) {
         (sl->flash_type == STLINK_FLASH_TYPE_L4) ||
         (sl->flash_type == STLINK_FLASH_TYPE_WB) ||
         (sl->flash_type == STLINK_FLASH_TYPE_G0) ||
-        (sl->flash_type == STLINK_FLASH_TYPE_G4) || 
+        (sl->flash_type == STLINK_FLASH_TYPE_G4) ||
         (sl->flash_type == STLINK_FLASH_TYPE_H7)) {
 
         clear_flash_cr_pg(sl, BANK_1);
@@ -3056,9 +3056,9 @@ int stlink_write_flash(
         WLOG("unaligned len 0x%x -- padding with zero\n", len);
         len += 1;
     } else if (addr & (sl->flash_pgsz - 1)) {
-        ELOG("addr not a multiple of current pagesize (%zd bytes), not supported, "
+        ELOG("addr not a multiple of current pagesize (%u bytes), not supported, "
              "check page start address and compare with flash module organisation "
-             "in related ST reference manual of your device.\n", sl->flash_pgsz);
+             "in related ST reference manual of your device.\n", (unsigned)(sl->flash_pgsz));
         return(-1);
     }
 
@@ -3071,7 +3071,7 @@ int stlink_write_flash(
     for (off = 0; off < len; off += stlink_calculate_pagesize(sl, addr + (uint32_t)off)) {
         // addr must be an addr inside the page
         if (stlink_erase_flash_page(sl, addr + (uint32_t)off) == -1) {
-            ELOG("Failed to erase_flash_page(%#zx) == -1\n", addr + off);
+            ELOG("Failed to erase_flash_page(%#x) == -1\n", (unsigned)(addr + off));
             return(-1);
         }
 
@@ -3079,8 +3079,8 @@ int stlink_write_flash(
         page_count++;
     }
 
-    ILOG("Finished erasing %d pages of %d (%#x) bytes\n",
-         page_count, sl->flash_pgsz, sl->flash_pgsz);
+    ILOG("Finished erasing %d pages of %u (%#x) bytes\n",
+         page_count, (unsigned)(sl->flash_pgsz), (unsigned)(sl->flash_pgsz));
 
     if (eraseonly) { return(0); }
 
@@ -3092,7 +3092,7 @@ int stlink_write_flash(
         return ret;
     ret = stlink_flashloader_stop(sl);
     if (ret)
-        return ret;    
+        return ret;
 
     return(stlink_verify_write_flash(sl, addr, base, len));
 }
@@ -3145,7 +3145,7 @@ int stlink_parse_ihex(const char* path, uint8_t erased_pattern, uint8_t * * mem,
             data = calloc(*size, 1); // use calloc to get NULL if out of memory
 
             if (!data) {
-                ELOG("Cannot allocate %d bytes\n", *size);
+                ELOG("Cannot allocate %u bytes\n", (unsigned)(*size));
                 res = -1;
                 break;
             }
@@ -3520,7 +3520,7 @@ static int stlink_write_option_bytes_f7(stlink_t *sl, uint8_t* base, stm32_addr_
         addr = FLASH_F7_OPTCR;
         ILOG("No address provided, using %#10x\n", addr);
     }
-    
+
     if ( addr == FLASH_F7_OPTCR ) {
         /* write option byte, ensuring we dont lock opt, and set strt bit */
         stlink_write_debug32(sl, FLASH_F7_OPTCR, (option_byte & ~(1 << FLASH_F7_OPTCR_LOCK)) | (1 << FLASH_F7_OPTCR_START));
@@ -3542,7 +3542,7 @@ static int stlink_write_option_bytes_f7(stlink_t *sl, uint8_t* base, stm32_addr_
     ret = check_flash_error(sl);
     if (!ret)
         ILOG("Wrote %d option bytes %#010x to %#010x!\n", len, *(uint32_t*) base, addr);
-    
+
     /* option bytes are reloaded at reset only, no obl. */
 
     return ret;
@@ -3899,7 +3899,7 @@ int stlink_write_option_bytes(stlink_t *sl, stm32_addr_t addr, uint8_t* base, ui
         return(-1);
     }
 
-    
+
     if ((addr < sl->option_base) || addr > sl->option_base + sl->option_size) {
         ELOG("Option bytes start address out of Option bytes range\n");
         return(-1);
@@ -3972,7 +3972,7 @@ static int stlink_write_option_control_register_f7(stlink_t *sl, uint32_t option
     ILOG("Asked to write option control register 1 %#10x to %#010x.\n", option_control_register, FLASH_F7_OPTCR);
     //write_uint32((unsigned char*) &option_byte, *(uint32_t*) (base));
     //ILOG("Write %d option bytes %#010x to %#010x!\n", len, option_byte, addr);
-    
+
     /* write option byte, ensuring we dont lock opt, and set strt bit */
     stlink_write_debug32(sl, FLASH_F7_OPTCR, (option_control_register & ~(1 << FLASH_F7_OPTCR_LOCK)) | (1 << FLASH_F7_OPTCR_START));
 
@@ -3981,7 +3981,7 @@ static int stlink_write_option_control_register_f7(stlink_t *sl, uint32_t option
     ret = check_flash_error(sl);
     if (!ret)
         ILOG("Wrote option bytes %#010x to %#010x!\n", option_control_register, FLASH_F7_OPTCR1);
-    
+
     return ret;
 }
 
@@ -3997,11 +3997,11 @@ static int stlink_write_option_control_register1_f7(stlink_t *sl, uint32_t optio
     ILOG("Asked to write option control register 1 %#010x to %#010x.\n", option_control_register1, FLASH_F7_OPTCR1);
     //write_uint32((unsigned char*) &option_byte, *(uint32_t*) (base));
     //ILOG("Write %d option bytes %#010x to %#010x!\n", len, option_byte, addr);
-    
+
     /* write option byte, ensuring we dont lock opt, and set strt bit */
     uint32_t current_control_register_value;
     stlink_read_debug32(sl, FLASH_F7_OPTCR, &current_control_register_value);
-    
+
     /* write option byte */
     stlink_write_debug32(sl, FLASH_F7_OPTCR1, option_control_register1);
     stlink_write_debug32(sl, FLASH_F7_OPTCR, (current_control_register_value & ~(1 << FLASH_F7_OPTCR_LOCK)) | (1 << FLASH_F7_OPTCR_START));
@@ -4011,7 +4011,7 @@ static int stlink_write_option_control_register1_f7(stlink_t *sl, uint32_t optio
     ret = check_flash_error(sl);
     if (!ret)
         ILOG("Wrote option bytes %#010x to %#010x!\n", option_control_register1, FLASH_F7_OPTCR1);
-    
+
     return ret;
 }
 

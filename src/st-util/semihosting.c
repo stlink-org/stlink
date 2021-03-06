@@ -256,7 +256,7 @@ int do_semihosting (stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret) {
             return(-1);
         }
 
-        DLOG("Semihosting: write(%d, target_addr:0x%08x, %zu)\n", fd, buffer_address,
+        DLOG("Semihosting: write(%d, target_addr:0x%08x, %u)\n", fd, buffer_address,
              buffer_len);
 
         *ret = (uint32_t)write(fd, buffer, buffer_len);
@@ -305,7 +305,7 @@ int do_semihosting (stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret) {
             return(-1);
         }
 
-        DLOG("Semihosting: read(%d, target_addr:0x%08x, %zu)\n", fd, buffer_address,
+        DLOG("Semihosting: read(%d, target_addr:0x%08x, %u)\n", fd, buffer_address,
              buffer_len);
 
         read_result = read(fd, buffer, buffer_len);
@@ -399,7 +399,7 @@ int do_semihosting (stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret) {
         fd = (int)args[0];
         offset = (off_t)args[1];
 
-        DLOG("Semihosting: lseek(%d, %d, SEEK_SET)\n", fd, offset);
+        DLOG("Semihosting: lseek(%d, %d, SEEK_SET)\n", fd, (int)offset);
         *ret = (uint32_t)lseek(fd, offset, SEEK_SET);
         saved_errno = errno;
 
