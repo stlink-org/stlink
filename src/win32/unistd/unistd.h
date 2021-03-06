@@ -50,7 +50,10 @@
  * You need to look at your app and consider whether to call e.g. closesocket().
  */
 
-#define ssize_t int
+#if defined(_MSC_VER)
+#include <basetsd.h>
+typedef SSIZE_T ssize_t;
+#endif /* _MSC_VER */
 
 #define STDIN_FILENO  0
 #define STDOUT_FILENO 1
