@@ -128,6 +128,7 @@ Fixes:
 * [regression] Fixed sign-compare (size != rep_len) in usb.c ([#772](https://github.com/stlink-org/stlink/pull/772), [#869](https://github.com/stlink-org/stlink/pull/869), [#872](https://github.com/stlink-org/stlink/pull/872), [#891](https://github.com/stlink-org/stlink/pull/891))
 * Fixed dead loop after an unexpected unplug ([#780](https://github.com/stlink-org/stlink/pull/780), [#812](https://github.com/stlink-org/stlink/pull/812), [#913](https://github.com/stlink-org/stlink/pull/913))
 * Avoid re-define of O_BINARY on Windows ([#788](https://github.com/stlink-org/stlink/pull/788))
+* Fixed stlink lock-up when not connected to a device via JTAG / SWD ([#835](https://github.com/stlink-org/stlink/pull/835), [#943](https://github.com/stlink-org/stlink/pull/943))
 * Fixed st-flash manpage read example ([#858](https://github.com/stlink-org/stlink/pull/858))
 * Fixed stlink support with no mass storage ([#861](https://github.com/stlink-org/stlink/pull/861))
 * Make Version.cmake more error-resistant ([#872](https://github.com/stlink-org/stlink/pull/872))

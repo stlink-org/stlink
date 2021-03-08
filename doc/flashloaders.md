@@ -6,7 +6,7 @@ The on-chip FLASH of STM32 needs to be written once a byte/half word/word/double
 
 As SRAM is usually less in size than FLASH, `stlink` only flashes one page (may be less if SRAM is insufficient) at a time. The whole flashing process may consist of server launches of flashloaders.
 
-## The flahsing process
+## The flashing process
 
 1. `st-flash` loads compiled binary of corresponding flashloader to SRAM by calling `stlink_flash_loader_init` in `src/flash_loader.c`
 2. `st-flash` erases corresponding flash page by calling `stlink_erase_flash_page` in `common.c`.
