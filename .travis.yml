@@ -4,7 +4,7 @@ jobs:
   include:
     ### 64-bit builds on AMD64 ###
     - os: linux
-      dist: bionic
+      dist: xenial
       env: BADGE=linux
       compiler: gcc-5
       addons:
@@ -14,11 +14,11 @@ jobs:
     - os: linux
       dist: bionic
       env: BADGE=linux
-      compiler: gcc-9
+      compiler: gcc-6
       addons:
         apt:
           sources: ["ubuntu-toolchain-r-test"]
-          packages: ["gcc-9", "libusb-1.0.0-dev", "libgtk-3-dev", "rpm"]
+          packages: ["gcc-6", "libusb-1.0.0-dev", "libgtk-3-dev", "rpm"]
     - os: linux
       dist: focal
       env: BADGE=linux
@@ -30,27 +30,19 @@ jobs:
     - os: linux
       dist: xenial
       env: BADGE=linux
-      compiler: clang-3.7
+      compiler: clang-8
       addons:
         apt:
           sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-xenial-3.7"]
-          packages: ["clang-3.7", "libusb-1.0.0-dev", "libgtk-3-dev", "rpm"]
+          packages: ["clang-8", "libusb-1.0.0-dev", "libgtk-3-dev", "rpm"]
     - os: linux
       dist: bionic
       env: BADGE=linux
-      compiler: clang-6.0
-      addons:
-        apt:
-          sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-bionic-6.0"]
-          packages: ["clang-6.0", "libusb-1.0.0-dev", "libgtk-3-dev", "rpm"]
-    - os: linux
-      dist: bionic
-      env: BADGE=linux
-      compiler: clang-9
+      compiler: clang-10
       addons:
         apt:
           sources: ["ubuntu-toolchain-r-test"]
-          packages: ["clang-9", "libusb-1.0.0-dev", "libgtk-3-dev", "rpm"]
+          packages: ["clang-10", "libusb-1.0.0-dev", "libgtk-3-dev", "rpm"]
     - os: linux
       dist: focal
       env: BADGE=linux
@@ -60,20 +52,21 @@ jobs:
           sources: ["ubuntu-toolchain-r-test"]
           packages: ["clang-10", "libusb-1.0.0-dev", "libgtk-3-dev", "rpm"]
 
+    ### cross build on AMD64 ###
     - os: linux
-      dist: bionic
+      dist: focal
       env: BADGE=linux-mingw
       name: linux-mingw
-      compiler: gcc-9
+      compiler: gcc-10
       addons:
         apt:
           sources: ["ubuntu-toolchain-r-test"]
           packages:
-            ["gcc-9", "libusb-1.0.0-dev", "libgtk-3-dev", "rpm", "mingw-w64"]
+            ["gcc-10", "libusb-1.0.0-dev", "libgtk-3-dev", "rpm", "mingw-w64"]
 
     ### 32-bit builds on AMD64 ###
     - os: linux
-      dist: bionic
+      dist: xenial
       env: BADGE=linux
       compiler: gcc-5
       addons:
@@ -85,11 +78,11 @@ jobs:
     - os: linux
       dist: bionic
       env: BADGE=linux
-      compiler: gcc-9
+      compiler: gcc-6
       addons:
         apt:
           sources: ["ubuntu-toolchain-r-test"]
-          packages: ["gcc-9", "libusb-1.0.0-dev", "libgtk-3-dev", "rpm"]
+          packages: ["gcc-6", "libusb-1.0.0-dev", "libgtk-3-dev", "rpm"]
       before_install:
         - CFLAGS="$CFLAGS -m32"; CXXFLAGS="$CXXFLAGS -m32"; LDFLAGS="$LDFLAGS -m32";
     - os: linux
@@ -105,31 +98,23 @@ jobs:
     - os: linux
       dist: xenial
       env: BADGE=linux
-      compiler: clang-3.7
+      compiler: clang-8
       addons:
         apt:
           sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-xenial-3.7"]
-          packages: ["clang-3.7", "libusb-1.0.0-dev", "libgtk-3-dev", "rpm"]
+          packages: ["clang-8", "libusb-1.0.0-dev", "libgtk-3-dev", "rpm"]
       before_install:
         - CFLAGS="$CFLAGS -m32"; CXXFLAGS="$CXXFLAGS -m32"; LDFLAGS="$LDFLAGS -m32";
     - os: linux
       dist: bionic
       env: BADGE=linux
-      compiler: clang-6.0
+      compiler: clang-10
       addons:
         apt:
           sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-bionic-6.0"]
-          packages: ["clang-6.0", "libusb-1.0.0-dev", "libgtk-3-dev", "rpm"]
+          packages: ["clang-10", "libusb-1.0.0-dev", "libgtk-3-dev", "rpm"]
       before_install:
         - CFLAGS="$CFLAGS -m32"; CXXFLAGS="$CXXFLAGS -m32"; LDFLAGS="$LDFLAGS -m32";
-    - os: linux
-      dist: bionic
-      env: BADGE=linux
-      compiler: clang-9
-      addons:
-        apt:
-          sources: ["ubuntu-toolchain-r-test"]
-          packages: ["clang-9", "libusb-1.0.0-dev", "libgtk-3-dev", "rpm"]
       before_install:
     - os: linux
       dist: focal
