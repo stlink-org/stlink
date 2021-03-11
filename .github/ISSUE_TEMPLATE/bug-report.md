@@ -8,7 +8,7 @@ labels: ''
 Thank you for giving feedback to the stlink project.
 
 **NOTICE: Please read and follow instructions in #906 before submitting a ticket.
-This feature request will be deleted without notice when not enough information is provided! So please ensure that all fields are filled out.**
+This bug report will be deleted without notice when not enough information is provided! So please ensure that all fields are filled out.**
 
 - [ ] I made serious effort to avoid creating duplicate or nearly similar issue
 
