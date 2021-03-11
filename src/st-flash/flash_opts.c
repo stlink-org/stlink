@@ -337,11 +337,26 @@ int flash_get_opts(struct flash_opts* o, int ac, char** av) {
 
             if (ac == 2) {
                 uint32_t addr;
-                result = get_integer_from_char_array(av[1], &addr);
+                result = get_integer_from_char_array(av[0], &addr);
                 if (result != 0) {
                     return bad_arg ("addr");
                 } else {
                     o->addr = (stm32_addr_t) addr;
+                }
+                uint32_t val;
+                result = get_integer_from_char_array(av[1], &val);
+                if (result != 0) {
+                    return bad_arg ("val");
+                } else {
+                    o->val = (uint32_t) val;
+                }
+            } else {
+                uint32_t val;
+                result = get_integer_from_char_array(av[0], &val);
+                if (result != 0) {
+                    return bad_arg ("val");
+                } else {
+                    o->val = (uint32_t) val;
                 }
             }
         } else if (o->area == FLASH_OPTION_BYTES_BOOT_ADD) { // expect option bytes boot address
