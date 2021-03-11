@@ -1,9 +1,3 @@
-/*
- * File:   test_main.c
- *
- * main() ripped out of old stlink-hw.c
- */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -11,7 +5,7 @@
 #include <stlink.h>
 
 #if defined(_MSC_VER)
-    #define __attribute__(x)
+#define __attribute__(x)
 #endif
 
 static void __attribute__((unused)) mark_buf(stlink_t *sl) {
@@ -30,28 +24,28 @@ static void __attribute__((unused)) mark_buf(stlink_t *sl) {
 }
 
 
-int main(void) {
+int main(void) { // main() ripped out of old stlink-hw.c
     /* Avoid unused parameter warning */
     // set scpi lib debug level: 0 for no debug info, 10 for lots
     fputs(
-            "\nUsage: stlink-access-test [anything at all] ...\n"
-            "\n*** Notice: The stlink firmware violates the USB standard.\n"
-            "*** Because we just use libusb, we can just tell the kernel's\n"
-            "*** driver to simply ignore the device...\n"
-            "*** Unplug the stlink and execute once as root:\n"
-            "modprobe -r usb-storage && modprobe usb-storage quirks=483:3744:i\n\n",
-            stderr);
+        "\nUsage: stlink-access-test [anything at all] ...\n"
+        "\n*** Notice: The stlink firmware violates the USB standard.\n"
+        "*** Because we just use libusb, we can just tell the kernel's\n"
+        "*** driver to simply ignore the device...\n"
+        "*** Unplug the stlink and execute once as root:\n"
+        "modprobe -r usb-storage && modprobe usb-storage quirks=483:3744:i\n\n",
+        stderr);
 
     stlink_t *sl = stlink_v1_open(99, 1);
-    if (sl == NULL)
-        return 0;
+
+    if (sl == NULL) return(0);
 
     // we are in mass mode, go to swd
     stlink_enter_swd_mode(sl);
     stlink_current_mode(sl);
     stlink_core_id(sl);
     stlink_status(sl);
-    //stlink_force_debug(sl);
+    // stlink_force_debug(sl);
     stlink_reset(sl);
     stlink_status(sl);
     // core system control block
@@ -75,8 +69,8 @@ int main(void) {
     #define GPIOC     0x40011000 // port C
     #define GPIOC_CRH (GPIOC + 0x04) // port configuration register high
     #define GPIOC_ODR (GPIOC + 0x0c) // port output data register
-    #define LED_BLUE  (1<<8) // pin 8
-    #define LED_GREEN (1<<9) // pin 9
+    #define LED_BLUE  (1 << 8) // pin 8
+    #define LED_GREEN (1 << 9) // pin 9
     stlink_read_mem32(sl, GPIOC_CRH, 4);
     uint32_t io_conf = read_uint32(sl->q_buf, 0);
     DLOG("GPIOC_CRH = 0x%08x\n", io_conf);
@@ -86,17 +80,19 @@ int main(void) {
     stlink_write_mem32(sl, GPIOC_CRH, 4);
 
     memset(sl->q_buf, 0, sizeof(sl->q_buf));
+
     for (int i = 0; i < 100; i++) {
         write_uint32(sl->q_buf, LED_BLUE | LED_GREEN);
         stlink_write_mem32(sl, GPIOC_ODR, 4);
-        //stlink_read_mem32(sl, 0x4001100c, 4);
-        //DD(sl, "GPIOC_ODR = 0x%08x", read_uint32(sl->q_buf, 0));
+        // stlink_read_mem32(sl, 0x4001100c, 4);
+        // DD(sl, "GPIOC_ODR = 0x%08x", read_uint32(sl->q_buf, 0));
         usleep(100 * 1000);
 
         memset(sl->q_buf, 0, sizeof(sl->q_buf));
         stlink_write_mem32(sl, GPIOC_ODR, 4); // PC lo
         usleep(100 * 1000);
     }
+
     write_uint32(sl->q_buf, io_conf); // set old state
 #endif
 
@@ -104,10 +100,10 @@ int main(void) {
     // TODO rtfm: stlink doesn't have flash write routines
     // writing to the flash area confuses the fw for the next read access
 
-    //stlink_read_mem32(sl, 0, 1024*6);
+    // stlink_read_mem32(sl, 0, 1024*6);
     // flash 0x08000000 128kB
     fputs("++++++++++ read a flash at 0x0800 0000\n", stderr);
-    stlink_read_mem32(sl, 0x08000000, 1024 * 6); //max 6kB
+    stlink_read_mem32(sl, 0x08000000, 1024 * 6); // max 6kB
     clear_buf(sl);
     stlink_read_mem32(sl, 0x08000c00, 5);
     stlink_read_mem32(sl, 0x08000c00, 4);
@@ -122,9 +118,9 @@ int main(void) {
     fputs("\n++++++++++ read/write 8bit, sram at 0x2000 0000 ++++++++++++++++\n\n", stderr);
     memset(sl->q_buf, 0, sizeof(sl->q_buf));
     mark_buf(sl);
-    //stlink_write_mem8(sl, 0x20000000, 16);
-    //stlink_write_mem8(sl, 0x20000000, 1);
-    //stlink_write_mem8(sl, 0x20000001, 1);
+    // stlink_write_mem8(sl, 0x20000000, 16);
+    // stlink_write_mem8(sl, 0x20000000, 1);
+    // stlink_write_mem8(sl, 0x20000001, 1);
     stlink_write_mem8(sl, 0x2000000b, 3);
     stlink_read_mem32(sl, 0x20000000, 16);
 #endif
@@ -157,7 +153,7 @@ int main(void) {
     stlink_read_mem32(sl, 0x20000000, 64);
 
     mark_buf(sl);
-    stlink_write_mem32(sl, 0x20000000, 1024 * 8); //8kB
+    stlink_write_mem32(sl, 0x20000000, 1024 * 8); // 8kB
     stlink_read_mem32(sl, 0x20000000, 1024 * 6);
     stlink_read_mem32(sl, 0x20000000 + 1024 * 6, 1024 * 2);
 #endif
@@ -208,7 +204,7 @@ int main(void) {
     stlink_close(sl);
 #endif
 
-    //fflush(stderr);
-    //fflush(stdout);
-    return EXIT_SUCCESS;
+    // fflush(stderr);
+    // fflush(stdout);
+    return(EXIT_SUCCESS);
 }

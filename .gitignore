@@ -1,8 +1,10 @@
 build
 build-mingw
+
+.project
 .cmake/
 .vscode/
-.project
 
 obj-*
 *.user*
+*.swp

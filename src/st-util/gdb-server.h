@@ -8,4 +8,4 @@
 #define DEBUG_LOGGING_LEVEL 100
 #define DEFAULT_GDB_LISTEN_PORT 4242
 
-#endif
+#endif // _GDB_SERVER_H

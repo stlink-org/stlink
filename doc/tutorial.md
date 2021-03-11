@@ -1,34 +1,37 @@
-stlink Tools Tutorial
-=====================
+# stlink Tools Tutorial
 
 ## Available tools and options
 
-| Option | Tool | Description | Available<br />since |
-| --- | --- | --- | --- |
-| --flash=n[k][m] | st-flash | One can specify `--flash=128k` for example, to override the default value of 64k<br />for the STM32F103C8T6 to assume 128k of flash being present. This option accepts<br />decimal (128k), octal 0200k, or hex 0x80k values. Leaving the multiplier out is<br />equally valid, e.g.: `--flash=0x20000`. The size may be followed by an optional "k"<br />or "m" to multiply the given value by 1k (1024) or 1M respectively. | v1.4.0 |
-| --freq=n[k][m] | st-flash,<br />st-util | The frequency of the SWD/JTAG interface can be specified, to override the default<br />1800 kHz configuration. This option solely accepts decimal values (5K or 1.8M) with<br />the unit `Hz` being left out. Valid frequencies are `5K, 15K, 25K, 50K, 100K,`<br />`125K, 240K, 480K, 950K, 1200K(1.2M), 1800K(1.8M), 4000K(4M)`. | v1.6.1 |
-| --opt | st-flash | Optimisation can be enabled in order to skip flashing empty (0x00 or 0xff) bytes at<br />the end of binary file. This may cause some garbage data left after a flash operation.<br />This option was enabled by default in earlier releases. | v1.6.1 |
-| --version | st-info,<br />st-flash,<br />st-util | Print version information. | |
-| --help | st-flash,<br />st-util | Print list of available commands. _(To be added to this table.)_ | |
+| Option          | Tool                                 | Description                                                                                                                                                                                                                                                                                                                                                                                                                   | Available<br />since |
+| --------------- | ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------- |
+| --flash=n[k][m] | st-flash                             | One can specify `--flash=128k` for example, to override the default value of 64k<br />for the STM32F103C8T6 to assume 128k of flash being present. This option accepts<br />decimal (128k), octal 0200k, or hex 0x80k values. Leaving the multiplier out is<br />equally valid, e.g.: `--flash=0x20000`. The size may be followed by an optional "k"<br />or "m" to multiply the given value by 1k (1024) or 1M respectively. | v1.4.0               |
+| --freq=n[k][m]  | st-flash,<br />st-util               | The frequency of the SWD/JTAG interface can be specified, to override the default<br />1800 kHz configuration. This option solely accepts decimal values (5K or 1.8M) with<br />the unit `Hz` being left out. Valid frequencies are `5K, 15K, 25K, 50K, 100K,`<br />`125K, 240K, 480K, 950K, 1200K(1.2M), 1800K(1.8M), 4000K(4M)`.                                                                                            | v1.6.1               |
+| --opt           | st-flash                             | Optimisation can be enabled in order to skip flashing empty (0x00 or 0xff) bytes at<br />the end of binary file. This may cause some garbage data left after a flash operation.<br />This option was enabled by default in earlier releases.                                                                                                                                                                                  | v1.6.1               |
+| --reset         | st-flash                             | Trigger a reset both before and after flashing.                                                                                                                                                                                                                                                                                                                                                                               | v1.0.0               |
+| --version       | st-info,<br />st-flash,<br />st-util | Print version information.                                                                                                                                                                                                                                                                                                                                                                                                    |                      |
+| --help          | st-flash,<br />st-util               | Print list of available commands. _(To be added to this table.)_                                                                                                                                                                                                                                                                                                                                                              |                      |
 
 ### st-flash: Checksum for binary files
+
 When flashing a file, a checksum is calculated for the binary file, both in md5 and the sum algorithm.
 The latter is also used by the official ST-Link utility tool from STMicroelectronics as described in the document: [`UM0892 - User manual - STM32 ST-LINK utility software description`](https://www.st.com/resource/en/user_manual/cd00262073-stm32-stlink-utility-software-description-stmicroelectronics.pdf).
 
 ### stlink-gui
+
 The `stlink` toolset also provides a GUI which is an optional feature. It is only installed if a gtk3 toolset has been detected during package installation or compilation from source. It is not available for Windows. If you prefer to have an user interface on the latter system, please use the official `ST-LINK Utility` instead.
 
 The stlink-gui offers the following features:
-* Connect/disconnect to a present STlink programmer
-* Display basic device information
-* Select a binary file from the local filesystem to flash it to the detected device connected to the programmer
-* Export the memory of the connected chip to a file which can be saved to the local filesystem
-* Display of the memory address map in the main window for each, the device memory and a loaded binary file
+
+- Connect/disconnect to a present STlink programmer
+- Display basic device information
+- Select a binary file from the local filesystem to flash it to the detected device connected to the programmer
+- Export the memory of the connected chip to a file which can be saved to the local filesystem
+- Display of the memory address map in the main window for each, the device memory and a loaded binary file
 
 Within the GUI main window tooltips explain the available user elements.
 
-
 ## Solutions to common problems
+
 ### a) Verify if udev rules are set correctly (by Dave Hylands)
 
 To investigate, start by plugging your STLINK device into the usb port. Then run `lsusb`. You should see an entry something like the following:
@@ -76,12 +79,33 @@ to ensure that the rules actually take effect. Using the trigger command means t
 
 If the VID:PID of your device doesn't match those in any of the 3 files, then you may need to create a custom rule file to match your VID:PID.
 
+### b) NOTE: Chinese Fake-Chips CKS32F103C8T6 or CS32F103C8T6 being marked as "STM32F103C8T6"
 
-------
+In contrast to "Clone chips" which identify themselves as such by their official marking (manufacturer, model, etc.), so called "Fake chips" do not.
+Instead counterfeiters try to copy the outer appearance of the original and thus are very hard to detect.
+Possible malfunction then may lead to various effects and issues during operation also in in connection with this toolset.
+
+As of December 2019 several so called "Bluepill-Boards" with a STM32F103C8T6 appeared on the market that do not hold the original part.
+In this known example one finds the counterfeited "STM32F103C8T6" MCUs to identify themselves with chip-id `0x2ba01477` instead of `0x1ba01477`.
+
+In the following you find some hints on how to identify your chip and track down fraud:
+
+- [How to Detect STM32 Fakes](https://www.cnx-software.com/2020/03/22/how-to-detect-stm32-fakes/)
+- [Confirmation by STMicroelectronics](https://www.mikrocontroller.net/attachment/442839/couterfeit_STM.png) (Marking: 991KA 93 MYS 807)
+
+However it appears that not all counterfeited parts cause problems during operation, but some are known to not even being able to execute a basic "blinky" example binary. Further there can be problems that may not even show up or affect you directly, but somewhen later in time (or maybe never).
+This demonstrates there is no guarantee for a proper working chip with equal functionality compared to the original.
+
+Please keep this in mind and be sceptical when facing problems with this type of boards.
+Check your hardware and try to identify what you have in front of you before assuming a bug in the `stlink` toolset.
+
+Please let us know, if you come across any further websites or tutorials that help to identify STM32 fake chips so we can list them here to help others.
+
+---
+
 ( Content below is currently unrevised and may be outdated as of Apr 2020. )
 
-Using STM32 discovery kits with open source tools
-========
+# Using STM32 discovery kits with open source tools
 
 This guide details the use of STMicroelectronics STM32 discovery kits in an open source environment.
 
@@ -98,11 +122,11 @@ from any vendor. It has some good, reliable examples for each of the Discovery b
 Even if you don’t plan on using libopencm3, the examples they provide
 will help you verify that:
 
--   Your installed toolchain is capable of compiling for cortex M3/M4
-    targets
--   stlink is functional
--   Your arm-none-eabi-gdb is functional
--   Your board is functional
+- Your installed toolchain is capable of compiling for cortex M3/M4
+  targets
+- stlink is functional
+- Your arm-none-eabi-gdb is functional
+- Your board is functional
 
 A GDB server must be started to interact with the STM32 by running
 st-util tool :
@@ -150,7 +174,6 @@ Your program should now be running, and, if you used one of the blinking
 examples from libopencm3, the LEDs on the board should be blinking for
 you.
 
-
 ## Building and flashing a program
 
 If you want to simply flash binary files to arbitrary sections of
@@ -183,7 +206,6 @@ $> [sudo] ./st-flash write fancy_blink.bin 0x08000000
 ```
 
 Upon reset, the board LEDs should be blinking.
-
 
 ## Using the gdb server
 
@@ -229,7 +251,6 @@ Transfer rate: 1 KB/sec, 560 bytes/write.
 (gdb) continue
 ```
 
-
 ## Resetting the chip from GDB
 
 You may reset the chip using GDB if you want. You'll need to use `target
@@ -245,6 +266,9 @@ Kill the program being debugged? (y or n) y
 Starting program: /home/whitequark/ST/apps/bally/firmware.elf
 ```
 
+Note that st-link does not support 'run', as it does not load arbitrary programs without explicit commands.
+In order to continue, one can use 'monitor reset' to reset the MCU.
+
 Remember that you can shorten the commands. `tar ext :4242` is good enough
 for GDB.
 
@@ -254,7 +278,6 @@ If you need to send a hard reset signal through `NRST` pin, you can use the foll
 (gdb) monitor jtag_reset
 ```
 
-
 ## Disassembling THUMB code in GDB
 
 By default, the disassemble command in GDB operates in ARM mode. The programs running on CORTEX-M3 are compiled in THUMB mode.
@@ -263,7 +286,6 @@ To correctly disassemble them under GDB, uses an odd address. For instance, if y
 ```
 (gdb) disassemble 0x20000001
 ```
-
 
 ## Running programs from SRAM
 
@@ -277,7 +299,6 @@ it at 0x20000000 and do
 It will be loaded, and pc will be adjusted to point to start of the
 code, if it is linked correctly (i.e. ELF has correct entry point).
 
-
 ## Writing to flash
 
 The GDB stub ships with a correct memory map, including the flash area.
@@ -289,18 +310,16 @@ If you would link your executable to `0x08000000` and then do
 
 then it would be written to the memory.
 
-
 ## Writing Option Bytes
 
 Example to read and write option bytes (currently writing only supported for STM32G0 and STM32L0)
+
 ```
 ./st-flash --debug --reset --format binary --flash=128k read option_bytes_dump.bin 0x1FFF7800 4
 ./st-flash --debug --reset --format binary --flash=128k write option_bytes_dump.bin 0x1FFF7800
 ```
 
-
-FAQ
-===
+# FAQ
 
 Q: My breakpoints do not work at all or only work once.
 

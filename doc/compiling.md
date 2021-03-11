@@ -88,7 +88,6 @@ Install the following packages from your package repository:
 * `build-essential` (on Debian based distros (Debian, Ubuntu))
 * `cmake` (3.4.2 or later, use the latest version available from the repository)
 * `rpm` (on Debian based distros (Debian, Ubuntu), needed for package build with `make package`)
-* `pkg-config`
 * `libusb-1.0`
 * `libusb-1.0-0-dev` (development headers for building)
 * `libgtk-3-dev` (_optional_, needed for `stlink-gui`)
@@ -109,69 +108,64 @@ or execute (Debian-based systems only): `apt-get install gcc build-essential cma
 
 ### Building
 
+#### Installation:
+
 1. Change into the project source directory: `cd stlink`
 2. Run `make clean` -- required by some linux variants.
 3. Run `make release` to create the _Release_ target
-4. Run `make debug` to create the _Debug_ target (_optional_)<br />
+4. Run `make install` to full install the package with complete system integration
+5. Run `make debug` to create the _Debug_ target (_optional_)<br />
    The debug target is only necessary in order to modify the sources and to run under a debugger.
+6. Run `make package`to build a Debian Package. The generated packages can be found in the subdirectory `./build/dist`.
 
-The top level Makefile is just a handy wrapper for:
-
-##### MinGW64:
-
-```sh
-$ mkdir build && cd build
-$ cmake -DCMAKE_BUILD_TYPE=release -DCMAKE_TOOLCHAIN_FILE=./cmake/linux-mingw64.cmake -S ..
-$ make
-```
-
-##### MinGW32:
-
-```sh
-$ mkdir build && cd build
-$ cmake -DCMAKE_BUILD_TYPE=release -DCMAKE_TOOLCHAIN_FILE=./cmake/linux-mingw32.cmake -S ..
-$ make
-```
-
-As an alternative you may also install
-- to a user folder e.g `$HOME` with `cd build/Release && make install DESTDIR=$HOME`
-- or system wide with `cd build/Release && sudo make install`.
-
-When installing system-wide, the dynamic library cache needs to be updated with the command `ldconfig`.
+As an option you may also install to an individual user-defined folder e.g `$HOME` with `make install DESTDIR=$HOME`.
 
 
-### Build a Debian Package
+#### Removal: 
 
-To build the debian package you need the following extra packages: `devscripts debhelper`.
+1. Run `make uninstall` to perform a clean uninstall of the package from the system.
+2. Run `make clean` to clean the build-folder within the project source and remove all compiled and linked files and libraries.
+
+
+### Cross-Building for Windows
+
+Install the following packages from your package repository:
+
+* `mingw-w64`
+* `mingw-w64-common`
+* `mingw-w64-i686-dev`
+* `mingw-w64-x86-64-dev`
+
+After following the steps for installation above, proceed with from the build dircetory itself:
 
 ```sh
-$ git archive --prefix=$(git describe)/ HEAD | bzip2 --stdout > ../libstlink_$(sed -En -e "s/.*\((.*)\).*/\1/" -e "1,1 p" debian/changelog).orig.tar.bz2
-$ debuild -uc -us
+$ sudo sh ./cmake/packaging/windows/generate_binaries.sh
 ```
 
+The generated zip-packages can be found in the subdirectory `./build/dist`.
 
-### Set permissions with udev
+
+### Set device access permissions and the role of udev
 
 By default most distributions don't allow access to USB devices.
-Therefore make sure you install udev files which are necessary to run the tools without root permissions.<br />
-udev rules create devices nodes and set the group of these to `stlink`.
+In this context udev rules, which create devices nodes, are necessary to run the tools without root permissions.
+To achieve this you need to ensure that the group `plugdev` exists and the user who is trying to access these devices is a member of this group.
 
-The rules are located in the subdirectory `config/udev/rules.d` within the sourcefolder and are automatically installed along with `sudo make install` on linux.
+Within the sourcefolder of the project, these rules are located in the subdirectory `config/udev/rules.d` and are automatically installed along with `sudo make install` on linux.
 Afterwards it may be necessary to reload the udev rules:
 
 ```sh
-$ cp etc/udev/rules.d /etc/udev/rules.d
-$ udevadm control --reload-rules
-$ udevadm trigger
+$ sudo cp -a config/udev/rules.d/* /etc/udev/rules.d/
+$ sudo udevadm control --reload-rules
+$ sudo udevadm trigger
 ```
 
-Udev will now create device node files `/dev/stlinkv2_XX`, `/dev/stlinkv1_XX`.<br />
-You need to ensure that the group `stlink` exists and the user who is trying to access these devices is a member of this group.
+udev will now create device node files, e.g. `/dev/stlinkv3_XX`, `/dev/stlinkv2_XX`, `/dev/stlinkv1_XX`.
 
 
-### Note on the use of STLink-v1 programmers (legacy):
+### Special note on the use of STLink/V1 programmers (legacy):
 
-As the STLINKv1's SCSI emulation is somehow broken, the best advice possibly is to tell your operating system to completely ignore it.<br />
+As the STLINKV1's SCSI emulation is somehow broken, the best advice possibly is to tell your operating system to completely ignore it.<br />
 Choose one of the following options _before_ connecting the device to your computer:
 
 * `modprobe -r usb-storage && modprobe usb-storage quirks=483:3744:i`
@@ -194,7 +188,6 @@ Then install the following dependencies from the package repository:
 * `git`
 * `gcc` or `llvm` (for clang) (C-compiler)
 * `cmake`
-* `pkg-config`
 * `libusb`
 * `gtk+3` or `gtk3` (_optional_, needed for `stlink-gui`)
 
@@ -219,8 +212,9 @@ To do this with only one simple command, type:
 ### Building
 
 1. Change into the project source directory: `cd stlink`
-2. Run `make release` to create the _Release_ target
-3. Run `make debug` to create the _Debug_ target (_optional_)<br />
+2. Run `make clean` to clean remnants of any previous builds.
+3. Run `make release` to create the _Release_ target
+4. Run `make debug` to create the _Debug_ target (_optional_)<br />
    The debug target is only necessary in order to modify the sources and to run under a debugger.
 
 

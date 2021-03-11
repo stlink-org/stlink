@@ -7,17 +7,19 @@ labels: ''
 
 Thank you for giving feedback to the stlink project.
 
-**NOTICE: Please read and follow instructions in #906 before submitting a ticket. This feature request will be deleted without notice when not enough information is provided! So please ensure that all fields are filled out.**
+**NOTICE: Please read and follow instructions in #906 before submitting a ticket.
+This feature request will be deleted without notice when not enough information is provided! So please ensure that all fields are filled out.**
 
 - [ ] I made serious effort to avoid creating duplicate or nearly similar issue
 
-In order to allow developers and other contributors to isolate and target your respective issue, please take some time to select the check boxes below and edit each item individually appropriate to your specific problem.
+In order to allow developers and other contributors to isolate and target your respective issue, please take some time to select the check boxes below
+and fill out each of the following items appropriate to your specific problem.
 
-- [ ] Programmer/board type: (e.g ST-Link/v1, ST-Link/v2, ST-Link/v2-onboard, ST-Link/v3)
-- [ ] Operating system: (e.g Linux, Mac OS X, Windows (with specific version))
-- [ ] Stlink tools version and/or git commit hash: (e.g v1.1.0/git-c722056)
-- [ ] Stlink commandline tool name: (e.g `st-info`, `st-flash`, `st-util`)
-- [ ] Target chip (and optional board): (e.g STM32F402VG (STM32Fxxx Discovery))
+- [ ] Programmer/board type: [enter here] (e.g STLink /V1, /V2, /V2-onboard, /V2-clone, /V3)
+- [ ] Operating system an version: [enter here] (e.g Linux, macOS, Windows)
+- [ ] **Stlink tools version** and/or git commit hash: [enter here] (e.g v1.6.1/git-d0416149)
+- [ ] Stlink commandline tool name: [enter here] (e.g `st-info`, `st-flash`, `st-util`)
+- [ ] Target chip (and board, if applicable): [enter here] (e.g STM32F103C8T6 (NUCLEO-F103RB))
 
 Futher we kindly ask you to describe the detected problem as detailed as possible and to add debug output if available, by using the following template:
 
