@@ -74,6 +74,7 @@ Karl Palsson [karlp]
 Kevlar Harness
 Kyle Manna
 Lari Lehtomäki
+Luuk van Dijk [lvdlvd]
 Martin Nowak
 Matteo Collina
 Max Chen

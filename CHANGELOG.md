@@ -16,14 +16,19 @@ Features:
 - Link for WIN32 & APPLE with stlink-static ([#1069](https://github.com/stlink-org/stlink/pull/1069))
 - Extended support for STM32H7 ([#1059](https://github.com/stlink-org/stlink/pull/1059), [#1063](https://github.com/stlink-org/stlink/pull/1063), [#1071](https://github.com/stlink-org/stlink/pull/1071))
 - ITM functionality for STLink/V2 and STM32Fxx chipsets ([#136](https://github.com/stlink-org/stlink/pull/136), [#179](https://github.com/stlink-org/stlink/pull/179), [#815](https://github.com/stlink-org/stlink/pull/815), [#1072](https://github.com/stlink-org/stlink/pull/1072))
+- Included ITM functionality for building with MSVC ([#1080](https://github.com/stlink-org/stlink/pull/1080))
 
 Updates & changes:
 
+- [doc] Added note on `(gdb) run` command (commit [#03793d4](https://github.com/stlink-org/stlink/commit/03793d42b6078344a9ef8ad55f1d5d0fc19e486e), [#276](https://github.com/stlink-org/stlink/pull/276))
 - [doc] `st-flash --reset` parameter (one solution for #356) ([#642](https://github.com/stlink-org/stlink/pull/642))
 - [refactoring] General maintenance ([#864](https://github.com/stlink-org/stlink/pull/864), [#976](https://github.com/stlink-org/stlink/pull/976), [#978](https://github.com/stlink-org/stlink/pull/978))
 - Imported debian pkg-settings ([#986](https://github.com/stlink-org/stlink/pull/986))
 - Add support for FreeBSD's `libusb` reimplementation ([#992](https://github.com/stlink-org/stlink/pull/992), [#993](https://github.com/stlink-org/stlink/pull/993))
+- [doc] Added explanation about STM32F103 fake chips (commit [#a66557a](https://github.com/stlink-org/stlink/commit/a66557a102d48e69feb0a9746e8e42c4baf31fe2), [#1024](https://github.com/stlink-org/stlink/pull/1024))
 - [doc] Added example for output of `st-info --probe` ([#1007](https://github.com/stlink-org/stlink/pull/1007), [#1049](https://github.com/stlink-org/stlink/pull/1049))
+- [refactoring] Correctly handle endianness without reference to host platform ([#1081](https://github.com/stlink-org/stlink/pull/1081))
+- Check format string for log messages ([#1093](https://github.com/stlink-org/stlink/pull/1093))
 
 Fixes:
 
@@ -33,7 +38,7 @@ Fixes:
 - Fixed installation path for desktop-file and icons ([#972](https://github.com/stlink-org/stlink/pull/972))
 - Fix for static linking of `libssp` ([#973](https://github.com/stlink-org/stlink/pull/973), [#974](https://github.com/stlink-org/stlink/pull/974))
 - [regression] Fixed wrong formatting for library install path ([#978](https://github.com/stlink-org/stlink/pull/978), [#1089](https://github.com/stlink-org/stlink/pull/1089))
-- Fixed installation of header files needed for compiling with `libstlink.so.1.6.1` ([#982](https://github.com/stlink-org/stlink/pull/982))
+- Fixed installation of header files needed for compiling with `libstlink.so.1.6.1` (commit [#31b1fa1](https://github.com/stlink-org/stlink/commit/31b1fa16201521e2aaf464576f2f169981abede0), [#982](https://github.com/stlink-org/stlink/pull/982))
 - Fixed `connect under reset` for `st-flash` and `st-util` ([#983](https://github.com/stlink-org/stlink/pull/983))
 - Fix for `mmap() size_t overflow` in `st-flash` ([#988](https://github.com/stlink-org/stlink/pull/988), [#989](https://github.com/stlink-org/stlink/pull/989))
 - [regression] `stlink-gui` installation issue on Ubuntu-18.04 ([#1001](https://github.com/stlink-org/stlink/pull/1001), [#1004](https://github.com/stlink-org/stlink/pull/1004), [#1006](https://github.com/stlink-org/stlink/pull/1006))
@@ -41,7 +46,9 @@ Fixes:
 - [doc] Fixed wrong path for `rules.d` folder ([#1020](https://github.com/stlink-org/stlink/pull/1020))
 - Use vl flashloader for all STM32F1 series ([#1041](https://github.com/stlink-org/stlink/pull/1041), [#1044](https://github.com/stlink-org/stlink/pull/1044))
 - Fixed `gettimeofday` for MSVC ([#1074](https://github.com/stlink-org/stlink/pull/1074))
+- Bugfixes for compilation with clang ([#1076](https://github.com/stlink-org/stlink/pull/1076), [#1078](https://github.com/stlink-org/stlink/pull/1078))
 - Fixed compilation with GCC 11 ([#1077](https://github.com/stlink-org/stlink/pull/1077))
+- [regression] Flash_loader: increased wait rounds for slow boards ([#1085](https://github.com/stlink-org/stlink/pull/1085))
 
 # v1.6.1
 
@@ -371,6 +378,7 @@ Updates and fixes:
 - Fixed STM32F2xx memory map (Nicolas Schodet)
 - Memory map for STM32F42xxx and STM32F43xxx devices (Craig Lilley)
 - Stm32l0x flash loader (Robin Kreis)
+- Use libusb synchronous api ([#194](https://github.com/stlink-org/stlink/pull/194), [#374](https://github.com/stlink-org/stlink/pull/374))
 - Fixed segfault when programmer is already busy and `NULL` pointers are in the list ([#256](https://github.com/stlink-org/stlink/pull/256), [#394](https://github.com/stlink-org/stlink/pull/394))
 - Send F4 memory-map and features for STM32F429 ([#188](https://github.com/stlink-org/stlink/pull/188), [#196](https://github.com/stlink-org/stlink/pull/196), [#250](https://github.com/stlink-org/stlink/pull/250), [#251](https://github.com/stlink-org/stlink/pull/251)) (Release v1.1.0)
 - Added AHB3 Peripherals definition for STM32F4 ([#218](https://github.com/stlink-org/stlink/pull/218), [#288](https://github.com/stlink-org/stlink/pull/288)) (Release v1.1.0)
