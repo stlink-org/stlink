@@ -301,7 +301,7 @@ int _stlink_usb_write_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
 
     if (ret == -1) { return(ret); }
 
-    ret = send_only(slu, 0, data, len);
+    ret = send_only(slu, 1, data, len);
 
     if (ret == -1) { return(ret); }
 
@@ -431,6 +431,8 @@ int _stlink_usb_status(stlink_t * sl) {
         } else {
             sl->core_stat = TARGET_UNKNOWN;
         }
+    } else {
+        sl->core_stat = TARGET_UNKNOWN;
     }
 
     return(0);
@@ -469,19 +471,14 @@ int _stlink_usb_enter_swd_mode(stlink_t * sl) {
     unsigned char* const cmd  = sl->c_buf;
     ssize_t size;
     unsigned char* const data = sl->q_buf;
-    const uint32_t rep_len = sl->version.stlink_v > 1 ? 2 : 0;
+    const uint32_t rep_len = sl->version.jtag_api == STLINK_JTAG_API_V1 ? 0 : 2;
     int i = fill_command(sl, SG_DXFER_FROM_DEV, rep_len);
 
     cmd[i++] = STLINK_DEBUG_COMMAND;
     // select correct API-Version for entering SWD mode: V1 API (0x20) or V2 API (0x30).
     cmd[i++] = sl->version.jtag_api == STLINK_JTAG_API_V1 ? STLINK_DEBUG_APIV1_ENTER : STLINK_DEBUG_APIV2_ENTER;
     cmd[i++] = STLINK_DEBUG_ENTER_SWD;
-
-    if (rep_len == 0) {
-        size = send_only(slu, 1, cmd, slu->cmd_len);
-    } else {
-        size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len);
-    }
+    size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len);
 
     if (size == -1) {
         printf("[!] send_recv STLINK_DEBUG_ENTER\n");
