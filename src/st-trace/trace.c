@@ -191,25 +191,8 @@ bool parse_options(int argc, char** argv, st_settings_t *settings) {
     return true;
 }
 
-static void convert_serial_number_text_to_binary(const char* text, char binary_out[STLINK_SERIAL_MAX_SIZE]) {
-    size_t length = 0;
-    for (uint32_t n = 0; n < strlen(text) && length < STLINK_SERIAL_MAX_SIZE; n += 2) {
-        char buffer[3] = { 0 };
-        memcpy(buffer, text + n, 2);
-        binary_out[length++] = (uint8_t)strtol(buffer, NULL, 16);
-    }
-}
-
 static stlink_t* stlink_connect(const st_settings_t* settings) {
-    if (settings->serial_number) {
-        // Open this specific stlink.
-        char binary_serial_number[STLINK_SERIAL_MAX_SIZE] = { 0 };
-        convert_serial_number_text_to_binary(settings->serial_number, binary_serial_number);
-        return stlink_open_usb(settings->logging_level, false, binary_serial_number, 0);
-    } else {
-        // Otherwise, open any stlink.
-        return stlink_open_usb(settings->logging_level, false, NULL, 0);
-    }
+	return stlink_open_usb(settings->logging_level, false, settings->serial_number, 0);
 }
 
 static bool enable_trace(stlink_t* stlink, const st_settings_t* settings, uint32_t trace_frequency) {

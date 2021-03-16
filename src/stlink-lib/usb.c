@@ -1159,7 +1159,44 @@ static stlink_backend_t _stlink_usb_backend = {
     _stlink_usb_read_trace
 };
 
-stlink_t *stlink_open_usb(enum ugly_loglevel verbose, int reset, char serial[STLINK_SERIAL_MAX_SIZE], int freq) {
+/* return the length of serial or (0) in case of errors */
+size_t stlink_serial(struct libusb_device_handle *handle, struct libusb_device_descriptor *desc, char *serial) {
+	unsigned char desc_serial[(STLINK_SERIAL_LENGTH) * 2];
+
+	/* truncate the string in the serial buffer */
+	serial[0] = '\0';
+
+	/* get the LANGID from String Descriptor Zero */
+	int ret = libusb_get_string_descriptor(handle, 0, 0, desc_serial, sizeof(desc_serial));
+	if (ret < 4) return 0;
+
+	uint32_t langid = desc_serial[2] | (desc_serial[3] << 8);
+
+	/* get the serial */
+	ret = libusb_get_string_descriptor(handle, desc->iSerialNumber, langid, desc_serial,
+		sizeof(desc_serial));
+	if (ret < 0) return 0; // could not read serial
+
+	unsigned char len = desc_serial[0];
+
+	if (len == ((STLINK_SERIAL_LENGTH + 1) * 2)) { /* len == 50 */
+		/* good ST-Link adapter */
+		ret = libusb_get_string_descriptor_ascii(
+			handle, desc->iSerialNumber, (unsigned char *)serial, STLINK_SERIAL_BUFFER_SIZE);
+		if (ret < 0) return 0;
+	} else if (len == ((STLINK_SERIAL_LENGTH / 2 + 1) * 2)) { /* len == 26 */
+		/* fix-up the buggy serial */
+		for (unsigned int i = 0; i < STLINK_SERIAL_LENGTH; i += 2)
+			sprintf(serial + i, "%02X", desc_serial[i + 2]);
+		serial[STLINK_SERIAL_LENGTH] = '\0';
+	} else {
+		return 0;
+	}
+
+	return strlen(serial);
+}
+
+stlink_t *stlink_open_usb(enum ugly_loglevel verbose, int reset, char serial[STLINK_SERIAL_BUFFER_SIZE], int freq) {
     stlink_t* sl = NULL;
     struct stlink_libusb* slu = NULL;
     int ret = -1;
@@ -1236,15 +1273,14 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, int reset, char serial[STL
 
         if (ret) { continue; } // could not open device
 
-        sl->serial_size = libusb_get_string_descriptor_ascii(
-            handle, desc.iSerialNumber, (unsigned char *)sl->serial, sizeof(sl->serial));
+        size_t serial_len = stlink_serial(handle, &desc, sl->serial);
 
         libusb_close(handle);
 
-        if (sl->serial_size < 0) { continue; } // could not read serial
+        if (serial_len != STLINK_SERIAL_LENGTH) { continue; } // could not read the serial
 
         // if no serial provided, or if serial match device, fixup version and protocol
-        if (((serial == NULL) || (*serial == 0)) || (memcmp(serial, &sl->serial, sl->serial_size) == 0)) {
+        if (((serial == NULL) || (*serial == 0)) || (memcmp(serial, &sl->serial, STLINK_SERIAL_LENGTH) == 0)) {
             if (STLINK_V1_USB_PID(desc.idProduct)) {
                 slu->protocoll = 1;
                 sl->version.stlink_v = 1;
@@ -1433,7 +1469,7 @@ static size_t stlink_probe_usb_devs(libusb_device **devs, stlink_t **sldevs[]) {
         if (!STLINK_SUPPORTED_USB_PID(desc.idProduct)) { continue; }
 
         struct libusb_device_handle* handle;
-        char serial[STLINK_SERIAL_MAX_SIZE] = {0, };
+        char serial[STLINK_SERIAL_BUFFER_SIZE] = {0, };
 
         ret = libusb_open(dev, &handle);
 
@@ -1447,11 +1483,11 @@ static size_t stlink_probe_usb_devs(libusb_device **devs, stlink_t **sldevs[]) {
             break;
         }
 
-        ret = libusb_get_string_descriptor_ascii(handle, desc.iSerialNumber, (unsigned char *)&serial, sizeof(serial));
+        size_t serial_len = stlink_serial(handle, &desc, serial);
 
         libusb_close(handle);
 
-        if (ret < 0) { continue; }
+        if (serial_len != STLINK_SERIAL_LENGTH) { continue; }
 
         stlink_t *sl = stlink_open_usb(0, 1, serial, 0);
 
