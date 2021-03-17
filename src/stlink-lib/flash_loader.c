@@ -3,6 +3,7 @@
 #include <unistd.h>
 
 #include <stlink.h>
+#include <helper.h>
 #include "flash_loader.h"
 
 #define FLASH_REGS_BANK2_OFS 0x40
@@ -313,7 +314,7 @@ int stlink_flash_loader_write_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* 
 
 int stlink_flash_loader_run(stlink_t *sl, flash_loader_t* fl, stm32_addr_t target, const uint8_t* buf, size_t size) {
     struct stlink_reg rr;
-    int i = 0;
+    unsigned timeout;
     size_t count = 0;
     uint32_t flash_base = 0;
     const char *error = NULL;
@@ -368,16 +369,19 @@ int stlink_flash_loader_run(stlink_t *sl, flash_loader_t* fl, stm32_addr_t targe
  * the OS uses, the wait until the error message is reduced to the same order of magnitude
  * as what was intended. -- REW.
  */
-#define WAIT_ROUNDS 40
 
     // wait until done (reaches breakpoint)
-    for (i = 0; i < WAIT_ROUNDS; i++) {
+    timeout = time_ms() + 500;
+    while (time_ms() < timeout) {
         usleep(10000);
 
-        if (stlink_is_core_halted(sl)) { break; }
+        if (stlink_is_core_halted(sl)) {
+			timeout = 0;
+			break;
+		}
     }
 
-    if (i >= WAIT_ROUNDS) {
+    if (timeout) {
         error = "Flash loader run error";
         goto error;
     }
