@@ -46,7 +46,7 @@ reset
 :   TODO
 
 \--reset
-:   TODO
+:   Trigger a reset both before and after flashing
 
 \--opt
 :   Enable ignore ending empty bytes optimization
