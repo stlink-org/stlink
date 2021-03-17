@@ -20,7 +20,7 @@ Features:
 
 Updates & changes:
 
-- [doc] Added note on `(gdb) run` command (commit [#03793d4](https://github.com/stlink-org/stlink/commit/03793d42b6078344a9ef8ad55f1d5d0fc19e486e), [#276](https://github.com/stlink-org/stlink/pull/276))
+- [doc] Added note on `(gdb) run` command (commit [#03793d4](https://github.com/stlink-org/stlink/commit/03793d42b6078344a9ef8ad55f1d5d0fc19e486e), [#267](https://github.com/stlink-org/stlink/pull/267))
 - [doc] `st-flash --reset` parameter (one solution for #356) ([#642](https://github.com/stlink-org/stlink/pull/642))
 - [refactoring] General maintenance ([#864](https://github.com/stlink-org/stlink/pull/864), [#976](https://github.com/stlink-org/stlink/pull/976), [#978](https://github.com/stlink-org/stlink/pull/978))
 - Imported debian pkg-settings ([#986](https://github.com/stlink-org/stlink/pull/986))
@@ -42,13 +42,17 @@ Fixes:
 - Fixed `connect under reset` for `st-flash` and `st-util` ([#983](https://github.com/stlink-org/stlink/pull/983))
 - Fix for `mmap() size_t overflow` in `st-flash` ([#988](https://github.com/stlink-org/stlink/pull/988), [#989](https://github.com/stlink-org/stlink/pull/989))
 - [regression] `stlink-gui` installation issue on Ubuntu-18.04 ([#1001](https://github.com/stlink-org/stlink/pull/1001), [#1004](https://github.com/stlink-org/stlink/pull/1004), [#1006](https://github.com/stlink-org/stlink/pull/1006))
-- `st-util`: wrong register values passed to `gdb` (STLink/V2) ([#1002](https://github.com/stlink-org/stlink/pull/1002), [#1011](https://github.com/stlink-org/stlink/pull/1011), [#1026](https://github.com/stlink-org/stlink/pull/1026), [#1027](https://github.com/stlink-org/stlink/pull/1027))
+- `st-util`: wrong register values passed to `gdb` (STLink/V2) ([#1002](https://github.com/stlink-org/stlink/pull/1002), [#1011](https://github.com/stlink-org/stlink/pull/1011), [#1026](https://github.com/stlink-org/stlink/pull/1026), [#1027](https://github.com/stlink-org/stlink/pull/1027), [#1064](https://github.com/stlink-org/stlink/pull/1064), [#1065](https://github.com/stlink-org/stlink/pull/1065))
 - [doc] Fixed wrong path for `rules.d` folder ([#1020](https://github.com/stlink-org/stlink/pull/1020))
 - Use vl flashloader for all STM32F1 series ([#1041](https://github.com/stlink-org/stlink/pull/1041), [#1044](https://github.com/stlink-org/stlink/pull/1044))
+- st-util v1.6.1 does not recognize option --freq (commit [#e576768](https://github.com/stlink-org/stlink/commit/e5767681f14de9851aa970a9299930ca68b2ed92), [#1055](https://github.com/stlink-org/stlink/pull/1055))
 - Fixed `gettimeofday` for MSVC ([#1074](https://github.com/stlink-org/stlink/pull/1074))
 - Bugfixes for compilation with clang ([#1076](https://github.com/stlink-org/stlink/pull/1076), [#1078](https://github.com/stlink-org/stlink/pull/1078))
 - Fixed compilation with GCC 11 ([#1077](https://github.com/stlink-org/stlink/pull/1077))
 - [regression] Flash_loader: increased wait rounds for slow boards ([#1085](https://github.com/stlink-org/stlink/pull/1085))
+- Fixed support for writing option bytes ([#1102](https://github.com/stlink-org/stlink/pull/1102))
+- [doc] Corrected spelling mistake in bug report template ([#1103](https://github.com/stlink-org/stlink/pull/1103))
+- Fixed support for STLINK/V1 programmer ([#1045](https://github.com/stlink-org/stlink/pull/1045), [#1105](https://github.com/stlink-org/stlink/pull/1105))
 
 # v1.6.1
 
@@ -380,8 +384,10 @@ Updates and fixes:
 - Stm32l0x flash loader (Robin Kreis)
 - Use libusb synchronous api ([#194](https://github.com/stlink-org/stlink/pull/194), [#374](https://github.com/stlink-org/stlink/pull/374))
 - Fixed segfault when programmer is already busy and `NULL` pointers are in the list ([#256](https://github.com/stlink-org/stlink/pull/256), [#394](https://github.com/stlink-org/stlink/pull/394))
+- Fixed issue where "unknown chip id!" was seen every other time ([#352](https://github.com/stlink-org/stlink/pull/352), [#367](https://github.com/stlink-org/stlink/pull/367), [#381](https://github.com/stlink-org/stlink/pull/381))
 - Send F4 memory-map and features for STM32F429 ([#188](https://github.com/stlink-org/stlink/pull/188), [#196](https://github.com/stlink-org/stlink/pull/196), [#250](https://github.com/stlink-org/stlink/pull/250), [#251](https://github.com/stlink-org/stlink/pull/251)) (Release v1.1.0)
 - Added AHB3 Peripherals definition for STM32F4 ([#218](https://github.com/stlink-org/stlink/pull/218), [#288](https://github.com/stlink-org/stlink/pull/288)) (Release v1.1.0)
+- Reset: st-flash does not work when CPU is in sleep mode ([#62](https://github.com/stlink-org/stlink/pull/62)) (Release v1.0.0)
 - Corrected flash size register address for STM32F2 devices ([#278](https://github.com/stlink-org/stlink/pull/278)) (Release v1.0.0)
 
 Chip support added for:
