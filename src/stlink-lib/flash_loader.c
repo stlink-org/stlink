@@ -293,7 +293,6 @@ int stlink_flash_loader_run(stlink_t *sl, flash_loader_t* fl, stm32_addr_t targe
     struct stlink_reg rr;
     unsigned timeout;
     uint32_t flash_base = 0;
-    const char *error = NULL;
     uint32_t dhcsr, dfsr, cfsr, hfsr;
 
     DLOG("Running flash loader, write address:%#x, size: %u\n", target, (unsigned int)size);
@@ -342,7 +341,7 @@ int stlink_flash_loader_run(stlink_t *sl, flash_loader_t* fl, stm32_addr_t targe
     }
 
     if (timeout) {
-        error = "Flash loader run error";
+        ELOG("Flash loader run error\n");
         goto error;
     }
 
@@ -350,7 +349,7 @@ int stlink_flash_loader_run(stlink_t *sl, flash_loader_t* fl, stm32_addr_t targe
     stlink_read_reg(sl, 2, &rr);
 
     if (rr.r[2] != 0) {
-        error = "Write error";
+        ELOG("Write error\n");
         goto error;
     }
 
@@ -363,8 +362,12 @@ error:
     stlink_read_debug32(sl, STLINK_REG_CFSR, &cfsr);
     stlink_read_debug32(sl, STLINK_REG_HFSR, &hfsr);
     stlink_read_all_regs(sl, &rr);
-    ELOG("%s (R2 0x%X R15 0x%X DHCSR 0x%X DFSR 0x%X CFSR 0x%X HFSR 0x%X)\n", error, rr.r[2], rr.r[15], dhcsr, dfsr, cfsr, hfsr);
-    ELOG("(R0 0x%X R1 0x%X)\n", rr.r[0], rr.r[1]);
+
+    WLOG("Loader state: R2 0x%X R15 0x%X\n", rr.r[2], rr.r[15]);
+    if (dhcsr != 0x3000B || dfsr != 0x3 || cfsr || hfsr) {
+        WLOG("MCU state: DHCSR 0x%X DFSR 0x%X CFSR 0x%X HFSR 0x%X\n",
+            dhcsr, dfsr, cfsr, hfsr);
+    }
 
     return(-1);
 }
