@@ -19,6 +19,12 @@
 #define STLINK_REG_CM3_DWT_FUNn(n)          (0xE0001028 + n*16)
 
 /* Cortex™-M3 Technical Reference Manual */
+/* Configurable Fault Status Register */
+#define STLINK_REG_CFSR                     0xE000ED28
+
+/* Hard Fault Status Register */
+#define STLINK_REG_HFSR                     0xE000ED2C
+
 /* Debug Halting Control and Status Register */
 #define STLINK_REG_DFSR                     0xE000ED30
 #define STLINK_REG_DFSR_HALT                (1 << 0)
