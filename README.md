@@ -17,21 +17,24 @@ The stlink library and tools are licensed under the **[BSD-3 License](LICENSE.md
 
 ## Introduction
 
-STLink is an open source toolset to program and debug STM32 devices and boards manufactured by STMicroelectronics.
+stlink is an open source toolset to program and debug STM32 devices and boards manufactured by STMicroelectronics.
 It supports several so called STLINK programmer boards (and clones thereof) which use a microcontroller chip to translate commands from USB to JTAG/SWD. There are four generations available on the market which are _all_ supported by this toolset:
 
 - **STLINK/V1** _[obsolete as of 21-11-2019, continued support by this toolset] \*)_
   - transport layer: SCSI passthru commands over USB
-  - stand-alone programmer and present on STM32VL Discovery boards
+  - stand-alone programmer
+  - on-board on STM32VL Discovery boards
 - **STLINK/V2**
   - transport layer: raw USB commands
-  - stand-alone programmer and present on STM32L Discovery and Nucleo boards
+  - stand-alone programmer
+  - on-board on STM32L Discovery and STM32 Nucleo boards
 - **STLINK/V2-1**
   - transport layer: raw USB commands
-  - present on some STM32 Nucleo boards
-- **STLINK/V3**
+  - on-board on some STM32 Nucleo boards
+- **STLINK-V3**
   - transport layer: raw USB commands
-  - stand-alone programmer
+  - stand-alone programmer (STLINK-V3SET, STLINK-V3MINI, STLINK-V3MODS)
+  - on-board on some STM32 Nucleo boards
 
 _\*)_ **Note: Support for the STLINK/V1 on macOS is limited to 10.14 - 10.15. Due to the deprecation and removal of macOS Kernel Extensions (KEXT) there will be no support for this programmer on macOS 11 or any later version.**
 
@@ -51,9 +54,6 @@ The STlink toolset includes:
 Currently known working combinations of programmers and targets are listed in [devices_boards.md](doc/devices_boards.md).
 
 Supported operating systems are listed in [version_support.md](doc/version_support.md).
-
-The `stlink` toolset continues to maintain backwards compatibility with the **STLINK/v1** programmer.<br />
-Please note that on macOS this support is limited to versions 10.13 - 10.15.
 
 ## Tutorial & HOWTO
 

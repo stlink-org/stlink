@@ -7,6 +7,7 @@ Release date: (TBD)
 Features:
 
 - Added support for STM32H742/743/753 ([#671](https://github.com/stlink-org/stlink/pull/671), [#793](https://github.com/stlink-org/stlink/pull/793), [#823](https://github.com/stlink-org/stlink/pull/823), [#998](https://github.com/stlink-org/stlink/pull/998), [#1052](https://github.com/stlink-org/stlink/pull/1052))
+- Official support for STLINK-V3 programmers ([#820](https://github.com/stlink-org/stlink/pull/820), [#1022](https://github.com/stlink-org/stlink/pull/1022), [#1025](https://github.com/stlink-org/stlink/pull/1025))
 - Added preliminary support for STM32L5x2 ([#904](https://github.com/stlink-org/stlink/pull/904), [#999](https://github.com/stlink-org/stlink/pull/999))
 - Option bytes on the STM32F767 ZIT6 Nucleo-144 ([#968](https://github.com/stlink-org/stlink/pull/968), [#997](https://github.com/stlink-org/stlink/pull/997))
 - Use SetConsoleCtrlHandler for Windows ([#1021](https://github.com/stlink-org/stlink/pull/1021))
@@ -32,6 +33,7 @@ Updates & changes:
 
 Fixes:
 
+- Fixed old DFU serial number for STLINK programmers ([#417](https://github.com/stlink-org/stlink/pull/417), [#494](https://github.com/stlink-org/stlink/pull/494), [#1106](https://github.com/stlink-org/stlink/pull/1106))
 - [regression] Changed timeout on flash write ([#787](https://github.com/stlink-org/stlink/pull/787), [#981](https://github.com/stlink-org/stlink/pull/981), [#987](https://github.com/stlink-org/stlink/pull/987))
 - cmake compile failure with external `CMAKE_MODULE_PATH` set ([#962](https://github.com/stlink-org/stlink/pull/962))
 - doc/man: Fixed installation directory ([#970](https://github.com/stlink-org/stlink/pull/970))
@@ -53,6 +55,7 @@ Fixes:
 - Fixed support for writing option bytes ([#1102](https://github.com/stlink-org/stlink/pull/1102))
 - [doc] Corrected spelling mistake in bug report template ([#1103](https://github.com/stlink-org/stlink/pull/1103))
 - Fixed support for STLINK/V1 programmer ([#1045](https://github.com/stlink-org/stlink/pull/1045), [#1105](https://github.com/stlink-org/stlink/pull/1105))
+- Fixed STM32WB55 reading DEBUG IDCODE from the wrong address ([#1100](https://github.com/stlink-org/stlink/pull/1100), [#1101](https://github.com/stlink-org/stlink/pull/1101))
 
 # v1.6.1
 
