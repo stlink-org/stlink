@@ -288,7 +288,7 @@ winsock_error:
     return(0);
 }
 
-static const char* const target_description_F4 =
+static const char* const target_description =
     "<?xml version=\"1.0\"?>"
     "<!DOCTYPE target SYSTEM \"gdb-target.dtd\">"
     "<target version=\"1.0\">"
@@ -1178,13 +1178,7 @@ int serve(stlink_t *sl, st_state_t *st) {
             DLOG("query: %s;%s\n", queryName, params);
 
             if (!strcmp(queryName, "Supported")) {
-                if (sl->chip_id == STLINK_CHIPID_STM32_F4 ||
-                    sl->chip_id == STLINK_CHIPID_STM32_F4_HD ||
-                    sl->core_id == STM32F7_CORE_ID) {
-                    reply = strdup("PacketSize=3fff;qXfer:memory-map:read+;qXfer:features:read+");
-                } else {
-                    reply = strdup("PacketSize=3fff;qXfer:memory-map:read+");
-                }
+                reply = strdup("PacketSize=3fff;qXfer:memory-map:read+;qXfer:features:read+");
             } else if (!strcmp(queryName, "Xfer")) {
                 char *type, *op, *__s_addr, *s_length;
                 char *tok = params;
@@ -1202,14 +1196,15 @@ int serve(stlink_t *sl, st_state_t *st) {
                 DLOG("Xfer: type:%s;op:%s;annex:%s;addr:%d;length:%d\n",
                      type, op, annex, addr, length);
 
-                const char* data = NULL;
-
-                if (!strcmp(type, "memory-map") && !strcmp(op, "read")) {
+                const char* data;
+                if (strcmp(op, "read")) {
+                    data = NULL;
+                } else if (!strcmp(type, "memory-map")) {
                     data = current_memory_map;
-                }
-
-                if (!strcmp(type, "features") && !strcmp(op, "read")) {
-                    data = target_description_F4;
+                } else if (!strcmp(type, "features")) {
+                    data = target_description;
+                } else {
+                    data = NULL;
                 }
 
                 if (data) {
@@ -1592,7 +1587,7 @@ int serve(stlink_t *sl, st_state_t *st) {
                 reply = strdup("E00");
             }
 
-            if (ret) { DLOG("p packet: stlink_read_unsupported_reg failed with id %u\n", id); }
+            if (ret) { DLOG("p packet: could not read register with id %u\n", id); }
 
             if (reply == NULL) {
                 // if reply is set to "E00", skip
