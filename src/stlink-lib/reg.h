@@ -3,6 +3,11 @@
 
 #define STLINK_REG_CM3_CPUID                0xE000ED00
 
+#define STLINK_REG_CMx_CPUID_CM0            0x410CC200
+#define STLINK_REG_CMx_CPUID_CM3            0x412FC230
+#define STLINK_REG_CMx_CPUID_CM7            0x411FC272
+
+
 #define STLINK_REG_CM3_FP_CTRL              0xE0002000 // Flash Patch Control Register
 #define STLINK_REG_CM3_FP_COMPn(n)          (0xE0002008 + n*4)
 #define STLINK_REG_CM3_FP_CTRL_KEY          (1 << 1)

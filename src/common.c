@@ -1221,21 +1221,23 @@ int stlink_core_id(stlink_t *sl) {
 int stlink_chip_id(stlink_t *sl, uint32_t *chip_id) {
     int ret;
 
-    if (sl->core_id == STM32H7_CORE_ID) {
+    uint32_t cpu_id;
+    *chip_id = 0;
+    ret = -1;
+
+    // Read the CPU ID to determine where to read the core id from
+    if (stlink_read_debug32(sl, STLINK_REG_CM3_CPUID, &cpu_id))
+        cpu_id = 0;
+
+    // If the chip is an H7, read the chipid from the new address
+    if (sl->core_id == STM32H7_CORE_ID && cpu_id == STLINK_REG_CMx_CPUID_CM7) {
         // STM32H7 chipid in 0x5c001000 (RM0433 pg3189)
         ret = stlink_read_debug32(sl, 0x5c001000, chip_id);
-    } else {
-        // default chipid address
-        ret = stlink_read_debug32(sl, 0xE0042000, chip_id);
-    }
-
-    if (ret == -1) {
-        return(ret);
     }
 
     if (*chip_id == 0) {
-        // STM32H7 chipid in 0x5c001000 (RM0433 pg3189)
-        ret = stlink_read_debug32(sl, 0x5c001000, chip_id);
+        // default chipid address
+        ret = stlink_read_debug32(sl, 0xE0042000, chip_id);
     }
 
     if (*chip_id == 0) {
