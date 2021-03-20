@@ -817,10 +817,11 @@ static int flash_add_block(stm32_addr_t addr, unsigned length, stlink_t *sl) {
     }
 
     struct flash_block* new = malloc(sizeof(struct flash_block));
-    new->next = flash_root;
+    new->next   = flash_root;
     new->addr   = addr;
     new->length = length;
-    new->data   = calloc(length, 1);
+    new->data   = malloc(length);
+    memset(new->data, stlink_get_erased_pattern(sl), length);
 
     flash_root = new;
     return(0);
