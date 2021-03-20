@@ -14,7 +14,7 @@ enum flash_format {FLASH_FORMAT_BINARY = 0, FLASH_FORMAT_IHEX = 1};
 enum flash_area {FLASH_MAIN_MEMORY = 0, FLASH_SYSTEM_MEMORY = 1, FLASH_OTP = 2, FLASH_OPTION_BYTES = 3, FLASH_OPTION_BYTES_BOOT_ADD = 4, FLASH_OPTCR = 5, FLASH_OPTCR1 = 6};
 struct flash_opts {
     enum flash_cmd cmd;
-    uint8_t serial[STLINK_SERIAL_MAX_SIZE];
+    uint8_t serial[STLINK_SERIAL_BUFFER_SIZE];
     const char* filename;
     stm32_addr_t addr;
     size_t size;

@@ -79,7 +79,8 @@ enum target_state {
 #define STLINK_SWDCLK_15KHZ_DIVISOR     265
 #define STLINK_SWDCLK_5KHZ_DIVISOR      798
 
-#define STLINK_SERIAL_MAX_SIZE           64
+#define STLINK_SERIAL_LENGTH             24
+#define STLINK_SERIAL_BUFFER_SIZE        (STLINK_SERIAL_LENGTH + 1)
 
 #define STLINK_V3_MAX_FREQ_NB            10
 
@@ -191,8 +192,7 @@ struct _stlink {
     uint32_t chip_id;            // set by stlink_load_device_params(), used to identify flash and sram
     enum target_state core_stat; // set by stlink_status()
 
-    char serial[STLINK_SERIAL_MAX_SIZE];
-    int serial_size;
+    char serial[STLINK_SERIAL_BUFFER_SIZE];
     int freq;                    // set by stlink_open_usb(), values: STLINK_SWDCLK_xxx_DIVISOR
 
     enum stlink_flash_type flash_type;

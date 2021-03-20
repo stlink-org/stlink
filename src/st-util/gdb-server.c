@@ -43,7 +43,7 @@
 static stlink_t *connected_stlink = NULL;
 static bool semihosting = false;
 static bool serial_specified = false;
-static char serialnumber[STLINK_SERIAL_MAX_SIZE] = {0};
+static char serialnumber[STLINK_SERIAL_BUFFER_SIZE] = {0};
 
 #if defined(_WIN32)
 #define close_socket win32_close_socket
@@ -192,20 +192,7 @@ int parse_options(int argc, char** argv, st_state_t *st) {
             break;
         case SERIAL_OPTION:
             printf("use serial %s\n", optarg);
-            /* TODO: This is not really portable, as strlen really returns size_t,
-             * we need to obey and not cast it to a signed type.
-             */
-            int j = (int)strlen(optarg);
-            int length = j / 2;      // the length of the destination-array
-
-            if (j % 2 != 0) { return(-1); }
-
-            for (size_t k = 0; j >= 0 && k < sizeof(serialnumber); ++k, j -= 2) {
-                char buffer[3] = {0};
-                memcpy(buffer, optarg + j, 2);
-                serialnumber[length - k] = (uint8_t)strtol(buffer, NULL, 16);
-            }
-
+            memcpy(serialnumber, optarg, STLINK_SERIAL_BUFFER_SIZE);
             serial_specified = true;
             break;
         }

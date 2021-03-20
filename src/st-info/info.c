@@ -9,30 +9,11 @@ static void usage(void) {
     puts("st-info --version");
     puts("st-info --probe");
     puts("st-info --serial");
-    puts("st-info --hla-serial");
     puts("st-info --flash  [--connect-under-reset]");
     puts("st-info --pagesize  [--connect-under-reset]");
     puts("st-info --sram  [--connect-under-reset]");
     puts("st-info --chipid  [--connect-under-reset]");
     puts("st-info --descr  [--connect-under-reset]");
-}
-
-/* Print normal or OpenOCD hla_serial with newline */
-static void stlink_print_serial(stlink_t *sl, bool openocd) {
-    const char *fmt;
-
-    if (openocd) {
-        printf("\"");
-        fmt = "\\x%02x";
-    } else {
-        fmt = "%02x";
-    }
-
-    for (int n = 0; n < sl->serial_size; n++) { printf(fmt, sl->serial[n]); }
-
-    if (openocd) { printf("\""); }
-
-    printf("\n");
 }
 
 static void stlink_print_version(stlink_t *sl) {
@@ -53,10 +34,7 @@ static void stlink_print_info(stlink_t *sl) {
 
     printf("  version:    ");
     stlink_print_version(sl);
-    printf("  serial:     ");
-    stlink_print_serial(sl, false);
-    printf("  hla-serial: ");
-    stlink_print_serial(sl, true);
+    printf("  serial:     %s\n", sl->serial);
     printf("  flash:      %u (pagesize: %u)\n",
            (uint32_t)sl->flash_size, (uint32_t)sl->flash_pgsz);
     printf("  sram:       %u\n", (uint32_t)sl->sram_size);
@@ -131,9 +109,7 @@ static int print_data(int ac, char **av) {
     if (stlink_current_mode(sl) != STLINK_DEV_DEBUG_MODE) { stlink_enter_swd_mode(sl); }
 
     if (strcmp(av[1], "--serial") == 0) {
-        stlink_print_serial(sl, false);
-    } else if (strcmp(av[1], "--hla-serial") == 0) {
-        stlink_print_serial(sl, true);
+        printf("%s\n", sl->serial);
     } else if (strcmp(av[1], "--flash") == 0) {
         printf("0x%x\n", (uint32_t)sl->flash_size);
     } else if (strcmp(av[1], "--pagesize") == 0) {
