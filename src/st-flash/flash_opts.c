@@ -106,18 +106,8 @@ int flash_get_opts(struct flash_opts* o, int ac, char** av) {
                 serial = av[0] + strlen("--serial=");
             }
 
-            /** @todo This is not really portable, as strlen really returns size_t we need to obey
-                      and not cast it to a signed type. */
-            int j = (int)strlen(serial);
-            int length = j / 2; // the length of the destination-array
+            memcpy(o->serial, serial, STLINK_SERIAL_BUFFER_SIZE);
 
-            if (j % 2 != 0) { return(-1); }
-
-            for (size_t k = 0; j >= 0 && k < sizeof(o->serial); ++k, j -= 2) {
-                char buffer[3] = {0};
-                memcpy(buffer, serial + j, 2);
-                o->serial[length - k] = (uint8_t)strtol(buffer, NULL, 16);
-            }
         } else if (strcmp(av[0], "--area") == 0 || starts_with(av[0], "--area=")) {
             const char * area;
 
@@ -328,21 +318,14 @@ int flash_get_opts(struct flash_opts* o, int ac, char** av) {
 
     case FLASH_CMD_WRITE:
         // TODO: should be boot add 0 and boot add 1 uint32
-        if (o->area == FLASH_OPTION_BYTES) { // expect filename and optional address
-            if (ac >=1 && ac <= 2) {
-                o->filename = av[0];
+        if (o->area == FLASH_OPTION_BYTES) { // expect option byte value
+            if (ac != 1) { return invalid_args("option byte write <value>"); }
+            uint32_t val;
+            result = get_integer_from_char_array(av[0], &val);
+            if (result != 0) {
+                return bad_arg ("val");
             } else {
-                return invalid_args("write <path> [addr]");
-            }
-
-            if (ac == 2) {
-                uint32_t addr;
-                result = get_integer_from_char_array(av[1], &addr);
-                if (result != 0) {
-                    return bad_arg ("addr");
-                } else {
-                    o->addr = (stm32_addr_t) addr;
-                }
+                o->val = (uint32_t) val;
             }
         } else if (o->area == FLASH_OPTION_BYTES_BOOT_ADD) { // expect option bytes boot address
             if (ac != 1) { return invalid_args("option bytes boot_add write <value>"); }

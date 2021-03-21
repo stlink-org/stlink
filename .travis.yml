@@ -129,6 +129,8 @@ jobs:
     ### macOS ###
     - os: osx
       env: BADGE=osx
+      osx_image: xcode12.2
+      name: macOS 10.15.7
       compiler: gcc
       addons:
         homebrew:
@@ -138,6 +140,8 @@ jobs:
             - gtk+3
     - os: osx
       env: BADGE=osx
+      osx_image: xcode12.2
+      name: macOS 10.15.7
       compiler: clang
       addons:
         homebrew:

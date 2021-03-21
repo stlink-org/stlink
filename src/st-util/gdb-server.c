@@ -43,7 +43,7 @@
 static stlink_t *connected_stlink = NULL;
 static bool semihosting = false;
 static bool serial_specified = false;
-static char serialnumber[STLINK_SERIAL_MAX_SIZE] = {0};
+static char serialnumber[STLINK_SERIAL_BUFFER_SIZE] = {0};
 
 #if defined(_WIN32)
 #define close_socket win32_close_socket
@@ -192,20 +192,7 @@ int parse_options(int argc, char** argv, st_state_t *st) {
             break;
         case SERIAL_OPTION:
             printf("use serial %s\n", optarg);
-            /* TODO: This is not really portable, as strlen really returns size_t,
-             * we need to obey and not cast it to a signed type.
-             */
-            int j = (int)strlen(optarg);
-            int length = j / 2;      // the length of the destination-array
-
-            if (j % 2 != 0) { return(-1); }
-
-            for (size_t k = 0; j >= 0 && k < sizeof(serialnumber); ++k, j -= 2) {
-                char buffer[3] = {0};
-                memcpy(buffer, optarg + j, 2);
-                serialnumber[length - k] = (uint8_t)strtol(buffer, NULL, 16);
-            }
-
+            memcpy(serialnumber, optarg, STLINK_SERIAL_BUFFER_SIZE);
             serial_specified = true;
             break;
         }
@@ -288,7 +275,7 @@ winsock_error:
     return(0);
 }
 
-static const char* const target_description_F4 =
+static const char* const target_description =
     "<?xml version=\"1.0\"?>"
     "<!DOCTYPE target SYSTEM \"gdb-target.dtd\">"
     "<target version=\"1.0\">"
@@ -817,10 +804,11 @@ static int flash_add_block(stm32_addr_t addr, unsigned length, stlink_t *sl) {
     }
 
     struct flash_block* new = malloc(sizeof(struct flash_block));
-    new->next = flash_root;
+    new->next   = flash_root;
     new->addr   = addr;
     new->length = length;
-    new->data   = calloc(length, 1);
+    new->data   = malloc(length);
+    memset(new->data, stlink_get_erased_pattern(sl), length);
 
     flash_root = new;
     return(0);
@@ -1178,13 +1166,7 @@ int serve(stlink_t *sl, st_state_t *st) {
             DLOG("query: %s;%s\n", queryName, params);
 
             if (!strcmp(queryName, "Supported")) {
-                if (sl->chip_id == STLINK_CHIPID_STM32_F4 ||
-                    sl->chip_id == STLINK_CHIPID_STM32_F4_HD ||
-                    sl->core_id == STM32F7_CORE_ID) {
-                    reply = strdup("PacketSize=3fff;qXfer:memory-map:read+;qXfer:features:read+");
-                } else {
-                    reply = strdup("PacketSize=3fff;qXfer:memory-map:read+");
-                }
+                reply = strdup("PacketSize=3fff;qXfer:memory-map:read+;qXfer:features:read+");
             } else if (!strcmp(queryName, "Xfer")) {
                 char *type, *op, *__s_addr, *s_length;
                 char *tok = params;
@@ -1202,14 +1184,15 @@ int serve(stlink_t *sl, st_state_t *st) {
                 DLOG("Xfer: type:%s;op:%s;annex:%s;addr:%d;length:%d\n",
                      type, op, annex, addr, length);
 
-                const char* data = NULL;
-
-                if (!strcmp(type, "memory-map") && !strcmp(op, "read")) {
+                const char* data;
+                if (strcmp(op, "read")) {
+                    data = NULL;
+                } else if (!strcmp(type, "memory-map")) {
                     data = current_memory_map;
-                }
-
-                if (!strcmp(type, "features") && !strcmp(op, "read")) {
-                    data = target_description_F4;
+                } else if (!strcmp(type, "features")) {
+                    data = target_description;
+                } else {
+                    data = NULL;
                 }
 
                 if (data) {
@@ -1592,7 +1575,7 @@ int serve(stlink_t *sl, st_state_t *st) {
                 reply = strdup("E00");
             }
 
-            if (ret) { DLOG("p packet: stlink_read_unsupported_reg failed with id %u\n", id); }
+            if (ret) { DLOG("p packet: could not read register with id %u\n", id); }
 
             if (reply == NULL) {
                 // if reply is set to "E00", skip
