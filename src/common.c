@@ -1229,20 +1229,43 @@ int stlink_chip_id(stlink_t *sl, uint32_t *chip_id) {
     if (stlink_read_debug32(sl, STLINK_REG_CM3_CPUID, &cpu_id))
         cpu_id = 0;
 
-    // If the chip is an H7, read the chipid from the new address
-    if (sl->core_id == STM32H7_CORE_ID && cpu_id == STLINK_REG_CMx_CPUID_CM7) {
+    /*
+     * the chip_id register in the reference manual have
+     * DBGMCU_IDCODE / DBG_IDCODE name
+     *
+     */
+
+    uint32_t part_no = STLINK_REG_CM3_CPUID_PARTNO(cpu_id);
+    if ((sl->core_id == STM32H7_CORE_ID ||
+            sl->core_id == STM32H7_CORE_ID_JTAG) &&
+            part_no == STLINK_REG_CMx_CPUID_PARTNO_CM7) {
         // STM32H7 chipid in 0x5c001000 (RM0433 pg3189)
         ret = stlink_read_debug32(sl, 0x5c001000, chip_id);
-    }
-
-    if (*chip_id == 0) {
-        // default chipid address
-        ret = stlink_read_debug32(sl, 0xE0042000, chip_id);
-    }
-
-    if (*chip_id == 0) {
-        // Try Corex M0 DBGMCU_IDCODE register address
+    } else if (part_no == STLINK_REG_CMx_CPUID_PARTNO_CM0) {
+        // STM32F0 (RM0091, pg914; RM0360, pg713)
+        // STM32L0 (RM0377, pg813; RM0367, pg915; RM0376, pg917)
+        // STM32G0 (RM0444, pg1367)
         ret = stlink_read_debug32(sl, 0x40015800, chip_id);
+    } else if (part_no == STLINK_REG_CMx_CPUID_PARTNO_CM33) {
+        // STM32L5 (RM0438, pg2157)
+        ret = stlink_read_debug32(sl, 0xE0044000, chip_id);
+    } else /* СM3, СM4, CM7 */ {
+        // default chipid address
+
+        // STM32F1 (RM0008, pg1087; RM0041, pg681)
+        // STM32F2 (RM0033, pg1326)
+        // STM32F3 (RM0316, pg1095; RM0313, pg874)
+        // STM32F7 (RM0385, pg1676; RM0410, pg1912)
+        // STM32L1 (RM0038, pg861)
+        // STM32L4 (RM0351, pg1840; RM0394, pg1560)
+        // STM32G4 (RM0440, pg2086)
+        // STM32WB (RM0434, pg1406)
+        ret = stlink_read_debug32(sl, 0xE0042000, chip_id);
+
+        // Fix chip_id for F4 rev A errata, read CPU ID, as CoreID is the same for F2/F4
+        if (*chip_id == 0x411 && (cpu_id & 0xfff0) == 0xc240) {
+            *chip_id = 0x413;
+        }
     }
 
     return(ret);
