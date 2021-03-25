@@ -48,6 +48,12 @@ extern "C" {
 #define STLINK_SG_SIZE 31
 #define STLINK_CMD_SIZE 16
 
+enum connect_type {
+    CONNECT_HOT_PLUG = 0,
+    CONNECT_NORMAL = 1,
+    CONNECT_UNDER_RESET = 2,
+};
+
 struct stlink_libusb {
     libusb_context* libusb_ctx;
     libusb_device_handle* usb_handle;
@@ -62,13 +68,13 @@ struct stlink_libusb {
 /**
  * Open a stlink
  * @param verbose Verbosity loglevel
- * @param reset   Reset stlink programmer
+ * @param connect Type of connect to target
  * @param serial  Serial number to search for, when NULL the first stlink found is opened (binary format)
  * @retval NULL   Error while opening the stlink
  * @retval !NULL  Stlink found and ready to use
  */
-stlink_t *stlink_open_usb(enum ugly_loglevel verbose, int reset, char serial[STLINK_SERIAL_BUFFER_SIZE], int freq);
-size_t stlink_probe_usb(stlink_t **stdevs[]);
+stlink_t *stlink_open_usb(enum ugly_loglevel verbose, enum connect_type connect, char serial[STLINK_SERIAL_BUFFER_SIZE], int freq);
+size_t stlink_probe_usb(stlink_t **stdevs[], enum connect_type connect, int freq);
 void stlink_probe_usb_free(stlink_t **stdevs[], size_t size);
 
 #ifdef __cplusplus
