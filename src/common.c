@@ -2732,6 +2732,17 @@ int stm32l1_write_half_pages(
 }
 
 int stlink_flashloader_start(stlink_t *sl, flash_loader_t *fl) {
+
+    // According to DDI0419C, Table C1-7 firstly force halt
+    stlink_write_debug32(sl, STLINK_REG_DHCSR, STLINK_REG_DHCSR_DBGKEY |
+                                        STLINK_REG_DHCSR_C_DEBUGEN |
+                                        STLINK_REG_DHCSR_C_HALT);
+    // and only then disable interrupts
+    stlink_write_debug32(sl, STLINK_REG_DHCSR, STLINK_REG_DHCSR_DBGKEY |
+                                        STLINK_REG_DHCSR_C_DEBUGEN |
+                                        STLINK_REG_DHCSR_C_HALT |
+                                        STLINK_REG_DHCSR_C_MASKINTS);
+
     if ((sl->flash_type == STLINK_FLASH_TYPE_F4) ||
         (sl->flash_type == STLINK_FLASH_TYPE_F7) ||
         (sl->flash_type == STLINK_FLASH_TYPE_L4)) {
@@ -3000,6 +3011,8 @@ int stlink_flashloader_write(stlink_t *sl, flash_loader_t *fl, stm32_addr_t addr
 }
 
 int stlink_flashloader_stop(stlink_t *sl) {
+    uint32_t dhcsr;
+
     if ((sl->flash_type == STLINK_FLASH_TYPE_F4) ||
         (sl->flash_type == STLINK_FLASH_TYPE_F7) ||
         (sl->flash_type == STLINK_FLASH_TYPE_L4) ||
@@ -3028,6 +3041,13 @@ int stlink_flashloader_stop(stlink_t *sl) {
         stlink_read_debug32(sl, flash_regs_base + FLASH_PECR_OFF, &val);
         val |= (1 << 0) | (1 << 1) | (1 << 2);
         stlink_write_debug32(sl, flash_regs_base + FLASH_PECR_OFF, val);
+    }
+
+    // enable interrupt
+    if (!stlink_read_debug32(sl, STLINK_REG_DHCSR, &dhcsr)) {
+        stlink_write_debug32(sl, STLINK_REG_DHCSR, STLINK_REG_DHCSR_DBGKEY |
+                                STLINK_REG_DHCSR_C_DEBUGEN |
+                                (dhcsr&(~STLINK_REG_DHCSR_C_MASKINTS)));
     }
 
     return(0);
