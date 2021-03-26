@@ -3,4 +3,6 @@
 
 unsigned time_ms();
 
+int arg_parse_freq(const char *str);
+
 #endif /* SYS_HELPER_H */

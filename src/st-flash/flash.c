@@ -26,9 +26,9 @@ static void cleanup(int signum) {
 }
 
 static void usage(void) {
-    puts("command line:   ./st-flash [--debug] [--reset] [--connect-under-reset] [--opt] [--serial <serial>] [--format <format>] [--flash=<fsize>] [--freq=<Hz>] [--area=<area>] {read|write} [path] [addr] [size]");
-    puts("command line:   ./st-flash [--debug] [--connect-under-reset] [--freq=<Hz>] [--serial <serial>] erase");
-    puts("command line:   ./st-flash [--debug] [--freq=<Hz>] [--serial <serial>] reset");
+    puts("command line:   ./st-flash [--debug] [--reset] [--connect-under-reset] [--opt] [--serial <serial>] [--format <format>] [--flash=<fsize>] [--freq=<KHz>] [--area=<area>] {read|write} [path] [addr] [size]");
+    puts("command line:   ./st-flash [--debug] [--connect-under-reset] [--freq=<KHz>] [--serial <serial>] erase");
+    puts("command line:   ./st-flash [--debug] [--freq=<KHz>] [--serial <serial>] reset");
     puts("   <addr>, <serial> and <size>: Use hex format.");
     puts("   <fsize>: Use decimal, octal or hex (prefix 0xXXX) format, optionally followed by k=KB, or m=MB (eg. --flash=128k)");
     puts("   <format>: Can be 'binary' (default) or 'ihex', although <addr> must be specified for binary format only.");
@@ -52,6 +52,7 @@ int main(int ac, char** av) {
     uint8_t * mem = NULL;
 
     o.size = 0;
+    o.connect = CONNECT_NORMAL;
 
     if (flash_get_opts(&o, ac - 1, av + 1) == -1) {
         printf("invalid command line\n");
@@ -61,9 +62,7 @@ int main(int ac, char** av) {
 
     printf("st-flash %s\n", STLINK_VERSION);
 
-    sl = stlink_open_usb(o.log_level,
-            o.connect_under_reset ? 2 : 1,
-            (char *)o.serial, o.freq);
+    sl = stlink_open_usb(o.log_level, o.connect, (char *)o.serial, o.freq);
 
     if (sl == NULL) { return(-1); }
 

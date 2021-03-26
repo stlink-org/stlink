@@ -26,7 +26,7 @@ struct flash_opts {
     size_t flash_size;  // --flash=n[k][m]
     int opt;            // enable empty tail data drop optimization
     int freq;           // --freq=n[k][m] frequency of JTAG/SWD
-    bool connect_under_reset;
+    enum connect_type connect;
 };
 
 #define FLASH_OPTS_INITIALIZER {0, { 0 }, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
