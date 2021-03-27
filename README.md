@@ -6,6 +6,7 @@
 ![GitHub commits](https://img.shields.io/github/commits-since/stlink-org/stlink/v1.6.1/develop)
 ![GitHub activity](https://img.shields.io/github/commit-activity/m/stlink-org/stlink)
 ![GitHub contributors](https://img.shields.io/github/contributors/stlink-org/stlink)
+[![C/C++ CI](https://github.com/stlink-org/stlink/actions/workflows/c-cpp.yml/badge.svg?branch=testing)](https://github.com/stlink-org/stlink/actions/workflows/c-cpp.yml)
 [![Linux Status](https://img.shields.io/travis/stlink-org/stlink/master?env=BADGE=linux&label=linux)](https://travis-ci.org/stlink-org/stlink)
 [![macOS Status](https://img.shields.io/travis/stlink-org/stlink/master?env=BADGE=osx&label=osx)](https://travis-ci.org/stlink-org/stlink)
 

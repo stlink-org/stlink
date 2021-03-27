@@ -146,7 +146,7 @@ jobs:
       addons:
         homebrew:
           packages:
-            - clang
+            - llvm
             - libusb
             - gtk+3
 
