@@ -2,9 +2,9 @@ name: C/C++ CI
 
 on:
   push:
-    branches: [develop, testing]
+    branches: [master, develop, testing]
   pull_request:
-    branches: [develop, testing]
+    branches: [master, develop, testing]
 
 jobs:
   job_linux_1a:
@@ -20,14 +20,14 @@ jobs:
         run: make test
       - name: make release
         run: make release
-      - name: make install
-        run: make install
-      - name: make package
-        run: make package
-      - name: make uninstall
-        run: make uninstall
-      - name: make clean
-        run: make clean
+      - name: sudo make install
+        run: sudo make install
+      - name: sudo make package
+        run: sudo make package
+      - name: sudo make uninstall
+        run: sudo make uninstall
+      - name: sudo make clean
+        run: sudo make clean
 
   job_linux_2a:
     name: ubuntu-18.04 gcc
@@ -42,14 +42,14 @@ jobs:
         run: make test
       - name: make release
         run: make release
-      - name: make install
-        run: make install
-      - name: make package
-        run: make package
-      - name: make uninstall
-        run: make uninstall
-      - name: make clean
-        run: make clean
+      - name: sudo make install
+        run: sudo make install
+      - name: sudo make package
+        run: sudo make package
+      - name: sudo make uninstall
+        run: sudo make uninstall
+      - name: sudo make clean
+        run: sudo make clean
 
   job_linux_3a:
     name: ubuntu-16.04 gcc
@@ -64,14 +64,14 @@ jobs:
         run: make test
       - name: make release
         run: make release
-      - name: make install
-        run: make install
-      - name: make package
-        run: make package
-      - name: make uninstall
-        run: make uninstall
-      - name: make clean
-        run: make clean
+      - name: sudo make install
+        run: sudo make install
+      - name: sudo make package
+        run: sudo make package
+      - name: sudo make uninstall
+        run: sudo make uninstall
+      - name: sudo make clean
+        run: sudo make clean
 
   job_linux_1b:
     name: ubuntu-20.04 clang
@@ -86,14 +86,14 @@ jobs:
         run: make test
       - name: make release
         run: make release
-      - name: make install
-        run: make install
-      - name: make package
-        run: make package
-      - name: make uninstall
-        run: make uninstall
-      - name: make clean
-        run: make clean
+      - name: sudo make install
+        run: sudo make install
+      - name: sudo make package
+        run: sudo make package
+      - name: sudo make uninstall
+        run: sudo make uninstall
+      - name: sudo make clean
+        run: sudo make clean
 
   job_linux_2b:
     name: ubuntu-18.04 clang
@@ -108,14 +108,14 @@ jobs:
         run: make test
       - name: make release
         run: make release
-      - name: make install
-        run: make install
-      - name: make package
-        run: make package
-      - name: make uninstall
-        run: make uninstall
-      - name: make clean
-        run: make clean
+      - name: sudo make install
+        run: sudo make install
+      - name: sudo make package
+        run: sudo make package
+      - name: sudo make uninstall
+        run: sudo make uninstall
+      - name: sudo make clean
+        run: sudo make clean
 
   job_linux_3b:
     name: ubuntu-16.04 clang
@@ -130,14 +130,14 @@ jobs:
         run: make test
       - name: make release
         run: make release
-      - name: make install
-        run: make install
-      - name: make package
-        run: make package
-      - name: make uninstall
-        run: make uninstall
-      - name: make clean
-        run: make clean
+      - name: sudo make install
+        run: sudo make install
+      - name: sudo make package
+        run: sudo make package
+      - name: sudo make uninstall
+        run: sudo make uninstall
+      - name: sudo make clean
+        run: sudo make clean
 
   job_linux_1c:
     name: ubuntu-20.04 gcc 32-bit
@@ -157,14 +157,14 @@ jobs:
         run: make test
       - name: make release
         run: make release
-      - name: make install
-        run: make install
-      - name: make package
-        run: make package
-      - name: make uninstall
-        run: make uninstall
-      - name: make clean
-        run: make clean
+      - name: sudo make install
+        run: sudo make install
+      - name: sudo make package
+        run: sudo make package
+      - name: sudo make uninstall
+        run: sudo make uninstall
+      - name: sudo make clean
+        run: sudo make clean
 
   job_linux_2c:
     name: ubuntu-18.04 gcc 32-bit
@@ -184,14 +184,14 @@ jobs:
         run: make test
       - name: make release
         run: make release
-      - name: make install
-        run: make install
-      - name: make package
-        run: make package
-      - name: make uninstall
-        run: make uninstall
-      - name: make clean
-        run: make clean
+      - name: sudo make install
+        run: sudo make install
+      - name: sudo make package
+        run: sudo make package
+      - name: sudo make uninstall
+        run: sudo make uninstall
+      - name: sudo make clean
+        run: sudo make clean
 
   job_linux_3c:
     name: ubuntu-16.04 gcc 32-bit
@@ -211,14 +211,14 @@ jobs:
         run: make test
       - name: make release
         run: make release
-      - name: make install
-        run: make install
-      - name: make package
-        run: make package
-      - name: make uninstall
-        run: make uninstall
-      - name: make clean
-        run: make clean
+      - name: sudo make install
+        run: sudo make install
+      - name: sudo make package
+        run: sudo make package
+      - name: sudo make uninstall
+        run: sudo make uninstall
+      - name: sudo make clean
+        run: sudo make clean
 
   job_linux_4:
     name: ubuntu-20.04 mingw64
@@ -233,14 +233,14 @@ jobs:
         run: make test
       - name: make release
         run: make release
-      - name: make install
-        run: make install
-      - name: make package
-        run: make package
-      - name: make uninstall
-        run: make uninstall
-      - name: make clean
-        run: make clean
+      - name: sudo make install
+        run: sudo make install
+      - name: sudo make package
+        run: sudo make package
+      - name: sudo make uninstall
+        run: sudo make uninstall
+      - name: sudo make clean
+        run: sudo make clean
 
   # job_macos_1a:
   #   name: macos-11.0 gcc
@@ -255,14 +255,14 @@ jobs:
   #       run: make test
   #     - name: make release
   #       run: make release
-  #     - name: make install
-  #       run: make install
-  #     - name: make package
-  #       run: make package
-  #     - name: make uninstall
-  #       run: make uninstall
-  #     - name: make clean
-  #       run: make clean
+  #     - name: sudo make install
+  #       run: sudo make install
+  #     - name: sudo make package
+  #       run: sudo make package
+  #     - name: sudo make uninstall
+  #       run: sudo make uninstall
+  #     - name: sudo make clean
+  #       run: sudo make clean
 
   job_macos_2a:
     name: macos-10.15 gcc
@@ -277,14 +277,14 @@ jobs:
         run: make test
       - name: make release
         run: make release
-      - name: make install
-        run: make install
-      - name: make package
-        run: make package
-      - name: make uninstall
-        run: make uninstall
-      - name: make clean
-        run: make clean
+      - name: sudo make install
+        run: sudo make install
+      - name: sudo make package
+        run: sudo make package
+      - name: sudo make uninstall
+        run: sudo make uninstall
+      - name: sudo make clean
+        run: sudo make clean
 
   # job_macos_1b:
   #   name: macos-11.0 clang
@@ -299,14 +299,14 @@ jobs:
   #       run: make test
   #     - name: make release
   #       run: make release
-  #     - name: make install
-  #       run: make install
-  #     - name: make package
-  #       run: make package
-  #     - name: make uninstall
-  #       run: make uninstall
-  #     - name: make clean
-  #       run: make clean
+  #     - name: sudo make install
+  #       run: sudo make install
+  #     - name: sudo make package
+  #       run: sudo make package
+  #     - name: sudo make uninstall
+  #       run: sudo make uninstall
+  #     - name: sudo make clean
+  #       run: sudo make clean
 
   job_macos_2b:
     name: macos-10.15 clang
@@ -321,11 +321,11 @@ jobs:
         run: make test
       - name: make release
         run: make release
-      - name: make install
-        run: make install
-      - name: make package
-        run: make package
-      - name: make uninstall
-        run: make uninstall
-      - name: make clean
-        run: make clean
+      - name: sudo make install
+        run: sudo make install
+      - name: sudo make package
+        run: sudo make package
+      - name: sudo make uninstall
+        run: sudo make uninstall
+      - name: sudo make clean
+        run: sudo make clean
