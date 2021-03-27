@@ -109,9 +109,9 @@ Tested boards [incl. STLINK programmers]:
 
 **STM32F3 / ARM Cortex M4F / Core-ID: 0x2ba01477 (STM32F3c_CORE_ID)**
 
-| Product-Code | Chip-ID | STLink<br />Programmer | Boards                                                 |
-| ------------ | ------- | ---------------------- | ------------------------------------------------------ |
-| GD32F303VGT6 | 0x430   | _N/A_                  | STM32F303 clone from GigaDevice GD)<br />_unsupported_ |
+| Product-Code | Chip-ID | STLINK<br />Programmer | Boards                             |
+| ------------ | ------- | ---------------------- | ---------------------------------- |
+| GD32F303VGT6 | 0x430   | [v2]                   | STM32F303 clone from GigaDevice GD |
 
 **STM32F4 / ARM Cortex M4F / Core-ID: 0x2ba01477 (STM32F4_CORE_ID)**
 

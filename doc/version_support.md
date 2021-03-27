@@ -14,10 +14,10 @@ Thus no user interaction regarding libusb is necessary.
 
 ### Apple macOS
 
-| Package Repository | libusb<br />version | cmake<br />version | gtk-3<br />version | Supported macOS versions               |
-| ------------------ | ------------------- | ------------------ | ------------------ | -------------------------------------- |
-| homebrew           | 1.0.23              | 3.17.0             | 3.24.18<br />gtk+3 | 10.12 (Sierra)- 10.15 (Catalina)       |
-| MacPorts           | 1.0.23              | 3.17.0             | 3.24.18<br />gtk3  | 10.6 (Snow Leopard) - 10.15 (Catalina) |
+| Package Repository | libusb<br />version | cmake<br />version | gtk-3<br />version | Supported macOS versions |
+| ------------------ | ------------------- | ------------------ | ------------------ | ------------------------ |
+| homebrew           | 1.0.23              | 3.17.0             | 3.24.18<br />gtk+3 | 10.9 - 10.15             |
+| MacPorts           | 1.0.23              | 3.17.0             | 3.24.18<br />gtk3  | 10.4 - 10.15             |
 
 NOTE: In order to use a STLINK/V1 programmer on macOS, versions 10.14 or 10.15 are required.
 

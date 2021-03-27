@@ -26,6 +26,7 @@
 #endif
 
 #include <stlink.h>
+#include <helper.h>
 #include <logging.h>
 #include "gdb-remote.h"
 #include "gdb-server.h"
@@ -63,7 +64,8 @@ typedef struct _st_state_t {
     int logging_level;
     int listen_port;
     int persistent;
-    int reset;
+    enum connect_type connect_mode;
+    int freq;
 } st_state_t;
 
 
@@ -100,9 +102,9 @@ static stlink_t* do_connect(st_state_t *st) {
     stlink_t *sl = NULL;
 
     if (serial_specified) {
-        sl = stlink_open_usb(st->logging_level, st->reset, serialnumber, 0);
+        sl = stlink_open_usb(st->logging_level, st->connect_mode, serialnumber, st->freq);
     } else {
-        sl = stlink_open_usb(st->logging_level, st->reset, NULL, 0);
+        sl = stlink_open_usb(st->logging_level, st->connect_mode, NULL, st->freq);
     }
 
     return(sl);
@@ -116,6 +118,8 @@ int parse_options(int argc, char** argv, st_state_t *st) {
         {"listen_port", required_argument, NULL, 'p'},
         {"multi", optional_argument, NULL, 'm'},
         {"no-reset", optional_argument, NULL, 'n'},
+        {"hot-plug", optional_argument, NULL, 'n'},
+        {"freq", optional_argument, NULL, 'F'},
         {"version", no_argument, NULL, 'V'},
         {"semihosting", no_argument, NULL, SEMIHOSTING_OPTION},
         {"serial", required_argument, NULL, SERIAL_OPTION},
@@ -126,16 +130,16 @@ int parse_options(int argc, char** argv, st_state_t *st) {
                             "  -V, --version\t\tPrint the version\n"
                             "  -vXX, --verbose=XX\tSpecify a specific verbosity level (0..99)\n"
                             "  -v, --verbose\t\tSpecify generally verbose logging\n"
-                            "\t\t\tChoose what version of stlink to use, (defaults to 2)\n"
-                            "  -1, --stlinkv1\tForce stlink version 1\n"
                             "  -p 4242, --listen_port=1234\n"
                             "\t\t\tSet the gdb server listen port. "
                             "(default port: " STRINGIFY(DEFAULT_GDB_LISTEN_PORT) ")\n"
                             "  -m, --multi\n"
                             "\t\t\tSet gdb server to extended mode.\n"
                             "\t\t\tst-util will continue listening for connections after disconnect.\n"
-                            "  -n, --no-reset\n"
+                            "  -n, --no-reset, --hot-plug\n"
                             "\t\t\tDo not reset board on connection.\n"
+                            "  -F 1800K, --freq=1M\n"
+                            "\t\t\tSet the frequency of the SWD/JTAG interface.\n"
                             "  --semihosting\n"
                             "\t\t\tEnable semihosting support.\n"
                             "  --serial <serial>\n"
@@ -160,7 +164,6 @@ int parse_options(int argc, char** argv, st_state_t *st) {
             exit(EXIT_SUCCESS);
             break;
         case 'v':
-
             if (optarg) {
                 st->logging_level = atoi(optarg);
             } else {
@@ -170,7 +173,6 @@ int parse_options(int argc, char** argv, st_state_t *st) {
             break;
         case 'p':
             sscanf(optarg, "%i", &q);
-
             if (q < 0) {
                 fprintf(stderr, "Can't use a negative port to listen on: %d\n", q);
                 exit(EXIT_FAILURE);
@@ -178,11 +180,19 @@ int parse_options(int argc, char** argv, st_state_t *st) {
 
             st->listen_port = q;
             break;
+            
         case 'm':
             st->persistent = 1;
             break;
         case 'n':
-            st->reset = 0;
+            st->connect_mode = CONNECT_HOT_PLUG;
+            break;
+        case 'F':
+            st->freq = arg_parse_freq(optarg);
+            if (st->freq < 0) {
+                fprintf(stderr, "Can't parse a frequency: %s\n", optarg);
+                exit(EXIT_FAILURE);
+            }
             break;
         case 'V':
             printf("v%s\n", STLINK_VERSION);
@@ -217,7 +227,7 @@ int main(int argc, char** argv) {
     // set defaults ...
     state.logging_level = DEFAULT_LOGGING_LEVEL;
     state.listen_port = DEFAULT_GDB_LISTEN_PORT;
-    state.reset = 1; // by default, reset board
+    state.connect_mode = CONNECT_NORMAL; // by default, reset board
     parse_options(argc, argv, &state);
 
     printf("st-util\n");
@@ -240,7 +250,7 @@ int main(int argc, char** argv) {
     signal(SIGSEGV, &cleanup);
 #endif
 
-    if (state.reset) { stlink_reset(sl); }
+    if (state.connect_mode != CONNECT_HOT_PLUG) { stlink_reset(sl); }
 
     DLOG("Chip ID is %#010x, Core ID is %#08x.\n", sl->chip_id, sl->core_id);
 
@@ -1111,7 +1121,7 @@ int serve(stlink_t *sl, st_state_t *st) {
 
     stlink_force_debug(sl);
 
-    if (st->reset) { stlink_reset(sl); }
+    if (st->connect_mode != CONNECT_HOT_PLUG) { stlink_reset(sl); }
 
     init_code_breakpoints(sl);
     init_data_watchpoints(sl);
@@ -1840,7 +1850,7 @@ int serve(stlink_t *sl, st_state_t *st) {
 
             connected_stlink = sl;
 
-            if (st->reset) { stlink_reset(sl); }
+            if (st->connect_mode != CONNECT_HOT_PLUG) { stlink_reset(sl); }
 
             ret = stlink_force_debug(sl);
 

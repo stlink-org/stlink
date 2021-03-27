@@ -46,7 +46,7 @@ static int _stlink_match_speed_map(const uint32_t *map, unsigned int map_size, u
             // get abs value for comparison
             current_diff = (current_diff > 0) ? current_diff : -current_diff;
 
-            if ((current_diff < speed_diff) && khz >= map[i]) {
+            if (current_diff < speed_diff) {
                 speed_diff = current_diff;
                 speed_index = i;
             }
@@ -741,6 +741,8 @@ int _stlink_usb_set_swdclk(stlink_t* sl, int clk_freq) {
         }
 
         return(0);
+    } else if (clk_freq) {
+        WLOG("ST-Link firmware does not support frequency setup\n");
     }
 
     return(-1);
@@ -1196,7 +1198,7 @@ size_t stlink_serial(struct libusb_device_handle *handle, struct libusb_device_d
 	return strlen(serial);
 }
 
-stlink_t *stlink_open_usb(enum ugly_loglevel verbose, int reset, char serial[STLINK_SERIAL_BUFFER_SIZE], int freq) {
+stlink_t *stlink_open_usb(enum ugly_loglevel verbose, enum connect_type connect, char serial[STLINK_SERIAL_BUFFER_SIZE], int freq) {
     stlink_t* sl = NULL;
     struct stlink_libusb* slu = NULL;
     int ret = -1;
@@ -1380,7 +1382,7 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, int reset, char serial[STL
     DLOG("JTAG/SWD freq set to %d\n", freq);
     stlink_set_swdclk(sl, freq);
 
-    if (reset == 2) {
+    if (connect == CONNECT_UNDER_RESET) {
         stlink_jtag_reset(sl, 0);
 
         if (stlink_current_mode(sl) != STLINK_DEV_DEBUG_MODE) { stlink_enter_swd_mode(sl); }
@@ -1390,10 +1392,9 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, int reset, char serial[STL
         usleep(10000);
     }
 
-
     if (stlink_current_mode(sl) != STLINK_DEV_DEBUG_MODE) { stlink_enter_swd_mode(sl); }
 
-    if (reset == 1) {
+    if (connect == CONNECT_NORMAL) {
         if ( sl->version.stlink_v > 1) { stlink_jtag_reset(sl, 2); }
 
         stlink_reset(sl);
@@ -1420,7 +1421,7 @@ on_malloc_error:
     return(NULL);
 }
 
-static size_t stlink_probe_usb_devs(libusb_device **devs, stlink_t **sldevs[]) {
+static size_t stlink_probe_usb_devs(libusb_device **devs, stlink_t **sldevs[], enum connect_type connect, int freq) {
     stlink_t **_sldevs;
     libusb_device *dev;
     int i = 0;
@@ -1489,7 +1490,7 @@ static size_t stlink_probe_usb_devs(libusb_device **devs, stlink_t **sldevs[]) {
 
         if (serial_len != STLINK_SERIAL_LENGTH) { continue; }
 
-        stlink_t *sl = stlink_open_usb(0, 1, serial, 0);
+        stlink_t *sl = stlink_open_usb(0, connect, serial, freq);
 
         if (!sl) {
             ELOG("Failed to open USB device %#06x:%#06x\n", desc.idVendor, desc.idProduct);
@@ -1504,7 +1505,7 @@ static size_t stlink_probe_usb_devs(libusb_device **devs, stlink_t **sldevs[]) {
     return(slcur);
 }
 
-size_t stlink_probe_usb(stlink_t **stdevs[]) {
+size_t stlink_probe_usb(stlink_t **stdevs[], enum connect_type connect, int freq) {
     libusb_device **devs;
     stlink_t **sldevs;
 
@@ -1520,7 +1521,7 @@ size_t stlink_probe_usb(stlink_t **stdevs[]) {
 
     if (cnt < 0) { return(0); }
 
-    slcnt = stlink_probe_usb_devs(devs, &sldevs);
+    slcnt = stlink_probe_usb_devs(devs, &sldevs, connect, freq);
     libusb_free_device_list(devs, 1);
 
     libusb_exit(NULL);
