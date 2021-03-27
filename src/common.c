@@ -980,7 +980,7 @@ static inline uint32_t read_flash_sr(stlink_t *sl, unsigned bank) {
     } else if (sl->flash_type == STLINK_FLASH_TYPE_H7) {
         sr_reg = (bank==BANK_1)?FLASH_H7_SR1:FLASH_H7_SR2;
     } else {
-        ELOG("unsupported flash method, abort");
+        ELOG("unsupported flash method, abort\n");
         return(-1);
     }
 
@@ -1010,7 +1010,7 @@ static inline unsigned int is_flash_busy(stlink_t *sl) {
     } else if (sl->flash_type == STLINK_FLASH_TYPE_H7) {
         sr_busy_shift = FLASH_H7_SR_QW;
     } else {
-        ELOG("unsupported flash method, abort");
+        ELOG("unsupported flash method, abort\n");
         return(-1);
     }
 
@@ -1617,9 +1617,8 @@ int stlink_write_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
     DLOG("*** stlink_write_mem32 %u bytes to %#x\n", len, addr);
 
     if (len % 4 != 0) {
-        fprintf(stderr, "Error: Data length doesn't have a 32 bit alignment: +%d byte.\n",
-                len % 4);
-        abort();
+        ELOG("Data length doesn't have a 32 bit alignment: +%d byte.\n", len % 4);
+        return(-1);
     }
 
     return(sl->backend->write_mem32(sl, addr, len));
@@ -1629,9 +1628,8 @@ int stlink_read_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
     DLOG("*** stlink_read_mem32 ***\n");
 
     if (len % 4 != 0) { // !!! never ever: fw gives just wrong values
-        fprintf(stderr, "Error: Data length doesn't have a 32 bit alignment: +%d byte.\n",
-                len % 4);
-        abort();
+        ELOG("Data length doesn't have a 32 bit alignment: +%d byte.\n", len % 4);
+        return(-1);
     }
 
     return(sl->backend->read_mem32(sl, addr, len));
@@ -1641,9 +1639,8 @@ int stlink_write_mem8(stlink_t *sl, uint32_t addr, uint16_t len) {
     DLOG("*** stlink_write_mem8 ***\n");
 
     if (len > 0x40) { // !!! never ever: Writing more then 0x40 bytes gives unexpected behaviour
-        fprintf(stderr, "Error: Data length > 64: +%d byte.\n",
-                len);
-        abort();
+        ELOG("Data length > 64: +%d byte.\n", len);
+        return(-1);
     }
 
     return(sl->backend->write_mem8(sl, addr, len));
