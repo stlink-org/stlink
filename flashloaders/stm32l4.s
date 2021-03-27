@@ -12,7 +12,7 @@
     .global copy
 copy:
     ldr r12, flash_base
-    ldr r10, flash_off_bsy
+    ldr r10, flash_off_sr
     add r10, r10, r12
 
 loop:
@@ -44,5 +44,5 @@ exit:
     .align 2
 flash_base:
     .word 0x40022000
-flash_off_bsy:
-    .word 0x12
+flash_off_sr:
+    .word 0x10
