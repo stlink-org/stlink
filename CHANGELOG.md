@@ -2,7 +2,7 @@
 
 # v1.6.2
 
-Release date: (planned H1/2021)
+Release date: (planned Q2/2021)
 
 Features:
 
@@ -21,7 +21,7 @@ Features:
 
 Updates & changes:
 
-- [doc] Added tutorial section on unknown chip id error ([#107](https://github.com/stlink-org/stlink/pull/107), [#568](https://github.com/stlink-org/stlink/pull/568),
+- [doc] Added tutorial section on unknown chip id error (commit [#229c721](https://github.com/stlink-org/stlink/commit/229c721189587760db5509c59b3c02e93e7035c8), [#107](https://github.com/stlink-org/stlink/pull/107), [#568](https://github.com/stlink-org/stlink/pull/568))
 - [doc] Updated documentation on target resetting ([#261](https://github.com/stlink-org/stlink/pull/261), [#533](https://github.com/stlink-org/stlink/pull/533), [#1107](https://github.com/stlink-org/stlink/pull/1107))
 - [doc] Added note on `(gdb) run` command (commit [#03793d4](https://github.com/stlink-org/stlink/commit/03793d42b6078344a9ef8ad55f1d5d0fc19e486e), [#267](https://github.com/stlink-org/stlink/pull/267))
 - [doc] `st-flash --reset` parameter (one solution for #356) ([#642](https://github.com/stlink-org/stlink/pull/642))
@@ -35,8 +35,9 @@ Updates & changes:
 
 Fixes:
 
-- Flash loader rework ([#356](https://github.com/stlink-org/stlink/pull/356), [#556](https://github.com/stlink-org/stlink/pull/556), [#593](https://github.com/stlink-org/stlink/pull/593), [#607](https://github.com/stlink-org/stlink/pull/607), [#612](https://github.com/stlink-org/stlink/pull/612), [#638](https://github.com/stlink-org/stlink/pull/638), [#661](https://github.com/stlink-org/stlink/pull/661), [#690](https://github.com/stlink-org/stlink/pull/690), [#979](https://github.com/stlink-org/stlink/pull/979), [#1043](https://github.com/stlink-org/stlink/pull/1043), [#1054](https://github.com/stlink-org/stlink/pull/1054), [#1105](https://github.com/stlink-org/stlink/pull/1105), [#1113](https://github.com/stlink-org/stlink/pull/1113))
+- Flash loader rework ([#356](https://github.com/stlink-org/stlink/pull/356), [#556](https://github.com/stlink-org/stlink/pull/556), [#593](https://github.com/stlink-org/stlink/pull/593), [#597](https://github.com/stlink-org/stlink/pull/597), [#607](https://github.com/stlink-org/stlink/pull/607), [#612](https://github.com/stlink-org/stlink/pull/612), [#638](https://github.com/stlink-org/stlink/pull/638), [#661](https://github.com/stlink-org/stlink/pull/661), [#690](https://github.com/stlink-org/stlink/pull/690), [#818](https://github.com/stlink-org/stlink/pull/818), [#854](https://github.com/stlink-org/stlink/pull/854), [#967](https://github.com/stlink-org/stlink/pull/967), [#979](https://github.com/stlink-org/stlink/pull/979), [#1043](https://github.com/stlink-org/stlink/pull/1043), [#1054](https://github.com/stlink-org/stlink/pull/1054), [#1092](https://github.com/stlink-org/stlink/pull/1092), [#1105](https://github.com/stlink-org/stlink/pull/1105), [#1113](https://github.com/stlink-org/stlink/pull/1113))
 - Fixed old DFU serial number for STLINK programmers ([#417](https://github.com/stlink-org/stlink/pull/417), [#494](https://github.com/stlink-org/stlink/pull/494), [#1106](https://github.com/stlink-org/stlink/pull/1106))
+- Use vl flashloader for all STM32F1 series ([#769](https://github.com/stlink-org/stlink/pull/769), [#1041](https://github.com/stlink-org/stlink/pull/1041), [#1044](https://github.com/stlink-org/stlink/pull/1044))
 - [regression] Changed timeout on flash write ([#787](https://github.com/stlink-org/stlink/pull/787), [#981](https://github.com/stlink-org/stlink/pull/981), [#987](https://github.com/stlink-org/stlink/pull/987))
 - cmake compile failure with external `CMAKE_MODULE_PATH` set ([#962](https://github.com/stlink-org/stlink/pull/962))
 - doc/man: Fixed installation directory ([#970](https://github.com/stlink-org/stlink/pull/970))
@@ -50,7 +51,6 @@ Fixes:
 - `st-util`: wrong register values passed to `gdb` (STLink/V2) ([#1002](https://github.com/stlink-org/stlink/pull/1002), [#1011](https://github.com/stlink-org/stlink/pull/1011), [#1026](https://github.com/stlink-org/stlink/pull/1026), [#1027](https://github.com/stlink-org/stlink/pull/1027), [#1064](https://github.com/stlink-org/stlink/pull/1064), [#1065](https://github.com/stlink-org/stlink/pull/1065))
 - GDB: Fixed problems with target description ([#1013](https://github.com/stlink-org/stlink/pull/1013), [#1088](https://github.com/stlink-org/stlink/pull/1088), [#1109](https://github.com/stlink-org/stlink/pull/1109))
 - [doc] Fixed wrong path for `rules.d` folder ([#1020](https://github.com/stlink-org/stlink/pull/1020))
-- Use vl flashloader for all STM32F1 series ([#1041](https://github.com/stlink-org/stlink/pull/1041), [#1044](https://github.com/stlink-org/stlink/pull/1044))
 - Fixed support for STLINK/V1 programmer ([#1045](https://github.com/stlink-org/stlink/pull/1045), [#1105](https://github.com/stlink-org/stlink/pull/1105))
 - st-util v1.6.1 does not recognize option --freq (commit [#e576768](https://github.com/stlink-org/stlink/commit/e5767681f14de9851aa970a9299930ca68b2ed92), [#1055](https://github.com/stlink-org/stlink/pull/1055))
 - Fixed `gettimeofday` for MSVC ([#1074](https://github.com/stlink-org/stlink/pull/1074))
