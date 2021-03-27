@@ -1220,14 +1220,14 @@ int stlink_core_id(stlink_t *sl) {
 // do not call this procedure directly.
 int stlink_chip_id(stlink_t *sl, uint32_t *chip_id) {
     int ret;
+    cortex_m3_cpuid_t cpu_id;
 
-    uint32_t cpu_id;
-    *chip_id = 0;
-    ret = -1;
-
-    // Read the CPU ID to determine where to read the core id from
-    if (stlink_read_debug32(sl, STLINK_REG_CM3_CPUID, &cpu_id))
-        cpu_id = 0;
+    // Read the CPU ID to determine where to read the core id
+    if (stlink_cpu_id(sl, &cpu_id) || 
+            cpu_id.implementer_id != STLINK_REG_CMx_CPUID_IMPL_ARM) {
+        ELOG("Can not connect to target. Please use \'connect under reset\' and try again\n");
+        return -1;
+    }
 
     /*
      * the chip_id register in the reference manual have
@@ -1235,18 +1235,17 @@ int stlink_chip_id(stlink_t *sl, uint32_t *chip_id) {
      *
      */
 
-    uint32_t part_no = STLINK_REG_CM3_CPUID_PARTNO(cpu_id);
     if ((sl->core_id == STM32H7_CORE_ID ||
             sl->core_id == STM32H7_CORE_ID_JTAG) &&
-            part_no == STLINK_REG_CMx_CPUID_PARTNO_CM7) {
+            cpu_id.part == STLINK_REG_CMx_CPUID_PARTNO_CM7) {
         // STM32H7 chipid in 0x5c001000 (RM0433 pg3189)
         ret = stlink_read_debug32(sl, 0x5c001000, chip_id);
-    } else if (part_no == STLINK_REG_CMx_CPUID_PARTNO_CM0) {
+    } else if (cpu_id.part == STLINK_REG_CMx_CPUID_PARTNO_CM0) {
         // STM32F0 (RM0091, pg914; RM0360, pg713)
         // STM32L0 (RM0377, pg813; RM0367, pg915; RM0376, pg917)
         // STM32G0 (RM0444, pg1367)
         ret = stlink_read_debug32(sl, 0x40015800, chip_id);
-    } else if (part_no == STLINK_REG_CMx_CPUID_PARTNO_CM33) {
+    } else if (cpu_id.part == STLINK_REG_CMx_CPUID_PARTNO_CM33) {
         // STM32L5 (RM0438, pg2157)
         ret = stlink_read_debug32(sl, 0xE0044000, chip_id);
     } else /* СM3, СM4, CM7 */ {
@@ -1261,9 +1260,16 @@ int stlink_chip_id(stlink_t *sl, uint32_t *chip_id) {
         // STM32G4 (RM0440, pg2086)
         // STM32WB (RM0434, pg1406)
         ret = stlink_read_debug32(sl, 0xE0042000, chip_id);
+    }
+
+    if (ret || !(*chip_id)) {
+        *chip_id = 0;
+        ELOG("Could not find chip id!\n");
+    } else {
+        *chip_id = (*chip_id) & 0xfff;
 
         // Fix chip_id for F4 rev A errata, read CPU ID, as CoreID is the same for F2/F4
-        if (*chip_id == 0x411 && (cpu_id & 0xfff0) == 0xc240) {
+        if (*chip_id == 0x411 && cpu_id.part == STLINK_REG_CMx_CPUID_PARTNO_CM4) {
             *chip_id = 0x413;
         }
     }
@@ -1272,7 +1278,7 @@ int stlink_chip_id(stlink_t *sl, uint32_t *chip_id) {
 }
 
 /**
- * Cortex m3 tech ref manual, CPUID register description
+ * Cortex M tech ref manual, CPUID register description
  * @param sl stlink context
  * @param cpuid pointer to the result object
  */
@@ -1305,26 +1311,16 @@ int stlink_load_device_params(stlink_t *sl) {
     DLOG("Loading device parameters....\n");
     const struct stlink_chipid_params *params = NULL;
     stlink_core_id(sl);
-    uint32_t chip_id = 0;
     uint32_t flash_size;
 
-    stlink_chip_id(sl, &chip_id);
-    sl->chip_id = chip_id & 0xfff;
-
-    // Fix chip_id for F4 rev A errata , Read CPU ID, as CoreID is the same for F2/F4
-    if (sl->chip_id == 0x411) {
-        uint32_t cpuid;
-        stlink_read_debug32(sl, 0xE000ED00, &cpuid);
-
-        if ((cpuid  & 0xfff0) == 0xc240) {
-            sl->chip_id = 0x413;
-        }
+    if (stlink_chip_id(sl, &sl->chip_id)) {
+        return(-1);
     }
 
     params = stlink_chipid_get_params(sl->chip_id);
 
     if (params == NULL) {
-        WLOG("unknown chip id! %#x\n", chip_id);
+        WLOG("unknown chip id! %#x\n", sl->chip_id);
         return(-1);
     }
 
@@ -1390,19 +1386,11 @@ int stlink_load_device_params(stlink_t *sl) {
             sl->chip_flags &= ~CHIP_F_HAS_DUAL_BANK;
     }
 
-#if 0
-    // Old code -- REW
-    ILOG("Device connected is: %s, id %#x\n", params->description, chip_id);
-    // TODO: make note of variable page size here.....
-    ILOG("SRAM size: %#x bytes (%d KiB), Flash: %#x bytes (%d KiB) in pages of %u bytes\n",
-         sl->sram_size, sl->sram_size / 1024, sl->flash_size, sl->flash_size / 1024,
-         (unsigned int)sl->flash_pgsz);
-#else
     ILOG("%s: %u KiB SRAM, %u KiB flash in at least %u %s pages.\n",
          params->description, (unsigned)(sl->sram_size / 1024), (unsigned)(sl->flash_size / 1024),
          (sl->flash_pgsz < 1024) ? (unsigned)(sl->flash_pgsz)  :  (unsigned)(sl->flash_pgsz / 1024),
          (sl->flash_pgsz < 1024) ?  "byte"         :  "KiB");
-#endif
+
     return(0);
 }
 
