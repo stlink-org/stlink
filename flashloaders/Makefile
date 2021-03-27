@@ -31,7 +31,7 @@ stm32vl.o: stm32f0.s
 	$(CC) stm32f0.s $(CFLAGS_ARMV7_M) -o stm32vl.o
 
 # generic rule for all other ARMv7-M
-%.o: *.s
+%.o: %.s
 	$(CC) $< $(CFLAGS_ARMV7_M) -o $@
 
 clean:

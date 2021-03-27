@@ -154,6 +154,7 @@ static const uint8_t loader_code_stm32f7_lv[] = {
 
 int stlink_flash_loader_init(stlink_t *sl, flash_loader_t *fl) {
     size_t size = 0;
+    uint32_t dfsr, cfsr, hfsr;
 
     // allocate the loader in SRAM
     if (stlink_flash_loader_write_to_sram(sl, &fl->loader_addr, &size) == -1) {
@@ -164,6 +165,20 @@ int stlink_flash_loader_init(stlink_t *sl, flash_loader_t *fl) {
     // allocate a one page buffer in SRAM right after loader
     fl->buf_addr = fl->loader_addr + (uint32_t)size;
     ILOG("Successfully loaded flash loader in sram\n");
+
+    /* Clear Fault Status Register for handling flash loader error */
+    if (!stlink_read_debug32(sl, STLINK_REG_DFSR, &dfsr) && dfsr) {
+        ILOG("Clear DFSR\n");
+        stlink_write_debug32(sl, STLINK_REG_DFSR, dfsr);
+    }
+    if (!stlink_read_debug32(sl, STLINK_REG_CFSR, &cfsr) && cfsr) {
+        ILOG("Clear CFSR\n");
+        stlink_write_debug32(sl, STLINK_REG_CFSR, cfsr);
+    }
+    if (!stlink_read_debug32(sl, STLINK_REG_HFSR, &hfsr) && hfsr) {
+        ILOG("Clear HFSR\n");
+        stlink_write_debug32(sl, STLINK_REG_HFSR, hfsr);
+    }
 
     return(0);
 }
@@ -348,7 +363,7 @@ int stlink_flash_loader_run(stlink_t *sl, flash_loader_t* fl, stm32_addr_t targe
     // check written byte count
     stlink_read_reg(sl, 2, &rr);
 
-    if (rr.r[2] != 0) {
+    if ((int32_t)rr.r[2] > 0) {
         ELOG("Write error\n");
         goto error;
     }
@@ -364,7 +379,7 @@ error:
     stlink_read_all_regs(sl, &rr);
 
     WLOG("Loader state: R2 0x%X R15 0x%X\n", rr.r[2], rr.r[15]);
-    if (dhcsr != 0x3000B || dfsr != 0x3 || cfsr || hfsr) {
+    if (dhcsr != 0x3000B || dfsr || cfsr || hfsr) {
         WLOG("MCU state: DHCSR 0x%X DFSR 0x%X CFSR 0x%X HFSR 0x%X\n",
             dhcsr, dfsr, cfsr, hfsr);
     }
