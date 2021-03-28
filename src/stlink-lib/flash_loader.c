@@ -363,7 +363,13 @@ int stlink_flash_loader_run(stlink_t *sl, flash_loader_t* fl, stm32_addr_t targe
     // check written byte count
     stlink_read_reg(sl, 2, &rr);
 
-    if ((int32_t)rr.r[2] > 0) {
+    /* The chunk size for loading is not rounded. The flash loader 
+     * subtracts the size of the written block (1-8 bytes) from 
+     * the remaining size each time. A negative value may mean that 
+     * several bytes garbage has been written due to the unaligned 
+     * firmware size.
+     */
+    if ((int32_t)rr.r[2] > 0 || (int32_t)rr.r[2] < -7) {
         ELOG("Write error\n");
         goto error;
     }
