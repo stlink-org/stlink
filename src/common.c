@@ -362,6 +362,25 @@
 #define FLASH_H7_OPTSR_CUR (FLASH_H7_REGS_ADDR + 0x1c)
 #define FLASH_H7_OPTCCR (FLASH_H7_REGS_ADDR + 0x24)
 
+#define STM32F0_DBGMCU_CR                 0xE0042004
+#define STM32F0_DBGMCU_CR_IWDG_STOP       8
+#define STM32F0_DBGMCU_CR_WWDG_STOP       9
+
+#define STM32F4_DBGMCU_APB1FZR1           0xE0042008
+#define STM32F4_DBGMCU_APB1FZR1_WWDG_STOP 11
+#define STM32F4_DBGMCU_APB1FZR1_IWDG_STOP 12
+
+#define STM32L0_DBGMCU_APB1_FZ            0x40015808
+#define STM32L0_DBGMCU_APB1_FZ_WWDG_STOP  11
+#define STM32L0_DBGMCU_APB1_FZ_IWDG_STOP  12
+
+#define STM32H7_DBGMCU_APB1HFZ            0x5C001054
+#define STM32H7_DBGMCU_APB1HFZ_IWDG_STOP  18
+
+#define STM32WB_DBGMCU_APB1FZR1           0xE004203C
+#define STM32WB_DBGMCU_APB1FZR1_WWDG_STOP 11
+#define STM32WB_DBGMCU_APB1FZR1_IWDG_STOP 12
+
 #define L1_WRITE_BLOCK_SIZE 0x80
 #define L0_WRITE_BLOCK_SIZE 0x40
 
@@ -1221,6 +1240,50 @@ static int check_flash_error(stlink_t *sl)
     return(0);
 }
 
+static void stop_wdg_in_debug(stlink_t *sl) {
+    uint32_t dbgmcu_cr;
+    uint32_t set;
+    uint32_t value;
+
+    switch (sl->flash_type) {
+    case STLINK_FLASH_TYPE_F0:
+    case STLINK_FLASH_TYPE_F1_XL:
+    case STLINK_FLASH_TYPE_G4:
+        dbgmcu_cr = STM32F0_DBGMCU_CR;
+        set = (1<<STM32F0_DBGMCU_CR_IWDG_STOP) |
+              (1<<STM32F0_DBGMCU_CR_WWDG_STOP);
+        break;
+    case STLINK_FLASH_TYPE_F4:
+    case STLINK_FLASH_TYPE_F7:
+    case STLINK_FLASH_TYPE_L4:
+        dbgmcu_cr = STM32F4_DBGMCU_APB1FZR1;
+        set = (1<<STM32F4_DBGMCU_APB1FZR1_IWDG_STOP) |
+              (1<<STM32F4_DBGMCU_APB1FZR1_WWDG_STOP);
+        break;
+    case STLINK_FLASH_TYPE_L0:
+    case STLINK_FLASH_TYPE_G0:
+        dbgmcu_cr = STM32L0_DBGMCU_APB1_FZ;
+        set = (1<<STM32L0_DBGMCU_APB1_FZ_IWDG_STOP) |
+              (1<<STM32L0_DBGMCU_APB1_FZ_WWDG_STOP);
+        break;
+    case STLINK_FLASH_TYPE_H7:
+        dbgmcu_cr = STM32H7_DBGMCU_APB1HFZ;
+        set = (1<<STM32H7_DBGMCU_APB1HFZ_IWDG_STOP);
+        break;
+    case STLINK_FLASH_TYPE_WB:
+        dbgmcu_cr = STM32WB_DBGMCU_APB1FZR1;
+        set = (1<<STM32WB_DBGMCU_APB1FZR1_IWDG_STOP) |
+              (1<<STM32WB_DBGMCU_APB1FZR1_WWDG_STOP);
+        break;
+    default:
+        return;
+    }
+
+    if (!stlink_read_debug32(sl, dbgmcu_cr, &value)) {
+        stlink_write_debug32(sl, dbgmcu_cr, value | set);
+    }
+}
+
 static inline void write_flash_ar(stlink_t *sl, uint32_t n, unsigned bank) {
     stlink_write_debug32(sl, (bank==BANK_1)?FLASH_AR:FLASH_AR2, n);
 }
@@ -1319,7 +1382,10 @@ int stlink_enter_swd_mode(stlink_t *sl) {
 // Force the core into the debug mode -> halted state.
 int stlink_force_debug(stlink_t *sl) {
     DLOG("*** stlink_force_debug_mode ***\n");
-    return(sl->backend->force_debug(sl));
+    int res = sl->backend->force_debug(sl);
+    // Stop the watchdogs in the halted state for suppress target reboot
+    stop_wdg_in_debug(sl);
+    return(res);
 }
 
 int stlink_exit_dfu_mode(stlink_t *sl) {
