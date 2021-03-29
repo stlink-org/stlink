@@ -489,7 +489,6 @@ static void stlink_gui_set_connected(STlinkGUI *gui) {
 
 static void connect_button_cb(GtkWidget *widget, gpointer data) {
     STlinkGUI *gui;
-    gint i;
     (void)widget;
 
     gui = STLINK_GUI(data);
