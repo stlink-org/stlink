@@ -35,10 +35,8 @@ copy:
     ldr r5, flash_off_sr
     add r5, r5, r7
 
-    # FLASH_CR |= 0x01 (set PG)
-    ldr r7, =0x1
-    ldr r4, [r6]
-    orrs r4, r4, r7
+    # FLASH_CR = 0x01 (set PG)
+    ldr r4, =0x1
     str r4, [r6]
 
 loop:

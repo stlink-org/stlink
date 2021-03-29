@@ -394,13 +394,21 @@ uint16_t read_uint16(const unsigned char *c, const int pt) {
 static uint32_t get_stm32l0_flash_base(stlink_t *sl)
 {
     switch (sl->chip_id) {
+    case STLINK_CHIPID_STM32_L0:
+    case STLINK_CHIPID_STM32_L0_CAT5:
+    case STLINK_CHIPID_STM32_L0_CAT2:
+    case STLINK_CHIPID_STM32_L011:
+		return(STM32L0_FLASH_REGS_ADDR);
+
     case STLINK_CHIPID_STM32_L1_CAT2:
     case STLINK_CHIPID_STM32_L1_MEDIUM:
     case STLINK_CHIPID_STM32_L1_MEDIUM_PLUS:
     case STLINK_CHIPID_STM32_L1_HIGH:
         return(STM32L1_FLASH_REGS_ADDR);
+
     default:
-        return(STM32L0_FLASH_REGS_ADDR);
+		WLOG("Flash base use default L0 address");
+		return(STM32L0_FLASH_REGS_ADDR);
     }
 }
 
@@ -2549,16 +2557,7 @@ int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr) {
     } else if (sl->flash_type == STLINK_FLASH_TYPE_L0) {
 
         uint32_t val;
-        uint32_t flash_regs_base;
-
-        if (sl->chip_id == STLINK_CHIPID_STM32_L0 ||
-            sl->chip_id == STLINK_CHIPID_STM32_L0_CAT5 ||
-            sl->chip_id == STLINK_CHIPID_STM32_L0_CAT2 ||
-            sl->chip_id == STLINK_CHIPID_STM32_L011) {
-            flash_regs_base = STM32L0_FLASH_REGS_ADDR;
-        } else {
-            flash_regs_base = STM32L_FLASH_REGS_ADDR;
-        }
+        uint32_t flash_regs_base = get_stm32l0_flash_base(sl);
 
         // check if the locks are set
         stlink_read_debug32(sl, flash_regs_base + FLASH_PECR_OFF, &val);
@@ -2592,15 +2591,6 @@ int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr) {
         // set pecr.{erase,prog}
         val |= (1 << 9) | (1 << 3);
         stlink_write_debug32(sl, flash_regs_base + FLASH_PECR_OFF, val);
-#if 0
-        /* Wait for sr.busy to be cleared
-         * MP: Test shows that busy bit is not set here. Perhaps, PM0062 is wrong
-         * and we do not need to wait here for clearing the busy bit.
-         */
-        do {
-            stlink_read_debug32(sl, STM32L_FLASH_SR, &val)
-        } while ((val & (1 << 0)) != 0);
-#endif
 
         // write 0 to the first word of the page to be erased
         stlink_write_debug32(sl, flashaddr, 0);
@@ -2610,9 +2600,7 @@ int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr) {
          * Test shows that a few iterations is performed in the following loop
          * before busy bit is cleared.
          */
-        do
-            stlink_read_debug32(sl, flash_regs_base + FLASH_SR_OFF, &val);
-        while ((val & (1 << 0)) != 0);
+        wait_flash_busy(sl);
 
         // reset lock bits
         stlink_read_debug32(sl, flash_regs_base + FLASH_PECR_OFF, &val);
@@ -2652,7 +2640,7 @@ int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr) {
         }
 
         set_flash_cr_strt(sl, BANK_1);  // set the 'start operation' bit
-        wait_flash_busy(sl);    // wait for the 'busy' bit to clear
+        wait_flash_busy(sl);            // wait for the 'busy' bit to clear
         clear_flash_cr_per(sl, BANK_1); // clear the 'enable page erase' bit
         lock_flash(sl);
     } else if (sl->flash_type == STLINK_FLASH_TYPE_F0 ||
@@ -2664,6 +2652,7 @@ int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr) {
         write_flash_ar(sl, flashaddr, bank); // select the page to erase
         set_flash_cr_strt(sl, bank);         // start erase operation, reset by hw with busy bit
         wait_flash_busy(sl);
+        clear_flash_cr_per(sl, bank);        // clear the page erase bit
         lock_flash(sl);
     } else if (sl->flash_type == STLINK_FLASH_TYPE_H7) {
         unsigned bank = (flashaddr < STM32_H7_FLASH_BANK2_BASE)?BANK_1:BANK_2;
@@ -2796,17 +2785,8 @@ int stm32l1_write_half_pages(
     unsigned int count;
     unsigned int num_half_pages = len / pagesize;
     uint32_t val;
-    uint32_t flash_regs_base;
+    uint32_t flash_regs_base = get_stm32l0_flash_base(sl);
     flash_loader_t fl;
-
-    if (sl->chip_id == STLINK_CHIPID_STM32_L0 ||
-        sl->chip_id == STLINK_CHIPID_STM32_L0_CAT5 ||
-        sl->chip_id == STLINK_CHIPID_STM32_L0_CAT2 ||
-        sl->chip_id == STLINK_CHIPID_STM32_L011) {
-        flash_regs_base = STM32L0_FLASH_REGS_ADDR;
-    } else {
-        flash_regs_base = STM32L_FLASH_REGS_ADDR;
-    }
 
     ILOG("Starting Half page flash write for STM32L core id\n");
 
@@ -2824,9 +2804,7 @@ int stm32l1_write_half_pages(
     val |= (1 << FLASH_L1_PROG);
     stlink_write_debug32(sl, flash_regs_base + FLASH_PECR_OFF, val);
 
-    do {
-        stlink_read_debug32(sl, flash_regs_base + FLASH_SR_OFF, &val);
-    } while ((val & (1 << 0)) != 0);
+    wait_flash_busy(sl);
 
     for (count = 0; count  < num_half_pages; count++) {
         if (stlink_flash_loader_run(
@@ -2845,9 +2823,7 @@ int stm32l1_write_half_pages(
             fflush(stdout);
         }
 
-        do {
-            stlink_read_debug32(sl, flash_regs_base + FLASH_SR_OFF, &val);
-        } while ((val & (1 << 0)) != 0);
+        wait_flash_busy(sl);
     }
 
     stlink_read_debug32(sl, flash_regs_base + FLASH_PECR_OFF, &val);
@@ -3095,8 +3071,6 @@ int stlink_flashloader_write(stlink_t *sl, flash_loader_t *fl, stm32_addr_t addr
 
             // unlock and set programming mode
             unlock_flash_if(sl);
-
-            if (sl->flash_type != STLINK_FLASH_TYPE_F1_XL) { set_flash_cr_pg(sl, BANK_1); }
 
             DLOG("Finished unlocking flash, running loader!\n");
 
