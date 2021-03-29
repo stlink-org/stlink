@@ -908,7 +908,7 @@ static int flash_go(stlink_t *sl) {
         }
     }
 
-    stlink_flashloader_stop(sl);
+    stlink_flashloader_stop(sl, &fl);
     stlink_soft_reset(sl, 1 /* halt on reset */);
     error = 0;
 

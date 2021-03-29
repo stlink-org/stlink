@@ -381,6 +381,27 @@
 #define STM32WB_DBGMCU_APB1FZR1_WWDG_STOP 11
 #define STM32WB_DBGMCU_APB1FZR1_IWDG_STOP 12
 
+#define STM32F1_RCC_AHBENR       0x40021014
+#define STM32F1_RCC_DMAEN        0x00000003 // DMA2EN | DMA1EN
+
+#define STM32F4_RCC_AHB1ENR      0x40023830
+#define STM32F4_RCC_DMAEN        0x00600000 // DMA2EN | DMA1EN
+
+#define STM32G0_RCC_AHBENR       0x40021038
+#define STM32G0_RCC_DMAEN        0x00000003 // DMA2EN | DMA1EN
+
+#define STM32G4_RCC_AHB1ENR      0x40021048
+#define STM32G4_RCC_DMAEN        0x00000003 // DMA2EN | DMA1EN
+
+#define STM32L0_RCC_AHBENR       0x40021030
+#define STM32L0_RCC_DMAEN        0x00000001 // DMAEN
+
+#define STM32H7_RCC_AHB1ENR      0x58024538
+#define STM32H7_RCC_DMAEN        0x00000003 // DMA2EN | DMA1EN
+
+#define STM32WB_RCC_AHB1ENR      0x58000048
+#define STM32WB_RCC_DMAEN        0x00000003 // DMA2EN | DMA1EN
+
 #define L1_WRITE_BLOCK_SIZE 0x80
 #define L0_WRITE_BLOCK_SIZE 0x40
 
@@ -1281,6 +1302,58 @@ static void stop_wdg_in_debug(stlink_t *sl) {
 
     if (!stlink_read_debug32(sl, dbgmcu_cr, &value)) {
         stlink_write_debug32(sl, dbgmcu_cr, value | set);
+    }
+}
+
+static void set_dma_state(stlink_t *sl, flash_loader_t* fl, int bckpRstr) {
+    uint32_t rcc, rcc_dma_mask, value;
+
+    rcc = rcc_dma_mask = value = 0;
+
+    switch (sl->flash_type) {
+    case STLINK_FLASH_TYPE_F0:
+    case STLINK_FLASH_TYPE_F1_XL:
+        rcc = STM32F1_RCC_AHBENR;
+        rcc_dma_mask = STM32F1_RCC_DMAEN;
+        break;
+    case STLINK_FLASH_TYPE_F4:
+    case STLINK_FLASH_TYPE_F7:
+        rcc = STM32F4_RCC_AHB1ENR;
+        rcc_dma_mask = STM32F4_RCC_DMAEN;
+        break;
+    case STLINK_FLASH_TYPE_G0:
+        rcc = STM32G0_RCC_AHBENR;
+        rcc_dma_mask = STM32G0_RCC_DMAEN;
+        break;
+    case STLINK_FLASH_TYPE_G4:
+    case STLINK_FLASH_TYPE_L4:
+        rcc = STM32G4_RCC_AHB1ENR;
+        rcc_dma_mask = STM32G4_RCC_DMAEN;
+        break;
+    case STLINK_FLASH_TYPE_L0:
+        rcc = STM32L0_RCC_AHBENR;
+        rcc_dma_mask = STM32L0_RCC_DMAEN;
+        break;
+    case STLINK_FLASH_TYPE_H7:
+        rcc = STM32H7_RCC_AHB1ENR;
+        rcc_dma_mask = STM32H7_RCC_DMAEN;
+        break;
+    case STLINK_FLASH_TYPE_WB:
+        rcc = STM32WB_RCC_AHB1ENR;
+        rcc_dma_mask = STM32WB_RCC_DMAEN;
+        break;
+    default:
+        return;
+    }
+
+    if (!stlink_read_debug32(sl, rcc, &value)) {
+        if (bckpRstr) {
+            value = (value&(~rcc_dma_mask)) | fl->rcc_dma_bkp;
+        } else {
+            fl->rcc_dma_bkp = value&rcc_dma_mask;
+            value &= ~rcc_dma_mask;
+        }
+        stlink_write_debug32(sl, rcc, value);
     }
 }
 
@@ -2913,6 +2986,9 @@ int stlink_flashloader_start(stlink_t *sl, flash_loader_t *fl) {
                                         STLINK_REG_DHCSR_C_HALT |
                                         STLINK_REG_DHCSR_C_MASKINTS);
 
+    // disable DMA
+    set_dma_state(sl, fl, 0);
+
     // wait for ongoing op to finish
     wait_flash_busy(sl);
     // Clear errors
@@ -3184,7 +3260,7 @@ int stlink_flashloader_write(stlink_t *sl, flash_loader_t *fl, stm32_addr_t addr
     return check_flash_error(sl);
 }
 
-int stlink_flashloader_stop(stlink_t *sl) {
+int stlink_flashloader_stop(stlink_t *sl, flash_loader_t *fl) {
     uint32_t dhcsr;
 
     if ((sl->flash_type == STLINK_FLASH_TYPE_F4) ||
@@ -3223,6 +3299,9 @@ int stlink_flashloader_stop(stlink_t *sl) {
                                 STLINK_REG_DHCSR_C_DEBUGEN |
                                 (dhcsr&(~STLINK_REG_DHCSR_C_MASKINTS)));
     }
+
+    // restore DMA state
+    set_dma_state(sl, fl, 1);
 
     return(0);
 }
@@ -3286,7 +3365,7 @@ int stlink_write_flash(
     ret = stlink_flashloader_write(sl, &fl, addr, base, len);
     if (ret)
         return ret;
-    ret = stlink_flashloader_stop(sl);
+    ret = stlink_flashloader_stop(sl, &fl);
     if (ret)
         return ret;
 

@@ -137,6 +137,7 @@ typedef uint32_t stm32_addr_t;
 typedef struct flash_loader {
     stm32_addr_t loader_addr; // loader sram addr
     stm32_addr_t buf_addr; // buffer sram address
+    uint32_t rcc_dma_bkp; // backup RCC DMA enable state
 } flash_loader_t;
 
 typedef struct _cortex_m3_cpuid_ {
@@ -297,7 +298,7 @@ int stlink_fwrite_option_bytes(stlink_t *sl, const char* path, stm32_addr_t addr
 
 int stlink_flashloader_start(stlink_t *sl, flash_loader_t *fl);
 int stlink_flashloader_write(stlink_t *sl, flash_loader_t *fl, stm32_addr_t addr, uint8_t* base, uint32_t len);
-int stlink_flashloader_stop(stlink_t *sl);
+int stlink_flashloader_stop(stlink_t *sl, flash_loader_t *fl);
 
 #include <sg.h>
 #include <usb.h>
