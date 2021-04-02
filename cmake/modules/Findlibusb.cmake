@@ -75,7 +75,7 @@ elseif (WIN32 OR (EXISTS "/etc/debian_version" AND MINGW))                      
 
     if (NOT LIBUSB_FOUND)
         # Preparations for installing libusb library
-        set(LIBUSB_WIN_VERSION 1.0.24)          # set libusb version
+        set(LIBUSB_WIN_VERSION 1.0.23)          # set libusb version
         set(LIBUSB_WIN_ARCHIVE libusb-${LIBUSB_WIN_VERSION}.7z)
         if (WIN32 AND NOT EXISTS "/etc/debian_version") # ... on native Windows systems
             set(LIBUSB_WIN_ARCHIVE_PATH ${CMAKE_BINARY_DIR}/${LIBUSB_WIN_ARCHIVE})
@@ -92,7 +92,7 @@ elseif (WIN32 OR (EXISTS "/etc/debian_version" AND MINGW))                      
             message(STATUS "downloading libusb ${LIBUSB_WIN_VERSION}")
             file(DOWNLOAD
                 https://sourceforge.net/projects/libusb/files/libusb-1.0/libusb-${LIBUSB_WIN_VERSION}/libusb-${LIBUSB_WIN_VERSION}.7z/download
-                ${LIBUSB_WIN_ARCHIVE_PATH} EXPECTED_MD5 5c944b1c8aa9d43e026a94302d0f8ac4
+                ${LIBUSB_WIN_ARCHIVE_PATH} EXPECTED_MD5 cf3d38d2ff053ef343d10c0b8b0950c2
                 )
         endif ()
 
