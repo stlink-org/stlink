@@ -2,23 +2,7 @@ language: c
 
 jobs:
   include:
-    ### 64-bit builds on AMD64 ###
-    - os: linux
-      dist: xenial
-      env: BADGE=linux
-      compiler: gcc-5
-      addons:
-        apt:
-          sources: ["ubuntu-toolchain-r-test"]
-          packages: ["gcc-5", "libusb-1.0.0-dev", "libgtk-3-dev", "rpm"]
-    - os: linux
-      dist: bionic
-      env: BADGE=linux
-      compiler: gcc-6
-      addons:
-        apt:
-          sources: ["ubuntu-toolchain-r-test"]
-          packages: ["gcc-6", "libusb-1.0.0-dev", "libgtk-3-dev", "rpm"]
+    ### 64-bit build on AMD64 ###
     - os: linux
       dist: focal
       env: BADGE=linux
@@ -27,30 +11,18 @@ jobs:
         apt:
           sources: ["ubuntu-toolchain-r-test"]
           packages: ["gcc-10", "libusb-1.0.0-dev", "libgtk-3-dev", "rpm"]
-    - os: linux
-      dist: xenial
-      env: BADGE=linux
-      compiler: clang
-      addons:
-        apt:
-          sources: ["ubuntu-toolchain-r-test"]
-          packages: ["libusb-1.0.0-dev", "libgtk-3-dev", "rpm"]
-    - os: linux
-      dist: bionic
-      env: BADGE=linux
-      compiler: clang-10
-      addons:
-        apt:
-          sources: ["ubuntu-toolchain-r-test"]
-          packages: ["clang-10", "libusb-1.0.0-dev", "libgtk-3-dev", "rpm"]
+
+    ### 32-bit build on AMD64 ###
     - os: linux
       dist: focal
       env: BADGE=linux
-      compiler: clang-10
+      compiler: gcc-10
       addons:
         apt:
           sources: ["ubuntu-toolchain-r-test"]
-          packages: ["clang-10", "libusb-1.0.0-dev", "libgtk-3-dev", "rpm"]
+          packages: ["gcc-10", "libusb-1.0.0-dev", "libgtk-3-dev", "rpm"]
+      before_install:
+        - CFLAGS="$CFLAGS -m32"; CXXFLAGS="$CXXFLAGS -m32"; LDFLAGS="$LDFLAGS -m32";
 
     ### cross build on AMD64 ###
     - os: linux
@@ -63,92 +35,61 @@ jobs:
           sources: ["ubuntu-toolchain-r-test"]
           packages:
             ["gcc-10", "libusb-1.0.0-dev", "libgtk-3-dev", "rpm", "mingw-w64"]
-
-    ### 32-bit builds on AMD64 ###
-    - os: linux
-      dist: xenial
-      env: BADGE=linux
-      compiler: gcc-5
-      addons:
-        apt:
-          sources: ["ubuntu-toolchain-r-test"]
-          packages: ["gcc-5", "libusb-1.0.0-dev", "libgtk-3-dev", "rpm"]
       before_install:
-        - CFLAGS="$CFLAGS -m32"; CXXFLAGS="$CXXFLAGS -m32"; LDFLAGS="$LDFLAGS -m32";
-    - os: linux
-      dist: bionic
-      env: BADGE=linux
-      compiler: gcc-6
-      addons:
-        apt:
-          sources: ["ubuntu-toolchain-r-test"]
-          packages: ["gcc-6", "libusb-1.0.0-dev", "libgtk-3-dev", "rpm"]
-      before_install:
-        - CFLAGS="$CFLAGS -m32"; CXXFLAGS="$CXXFLAGS -m32"; LDFLAGS="$LDFLAGS -m32";
-    - os: linux
-      dist: focal
-      env: BADGE=linux
-      compiler: gcc-10
-      addons:
-        apt:
-          sources: ["ubuntu-toolchain-r-test"]
-          packages: ["gcc-10", "libusb-1.0.0-dev", "libgtk-3-dev", "rpm"]
-      before_install:
-        - CFLAGS="$CFLAGS -m32"; CXXFLAGS="$CXXFLAGS -m32"; LDFLAGS="$LDFLAGS -m32";
-    - os: linux
-      dist: xenial
-      env: BADGE=linux
-      compiler: clang
-      addons:
-        apt:
-          sources: ["ubuntu-toolchain-r-test"]
-          packages: ["libusb-1.0.0-dev", "libgtk-3-dev", "rpm"]
-      before_install:
-        - CFLAGS="$CFLAGS -m32"; CXXFLAGS="$CXXFLAGS -m32"; LDFLAGS="$LDFLAGS -m32";
-    - os: linux
-      dist: bionic
-      env: BADGE=linux
-      compiler: clang-10
-      addons:
-        apt:
-          sources: ["ubuntu-toolchain-r-test"]
-          packages: ["clang-10", "libusb-1.0.0-dev", "libgtk-3-dev", "rpm"]
-      before_install:
-        - CFLAGS="$CFLAGS -m32"; CXXFLAGS="$CXXFLAGS -m32"; LDFLAGS="$LDFLAGS -m32";
-    - os: linux
-      dist: focal
-      env: BADGE=linux
-      compiler: clang-10
-      addons:
-        apt:
-          sources: ["ubuntu-toolchain-r-test"]
-          packages: ["clang-10", "libusb-1.0.0-dev", "libgtk-3-dev", "rpm"]
-      before_install:
-        - CFLAGS="$CFLAGS -m32"; CXXFLAGS="$CXXFLAGS -m32"; LDFLAGS="$LDFLAGS -m32";
+        - LDFLAGS="$LDFLAGS -NDEBUG";
 
     ### macOS ###
-    - os: osx
-      env: BADGE=osx
-      osx_image: xcode12.2
-      name: macOS 10.15.7
-      compiler: gcc
-      addons:
-        homebrew:
-          packages:
-            - gcc
-            - libusb
-            - gtk+3
-    - os: osx
-      env: BADGE=osx
-      osx_image: xcode12.2
-      name: macOS 10.15.7
-      compiler: clang
-      addons:
-        homebrew:
-          packages:
-            - llvm
-            - libusb
-            - gtk+3
+    # - os: osx
+    #   env: BADGE=osx
+    #   osx_image: xcode11.3
+    #   name: macOS 10.14.6 gcc
+    #   compiler: gcc
+    #   addons:
+    #     homebrew:
+    #       packages:
+    #         - gcc
+    #         - libusb
+    #         - gtk+3
+
+    # - os: osx
+    #   env: BADGE=osx
+    #   osx_image: xcode11.3
+    #   name: macOS 10.14.6 gcc 32-bit
+    #   compiler: gcc
+    #   addons:
+    #     homebrew:
+    #       packages:
+    #         - gcc
+    #         - libusb
+    #         - gtk+3
+    #   before_install:
+    #     - CFLAGS="$CFLAGS -m32"; CXXFLAGS="$CXXFLAGS -m32"; LDFLAGS="$LDFLAGS -m32";
+
+    # - os: osx
+    #   env: BADGE=osx
+    #   osx_image: xcode11.3
+    #   name: macOS 10.14.6 clang
+    #   compiler: clang
+    #   addons:
+    #     homebrew:
+    #       packages:
+    #         - llvm
+    #         - libusb
+    #         - gtk+3
+
+    # - os: osx
+    #   env: BADGE=osx
+    #   osx_image: xcode11.3
+    #   name: macOS 10.14.6 clang 32-bit
+    #   compiler: clang
+    #   addons:
+    #     homebrew:
+    #       packages:
+    #         - llvm
+    #         - libusb
+    #         - gtk+3
+    #   before_install:
+    #     - CFLAGS="$CFLAGS -m32"; CXXFLAGS="$CXXFLAGS -m32"; LDFLAGS="$LDFLAGS -m32";
 
 script:
   - git fetch --tags

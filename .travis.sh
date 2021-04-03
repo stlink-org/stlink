@@ -9,13 +9,13 @@ echo "WORK DIR:$DIR"
 DIR=$PWD
 
 if [ "$TRAVIS_JOB_NAME" == "linux-mingw" ]; then
-    echo "--> Building Release for Windows (x86-64) ..."
+    echo "--> Building for Windows (x86-64) ..."
     mkdir -p build-mingw && cd build-mingw
     cmake -DCMAKE_SYSTEM_NAME=Windows -DTOOLCHAIN_PREFIX=x86_64-w64-mingw32 \
           -DCMAKE_TOOLCHAIN_FILE=$PWD/../cmake/modules/set_toolchain.cmake -DCMAKE_INSTALL_PREFIX=$PWD/install $DIR
     make && rm -rf build-mingw && cd -
 
-    echo "--> Building Release for Windows (i686) ..."
+    echo "--> Building for Windows (i686) ..."
     mkdir -p build-mingw && cd build-mingw
     cmake -DCMAKE_SYSTEM_NAME=Windows -DTOOLCHAIN_PREFIX=i686-w64-mingw32 \
           -DCMAKE_TOOLCHAIN_FILE=$PWD/../cmake/modules/set_toolchain.cmake -DCMAKE_INSTALL_PREFIX=$PWD/install $DIR
