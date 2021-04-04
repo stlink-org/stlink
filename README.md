@@ -36,7 +36,7 @@ It supports several so called STLINK programmer boards (and clones thereof) whic
 - **STLINK-V3**
   - transport layer: raw USB commands
   - stand-alone programmer (STLINK-V3SET, STLINK-V3MINI, STLINK-V3MODS)
-  - on-board on some STM32 Nucleo boards
+  - on-board on some STM32 Nucleo boards (STLINK-V3E)
 
 _\*)_ **Note: Support for the STLINK/V1 on macOS is limited to 10.14 - 10.15. Due to the deprecation and removal of macOS Kernel Extensions (KEXT) there will be no support for this programmer on macOS 11 or any later version.**
 

@@ -1,12 +1,14 @@
-# stlink ChangeLog
+# stlink Changelog
 
 # v1.6.2
 
-Release date: (planned Q2/2021)
+Release date: 2020-04-xx
+
+This release drops support for the STLINK/V1 programmer on macOS 10.13.
 
 Features:
 
-- Extended support for STM32H7 & rework of software reset ([#532](https://github.com/stlink-org/stlink/pull/532), [#1059](https://github.com/stlink-org/stlink/pull/1059), [#1063](https://github.com/stlink-org/stlink/pull/1063), [#1071](https://github.com/stlink-org/stlink/pull/1071))
+- Extended support for STM32H7 & rework of software reset ([#532](https://github.com/stlink-org/stlink/pull/532), [#868](https://github.com/stlink-org/stlink/pull/868), [#1059](https://github.com/stlink-org/stlink/pull/1059), [#1063](https://github.com/stlink-org/stlink/pull/1063), [#1071](https://github.com/stlink-org/stlink/pull/1071))
 - Added support for STM32H742/743/753 ([#671](https://github.com/stlink-org/stlink/pull/671), [#793](https://github.com/stlink-org/stlink/pull/793), [#823](https://github.com/stlink-org/stlink/pull/823), [#998](https://github.com/stlink-org/stlink/pull/998), [#1052](https://github.com/stlink-org/stlink/pull/1052))
 - Official support for STLINK-V3 programmers (commit [#5e0a502](https://github.com/stlink-org/stlink/commit/5e0a502df812495bfa96fa9116a19f1306152b17), [#820](https://github.com/stlink-org/stlink/pull/820), [#1022](https://github.com/stlink-org/stlink/pull/1022), [#1025](https://github.com/stlink-org/stlink/pull/1025))
 - Added preliminary support for STM32L5x2 ([#904](https://github.com/stlink-org/stlink/pull/904), [#999](https://github.com/stlink-org/stlink/pull/999))
@@ -18,6 +20,7 @@ Features:
 - Link for WIN32 & APPLE with stlink-static ([#1069](https://github.com/stlink-org/stlink/pull/1069))
 - ITM functionality for STLink/V2 and STM32Fxx chipsets ([#136](https://github.com/stlink-org/stlink/pull/136), [#179](https://github.com/stlink-org/stlink/pull/179), [#815](https://github.com/stlink-org/stlink/pull/815), [#1072](https://github.com/stlink-org/stlink/pull/1072))
 - Included ITM functionality for building with MSVC ([#1080](https://github.com/stlink-org/stlink/pull/1080))
+- Update for CI integration (commit [#0eebc9a](https://github.com/stlink-org/stlink/commit/0eebc9a74506e84d5c460ec325ae98064a81885e), [#1118](https://github.com/stlink-org/stlink/pull/1118))
 
 Updates & changes:
 
@@ -32,10 +35,11 @@ Updates & changes:
 - [doc] Added example for output of `st-info --probe` ([#1007](https://github.com/stlink-org/stlink/pull/1007), [#1049](https://github.com/stlink-org/stlink/pull/1049))
 - [refactoring] Correctly handle endianness without reference to host platform ([#1081](https://github.com/stlink-org/stlink/pull/1081))
 - Check format string for log messages ([#1093](https://github.com/stlink-org/stlink/pull/1093))
+- Removed abort() from stlink-lib ([#1116](https://github.com/stlink-org/stlink/pull/1116))
 
 Fixes:
 
-- Flash loader rework ([#356](https://github.com/stlink-org/stlink/pull/356), [#556](https://github.com/stlink-org/stlink/pull/556), [#593](https://github.com/stlink-org/stlink/pull/593), [#597](https://github.com/stlink-org/stlink/pull/597), [#607](https://github.com/stlink-org/stlink/pull/607), [#612](https://github.com/stlink-org/stlink/pull/612), [#638](https://github.com/stlink-org/stlink/pull/638), [#661](https://github.com/stlink-org/stlink/pull/661), [#690](https://github.com/stlink-org/stlink/pull/690), [#818](https://github.com/stlink-org/stlink/pull/818), [#854](https://github.com/stlink-org/stlink/pull/854), [#967](https://github.com/stlink-org/stlink/pull/967), [#979](https://github.com/stlink-org/stlink/pull/979), [#1043](https://github.com/stlink-org/stlink/pull/1043), [#1054](https://github.com/stlink-org/stlink/pull/1054), [#1092](https://github.com/stlink-org/stlink/pull/1092), [#1105](https://github.com/stlink-org/stlink/pull/1105), [#1113](https://github.com/stlink-org/stlink/pull/1113))
+- Flash loader rework ([#356](https://github.com/stlink-org/stlink/pull/356), [#556](https://github.com/stlink-org/stlink/pull/556), [#593](https://github.com/stlink-org/stlink/pull/593), [#597](https://github.com/stlink-org/stlink/pull/597), [#607](https://github.com/stlink-org/stlink/pull/607), [#612](https://github.com/stlink-org/stlink/pull/612), [#638](https://github.com/stlink-org/stlink/pull/638), [#661](https://github.com/stlink-org/stlink/pull/661), [#690](https://github.com/stlink-org/stlink/pull/690), [#818](https://github.com/stlink-org/stlink/pull/818), [#854](https://github.com/stlink-org/stlink/pull/854), [#868](https://github.com/stlink-org/stlink/pull/868), [#967](https://github.com/stlink-org/stlink/pull/967), [#979](https://github.com/stlink-org/stlink/pull/979), [#1043](https://github.com/stlink-org/stlink/pull/1043), [#1054](https://github.com/stlink-org/stlink/pull/1054), [#1092](https://github.com/stlink-org/stlink/pull/1092), [#1105](https://github.com/stlink-org/stlink/pull/1105), [#1113](https://github.com/stlink-org/stlink/pull/1113))
 - Fixed old DFU serial number for STLINK programmers ([#417](https://github.com/stlink-org/stlink/pull/417), [#494](https://github.com/stlink-org/stlink/pull/494), [#1106](https://github.com/stlink-org/stlink/pull/1106))
 - Use vl flashloader for all STM32F1 series ([#769](https://github.com/stlink-org/stlink/pull/769), [#1041](https://github.com/stlink-org/stlink/pull/1041), [#1044](https://github.com/stlink-org/stlink/pull/1044))
 - [regression] Changed timeout on flash write ([#787](https://github.com/stlink-org/stlink/pull/787), [#981](https://github.com/stlink-org/stlink/pull/981), [#987](https://github.com/stlink-org/stlink/pull/987))
@@ -60,6 +64,8 @@ Fixes:
 - Fixed support for writing option bytes ([#1102](https://github.com/stlink-org/stlink/pull/1102))
 - [doc] Corrected spelling mistake in bug report template ([#1103](https://github.com/stlink-org/stlink/pull/1103))
 - Fixed STM32WB55 reading DEBUG IDCODE from the wrong address ([#1100](https://github.com/stlink-org/stlink/pull/1100), [#1101](https://github.com/stlink-org/stlink/pull/1101))
+- Applied missing changes to tests ([#1119](https://github.com/stlink-org/stlink/pull/1119))
+- Improvements for Chip_ID read ([#1120](https://github.com/stlink-org/stlink/pull/1120))
 
 # v1.6.1
 
@@ -216,7 +222,7 @@ Release date: 2018-09-13
 
 Major changes and added features:
 
-- Added reset through `AIRCR` ([#540](https://github.com/stlink-org/stlink/pull/540), [#712](https://github.com/stlink-org/stlink/pull/712))
+- Added reset through `AIRCR` ([#254](https://github.com/stlink-org/stlink/pull/254), [#540](https://github.com/stlink-org/stlink/pull/540), [#712](https://github.com/stlink-org/stlink/pull/712))
 - Added creation of icons for `.desktop` file ([#684](https://github.com/stlink-org/stlink/pull/684), [#708](https://github.com/stlink-org/stlink/pull/708))
 - Added desktop file for linux ([#688](https://github.com/stlink-org/stlink/pull/688))
 - Added button to export STM32 flash memory to a file ([#691](https://github.com/stlink-org/stlink/pull/691))
@@ -279,7 +285,6 @@ Major changes and added features:
 
 Updates and fixes:
 
-- Fixed gdb-server: STM32L0xx has no `FP_CTRL` register for breakpoints ([#273](https://github.com/stlink-org/stlink/pull/273))
 - Added `--flash=n[k][m]` command line option to override device model ([#305](https://github.com/stlink-org/stlink/pull/305), [#516](https://github.com/stlink-org/stlink/pull/516), [#576](https://github.com/stlink-org/stlink/pull/576))
 - Updated `libusb` to 1.0.21 for Windows ([#562](https://github.com/stlink-org/stlink/pull/562))
 - Fixed low-voltage flashing on STM32F7 devices ([#566](https://github.com/stlink-org/stlink/pull/566), [#567](https://github.com/stlink-org/stlink/pull/567))
@@ -324,11 +329,11 @@ Major changes and added features:
 - Added manpages (generated with `pandoc` from Markdown) ([#208](https://github.com/stlink-org/stlink/pull/208), [#464](https://github.com/stlink-org/stlink/pull/464), [#466](https://github.com/stlink-org/stlink/pull/466), [#467](https://github.com/stlink-org/stlink/pull/467))
 - Removal of undocumented `st-term` utility, which is now replaced by `st-util` ARM semihosting feature ([#228](https://github.com/stlink-org/stlink/pull/228), [#507](https://github.com/stlink-org/stlink/pull/507), commit [#3fd0f09](https://github.com/stlink-org/stlink/commit/3fd0f099782506532198473b24f643a3f68d5ff9))
 - Support serial numbers argument for `st-util` and `st-flash` to probe and control multiple connected programmers ([#318](https://github.com/stlink-org/stlink/pull/318), [#398](https://github.com/stlink-org/stlink/pull/398), [#541](https://github.com/stlink-org/stlink/pull/541))
+- Added 'k' (kill) command to gdb-server, which resets the connection ([#358](https://github.com/stlink-org/stlink/pull/358), [#525](https://github.com/stlink-org/stlink/pull/525), [#527](https://github.com/stlink-org/stlink/pull/527), [#528](https://github.com/stlink-org/stlink/pull/528))
 - Merge `st-probe` tool into `st-info` ([#398](https://github.com/stlink-org/stlink/pull/398))
 - Added support for native debian packaging ([#444](https://github.com/stlink-org/stlink/pull/444), [#472](https://github.com/stlink-org/stlink/pull/472), [#473](https://github.com/stlink-org/stlink/pull/473), [#482](https://github.com/stlink-org/stlink/pull/482), [#483](https://github.com/stlink-org/stlink/pull/483), [#484](https://github.com/stlink-org/stlink/pull/484), [#485](https://github.com/stlink-org/stlink/pull/485))
 - Rewritten commandline parsing for `st-flash` ([#459](https://github.com/stlink-org/stlink/pull/459))
 - Added `--reset` command to `st-flash` ([#505](https://github.com/stlink-org/stlink/pull/505))
-- st-util should detect when USB commands fail ([#525](https://github.com/stlink-org/stlink/pull/525), [#527](https://github.com/stlink-org/stlink/pull/527), [#528](https://github.com/stlink-org/stlink/pull/528))
 
 Chip support added for:
 
@@ -344,12 +349,12 @@ Chip support added for:
 
 Updates and fixes:
 
+- Do a JTAG reset prior to reading CPU information when processor is in deep sleep ([#291](https://github.com/stlink-org/stlink/pull/291), [#428](https://github.com/stlink-org/stlink/pull/428), [#430](https://github.com/stlink-org/stlink/pull/430), [#451](https://github.com/stlink-org/stlink/pull/451))
 - Fixed `unaligned addr or size` when trying to write a program in RAM ([#323](https://github.com/stlink-org/stlink/pull/323))
 - Fixed flashing on `STM32_F3_SMALL` ([#325](https://github.com/stlink-org/stlink/pull/325))
 - Fixed STM32L-problem with flash loader ([#390](https://github.com/stlink-org/stlink/pull/390), [#407](https://github.com/stlink-org/stlink/pull/407), [#408](https://github.com/stlink-org/stlink/pull/408))
 - Don't read the target voltage on startup, because it crashes STM32F100 ([#423](https://github.com/stlink-org/stlink/pull/423), [#424](https://github.com/stlink-org/stlink/pull/424))
 - Added a useful error message instead of `[!] send_recv` ([#425](https://github.com/stlink-org/stlink/pull/425), [#426](https://github.com/stlink-org/stlink/pull/426))
-- Do a JTAG reset prior to reading CPU information when processor is in deep sleep ([#428](https://github.com/stlink-org/stlink/pull/428), [#430](https://github.com/stlink-org/stlink/pull/430), [#451](https://github.com/stlink-org/stlink/pull/451))
 - Fixed STM32F030 erase error ([#442](https://github.com/stlink-org/stlink/pull/442))
 - Fixed memory map for STM32F7xx ([#453](https://github.com/stlink-org/stlink/pull/453), [#456](https://github.com/stlink-org/stlink/pull/456))
 - Redesign of `st-flash` commandline options parsing ([#459](https://github.com/stlink-org/stlink/pull/459))
@@ -392,6 +397,7 @@ Updates and fixes:
 - Modified determination of erased byte pattern when flashing ([#193](https://github.com/stlink-org/stlink/pull/193), [#377](https://github.com/stlink-org/stlink/pull/377))
 - Use libusb synchronous api ([#194](https://github.com/stlink-org/stlink/pull/194), [#225](https://github.com/stlink-org/stlink/pull/225), [#374](https://github.com/stlink-org/stlink/pull/374))
 - Fixed segfault when programmer is already busy and `NULL` pointers are in the list ([#256](https://github.com/stlink-org/stlink/pull/256), [#394](https://github.com/stlink-org/stlink/pull/394))
+- Fixed gdb-server: Cortex M0 chips have no `FP_CTRL` register for breakpoints ([#266](https://github.com/stlink-org/stlink/pull/266), [#273](https://github.com/stlink-org/stlink/pull/273), [#341](https://github.com/stlink-org/stlink/pull/341))
 - Fixed issue where "unknown chip id!" was seen every other time ([#352](https://github.com/stlink-org/stlink/pull/352), [#367](https://github.com/stlink-org/stlink/pull/367), [#381](https://github.com/stlink-org/stlink/pull/381))
 - Send F4 memory-map and features for STM32F429 ([#188](https://github.com/stlink-org/stlink/pull/188), [#196](https://github.com/stlink-org/stlink/pull/196), [#250](https://github.com/stlink-org/stlink/pull/250), [#251](https://github.com/stlink-org/stlink/pull/251)) (Release v1.1.0)
 - Added AHB3 Peripherals definition for STM32F4 ([#218](https://github.com/stlink-org/stlink/pull/218), [#288](https://github.com/stlink-org/stlink/pull/288)) (Release v1.1.0)
