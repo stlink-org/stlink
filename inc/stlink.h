@@ -138,6 +138,7 @@ typedef struct flash_loader {
     stm32_addr_t loader_addr; // loader sram addr
     stm32_addr_t buf_addr; // buffer sram address
     uint32_t rcc_dma_bkp; // backup RCC DMA enable state
+    uint32_t iwdg_kr; // IWDG key register address
 } flash_loader_t;
 
 typedef struct _cortex_m3_cpuid_ {

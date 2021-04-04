@@ -9,6 +9,11 @@
 #define FLASH_REGS_BANK2_OFS 0x40
 #define FLASH_BANK2_START_ADDR 0x08080000
 
+#define STM32F0_WDG_KR            0x40003000
+#define STM32H7_WDG_KR            0x58004800
+
+#define STM32F0_WDG_KR_KEY_RELOAD 0xAAAA
+
 /* DO NOT MODIFY SOURCECODE DIRECTLY, EDIT ASSEMBLY FILES INSTEAD */
 
 /* flashloaders/stm32f0.s -- compiled with thumb2 */
@@ -163,6 +168,13 @@ int stlink_flash_loader_init(stlink_t *sl, flash_loader_t *fl) {
     // allocate a one page buffer in SRAM right after loader
     fl->buf_addr = fl->loader_addr + (uint32_t)size;
     ILOG("Successfully loaded flash loader in sram\n");
+
+    // set address of IWDG key register for reset it
+    if (sl->flash_type == STLINK_FLASH_TYPE_H7) {
+        fl->iwdg_kr = STM32H7_WDG_KR;
+    } else {
+        fl->iwdg_kr = STM32F0_WDG_KR;
+    }
 
     /* Clear Fault Status Register for handling flash loader error */
     if (!stlink_read_debug32(sl, STLINK_REG_DFSR, &dfsr) && dfsr) {
@@ -328,6 +340,11 @@ int stlink_flash_loader_run(stlink_t *sl, flash_loader_t* fl, stm32_addr_t targe
     stlink_write_reg(sl, flash_base, 3);       // flash register base
                                                // only used on VL/F1_XL, but harmless for others
     stlink_write_reg(sl, fl->loader_addr, 15); // pc register
+
+    /* Reset IWDG */
+    if (fl->iwdg_kr) {
+        stlink_write_debug32(sl, fl->iwdg_kr, STM32F0_WDG_KR_KEY_RELOAD);
+    }
 
     /* Run loader */
     stlink_run(sl);
