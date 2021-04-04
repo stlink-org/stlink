@@ -46,8 +46,10 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")                                   
 elseif (WIN32 OR (EXISTS "/etc/debian_version" AND MINGW))                      # Windows or MinGW-toolchain on Debian
     # for MinGW/MSYS/MSVC: 64-bit or 32-bit?
     if (CMAKE_SIZEOF_VOID_P EQUAL 8)
+        message(STATUS "=== Building for Windows (x86-64) ===")
         set(ARCH 64)
     else ()
+        message(STATUS "=== Building for Windowsm (i686) ===")
         set(ARCH 32)
     endif ()
 
