@@ -98,20 +98,6 @@ int main(int ac, char** av) {
         }
     }
 
-    if (o.reset) {
-        if (sl->version.stlink_v > 1) {
-            if (stlink_jtag_reset(sl, 2)) {
-                printf("Failed to reset JTAG\n");
-                goto on_error;
-            }
-        }
-
-        if (stlink_reset(sl)) {
-            printf("Failed to reset device\n");
-            goto on_error;
-        }
-    }
-
     // core must be halted to use RAM based flashloaders
     if (stlink_force_debug(sl)) {
         printf("Failed to halt the core\n");
