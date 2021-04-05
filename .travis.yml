@@ -6,8 +6,8 @@ jobs:
 
     - os: linux
       dist: focal
-      env: BADGE=linux-mingw-64
-      name: linux-mingw
+      env: BADGE=linux-mingw-32
+      name: linux-mingw-32
       compiler: gcc-10
       addons:
         apt:
@@ -15,16 +15,16 @@ jobs:
           packages:
             ["gcc-10", "libusb-1.0.0-dev", "libgtk-3-dev", "rpm", "mingw-w64"]
 
-    - os: linux
-      dist: focal
-      env: BADGE=linux-mingw-32
-      name: linux-mingw
-      compiler: gcc-10
-      addons:
-        apt:
-          sources: ["ubuntu-toolchain-r-test"]
-          packages:
-            ["gcc-10", "libusb-1.0.0-dev", "libgtk-3-dev", "rpm", "mingw-w64"]
+    # - os: linux
+    #   dist: focal
+    #   env: BADGE=linux-mingw-64
+    #   name: linux-mingw-64
+    #   compiler: gcc-10
+    #   addons:
+    #     apt:
+    #       sources: ["ubuntu-toolchain-r-test"]
+    #       packages:
+    #         ["gcc-10", "libusb-1.0.0-dev", "libgtk-3-dev", "rpm", "mingw-w64"]
 
 script:
   - git fetch --tags
