@@ -193,6 +193,8 @@ int flash_get_opts(struct flash_opts* o, int ac, char** av) {
             }
         } else if (strcmp(av[0], "--connect-under-reset") == 0) {
             o->connect = CONNECT_UNDER_RESET;
+        } else if (strcmp(av[0], "--hot-plug") == 0) {
+            o->connect = CONNECT_HOT_PLUG;
         } else {
             break; // non-option found
 
