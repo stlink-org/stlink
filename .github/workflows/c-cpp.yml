@@ -282,6 +282,96 @@ jobs:
 
 # macOS
 
+  # job_macos_10_14_64_gcc:
+  #   name: macos-10.14 gcc
+  #   runs-on: macos-10.14
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - name: Install dependencies
+  #       run: brew install gcc libusb gtk+3
+  #     - name: make debug
+  #       run: sudo make clean && make debug
+  #     - name: make test
+  #       run: sudo make clean && make test
+  #     - name: make release
+  #       run: sudo make clean && make release
+  #     - name: sudo make install
+  #       run: sudo make clean && sudo make install
+  #     - name: sudo make package
+  #       run: sudo make package
+  #     - name: sudo make uninstall
+  #       run: sudo make uninstall && sudo make clean
+
+  # job_macos_10_14_32_gcc:
+  #   name: macos-10.14 gcc 32-bit
+  #   runs-on: macos-10.14
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - name: Install dependencies
+  #       run: brew install gcc libusb gtk+3
+  #     - name: Set compiler flags
+  #       run: |
+  #         CFLAGS="$CFLAGS -m32"
+  #         CXXFLAGS="$CXXFLAGS -m32"
+  #         LDFLAGS="$LDFLAGS -m32"
+  #     - name: make debug
+  #       run: sudo make clean && make debug
+  #     - name: make test
+  #       run: sudo make clean && make test
+  #     - name: make release
+  #       run: sudo make clean && make release
+  #     - name: sudo make install
+  #       run: sudo make clean && sudo make install
+  #     - name: sudo make package
+  #       run: sudo make package
+  #     - name: sudo make uninstall
+  #       run: sudo make uninstall && sudo make clean
+
+  # job_macos_10_14_64_clang:
+  #   name: macos-10.14 clang
+  #   runs-on: macos-10.14
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - name: Install dependencies
+  #       run: brew install llvm libusb gtk+3
+  #     - name: make debug
+  #       run: sudo make clean && make debug
+  #     - name: make test
+  #       run: sudo make clean && make test
+  #     - name: make release
+  #       run: sudo make clean && make release
+  #     - name: sudo make install
+  #       run: sudo make clean && sudo make install
+  #     - name: sudo make package
+  #       run: sudo make package
+  #     - name: sudo make uninstall
+  #       run: sudo make uninstall && sudo make clean
+
+  # job_macos_10_14_32_clang:
+  #   name: macos-10.14 clang 32-bit
+  #   runs-on: macos-10.14
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - name: Install dependencies
+  #       run: brew install llvm libusb gtk+3
+  #     - name: Set compiler flags
+  #       run: |
+  #         CFLAGS="$CFLAGS -m32"
+  #         CXXFLAGS="$CXXFLAGS -m32"
+  #         LDFLAGS="$LDFLAGS -m32"
+  #     - name: make debug
+  #       run: sudo make clean && make debug
+  #     - name: make test
+  #       run: sudo make clean && make test
+  #     - name: make release
+  #       run: sudo make clean && make release
+  #     - name: sudo make install
+  #       run: sudo make clean && sudo make install
+  #     - name: sudo make package
+  #       run: sudo make package
+  #     - name: sudo make uninstall
+  #       run: sudo make uninstall && sudo make clean
+
   job_macos_10_15_gcc:
     name: macos-10.15 gcc
     runs-on: macos-10.15
