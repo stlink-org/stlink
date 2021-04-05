@@ -10,7 +10,7 @@
 
 include(FindPackageHandleStandardArgs)
 
-if (APPLE)                                                                      # macOS
+if (APPLE)                                                 # macOS
     FIND_PATH(
         LIBUSB_INCLUDE_DIR NAMES libusb.h
         HINTS /usr /usr/local /opt
@@ -27,7 +27,7 @@ if (APPLE)                                                                      
         message(FATAL_ERROR "No libusb library found on your system! Install libusb-1.0 from Homebrew or MacPorts")
     endif ()
 
-elseif (CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")                                   # FreeBSD; libusb is integrated into the system
+elseif (CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")              # FreeBSD; libusb is integrated into the system
     FIND_PATH(
         LIBUSB_INCLUDE_DIR NAMES libusb.h
         HINTS /usr/include
@@ -43,13 +43,13 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")                                   
         message(FATAL_ERROR "Expected libusb library not found on your system! Verify your system integrity.")
     endif ()
 
-elseif (WIN32 OR (EXISTS "/etc/debian_version" AND MINGW))                      # Windows or MinGW-toolchain on Debian
-    # for MinGW/MSYS/MSVC: 64-bit or 32-bit?
+elseif (WIN32 OR (EXISTS "/etc/debian_version" AND MINGW)) # Windows or MinGW-toolchain on Debian
+    # MinGW/MSYS/MSVC: 64-bit or 32-bit?
     if (CMAKE_SIZEOF_VOID_P EQUAL 8)
         message(STATUS "=== Building for Windows (x86-64) ===")
         set(ARCH 64)
     else ()
-        message(STATUS "=== Building for Windowsm (i686) ===")
+        message(STATUS "=== Building for Windows (i686) ===")
         set(ARCH 32)
     endif ()
 
@@ -77,14 +77,14 @@ elseif (WIN32 OR (EXISTS "/etc/debian_version" AND MINGW))                      
 
     if (NOT LIBUSB_FOUND)
         # Preparations for installing libusb library
-        set(LIBUSB_WIN_VERSION 1.0.23)          # set libusb version
+        set(LIBUSB_WIN_VERSION 1.0.24)                  # set libusb version
         set(LIBUSB_WIN_ARCHIVE libusb-${LIBUSB_WIN_VERSION}.7z)
         if (WIN32 AND NOT EXISTS "/etc/debian_version") # ... on native Windows systems
             set(LIBUSB_WIN_ARCHIVE_PATH ${CMAKE_BINARY_DIR}/${LIBUSB_WIN_ARCHIVE})
             set(LIBUSB_WIN_OUTPUT_FOLDER ${CMAKE_BINARY_DIR}/3rdparty/libusb-${LIBUSB_WIN_VERSION})
-        else (EXISTS "/etc/debian_version" AND MINGW) # ... only for cross-building on Debian
-            set(LIBUSB_WIN_ARCHIVE_PATH ${CMAKE_SOURCE_DIR}/build-mingw/${LIBUSB_WIN_ARCHIVE})
-            set(LIBUSB_WIN_OUTPUT_FOLDER ${CMAKE_SOURCE_DIR}/build-mingw/3rdparty/libusb-${LIBUSB_WIN_VERSION})
+        else (EXISTS "/etc/debian_version" AND MINGW)   # ... only for cross-building on Debian
+            set(LIBUSB_WIN_ARCHIVE_PATH ${CMAKE_SOURCE_DIR}/build-mingw-${ARCH}/${LIBUSB_WIN_ARCHIVE})
+            set(LIBUSB_WIN_OUTPUT_FOLDER ${CMAKE_SOURCE_DIR}/build-mingw-${ARCH}/3rdparty/libusb-${LIBUSB_WIN_VERSION})
         endif ()
 
         # Get libusb package
@@ -94,7 +94,7 @@ elseif (WIN32 OR (EXISTS "/etc/debian_version" AND MINGW))                      
             message(STATUS "downloading libusb ${LIBUSB_WIN_VERSION}")
             file(DOWNLOAD
                 https://sourceforge.net/projects/libusb/files/libusb-1.0/libusb-${LIBUSB_WIN_VERSION}/libusb-${LIBUSB_WIN_VERSION}.7z/download
-                ${LIBUSB_WIN_ARCHIVE_PATH} EXPECTED_MD5 cf3d38d2ff053ef343d10c0b8b0950c2
+                ${LIBUSB_WIN_ARCHIVE_PATH} EXPECTED_MD5 5c944b1c8aa9d43e026a94302d0f8ac4
                 )
         endif ()
 
@@ -128,7 +128,7 @@ elseif (WIN32 OR (EXISTS "/etc/debian_version" AND MINGW))                      
             set(LIBUSB_NAME libusb-1.0.lib)
             find_library(
                 LIBUSB_LIBRARY NAMES ${LIBUSB_NAME}
-                HINTS ${LIBUSB_WIN_OUTPUT_FOLDER}/MS${ARCH}/dll
+                HINTS ${LIBUSB_WIN_OUTPUT_FOLDER}/**/MS${ARCH}/dll
                 NO_DEFAULT_PATH
                 NO_CMAKE_FIND_ROOT_PATH
                 )
