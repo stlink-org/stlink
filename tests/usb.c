@@ -111,7 +111,7 @@ int main(int ac, char** av) {
         stlink_step(sl);
 
         printf("-- run\n");
-        stlink_run(sl);
+        stlink_run(sl, RUN_NORMAL);
 
         printf("-- exit_debug_mode\n");
         stlink_exit_debug_mode(sl);

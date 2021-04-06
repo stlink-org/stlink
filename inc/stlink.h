@@ -191,6 +191,12 @@ enum reset_type {
     RESET_SOFT_AND_HALT = 3,
 };
 
+enum run_type {
+    RUN_NORMAL = 0,
+    RUN_FLASH_LOADER = 1,
+};
+
+
 typedef struct _stlink stlink_t;
 
 #include <backend.h>
@@ -250,7 +256,7 @@ int stlink_exit_dfu_mode(stlink_t *sl);
 void stlink_close(stlink_t *sl);
 int stlink_core_id(stlink_t *sl);
 int stlink_reset(stlink_t *sl, enum reset_type type);
-int stlink_run(stlink_t *sl);
+int stlink_run(stlink_t *sl, enum run_type type);
 int stlink_status(stlink_t *sl);
 int stlink_version(stlink_t *sl);
 int stlink_read_debug32(stlink_t *sl, uint32_t addr, uint32_t *data);

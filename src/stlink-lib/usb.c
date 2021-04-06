@@ -590,14 +590,17 @@ int _stlink_usb_step(stlink_t* sl) {
 /**
  * This seems to do a good job of restarting things from the beginning?
  * @param sl
+ * @param type
  */
-int _stlink_usb_run(stlink_t* sl) {
+int _stlink_usb_run(stlink_t* sl, enum run_type type) {
     struct stlink_libusb * const slu = sl->backend_data;
 
     int res;
 
     if (sl->version.jtag_api != STLINK_JTAG_API_V1) {
-        res = _stlink_usb_write_debug32(sl, STLINK_REG_DHCSR, STLINK_REG_DHCSR_DBGKEY | STLINK_REG_DHCSR_C_DEBUGEN);
+        res = _stlink_usb_write_debug32(sl, STLINK_REG_DHCSR, 
+                    STLINK_REG_DHCSR_DBGKEY | STLINK_REG_DHCSR_C_DEBUGEN |
+                    ((type==RUN_FLASH_LOADER)?STLINK_REG_DHCSR_C_MASKINTS:0));
         return(res);
     }
 

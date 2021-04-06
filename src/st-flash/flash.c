@@ -17,7 +17,7 @@ static void cleanup(int signum) {
     (void)signum;
 
     if (connected_stlink) { // switch back to mass storage mode before closing
-        stlink_run(connected_stlink);
+        stlink_run(connected_stlink, RUN_NORMAL);
         stlink_exit_debug_mode(connected_stlink);
         stlink_close(connected_stlink);
     }

@@ -74,7 +74,7 @@ static void init_cache(stlink_t *sl);
 static void _cleanup() {
     if (connected_stlink) {
         // Switch back to mass storage mode before closing
-        stlink_run(connected_stlink);
+        stlink_run(connected_stlink, RUN_NORMAL);
         stlink_exit_debug_mode(connected_stlink);
         stlink_close(connected_stlink);
     }
@@ -252,11 +252,11 @@ int main(int argc, char** argv) {
 
     init_cache(sl);
 
-    do {                       // don't go beserk if serve() returns with error
+    do {                            // don't go beserk if serve() returns with error
         if (serve(sl, &state)) { usleep (1 * 1000); }
 
-        sl = connected_stlink; // in case serve() changed the connection
-        stlink_run(sl);        // continue
+        sl = connected_stlink;      // in case serve() changed the connection
+        stlink_run(sl, RUN_NORMAL); // continue
     } while (state.persistent);
 
 #if defined(_WIN32)
@@ -1229,7 +1229,7 @@ int serve(stlink_t *sl, st_state_t *st) {
                 if (!strncmp(cmd, "resume", 6)) {                               // resume
                     DLOG("Rcmd: resume\n");
                     cache_sync(sl);
-                    ret = stlink_run(sl);
+                    ret = stlink_run(sl, RUN_NORMAL);
 
                     if (ret) {
                         DLOG("Rcmd: resume failed\n");
@@ -1396,7 +1396,7 @@ int serve(stlink_t *sl, st_state_t *st) {
 
         case 'c':
             cache_sync(sl);
-            ret = stlink_run(sl);
+            ret = stlink_run(sl, RUN_NORMAL);
 
             if (ret) { DLOG("Semihost: run failed\n"); }
 
@@ -1466,7 +1466,7 @@ int serve(stlink_t *sl, st_state_t *st) {
 
                         // continue execution
                         cache_sync(sl);
-                        ret = stlink_run(sl);
+                        ret = stlink_run(sl, RUN_NORMAL);
 
                         if (ret) { DLOG("Semihost: continue execution failed with stlink_run\n"); }
                     } else {
@@ -1806,7 +1806,7 @@ int serve(stlink_t *sl, st_state_t *st) {
         }
         case 'k':
             // kill request - reset the connection itself
-            ret = stlink_run(sl);
+            ret = stlink_run(sl, RUN_NORMAL);
             if (ret) { DLOG("Kill: stlink_run failed\n"); }
 
             ret = stlink_exit_debug_mode(sl);

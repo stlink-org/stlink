@@ -347,7 +347,7 @@ int stlink_flash_loader_run(stlink_t *sl, flash_loader_t* fl, stm32_addr_t targe
     }
 
     /* Run loader */
-    stlink_run(sl);
+    stlink_run(sl, RUN_FLASH_LOADER);
 
 /* This piece of code used to try to spin for .1 second by waiting doing 10000 rounds of 10 µs.
  * But because this usually runs on Unix-like OSes, the 10 µs get rounded up to the "tick"

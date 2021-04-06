@@ -539,7 +539,7 @@ int main(int argc, char** argv)
     memset(&trace, 0, sizeof(trace));
     trace.start_time = time(NULL);
 
-    if (stlink_run(stlink)) {
+    if (stlink_run(stlink, RUN_NORMAL)) {
         ELOG("Unable to run device\n");
         if (!settings.force)
             return APP_RESULT_STLINK_STATE_ERROR;

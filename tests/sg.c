@@ -159,7 +159,7 @@ int main(void) { // main() ripped out of old stlink-hw.c
 #endif
 
 #if 0
-    stlink_run(sl);
+    stlink_run(sl, RUN_NORMAL);
     stlink_status(sl);
     stlink_force_debug(sl);
     stlink_status(sl);
@@ -196,7 +196,7 @@ int main(void) { // main() ripped out of old stlink-hw.c
 #endif
 
 #if 0
-    stlink_run(sl);
+    stlink_run(sl, RUN_NORMAL);
     stlink_status(sl);
     // back to mass mode, just in case ...
     stlink_exit_debug_mode(sl);

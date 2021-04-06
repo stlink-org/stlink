@@ -1791,7 +1791,7 @@ int stlink_reset(stlink_t *sl, enum reset_type type) {
     return(0);
 }
 
-int stlink_run(stlink_t *sl) {
+int stlink_run(stlink_t *sl, enum run_type type) {
     struct stlink_reg rr;
     DLOG("*** stlink_run ***\n");
 
@@ -1804,7 +1804,7 @@ int stlink_run(stlink_t *sl) {
         stlink_write_reg(sl, rr.xpsr | (1 << 24), 16);
     }
 
-    return(sl->backend->run(sl));
+    return(sl->backend->run(sl, type));
 }
 
 int stlink_set_swdclk(stlink_t *sl, int freq_khz) {
@@ -2096,7 +2096,7 @@ int stlink_trace_read(stlink_t* sl, uint8_t* buf, size_t size) {
 
 void stlink_run_at(stlink_t *sl, stm32_addr_t addr) {
     stlink_write_reg(sl, addr, 15); /* pc register */
-    stlink_run(sl);
+    stlink_run(sl, RUN_NORMAL);
 
     while (stlink_is_core_halted(sl)) { usleep(3000000); }
 }
@@ -2258,7 +2258,7 @@ static void stlink_fwrite_finalize(stlink_t *sl, stm32_addr_t addr) {
     // set PC to the reset routine
     stlink_read_debug32(sl, addr + 4, &val);
     stlink_write_reg(sl, val, 15);
-    stlink_run(sl);
+    stlink_run(sl, RUN_NORMAL);
 }
 
 int stlink_mwrite_sram(stlink_t * sl, uint8_t* data, uint32_t length, stm32_addr_t addr) {
