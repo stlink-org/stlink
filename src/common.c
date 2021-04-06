@@ -1663,10 +1663,6 @@ int stlink_load_device_params(stlink_t *sl) {
     return(0);
 }
 
-int stlink_reset(stlink_t *sl) {
-    DLOG("*** stlink_reset ***\n");
-    return(sl->backend->reset(sl));
-}
 
 int stlink_jtag_reset(stlink_t *sl, int value) {
     DLOG("*** stlink_jtag_reset ***\n");
@@ -1737,6 +1733,59 @@ int stlink_soft_reset(stlink_t *sl, int halt_on_reset) {
     if (timeout) {
         ELOG("Soft reset failed: timeout\n");
         return(-1);
+    }
+
+    return(0);
+}
+
+int stlink_reset(stlink_t *sl, enum reset_type type) {
+    uint32_t dhcsr;
+    unsigned timeout;
+
+    DLOG("*** stlink_reset ***\n");
+
+    if (type == RESET_AUTO) {
+        // clear S_RESET_ST in DHCSR register for reset state detection
+        stlink_read_debug32(sl, STLINK_REG_DHCSR, &dhcsr);
+    }
+
+    if (type == RESET_HARD || type == RESET_AUTO) {
+        // hardware target reset
+        if (sl->version.stlink_v > 1) { stlink_jtag_reset(sl, STLINK_JTAG_DRIVE_NRST_PULSE); }
+        if (sl->backend->reset(sl)) { return(-1); }
+        usleep(10000);
+    }
+
+    if (type == RESET_AUTO) {
+        /* Check if the S_RESET_ST bit is set in DHCSR
+         * This means that a reset has occurred
+         * DDI0337E, p. 10-4, Debug Halting Control and Status Register */
+
+        dhcsr = 0;
+        stlink_read_debug32(sl, STLINK_REG_DHCSR, &dhcsr);
+        if ((dhcsr & STLINK_REG_DHCSR_S_RESET_ST) == 0) {
+            // reset not done yet
+            // try reset through AIRCR so that NRST does not need to be connected
+
+            WLOG("NRST is not connected\n");
+            DLOG("Using reset through SYSRESETREQ\n");
+            return stlink_soft_reset(sl, 0);
+        }
+
+        // waiting for reset the S_RESET_ST bit within 500ms
+        timeout = time_ms() + 500;
+        while (time_ms() < timeout) {
+            dhcsr = STLINK_REG_DHCSR_S_RESET_ST;
+            stlink_read_debug32(sl, STLINK_REG_DHCSR, &dhcsr);
+            if ((dhcsr&STLINK_REG_DHCSR_S_RESET_ST) == 0)
+                return(0);
+        }
+
+        return(-1);
+    }
+
+    if (type == RESET_SOFT || type == RESET_SOFT_AND_HALT) {
+        return stlink_soft_reset(sl, (type==RESET_SOFT_AND_HALT));
     }
 
     return(0);
@@ -4467,3 +4516,37 @@ int stlink_fwrite_option_bytes(stlink_t *sl, const char* path, stm32_addr_t addr
     return(err);
 }
 
+int stlink_target_connect(stlink_t *sl, enum connect_type connect) {
+    uint32_t dhcsr;
+
+    if (connect == CONNECT_UNDER_RESET) {
+        stlink_jtag_reset(sl, STLINK_JTAG_DRIVE_NRST_LOW);
+
+        if (stlink_current_mode(sl) != STLINK_DEV_DEBUG_MODE) { stlink_enter_swd_mode(sl); }
+        stlink_force_debug(sl);
+
+        // clear S_RESET_ST in DHCSR register
+        stlink_read_debug32(sl, STLINK_REG_DHCSR, &dhcsr);
+
+        stlink_jtag_reset(sl, STLINK_JTAG_DRIVE_NRST_HIGH);
+        usleep(10000);
+
+        // check NRST connection
+        dhcsr = 0;
+        stlink_read_debug32(sl, STLINK_REG_DHCSR, &dhcsr);
+        if ((dhcsr & STLINK_REG_DHCSR_S_RESET_ST) == 0) {
+            WLOG("NRST is not connected\n");
+        }
+
+        // addition soft reset for halt before the first instruction
+        stlink_soft_reset(sl, 1 /* halt on reset */);
+    }
+
+    if (stlink_current_mode(sl) != STLINK_DEV_DEBUG_MODE) { stlink_enter_swd_mode(sl); }
+
+    if (connect == CONNECT_NORMAL) {
+        stlink_reset(sl, RESET_AUTO);
+    }
+
+    return stlink_load_device_params(sl);
+}

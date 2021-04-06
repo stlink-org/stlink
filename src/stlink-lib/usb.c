@@ -512,12 +512,7 @@ int _stlink_usb_reset(stlink_t * sl) {
     unsigned char* const data = sl->q_buf;
     unsigned char* const cmd = sl->c_buf;
     ssize_t size;
-    uint32_t dhcsr;
-    unsigned timeout;
     int i, rep_len = 2;
-
-    // clear S_RESET_ST in DHCSR registr
-    _stlink_usb_read_debug32(sl, STLINK_REG_DHCSR, &dhcsr);
 
     // send reset command
     i = fill_command(sl, SG_DXFER_FROM_DEV, rep_len);
@@ -536,30 +531,7 @@ int _stlink_usb_reset(stlink_t * sl) {
         return((int)size);
     }
 
-    usleep(10000);
-
-    dhcsr = 0;
-    _stlink_usb_read_debug32(sl, STLINK_REG_DHCSR, &dhcsr);
-    if ((dhcsr & STLINK_REG_DHCSR_S_RESET_ST) == 0) {
-        // reset not done yet
-        // try reset through AIRCR so that NRST does not need to be connected
-
-        WLOG("NRST is not connected\n");
-        DLOG("Using reset through SYSRESETREQ\n");
-        return stlink_soft_reset(sl, 0);
-    }
-
-    // waiting for a reset within 500ms
-    timeout = time_ms() + 500;
-    while (time_ms() < timeout) {
-        // DDI0337E, p. 10-4, Debug Halting Control and Status Register
-        dhcsr = STLINK_REG_DHCSR_S_RESET_ST;
-        _stlink_usb_read_debug32(sl, STLINK_REG_DHCSR, &dhcsr);
-        if ((dhcsr&STLINK_REG_DHCSR_S_RESET_ST) == 0)
-            return(0);
-    }
-
-    return(-1);
+    return(0);
 }
 
 int _stlink_usb_jtag_reset(stlink_t * sl, int value) {
@@ -1382,26 +1354,7 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, enum connect_type connect,
     DLOG("JTAG/SWD freq set to %d\n", freq);
     stlink_set_swdclk(sl, freq);
 
-    if (connect == CONNECT_UNDER_RESET) {
-        stlink_jtag_reset(sl, 0);
-
-        if (stlink_current_mode(sl) != STLINK_DEV_DEBUG_MODE) { stlink_enter_swd_mode(sl); }
-
-        stlink_force_debug(sl);
-        stlink_jtag_reset(sl, 1);
-        usleep(10000);
-    }
-
-    if (stlink_current_mode(sl) != STLINK_DEV_DEBUG_MODE) { stlink_enter_swd_mode(sl); }
-
-    if (connect == CONNECT_NORMAL) {
-        if ( sl->version.stlink_v > 1) { stlink_jtag_reset(sl, 2); }
-
-        stlink_reset(sl);
-        usleep(10000);
-    }
-
-    stlink_load_device_params(sl);
+    stlink_target_connect(sl, connect);
     return(sl);
 
 on_libusb_error:

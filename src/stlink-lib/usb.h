@@ -48,12 +48,6 @@ extern "C" {
 #define STLINK_SG_SIZE 31
 #define STLINK_CMD_SIZE 16
 
-enum connect_type {
-    CONNECT_HOT_PLUG = 0,
-    CONNECT_NORMAL = 1,
-    CONNECT_UNDER_RESET = 2,
-};
-
 struct stlink_libusb {
     libusb_context* libusb_ctx;
     libusb_device_handle* usb_handle;

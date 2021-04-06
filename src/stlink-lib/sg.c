@@ -1114,7 +1114,7 @@ stlink_t* stlink_v1_open(const int verbose, int reset) {
     stlink_enter_swd_mode(sl);
 
     // now we are ready to read the parameters
-    if (reset) { stlink_reset(sl); }
+    if (reset) { stlink_reset(sl, RESET_AUTO); }
 
     stlink_load_device_params(sl);
     ILOG("Successfully opened a stlink v1 debugger\n");
