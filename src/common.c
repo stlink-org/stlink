@@ -1751,7 +1751,12 @@ int stlink_reset(stlink_t *sl, enum reset_type type) {
 
     if (type == RESET_HARD || type == RESET_AUTO) {
         // hardware target reset
-        if (sl->version.stlink_v > 1) { stlink_jtag_reset(sl, STLINK_JTAG_DRIVE_NRST_PULSE); }
+        if (sl->version.stlink_v > 1) {
+            stlink_jtag_reset(sl, STLINK_JTAG_DRIVE_NRST_LOW);
+            // minimum reset pulse duration of 20 us (RM0008, 8.1.2 Power reset)
+            usleep(100);
+            stlink_jtag_reset(sl, STLINK_JTAG_DRIVE_NRST_HIGH);
+        }
         if (sl->backend->reset(sl)) { return(-1); }
         usleep(10000);
     }
@@ -4521,6 +4526,9 @@ int stlink_target_connect(stlink_t *sl, enum connect_type connect) {
 
     if (connect == CONNECT_UNDER_RESET) {
         stlink_jtag_reset(sl, STLINK_JTAG_DRIVE_NRST_LOW);
+
+        // minimum reset pulse duration of 20 us (RM0008, 8.1.2 Power reset)
+        usleep(20);
 
         if (stlink_current_mode(sl) != STLINK_DEV_DEBUG_MODE) { stlink_enter_swd_mode(sl); }
         stlink_force_debug(sl);
