@@ -242,15 +242,11 @@ int main(int argc, char** argv) {
 
     DLOG("Chip ID is %#010x, Core ID is %#08x.\n", sl->chip_id, sl->core_id);
 
-    state.current_memory_map = make_memory_map(sl);
-
 #if defined(_WIN32)
     WSADATA wsadata;
 
     if (WSAStartup(MAKEWORD(2, 2), &wsadata) != 0) { goto winsock_error; }
 #endif
-
-    init_cache(sl);
 
     do {                            // don't go beserk if serve() returns with error
         if (serve(sl, &state)) { usleep (1 * 1000); }
@@ -1102,11 +1098,21 @@ int serve(stlink_t *sl, st_state_t *st) {
 
     close_socket(sock);
 
+    uint32_t chip_id = sl->chip_id;
+
     stlink_target_connect(sl, st->connect_mode);
     stlink_force_debug(sl);
 
+    if (sl->chip_id != chip_id) {
+        WLOG("Target has changed!\n");
+    }
+
     init_code_breakpoints(sl);
     init_data_watchpoints(sl);
+
+    init_cache(sl);
+
+    st->current_memory_map = make_memory_map(sl);
 
     ILOG("GDB connected.\n");
 
