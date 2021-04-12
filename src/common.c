@@ -1240,7 +1240,8 @@ int stlink_chip_id(stlink_t *sl, uint32_t *chip_id) {
             cpu_id.part == STLINK_REG_CMx_CPUID_PARTNO_CM7) {
         // STM32H7 chipid in 0x5c001000 (RM0433 pg3189)
         ret = stlink_read_debug32(sl, 0x5c001000, chip_id);
-    } else if (cpu_id.part == STLINK_REG_CMx_CPUID_PARTNO_CM0) {
+    } else if (cpu_id.part == STLINK_REG_CMx_CPUID_PARTNO_CM0 ||
+            cpu_id.part == STLINK_REG_CMx_CPUID_PARTNO_CM0P) {
         // STM32F0 (RM0091, pg914; RM0360, pg713)
         // STM32L0 (RM0377, pg813; RM0367, pg915; RM0376, pg917)
         // STM32G0 (RM0444, pg1367)
