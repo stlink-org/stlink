@@ -17,7 +17,7 @@ static void cleanup(int signum) {
     (void)signum;
 
     if (connected_stlink) { // switch back to mass storage mode before closing
-        stlink_run(connected_stlink);
+        stlink_run(connected_stlink, RUN_NORMAL);
         stlink_exit_debug_mode(connected_stlink);
         stlink_close(connected_stlink);
     }
@@ -26,8 +26,8 @@ static void cleanup(int signum) {
 }
 
 static void usage(void) {
-    puts("command line:   ./st-flash [--debug] [--reset] [--connect-under-reset] [--opt] [--serial <serial>] [--format <format>] [--flash=<fsize>] [--freq=<KHz>] [--area=<area>] {read|write} [path] [addr] [size]");
-    puts("command line:   ./st-flash [--debug] [--connect-under-reset] [--freq=<KHz>] [--serial <serial>] erase");
+    puts("command line:   ./st-flash [--debug] [--reset] [--connect-under-reset] [--hot-plug] [--opt] [--serial <serial>] [--format <format>] [--flash=<fsize>] [--freq=<KHz>] [--area=<area>] {read|write} [path] [addr] [size]");
+    puts("command line:   ./st-flash [--debug] [--connect-under-reset] [--hot-plug] [--freq=<KHz>] [--serial <serial>] erase");
     puts("command line:   ./st-flash [--debug] [--freq=<KHz>] [--serial <serial>] reset");
     puts("   <addr>, <serial> and <size>: Use hex format.");
     puts("   <fsize>: Use decimal, octal or hex (prefix 0xXXX) format, optionally followed by k=KB, or m=MB (eg. --flash=128k)");
@@ -95,33 +95,6 @@ int main(int ac, char** av) {
         if (stlink_enter_swd_mode(sl)) {
             printf("Failed to enter SWD mode\n");
             goto on_error;
-        }
-    }
-
-    if (o.reset) {
-        if (sl->version.stlink_v > 1) {
-            if (stlink_jtag_reset(sl, 2)) {
-                printf("Failed to reset JTAG\n");
-                goto on_error;
-            }
-        }
-
-        if (stlink_reset(sl)) {
-            printf("Failed to reset device\n");
-            goto on_error;
-        }
-    }
-
-    // disable DMA - Set All DMA CCR Registers to zero. - AKS 1/7/2013
-    if (sl->chip_id == STLINK_CHIPID_STM32_F4) {
-        memset(sl->q_buf, 0, 4);
-        
-        for (int i = 0; i < 8; i++) {
-            stlink_write_mem32(sl, 0x40026000 + 0x10 + 0x18 * i, 4);
-            stlink_write_mem32(sl, 0x40026400 + 0x10 + 0x18 * i, 4);
-            stlink_write_mem32(sl, 0x40026000 + 0x24 + 0x18 * i, 4);
-            stlink_write_mem32(sl, 0x40026400 + 0x24 + 0x18 * i, 4);
-
         }
     }
 
@@ -215,14 +188,7 @@ int main(int ac, char** av) {
             goto on_error;
         }
     } else if (o.cmd == CMD_RESET) {
-        if (sl->version.stlink_v > 1) {
-            if (stlink_jtag_reset(sl, 2)) {
-                printf("Failed to reset JTAG\n");
-                goto on_error;
-            }
-        }
-
-        if (stlink_reset(sl)) {
+        if (stlink_reset(sl, RESET_AUTO)) {
             printf("Failed to reset device\n");
             goto on_error;
         }
@@ -290,9 +256,7 @@ int main(int ac, char** av) {
     }
 
     if (o.reset) {
-        if (sl->version.stlink_v > 1) { stlink_jtag_reset(sl, 2); }
-
-        stlink_reset(sl);
+        stlink_reset(sl, RESET_AUTO);
     }
 
     err = 0; // success
