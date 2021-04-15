@@ -159,6 +159,9 @@
 
 // G0/G4 FLASH status register
 #define STM32Gx_FLASH_SR_ERROR_MASK (0x3fa)
+#define STM32Gx_FLASH_SR_PROGERR    (3)
+#define STM32Gx_FLASH_SR_WRPERR     (4)
+#define STM32Gx_FLASH_SR_PGAERR     (5)
 #define STM32Gx_FLASH_SR_BSY        (16)      /* FLASH_SR Busy */
 #define STM32Gx_FLASH_SR_EOP        (0)       /* FLASH_EOP End of Operation */
 
@@ -188,11 +191,15 @@
 #define STM32WB_FLASH_SRRVR     (STM32WB_FLASH_REGS_ADDR + 0x84)
 
 // WB Flash control register.
-#define STM32WB_FLASH_CR_STRT       (16) /* FLASH_CR Start */
-#define STM32WB_FLASH_CR_OPTLOCK    (30) /* FLASH_CR Option Lock */
-#define STM32WB_FLASH_CR_LOCK       (31) /* FLASH_CR Lock */
+#define STM32WB_FLASH_CR_STRT       (16) /* Start */
+#define STM32WB_FLASH_CR_OPTLOCK    (30) /* Option Lock */
+#define STM32WB_FLASH_CR_LOCK       (31) /* Lock */
 // WB Flash status register.
-#define STM32WB_FLASH_SR_BSY        (16) /* FLASH_SR Busy */
+#define STM32WB_FLASH_SR_ERROR_MASK (0x3f8) /* SR [9:3] */
+#define STM32WB_FLASH_SR_PROGERR    (3)  /* Programming alignment error */
+#define STM32WB_FLASH_SR_WRPERR     (4)  /* Write protection error */
+#define STM32WB_FLASH_SR_PGAERR     (5)  /* Programming error */
+#define STM32WB_FLASH_SR_BSY        (16) /* Busy */
 
 // 32L4 register base is at FLASH_REGS_ADDR (0x40022000)
 #define STM32L4_FLASH_KEYR      (FLASH_REGS_ADDR + 0x08)
@@ -201,8 +208,11 @@
 #define STM32L4_FLASH_CR        (FLASH_REGS_ADDR + 0x14)
 #define STM32L4_FLASH_OPTR      (FLASH_REGS_ADDR + 0x20)
 
+#define STM32L4_FLASH_SR_ERROR_MASK 0x3f8 /* SR [9:3] */
+#define STM32L4_FLASH_SR_PROGERR     3
+#define STM32L4_FLASH_SR_WRPERR      4
+#define STM32L4_FLASH_SR_PGAERR      5
 #define STM32L4_FLASH_SR_BSY        16
-#define STM32L4_FLASH_SR_ERRMASK 0x3f8 /* SR [9:3] */
 
 #define STM32L4_FLASH_CR_LOCK       31 /* Lock control register */
 #define STM32L4_FLASH_CR_OPTLOCK    30 /* Lock option bytes */
@@ -234,7 +244,10 @@
 #define STM32L0_FLASH_OPTLOCK (2)
 #define STM32L0_FLASH_OBL_LAUNCH (18)
 
-#define STM32L0_FLASH_SR_ERROR_MASK 0x00003F00
+#define STM32L0_FLASH_SR_ERROR_MASK 0x00013F00
+#define STM32L0_FLASH_SR_WRPERR     8
+#define STM32L0_FLASH_SR_PGAERR     9
+#define STM32L0_FLASH_SR_NOTZEROERR 16
 
 #define FLASH_ACR_OFF     ((uint32_t) 0x00)
 #define FLASH_PECR_OFF    ((uint32_t) 0x04)
@@ -287,7 +300,10 @@
 #define FLASH_F4_CR_SER 1
 #define FLASH_F4_CR_SNB 3
 #define FLASH_F4_CR_SNB_MASK 0xf8
-#define FLASH_F4_SR_BSY 16
+#define FLASH_F4_SR_ERROR_MASK 0x000000F0
+#define FLASH_F4_SR_PGAERR     5
+#define FLASH_F4_SR_WRPERR     4
+#define FLASH_F4_SR_BSY        16
 
 // STM32F2
 #define FLASH_F2_REGS_ADDR ((uint32_t)0x40023c00)
@@ -346,6 +362,46 @@
 #define FLASH_H7_OPTSR_CUR (FLASH_H7_REGS_ADDR + 0x1c)
 #define FLASH_H7_OPTCCR (FLASH_H7_REGS_ADDR + 0x24)
 
+#define STM32F0_DBGMCU_CR                 0xE0042004
+#define STM32F0_DBGMCU_CR_IWDG_STOP       8
+#define STM32F0_DBGMCU_CR_WWDG_STOP       9
+
+#define STM32F4_DBGMCU_APB1FZR1           0xE0042008
+#define STM32F4_DBGMCU_APB1FZR1_WWDG_STOP 11
+#define STM32F4_DBGMCU_APB1FZR1_IWDG_STOP 12
+
+#define STM32L0_DBGMCU_APB1_FZ            0x40015808
+#define STM32L0_DBGMCU_APB1_FZ_WWDG_STOP  11
+#define STM32L0_DBGMCU_APB1_FZ_IWDG_STOP  12
+
+#define STM32H7_DBGMCU_APB1HFZ            0x5C001054
+#define STM32H7_DBGMCU_APB1HFZ_IWDG_STOP  18
+
+#define STM32WB_DBGMCU_APB1FZR1           0xE004203C
+#define STM32WB_DBGMCU_APB1FZR1_WWDG_STOP 11
+#define STM32WB_DBGMCU_APB1FZR1_IWDG_STOP 12
+
+#define STM32F1_RCC_AHBENR       0x40021014
+#define STM32F1_RCC_DMAEN        0x00000003 // DMA2EN | DMA1EN
+
+#define STM32F4_RCC_AHB1ENR      0x40023830
+#define STM32F4_RCC_DMAEN        0x00600000 // DMA2EN | DMA1EN
+
+#define STM32G0_RCC_AHBENR       0x40021038
+#define STM32G0_RCC_DMAEN        0x00000003 // DMA2EN | DMA1EN
+
+#define STM32G4_RCC_AHB1ENR      0x40021048
+#define STM32G4_RCC_DMAEN        0x00000003 // DMA2EN | DMA1EN
+
+#define STM32L0_RCC_AHBENR       0x40021030
+#define STM32L0_RCC_DMAEN        0x00000001 // DMAEN
+
+#define STM32H7_RCC_AHB1ENR      0x58024538
+#define STM32H7_RCC_DMAEN        0x00000003 // DMA2EN | DMA1EN
+
+#define STM32WB_RCC_AHB1ENR      0x58000048
+#define STM32WB_RCC_DMAEN        0x00000003 // DMA2EN | DMA1EN
+
 #define L1_WRITE_BLOCK_SIZE 0x80
 #define L0_WRITE_BLOCK_SIZE 0x40
 
@@ -378,13 +434,21 @@ uint16_t read_uint16(const unsigned char *c, const int pt) {
 static uint32_t get_stm32l0_flash_base(stlink_t *sl)
 {
     switch (sl->chip_id) {
+    case STLINK_CHIPID_STM32_L0:
+    case STLINK_CHIPID_STM32_L0_CAT5:
+    case STLINK_CHIPID_STM32_L0_CAT2:
+    case STLINK_CHIPID_STM32_L011:
+		return(STM32L0_FLASH_REGS_ADDR);
+
     case STLINK_CHIPID_STM32_L1_CAT2:
     case STLINK_CHIPID_STM32_L1_MEDIUM:
     case STLINK_CHIPID_STM32_L1_MEDIUM_PLUS:
     case STLINK_CHIPID_STM32_L1_HIGH:
         return(STM32L1_FLASH_REGS_ADDR);
+
     default:
-        return(STM32L0_FLASH_REGS_ADDR);
+		WLOG("Flash base use default L0 address");
+		return(STM32L0_FLASH_REGS_ADDR);
     }
 }
 
@@ -980,7 +1044,7 @@ static inline uint32_t read_flash_sr(stlink_t *sl, unsigned bank) {
     } else if (sl->flash_type == STLINK_FLASH_TYPE_H7) {
         sr_reg = (bank==BANK_1)?FLASH_H7_SR1:FLASH_H7_SR2;
     } else {
-        ELOG("unsupported flash method, abort\n");
+        ELOG("method 'read_flash_sr' is unsupported\n");
         return(-1);
     }
 
@@ -988,12 +1052,41 @@ static inline uint32_t read_flash_sr(stlink_t *sl, unsigned bank) {
     return(res);
 }
 
+static inline int write_flash_sr(stlink_t *sl, unsigned bank, uint32_t val) {
+    uint32_t sr_reg;
+
+    if ((sl->flash_type == STLINK_FLASH_TYPE_F0) ||
+        (sl->flash_type == STLINK_FLASH_TYPE_F1_XL)) {
+        sr_reg = (bank==BANK_1)?FLASH_SR:FLASH_SR2;
+    } else if (sl->flash_type == STLINK_FLASH_TYPE_L0) {
+        sr_reg = get_stm32l0_flash_base(sl) + FLASH_SR_OFF;
+    } else if (sl->flash_type == STLINK_FLASH_TYPE_F4) {
+        sr_reg = FLASH_F4_SR;
+    } else if (sl->flash_type == STLINK_FLASH_TYPE_F7) {
+        sr_reg = FLASH_F7_SR;
+    } else if (sl->flash_type == STLINK_FLASH_TYPE_L4) {
+        sr_reg = STM32L4_FLASH_SR;
+    } else if (sl->flash_type == STLINK_FLASH_TYPE_G0 ||
+               sl->flash_type == STLINK_FLASH_TYPE_G4) {
+        sr_reg = STM32Gx_FLASH_SR;
+    } else if (sl->flash_type == STLINK_FLASH_TYPE_WB) {
+        sr_reg = STM32WB_FLASH_SR;
+    } else if (sl->flash_type == STLINK_FLASH_TYPE_H7) {
+        sr_reg = (bank==BANK_1)?FLASH_H7_SR1:FLASH_H7_SR2;
+    } else {
+        ELOG("method 'write_flash_sr' is unsupported\n");
+        return(-1);
+    }
+
+    return stlink_write_debug32(sl, sr_reg, val);
+}
+
 static inline unsigned int is_flash_busy(stlink_t *sl) {
     uint32_t sr_busy_shift;
     unsigned int res;
 
     if ((sl->flash_type == STLINK_FLASH_TYPE_F0) ||
-        (sl->flash_type == STLINK_FLASH_TYPE_F0) ||
+        (sl->flash_type == STLINK_FLASH_TYPE_F1_XL) ||
         (sl->flash_type == STLINK_FLASH_TYPE_L0)) {
         sr_busy_shift = FLASH_SR_BSY;
     } else if (sl->flash_type == STLINK_FLASH_TYPE_F4) {
@@ -1010,7 +1103,7 @@ static inline unsigned int is_flash_busy(stlink_t *sl) {
     } else if (sl->flash_type == STLINK_FLASH_TYPE_H7) {
         sr_busy_shift = FLASH_H7_SR_QW;
     } else {
-        ELOG("unsupported flash method, abort\n");
+        ELOG("method 'is_flash_busy' is unsupported\n");
         return(-1);
     }
 
@@ -1048,47 +1141,220 @@ static void wait_flash_busy_progress(stlink_t *sl) {
     fprintf(stdout, "\n");
 }
 
+static void clear_flash_error(stlink_t *sl)
+{
+    switch (sl->flash_type) {
+    case STLINK_FLASH_TYPE_F0:
+        write_flash_sr(sl, BANK_1, FLASH_SR_ERROR_MASK);
+        break;
+    case STLINK_FLASH_TYPE_F4:
+        write_flash_sr(sl, BANK_1, FLASH_F4_SR_ERROR_MASK);
+        break;
+    case STLINK_FLASH_TYPE_F7:
+        write_flash_sr(sl, BANK_1, FLASH_F7_SR_ERROR_MASK);
+        break;
+    case STLINK_FLASH_TYPE_G0:
+    case STLINK_FLASH_TYPE_G4:
+        write_flash_sr(sl, BANK_1, STM32Gx_FLASH_SR_ERROR_MASK);
+        break;
+    case STLINK_FLASH_TYPE_L0:
+        write_flash_sr(sl, BANK_1, STM32L0_FLASH_SR_ERROR_MASK);
+        break;
+    case STLINK_FLASH_TYPE_L4:
+        write_flash_sr(sl, BANK_1, STM32L4_FLASH_SR_ERROR_MASK);
+        break;
+    case STLINK_FLASH_TYPE_H7:
+        write_flash_sr(sl, BANK_1, FLASH_H7_SR_ERROR_MASK);
+        if (sl->chip_flags & CHIP_F_HAS_DUAL_BANK) {
+            write_flash_sr(sl, BANK_2, FLASH_H7_SR_ERROR_MASK);
+        }
+        break;
+    case STLINK_FLASH_TYPE_WB:
+        write_flash_sr(sl, BANK_1, STM32WB_FLASH_SR_ERROR_MASK);
+        break;
+    default:
+        break;
+    }
+}
+
 static int check_flash_error(stlink_t *sl)
 {
     uint32_t res = 0;
+    uint32_t WRPERR, PROGERR, PGAERR;
+
+    WRPERR = PROGERR = PGAERR = 0;
 
     switch (sl->flash_type) {
     case STLINK_FLASH_TYPE_F0:
+    case STLINK_FLASH_TYPE_F1_XL:
         res = read_flash_sr(sl, BANK_1) & FLASH_SR_ERROR_MASK;
+        if (sl->flash_type == STLINK_FLASH_TYPE_F1_XL) {
+            res |= read_flash_sr(sl, BANK_2) & FLASH_SR_ERROR_MASK;
+        }
+        WRPERR  = (1 << FLASH_SR_WRPRT_ERR);
+        PROGERR = (1 << FLASH_SR_PG_ERR);
+        break;
+    case STLINK_FLASH_TYPE_F4:
+        res = read_flash_sr(sl, BANK_1) & FLASH_F4_SR_ERROR_MASK;
+        WRPERR  = (1 << FLASH_F4_SR_WRPERR);
+        PGAERR  = (1 << FLASH_F4_SR_PGAERR);
         break;
     case STLINK_FLASH_TYPE_F7:
         res = read_flash_sr(sl, BANK_1) & FLASH_F7_SR_ERROR_MASK;
+        WRPERR  = (1 << FLASH_F7_SR_WRP_ERR);
+        PROGERR = (1 << FLASH_F7_SR_PGP_ERR);
         break;
     case STLINK_FLASH_TYPE_G0:
     case STLINK_FLASH_TYPE_G4:
         res = read_flash_sr(sl, BANK_1) & STM32Gx_FLASH_SR_ERROR_MASK;
+        WRPERR  = (1 << STM32Gx_FLASH_SR_WRPERR);
+        PROGERR = (1 << STM32Gx_FLASH_SR_PROGERR);
+        PGAERR  = (1 << STM32Gx_FLASH_SR_PGAERR);
         break;
     case STLINK_FLASH_TYPE_L0:
         res = read_flash_sr(sl, BANK_1) & STM32L0_FLASH_SR_ERROR_MASK;
+        WRPERR  = (1 << STM32L0_FLASH_SR_WRPERR);
+        PROGERR = (1 << STM32L0_FLASH_SR_NOTZEROERR);
+        PGAERR  = (1 << STM32L0_FLASH_SR_PGAERR);
+        break;
+    case STLINK_FLASH_TYPE_L4:
+        res = read_flash_sr(sl, BANK_1) & STM32L4_FLASH_SR_ERROR_MASK;
+        WRPERR  = (1 << STM32L4_FLASH_SR_WRPERR);
+        PROGERR = (1 << STM32L4_FLASH_SR_PROGERR);
+        PGAERR  = (1 << STM32L4_FLASH_SR_PGAERR);
         break;
     case STLINK_FLASH_TYPE_H7:
         res = read_flash_sr(sl, BANK_1) & FLASH_H7_SR_ERROR_MASK;
         if (sl->chip_flags & CHIP_F_HAS_DUAL_BANK) {
             res |= read_flash_sr(sl, BANK_2) & FLASH_H7_SR_ERROR_MASK;
         }
-        if (res) {
-            // Clear errors
-            stlink_write_debug32(sl, FLASH_H7_CCR1, res);
-            if (sl->chip_flags & CHIP_F_HAS_DUAL_BANK) {
-                stlink_write_debug32(sl, FLASH_H7_CCR2, res);
-            }
-        }
+        WRPERR  = (1 << FLASH_H7_SR_WRPERR);
+        break;
+    case STLINK_FLASH_TYPE_WB:
+        res = read_flash_sr(sl, BANK_1) & STM32WB_FLASH_SR_ERROR_MASK;
+        WRPERR  = (1 << STM32WB_FLASH_SR_WRPERR);
+        PROGERR = (1 << STM32WB_FLASH_SR_PROGERR);
+        PGAERR  = (1 << STM32WB_FLASH_SR_PGAERR);
         break;
     default:
         break;
     }
 
     if (res) {
-        ELOG("Flash programming error : %#010x\n", res);
+        if (WRPERR && (WRPERR&res)==WRPERR) {
+            ELOG("Flash memory is write protected\n");
+            res &= ~WRPERR;
+        } else if (PROGERR && (PROGERR&res)==PROGERR) {
+            ELOG("Flash memory contains a non-erased value\n");
+            res &= ~PROGERR;
+        } else if (PGAERR && (PGAERR&res)==PGAERR) {
+            ELOG("Invalid flash address\n");
+            res &= ~PGAERR;
+        }
+
+        if (res) {
+            ELOG("Flash programming error: %#010x\n", res);
+        }
         return(-1);
     }
 
     return(0);
+}
+
+static void stop_wdg_in_debug(stlink_t *sl) {
+    uint32_t dbgmcu_cr;
+    uint32_t set;
+    uint32_t value;
+
+    switch (sl->flash_type) {
+    case STLINK_FLASH_TYPE_F0:
+    case STLINK_FLASH_TYPE_F1_XL:
+    case STLINK_FLASH_TYPE_G4:
+        dbgmcu_cr = STM32F0_DBGMCU_CR;
+        set = (1<<STM32F0_DBGMCU_CR_IWDG_STOP) |
+              (1<<STM32F0_DBGMCU_CR_WWDG_STOP);
+        break;
+    case STLINK_FLASH_TYPE_F4:
+    case STLINK_FLASH_TYPE_F7:
+    case STLINK_FLASH_TYPE_L4:
+        dbgmcu_cr = STM32F4_DBGMCU_APB1FZR1;
+        set = (1<<STM32F4_DBGMCU_APB1FZR1_IWDG_STOP) |
+              (1<<STM32F4_DBGMCU_APB1FZR1_WWDG_STOP);
+        break;
+    case STLINK_FLASH_TYPE_L0:
+    case STLINK_FLASH_TYPE_G0:
+        dbgmcu_cr = STM32L0_DBGMCU_APB1_FZ;
+        set = (1<<STM32L0_DBGMCU_APB1_FZ_IWDG_STOP) |
+              (1<<STM32L0_DBGMCU_APB1_FZ_WWDG_STOP);
+        break;
+    case STLINK_FLASH_TYPE_H7:
+        dbgmcu_cr = STM32H7_DBGMCU_APB1HFZ;
+        set = (1<<STM32H7_DBGMCU_APB1HFZ_IWDG_STOP);
+        break;
+    case STLINK_FLASH_TYPE_WB:
+        dbgmcu_cr = STM32WB_DBGMCU_APB1FZR1;
+        set = (1<<STM32WB_DBGMCU_APB1FZR1_IWDG_STOP) |
+              (1<<STM32WB_DBGMCU_APB1FZR1_WWDG_STOP);
+        break;
+    default:
+        return;
+    }
+
+    if (!stlink_read_debug32(sl, dbgmcu_cr, &value)) {
+        stlink_write_debug32(sl, dbgmcu_cr, value | set);
+    }
+}
+
+static void set_dma_state(stlink_t *sl, flash_loader_t* fl, int bckpRstr) {
+    uint32_t rcc, rcc_dma_mask, value;
+
+    rcc = rcc_dma_mask = value = 0;
+
+    switch (sl->flash_type) {
+    case STLINK_FLASH_TYPE_F0:
+    case STLINK_FLASH_TYPE_F1_XL:
+        rcc = STM32F1_RCC_AHBENR;
+        rcc_dma_mask = STM32F1_RCC_DMAEN;
+        break;
+    case STLINK_FLASH_TYPE_F4:
+    case STLINK_FLASH_TYPE_F7:
+        rcc = STM32F4_RCC_AHB1ENR;
+        rcc_dma_mask = STM32F4_RCC_DMAEN;
+        break;
+    case STLINK_FLASH_TYPE_G0:
+        rcc = STM32G0_RCC_AHBENR;
+        rcc_dma_mask = STM32G0_RCC_DMAEN;
+        break;
+    case STLINK_FLASH_TYPE_G4:
+    case STLINK_FLASH_TYPE_L4:
+        rcc = STM32G4_RCC_AHB1ENR;
+        rcc_dma_mask = STM32G4_RCC_DMAEN;
+        break;
+    case STLINK_FLASH_TYPE_L0:
+        rcc = STM32L0_RCC_AHBENR;
+        rcc_dma_mask = STM32L0_RCC_DMAEN;
+        break;
+    case STLINK_FLASH_TYPE_H7:
+        rcc = STM32H7_RCC_AHB1ENR;
+        rcc_dma_mask = STM32H7_RCC_DMAEN;
+        break;
+    case STLINK_FLASH_TYPE_WB:
+        rcc = STM32WB_RCC_AHB1ENR;
+        rcc_dma_mask = STM32WB_RCC_DMAEN;
+        break;
+    default:
+        return;
+    }
+
+    if (!stlink_read_debug32(sl, rcc, &value)) {
+        if (bckpRstr) {
+            value = (value&(~rcc_dma_mask)) | fl->rcc_dma_bkp;
+        } else {
+            fl->rcc_dma_bkp = value&rcc_dma_mask;
+            value &= ~rcc_dma_mask;
+        }
+        stlink_write_debug32(sl, rcc, value);
+    }
 }
 
 static inline void write_flash_ar(stlink_t *sl, uint32_t n, unsigned bank) {
@@ -1189,7 +1455,10 @@ int stlink_enter_swd_mode(stlink_t *sl) {
 // Force the core into the debug mode -> halted state.
 int stlink_force_debug(stlink_t *sl) {
     DLOG("*** stlink_force_debug_mode ***\n");
-    return(sl->backend->force_debug(sl));
+    int res = sl->backend->force_debug(sl);
+    // Stop the watchdogs in the halted state for suppress target reboot
+    stop_wdg_in_debug(sl);
+    return(res);
 }
 
 int stlink_exit_dfu_mode(stlink_t *sl) {
@@ -1220,36 +1489,66 @@ int stlink_core_id(stlink_t *sl) {
 // do not call this procedure directly.
 int stlink_chip_id(stlink_t *sl, uint32_t *chip_id) {
     int ret;
+    cortex_m3_cpuid_t cpu_id;
 
-    uint32_t cpu_id;
-    *chip_id = 0;
-    ret = -1;
-
-    // Read the CPU ID to determine where to read the core id from
-    if (stlink_read_debug32(sl, STLINK_REG_CM3_CPUID, &cpu_id))
-        cpu_id = 0;
-
-    // If the chip is an H7, read the chipid from the new address
-    if (sl->core_id == STM32H7_CORE_ID && cpu_id == STLINK_REG_CMx_CPUID_CM7) {
-        // STM32H7 chipid in 0x5c001000 (RM0433 pg3189)
-        ret = stlink_read_debug32(sl, 0x5c001000, chip_id);
+    // Read the CPU ID to determine where to read the core id
+    if (stlink_cpu_id(sl, &cpu_id) || 
+            cpu_id.implementer_id != STLINK_REG_CMx_CPUID_IMPL_ARM) {
+        ELOG("Can not connect to target. Please use \'connect under reset\' and try again\n");
+        return -1;
     }
 
-    if (*chip_id == 0) {
+    /*
+     * the chip_id register in the reference manual have
+     * DBGMCU_IDCODE / DBG_IDCODE name
+     *
+     */
+
+    if ((sl->core_id == STM32H7_CORE_ID ||
+            sl->core_id == STM32H7_CORE_ID_JTAG) &&
+            cpu_id.part == STLINK_REG_CMx_CPUID_PARTNO_CM7) {
+        // STM32H7 chipid in 0x5c001000 (RM0433 pg3189)
+        ret = stlink_read_debug32(sl, 0x5c001000, chip_id);
+    } else if (cpu_id.part == STLINK_REG_CMx_CPUID_PARTNO_CM0 ||
+            cpu_id.part == STLINK_REG_CMx_CPUID_PARTNO_CM0P) {
+        // STM32F0 (RM0091, pg914; RM0360, pg713)
+        // STM32L0 (RM0377, pg813; RM0367, pg915; RM0376, pg917)
+        // STM32G0 (RM0444, pg1367)
+        ret = stlink_read_debug32(sl, 0x40015800, chip_id);
+    } else if (cpu_id.part == STLINK_REG_CMx_CPUID_PARTNO_CM33) {
+        // STM32L5 (RM0438, pg2157)
+        ret = stlink_read_debug32(sl, 0xE0044000, chip_id);
+    } else /* СM3, СM4, CM7 */ {
         // default chipid address
+
+        // STM32F1 (RM0008, pg1087; RM0041, pg681)
+        // STM32F2 (RM0033, pg1326)
+        // STM32F3 (RM0316, pg1095; RM0313, pg874)
+        // STM32F7 (RM0385, pg1676; RM0410, pg1912)
+        // STM32L1 (RM0038, pg861)
+        // STM32L4 (RM0351, pg1840; RM0394, pg1560)
+        // STM32G4 (RM0440, pg2086)
+        // STM32WB (RM0434, pg1406)
         ret = stlink_read_debug32(sl, 0xE0042000, chip_id);
     }
 
-    if (*chip_id == 0) {
-        // Try Corex M0 DBGMCU_IDCODE register address
-        ret = stlink_read_debug32(sl, 0x40015800, chip_id);
+    if (ret || !(*chip_id)) {
+        *chip_id = 0;
+        ELOG("Could not find chip id!\n");
+    } else {
+        *chip_id = (*chip_id) & 0xfff;
+
+        // Fix chip_id for F4 rev A errata, read CPU ID, as CoreID is the same for F2/F4
+        if (*chip_id == 0x411 && cpu_id.part == STLINK_REG_CMx_CPUID_PARTNO_CM4) {
+            *chip_id = 0x413;
+        }
     }
 
     return(ret);
 }
 
 /**
- * Cortex m3 tech ref manual, CPUID register description
+ * Cortex M tech ref manual, CPUID register description
  * @param sl stlink context
  * @param cpuid pointer to the result object
  */
@@ -1282,26 +1581,16 @@ int stlink_load_device_params(stlink_t *sl) {
     DLOG("Loading device parameters....\n");
     const struct stlink_chipid_params *params = NULL;
     stlink_core_id(sl);
-    uint32_t chip_id = 0;
     uint32_t flash_size;
 
-    stlink_chip_id(sl, &chip_id);
-    sl->chip_id = chip_id & 0xfff;
-
-    // Fix chip_id for F4 rev A errata , Read CPU ID, as CoreID is the same for F2/F4
-    if (sl->chip_id == 0x411) {
-        uint32_t cpuid;
-        stlink_read_debug32(sl, 0xE000ED00, &cpuid);
-
-        if ((cpuid  & 0xfff0) == 0xc240) {
-            sl->chip_id = 0x413;
-        }
+    if (stlink_chip_id(sl, &sl->chip_id)) {
+        return(-1);
     }
 
     params = stlink_chipid_get_params(sl->chip_id);
 
     if (params == NULL) {
-        WLOG("unknown chip id! %#x\n", chip_id);
+        WLOG("unknown chip id! %#x\n", sl->chip_id);
         return(-1);
     }
 
@@ -1367,26 +1656,14 @@ int stlink_load_device_params(stlink_t *sl) {
             sl->chip_flags &= ~CHIP_F_HAS_DUAL_BANK;
     }
 
-#if 0
-    // Old code -- REW
-    ILOG("Device connected is: %s, id %#x\n", params->description, chip_id);
-    // TODO: make note of variable page size here.....
-    ILOG("SRAM size: %#x bytes (%d KiB), Flash: %#x bytes (%d KiB) in pages of %u bytes\n",
-         sl->sram_size, sl->sram_size / 1024, sl->flash_size, sl->flash_size / 1024,
-         (unsigned int)sl->flash_pgsz);
-#else
     ILOG("%s: %u KiB SRAM, %u KiB flash in at least %u %s pages.\n",
          params->description, (unsigned)(sl->sram_size / 1024), (unsigned)(sl->flash_size / 1024),
          (sl->flash_pgsz < 1024) ? (unsigned)(sl->flash_pgsz)  :  (unsigned)(sl->flash_pgsz / 1024),
          (sl->flash_pgsz < 1024) ?  "byte"         :  "KiB");
-#endif
+
     return(0);
 }
 
-int stlink_reset(stlink_t *sl) {
-    DLOG("*** stlink_reset ***\n");
-    return(sl->backend->reset(sl));
-}
 
 int stlink_jtag_reset(stlink_t *sl, int value) {
     DLOG("*** stlink_jtag_reset ***\n");
@@ -1462,7 +1739,65 @@ int stlink_soft_reset(stlink_t *sl, int halt_on_reset) {
     return(0);
 }
 
-int stlink_run(stlink_t *sl) {
+int stlink_reset(stlink_t *sl, enum reset_type type) {
+    uint32_t dhcsr;
+    unsigned timeout;
+
+    DLOG("*** stlink_reset ***\n");
+
+    if (type == RESET_AUTO) {
+        // clear S_RESET_ST in DHCSR register for reset state detection
+        stlink_read_debug32(sl, STLINK_REG_DHCSR, &dhcsr);
+    }
+
+    if (type == RESET_HARD || type == RESET_AUTO) {
+        // hardware target reset
+        if (sl->version.stlink_v > 1) {
+            stlink_jtag_reset(sl, STLINK_JTAG_DRIVE_NRST_LOW);
+            // minimum reset pulse duration of 20 us (RM0008, 8.1.2 Power reset)
+            usleep(100);
+            stlink_jtag_reset(sl, STLINK_JTAG_DRIVE_NRST_HIGH);
+        }
+        if (sl->backend->reset(sl)) { return(-1); }
+        usleep(10000);
+    }
+
+    if (type == RESET_AUTO) {
+        /* Check if the S_RESET_ST bit is set in DHCSR
+         * This means that a reset has occurred
+         * DDI0337E, p. 10-4, Debug Halting Control and Status Register */
+
+        dhcsr = 0;
+        stlink_read_debug32(sl, STLINK_REG_DHCSR, &dhcsr);
+        if ((dhcsr & STLINK_REG_DHCSR_S_RESET_ST) == 0) {
+            // reset not done yet
+            // try reset through AIRCR so that NRST does not need to be connected
+
+            WLOG("NRST is not connected\n");
+            DLOG("Using reset through SYSRESETREQ\n");
+            return stlink_soft_reset(sl, 0);
+        }
+
+        // waiting for reset the S_RESET_ST bit within 500ms
+        timeout = time_ms() + 500;
+        while (time_ms() < timeout) {
+            dhcsr = STLINK_REG_DHCSR_S_RESET_ST;
+            stlink_read_debug32(sl, STLINK_REG_DHCSR, &dhcsr);
+            if ((dhcsr&STLINK_REG_DHCSR_S_RESET_ST) == 0)
+                return(0);
+        }
+
+        return(-1);
+    }
+
+    if (type == RESET_SOFT || type == RESET_SOFT_AND_HALT) {
+        return stlink_soft_reset(sl, (type==RESET_SOFT_AND_HALT));
+    }
+
+    return(0);
+}
+
+int stlink_run(stlink_t *sl, enum run_type type) {
     struct stlink_reg rr;
     DLOG("*** stlink_run ***\n");
 
@@ -1475,7 +1810,7 @@ int stlink_run(stlink_t *sl) {
         stlink_write_reg(sl, rr.xpsr | (1 << 24), 16);
     }
 
-    return(sl->backend->run(sl));
+    return(sl->backend->run(sl, type));
 }
 
 int stlink_set_swdclk(stlink_t *sl, int freq_khz) {
@@ -1767,7 +2102,7 @@ int stlink_trace_read(stlink_t* sl, uint8_t* buf, size_t size) {
 
 void stlink_run_at(stlink_t *sl, stm32_addr_t addr) {
     stlink_write_reg(sl, addr, 15); /* pc register */
-    stlink_run(sl);
+    stlink_run(sl, RUN_NORMAL);
 
     while (stlink_is_core_halted(sl)) { usleep(3000000); }
 }
@@ -1929,7 +2264,7 @@ static void stlink_fwrite_finalize(stlink_t *sl, stm32_addr_t addr) {
     // set PC to the reset routine
     stlink_read_debug32(sl, addr + 4, &val);
     stlink_write_reg(sl, val, 15);
-    stlink_run(sl);
+    stlink_run(sl, RUN_NORMAL);
 }
 
 int stlink_mwrite_sram(stlink_t * sl, uint8_t* data, uint32_t length, stm32_addr_t addr) {
@@ -2361,12 +2696,14 @@ uint32_t stlink_calculate_pagesize(stlink_t *sl, uint32_t flashaddr) {
  * @return 0 on success -ve on failure
  */
 int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr) {
+    // wait for ongoing op to finish
+    wait_flash_busy(sl);
+    // clear flash IO errors
+    clear_flash_error(sl);
+
     if (sl->flash_type == STLINK_FLASH_TYPE_F4 ||
         sl->flash_type == STLINK_FLASH_TYPE_F7 ||
         sl->flash_type == STLINK_FLASH_TYPE_L4) {
-        // wait for ongoing op to finish
-        wait_flash_busy(sl);
-
         // unlock if locked
         unlock_flash_if(sl);
 
@@ -2414,16 +2751,7 @@ int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr) {
     } else if (sl->flash_type == STLINK_FLASH_TYPE_L0) {
 
         uint32_t val;
-        uint32_t flash_regs_base;
-
-        if (sl->chip_id == STLINK_CHIPID_STM32_L0 ||
-            sl->chip_id == STLINK_CHIPID_STM32_L0_CAT5 ||
-            sl->chip_id == STLINK_CHIPID_STM32_L0_CAT2 ||
-            sl->chip_id == STLINK_CHIPID_STM32_L011) {
-            flash_regs_base = STM32L0_FLASH_REGS_ADDR;
-        } else {
-            flash_regs_base = STM32L_FLASH_REGS_ADDR;
-        }
+        uint32_t flash_regs_base = get_stm32l0_flash_base(sl);
 
         // check if the locks are set
         stlink_read_debug32(sl, flash_regs_base + FLASH_PECR_OFF, &val);
@@ -2457,15 +2785,6 @@ int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr) {
         // set pecr.{erase,prog}
         val |= (1 << 9) | (1 << 3);
         stlink_write_debug32(sl, flash_regs_base + FLASH_PECR_OFF, val);
-#if 0
-        /* Wait for sr.busy to be cleared
-         * MP: Test shows that busy bit is not set here. Perhaps, PM0062 is wrong
-         * and we do not need to wait here for clearing the busy bit.
-         */
-        do {
-            stlink_read_debug32(sl, STM32L_FLASH_SR, &val)
-        } while ((val & (1 << 0)) != 0);
-#endif
 
         // write 0 to the first word of the page to be erased
         stlink_write_debug32(sl, flashaddr, 0);
@@ -2475,9 +2794,7 @@ int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr) {
          * Test shows that a few iterations is performed in the following loop
          * before busy bit is cleared.
          */
-        do
-            stlink_read_debug32(sl, flash_regs_base + FLASH_SR_OFF, &val);
-        while ((val & (1 << 0)) != 0);
+        wait_flash_busy(sl);
 
         // reset lock bits
         stlink_read_debug32(sl, flash_regs_base + FLASH_PECR_OFF, &val);
@@ -2487,7 +2804,6 @@ int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr) {
                sl->flash_type == STLINK_FLASH_TYPE_G0 ||
                sl->flash_type == STLINK_FLASH_TYPE_G4) {
         uint32_t val;
-        wait_flash_busy(sl);  // wait for any ongoing Flash operation to finish
         unlock_flash_if(sl);
         set_flash_cr_per(sl, BANK_1); // set the 'enable Flash erase' bit
 
@@ -2518,23 +2834,22 @@ int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr) {
         }
 
         set_flash_cr_strt(sl, BANK_1);  // set the 'start operation' bit
-        wait_flash_busy(sl);    // wait for the 'busy' bit to clear
+        wait_flash_busy(sl);            // wait for the 'busy' bit to clear
         clear_flash_cr_per(sl, BANK_1); // clear the 'enable page erase' bit
         lock_flash(sl);
     } else if (sl->flash_type == STLINK_FLASH_TYPE_F0 ||
                sl->flash_type == STLINK_FLASH_TYPE_F1_XL) {
         unsigned bank = (flashaddr < STM32_F1_FLASH_BANK2_BASE)?BANK_1:BANK_2;
-        wait_flash_busy(sl);
         unlock_flash_if(sl);
         clear_flash_cr_pg(sl, bank);         // clear the pg bit
         set_flash_cr_per(sl, bank);          // set the page erase bit
         write_flash_ar(sl, flashaddr, bank); // select the page to erase
         set_flash_cr_strt(sl, bank);         // start erase operation, reset by hw with busy bit
         wait_flash_busy(sl);
+        clear_flash_cr_per(sl, bank);        // clear the page erase bit
         lock_flash(sl);
     } else if (sl->flash_type == STLINK_FLASH_TYPE_H7) {
         unsigned bank = (flashaddr < STM32_H7_FLASH_BANK2_BASE)?BANK_1:BANK_2;
-        wait_flash_busy(sl); // wait for ongoing op to finish
         unlock_flash_if(sl); // unlock if locked
         uint32_t sector = calculate_H7_sectornum(sl, flashaddr, bank);// calculate the actual page from the address
         write_flash_cr_snb(sl, sector, bank); // select the page to erase
@@ -2546,8 +2861,7 @@ int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr) {
         return(-1);
     }
 
-    // TODO: verify the erased page
-    return(0);
+    return check_flash_error(sl);
 }
 
 int stlink_erase_flash_mass(stlink_t *sl) {
@@ -2563,7 +2877,7 @@ int stlink_erase_flash_mass(stlink_t *sl) {
             // addr must be an addr inside the page
             stm32_addr_t addr = (stm32_addr_t)sl->flash_base + i * (stm32_addr_t)sl->flash_pgsz;
 
-            if (stlink_erase_flash_page(sl, addr) == -1) {
+            if (stlink_erase_flash_page(sl, addr)) {
                 WLOG("Failed to erase_flash_page(%#x) == -1\n", addr);
                 return(-1);
             }
@@ -2575,6 +2889,7 @@ int stlink_erase_flash_mass(stlink_t *sl) {
         fprintf(stdout, "\n");
     } else {
         wait_flash_busy(sl);
+        clear_flash_error(sl);
         unlock_flash_if(sl);
 
         if (sl->flash_type == STLINK_FLASH_TYPE_H7 && sl->chip_id != STLINK_CHIPID_STM32_H7AX) {
@@ -2585,7 +2900,7 @@ int stlink_erase_flash_mass(stlink_t *sl) {
             }
         }
 
-        set_flash_cr_mer(sl, 1, BANK_1);      // set the mass erase bit
+        set_flash_cr_mer(sl, 1, BANK_1); // set the mass erase bit
         set_flash_cr_strt(sl, BANK_1);   // start erase operation, reset by hw with busy bit
 
         if (sl->flash_type == STLINK_FLASH_TYPE_F1_XL ||
@@ -2595,7 +2910,6 @@ int stlink_erase_flash_mass(stlink_t *sl) {
         }
 
         wait_flash_busy_progress(sl);
-        err = check_flash_error(sl);
         lock_flash(sl);
 
         // reset the mass erase bit
@@ -2605,7 +2919,7 @@ int stlink_erase_flash_mass(stlink_t *sl) {
             set_flash_cr_mer(sl, 0, BANK_2);
         }
 
-        // TODO: verify the erased memory
+        err = check_flash_error(sl);
     }
 
     return(err);
@@ -2665,17 +2979,8 @@ int stm32l1_write_half_pages(
     unsigned int count;
     unsigned int num_half_pages = len / pagesize;
     uint32_t val;
-    uint32_t flash_regs_base;
+    uint32_t flash_regs_base = get_stm32l0_flash_base(sl);
     flash_loader_t fl;
-
-    if (sl->chip_id == STLINK_CHIPID_STM32_L0 ||
-        sl->chip_id == STLINK_CHIPID_STM32_L0_CAT5 ||
-        sl->chip_id == STLINK_CHIPID_STM32_L0_CAT2 ||
-        sl->chip_id == STLINK_CHIPID_STM32_L011) {
-        flash_regs_base = STM32L0_FLASH_REGS_ADDR;
-    } else {
-        flash_regs_base = STM32L_FLASH_REGS_ADDR;
-    }
 
     ILOG("Starting Half page flash write for STM32L core id\n");
 
@@ -2693,9 +2998,7 @@ int stm32l1_write_half_pages(
     val |= (1 << FLASH_L1_PROG);
     stlink_write_debug32(sl, flash_regs_base + FLASH_PECR_OFF, val);
 
-    do {
-        stlink_read_debug32(sl, flash_regs_base + FLASH_SR_OFF, &val);
-    } while ((val & (1 << 0)) != 0);
+    wait_flash_busy(sl);
 
     for (count = 0; count  < num_half_pages; count++) {
         if (stlink_flash_loader_run(
@@ -2714,9 +3017,7 @@ int stm32l1_write_half_pages(
             fflush(stdout);
         }
 
-        do {
-            stlink_read_debug32(sl, flash_regs_base + FLASH_SR_OFF, &val);
-        } while ((val & (1 << 0)) != 0);
+        wait_flash_busy(sl);
     }
 
     stlink_read_debug32(sl, flash_regs_base + FLASH_PECR_OFF, &val);
@@ -2739,6 +3040,14 @@ int stlink_flashloader_start(stlink_t *sl, flash_loader_t *fl) {
                                         STLINK_REG_DHCSR_C_DEBUGEN |
                                         STLINK_REG_DHCSR_C_HALT |
                                         STLINK_REG_DHCSR_C_MASKINTS);
+
+    // disable DMA
+    set_dma_state(sl, fl, 0);
+
+    // wait for ongoing op to finish
+    wait_flash_busy(sl);
+    // Clear errors
+    clear_flash_error(sl);
 
     if ((sl->flash_type == STLINK_FLASH_TYPE_F4) ||
         (sl->flash_type == STLINK_FLASH_TYPE_F7) ||
@@ -2790,7 +3099,6 @@ int stlink_flashloader_start(stlink_t *sl, flash_loader_t *fl) {
                sl->flash_type == STLINK_FLASH_TYPE_G4) {
         ILOG("Starting Flash write for WB/G0/G4\n");
 
-        wait_flash_busy(sl);
         unlock_flash_if(sl); // unlock flash if necessary
         set_flash_cr_pg(sl, BANK_1); // set PG 'allow programming' bit
     } else if (sl->flash_type == STLINK_FLASH_TYPE_L0) {
@@ -2871,6 +3179,7 @@ int stlink_flashloader_write(stlink_t *sl, flash_loader_t *fl, stm32_addr_t addr
             size_t size = len - off > buf_size ? buf_size : len - off;
             if (stlink_flash_loader_run(sl, fl, addr + (uint32_t)off, base + off, size) == -1) {
                 ELOG("stlink_flash_loader_run(%#x) failed! == -1\n", (unsigned)(addr + off));
+                check_flash_error(sl);
                 return(-1);
             }
 
@@ -2960,12 +3269,11 @@ int stlink_flashloader_write(stlink_t *sl, flash_loader_t *fl, stm32_addr_t addr
             // unlock and set programming mode
             unlock_flash_if(sl);
 
-            if (sl->flash_type != STLINK_FLASH_TYPE_F1_XL) { set_flash_cr_pg(sl, BANK_1); }
-
             DLOG("Finished unlocking flash, running loader!\n");
 
             if (stlink_flash_loader_run(sl, fl, addr + (uint32_t)off, base + off, size) == -1) {
                 ELOG("stlink_flash_loader_run(%#x) failed! == -1\n", (unsigned)(addr + off));
+                check_flash_error(sl);
                 return(-1);
             }
 
@@ -3004,10 +3312,10 @@ int stlink_flashloader_write(stlink_t *sl, flash_loader_t *fl, stm32_addr_t addr
         return(-1);
     }
 
-    return(0);
+    return check_flash_error(sl);
 }
 
-int stlink_flashloader_stop(stlink_t *sl) {
+int stlink_flashloader_stop(stlink_t *sl, flash_loader_t *fl) {
     uint32_t dhcsr;
 
     if ((sl->flash_type == STLINK_FLASH_TYPE_F4) ||
@@ -3046,6 +3354,9 @@ int stlink_flashloader_stop(stlink_t *sl) {
                                 STLINK_REG_DHCSR_C_DEBUGEN |
                                 (dhcsr&(~STLINK_REG_DHCSR_C_MASKINTS)));
     }
+
+    // restore DMA state
+    set_dma_state(sl, fl, 1);
 
     return(0);
 }
@@ -3109,7 +3420,7 @@ int stlink_write_flash(
     ret = stlink_flashloader_write(sl, &fl, addr, base, len);
     if (ret)
         return ret;
-    ret = stlink_flashloader_stop(sl);
+    ret = stlink_flashloader_stop(sl, &fl);
     if (ret)
         return ret;
 
@@ -3394,6 +3705,8 @@ static int stlink_write_option_bytes_gx(
     (void)len;
     uint32_t data;
 
+    clear_flash_error(sl);
+
     write_uint32((unsigned char*)&data, *(uint32_t*)(base));
     WLOG("Writing option bytes %#10x to %#10x\n", data, addr);
     stlink_write_debug32(sl, STM32Gx_FLASH_OPTR, data);
@@ -3430,7 +3743,7 @@ static int stlink_write_option_bytes_l0(
     int ret = 0;
 
     // Clear errors
-    stlink_write_debug32(sl, flash_base + FLASH_SR_OFF, STM32L0_FLASH_REGS_ADDR);
+    clear_flash_error(sl);
 
     while (len != 0) {
         write_uint32((unsigned char*)&data, *(uint32_t*)(base)); // write options bytes
@@ -3469,6 +3782,9 @@ static int stlink_write_option_bytes_l4(
     (void)addr;
     (void)len;
 
+    // Clear errors
+    clear_flash_error(sl);
+
     // write options bytes
     uint32_t data;
     write_uint32((unsigned char*)&data, *(uint32_t*)(base));
@@ -3505,6 +3821,9 @@ static int stlink_write_option_bytes_f4(
     (void)addr;
     (void)len;
 
+    // Clear errors
+    clear_flash_error(sl);
+
     write_uint32((unsigned char*)&option_byte, *(uint32_t*)(base));
 
     // write option byte, ensuring we dont lock opt, and set strt bit
@@ -3528,8 +3847,8 @@ static int stlink_write_option_bytes_f7(stlink_t *sl, uint8_t* base, stm32_addr_
     uint32_t option_byte;
     int ret = 0;
 
-    //(void) addr;
-    //(void) len;
+    // Clear errors
+    clear_flash_error(sl);
 
     ILOG("Asked to write option byte %#10x to %#010x.\n", *(uint32_t*) (base), addr);
     write_uint32((unsigned char*) &option_byte, *(uint32_t*) (base));
@@ -3988,9 +4307,10 @@ int stlink_write_option_bytes(stlink_t *sl, stm32_addr_t addr, uint8_t* base, ui
 static int stlink_write_option_control_register_f7(stlink_t *sl, uint32_t option_control_register) {
     int ret = 0;
 
+    // Clear errors
+    clear_flash_error(sl);
+
     ILOG("Asked to write option control register 1 %#10x to %#010x.\n", option_control_register, FLASH_F7_OPTCR);
-    //write_uint32((unsigned char*) &option_byte, *(uint32_t*) (base));
-    //ILOG("Write %d option bytes %#010x to %#010x!\n", len, option_byte, addr);
 
     /* write option byte, ensuring we dont lock opt, and set strt bit */
     stlink_write_debug32(sl, FLASH_F7_OPTCR, (option_control_register & ~(1 << FLASH_F7_OPTCR_LOCK)) | (1 << FLASH_F7_OPTCR_START));
@@ -3999,7 +4319,7 @@ static int stlink_write_option_control_register_f7(stlink_t *sl, uint32_t option
 
     ret = check_flash_error(sl);
     if (!ret)
-        ILOG("Wrote option bytes %#010x to %#010x!\n", option_control_register, FLASH_F7_OPTCR1);
+        ILOG("Wrote option bytes %#010x to %#010x!\n", option_control_register, FLASH_F7_OPTCR);
 
     return ret;
 }
@@ -4013,9 +4333,10 @@ static int stlink_write_option_control_register_f7(stlink_t *sl, uint32_t option
 static int stlink_write_option_control_register1_f7(stlink_t *sl, uint32_t option_control_register1) {
     int ret = 0;
 
+    // Clear errors
+    clear_flash_error(sl);
+
     ILOG("Asked to write option control register 1 %#010x to %#010x.\n", option_control_register1, FLASH_F7_OPTCR1);
-    //write_uint32((unsigned char*) &option_byte, *(uint32_t*) (base));
-    //ILOG("Write %d option bytes %#010x to %#010x!\n", len, option_byte, addr);
 
     /* write option byte, ensuring we dont lock opt, and set strt bit */
     uint32_t current_control_register_value;
@@ -4201,3 +4522,40 @@ int stlink_fwrite_option_bytes(stlink_t *sl, const char* path, stm32_addr_t addr
     return(err);
 }
 
+int stlink_target_connect(stlink_t *sl, enum connect_type connect) {
+    uint32_t dhcsr;
+
+    if (connect == CONNECT_UNDER_RESET) {
+        stlink_jtag_reset(sl, STLINK_JTAG_DRIVE_NRST_LOW);
+
+        // minimum reset pulse duration of 20 us (RM0008, 8.1.2 Power reset)
+        usleep(20);
+
+        if (stlink_current_mode(sl) != STLINK_DEV_DEBUG_MODE) { stlink_enter_swd_mode(sl); }
+        stlink_force_debug(sl);
+
+        // clear S_RESET_ST in DHCSR register
+        stlink_read_debug32(sl, STLINK_REG_DHCSR, &dhcsr);
+
+        stlink_jtag_reset(sl, STLINK_JTAG_DRIVE_NRST_HIGH);
+        usleep(10000);
+
+        // check NRST connection
+        dhcsr = 0;
+        stlink_read_debug32(sl, STLINK_REG_DHCSR, &dhcsr);
+        if ((dhcsr & STLINK_REG_DHCSR_S_RESET_ST) == 0) {
+            WLOG("NRST is not connected\n");
+        }
+
+        // addition soft reset for halt before the first instruction
+        stlink_soft_reset(sl, 1 /* halt on reset */);
+    }
+
+    if (stlink_current_mode(sl) != STLINK_DEV_DEBUG_MODE) { stlink_enter_swd_mode(sl); }
+
+    if (connect == CONNECT_NORMAL) {
+        stlink_reset(sl, RESET_AUTO);
+    }
+
+    return stlink_load_device_params(sl);
+}

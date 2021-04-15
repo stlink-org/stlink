@@ -8,9 +8,10 @@
 #define STM32_H
 
 /* Cortex core ids */
-#define STM32VL_CORE_ID 0x1ba01477
-#define STM32F7_CORE_ID 0x5ba02477
-#define STM32H7_CORE_ID 0x6ba02477 // STM32H7 JTAG ID Code (RM0433 pg3065)
+#define STM32VL_CORE_ID      0x1ba01477
+#define STM32F7_CORE_ID      0x5ba02477
+#define STM32H7_CORE_ID      0x6ba02477 // STM32H7 SWD ID Code
+#define STM32H7_CORE_ID_JTAG 0x6ba00477 // STM32H7 JTAG ID Code (RM0433 pg3065)
 
 /* Constant STM32 memory map figures */
 #define STM32_FLASH_BASE           ((uint32_t)0x08000000)

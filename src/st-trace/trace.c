@@ -203,7 +203,7 @@ static bool enable_trace(stlink_t* stlink, const st_settings_t* settings, uint32
             return false;
     }
 
-    if (settings->reset_board && stlink_jtag_reset(stlink, 2)) {
+    if (settings->reset_board && stlink_reset(stlink, RESET_AUTO)) {
         ELOG("Unable to reset device\n");
         if (!settings->force)
             return false;
@@ -539,7 +539,7 @@ int main(int argc, char** argv)
     memset(&trace, 0, sizeof(trace));
     trace.start_time = time(NULL);
 
-    if (stlink_run(stlink)) {
+    if (stlink_run(stlink, RUN_NORMAL)) {
         ELOG("Unable to run device\n");
         if (!settings.force)
             return APP_RESULT_STLINK_STATE_ERROR;

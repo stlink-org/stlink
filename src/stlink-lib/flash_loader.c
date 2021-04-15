@@ -9,16 +9,20 @@
 #define FLASH_REGS_BANK2_OFS 0x40
 #define FLASH_BANK2_START_ADDR 0x08080000
 
+#define STM32F0_WDG_KR            0x40003000
+#define STM32H7_WDG_KR            0x58004800
+
+#define STM32F0_WDG_KR_KEY_RELOAD 0xAAAA
+
 /* DO NOT MODIFY SOURCECODE DIRECTLY, EDIT ASSEMBLY FILES INSTEAD */
 
 /* flashloaders/stm32f0.s -- compiled with thumb2 */
 static const uint8_t loader_code_stm32vl[] = {
     0x00, 0xbf, 0x00, 0xbf,
-    0x0f, 0x4f, 0x1f, 0x44,
-    0x0f, 0x4e, 0x3e, 0x44,
-    0x0f, 0x4d, 0x3d, 0x44,
-    0x4f, 0xf0, 0x01, 0x07,
-    0x34, 0x68, 0x3c, 0x43,
+    0x0e, 0x4f, 0x1f, 0x44,
+    0x0e, 0x4e, 0x3e, 0x44,
+    0x0e, 0x4d, 0x3d, 0x44,
+    0x4f, 0xf0, 0x01, 0x04,
     0x34, 0x60, 0x04, 0x88,
     0x0c, 0x80, 0x02, 0x30,
     0x02, 0x31, 0x4f, 0xf0,
@@ -38,11 +42,10 @@ static const uint8_t loader_code_stm32vl[] = {
 /* flashloaders/stm32f0.s -- thumb1 only, same sequence as for STM32VL, bank ignored */
 static const uint8_t loader_code_stm32f0[] = {
     0xc0, 0x46, 0xc0, 0x46,
-    0x0d, 0x4f, 0x1f, 0x44,
-    0x0d, 0x4e, 0x3e, 0x44,
-    0x0d, 0x4d, 0x3d, 0x44,
-    0x0d, 0x4f, 0x34, 0x68,
-    0x3c, 0x43, 0x34, 0x60,
+    0x0c, 0x4f, 0x1f, 0x44,
+    0x0c, 0x4e, 0x3e, 0x44,
+    0x0c, 0x4d, 0x3d, 0x44,
+    0x0c, 0x4c, 0x34, 0x60,
     0x04, 0x88, 0x0c, 0x80,
     0x02, 0x30, 0x02, 0x31,
     0x09, 0x4f, 0x2c, 0x68,
@@ -65,7 +68,7 @@ static const uint8_t loader_code_stm32lx[] = {
     0x00, 0xf1, 0x04, 0x00,
     0x01, 0xf1, 0x04, 0x01,
     0x04, 0x3a, 0xf7, 0xdc,
-    0x00, 0xbe
+    0x00, 0xbe, 0x00, 0x00
 };
 
 static const uint8_t loader_code_stm32f4[] = {
@@ -114,7 +117,7 @@ static const uint8_t loader_code_stm32l4[] = {
     0x08, 0x3a, 0xf0, 0xdc,
     0x00, 0xbe, 0x00, 0xbf,
     0x00, 0x20, 0x02, 0x40,
-    0x12, 0x00, 0x00, 0x00
+    0x10, 0x00, 0x00, 0x00
 };
 
 static const uint8_t loader_code_stm32f7[] = {
@@ -154,6 +157,7 @@ static const uint8_t loader_code_stm32f7_lv[] = {
 
 int stlink_flash_loader_init(stlink_t *sl, flash_loader_t *fl) {
     size_t size = 0;
+    uint32_t dfsr, cfsr, hfsr;
 
     // allocate the loader in SRAM
     if (stlink_flash_loader_write_to_sram(sl, &fl->loader_addr, &size) == -1) {
@@ -164,6 +168,27 @@ int stlink_flash_loader_init(stlink_t *sl, flash_loader_t *fl) {
     // allocate a one page buffer in SRAM right after loader
     fl->buf_addr = fl->loader_addr + (uint32_t)size;
     ILOG("Successfully loaded flash loader in sram\n");
+
+    // set address of IWDG key register for reset it
+    if (sl->flash_type == STLINK_FLASH_TYPE_H7) {
+        fl->iwdg_kr = STM32H7_WDG_KR;
+    } else {
+        fl->iwdg_kr = STM32F0_WDG_KR;
+    }
+
+    /* Clear Fault Status Register for handling flash loader error */
+    if (!stlink_read_debug32(sl, STLINK_REG_DFSR, &dfsr) && dfsr) {
+        ILOG("Clear DFSR\n");
+        stlink_write_debug32(sl, STLINK_REG_DFSR, dfsr);
+    }
+    if (!stlink_read_debug32(sl, STLINK_REG_CFSR, &cfsr) && cfsr) {
+        ILOG("Clear CFSR\n");
+        stlink_write_debug32(sl, STLINK_REG_CFSR, cfsr);
+    }
+    if (!stlink_read_debug32(sl, STLINK_REG_HFSR, &hfsr) && hfsr) {
+        ILOG("Clear HFSR\n");
+        stlink_write_debug32(sl, STLINK_REG_HFSR, hfsr);
+    }
 
     return(0);
 }
@@ -316,8 +341,13 @@ int stlink_flash_loader_run(stlink_t *sl, flash_loader_t* fl, stm32_addr_t targe
                                                // only used on VL/F1_XL, but harmless for others
     stlink_write_reg(sl, fl->loader_addr, 15); // pc register
 
+    /* Reset IWDG */
+    if (fl->iwdg_kr) {
+        stlink_write_debug32(sl, fl->iwdg_kr, STM32F0_WDG_KR_KEY_RELOAD);
+    }
+
     /* Run loader */
-    stlink_run(sl);
+    stlink_run(sl, RUN_FLASH_LOADER);
 
 /* This piece of code used to try to spin for .1 second by waiting doing 10000 rounds of 10 µs.
  * But because this usually runs on Unix-like OSes, the 10 µs get rounded up to the "tick"
@@ -348,7 +378,13 @@ int stlink_flash_loader_run(stlink_t *sl, flash_loader_t* fl, stm32_addr_t targe
     // check written byte count
     stlink_read_reg(sl, 2, &rr);
 
-    if (rr.r[2] != 0) {
+    /* The chunk size for loading is not rounded. The flash loader 
+     * subtracts the size of the written block (1-8 bytes) from 
+     * the remaining size each time. A negative value may mean that 
+     * several bytes garbage has been written due to the unaligned 
+     * firmware size.
+     */
+    if ((int32_t)rr.r[2] > 0 || (int32_t)rr.r[2] < -7) {
         ELOG("Write error\n");
         goto error;
     }
@@ -364,7 +400,7 @@ error:
     stlink_read_all_regs(sl, &rr);
 
     WLOG("Loader state: R2 0x%X R15 0x%X\n", rr.r[2], rr.r[15]);
-    if (dhcsr != 0x3000B || dfsr != 0x3 || cfsr || hfsr) {
+    if (dhcsr != 0x3000B || dfsr || cfsr || hfsr) {
         WLOG("MCU state: DHCSR 0x%X DFSR 0x%X CFSR 0x%X HFSR 0x%X\n",
             dhcsr, dfsr, cfsr, hfsr);
     }

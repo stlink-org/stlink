@@ -93,7 +93,7 @@ int main(int ac, char** av) {
         stlink_status(sl);
 
         printf("-- reset\n");
-        stlink_reset(sl);
+        stlink_reset(sl, RESET_AUTO);
         stlink_force_debug(sl);
         /* Test reg write */
         stlink_write_reg(sl, 0x01234567, 3);
@@ -111,7 +111,7 @@ int main(int ac, char** av) {
         stlink_step(sl);
 
         printf("-- run\n");
-        stlink_run(sl);
+        stlink_run(sl, RUN_NORMAL);
 
         printf("-- exit_debug_mode\n");
         stlink_exit_debug_mode(sl);
