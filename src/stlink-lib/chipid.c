@@ -731,8 +731,7 @@ struct stlink_chipid_params *stlink_chipid_get_params_old(uint32_t chipid) {
     return(params);
 }
 
-struct stlink_chipid_params *devicelist;
-
+static struct stlink_chipid_params *devicelist;
 
 
 void dump_a_chip (FILE *fp, struct stlink_chipid_params *dev)
@@ -867,7 +866,7 @@ void dump_chips (void)
 void init_chipids (char *dir_to_scan) 
 {
   DIR *d;
-  int nl; // namelen 
+  size_t nl; // namelen 
   struct dirent *dir;
   if (!dir_to_scan) dir_to_scan = "./";
 
