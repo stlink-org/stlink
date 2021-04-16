@@ -4767,3 +4767,4 @@ int stlink_target_connect(stlink_t *sl, enum connect_type connect) {
 
   return stlink_load_device_params(sl);
 }
+
