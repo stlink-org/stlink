@@ -871,7 +871,6 @@ void init_chipids (char *dir_to_scan)
   if (!dir_to_scan) dir_to_scan = "./";
 
   devicelist = NULL;
-  fprintf (stderr, "stlink_chipid_params %ld\n", sizeof (struct stlink_chipid_params));
   //dump_chips ();
   d = opendir(".");
   if (d) {
