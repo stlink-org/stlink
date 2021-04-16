@@ -1,7 +1,14 @@
 #include <stlink.h>
 #include "chipid.h"
 
-static const struct stlink_chipid_params devices[] = {
+#include <dirent.h> 
+#include <string.h> 
+#include <errno.h> 
+#include <stdio.h>
+#include <ctype.h>
+#include <stdlib.h>
+
+static struct stlink_chipid_params devices[] = {
     {
         // RM0410 document was used to find these paramaters
         .chip_id = STLINK_CHIPID_STM32_F7XXXX,
@@ -711,8 +718,9 @@ static const struct stlink_chipid_params devices[] = {
     },
 };
 
-const struct stlink_chipid_params *stlink_chipid_get_params(uint32_t chipid) {
-    const struct stlink_chipid_params *params = NULL;
+
+struct stlink_chipid_params *stlink_chipid_get_params_old(uint32_t chipid) {
+    struct stlink_chipid_params *params = NULL;
 
     for (size_t n = 0; n < STLINK_ARRAY_SIZE(devices); n++)
         if (devices[n].chip_id == chipid) {
@@ -722,3 +730,181 @@ const struct stlink_chipid_params *stlink_chipid_get_params(uint32_t chipid) {
 
     return(params);
 }
+
+struct stlink_chipid_params *devicelist;
+
+
+
+void dump_a_chip (FILE *fp, struct stlink_chipid_params *dev)
+{
+  fprintf (fp, "# Chipid file for %s\n", dev->description);
+  fprintf (fp, "#\n");
+  fprintf (fp, "chip_id %x\n", dev->chip_id);
+  fprintf (fp, "description %s\n", dev->description);
+  fprintf (fp, "flash_type  %x\n", dev->flash_type);
+  fprintf (fp, "flash_pagesize %x\n", dev->flash_pagesize);
+  fprintf (fp, "sram_size %x\n", dev->sram_size);
+  fprintf (fp, "bootrom_base %x\n", dev->bootrom_base);
+  fprintf (fp, "bootrom_size %x\n", dev->bootrom_size);
+  fprintf (fp, "option_base %x\n", dev->option_base);
+  fprintf (fp, "option_size %x\n", dev->option_size);
+  fprintf (fp, "flags %x\n\n", dev->flags);
+}
+
+
+
+struct stlink_chipid_params *stlink_chipid_get_params(uint32_t chipid) {
+  struct stlink_chipid_params *params = NULL;
+  struct stlink_chipid_params *p2;
+
+  //  fprintf (stderr, "getparams: %x\n", chipid);
+  for (params = devicelist ; params != NULL ; params = params -> next)
+    if (params->chip_id == chipid) break;
+  
+  p2 = stlink_chipid_get_params_old (chipid);
+
+  if (memcmp (p2, params, sizeof (struct stlink_chipid_params) - sizeof (struct stlink_chipid_params *)) != 0) {
+    //fprintf (stderr, "Error, chipid params not identical\n");
+    //return NULL;
+    fprintf (stderr, "---------- old ------------\n");
+    dump_a_chip (stderr, p2);
+    fprintf (stderr, "---------- new ------------\n");
+    dump_a_chip (stderr, params);
+  }
+  return(params);
+}
+
+
+void process_chipfile (char *fname)
+{
+  FILE *fp; 
+  char *p, buf[1025];
+  char word[64], value[64];
+  struct stlink_chipid_params *ts;
+  int nc; 
+
+  fprintf (stderr, "processing chipfile %s.\n", fname);
+  fp = fopen (fname, "r");
+  if (!fp) {
+    perror (fname);
+    return; 
+  }
+
+  ts = calloc (sizeof (struct stlink_chipid_params), 1);
+  while (fgets (buf, 1024, fp) != NULL) {
+    for (p=buf;isspace (*p);p++);
+    if (!*p) continue; // we hit end-of-line wiht only whitespace
+    if (*p == '#') continue; // ignore comments. 
+
+    sscanf (p, "%s %s", word, value);
+    if (strcmp (word, "chip_id") == 0) {
+      sscanf (value, "%x", &ts->chip_id);
+    } else if (strcmp (word, "description") == 0) {
+      //ts->description = strdup (value);
+      buf[strlen(p)-1] = 0; // chomp newline
+      sscanf (p, "%*s %n", &nc);
+      ts->description = strdup (p+nc);
+    } else if (strcmp (word, "flash_type") == 0) {
+      sscanf (value, "%x", &ts->flash_type);
+    } else if (strcmp (word, "flash_size_reg") == 0) {
+      sscanf (value, "%x", &ts->flash_size_reg);
+    } else if (strcmp (word, "flash_pagesize") == 0) {
+      sscanf (value, "%x", &ts->flash_pagesize);
+    } else if (strcmp (word, "sram_size") == 0) {
+      sscanf (value, "%x", &ts->sram_size);
+    } else if (strcmp (word, "bootrom_base") == 0) {
+      sscanf (value, "%x", &ts->bootrom_base);
+    } else if (strcmp (word, "bootrom_size") == 0) {
+      sscanf (value, "%x", &ts->bootrom_size);
+    } else if (strcmp (word, "option_base") == 0) {
+      sscanf (value, "%x", &ts->option_base);
+    } else if (strcmp (word, "option_size") == 0) {
+      sscanf (value, "%x", &ts->option_size);
+    } else if (strcmp (word, "flags") == 0) {
+      sscanf (value, "%x", &ts->flags);
+    } else {
+      fprintf (stderr, "Unknown keyword in %s: %s\n", 
+	       fname, word);
+    }
+  }
+  ts->next = devicelist;
+  devicelist = ts;
+}
+
+
+void dump_chips (void) 
+{
+  struct stlink_chipid_params *ts;
+  char *p, buf[100];
+  FILE *fp;
+  
+  for (size_t n = 0; n < STLINK_ARRAY_SIZE(devices); n++) {
+    ts = &devices[n];
+
+    strcpy (buf, ts->description);
+    while ((p = strchr (buf, '/')))  // change slashes to underscore.
+      *p = '_';
+    strcat (buf, ".chip");
+    fp = fopen (buf, "w");
+    fprintf (fp, "# Chipid file for %s\n", ts->description);
+    fprintf (fp, "#\n");
+    fprintf (fp, "chip_id %x\n", ts->chip_id);
+    fprintf (fp, "description %s\n", ts->description);
+    fprintf (fp, "flash_type  %x\n", ts->flash_type);
+    fprintf (fp, "flash_pagesize %x\n", ts->flash_pagesize);
+    fprintf (fp, "sram_size %x\n", ts->sram_size);
+    fprintf (fp, "bootrom_base %x\n", ts->bootrom_base);
+    fprintf (fp, "bootrom_size %x\n", ts->bootrom_size);
+    fprintf (fp, "option_base %x\n", ts->option_base);
+    fprintf (fp, "option_size %x\n", ts->option_size);
+    fprintf (fp, "flags %x\n\n", ts->flags);
+    fclose (fp);
+  }
+}
+
+
+
+void init_chipids (char *dir_to_scan) 
+{
+  DIR *d;
+  int nl; // namelen 
+  struct dirent *dir;
+  if (!dir_to_scan) dir_to_scan = "./";
+
+  devicelist = NULL;
+  fprintf (stderr, "stlink_chipid_params %ld\n", sizeof (struct stlink_chipid_params));
+  //dump_chips ();
+  d = opendir(".");
+  if (d) {
+    while ((dir = readdir(d)) != NULL) {
+      nl = strlen (dir->d_name);
+      if (strcmp (dir->d_name + nl - 5, ".chip") == 0) {
+	char buf[1024];
+	sprintf (buf, "%s/%s", dir_to_scan, dir->d_name);
+	process_chipfile (buf);
+      }
+    }
+    closedir(d);
+  } else {
+    perror (dir_to_scan);
+    return; // XXX
+  }
+#if 0
+  {
+    struct stlink_chipid_params *p, *op;
+    int i;
+    p = devicelist;
+    for (i=0;i<5;i++, p = p->next) {
+      op = stlink_chipid_get_params_old (p->chip_id);
+      fprintf (stderr, "---------- old ------------\n");
+      dump_a_chip (stderr, op);
+      fprintf (stderr, "---------- new ------------\n");
+      dump_a_chip (stderr, p);
+      
+    }
+  }
+#endif
+}
+
+
+

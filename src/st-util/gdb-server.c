@@ -220,6 +220,7 @@ int main(int argc, char** argv) {
     parse_options(argc, argv, &state);
 
     printf("st-util\n");
+    init_chipids (NULL);
 
     sl = stlink_open_usb(state.logging_level, state.connect_mode, state.serialnumber, state.freq);
     if (sl == NULL) { return(1); }
