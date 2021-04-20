@@ -1,6 +1,5 @@
 build
 build-mingw
-build-mingw-*
 
 .project
 .cmake/
