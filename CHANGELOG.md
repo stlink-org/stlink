@@ -41,7 +41,7 @@ Updates & changes:
 Fixes:
 
 - Flash loader rework ([#356](https://github.com/stlink-org/stlink/pull/356), [#556](https://github.com/stlink-org/stlink/pull/556), [#593](https://github.com/stlink-org/stlink/pull/593), [#597](https://github.com/stlink-org/stlink/pull/597), [#607](https://github.com/stlink-org/stlink/pull/607), [#612](https://github.com/stlink-org/stlink/pull/612), [#638](https://github.com/stlink-org/stlink/pull/638), [#661](https://github.com/stlink-org/stlink/pull/661), [#690](https://github.com/stlink-org/stlink/pull/690), [#807](https://github.com/stlink-org/stlink/pull/807), [#817](https://github.com/stlink-org/stlink/pull/817), [#818](https://github.com/stlink-org/stlink/pull/818), [#854](https://github.com/stlink-org/stlink/pull/854), [#868](https://github.com/stlink-org/stlink/pull/868), [#967](https://github.com/stlink-org/stlink/pull/967), [#979](https://github.com/stlink-org/stlink/pull/979), [#1043](https://github.com/stlink-org/stlink/pull/1043), [#1054](https://github.com/stlink-org/stlink/pull/1054), [#1092](https://github.com/stlink-org/stlink/pull/1092), [#1105](https://github.com/stlink-org/stlink/pull/1105), [#1113](https://github.com/stlink-org/stlink/pull/1113))
-- Fixed old DFU serial number for STLINK programmers ([#417](https://github.com/stlink-org/stlink/pull/417), [#494](https://github.com/stlink-org/stlink/pull/494), [#1106](https://github.com/stlink-org/stlink/pull/1106))
+- Fixed old DFU serial number for STLINK programmers ([#417](https://github.com/stlink-org/stlink/pull/417), [#494](https://github.com/stlink-org/stlink/pull/494), [#1106](https://github.com/stlink-org/stlink/pull/1106), [#1121](https://github.com/stlink-org/stlink/pull/1121))
 - Use vl flashloader for all STM32F1 series ([#769](https://github.com/stlink-org/stlink/pull/769), [#1041](https://github.com/stlink-org/stlink/pull/1041), [#1044](https://github.com/stlink-org/stlink/pull/1044))
 - [regression] Changed timeout on flash write ([#787](https://github.com/stlink-org/stlink/pull/787), [#981](https://github.com/stlink-org/stlink/pull/981), [#987](https://github.com/stlink-org/stlink/pull/987))
 - cmake compile failure with external `CMAKE_MODULE_PATH` set ([#962](https://github.com/stlink-org/stlink/pull/962))
@@ -165,7 +165,7 @@ Fixes:
 - Set static link for `libssp` (stack-smashing protection) ([#960](https://github.com/stlink-org/stlink/pull/960), [#961](https://github.com/stlink-org/stlink/pull/961))
 - Fixed udev rules installing to wrong directory ([#966](https://github.com/stlink-org/stlink/pull/966))
 - Fixed formatting for options display in `st-flash` & `st-info` (commits [#c783d0e](https://github.com/stlink-org/stlink/commit/c783d0e777ccc83a7a8be26a4f4d3414e0478560) and [#562cd24](https://github.com/stlink-org/stlink/commit/562cd2496e696dbd22950925866aac662d81ee5f))
-- Fixed reading of chip ID on Cortex-M0+ core ([#1125](https://github.com/stlink-org/stlink/pull/1125), [#1126](https://github.com/stlink-org/stlink/pull/1126))
+- Fixed reading of chip ID on Cortex-M0+ core ([#1125](https://github.com/stlink-org/stlink/pull/1125), [#1126](https://github.com/stlink-org/stlink/pull/1126), [#1133](https://github.com/stlink-org/stlink/pull/1133))
 
 # v1.6.0
 
