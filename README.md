@@ -3,7 +3,7 @@
 [![BSD licensed](https://img.shields.io/badge/license-BSD-blue.svg)](https://raw.githubusercontent.com/hyperium/hyper/master/LICENSE)
 [![GitHub release](https://img.shields.io/github/release/stlink-org/stlink.svg)](https://github.com/stlink-org/stlink/releases/latest)
 [![Downloads](https://img.shields.io/github/downloads/stlink-org/stlink/total)](https://github.com/stlink-org/stlink/releases/latest)
-![GitHub commits](https://img.shields.io/github/commits-since/stlink-org/stlink/v1.6.1/develop)
+![GitHub commits](https://img.shields.io/github/commits-since/stlink-org/stlink/v1.7.0/develop)
 ![GitHub activity](https://img.shields.io/github/commit-activity/m/stlink-org/stlink)
 ![GitHub contributors](https://img.shields.io/github/contributors/stlink-org/stlink)
 [![CodeQL](https://github.com/stlink-org/stlink/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/stlink-org/stlink/actions/workflows/codeql-analysis.yml)
@@ -66,7 +66,7 @@ Our [tutorial](doc/tutorial.md) may help you along with some advanced tasks and 
 **Windows**:
 
 As of Release v1.6.1 stand-alone Windows binaries are made available (again) on the release page of the project.
-Please ensure to select the correct version for your system (i686 or x86_64). The archive file can be unzipped to any desired location as it does not contain any hardcoded paths. However we suggest to move the unzipped application folder to `C:\Program Files\` on 32-bit systems and to `C:\Program Files (x86)\` on 64-bit systems (the toolset is a 32-bit).
+Please ensure to select the correct version for your system (i686 or x86_64). The archive file can be unzipped to any desired location as it does not contain any hardcoded paths. However we suggest to move the unzipped application folder to `C:\Program Files\` on 32-bit systems and to `C:\Program Files (x86)\` on 64-bit systems (the toolset is 32-bit).
 
 Alternatively one may compile and install from source as described in our [compiling manual](doc/compiling.md#Windows).
 
