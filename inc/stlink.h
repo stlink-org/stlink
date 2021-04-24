@@ -58,6 +58,11 @@ enum target_state {
 #define STLINK_JTAG_READDEBUG_32BIT     0x36
 #define STLINK_JTAG_DRIVE_NRST          0x3C
 
+/* NRST pin states */
+#define STLINK_JTAG_DRIVE_NRST_LOW      0x00
+#define STLINK_JTAG_DRIVE_NRST_HIGH     0x01
+#define STLINK_JTAG_DRIVE_NRST_PULSE    0x02
+
 #define STLINK_DEBUG_APIV2_SWD_SET_FREQ 0x43
 
 #define STLINK_APIV3_SET_COM_FREQ       0x61
@@ -79,7 +84,8 @@ enum target_state {
 #define STLINK_SWDCLK_15KHZ_DIVISOR     265
 #define STLINK_SWDCLK_5KHZ_DIVISOR      798
 
-#define STLINK_SERIAL_MAX_SIZE           64
+#define STLINK_SERIAL_LENGTH             24
+#define STLINK_SERIAL_BUFFER_SIZE        (STLINK_SERIAL_LENGTH + 1)
 
 #define STLINK_V3_MAX_FREQ_NB            10
 
@@ -136,6 +142,8 @@ typedef uint32_t stm32_addr_t;
 typedef struct flash_loader {
     stm32_addr_t loader_addr; // loader sram addr
     stm32_addr_t buf_addr; // buffer sram address
+    uint32_t rcc_dma_bkp; // backup RCC DMA enable state
+    uint32_t iwdg_kr; // IWDG key register address
 } flash_loader_t;
 
 typedef struct _cortex_m3_cpuid_ {
@@ -170,6 +178,25 @@ enum transport_type {
     TRANSPORT_TYPE_INVALID
 };
 
+enum connect_type {
+    CONNECT_HOT_PLUG = 0,
+    CONNECT_NORMAL = 1,
+    CONNECT_UNDER_RESET = 2,
+};
+
+enum reset_type {
+    RESET_AUTO = 0,
+    RESET_HARD = 1,
+    RESET_SOFT = 2,
+    RESET_SOFT_AND_HALT = 3,
+};
+
+enum run_type {
+    RUN_NORMAL = 0,
+    RUN_FLASH_LOADER = 1,
+};
+
+
 typedef struct _stlink stlink_t;
 
 #include <backend.h>
@@ -191,8 +218,7 @@ struct _stlink {
     uint32_t chip_id;            // set by stlink_load_device_params(), used to identify flash and sram
     enum target_state core_stat; // set by stlink_status()
 
-    char serial[STLINK_SERIAL_MAX_SIZE];
-    int serial_size;
+    char serial[STLINK_SERIAL_BUFFER_SIZE];
     int freq;                    // set by stlink_open_usb(), values: STLINK_SWDCLK_xxx_DIVISOR
 
     enum stlink_flash_type flash_type;
@@ -229,10 +255,8 @@ int stlink_exit_debug_mode(stlink_t *sl);
 int stlink_exit_dfu_mode(stlink_t *sl);
 void stlink_close(stlink_t *sl);
 int stlink_core_id(stlink_t *sl);
-int stlink_reset(stlink_t *sl);
-int stlink_jtag_reset(stlink_t *sl, int value);
-int stlink_soft_reset(stlink_t *sl, int halt_on_reset);
-int stlink_run(stlink_t *sl);
+int stlink_reset(stlink_t *sl, enum reset_type type);
+int stlink_run(stlink_t *sl, enum run_type type);
 int stlink_status(stlink_t *sl);
 int stlink_version(stlink_t *sl);
 int stlink_read_debug32(stlink_t *sl, uint32_t addr, uint32_t *data);
@@ -297,7 +321,9 @@ int stlink_fwrite_option_bytes(stlink_t *sl, const char* path, stm32_addr_t addr
 
 int stlink_flashloader_start(stlink_t *sl, flash_loader_t *fl);
 int stlink_flashloader_write(stlink_t *sl, flash_loader_t *fl, stm32_addr_t addr, uint8_t* base, uint32_t len);
-int stlink_flashloader_stop(stlink_t *sl);
+int stlink_flashloader_stop(stlink_t *sl, flash_loader_t *fl);
+
+int stlink_target_connect(stlink_t *sl, enum connect_type connect);
 
 #include <sg.h>
 #include <usb.h>

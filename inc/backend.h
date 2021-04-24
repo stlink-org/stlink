@@ -10,7 +10,7 @@
         int (*core_id) (stlink_t * stl);
         int (*reset) (stlink_t * stl);
         int (*jtag_reset) (stlink_t * stl, int value);
-        int (*run) (stlink_t * stl);
+        int (*run) (stlink_t * stl, enum run_type type);
         int (*status) (stlink_t * stl);
         int (*version) (stlink_t *sl);
         int (*read_debug32) (stlink_t *sl, uint32_t addr, uint32_t *data);

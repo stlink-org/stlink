@@ -731,8 +731,9 @@ void stlink_write_dreg(stlink_t *sl, uint32_t reg, uint32_t addr) {
 }
 
 // force the core exit the debug mode.
-int _stlink_sg_run(stlink_t *sl) {
+int _stlink_sg_run(stlink_t *sl, enum run_type type) {
     struct stlink_libsg *sg = sl->backend_data;
+    (void)(type); //unused
     clear_cdb(sg);
     sg->cdb_cmd_blk[1] = STLINK_DEBUG_RUNCORE;
     sl->q_len = 2;
@@ -1114,7 +1115,7 @@ stlink_t* stlink_v1_open(const int verbose, int reset) {
     stlink_enter_swd_mode(sl);
 
     // now we are ready to read the parameters
-    if (reset) { stlink_reset(sl); }
+    if (reset) { stlink_reset(sl, RESET_AUTO); }
 
     stlink_load_device_params(sl);
     ILOG("Successfully opened a stlink v1 debugger\n");

@@ -3,6 +3,15 @@
 
 #define STLINK_REG_CM3_CPUID                0xE000ED00
 
+#define STLINK_REG_CMx_CPUID_PARTNO_CM0     0xC20
+#define STLINK_REG_CMx_CPUID_PARTNO_CM0P    0xC60
+#define STLINK_REG_CMx_CPUID_PARTNO_CM3     0xC23
+#define STLINK_REG_CMx_CPUID_PARTNO_CM4     0xC24
+#define STLINK_REG_CMx_CPUID_PARTNO_CM7     0xC27
+#define STLINK_REG_CMx_CPUID_PARTNO_CM33    0xD21
+#define STLINK_REG_CMx_CPUID_IMPL_ARM       0x41
+
+
 #define STLINK_REG_CM3_FP_CTRL              0xE0002000 // Flash Patch Control Register
 #define STLINK_REG_CM3_FP_COMPn(n)          (0xE0002008 + n*4)
 #define STLINK_REG_CM3_FP_CTRL_KEY          (1 << 1)
@@ -19,6 +28,12 @@
 #define STLINK_REG_CM3_DWT_FUNn(n)          (0xE0001028 + n*16)
 
 /* Cortex™-M3 Technical Reference Manual */
+/* Configurable Fault Status Register */
+#define STLINK_REG_CFSR                     0xE000ED28
+
+/* Hard Fault Status Register */
+#define STLINK_REG_HFSR                     0xE000ED2C
+
 /* Debug Halting Control and Status Register */
 #define STLINK_REG_DFSR                     0xE000ED30
 #define STLINK_REG_DFSR_HALT                (1 << 0)

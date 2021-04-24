@@ -1,6 +1,14 @@
     .syntax unified
     .text
 
+    /*
+     * Arguments:
+     *   r0 - source memory ptr
+     *   r1 - target memory ptr
+     *   r2 - count of bytes
+     *   r3 - flash register offset
+     */
+
     .global copy
 copy:
     /*
@@ -17,54 +25,54 @@ copy:
      */
     nop
     nop
-    ldr r7, =flash_base
-    ldr r4, [r7]
-    ldr r7, =flash_off_cr
-    ldr r6, [r7]
-    adds r6, r6, r4
-    ldr r7, =flash_off_sr
-    ldr r5, [r7]
-    adds r5, r5, r4
+
+    # load flash control register address
+    # add r3 to flash_base for support dual bank (see flash_loader.c)
+    ldr r7, flash_base
+    add r7, r7, r3
+    ldr r6, flash_off_cr
+    add r6, r6, r7
+    ldr r5, flash_off_sr
+    add r5, r5, r7
+
+    # FLASH_CR = 0x01 (set PG)
+    ldr r4, =0x1
+    str r4, [r6]
 
 loop:
-    # FLASH_CR ^= 1
-    ldr r7, =0x1
-    ldr r3, [r6]
-    orrs r3, r3, r7
-    str r3, [r6]
-
     # copy 2 bytes
-    ldrh r3, [r0]
-    strh r3, [r1]
+    ldrh r4, [r0]
+    strh r4, [r1]
 
-    ldr r7, =2
-    adds r0, r0, r7
-    adds r1, r1, r7
+    # increment address
+    adds r0, r0, #0x2
+    adds r1, r1, #0x2
 
-    # wait if FLASH_SR == 1
+    # BUSY flag
+    ldr r7, =0x01
 wait:
-    ldr r7, =0x1
-    ldr r3, [r5]
-    tst r3, r7
-    beq wait
+    # get FLASH_SR
+    ldr r4, [r5]
 
-    # exit if FLASH_SR != 4
-    ldr r7, =0x4
-    tst r3, r7
+    # wait until BUSY flag is reset
+    tst r4, r7
+    bne wait
+
+    # test PGERR or WRPRTERR flag is reset
+    ldr r7, =0x14
+    tst r4, r7
     bne exit
 
-    # loop if r2 != 0
-    ldr r7, =0x1
-    subs r2, r2, r7
-    cmp r2, #0
-    bne loop
+    # loop if count > 0
+    subs r2, r2, #0x2
+    bgt loop
 
 exit:
     # FLASH_CR &= ~1
     ldr r7, =0x1
-    ldr r3, [r6]
-    bics r3, r3, r7
-    str r3, [r6]
+    ldr r4, [r6]
+    bics r4, r4, r7
+    str r4, [r6]
 
     bkpt
 

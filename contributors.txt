@@ -113,6 +113,7 @@ Simon Wright
 Stany Marcel
 Stefan Misik
 Sven Wegener
+Tarek Bochkati [tarek-bochkati] (STMicroelectronics)
 Timothy Lee [timothytylee]
 Tuomo Kaikkonen
 Theodore A. Roth

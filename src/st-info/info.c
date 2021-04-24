@@ -4,35 +4,17 @@
 #include <sys/types.h>
 
 #include <stlink.h>
+#include <helper.h>
 
 static void usage(void) {
     puts("st-info --version");
-    puts("st-info --probe");
+    puts("st-info --probe [--connect-under-reset] [--hot-plug] [--freq=<KHz>]");
     puts("st-info --serial");
-    puts("st-info --hla-serial");
-    puts("st-info --flash  [--connect-under-reset]");
-    puts("st-info --pagesize  [--connect-under-reset]");
-    puts("st-info --sram  [--connect-under-reset]");
-    puts("st-info --chipid  [--connect-under-reset]");
-    puts("st-info --descr  [--connect-under-reset]");
-}
-
-/* Print normal or OpenOCD hla_serial with newline */
-static void stlink_print_serial(stlink_t *sl, bool openocd) {
-    const char *fmt;
-
-    if (openocd) {
-        printf("\"");
-        fmt = "\\x%02x";
-    } else {
-        fmt = "%02x";
-    }
-
-    for (int n = 0; n < sl->serial_size; n++) { printf(fmt, sl->serial[n]); }
-
-    if (openocd) { printf("\""); }
-
-    printf("\n");
+    puts("st-info --flash  [--connect-under-reset] [--hot-plug] [--freq=<KHz>]");
+    puts("st-info --pagesize  [--connect-under-reset] [--hot-plug] [--freq=<KHz>]");
+    puts("st-info --sram  [--connect-under-reset] [--hot-plug] [--freq=<KHz>]");
+    puts("st-info --chipid  [--connect-under-reset] [--hot-plug] [--freq=<KHz>]");
+    puts("st-info --descr  [--connect-under-reset] [--hot-plug] [--freq=<KHz>]");
 }
 
 static void stlink_print_version(stlink_t *sl) {
@@ -53,10 +35,7 @@ static void stlink_print_info(stlink_t *sl) {
 
     printf("  version:    ");
     stlink_print_version(sl);
-    printf("  serial:     ");
-    stlink_print_serial(sl, false);
-    printf("  hla-serial: ");
-    stlink_print_serial(sl, true);
+    printf("  serial:     %s\n", sl->serial);
     printf("  flash:      %u (pagesize: %u)\n",
            (uint32_t)sl->flash_size, (uint32_t)sl->flash_pgsz);
     printf("  sram:       %u\n", (uint32_t)sl->sram_size);
@@ -67,11 +46,11 @@ static void stlink_print_info(stlink_t *sl) {
     if (params) { printf("  descr:      %s\n", params->description); }
 }
 
-static void stlink_probe(void) {
+static void stlink_probe(enum connect_type connect, int freq) {
     stlink_t **stdevs;
     size_t size;
 
-    size = stlink_probe_usb(&stdevs);
+    size = stlink_probe_usb(&stdevs, connect, freq);
 
     printf("Found %u stlink programmers\n", (unsigned int)size);
 
@@ -83,44 +62,47 @@ static void stlink_probe(void) {
     stlink_probe_usb_free(&stdevs, size);
 }
 
-static stlink_t *stlink_open_first(bool under_reset) {
-    stlink_t* sl = NULL;
-    sl = stlink_v1_open(0, 1);
-
-    if (sl == NULL) {
-        if (under_reset) {
-            sl = stlink_open_usb(0, 2, NULL, 0);
-        } else {
-            sl = stlink_open_usb(0, 1, NULL, 0);
-        }
-    }
-
-    return(sl);
-}
-
 static int print_data(int ac, char **av) {
     stlink_t* sl = NULL;
-    bool under_reset = false;
+    enum connect_type connect = CONNECT_NORMAL;
+    int freq = 0;
 
-    // probe needs all devices unclaimed
-    if (strcmp(av[1], "--probe") == 0) {
-        stlink_probe();
-        return(0);
-    } else if (strcmp(av[1], "--version") == 0) {
+    if (strcmp(av[1], "--version") == 0) {
         printf("v%s\n", STLINK_VERSION);
         return(0);
     }
 
-    if (ac == 3) {
-        if (strcmp(av[2], "--connect-under-reset") == 0) {
-            under_reset = true;
-        } else {
-            usage();
-            return(-1);
+    for (int i=2; i<ac; i++) {
+        
+        if (strcmp(av[i], "--connect-under-reset") == 0) {
+            connect = CONNECT_UNDER_RESET;
+            continue;
+        } else if (strcmp(av[i], "--hot-plug") == 0) {
+            connect = CONNECT_HOT_PLUG;
+            continue;
+        } else if (strcmp(av[i], "--freq") == 0) {
+            if (++i < ac) {
+                freq = arg_parse_freq(av[i]);
+                if (freq >= 0) { continue; }
+            }
+        } else if (strncmp(av[i], "--freq=", 7) == 0) {
+            freq = arg_parse_freq(av[i] + 7);
+            if (freq >= 0) { continue; }
         }
+
+        printf("Incorrect argument: %s\n\n", av[i]);
+        usage();
+        return(-1);
     }
 
-    sl = stlink_open_first(under_reset);
+    // probe needs all devices unclaimed
+    if (strcmp(av[1], "--probe") == 0) {
+        stlink_probe(connect, freq);
+        return(0);
+    }
+
+    // open first st-link device
+    sl = stlink_open_usb(0, connect, NULL, freq);
 
     if (sl == NULL) { return(-1); }
 
@@ -131,9 +113,7 @@ static int print_data(int ac, char **av) {
     if (stlink_current_mode(sl) != STLINK_DEV_DEBUG_MODE) { stlink_enter_swd_mode(sl); }
 
     if (strcmp(av[1], "--serial") == 0) {
-        stlink_print_serial(sl, false);
-    } else if (strcmp(av[1], "--hla-serial") == 0) {
-        stlink_print_serial(sl, true);
+        printf("%s\n", sl->serial);
     } else if (strcmp(av[1], "--flash") == 0) {
         printf("0x%x\n", (uint32_t)sl->flash_size);
     } else if (strcmp(av[1], "--pagesize") == 0) {

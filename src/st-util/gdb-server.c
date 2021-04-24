@@ -26,6 +26,7 @@
 #endif
 
 #include <stlink.h>
+#include <helper.h>
 #include <logging.h>
 #include "gdb-remote.h"
 #include "gdb-server.h"
@@ -41,9 +42,6 @@
 #define FLASH_PAGE (sl->flash_pgsz)
 
 static stlink_t *connected_stlink = NULL;
-static bool semihosting = false;
-static bool serial_specified = false;
-static char serialnumber[STLINK_SERIAL_MAX_SIZE] = {0};
 
 #if defined(_WIN32)
 #define close_socket win32_close_socket
@@ -56,14 +54,16 @@ static char serialnumber[STLINK_SERIAL_MAX_SIZE] = {0};
 
 static const char hex[] = "0123456789abcdef";
 
-static const char* current_memory_map = NULL;
-
 typedef struct _st_state_t {
     // things from command line, bleh
     int logging_level;
     int listen_port;
     int persistent;
-    int reset;
+    enum connect_type connect_mode;
+    int freq;
+    char serialnumber[STLINK_SERIAL_BUFFER_SIZE];
+    bool semihosting;
+    const char* current_memory_map;
 } st_state_t;
 
 
@@ -74,7 +74,7 @@ static void init_cache(stlink_t *sl);
 static void _cleanup() {
     if (connected_stlink) {
         // Switch back to mass storage mode before closing
-        stlink_run(connected_stlink);
+        stlink_run(connected_stlink, RUN_NORMAL);
         stlink_exit_debug_mode(connected_stlink);
         stlink_close(connected_stlink);
     }
@@ -95,20 +95,6 @@ BOOL WINAPI CtrlHandler(DWORD fdwCtrlType) {
 }
 #endif
 
-
-static stlink_t* do_connect(st_state_t *st) {
-    stlink_t *sl = NULL;
-
-    if (serial_specified) {
-        sl = stlink_open_usb(st->logging_level, st->reset, serialnumber, 0);
-    } else {
-        sl = stlink_open_usb(st->logging_level, st->reset, NULL, 0);
-    }
-
-    return(sl);
-}
-
-
 int parse_options(int argc, char** argv, st_state_t *st) {
     static struct option long_options[] = {
         {"help", no_argument, NULL, 'h'},
@@ -116,6 +102,9 @@ int parse_options(int argc, char** argv, st_state_t *st) {
         {"listen_port", required_argument, NULL, 'p'},
         {"multi", optional_argument, NULL, 'm'},
         {"no-reset", optional_argument, NULL, 'n'},
+        {"hot-plug", optional_argument, NULL, 'n'},
+        {"connect-under-reset", optional_argument, NULL, 'u'},
+        {"freq", optional_argument, NULL, 'F'},
         {"version", no_argument, NULL, 'V'},
         {"semihosting", no_argument, NULL, SEMIHOSTING_OPTION},
         {"serial", required_argument, NULL, SERIAL_OPTION},
@@ -126,16 +115,18 @@ int parse_options(int argc, char** argv, st_state_t *st) {
                             "  -V, --version\t\tPrint the version\n"
                             "  -vXX, --verbose=XX\tSpecify a specific verbosity level (0..99)\n"
                             "  -v, --verbose\t\tSpecify generally verbose logging\n"
-                            "\t\t\tChoose what version of stlink to use, (defaults to 2)\n"
-                            "  -1, --stlinkv1\tForce stlink version 1\n"
                             "  -p 4242, --listen_port=1234\n"
                             "\t\t\tSet the gdb server listen port. "
                             "(default port: " STRINGIFY(DEFAULT_GDB_LISTEN_PORT) ")\n"
                             "  -m, --multi\n"
                             "\t\t\tSet gdb server to extended mode.\n"
                             "\t\t\tst-util will continue listening for connections after disconnect.\n"
-                            "  -n, --no-reset\n"
+                            "  -n, --no-reset, --hot-plug\n"
                             "\t\t\tDo not reset board on connection.\n"
+                            "  -u, --connect-under-reset\n"
+                            "\t\t\tConnect to the board before executing any instructions.\n"                            
+                            "  -F 1800K, --freq=1M\n"
+                            "\t\t\tSet the frequency of the SWD/JTAG interface.\n"
                             "  --semihosting\n"
                             "\t\t\tEnable semihosting support.\n"
                             "  --serial <serial>\n"
@@ -160,7 +151,6 @@ int parse_options(int argc, char** argv, st_state_t *st) {
             exit(EXIT_SUCCESS);
             break;
         case 'v':
-
             if (optarg) {
                 st->logging_level = atoi(optarg);
             } else {
@@ -170,7 +160,6 @@ int parse_options(int argc, char** argv, st_state_t *st) {
             break;
         case 'p':
             sscanf(optarg, "%i", &q);
-
             if (q < 0) {
                 fprintf(stderr, "Can't use a negative port to listen on: %d\n", q);
                 exit(EXIT_FAILURE);
@@ -178,35 +167,32 @@ int parse_options(int argc, char** argv, st_state_t *st) {
 
             st->listen_port = q;
             break;
+            
         case 'm':
-            st->persistent = 1;
+            st->persistent = true;
             break;
         case 'n':
-            st->reset = 0;
+            st->connect_mode = CONNECT_HOT_PLUG;
+            break;
+        case 'u':
+            st->connect_mode = CONNECT_UNDER_RESET;
+            break;
+        case 'F':
+            st->freq = arg_parse_freq(optarg);
+            if (st->freq < 0) {
+                fprintf(stderr, "Can't parse a frequency: %s\n", optarg);
+                exit(EXIT_FAILURE);
+            }
             break;
         case 'V':
             printf("v%s\n", STLINK_VERSION);
             exit(EXIT_SUCCESS);
         case SEMIHOSTING_OPTION:
-            semihosting = true;
+            st->semihosting = true;
             break;
         case SERIAL_OPTION:
             printf("use serial %s\n", optarg);
-            /* TODO: This is not really portable, as strlen really returns size_t,
-             * we need to obey and not cast it to a signed type.
-             */
-            int j = (int)strlen(optarg);
-            int length = j / 2;      // the length of the destination-array
-
-            if (j % 2 != 0) { return(-1); }
-
-            for (size_t k = 0; j >= 0 && k < sizeof(serialnumber); ++k, j -= 2) {
-                char buffer[3] = {0};
-                memcpy(buffer, optarg + j, 2);
-                serialnumber[length - k] = (uint8_t)strtol(buffer, NULL, 16);
-            }
-
-            serial_specified = true;
+            memcpy(st->serialnumber, optarg, STLINK_SERIAL_BUFFER_SIZE);
             break;
         }
 
@@ -230,13 +216,12 @@ int main(int argc, char** argv) {
     // set defaults ...
     state.logging_level = DEFAULT_LOGGING_LEVEL;
     state.listen_port = DEFAULT_GDB_LISTEN_PORT;
-    state.reset = 1; // by default, reset board
+    state.connect_mode = CONNECT_NORMAL; // by default, reset board
     parse_options(argc, argv, &state);
 
     printf("st-util\n");
 
-    sl = do_connect(&state);
-
+    sl = stlink_open_usb(state.logging_level, state.connect_mode, state.serialnumber, state.freq);
     if (sl == NULL) { return(1); }
 
     if (sl->chip_id == STLINK_CHIPID_UNKNOWN) {
@@ -244,7 +229,9 @@ int main(int argc, char** argv) {
         return(1);
     }
 
+    sl->verbose = 0;
     connected_stlink = sl;
+
 #if defined(_WIN32)
     SetConsoleCtrlHandler((PHANDLER_ROUTINE) CtrlHandler, TRUE);
 #else
@@ -253,27 +240,19 @@ int main(int argc, char** argv) {
     signal(SIGSEGV, &cleanup);
 #endif
 
-    if (state.reset) { stlink_reset(sl); }
-
     DLOG("Chip ID is %#010x, Core ID is %#08x.\n", sl->chip_id, sl->core_id);
-
-    sl->verbose = 0;
-    current_memory_map = make_memory_map(sl);
 
 #if defined(_WIN32)
     WSADATA wsadata;
 
     if (WSAStartup(MAKEWORD(2, 2), &wsadata) != 0) { goto winsock_error; }
-
 #endif
 
-    init_cache(sl);
-
-    do {                       // don't go beserk if serve() returns with error
+    do {                            // don't go beserk if serve() returns with error
         if (serve(sl, &state)) { usleep (1 * 1000); }
 
-        sl = connected_stlink; // in case serve() changed the connection
-        stlink_run(sl);        // continue
+        sl = connected_stlink;      // in case serve() changed the connection
+        stlink_run(sl, RUN_NORMAL); // continue
     } while (state.persistent);
 
 #if defined(_WIN32)
@@ -288,7 +267,7 @@ winsock_error:
     return(0);
 }
 
-static const char* const target_description_F4 =
+static const char* const target_description =
     "<?xml version=\"1.0\"?>"
     "<!DOCTYPE target SYSTEM \"gdb-target.dtd\">"
     "<target version=\"1.0\">"
@@ -817,10 +796,11 @@ static int flash_add_block(stm32_addr_t addr, unsigned length, stlink_t *sl) {
     }
 
     struct flash_block* new = malloc(sizeof(struct flash_block));
-    new->next = flash_root;
+    new->next   = flash_root;
     new->addr   = addr;
     new->length = length;
-    new->data   = calloc(length, 1);
+    new->data   = malloc(length);
+    memset(new->data, stlink_get_erased_pattern(sl), length);
 
     flash_root = new;
     return(0);
@@ -867,16 +847,13 @@ static int flash_populate(stm32_addr_t addr, uint8_t* data, unsigned length) {
     return(0);
 }
 
-static int flash_go(stlink_t *sl) {
+static int flash_go(stlink_t *sl, st_state_t *st) {
     int error = -1;
     int ret;
     flash_loader_t fl;
 
-    // some kinds of clock settings do not allow writing to flash.
-    stlink_reset(sl);
+    stlink_target_connect(sl, st->connect_mode);
     stlink_force_debug(sl);
-    // delay to ensure that STM32 HSI clock and others have started up fully
-    usleep(10000);
 
     for (struct flash_block* fb = flash_root; fb; fb = fb->next) {
         ILOG("flash_erase: block %08x -> %04x\n", fb->addr, fb->length);
@@ -910,8 +887,8 @@ static int flash_go(stlink_t *sl) {
         }
     }
 
-    stlink_flashloader_stop(sl);
-    stlink_soft_reset(sl, 1 /* halt on reset */);
+    stlink_flashloader_stop(sl, &fl);
+    stlink_reset(sl, RESET_SOFT_AND_HALT);
     error = 0;
 
 error:
@@ -1121,12 +1098,21 @@ int serve(stlink_t *sl, st_state_t *st) {
 
     close_socket(sock);
 
+    uint32_t chip_id = sl->chip_id;
+
+    stlink_target_connect(sl, st->connect_mode);
     stlink_force_debug(sl);
 
-    if (st->reset) { stlink_reset(sl); }
+    if (sl->chip_id != chip_id) {
+        WLOG("Target has changed!\n");
+    }
 
     init_code_breakpoints(sl);
     init_data_watchpoints(sl);
+
+    init_cache(sl);
+
+    st->current_memory_map = make_memory_map(sl);
 
     ILOG("GDB connected.\n");
 
@@ -1178,13 +1164,7 @@ int serve(stlink_t *sl, st_state_t *st) {
             DLOG("query: %s;%s\n", queryName, params);
 
             if (!strcmp(queryName, "Supported")) {
-                if (sl->chip_id == STLINK_CHIPID_STM32_F4 ||
-                    sl->chip_id == STLINK_CHIPID_STM32_F4_HD ||
-                    sl->core_id == STM32F7_CORE_ID) {
-                    reply = strdup("PacketSize=3fff;qXfer:memory-map:read+;qXfer:features:read+");
-                } else {
-                    reply = strdup("PacketSize=3fff;qXfer:memory-map:read+");
-                }
+                reply = strdup("PacketSize=3fff;qXfer:memory-map:read+;qXfer:features:read+");
             } else if (!strcmp(queryName, "Xfer")) {
                 char *type, *op, *__s_addr, *s_length;
                 char *tok = params;
@@ -1202,14 +1182,15 @@ int serve(stlink_t *sl, st_state_t *st) {
                 DLOG("Xfer: type:%s;op:%s;annex:%s;addr:%d;length:%d\n",
                      type, op, annex, addr, length);
 
-                const char* data = NULL;
-
-                if (!strcmp(type, "memory-map") && !strcmp(op, "read")) {
-                    data = current_memory_map;
-                }
-
-                if (!strcmp(type, "features") && !strcmp(op, "read")) {
-                    data = target_description_F4;
+                const char* data;
+                if (strcmp(op, "read")) {
+                    data = NULL;
+                } else if (!strcmp(type, "memory-map")) {
+                    data = st->current_memory_map;
+                } else if (!strcmp(type, "features")) {
+                    data = target_description;
+                } else {
+                    data = NULL;
                 }
 
                 if (data) {
@@ -1254,7 +1235,7 @@ int serve(stlink_t *sl, st_state_t *st) {
                 if (!strncmp(cmd, "resume", 6)) {                               // resume
                     DLOG("Rcmd: resume\n");
                     cache_sync(sl);
-                    ret = stlink_run(sl);
+                    ret = stlink_run(sl, RUN_NORMAL);
 
                     if (ret) {
                         DLOG("Rcmd: resume failed\n");
@@ -1276,22 +1257,14 @@ int serve(stlink_t *sl, st_state_t *st) {
 
                 } else if (!strncmp(cmd, "jtag_reset", 10)) {                   // jtag_reset
                     reply = strdup("OK");
-                    ret = stlink_jtag_reset(sl, 0);
 
-                    if (ret) {
-                        DLOG("Rcmd: jtag_reset failed with jtag_reset\n");
-                        reply = strdup("E00");
-                    }
-
-                    ret = stlink_jtag_reset(sl, 1);
-
+                    ret = stlink_reset(sl, RESET_HARD);
                     if (ret) {
                         DLOG("Rcmd: jtag_reset failed with jtag_reset\n");
                         reply = strdup("E00");
                     }
 
                     ret = stlink_force_debug(sl);
-
                     if (ret) {
                         DLOG("Rcmd: jtag_reset failed with force_debug\n");
                         reply = strdup("E00");
@@ -1304,14 +1277,12 @@ int serve(stlink_t *sl, st_state_t *st) {
                 } else if (!strncmp(cmd, "reset", 5)) {     // reset
 
                     ret = stlink_force_debug(sl);
-
                     if (ret) {
                         DLOG("Rcmd: reset failed with force_debug\n");
                         reply = strdup("E00");
                     }
 
-                    ret = stlink_reset(sl);
-
+                    ret = stlink_reset(sl, RESET_AUTO);
                     if (ret) {
                         DLOG("Rcmd: reset failed with reset\n");
                         reply = strdup("E00");
@@ -1332,10 +1303,10 @@ int serve(stlink_t *sl, st_state_t *st) {
                     while (isspace(*arg)) { arg++; } // skip whitespaces
 
                     if (!strncmp(arg, "enable", 6) || !strncmp(arg, "1", 1)) {
-                        semihosting = true;
+                        st->semihosting = true;
                         reply = strdup("OK");
                     } else if (!strncmp(arg, "disable", 7) || !strncmp(arg, "0", 1)) {
-                        semihosting = false;
+                        st->semihosting = false;
                         reply = strdup("OK");
                     } else {
                         DLOG("Rcmd: unknown semihosting arg: '%s'\n", arg);
@@ -1414,7 +1385,7 @@ int serve(stlink_t *sl, st_state_t *st) {
 
                 free(decoded);
             } else if (!strcmp(cmdName, "FlashDone")) {
-                if (flash_go(sl)) {
+                if (flash_go(sl, st)) {
                     reply = strdup("E08");
                 } else {
                     reply = strdup("OK");
@@ -1431,7 +1402,7 @@ int serve(stlink_t *sl, st_state_t *st) {
 
         case 'c':
             cache_sync(sl);
-            ret = stlink_run(sl);
+            ret = stlink_run(sl, RUN_NORMAL);
 
             if (ret) { DLOG("Semihost: run failed\n"); }
 
@@ -1460,7 +1431,7 @@ int serve(stlink_t *sl, st_state_t *st) {
                     int offset = 0;
                     uint16_t insn;
 
-                    if (!semihosting) { break; }
+                    if (!st->semihosting) { break; }
 
                     ret = stlink_read_all_regs (sl, &reg);
 
@@ -1501,7 +1472,7 @@ int serve(stlink_t *sl, st_state_t *st) {
 
                         // continue execution
                         cache_sync(sl);
-                        ret = stlink_run(sl);
+                        ret = stlink_run(sl, RUN_NORMAL);
 
                         if (ret) { DLOG("Semihost: continue execution failed with stlink_run\n"); }
                     } else {
@@ -1592,7 +1563,7 @@ int serve(stlink_t *sl, st_state_t *st) {
                 reply = strdup("E00");
             }
 
-            if (ret) { DLOG("p packet: stlink_read_unsupported_reg failed with id %u\n", id); }
+            if (ret) { DLOG("p packet: could not read register with id %u\n", id); }
 
             if (reply == NULL) {
                 // if reply is set to "E00", skip
@@ -1828,7 +1799,7 @@ int serve(stlink_t *sl, st_state_t *st) {
 
         case 'R': {
             // reset the core.
-            ret = stlink_reset(sl);
+            ret = stlink_reset(sl, RESET_AUTO);
             if (ret) { DLOG("R packet : stlink_reset failed\n"); }
 
             init_code_breakpoints(sl);
@@ -1841,26 +1812,20 @@ int serve(stlink_t *sl, st_state_t *st) {
         }
         case 'k':
             // kill request - reset the connection itself
-            ret = stlink_run(sl);
-
+            ret = stlink_run(sl, RUN_NORMAL);
             if (ret) { DLOG("Kill: stlink_run failed\n"); }
 
             ret = stlink_exit_debug_mode(sl);
-
             if (ret) { DLOG("Kill: stlink_exit_debug_mode failed\n"); }
 
             stlink_close(sl);
 
-            sl = do_connect(st);
-
+            sl = stlink_open_usb(st->logging_level, st->connect_mode, st->serialnumber, st->freq);
             if (sl == NULL || sl->chip_id == STLINK_CHIPID_UNKNOWN) { cleanup(0); }
 
             connected_stlink = sl;
 
-            if (st->reset) { stlink_reset(sl); }
-
             ret = stlink_force_debug(sl);
-
             if (ret) { DLOG("Kill: stlink_force_debug failed\n"); }
 
             init_cache(sl);

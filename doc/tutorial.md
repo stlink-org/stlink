@@ -2,14 +2,17 @@
 
 ## Available tools and options
 
-| Option          | Tool                                 | Description                                                                                                                                                                                                                                                                                                                                                                                                                   | Available<br />since |
-| --------------- | ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------- |
-| --flash=n[k][m] | st-flash                             | One can specify `--flash=128k` for example, to override the default value of 64k<br />for the STM32F103C8T6 to assume 128k of flash being present. This option accepts<br />decimal (128k), octal 0200k, or hex 0x80k values. Leaving the multiplier out is<br />equally valid, e.g.: `--flash=0x20000`. The size may be followed by an optional "k"<br />or "m" to multiply the given value by 1k (1024) or 1M respectively. | v1.4.0               |
-| --freq=n[k][m]  | st-flash,<br />st-util               | The frequency of the SWD/JTAG interface can be specified, to override the default<br />1800 kHz configuration. This option solely accepts decimal values (5K or 1.8M) with<br />the unit `Hz` being left out. Valid frequencies are `5K, 15K, 25K, 50K, 100K,`<br />`125K, 240K, 480K, 950K, 1200K(1.2M), 1800K(1.8M), 4000K(4M)`.                                                                                            | v1.6.1               |
-| --opt           | st-flash                             | Optimisation can be enabled in order to skip flashing empty (0x00 or 0xff) bytes at<br />the end of binary file. This may cause some garbage data left after a flash operation.<br />This option was enabled by default in earlier releases.                                                                                                                                                                                  | v1.6.1               |
-| --reset         | st-flash                             | Trigger a reset both before and after flashing.                                                                                                                                                                                                                                                                                                                                                                               | v1.0.0               |
-| --version       | st-info,<br />st-flash,<br />st-util | Print version information.                                                                                                                                                                                                                                                                                                                                                                                                    |                      |
-| --help          | st-flash,<br />st-util               | Print list of available commands. _(To be added to this table.)_                                                                                                                                                                                                                                                                                                                                                              |                      |
+| Option                | Tool                               | Description                                                                                                                                                                                                                                                                                                                                                                                                              | Available<br />since |
+| --------------------- | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------- |
+| --flash=n[k][m]       | st-flash                           | One can specify `--flash=128k` for example, to override the default value of 64k for the STM32F103C8T6<br />to assume 128k of flash being present. This option accepts decimal (128k), octal 0200k, or hex 0x80k values.<br />Leaving the multiplier out is equally valid, e.g.: `--flash=0x20000`. The size may be followed by an optional<br />"k" or "m" to multiply the given value by 1k (1024) or 1M respectively. | v1.4.0               |
+| --freq=n[k][m]        | st-info<br />st-flash<br />st-util | The frequency of the SWD/JTAG interface can be specified, to override the default 1800 kHz configuration.<br />This option solely accepts decimal values (5K or 1.8M) with the unit `Hz` being left out. Valid frequencies are:<br />`5K, 15K, 25K, 50K, 100K, 125K, 240K, 480K, 950K, 1200K, 1800K, 4000K(4M)`.                                                                                                         | v1.6.1               |
+| --opt                 | st-flash                           | Optimisation can be enabled in order to skip flashing empty (0x00 or 0xff) bytes at the end of binary file.<br />This may cause some garbage data left after a flash operation. This option was enabled by default in earlier releases.                                                                                                                                                                                  | v1.6.1               |
+| --reset               | st-flash                           | Trigger a reset after flashing. The default uses the hardware reset through `NRST` pin.<br />A software reset (via `AIRCR`; since v1.5.1) is used, if the hardware reset failed (`NRST` pin not connected).                                                                                                                                                                                                              | v1.0.0               |
+| --connect-under-reset | st-info<br />st-flash<br />st-util | Connect under reset. Option makes it possible to connect to the device before code execution. This is useful<br />when the target contains code that lets the device go to sleep, disables debug pins or other special code.                                                                                                                                                                                             | v1.6.1               |
+| --hot-plug            | st-info<br />st-flash<br />st-util | Connect to the target without reset.                                                                                                                                                                                                                                                                                                                                                                                     | v1.6.2               |
+| --probe               | st-info                            | Display hardware information about the connected programmer and target MCU.                                                                                                                                                                                                                                                                                                                                              | v1.2.0               |
+| --version             | st-info<br />st-flash<br />st-util | Print version information.                                                                                                                                                                                                                                                                                                                                                                                               | v1.3.0               |
+| --help                | st-flash<br />st-util              | Print list of available commands.                                                                                                                                                                                                                                                                                                                                                                                        |                      |
 
 ### st-flash: Checksum for binary files
 
@@ -101,17 +104,54 @@ Check your hardware and try to identify what you have in front of you before ass
 
 Please let us know, if you come across any further websites or tutorials that help to identify STM32 fake chips so we can list them here to help others.
 
+### c) Appearance of the warning message `WARN src/common.c: unknown chip id!`
+
+The chip ID is the main identifier for STM32 MCU and their specific type and provides primary information on flash and SRAM architecture.
+This so called `DBGMCU_IDCODE` register is allocated either at memory address `0xE0042000` or `0x40015800`.
+
+A failure of chip identification results in the error `WARN src/common.c: unknown chip id!`.
+There are different variants of this message that refer to different issues:
+
+- `unknown chip id! 0` --> Target chip (board) is unknown.
+  1. Microcontroller is in stop/standby mode.
+  2. The signals `DIO` and `CLK` are reversed on the SWD-Interface.
+- `unknown chip id! 0x1a` --> _currently unknown_
+- `unknown chip id! 0x001f` --> _currently unknown_
+- `unknown chip id! 0x3e8` --> _currently unknown_
+- `unknown chip id! 0xa05f0000` --> _currently unknown_
+- `unknown chip id! 0x3748` --> A target chip (board) cannot be detected.
+  1. No target is connected --> In this case `st-info --probe` displays `chip id 0x0748` with STLINK/V2 and `chip id 0x03e8` with STLINK-V3.
+  2. The chip is connected but has gone into an undefined state of operation where the SWD pins are unresponsive. --> Try to use `--connect-under-reset` while pressing the reset button on the target board.
+  3. A firmware-issue prevents the programmer from normal operation. --> Ensure that your programmer runs the latest firmware version and consider to upgrade any older version by using the official firmware upgrade tool provided by STMicroelectronics.
+- `unknown chip id! 0xe0042000` --> The memory register holding the information on the chip ID could not be read. The following problems may lead to this case:
+  1. This problem is caused by the SWDIO and SWCLK being configured for other purpose (GPIO, etc) other than Serial Wire configuration or Jtag --> A possible solution to this is to short the `BOOT0` pin with `VDD` (1) and to reset the chip / board by the execuing `st-flash erase` in order to return the MCU back to normal operation. Afterwards `BOOT0` should be set back to `GND` (0).
+  2. There is a hardware defect in the connection between the MCU and the used programmer (solder points, cables, connectors).
+
+### d) Understanding hardware and software reset functionality for `st-flash` and reset-related device recovery
+
+Typically a reset signal is sent via the reset pin `NRST`. Using `st-flash` for flashing results in the following behaviour:
+
+- without the `--reset` option: `st-flash write` results in one reset signal on the `NRST` line
+- with the `--reset` option: `st-flash write --reset` results in two subsequent reset signals on the `NRST` line
+
+Depending on the used programmer the hardware reset line is not always connected.
+This is especially the case for low-cost STLINK/V2 clone programmers.
+Here the SWD connector consists of only 4 pins: `VCC`, `SWCLK`, `GND` and `SWDATA`.
+
+When the physical reset line `NRST` is not connected, a reset is initiated by software via `SWD_SWDIO/JTAG_TMS` (software reset).
+Just as mentioned above, flashing is possible here eiher with and without the `--reset` option.
+
+Configuring the STM32 pin `JTAG_TMS/SWD_SWDIO` as an output now also prevents the SWD interface from flashing and resetting the device.
+In consequence this constellation typically requires a _hard reset_ to allow for the ST-Link/V2 programmer to reconnect to the target at all.
+
+As soon as the device is in DFU mode, the `JTAG_TMS/SWD_SWDIO` pin is left in the default state with all JTAG pins available.
+Here flashing of the device is now possible with and without the `--reset` option.
+
+The debug command `(gdb) monitor jtag_reset` sends a _hard reset_ signal via the `NRST` pin to reset the device and allows for flashing it (again).
+
 ---
 
-( Content below is currently unrevised and may be outdated as of Apr 2020. )
-
-# Using STM32 discovery kits with open source tools
-
-This guide details the use of STMicroelectronics STM32 discovery kits in an open source environment.
-
-## Installing a GNU toolchain
-
-Any toolchain supporting the cortex m3 should do.
+( Content below is currently unrevised and may be outdated as of Mar 2021. )
 
 ## Using the GDB server
 
@@ -200,7 +240,6 @@ Of course, you can use this instead of the gdb server, if you prefer.
 Just remember to use the “.bin” image, rather than the .elf file.
 
 ```
-
 # write blink.bin into FLASH
 $> [sudo] ./st-flash write fancy_blink.bin 0x08000000
 ```
@@ -226,7 +265,7 @@ There are a few options:
   -m, --multi
 			Set gdb server to extended mode.
 			st-util will continue listening for connections after disconnect.
-  -n, --no-reset
+  -n, --no-reset, --hot-plug
 			Do not reset board on connection.
 ```
 
@@ -272,7 +311,7 @@ In order to continue, one can use 'monitor reset' to reset the MCU.
 Remember that you can shorten the commands. `tar ext :4242` is good enough
 for GDB.
 
-If you need to send a hard reset signal through `NRST` pin, you can use the following command:
+If you need to send a reset signal, you can use the following command:
 
 ```
 (gdb) monitor jtag_reset
