@@ -1,5 +1,17 @@
 # stlink Changelog
 
+# v1.7.1
+
+Release date: 2021-xx-xx
+
+Features:
+
+Updates & changes:
+
+- Added instructions for bug-reports and feature-requests to contribution guidelines ([#906](https://github.com/stlink-org/stlink/pull/906))
+
+Fixes:
+
 # v1.7.0
 
 Release date: 2021-04-25

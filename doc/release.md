@@ -3,7 +3,7 @@ Release
 
 This document describes the necessary steps for developers to create a release:
 
-1. Update `CHANGELOG.md`
+1. Update `CHANGELOG.md`, `cmake/packaging/deb/changelog` & `cmake/packaging/rpm/changelog`
 2. Update `.version` with semantic version: `x.x.x`
 3. Update `README.md` with semantic version `x.x.x` in commits badge
 4. Create and push git tag and commits `git tag x.x.x`
