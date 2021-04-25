@@ -3137,17 +3137,6 @@ int stm32l1_write_half_pages(stlink_t *sl, stm32_addr_t addr, uint8_t *base,
 }
 
 int stlink_flashloader_start(stlink_t *sl, flash_loader_t *fl) {
-
-  // According to DDI0419C, Table C1-7 firstly force halt
-  stlink_write_debug32(sl, STLINK_REG_DHCSR,
-                       STLINK_REG_DHCSR_DBGKEY | STLINK_REG_DHCSR_C_DEBUGEN |
-                           STLINK_REG_DHCSR_C_HALT);
-  // and only then disable interrupts
-  stlink_write_debug32(sl, STLINK_REG_DHCSR,
-                       STLINK_REG_DHCSR_DBGKEY | STLINK_REG_DHCSR_C_DEBUGEN |
-                           STLINK_REG_DHCSR_C_HALT |
-                           STLINK_REG_DHCSR_C_MASKINTS);
-
   // disable DMA
   set_dma_state(sl, fl, 0);
 

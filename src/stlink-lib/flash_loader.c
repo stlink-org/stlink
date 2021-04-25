@@ -148,6 +148,17 @@ int stlink_flash_loader_init(stlink_t *sl, flash_loader_t *fl) {
     size_t size = 0;
     uint32_t dfsr, cfsr, hfsr;
 
+    /* Interrupt masking.
+     * According to DDI0419C, Table C1-7 firstly force halt */
+    stlink_write_debug32(sl, STLINK_REG_DHCSR,
+                           STLINK_REG_DHCSR_DBGKEY | STLINK_REG_DHCSR_C_DEBUGEN |
+                           STLINK_REG_DHCSR_C_HALT);
+    /* and only then disable interrupts */
+    stlink_write_debug32(sl, STLINK_REG_DHCSR,
+                           STLINK_REG_DHCSR_DBGKEY | STLINK_REG_DHCSR_C_DEBUGEN |
+                           STLINK_REG_DHCSR_C_HALT |
+                           STLINK_REG_DHCSR_C_MASKINTS);
+
     // allocate the loader in SRAM
     if (stlink_flash_loader_write_to_sram(sl, &fl->loader_addr, &size) == -1) {
         WLOG("Failed to write flash loader to sram!\n");
