@@ -3257,6 +3257,15 @@ int stlink_flashloader_start(stlink_t *sl, flash_loader_t *fl) {
       ELOG("stlink_flash_loader_init() == -1\n");
       return (-1);
     }
+
+    // unlock flash
+    unlock_flash_if(sl);
+
+    // set programming mode
+    set_flash_cr_pg(sl, BANK_1);
+    if (sl->flash_type == STLINK_FLASH_TYPE_F1_XL) {
+      set_flash_cr_pg(sl, BANK_2);
+    }
   } else if (sl->flash_type == STLINK_FLASH_TYPE_H7) {
     ILOG("Starting Flash write for H7\n");
 
@@ -3437,7 +3446,9 @@ int stlink_flashloader_write(stlink_t *sl, flash_loader_t *fl,
 int stlink_flashloader_stop(stlink_t *sl, flash_loader_t *fl) {
   uint32_t dhcsr;
 
-  if ((sl->flash_type == STLINK_FLASH_TYPE_F4) ||
+  if ((sl->flash_type == STLINK_FLASH_TYPE_F0) ||
+      (sl->flash_type == STLINK_FLASH_TYPE_F1_XL) ||
+      (sl->flash_type == STLINK_FLASH_TYPE_F4) ||
       (sl->flash_type == STLINK_FLASH_TYPE_F7) ||
       (sl->flash_type == STLINK_FLASH_TYPE_L4) ||
       (sl->flash_type == STLINK_FLASH_TYPE_WB) ||
@@ -3446,8 +3457,9 @@ int stlink_flashloader_stop(stlink_t *sl, flash_loader_t *fl) {
       (sl->flash_type == STLINK_FLASH_TYPE_H7)) {
 
     clear_flash_cr_pg(sl, BANK_1);
-    if (sl->flash_type == STLINK_FLASH_TYPE_H7 &&
-        sl->chip_flags & CHIP_F_HAS_DUAL_BANK) {
+    if ((sl->flash_type == STLINK_FLASH_TYPE_H7 &&
+        sl->chip_flags & CHIP_F_HAS_DUAL_BANK) ||
+        sl->flash_type == STLINK_FLASH_TYPE_F1_XL) {
       clear_flash_cr_pg(sl, BANK_2);
     }
     lock_flash(sl);
