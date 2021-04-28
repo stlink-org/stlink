@@ -782,7 +782,7 @@ void process_chipfile (char *fname)
   struct stlink_chipid_params *ts;
   int nc; 
 
-  fprintf (stderr, "processing chipfile %s.\n", fname);
+  //fprintf (stderr, "processing chipfile %s.\n", fname);
   fp = fopen (fname, "r");
   if (!fp) {
     perror (fname);
@@ -872,7 +872,7 @@ void init_chipids (char *dir_to_scan)
 
   devicelist = NULL;
   //dump_chips ();
-  d = opendir(".");
+  d = opendir(dir_to_scan);
   if (d) {
     while ((dir = readdir(d)) != NULL) {
       nl = strlen (dir->d_name);

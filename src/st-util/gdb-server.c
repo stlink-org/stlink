@@ -219,8 +219,7 @@ int main(int argc, char** argv) {
     state.connect_mode = CONNECT_NORMAL; // by default, reset board
     parse_options(argc, argv, &state);
 
-    printf("st-util\n");
-    init_chipids (NULL);
+    init_chipids (ETC_STLINK_DIR);
 
     sl = stlink_open_usb(state.logging_level, state.connect_mode, state.serialnumber, state.freq);
     if (sl == NULL) { return(1); }
