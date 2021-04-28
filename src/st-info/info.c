@@ -146,6 +146,8 @@ int main(int ac, char** av) {
         return(-1);
     }
 
+    init_chipids (ETC_STLINK_DIR);
+
     err = print_data(ac, av);
 
     return(err);

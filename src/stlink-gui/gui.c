@@ -894,6 +894,8 @@ int main(int argc, char **argv) {
 
     gtk_init(&argc, &argv);
 
+    init_chipids (ETC_STLINK_DIR);
+
     gui = g_object_new(STLINK_TYPE_GUI, NULL);
     stlink_gui_build_ui(gui);
     stlink_gui_init_dnd(gui);
