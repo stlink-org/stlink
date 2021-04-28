@@ -1,0 +1,13 @@
+# Chipid file for L4Rx
+#
+chip_id 470
+description L4Rx
+flash_type  6
+flash_pagesize 1000
+sram_size a0000
+bootrom_base 1fff0000
+bootrom_size 7000
+option_base 0
+option_size 0
+flags 2
+

@@ -1,0 +1,13 @@
+# Chipid file for F4xx
+#
+chip_id 413
+description F4xx
+flash_type  3
+flash_pagesize 4000
+sram_size 30000
+bootrom_base 1fff0000
+bootrom_size 7800
+option_base 40023c14
+option_size 4
+flags 2
+

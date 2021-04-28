@@ -1,0 +1,13 @@
+# Chipid file for F3xx
+#
+chip_id 432
+description F3xx
+flash_type  1
+flash_pagesize 800
+sram_size a000
+bootrom_base 1ffff000
+bootrom_size 800
+option_base 0
+option_size 0
+flags 2
+

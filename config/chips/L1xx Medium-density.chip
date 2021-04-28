@@ -1,0 +1,13 @@
+# Chipid file for L1xx Medium-density
+#
+chip_id 416
+description L1xx Medium-density
+flash_type  5
+flash_pagesize 100
+sram_size 4000
+bootrom_base 1ff00000
+bootrom_size 1000
+option_base 0
+option_size 0
+flags 2
+

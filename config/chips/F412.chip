@@ -1,0 +1,13 @@
+# Chipid file for F412
+#
+chip_id 441
+description F412
+flash_type  3
+flash_pagesize 4000
+sram_size 40000
+bootrom_base 1fff0000
+bootrom_size 7800
+option_base 0
+option_size 0
+flags 2
+

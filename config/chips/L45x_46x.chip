@@ -1,0 +1,13 @@
+# Chipid file for L45x/46x
+#
+chip_id 462
+description L45x/46x
+flash_type  6
+flash_pagesize 800
+sram_size 20000
+bootrom_base 1fff0000
+bootrom_size 7000
+option_base 0
+option_size 0
+flags 2
+

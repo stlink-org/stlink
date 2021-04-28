@@ -1,0 +1,13 @@
+# Chipid file for stm32f411re
+#
+chip_id 431
+description stm32f411re
+flash_type  3
+flash_pagesize 4000
+sram_size 20000
+bootrom_base 1fff0000
+bootrom_size 7800
+option_base 0
+option_size 0
+flags 2
+

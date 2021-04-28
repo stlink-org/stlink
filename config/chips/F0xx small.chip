@@ -1,0 +1,13 @@
+# Chipid file for F0xx small
+#
+chip_id 444
+description F0xx small
+flash_type  1
+flash_pagesize 400
+sram_size 1000
+bootrom_base 1fffec00
+bootrom_size c00
+option_base 0
+option_size 0
+flags 0
+

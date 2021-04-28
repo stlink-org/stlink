@@ -1,0 +1,13 @@
+# Chipid file for F1 Connectivity line
+#
+chip_id 418
+description F1 Connectivity line
+flash_type  1
+flash_pagesize 800
+sram_size 10000
+bootrom_base 1fffb000
+bootrom_size 4800
+option_base 0
+option_size 0
+flags 2
+

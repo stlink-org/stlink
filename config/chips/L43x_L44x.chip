@@ -1,0 +1,13 @@
+# Chipid file for L43x/L44x
+#
+chip_id 435
+description L43x/L44x
+flash_type  6
+flash_pagesize 800
+sram_size c000
+bootrom_base 1fff0000
+bootrom_size 7000
+option_base 1fff7800
+option_size 4
+flags 2
+

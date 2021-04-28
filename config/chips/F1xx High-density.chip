@@ -1,0 +1,13 @@
+# Chipid file for F1xx High-density
+#
+chip_id 414
+description F1xx High-density
+flash_type  1
+flash_pagesize 800
+sram_size 10000
+bootrom_base 1ffff000
+bootrom_size 800
+option_base 0
+option_size 0
+flags 2
+
