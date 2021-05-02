@@ -1,4 +1,4 @@
-# Open source version of the STMicroelectronics STlink Tools
+# Open source version of the STMicroelectronics STLINK Tools
 
 [![BSD licensed](https://img.shields.io/badge/license-BSD-blue.svg)](https://raw.githubusercontent.com/hyperium/hyper/master/LICENSE)
 [![GitHub release](https://img.shields.io/github/release/stlink-org/stlink.svg)](https://github.com/stlink-org/stlink/releases/latest)

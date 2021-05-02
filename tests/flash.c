@@ -109,7 +109,7 @@ static struct Test tests[] = {
         .freq = 5,
         .format = FLASH_FORMAT_BINARY }
     },
-    { "--debug --freq 15K --reset write test.bin 0x80000000", 0,
+    { "--debug --freq 15k --reset write test.bin 0x80000000", 0,
       { .cmd = FLASH_CMD_WRITE,
         .serial = { 0 },
         .filename = "test.bin",
