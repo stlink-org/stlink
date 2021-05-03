@@ -22,9 +22,7 @@ elif [ "$TRAVIS_JOB_NAME" == "linux-mingw-32" ]; then
           -DCMAKE_TOOLCHAIN_FILE=$PWD/../cmake/modules/set_toolchain.cmake -DCMAKE_INSTALL_PREFIX=$PWD/install $DIR
     make && rm -rf build-mingw-32 && cd -
 
-elif [ "$TRAVIS_OS_NAME" == "linux" ]; then
-    sudo apt-get update -qq || true
-
+elif [ "$TRAVIS_OS_NAME" == "osx" ]; then
     echo "--> Building Debug..."
     mkdir -p build/Debug && cd build/Debug
     cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=$PWD/install $DIR
