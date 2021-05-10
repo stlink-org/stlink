@@ -630,12 +630,12 @@ static const struct stlink_chipid_params devices[] = {
         .flash_pagesize = 0x800,      // 2k (sec 3.2)
         .sram_size = 0x2000,          // 8k (sec 2.3)
         .bootrom_base = 0x1fff0000,
-        .bootrom_size = 0x2000, // 8k (sec 2.2.2 table 3)
+        .bootrom_size = 0x2000, // 8k (sec 2.2.2 table 5 on RM0444 & table 4 on RM0454)
         .option_base = STM32_G0_OPTION_BYTES_BASE,
         .option_size = 4,
     },
     {
-        // STM32G071/081 (from RM0444)
+        // STM32G070/071/081 (from RM0454 & RM0444)
         .chip_id = STLINK_CHIPID_STM32_G0_CAT2,
         .description = "G070/G071/G081",
         .flash_type = STLINK_FLASH_TYPE_G0,
@@ -643,7 +643,33 @@ static const struct stlink_chipid_params devices[] = {
         .flash_pagesize = 0x800,      // 2k (sec 3.2)
         .sram_size = 0x9000,          // 36k (sec 2.3)
         .bootrom_base = 0x1fff0000,
-        .bootrom_size = 0x7000, // 28k (sec 2.2.2 table 2)
+        .bootrom_size = 0x7000, // 28k (sec 2.2.2 table 3 on RM0444 & table 3 on RM0454)
+        .option_base = STM32_G0_OPTION_BYTES_BASE,
+        .option_size = 4,
+    },    
+    {
+        // STM32G0B0/0B1/0C1 (from RM0454 & RM0444)
+        .chip_id = STLINK_CHIPID_STM32_G0_CAT3,
+        .description = "G0B0/G0B1/G0C1",
+        .flash_type = STLINK_FLASH_TYPE_G0,
+        .flash_size_reg = 0x1FFF75E0,   // Section 38.2
+        .flash_pagesize = 0x800,        // 2k (sec 3.2)
+        .sram_size = 0x24000,           // 144k (sec 2.3)
+        .bootrom_base = 0x1fff0000,
+        .bootrom_size = 0x7000,         // 28k (sec 2.2.2 table 2 on RM0444 & table 2 on RM0454)
+        .option_base = STM32_G0_OPTION_BYTES_BASE,
+        .option_size = 4,
+    },
+    {
+        // STM32G050/051/061 (from RM0454 & RM0444)
+        .chip_id = STLINK_CHIPID_STM32_G0_CAT4,
+        .description = "G050/G051/G061",
+        .flash_type = STLINK_FLASH_TYPE_G0,
+        .flash_size_reg = 0x1FFF75E0,   // Section 38.2
+        .flash_pagesize = 0x800,        // 2k (sec 3.2)
+        .sram_size = 0x4800,            // 18k (sec 2.3)
+        .bootrom_base = 0x1fff0000,
+        .bootrom_size = 0x2000,         // 8k (sec 2.2.2 table 4 on RM0444 & table 4 on RM0454)
         .option_base = STM32_G0_OPTION_BYTES_BASE,
         .option_size = 4,
     },
