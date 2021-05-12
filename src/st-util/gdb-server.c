@@ -533,7 +533,7 @@ char* make_memory_map(stlink_t *sl) {
 
     if (sl->chip_id == STLINK_CHIPID_STM32_F4 ||
         sl->chip_id == STLINK_CHIPID_STM32_F446 ||
-        sl->chip_id == STLINK_CHIPID_STM32_F411RE) {
+        sl->chip_id == STLINK_CHIPID_STM32_F411XX) {
             strcpy(map, memory_map_template_F4);
     } else if (sl->chip_id == STLINK_CHIPID_STM32_F4_DE) {
         strcpy(map, memory_map_template_F4_DE);

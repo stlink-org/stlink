@@ -260,7 +260,7 @@ int stlink_flash_loader_write_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* 
                sl->chip_id == STLINK_CHIPID_STM32_F4_HD ||
                sl->chip_id == STLINK_CHIPID_STM32_F4_DSI ||
                sl->chip_id == STLINK_CHIPID_STM32_F410 ||
-               sl->chip_id == STLINK_CHIPID_STM32_F411RE ||
+               sl->chip_id == STLINK_CHIPID_STM32_F411XX ||
                sl->chip_id == STLINK_CHIPID_STM32_F412 ||
                sl->chip_id == STLINK_CHIPID_STM32_F413 ||
                sl->chip_id == STLINK_CHIPID_STM32_F446) {

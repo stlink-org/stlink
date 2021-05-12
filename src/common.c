@@ -2739,7 +2739,7 @@ uint32_t stlink_calculate_pagesize(stlink_t *sl, uint32_t flashaddr) {
       (sl->chip_id == STLINK_CHIPID_STM32_F4_DE) ||
       (sl->chip_id == STLINK_CHIPID_STM32_F4_LP) ||
       (sl->chip_id == STLINK_CHIPID_STM32_F4_HD) ||
-      (sl->chip_id == STLINK_CHIPID_STM32_F411RE) ||
+      (sl->chip_id == STLINK_CHIPID_STM32_F411XX) ||
       (sl->chip_id == STLINK_CHIPID_STM32_F446) ||
       (sl->chip_id == STLINK_CHIPID_STM32_F4_DSI) ||
       (sl->chip_id == STLINK_CHIPID_STM32_F72XXX) ||

@@ -136,14 +136,16 @@ static const struct stlink_chipid_params devices[] = {
         .flags = CHIP_F_HAS_SWO_TRACING,
     },
     {
-        .chip_id = STLINK_CHIPID_STM32_F411RE,
-        .description = "stm32f411re",
+        .chip_id = STLINK_CHIPID_STM32_F411XX,
+        .description = "STM32F411xC/E",
         .flash_type = STLINK_FLASH_TYPE_F4,
         .flash_size_reg = 0x1FFF7A22,
         .flash_pagesize = 0x4000,
         .sram_size = 0x20000,
         .bootrom_base = 0x1fff0000,
         .bootrom_size = 0x7800,
+        .option_base = STM32_F4_OPTION_BYTES_BASE,
+        .option_size = 4,
         .flags = CHIP_F_HAS_SWO_TRACING,
     },
     {

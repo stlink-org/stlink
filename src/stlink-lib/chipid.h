@@ -32,7 +32,7 @@ enum stlink_stm32_chipids {
     STLINK_CHIPID_STM32_F1_VL_HIGH       = 0x428,
     STLINK_CHIPID_STM32_L1_CAT2          = 0x429,
     STLINK_CHIPID_STM32_F1_XL            = 0x430,
-    STLINK_CHIPID_STM32_F411RE           = 0x431,
+    STLINK_CHIPID_STM32_F411XX           = 0x431,
     STLINK_CHIPID_STM32_F37x             = 0x432,
     STLINK_CHIPID_STM32_F4_DE            = 0x433,
     STLINK_CHIPID_STM32_F4_DSI           = 0x434,
