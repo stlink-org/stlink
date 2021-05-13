@@ -1343,11 +1343,20 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, enum connect_type connect,
     // initialize stlink version (sl->version)
     stlink_version(sl);
 
-    if (stlink_current_mode(sl) == STLINK_DEV_DFU_MODE) {
+    int mode = stlink_current_mode(sl);
+    if (mode == STLINK_DEV_DFU_MODE) {
         // this seems to work, and is unnecessary information for the user.
         // demoted to debug -- REW
         DLOG("-- exit_dfu_mode\n");
         stlink_exit_dfu_mode(sl);
+    } else if (mode == STLINK_DEV_DEBUG_MODE &&
+                connect == CONNECT_UNDER_RESET) {
+        // for the connect under reset only
+        // OpenOСD says (official documentation is not available) that
+        // the NRST pin must be pull down before selecting the SWD/JTAG mode
+        WLOG("-- exit_debug_mode\n");
+        stlink_exit_debug_mode(sl);
+        _stlink_usb_jtag_reset(sl, STLINK_JTAG_DRIVE_NRST_LOW);
     }
 
     sl->freq = freq;

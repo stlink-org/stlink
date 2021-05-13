@@ -4902,21 +4902,26 @@ int stlink_target_connect(stlink_t *sl, enum connect_type connect) {
   uint32_t dhcsr;
 
   if (connect == CONNECT_UNDER_RESET) {
+    stlink_enter_swd_mode(sl);
+
     stlink_jtag_reset(sl, STLINK_JTAG_DRIVE_NRST_LOW);
+
+    stlink_force_debug(sl);
 
     // minimum reset pulse duration of 20 us (RM0008, 8.1.2 Power reset)
     usleep(20);
-
-    if (stlink_current_mode(sl) != STLINK_DEV_DEBUG_MODE) {
-      stlink_enter_swd_mode(sl);
-    }
-    stlink_force_debug(sl);
 
     // clear S_RESET_ST in DHCSR register
     stlink_read_debug32(sl, STLINK_REG_DHCSR, &dhcsr);
 
     stlink_jtag_reset(sl, STLINK_JTAG_DRIVE_NRST_HIGH);
-    usleep(10000);
+
+    // try to halted core after reset
+    unsigned timeout = time_ms() + 10;
+    while (time_ms() < timeout) {
+      sl->backend->force_debug(sl);
+      usleep(100);
+    }
 
     // check NRST connection
     dhcsr = 0;

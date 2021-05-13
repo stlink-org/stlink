@@ -68,7 +68,7 @@ int main(int ac, char** av) {
 
     if (sl->flash_type == STLINK_FLASH_TYPE_UNKNOWN) {
         printf("Failed to connect to target\n");
-        return(-1);
+        goto on_error;
     }
 
     if ( o.flash_size != 0u && o.flash_size != sl->flash_size ) {
