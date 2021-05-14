@@ -1926,11 +1926,7 @@ int stlink_version(stlink_t *sl) {
   DLOG("swim version   = 0x%x\n", sl->version.swim_v);
 
   if (sl->version.jtag_v == 0) {
-    DLOG("    notice: the firmware doesn't support a jtag/swd interface\n");
-  }
-
-  if (sl->version.swim_v == 0) {
-    DLOG("    notice: the firmware doesn't support a swim interface\n");
+    WLOG("    warning: stlink doesn't support JTAG/SWD interface\n");
   }
 
   return (0);
