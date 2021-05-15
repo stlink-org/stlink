@@ -84,20 +84,6 @@ int main(int ac, char** av) {
     signal(SIGTERM, &cleanup);
     signal(SIGSEGV, &cleanup);
 
-    if (stlink_current_mode(sl) == STLINK_DEV_DFU_MODE) {
-        if (stlink_exit_dfu_mode(sl)) {
-            printf("Failed to exit DFU mode\n");
-            goto on_error;
-        }
-    }
-
-    if (stlink_current_mode(sl) != STLINK_DEV_DEBUG_MODE) {
-        if (stlink_enter_swd_mode(sl)) {
-            printf("Failed to enter SWD mode\n");
-            goto on_error;
-        }
-    }
-
     // core must be halted to use RAM based flashloaders
     if (stlink_force_debug(sl)) {
         printf("Failed to halt the core\n");

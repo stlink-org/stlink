@@ -1275,8 +1275,8 @@ static void stop_wdg_in_debug(stlink_t *sl) {
   case STLINK_FLASH_TYPE_F1_XL:
   case STLINK_FLASH_TYPE_G4:
     dbgmcu_cr = STM32F0_DBGMCU_CR;
-    set =
-        (1 << STM32F0_DBGMCU_CR_IWDG_STOP) | (1 << STM32F0_DBGMCU_CR_WWDG_STOP);
+    set = (1 << STM32F0_DBGMCU_CR_IWDG_STOP) | 
+          (1 << STM32F0_DBGMCU_CR_WWDG_STOP);
     break;
   case STLINK_FLASH_TYPE_F4:
   case STLINK_FLASH_TYPE_F7:
@@ -1441,13 +1441,14 @@ void stlink_close(stlink_t *sl) {
 }
 
 int stlink_exit_debug_mode(stlink_t *sl) {
-  int ret;
-
   DLOG("*** stlink_exit_debug_mode ***\n");
-  ret = stlink_write_debug32(sl, STLINK_REG_DHCSR, STLINK_REG_DHCSR_DBGKEY);
 
-  if (ret == -1) {
-    return (ret);
+  if (sl->flash_type != STLINK_FLASH_TYPE_UNKNOWN) {
+    // stop debugging if the target has been identified
+    int ret = stlink_write_debug32(sl, STLINK_REG_DHCSR, STLINK_REG_DHCSR_DBGKEY);
+    if (ret == -1) {
+      return (ret);
+    }
   }
 
   return (sl->backend->exit_debug_mode(sl));
@@ -1462,9 +1463,12 @@ int stlink_enter_swd_mode(stlink_t *sl) {
 int stlink_force_debug(stlink_t *sl) {
   DLOG("*** stlink_force_debug_mode ***\n");
   int res = sl->backend->force_debug(sl);
+  if (res) {
+     return (res);
+  }
   // Stop the watchdogs in the halted state for suppress target reboot
   stop_wdg_in_debug(sl);
-  return (res);
+  return (0);
 }
 
 int stlink_exit_dfu_mode(stlink_t *sl) {
@@ -1540,6 +1544,7 @@ int stlink_chip_id(stlink_t *sl, uint32_t *chip_id) {
 
   if (ret || !(*chip_id)) {
     *chip_id = 0;
+    ret = ret?:-1;
     ELOG("Could not find chip id!\n");
   } else {
     *chip_id = (*chip_id) & 0xfff;
@@ -1771,10 +1776,10 @@ int stlink_reset(stlink_t *sl, enum reset_type type) {
   if (type == RESET_HARD || type == RESET_AUTO) {
     // hardware target reset
     if (sl->version.stlink_v > 1) {
-      stlink_jtag_reset(sl, STLINK_JTAG_DRIVE_NRST_LOW);
+      stlink_jtag_reset(sl, STLINK_DEBUG_APIV2_DRIVE_NRST_LOW);
       // minimum reset pulse duration of 20 us (RM0008, 8.1.2 Power reset)
       usleep(100);
-      stlink_jtag_reset(sl, STLINK_JTAG_DRIVE_NRST_HIGH);
+      stlink_jtag_reset(sl, STLINK_DEBUG_APIV2_DRIVE_NRST_HIGH);
     }
     if (sl->backend->reset(sl)) {
       return (-1);
@@ -4895,24 +4900,21 @@ int stlink_fwrite_option_bytes(stlink_t *sl, const char *path,
 }
 
 int stlink_target_connect(stlink_t *sl, enum connect_type connect) {
-  uint32_t dhcsr;
-
   if (connect == CONNECT_UNDER_RESET) {
     stlink_enter_swd_mode(sl);
 
-    stlink_jtag_reset(sl, STLINK_JTAG_DRIVE_NRST_LOW);
+    stlink_jtag_reset(sl, STLINK_DEBUG_APIV2_DRIVE_NRST_LOW);
 
-    stlink_force_debug(sl);
+    // try to halt the core before reset
+    // this is useful if the NRST pin is not connected
+    sl->backend->force_debug(sl);
 
     // minimum reset pulse duration of 20 us (RM0008, 8.1.2 Power reset)
     usleep(20);
 
-    // clear S_RESET_ST in DHCSR register
-    stlink_read_debug32(sl, STLINK_REG_DHCSR, &dhcsr);
+    stlink_jtag_reset(sl, STLINK_DEBUG_APIV2_DRIVE_NRST_HIGH);
 
-    stlink_jtag_reset(sl, STLINK_JTAG_DRIVE_NRST_HIGH);
-
-    // try to halted core after reset
+    // try to halt the core after reset
     unsigned timeout = time_ms() + 10;
     while (time_ms() < timeout) {
       sl->backend->force_debug(sl);
@@ -4920,7 +4922,7 @@ int stlink_target_connect(stlink_t *sl, enum connect_type connect) {
     }
 
     // check NRST connection
-    dhcsr = 0;
+    uint32_t dhcsr = 0;
     stlink_read_debug32(sl, STLINK_REG_DHCSR, &dhcsr);
     if ((dhcsr & STLINK_REG_DHCSR_S_RESET_ST) == 0) {
       WLOG("NRST is not connected\n");
@@ -4930,8 +4932,10 @@ int stlink_target_connect(stlink_t *sl, enum connect_type connect) {
     stlink_soft_reset(sl, 1 /* halt on reset */);
   }
 
-  if (stlink_current_mode(sl) != STLINK_DEV_DEBUG_MODE) {
-    stlink_enter_swd_mode(sl);
+  if (stlink_current_mode(sl) != STLINK_DEV_DEBUG_MODE &&
+        stlink_enter_swd_mode(sl)) {
+    printf("Failed to enter SWD mode\n");
+    return -1;
   }
 
   if (connect == CONNECT_NORMAL) {
