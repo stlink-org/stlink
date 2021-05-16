@@ -1,8 +1,8 @@
-# Chipid file for F42x/F43x
+# Chip-ID file for F42x/F43x
 #
 chip_id 419
 description F42x/F43x
-flash_type  3
+flash_type 3
 flash_pagesize 4000
 sram_size 40000
 bootrom_base 1fff0000

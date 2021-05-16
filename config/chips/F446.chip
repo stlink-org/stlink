@@ -1,8 +1,8 @@
-# Chipid file for F446
+# Chip-ID file for F446
 #
 chip_id 421
 description F446
-flash_type  3
+flash_type 3
 flash_pagesize 20000
 sram_size 20000
 bootrom_base 1fff0000

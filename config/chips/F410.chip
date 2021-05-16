@@ -1,8 +1,8 @@
-# Chipid file for F410
+# Chip-ID file for F410
 #
 chip_id 458
 description F410
-flash_type  3
+flash_type 3
 flash_pagesize 4000
 sram_size 8000
 bootrom_base 1fff0000

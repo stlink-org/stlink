@@ -1,8 +1,8 @@
-# Chipid file for L1xx High-density
+# Chip-ID file for L1xx high-density
 #
 chip_id 436
-description L1xx High-density
-flash_type  5
+description L1xx high-density
+flash_type 5
 flash_pagesize 100
 sram_size c000
 bootrom_base 1ff00000

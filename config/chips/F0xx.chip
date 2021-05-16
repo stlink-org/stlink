@@ -1,8 +1,8 @@
-# Chipid file for F0xx
+# Chip-ID file for F0xx
 #
 chip_id 440
 description F0xx
-flash_type  1
+flash_type 1
 flash_pagesize 400
 sram_size 2000
 bootrom_base 1fffec00

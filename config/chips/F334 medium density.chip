@@ -1,8 +1,8 @@
-# Chipid file for F334 medium density
+# Chip-ID file for F334 medium density
 #
 chip_id 438
 description F334 medium density
-flash_type  1
+flash_type 1
 flash_pagesize 800
 sram_size 3000
 bootrom_base 1fffd800

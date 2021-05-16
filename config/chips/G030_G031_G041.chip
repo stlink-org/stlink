@@ -1,8 +1,8 @@
-# Chipid file for G030/G031/G041
+# Chip-ID file for G030/G031/G041
 #
 chip_id 466
 description G030/G031/G041
-flash_type  7
+flash_type 7
 flash_pagesize 800
 sram_size 2000
 bootrom_base 1fff0000

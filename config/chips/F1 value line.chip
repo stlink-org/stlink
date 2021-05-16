@@ -1,8 +1,8 @@
-# Chipid file for F1xx Value Line
+# Chip-ID file for F1 value line
 #
 chip_id 420
-description F1xx Value Line
-flash_type  1
+description F1 value line
+flash_type 1
 flash_pagesize 400
 sram_size 2000
 bootrom_base 1ffff000

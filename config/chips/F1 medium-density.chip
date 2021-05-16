@@ -1,8 +1,8 @@
-# Chipid file for F1xx Medium-density
+# Chip-ID file for F1 medium-density
 #
 chip_id 410
-description F1xx Medium-density
-flash_type  1
+description F1 medium-density
+flash_type 1
 flash_pagesize 400
 sram_size 5000
 bootrom_base 1ffff000

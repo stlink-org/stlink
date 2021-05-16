@@ -1,8 +1,8 @@
-# Chipid file for L011
+# Chip-ID file for L011
 #
 chip_id 457
 description L011
-flash_type  5
+flash_type 5
 flash_pagesize 80
 sram_size 2000
 bootrom_base 1ff00000

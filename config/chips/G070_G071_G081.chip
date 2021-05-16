@@ -1,8 +1,8 @@
-# Chipid file for G070/G071/G081
+# Chip-ID file for G070/G071/G081
 #
 chip_id 460
 description G070/G071/G081
-flash_type  7
+flash_type 7
 flash_pagesize 800
 sram_size 9000
 bootrom_base 1fff0000

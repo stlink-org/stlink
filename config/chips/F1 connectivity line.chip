@@ -1,8 +1,8 @@
-# Chipid file for F1 Connectivity line
+# Chip-ID file for F1 connectivity line
 #
 chip_id 418
-description F1 Connectivity line
-flash_type  1
+description F1 connectivity line
+flash_type 1
 flash_pagesize 800
 sram_size 10000
 bootrom_base 1fffb000

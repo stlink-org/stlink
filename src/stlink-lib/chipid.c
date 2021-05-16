@@ -11,7 +11,7 @@
 static struct stlink_chipid_params devices[] = {
     {
         // RM0410 document was used to find these paramaters
-        .chip_id = STLINK_CHIPID_STM32_F7XXXX,
+        .chip_id = STLINK_CHIPID_STM32_F76xxx,
         .description = "F76xxx",
         .flash_type = STLINK_FLASH_TYPE_F7,
         .flash_size_reg = 0x1ff0f442, // section 45.2
@@ -42,7 +42,7 @@ static struct stlink_chipid_params devices[] = {
     },
     {
         // RM0431 and DS document was used to find these paramaters
-        .chip_id = STLINK_CHIPID_STM32_F72XXX,
+        .chip_id = STLINK_CHIPID_STM32_F72xxx,
         .description = "F72x/F73x",
         .flash_type = STLINK_FLASH_TYPE_F4,
         .flash_size_reg = 0x1ff07a22, // section 35.2
@@ -56,7 +56,7 @@ static struct stlink_chipid_params devices[] = {
     },
     {
         // table 2, PM0063
-        .chip_id = STLINK_CHIPID_STM32_F1_MEDIUM,
+        .chip_id = STLINK_CHIPID_STM32_F1_MD,
         .description = "F1xx Medium-density",
         .flash_type = STLINK_FLASH_TYPE_F0,
         .flash_size_reg = 0x1ffff7e0,
@@ -84,7 +84,7 @@ static struct stlink_chipid_params devices[] = {
     },
     {
         // PM0063
-        .chip_id = STLINK_CHIPID_STM32_F1_LOW,
+        .chip_id = STLINK_CHIPID_STM32_F1_LD,
         .description = "F1 Low-density device",
         .flash_type = STLINK_FLASH_TYPE_F0,
         .flash_size_reg = 0x1ffff7e0,
@@ -143,7 +143,7 @@ static struct stlink_chipid_params devices[] = {
         .flags = CHIP_F_HAS_SWO_TRACING,
     },
     {
-        .chip_id = STLINK_CHIPID_STM32_F411XX,
+        .chip_id = STLINK_CHIPID_STM32_F411xx,
         .description = "STM32F411xC/E",
         .flash_type = STLINK_FLASH_TYPE_F4,
         .flash_size_reg = 0x1FFF7A22,
@@ -167,7 +167,7 @@ static struct stlink_chipid_params devices[] = {
         .flags = CHIP_F_HAS_SWO_TRACING,
     },
     {
-        .chip_id = STLINK_CHIPID_STM32_F1_HIGH,
+        .chip_id = STLINK_CHIPID_STM32_F1_HD,
         .description = "F1xx High-density",
         .flash_type = STLINK_FLASH_TYPE_F0,
         .flash_size_reg = 0x1ffff7e0,
@@ -182,7 +182,7 @@ static struct stlink_chipid_params devices[] = {
     {
         // This ignores the EEPROM! (and uses the page erase size,
         // not the sector write protection...)
-        .chip_id = STLINK_CHIPID_STM32_L1_MEDIUM,
+        .chip_id = STLINK_CHIPID_STM32_L1_MD,
         .description = "L1xx Medium-density",
         .flash_type = STLINK_FLASH_TYPE_L0,
         .flash_size_reg = 0x1ff8004c,
@@ -204,7 +204,7 @@ static struct stlink_chipid_params devices[] = {
         .flags = CHIP_F_HAS_SWO_TRACING,
     },
     {
-        .chip_id = STLINK_CHIPID_STM32_L1_MEDIUM_PLUS,
+        .chip_id = STLINK_CHIPID_STM32_L1_MD_PLUS,
         .description = "L1xx Medium-Plus-density",
         .flash_type = STLINK_FLASH_TYPE_L0,
         .flash_size_reg = 0x1ff800cc,
@@ -215,7 +215,7 @@ static struct stlink_chipid_params devices[] = {
         .flags = CHIP_F_HAS_SWO_TRACING,
     },
     {
-        .chip_id = STLINK_CHIPID_STM32_L1_HIGH,
+        .chip_id = STLINK_CHIPID_STM32_L1_MD_PLUS_HD,
         .description = "L1xx High-density",
         .flash_type = STLINK_FLASH_TYPE_L0,
         .flash_size_reg = 0x1ff800cc,
@@ -253,7 +253,7 @@ static struct stlink_chipid_params devices[] = {
     },
     {
         // Low and Medium density VL have same chipid. RM0041 25.6.1
-        .chip_id = STLINK_CHIPID_STM32_F1_VL_MEDIUM_LOW,
+        .chip_id = STLINK_CHIPID_STM32_F1_VL_MD_LD,
         .description = "F1xx Value Line",
         .flash_type = STLINK_FLASH_TYPE_F0,
         .flash_size_reg = 0x1ffff7e0,
@@ -322,7 +322,7 @@ static struct stlink_chipid_params devices[] = {
         .flags = CHIP_F_HAS_SWO_TRACING,
     },
     {
-        .chip_id = STLINK_CHIPID_STM32_F1_VL_HIGH,
+        .chip_id = STLINK_CHIPID_STM32_F1_VL_HD,
         .description = "F1xx High-density value line",
         .flash_type = STLINK_FLASH_TYPE_F0,
         .flash_size_reg = 0x1ffff7e0,
@@ -335,7 +335,7 @@ static struct stlink_chipid_params devices[] = {
         .flags = CHIP_F_HAS_SWO_TRACING,
     },
     {
-        .chip_id = STLINK_CHIPID_STM32_F1_XL,
+        .chip_id = STLINK_CHIPID_STM32_F1_XLD,
         .description = "F1xx XL-density",
         .flash_type = STLINK_FLASH_TYPE_F1_XL,
         .flash_size_reg = 0x1ffff7e0,
@@ -407,7 +407,7 @@ static struct stlink_chipid_params devices[] = {
         .flags = CHIP_F_HAS_SWO_TRACING,
     },
     {
-        .chip_id = STLINK_CHIPID_STM32_F09X,
+        .chip_id = STLINK_CHIPID_STM32_F09x,
         .description = "F09X",
         .flash_type = STLINK_FLASH_TYPE_F0,
         .flash_size_reg = 0x1ffff7cc, // "Flash size data register" (pg735)
@@ -437,7 +437,7 @@ static struct stlink_chipid_params devices[] = {
     {
         // Use this as an example for mapping future chips:
         // RM0091 document was used to find these paramaters
-        .chip_id = STLINK_CHIPID_STM32_F0_SMALL,
+        .chip_id = STLINK_CHIPID_STM32_F0xx_SMALL,
         .description = "F03x",
         .flash_type = STLINK_FLASH_TYPE_F0,
         .flash_size_reg = 0x1ffff7cc, // "Flash size data register" (pg735)
@@ -451,7 +451,7 @@ static struct stlink_chipid_params devices[] = {
     },
     {
         // STM32F30x
-        .chip_id = STLINK_CHIPID_STM32_F3_SMALL,
+        .chip_id = STLINK_CHIPID_STM32_F3xx_SMALL,
         .description = "F3xx small",
         .flash_type = STLINK_FLASH_TYPE_F0,
         .flash_size_reg = 0x1ffff7cc,
@@ -523,7 +523,7 @@ static struct stlink_chipid_params devices[] = {
     {
         // This is STK32F303RET6 device from STM32 F3 Nucelo board.
         // Support based on DM00043574.pdf (RM0316) document rev 5.
-        .chip_id = STLINK_CHIPID_STM32_F303_HIGH,
+        .chip_id = STLINK_CHIPID_STM32_F303_HD,
         .description = "F303 high density",
         .flash_type = STLINK_FLASH_TYPE_F0,
         .flash_size_reg = 0x1ffff7cc, // 34.2.1 Flash size data register
@@ -560,7 +560,7 @@ static struct stlink_chipid_params devices[] = {
     {
         // STM32L4RX
         // From DM00310109.pdf
-        .chip_id = STLINK_CHIPID_STM32_L4RX,
+        .chip_id = STLINK_CHIPID_STM32_L4Rx,
         .description = "L4Rx",
         .flash_type = STLINK_FLASH_TYPE_L4,
         .flash_size_reg =
@@ -573,9 +573,9 @@ static struct stlink_chipid_params devices[] = {
         .flags = CHIP_F_HAS_SWO_TRACING,
     },
     {
-        // STLINK_CHIPID_STM32_L41X
+        // STLINK_CHIPID_STM32_L41x_L42x
         // From RM0394 Rev 4 and DS12469 Rev 5
-        .chip_id = STLINK_CHIPID_STM32_L41X,
+        .chip_id = STLINK_CHIPID_STM32_L41x_L42x,
         .description = "L41x",
         .flash_type = STLINK_FLASH_TYPE_L4,
         .flash_size_reg = 0x1fff75e0, // "Flash size data register" (RM0394,
@@ -591,9 +591,9 @@ static struct stlink_chipid_params devices[] = {
         .flags = CHIP_F_HAS_SWO_TRACING,
     },
     {
-        // STLINK_CHIPID_STM32_L43X
+        // STLINK_CHIPID_STM32_L43x_L44x
         // From RM0392.
-        .chip_id = STLINK_CHIPID_STM32_L43X,
+        .chip_id = STLINK_CHIPID_STM32_L43x_L44x,
         .description = "L43x/L44x",
         .flash_type = STLINK_FLASH_TYPE_L4,
         .flash_size_reg =
@@ -613,9 +613,9 @@ static struct stlink_chipid_params devices[] = {
         .flags = CHIP_F_HAS_SWO_TRACING,
     },
     {
-        // STLINK_CHIPID_STM32_L496X
+        // STLINK_CHIPID_STM32_L496x_L4A6x
         // Support based on en.DM00083560.pdf (RM0351) document rev 5.
-        .chip_id = STLINK_CHIPID_STM32_L496X,
+        .chip_id = STLINK_CHIPID_STM32_L496x_L4A6x,
         .description = "L496x/L4A6x",
         .flash_type = STLINK_FLASH_TYPE_L4,
         .flash_size_reg =
@@ -632,9 +632,9 @@ static struct stlink_chipid_params devices[] = {
         .flags = CHIP_F_HAS_SWO_TRACING,
     },
     {
-        // STLINK_CHIPID_STM32_L46X
+        // STLINK_CHIPID_STM32_L45x_L46x
         // From RM0394 (updated version of RM0392?).
-        .chip_id = STLINK_CHIPID_STM32_L46X,
+        .chip_id = STLINK_CHIPID_STM32_L45x_L46x,
         .description = "L45x/46x",
         .flash_type = STLINK_FLASH_TYPE_L4,
         .flash_size_reg =
@@ -764,7 +764,7 @@ static struct stlink_chipid_params devices[] = {
     },
     {
         // STM32H742/743/753 (from RM0433)
-        .chip_id = STLINK_CHIPID_STM32_H74XXX,
+        .chip_id = STLINK_CHIPID_STM32_H74xxx,
         .description = "H74x/H75x",
         .flash_type = STLINK_FLASH_TYPE_H7,
         .flash_size_reg = 0x1ff1e880, // "Flash size register" (pg3272)
@@ -780,7 +780,7 @@ static struct stlink_chipid_params devices[] = {
     },
     {
         // STM32H7A3/7B3 (from RM0455)
-        .chip_id = STLINK_CHIPID_STM32_H7AX,
+        .chip_id = STLINK_CHIPID_STM32_H7Ax,
         .description = "H7Ax/H7Bx",
         .flash_type = STLINK_FLASH_TYPE_H7,
         .flash_size_reg = 0x08FFF80C, // "Flash size register" (p.2949)
@@ -796,7 +796,7 @@ static struct stlink_chipid_params devices[] = {
     },
     {
         // STM32H72x/H73x (from RM0468)
-        .chip_id = STLINK_CHIPID_STM32_H72X,
+        .chip_id = STLINK_CHIPID_STM32_H72x,
         .description = "H72x/H73x",
         .flash_type = STLINK_FLASH_TYPE_H7,
         .flash_size_reg = 0x1FF1E880, // "Flash size register" (p.3286)
@@ -840,18 +840,18 @@ static struct stlink_chipid_params *devicelist;
 
 void dump_a_chip (FILE *fp, struct stlink_chipid_params *dev)
 {
-  fprintf (fp, "# Chipid file for %s\n", dev->description);
-  fprintf (fp, "#\n");
-  fprintf (fp, "chip_id %x\n", dev->chip_id);
-  fprintf (fp, "description %s\n", dev->description);
-  fprintf (fp, "flash_type  %x\n", dev->flash_type);
-  fprintf (fp, "flash_pagesize %x\n", dev->flash_pagesize);
-  fprintf (fp, "sram_size %x\n", dev->sram_size);
-  fprintf (fp, "bootrom_base %x\n", dev->bootrom_base);
-  fprintf (fp, "bootrom_size %x\n", dev->bootrom_size);
-  fprintf (fp, "option_base %x\n", dev->option_base);
-  fprintf (fp, "option_size %x\n", dev->option_size);
-  fprintf (fp, "flags %x\n\n", dev->flags);
+  fprintf(fp, "# Chip-ID file for %s\n", dev->description);
+  fprintf(fp, "#\n");
+  fprintf(fp, "chip_id %x\n", dev->chip_id);
+  fprintf(fp, "description %s\n", dev->description);
+  fprintf(fp, "flash_type  %x\n", dev->flash_type);
+  fprintf(fp, "flash_pagesize %x\n", dev->flash_pagesize);
+  fprintf(fp, "sram_size %x\n", dev->sram_size);
+  fprintf(fp, "bootrom_base %x\n", dev->bootrom_base);
+  fprintf(fp, "bootrom_size %x\n", dev->bootrom_size);
+  fprintf(fp, "option_base %x\n", dev->option_base);
+  fprintf(fp, "option_size %x\n", dev->option_size);
+  fprintf(fp, "flags %x\n\n", dev->flags);
 }
 
 
@@ -864,21 +864,21 @@ struct stlink_chipid_params *stlink_chipid_get_params(uint32_t chipid) {
   for (params = devicelist ; params != NULL ; params = params -> next)
     if (params->chip_id == chipid) break;
   
-  p2 = stlink_chipid_get_params_old (chipid);
+  p2 = stlink_chipid_get_params_old(chipid);
 
-  if (memcmp (p2, params, sizeof (struct stlink_chipid_params) - sizeof (struct stlink_chipid_params *)) != 0) {
+  if (memcmp(p2, params, sizeof (struct stlink_chipid_params) - sizeof (struct stlink_chipid_params *)) != 0) {
     //fprintf (stderr, "Error, chipid params not identical\n");
     //return NULL;
-    fprintf (stderr, "---------- old ------------\n");
-    dump_a_chip (stderr, p2);
-    fprintf (stderr, "---------- new ------------\n");
-    dump_a_chip (stderr, params);
+    fprintf(stderr, "---------- old ------------\n");
+    dump_a_chip(stderr, p2);
+    fprintf(stderr, "---------- new ------------\n");
+    dump_a_chip(stderr, params);
   }
   return(params);
 }
 
 
-void process_chipfile (char *fname)
+void process_chipfile(char *fname)
 {
   FILE *fp; 
   char *p, buf[1025];
@@ -887,44 +887,44 @@ void process_chipfile (char *fname)
   int nc; 
 
   //fprintf (stderr, "processing chipfile %s.\n", fname);
-  fp = fopen (fname, "r");
+  fp = fopen(fname, "r");
   if (!fp) {
-    perror (fname);
+    perror(fname);
     return; 
   }
 
-  ts = calloc (sizeof (struct stlink_chipid_params), 1);
-  while (fgets (buf, 1024, fp) != NULL) {
+  ts = calloc(sizeof (struct stlink_chipid_params), 1);
+  while (fgets(buf, 1024, fp) != NULL) {
     for (p=buf;isspace (*p);p++);
     if (!*p) continue; // we hit end-of-line wiht only whitespace
     if (*p == '#') continue; // ignore comments. 
 
-    sscanf (p, "%s %s", word, value);
-    if (strcmp (word, "chip_id") == 0) {
-      sscanf (value, "%x", &ts->chip_id);
+    sscanf(p, "%s %s", word, value);
+    if (strcmp(word, "chip_id") == 0) {
+      sscanf(value, "%x", &ts->chip_id);
     } else if (strcmp (word, "description") == 0) {
       //ts->description = strdup (value);
       buf[strlen(p)-1] = 0; // chomp newline
-      sscanf (p, "%*s %n", &nc);
-      ts->description = strdup (p+nc);
+      sscanf(p, "%*s %n", &nc);
+      ts->description = strdup(p+nc);
     } else if (strcmp (word, "flash_type") == 0) {
-      sscanf (value, "%x", &ts->flash_type);
+      sscanf(value, "%x", &ts->flash_type);
     } else if (strcmp (word, "flash_size_reg") == 0) {
-      sscanf (value, "%x", &ts->flash_size_reg);
+      sscanf(value, "%x", &ts->flash_size_reg);
     } else if (strcmp (word, "flash_pagesize") == 0) {
-      sscanf (value, "%x", &ts->flash_pagesize);
+      sscanf(value, "%x", &ts->flash_pagesize);
     } else if (strcmp (word, "sram_size") == 0) {
-      sscanf (value, "%x", &ts->sram_size);
+      sscanf(value, "%x", &ts->sram_size);
     } else if (strcmp (word, "bootrom_base") == 0) {
-      sscanf (value, "%x", &ts->bootrom_base);
+      sscanf(value, "%x", &ts->bootrom_base);
     } else if (strcmp (word, "bootrom_size") == 0) {
-      sscanf (value, "%x", &ts->bootrom_size);
+      sscanf(value, "%x", &ts->bootrom_size);
     } else if (strcmp (word, "option_base") == 0) {
-      sscanf (value, "%x", &ts->option_base);
+      sscanf(value, "%x", &ts->option_base);
     } else if (strcmp (word, "option_size") == 0) {
-      sscanf (value, "%x", &ts->option_size);
+      sscanf(value, "%x", &ts->option_size);
     } else if (strcmp (word, "flags") == 0) {
-      sscanf (value, "%x", &ts->flags);
+      sscanf(value, "%x", &ts->flags);
     } else {
       fprintf (stderr, "Unknown keyword in %s: %s\n", 
 	       fname, word);
@@ -933,7 +933,6 @@ void process_chipfile (char *fname)
   ts->next = devicelist;
   devicelist = ts;
 }
-
 
 void dump_chips (void) 
 {
@@ -944,30 +943,28 @@ void dump_chips (void)
   for (size_t n = 0; n < STLINK_ARRAY_SIZE(devices); n++) {
     ts = &devices[n];
 
-    strcpy (buf, ts->description);
-    while ((p = strchr (buf, '/')))  // change slashes to underscore.
+    strcpy(buf, ts->description);
+    while ((p = strchr(buf, '/')))  // change slashes to underscore.
       *p = '_';
-    strcat (buf, ".chip");
-    fp = fopen (buf, "w");
-    fprintf (fp, "# Chipid file for %s\n", ts->description);
-    fprintf (fp, "#\n");
-    fprintf (fp, "chip_id %x\n", ts->chip_id);
-    fprintf (fp, "description %s\n", ts->description);
-    fprintf (fp, "flash_type  %x\n", ts->flash_type);
-    fprintf (fp, "flash_pagesize %x\n", ts->flash_pagesize);
-    fprintf (fp, "sram_size %x\n", ts->sram_size);
-    fprintf (fp, "bootrom_base %x\n", ts->bootrom_base);
-    fprintf (fp, "bootrom_size %x\n", ts->bootrom_size);
-    fprintf (fp, "option_base %x\n", ts->option_base);
-    fprintf (fp, "option_size %x\n", ts->option_size);
-    fprintf (fp, "flags %x\n\n", ts->flags);
-    fclose (fp);
+    strcat(buf, ".chip");
+    fp = fopen(buf, "w");
+    fprintf(fp, "# Chip-ID file for %s\n", ts->description);
+    fprintf(fp, "#\n");
+    fprintf(fp, "chip_id %x\n", ts->chip_id);
+    fprintf(fp, "description %s\n", ts->description);
+    fprintf(fp, "flash_type  %x\n", ts->flash_type);
+    fprintf(fp, "flash_pagesize %x\n", ts->flash_pagesize);
+    fprintf(fp, "sram_size %x\n", ts->sram_size);
+    fprintf(fp, "bootrom_base %x\n", ts->bootrom_base);
+    fprintf(fp, "bootrom_size %x\n", ts->bootrom_size);
+    fprintf(fp, "option_base %x\n", ts->option_base);
+    fprintf(fp, "option_size %x\n", ts->option_size);
+    fprintf(fp, "flags %x\n\n", ts->flags);
+    fclose(fp);
   }
 }
 
-
-
-void init_chipids (char *dir_to_scan) 
+void init_chipids(char *dir_to_scan) 
 {
   DIR *d;
   size_t nl; // namelen 
@@ -979,11 +976,11 @@ void init_chipids (char *dir_to_scan)
   d = opendir(dir_to_scan);
   if (d) {
     while ((dir = readdir(d)) != NULL) {
-      nl = strlen (dir->d_name);
-      if (strcmp (dir->d_name + nl - 5, ".chip") == 0) {
+      nl = strlen(dir->d_name);
+      if (strcmp(dir->d_name + nl - 5, ".chip") == 0) {
 	char buf[1024];
-	sprintf (buf, "%s/%s", dir_to_scan, dir->d_name);
-	process_chipfile (buf);
+	sprintf(buf, "%s/%s", dir_to_scan, dir->d_name);
+	process_chipfile(buf);
       }
     }
     closedir(d);

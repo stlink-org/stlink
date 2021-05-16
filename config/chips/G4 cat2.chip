@@ -1,8 +1,8 @@
-# Chipid file for G4 Category-2
+# Chip-ID file for G4 cat2
 #
 chip_id 468
-description G4 Category-2
-flash_type  8
+description G4 cat2
+flash_type 8
 flash_pagesize 800
 sram_size 8000
 bootrom_base 1fff0000

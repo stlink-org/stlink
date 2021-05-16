@@ -1,8 +1,8 @@
-# Chipid file for L4xx
+# Chip-ID file for L4xx
 #
 chip_id 415
 description L4xx
-flash_type  6
+flash_type 6
 flash_pagesize 800
 sram_size 18000
 bootrom_base 1fff0000

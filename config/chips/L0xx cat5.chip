@@ -1,8 +1,8 @@
-# Chipid file for L0xx Category 5
+# Chip-ID file for L0xx cat5
 #
 chip_id 447
-description L0xx Category 5
-flash_type  5
+description L0xx cat5
+flash_type 5
 flash_pagesize 80
 sram_size 5000
 bootrom_base 1ff0000

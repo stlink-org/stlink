@@ -535,14 +535,14 @@ char* make_memory_map(stlink_t *sl) {
 
     if (sl->chip_id == STLINK_CHIPID_STM32_F4 ||
         sl->chip_id == STLINK_CHIPID_STM32_F446 ||
-        sl->chip_id == STLINK_CHIPID_STM32_F411XX) {
+        sl->chip_id == STLINK_CHIPID_STM32_F411xx) {
             strcpy(map, memory_map_template_F4);
     } else if (sl->chip_id == STLINK_CHIPID_STM32_F4_DE) {
         strcpy(map, memory_map_template_F4_DE);
     } else if (sl->core_id == STM32F7_CORE_ID) {
         snprintf(map, sz, memory_map_template_F7,
                  (unsigned int)sl->sram_size);
-    } else if (sl->chip_id == STLINK_CHIPID_STM32_H74XXX) {
+    } else if (sl->chip_id == STLINK_CHIPID_STM32_H74xxx) {
         snprintf(map, sz, memory_map_template_H7,
                  (unsigned int)sl->flash_size,
                  (unsigned int)sl->flash_pgsz);
@@ -556,12 +556,12 @@ char* make_memory_map(stlink_t *sl) {
                  (unsigned int)sl->sys_base,
                  (unsigned int)sl->sys_size);
     } else if ((sl->chip_id == STLINK_CHIPID_STM32_L4) ||
-               (sl->chip_id == STLINK_CHIPID_STM32_L43X) ||
-               (sl->chip_id == STLINK_CHIPID_STM32_L46X)) {
+               (sl->chip_id == STLINK_CHIPID_STM32_L43x_L44x) ||
+               (sl->chip_id == STLINK_CHIPID_STM32_L45x_L46x)) {
         snprintf(map, sz, memory_map_template_L4,
                  (unsigned int)sl->flash_size,
                  (unsigned int)sl->flash_size);
-    } else if (sl->chip_id == STLINK_CHIPID_STM32_L496X) {
+    } else if (sl->chip_id == STLINK_CHIPID_STM32_L496x_L4A6x) {
         snprintf(map, sz, memory_map_template_L496,
                  (unsigned int)sl->flash_size,
                  (unsigned int)sl->flash_size);

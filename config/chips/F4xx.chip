@@ -1,8 +1,8 @@
-# Chipid file for F4xx
+# Chip-ID file for F4xx
 #
 chip_id 413
 description F4xx
-flash_type  3
+flash_type 3
 flash_pagesize 4000
 sram_size 30000
 bootrom_base 1fff0000

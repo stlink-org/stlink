@@ -1,8 +1,8 @@
-# Chipid file for F1xx XL-density
+# Chip-ID file for F1 XL-density
 #
 chip_id 430
-description F1xx XL-density
-flash_type  2
+description F1 XL-density
+flash_type 2
 flash_pagesize 800
 sram_size 18000
 bootrom_base 1fffe000

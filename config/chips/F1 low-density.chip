@@ -1,8 +1,8 @@
-# Chipid file for F1 Low-density device
+# Chip-ID file for F1 low-density
 #
 chip_id 412
-description F1 Low-density device
-flash_type  1
+description F1 low-density
+flash_type 1
 flash_pagesize 400
 sram_size 2800
 bootrom_base 1ffff000

@@ -1,8 +1,8 @@
-# Chipid file for unknown device
+# Chip-ID file for unknown device
 #
 chip_id 0
 description unknown device
-flash_type  0
+flash_type 0
 flash_pagesize 0
 sram_size 0
 bootrom_base 0

@@ -333,7 +333,7 @@
 #define FLASH_H7_CR_SER 2
 #define FLASH_H7_CR_BER 3
 #define FLASH_H7_CR_PSIZE 4
-#define FLASH_H7_CR_START(chipid) (chipid == STLINK_CHIPID_STM32_H7AX ? 5 : 7)
+#define FLASH_H7_CR_START(chipid) (chipid == STLINK_CHIPID_STM32_H7Ax ? 5 : 7)
 #define FLASH_H7_CR_SNB 8
 #define FLASH_H7_CR_SNB_MASK 0x700
 
@@ -447,9 +447,9 @@ static uint32_t get_stm32l0_flash_base(stlink_t *sl) {
     return (STM32L0_FLASH_REGS_ADDR);
 
   case STLINK_CHIPID_STM32_L1_CAT2:
-  case STLINK_CHIPID_STM32_L1_MEDIUM:
-  case STLINK_CHIPID_STM32_L1_MEDIUM_PLUS:
-  case STLINK_CHIPID_STM32_L1_HIGH:
+  case STLINK_CHIPID_STM32_L1_MD:
+  case STLINK_CHIPID_STM32_L1_MD_PLUS:
+  case STLINK_CHIPID_STM32_L1_MD_PLUS_HD:
     return (STM32L1_FLASH_REGS_ADDR);
 
   default:
@@ -1618,14 +1618,14 @@ int stlink_load_device_params(stlink_t *sl) {
 
   flash_size = flash_size & 0xffff;
 
-  if ((sl->chip_id == STLINK_CHIPID_STM32_L1_MEDIUM ||
-       sl->chip_id == STLINK_CHIPID_STM32_F1_VL_MEDIUM_LOW ||
-       sl->chip_id == STLINK_CHIPID_STM32_L1_MEDIUM_PLUS) &&
+  if ((sl->chip_id == STLINK_CHIPID_STM32_L1_MD ||
+       sl->chip_id == STLINK_CHIPID_STM32_F1_VL_MD_LD ||
+       sl->chip_id == STLINK_CHIPID_STM32_L1_MD_PLUS) &&
       (flash_size == 0)) {
     sl->flash_size = 128 * 1024;
   } else if (sl->chip_id == STLINK_CHIPID_STM32_L1_CAT2) {
     sl->flash_size = (flash_size & 0xff) * 1024;
-  } else if ((sl->chip_id & 0xFFF) == STLINK_CHIPID_STM32_L1_HIGH) {
+  } else if ((sl->chip_id & 0xFFF) == STLINK_CHIPID_STM32_L1_MD_PLUS_HD) {
     // 0 is 384k and 1 is 256k
     if (flash_size == 0) {
       sl->flash_size = 384 * 1024;
@@ -1647,7 +1647,7 @@ int stlink_load_device_params(stlink_t *sl) {
 
   // medium and low devices have the same chipid. ram size depends on flash
   // size. STM32F100xx datasheet Doc ID 16455 Table 2
-  if (sl->chip_id == STLINK_CHIPID_STM32_F1_VL_MEDIUM_LOW &&
+  if (sl->chip_id == STLINK_CHIPID_STM32_F1_VL_MD_LD &&
       sl->flash_size < 64 * 1024) {
     sl->sram_size = 0x1000;
   }
@@ -2715,8 +2715,8 @@ uint32_t calculate_L4_page(stlink_t *sl, uint32_t flashaddr) {
   flashaddr -= STM32_FLASH_BASE;
 
   if (sl->chip_id == STLINK_CHIPID_STM32_L4 ||
-      sl->chip_id == STLINK_CHIPID_STM32_L496X ||
-      sl->chip_id == STLINK_CHIPID_STM32_L4RX) {
+      sl->chip_id == STLINK_CHIPID_STM32_L496x_L4A6x ||
+      sl->chip_id == STLINK_CHIPID_STM32_L4Rx) {
     // this chip use dual banked flash
     if (flashopt & (uint32_t)(1lu << STM32L4_FLASH_OPTR_DUALBANK)) {
       uint32_t banksize = (uint32_t)sl->flash_size / 2;
@@ -2739,10 +2739,10 @@ uint32_t stlink_calculate_pagesize(stlink_t *sl, uint32_t flashaddr) {
       (sl->chip_id == STLINK_CHIPID_STM32_F4_DE) ||
       (sl->chip_id == STLINK_CHIPID_STM32_F4_LP) ||
       (sl->chip_id == STLINK_CHIPID_STM32_F4_HD) ||
-      (sl->chip_id == STLINK_CHIPID_STM32_F411XX) ||
+      (sl->chip_id == STLINK_CHIPID_STM32_F411xx) ||
       (sl->chip_id == STLINK_CHIPID_STM32_F446) ||
       (sl->chip_id == STLINK_CHIPID_STM32_F4_DSI) ||
-      (sl->chip_id == STLINK_CHIPID_STM32_F72XXX) ||
+      (sl->chip_id == STLINK_CHIPID_STM32_F72xxx) ||
       (sl->chip_id == STLINK_CHIPID_STM32_F412)) {
     uint32_t sector = calculate_F4_sectornum(flashaddr);
 
@@ -2758,7 +2758,7 @@ uint32_t stlink_calculate_pagesize(stlink_t *sl, uint32_t flashaddr) {
       sl->flash_pgsz = 0x20000;
     }
   } else if (sl->chip_id == STLINK_CHIPID_STM32_F7 ||
-             sl->chip_id == STLINK_CHIPID_STM32_F7XXXX) {
+             sl->chip_id == STLINK_CHIPID_STM32_F76xxx) {
     uint32_t sector = calculate_F7_sectornum(flashaddr);
 
     if (sector < 4) {
@@ -2794,10 +2794,10 @@ int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr) {
 
     // select the page to erase
     if ((sl->chip_id == STLINK_CHIPID_STM32_L4) ||
-        (sl->chip_id == STLINK_CHIPID_STM32_L43X) ||
-        (sl->chip_id == STLINK_CHIPID_STM32_L46X) ||
-        (sl->chip_id == STLINK_CHIPID_STM32_L496X) ||
-        (sl->chip_id == STLINK_CHIPID_STM32_L4RX)) {
+        (sl->chip_id == STLINK_CHIPID_STM32_L43x_L44x) ||
+        (sl->chip_id == STLINK_CHIPID_STM32_L45x_L46x) ||
+        (sl->chip_id == STLINK_CHIPID_STM32_L496x_L4A6x) ||
+        (sl->chip_id == STLINK_CHIPID_STM32_L4Rx)) {
       // calculate the actual bank+page from the address
       uint32_t page = calculate_L4_page(sl, flashaddr);
 
@@ -2806,7 +2806,7 @@ int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr) {
 
       write_flash_cr_bker_pnb(sl, page);
     } else if (sl->chip_id == STLINK_CHIPID_STM32_F7 ||
-               sl->chip_id == STLINK_CHIPID_STM32_F7XXXX) {
+               sl->chip_id == STLINK_CHIPID_STM32_F76xxx) {
       // calculate the actual page from the address
       uint32_t sector = calculate_F7_sectornum(flashaddr);
 
@@ -2990,7 +2990,7 @@ int stlink_erase_flash_mass(stlink_t *sl) {
     unlock_flash_if(sl);
 
     if (sl->flash_type == STLINK_FLASH_TYPE_H7 &&
-        sl->chip_id != STLINK_CHIPID_STM32_H7AX) {
+        sl->chip_id != STLINK_CHIPID_STM32_H7Ax) {
       // set parallelism
       write_flash_cr_psiz(sl, 3 /*64it*/, BANK_1);
       if (sl->chip_flags & CHIP_F_HAS_DUAL_BANK) {
@@ -3265,7 +3265,7 @@ int stlink_flashloader_start(stlink_t *sl, flash_loader_t *fl) {
     if (sl->chip_flags & CHIP_F_HAS_DUAL_BANK) {
       set_flash_cr_pg(sl, BANK_2);
     }
-    if (sl->chip_id != STLINK_CHIPID_STM32_H7AX) {
+    if (sl->chip_id != STLINK_CHIPID_STM32_H7Ax) {
       // set parallelism
       write_flash_cr_psiz(sl, 3 /*64it*/, BANK_1);
       if (sl->chip_flags & CHIP_F_HAS_DUAL_BANK) {
@@ -4383,7 +4383,7 @@ int stlink_read_option_bytes32(stlink_t *sl, uint32_t *option_byte) {
   case STLINK_CHIPID_STM32_F4:
   case STLINK_CHIPID_STM32_F446:
     return stlink_read_option_bytes_f4(sl, option_byte);
-  case STLINK_CHIPID_STM32_F7XXXX:
+  case STLINK_CHIPID_STM32_F76xxx:
     return stlink_read_option_bytes_f7(sl, option_byte);
   case STLINK_CHIPID_STM32_G0_CAT1:
   case STLINK_CHIPID_STM32_G0_CAT2:
@@ -4632,12 +4632,12 @@ stlink_write_option_control_register_f0(stlink_t *sl,
   case 0x432: /* STM32F37x */
   case 0x438: /* STM32F303x6/8 and STM32F328 */
   case 0x446: /* STM32F303xD/E and STM32F398xE */
-  case 0x439: /* stm32f302x6/8 */
-  case 0x440: /* stm32f05x */
-  case 0x444: /* stm32f03x */
-  case 0x445: /* stm32f04x */
-  case 0x448: /* stm32f07x */
-  case 0x442: /* stm32f09x */
+  case 0x439: /* STM32F302x6/8 */
+  case 0x440: /* STM32F05x */
+  case 0x444: /* STM32F03x */
+  case 0x445: /* STM32F04x */
+  case 0x448: /* STM32F07x */
+  case 0x442: /* STM32F09x */
     option_offset = 6;
     user_data_offset = 16;
     rdp = 0x55AA;
