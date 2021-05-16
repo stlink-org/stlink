@@ -8,6 +8,7 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
+#define __STDC_WANT_LIB_EXT1__ 1
 #include <time.h>
 
 #include "logging.h"
@@ -29,10 +30,22 @@ int ugly_log(int level, const char *tag, const char *format, ...) {
   va_list args;
   va_start(args, format);
   time_t mytt = time(NULL);
-  struct tm *tt;
-  tt = localtime(&mytt);
-  fprintf(stderr, "%d-%02d-%02dT%02d:%02d:%02d ", tt->tm_year + 1900,
-          tt->tm_mon + 1, tt->tm_mday, tt->tm_hour, tt->tm_min, tt->tm_sec);
+
+  struct tm *ptt;
+#if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 201112L) // C11
+  struct tm tt;
+  ptt = &tt;
+# if defined (_WIN32) || defined(__STDC_LIB_EXT1__)
+  localtime_s(&tt, &mytt);
+# else
+  localtime_r(&mytt, &tt);
+# endif
+#else
+  ptt = localtime(&mytt);
+#endif
+
+  fprintf(stderr, "%d-%02d-%02dT%02d:%02d:%02d ", ptt->tm_year + 1900,
+          ptt->tm_mon + 1, ptt->tm_mday, ptt->tm_hour, ptt->tm_min, ptt->tm_sec);
 
   switch (level) {
   case UDEBUG:

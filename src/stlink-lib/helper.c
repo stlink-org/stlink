@@ -19,9 +19,9 @@ int arg_parse_freq(const char *str) {
     char *tail;
     int value = (int)strtol(str, &tail, 10);
 
-    if ((tail[0] == 'm' || tail[0] == 'M') && tail[1] == '\0') {
+    if (tail[0] == 'M' && tail[1] == '\0') {
         value = value*1000;
-    } else if (((tail[0] != 'k' && tail[0] != 'K') || tail[1] != '\0') && tail[0] != '\0') {
+    } else if ((tail[0] != 'k' || tail[1] != '\0') && tail[0] != '\0') {
         return -1;
     }
 

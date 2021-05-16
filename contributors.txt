@@ -40,7 +40,7 @@ Fabien Chouteau [Fabien-Chouteau]
 Florian Hars
 Friedrich Beckmann
 Gabriel Górski [Glaeqen]
-Geoffrey Brown
+Geoffrey Brown [geoffreymbrown]
 George Talusan [gtalusan]
 Georg von Zengen
 Giuseppe Barba
@@ -100,6 +100,7 @@ Peter Torelli [petertorelli]
 Peter Zotov
 Petteri Aimonen
 Piotr Haber
+[RafaelLeeImg]
 Rene Hopf [rene-dev]
 Robin Kreis
 Roger Wolff [rewolff]

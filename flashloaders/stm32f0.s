@@ -30,14 +30,8 @@ copy:
     # add r3 to flash_base for support dual bank (see flash_loader.c)
     ldr r7, flash_base
     add r7, r7, r3
-    ldr r6, flash_off_cr
-    add r6, r6, r7
     ldr r5, flash_off_sr
     add r5, r5, r7
-
-    # FLASH_CR = 0x01 (set PG)
-    ldr r4, =0x1
-    str r4, [r6]
 
 loop:
     # copy 2 bytes
@@ -68,18 +62,10 @@ wait:
     bgt loop
 
 exit:
-    # FLASH_CR &= ~1
-    ldr r7, =0x1
-    ldr r4, [r6]
-    bics r4, r4, r7
-    str r4, [r6]
-
     bkpt
 
     .align 2
 flash_base:
     .word 0x40022000
-flash_off_cr:
-    .word 0x10
 flash_off_sr:
     .word 0x0c

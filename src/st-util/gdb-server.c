@@ -113,7 +113,7 @@ int parse_options(int argc, char** argv, st_state_t *st) {
     const char * help_str = "%s - usage:\n\n"
                             "  -h, --help\t\tPrint this help\n"
                             "  -V, --version\t\tPrint the version\n"
-                            "  -vXX, --verbose=XX\tSpecify a specific verbosity level (0..99)\n"
+                            "  -vXX, --verbose=XX\tSpecify a specific verbosity level (0...99)\n"
                             "  -v, --verbose\t\tSpecify generally verbose logging\n"
                             "  -p 4242, --listen_port=1234\n"
                             "\t\t\tSet the gdb server listen port. "
@@ -125,7 +125,7 @@ int parse_options(int argc, char** argv, st_state_t *st) {
                             "\t\t\tDo not reset board on connection.\n"
                             "  -u, --connect-under-reset\n"
                             "\t\t\tConnect to the board before executing any instructions.\n"                            
-                            "  -F 1800K, --freq=1M\n"
+                            "  -F 1800k, --freq=1M\n"
                             "\t\t\tSet the frequency of the SWD/JTAG interface.\n"
                             "  --semihosting\n"
                             "\t\t\tEnable semihosting support.\n"
@@ -533,7 +533,7 @@ char* make_memory_map(stlink_t *sl) {
 
     if (sl->chip_id == STLINK_CHIPID_STM32_F4 ||
         sl->chip_id == STLINK_CHIPID_STM32_F446 ||
-        sl->chip_id == STLINK_CHIPID_STM32_F411RE) {
+        sl->chip_id == STLINK_CHIPID_STM32_F411XX) {
             strcpy(map, memory_map_template_F4);
     } else if (sl->chip_id == STLINK_CHIPID_STM32_F4_DE) {
         strcpy(map, memory_map_template_F4_DE);
