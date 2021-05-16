@@ -54,28 +54,6 @@ elseif (WIN32 OR (EXISTS "/etc/debian_version" AND MINGW)) # Windows or MinGW-to
     endif ()
 
     if (WIN32 AND NOT EXISTS "/etc/debian_version") # Skip this for Debian...
-        FIND_PATH(
-            LIBUSB_INCLUDE_DIR NAMES libusb.h
-            HINTS /usr /usr/local /opt
-            PATH_SUFFIXES libusb-1.0
-            )
-
-        if (MINGW OR MSYS)
-            set(LIBUSB_NAME usb-1.0)
-            find_library(
-                LIBUSB_LIBRARY NAMES ${LIBUSB_NAME}
-                HINTS ${LIBUSB_WIN_OUTPUT_FOLDER}/MinGW${ARCH}/static
-                )
-        else (MSVC)
-            set(LIBUSB_NAME libusb-1.0.lib)
-            find_library(
-                LIBUSB_LIBRARY NAMES ${LIBUSB_NAME}
-                HINTS ${LIBUSB_WIN_OUTPUT_FOLDER}/MS${ARCH}/dll
-                )
-        endif ()
-    endif ()
-
-    if (NOT LIBUSB_FOUND)
         # Preparations for installing libusb library
         set(LIBUSB_WIN_VERSION 1.0.23)                  # set libusb version
         set(LIBUSB_WIN_ARCHIVE libusb-${LIBUSB_WIN_VERSION}.7z)

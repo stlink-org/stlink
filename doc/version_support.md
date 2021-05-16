@@ -1,13 +1,11 @@
-_Source:_ pkgs.org - [libusb](https://pkgs.org/search/?q=libusb); [cmake](https://pkgs.org/search/?q=cmake); [gtk](https://pkgs.org/search/?q=gtk) (as of Apr 2020)
+_Source:_ pkgs.org - [libusb](https://pkgs.org/search/?q=libusb); [cmake](https://pkgs.org/search/?q=cmake); [gtk](https://pkgs.org/search/?q=gtk) (as of May 2021)
 
 ## Supported Operating Systems
 
 ### Microsoft Windows
 
-On Windows users should ensure that cmake 3.17.0 is installed.<br />
-Up on compiling c-make will check **automatically**, whether `libusb` 1.0.20 or later is present.<br />
-If this is not the case, the installation routine will download the latest version (1.0.23 at the time of writing).<br />
-Thus no user interaction regarding libusb is necessary.
+On Windows users should ensure that cmake 3.17.0 or any later version is installed.<br />
+Up on compiling c-make will **automatically** download and install the latest compatible version of `libusb` (1.0.23 at the time of writing).
 
 - Windows 10
 - Windows 8.1
@@ -23,55 +21,72 @@ NOTE: In order to use a STLINK/V1 programmer on macOS, versions 10.14 or 10.15 a
 
 ### Linux-/Unix-based:
 
-| Operating System                 | libusb<br />version     | cmake<br />version | gtk-3<br />version                        | Notes                                                                         |
-| -------------------------------- | ----------------------- | ------------------ | ----------------------------------------- | ----------------------------------------------------------------------------- |
-| Alpine Edge                      | 1.0.23                  | 3.17.0             | 3.99.0<br />gtk+3.0                       |                                                                               |
-| ALT Linux Sisyphus               | 1.0.23                  | 3.17.0             | 3.24.18<br />libgtk+3                     |                                                                               |
-| Arch Linux                       | 1.0.23                  | 3.17.0             | 3.24.18<br />gtk3                         |                                                                               |
-| Fedora Rawhide                   | 1.0.23                  | 3.17.0             | 3.24.18<br />gtk3                         | named `libusbx`, but<br />`libusb`-codebase is used                           |
-| KaOS                             | 1.0.23                  | 3.17.0             | 3.24.18<br />gtk3                         |                                                                               |
-| OpenMandriva Cooker              | 1.0.23                  | 3.17.0             | 3.24.18<br />libgtk+3.0<br />lib64gtk+3.0 |                                                                               |
-| PCLinuxOS                        | 1.0.23<br />lib64usb1.0 | 3.17.0             | 3.24.18<br />lib64gtk+3.0                 |                                                                               |
-| Slackware Current                | 1.0.23                  | 3.17.0             | 3.24.18<br />gtk+3                        |                                                                               |
-| Solus                            | 1.0.23                  | 3.16.5             | 3.24.16<br />libgtk-3                     |                                                                               |
-| Debian Sid                       | 1.0.23                  | 3.16.3             | 3.24.18<br />libgtk-3                     |                                                                               |
-| OpenMandriva Lx 4.1              | 1.0.23                  | 3.16.3             | 3.24.13<br />libgtk+3.0<br />lib64gtk+3.0 |                                                                               |
-| Ubuntu 20.04 LTS (Focal Fossa)   | 1.0.23                  | 3.16.3             | 3.24.17<br />libgtk-3                     |                                                                               |
-| openSUSE Tumbleweed              | 1.0.23                  | 3.16.2             | 3.24.16<br />gtk3                         |                                                                               |
-| Alpine 3.11                      | 1.0.23                  | 3.15.5             | 3.24.13<br />gtk+3.0                      |                                                                               |
-| Ubuntu 19.10 (Eoan Ermine)       | 1.0.23                  | 3.13.4             | 3.24.12<br />libgtk-3                     |                                                                               |
-| Mageia Cauldron                  | 1.0.22                  | 3.17.0             | 3.24.18<br />libgtk+3.0<br />lib64gtk+3.0 |                                                                               |
-| NetBSD 9.0                       | 1.0.22                  | 3.16.1             | 3.24.12<br />gtk+3                        |                                                                               |
-| NetBSD 8.1                       | 1.0.22                  | 3.16.1             | 3.24.12<br />gtk+3                        |                                                                               |
-| NetBSD 7.2                       | 1.0.22                  | 3.16.1             | _N/A_                                     |                                                                               |
-| Alpine 3.10                      | 1.0.22                  | 3.14.5             | 3.24.8<br />gtk+3.0                       |                                                                               |
-| Fedora 31                        | 1.0.22                  | 3.14.5             | 3.24.12<br />gtk3                         | named `libusbx`, but<br />`libusb`-codebase is used                           |
-| Mageia 7.1                       | 1.0.22                  | 3.14.3             | 3.24.8<br />libgtk+3.0<br />lib64gtk+3.0  |                                                                               |
-| Fedora 30                        | 1.0.22                  | 3.14.2             | 3.24.8<br />gtk3                          | named `libusbx`, but<br />`libusb`-codebase is used                           |
-| Debian 10 (Buster)               | 1.0.22                  | 3.13.4             | 3.24.5<br />libgtk-3                      |                                                                               |
-| Alpine 3.9                       | 1.0.22                  | 3.13.0             | 3.24.1<br />gtk+3.0                       |                                                                               |
-| CentOS 8                         | 1.0.22                  | 3.11.4             | 3.22.30<br />gtk3                         | named `libusbx`, but<br />`libusb`-codebase is used                           |
-| openSUSE Leap 15.2               | 1.0.21                  | 3.15.5             | 3.24.14<br />gtk3                         |                                                                               |
-| openSUSE Leap 15.1               | 1.0.21                  | 3.10.2             | 3.22.30<br />gtk3                         |                                                                               |
-| Ubuntu 18.04 LTS (Bionic Beaver) | 1.0.21                  | 3.10.2             | 3.22.30<br />libgtk-3                     |                                                                               |
-| Debian 9 (Stretch)               | 1.0.21                  | 3.7.2              | 3.22.11<br />libgtk-3                     |                                                                               |
-| Slackware 14.2                   | 1.0.20                  | 3.5.2              | 3.18.9<br />gtk+3                         |                                                                               |
-| Ubuntu 16.04 LTS (Xenial Xerus)  | 1.0.20                  | 3.5.1              | 3.18.9<br />libgtk-3                      |                                                                               |
-| OpenMandriva Lx 3.0x             | 1.0.20                  | **3.4.2**          | 3.18.9<br />libgtk+3.0<br />lib64gtk+3.0  |                                                                               |
-| FreeBSD 13                       | **1.0.16 - 1.0.18**     | 3.15.5             | 3.24.10<br />gtk3                         | linux_libusb-13.0r358841<br />LIBUSB_API_VERSION 0x01000102<br />(integrated) |
-| FreeBSD 12                       | **1.0.16 - 1.0.18**     | 3.15.5             | 3.24.10<br />gtk3                         | linux_libusb-13.0r358841<br />LIBUSB_API_VERSION 0x01000102<br />(integrated) |
-| FreeBSD 11                       | **1.0.16 - 1.0.18**     | 3.15.5             | 3.24.10<br />gtk3                         | linux_libusb-13.0r358841<br />LIBUSB_API_VERSION 0x01000102<br />(integrated) |
+| Operating System          | libusb             | cmake     | gtk-3       | Notes                         |
+| ------------------------- | ------------------ | --------- | ----------- | ----------------------------- |
+| Arch Linux                | 1.0.24             | 3.20.2    | 3.24.29     |                               |
+| Fedora Rawhide [x64]      | 1.0.24 (`libusbx`) | 3.20.2    | 3.24.29     |                               |
+| KaOS [x64]                | 1.0.24             | 3.20.2    | 3.24.29     |                               |
+| Mageia Cauldron           | 1.0.24             | 3.20.2    | 3.24.29     |                               |
+| OpenMandriva Cooker       | 1.0.24             | 3.20.2    | 3.24.29     |                               |
+| OpenMandriva Rolling      | 1.0.24             | 3.20.2    | 3.24.29     |                               |
+| PCLinuxOS [x64]           | 1.0.24             | 3.20.2    | 3.24.29     |                               |
+| Slackware Current         | 1.0.24             | 3.20.2    | 3.24.28     |                               |
+| Solus [x64]               | 1.0.24             | 3.20.2    | 3.24.29     |                               |
+| openSUSE Tumbleweed [x64] | 1.0.24             | 3.20.1    | 3.24.29     |                               |
+| ALT Linux Sisyphus        | 1.0.24             | 3.19.7    | 3.24.29     |                               |
+| Fedora 34 [x64]           | 1.0.24 (`libusbx`) | 3.19.7    | 3.24.28     |                               |
+| NetBSD 9.x                | 1.0.24             | 3.19.7    | 3.24.27     |                               |
+| NetBSD 8.x                | 1.0.24             | 3.19.7    | 3.24.27     |                               |
+| OpenMandriva Lx 4.2       | 1.0.24             | 3.19.3    | 3.24.24     |                               |
+| Mageia 8                  | 1.0.24             | 3.19.2    | 3.24.24     |                               |
+| Alpine 3.13               | 1.0.24             | 3.18.4    | 3.24.23     |                               |
+| Debian Sid                | 1.0.24             | 3.18.4    | 3.24.24     |                               |
+| Debian 11 (Bullseye)      | 1.0.24             | 3.18.4    | 3.24.24     |                               |
+| Ubuntu 21.04 (Hirsute)    | 1.0.24             | 3.18.4    | 3.24.25     |                               |
+| Fedora 33 [x64]           | 1.0.23 (`libusbx`) | 3.18.3    | 3.24.23     |                               |
+| CentOS 8 Stream [x64]     | 1.0.23 (`libusbx`) | 3.18.2    | **3.22.30** |                               |
+| Alpine 3.12               | 1.0.23             | 3.17.2    | 3.24.22     |                               |
+| openSUSE Leap 15.3 [x64]  | 1.0.**21**         | 3.17.0    | 3.24.20     |                               |
+| openSUSE Leap 15.2 [x64]  | 1.0.**21**         | 3.17.0    | 3.24.**14** |                               |
+| Adélie 1.0                | 1.0.23             | 3.16.4    | 3.24.23     |                               |
+| Ubuntu 20.04 LTS (Focal)  | 1.0.23             | 3.16.3    | 3.24.**18** |                               |
+| ALT Linux P9              | 1.0.**22**         | 3.16.3    | 3.24.**11** |                               |
+| Alpine 3.11               | 1.0.23             | 3.15.5    | 3.24.**13** |                               |
+| Mageia 7.1                | 1.0.**22**         | 3.14.3    | 3.24.**8**  |                               |
+| Debian 10 (Buster)        | 1.0.**22**         | 3.13.4    | 3.24.**5**  |                               |
+| AlmaLinux 8               | 1.0.23 (`libusbx`) | 3.11.4    | 3.24.32     |                               |
+| CentOS 8 [x64]            | 1.0.23 (`libusbx`) | 3.11.4    | **3.22.30** |                               |
+| Ubuntu 18.04 LTS (Bionic) | 1.0.**21**         | 3.10.2    | **3.22.30** |                               |
+| Debian 9 (Stretch)        | 1.0.**21**         | **3.7.2** | **3.22.11** |                               |
+|                           |                    |           |             |                               |
+| FreeBSD 13.x              | 1.0.**16 - 18**    | 3.20.2    | 3.24.27     | LIBUSB_API_VERSION 0x01000102 |
+| FreeBSD 12.x              | 1.0.**16 - 18**    | 3.19.6    | 3.24.27     | LIBUSB_API_VERSION 0x01000102 |
+| FreeBSD 11.x              | 1.0.**16 - 18**    | 3.15.5    | 3.24.27     | LIBUSB_API_VERSION 0x01000102 |
 
-## Unsupported Operating Systems (as of Release v1.6.1)
+## Unsupported Operating Systems (as of Release v1.7.1)
 
-| Operating System               | libusb<br />version | cmake<br />version | End of<br />OS-Support | Notes                                               |
-| ------------------------------ | ------------------- | ------------------ | ---------------------- | --------------------------------------------------- |
-| CentOS 7                       | 1.0.21              | **2.8.12.2**       |                        | named `libusbx`, but<br />`libusb`-codebase is used |
-| Debian 8 (Jessie)              | 1.0.19              | **3.0.2**          | Jun 2020               |
-| Ubuntu 14.04 LTS (Trusty Tahr) | 1.0.17              | **2.8.12.2**       | Apr 2019               |
-| CentOS 6                       | 1.0.**9**           | **2.8.12.2**       | Dec 2020               | named `libusbx`, but<br />`libusb`-codebase is used |
-| Slackware 14.1                 | 1.0.**9**           | **2.8.12**         |                        |
-| Slackware 14.0                 | 1.0.**9**           | **2.8.8**          |                        |
+Systems with highlighted versions remain compatible with this toolset.
+
+| Operating System          | libusb                 | cmake      | End of<br />OS-Support |
+| ------------------------- | ---------------------- | ---------- | ---------------------- |
+| Fedora 32 [x64]           | **1.0.23** (`libusbx`) | **3.17.0** | May 2021               |
+| Ubuntu 20.10 (Groovy)     | **1.0.23**             | **3.16.3** | Jul 2021               |
+| NetBSD 7.x                | **1.0.22**             | **3.16.1** | Jun 2020               |
+| Alpine 3.10               | **1.0.22**             | **3.14.5** | May 2021               |
+| Fedora 31 [x64]           | **1.0.22** (`libusbx`) | **3.14.5** | Nov 2020               |
+| Ubuntu 19.10 (Eoan)       | **1.0.23**             | **3.13.4** | Jul 2020               |
+| Fedora 30                 | **1.0.22** (`libusbx`) | **3.14.2** | May 2020               |
+| Alpine 3.9                | **1.0.22**             | **3.13.0** | Jan 2021               |
+| openSUSE Leap 15.1 [x64]  | **1.0.21**             | **3.10.2** | Feb 2021               |
+| Slackware 14.2            | 1.0.20                 | 3.5.2      |                        |
+| Ubuntu 16.04 LTS (Xenial) | 1.0.20                 | 3.5.1      | Apr 2021               |
+| OpenMandriva Lx 3.0x      | 1.0.20                 | 3.4.2      |                        |
+| Debian 8 (Jessie)         | 1.0.19                 | 3.0.2      | Jun 2020               |
+| CentOS 7 [x64]            | 1.0.21 (`libusbx`)     | 2.8.12.2   |                        |
+| Ubuntu 14.04 LTS (Trusty) | 1.0.17                 | 2.8.12.2   | Apr 2019               |
+| CentOS 6                  | 1.0.9  (`libusbx`)     | 2.8.12.2   | Dec 2020               |
+| Slackware 14.1            | 1.0.9                  | 2.8.12     |                        |
+| Slackware 14.0            | 1.0.9                  | 2.8.8      |                        |
 
 _All other operating systems which are not listed are unsupported._
 

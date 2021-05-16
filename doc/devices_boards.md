@@ -1,8 +1,6 @@
-# Boards supported by the STlink toolset
+# MCUs supported by the STlink toolset
 
 The following devices are supported by the stlink toolset.
-
-All Boards are expected to work with ST-LINK/V2 programmers.
 
 **STM32F0 / ARM Cortex M0 / Core-ID: 0x0bb11477 (STM32F0_CORE_ID)**
 
@@ -20,14 +18,6 @@ All Boards are expected to work with ST-LINK/V2 programmers.
 | 0x448   | STM32F0**72**xx     |
 | 0x442   | STM32F0**9**xxx     |
 
-Tested boards [incl. STLINK programmers]:
-
-- Nucleo-F030R8 [v2-1]
-- Nucleo-F072RB [v2-1]
-- Nucleo-F091RC [v2-1]
-- Nucleo-32 [v2-1]
-- STM32F0-Discovery [v2]
-- STM320518-EVAL
 
 **STM32F1 / ARM Cortex M3 / Core-ID: 0x1ba01477 (STM32F1_CORE_ID)**
 
@@ -50,11 +40,8 @@ Tested boards [incl. STLINK programmers]:
 | 0x428   | High density Value   | xC xD xE  | F100 |      |       |      |                |
 | 0x430   | XL-Density           | xF xG     |      | F101 |       | F103 |                |
 
-Tested boards [incl. STLINK programmers]:
+Tested non-official ST boards [incl. STLINK programmers]:
 
-- STM32VL-Discovery (STM32F100RBT6) with STLINK/V1 [v1], [v2]
-- STM32F103-Bluepill: C8Tx & R8xx [v2]
-- Nucleo-F103RB [v2-1]
 - HY-STM32 (STM32F103VETx) [v1, v2]
 - DecaWave EVB1000 (STM32F105RCTx) [v1, v2]
 
@@ -98,15 +85,6 @@ Tested boards [incl. STLINK programmers]:
 | 0x446   | _N/A_        | xD xE     |      | F302    | F303 |                |
 | 0x446   | _N/A_        | -         |      |         |      | F398           |
 
-Tested boards [incl. STLINK programmers]:
-
-- Nucleo-F302K8 [v2-1]
-- Nucleo-F303K8 [v2-1]
-- Nucleo-F303RE [v2-1]
-- Nucleo-F334R8 [v2-1]
-- STM32F303-Discovery [v2]
-- STM32F3348-Discovery [v2-1]
-
 **STM32F3 / ARM Cortex M4F / Core-ID: 0x2ba01477 (STM32F3c_CORE_ID)**
 
 | Product-Code | Chip-ID | STLINK<br />Programmer | Boards                             |
@@ -134,16 +112,6 @@ Tested boards [incl. STLINK programmers]:
 | 0x463   | STM32F4**13**xx     |
 | 0x463   | STM32F4**23**xx     |
 
-Tested boards [incl. STLINK programmers]:
-
-- Nucleo-F401RE [v2-1]
-- Nucleo-F411RE [v2-1]
-- STM32F407-Discovery [v2]
-- STM32F411E-Discovery with gyro, audio [v2]
-- STM32F413H-Discovery [v2-1]
-- STM32F429I-Discovery with LCD [v2]
-- STM32F439VIT6-Discovery [v2] (reseated MCU)
-
 **STM32F7 / ARM Cortex M7F / Core-ID: 0x5ba02477 (STM32F7_CORE_ID)**
 
 | Chip-ID | Product-Code    |
@@ -155,22 +123,11 @@ Tested boards [incl. STLINK programmers]:
 | 0x451   | STM32F7**6**xxx |
 | 0x451   | STM32F7**7**xxx |
 
-Tested boards [incl. STLINK programmers]:
-
-- Nucleo-F722ZE [v2-1]
-- Nucleo-F746ZG [v2-1]
-- STM32F756NGHx evaluation board [v2-1]
-- STM32F769I-Discovery [v2-1]
-
 **STM32H7 / ARM Cortex M7F / Core-ID: 0x6ba02477 (STM32H7_CORE_ID)**
 
 | Chip-ID | Product-Code   |
 | ------- | -------------- |
 | 0x450   | STM32H74x/H75x |
-
-Tested boards [incl. STLINK programmers]:
-
-- Nucleo-H745I-Q [v3]
 
 **STM32G0 / ARM Cortex M0+ / Core-ID: 0x0bc11477 (STM32G0_CORE_ID)**
 
@@ -203,10 +160,6 @@ Tested boards [incl. STLINK programmers]:
 | 0x447   | STM32L0**7**xxx |
 | 0x447   | STM32L0**8**xxx |
 
-Tested boards [incl. STLINK programmers]:
-
-- Nucleo-L053R8 [v2-1]
-
 **STM32L1 / ARM Cortex M3 / Core-ID: 0x2ba01477 (STM32L1_CORE_ID)**
 
 | Chip-ID | Product-Code     |
@@ -220,11 +173,6 @@ Tested boards [incl. STLINK programmers]:
 | 0x427   | STM32L1xxx**C**  |
 | 0x436   | STM32L1xxx**D**  |
 | 0x437   | STM32L1xxx**E**  |
-
-Tested boards [incl. STLINK programmers]:
-
-- Nucleo-L152RE [v2-1]
-- STM32L152C-Discovery [v2]
 
 **STM32L4 / ARM Cortex M4F / Core-ID: 0x2ba01477 (STM32L4_CORE_ID)**
 
@@ -244,14 +192,6 @@ Tested boards [incl. STLINK programmers]:
 | 0x470   | STM32L4**S**xx  |
 | 0x471   | STM32L4**P5**xx |
 | 0x471   | STM32L4**Q5**xx |
-
-Tested boards [incl. STLINK programmers]:
-
-- Nucleo-L432KC [v2-1]
-- Nucleo-L452RE [v2-1]
-- Nucleo-L476RG [v2-1]
-- Nucleo-L496ZG [v2-1]
-- STM32L4R9I-Discovery [v2-1]
 
 **STM32W / ARM Cortex M3 / Core-ID: 0x2ba01477 (STM32W_CORE_ID)**
 
