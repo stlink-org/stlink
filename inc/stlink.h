@@ -83,6 +83,19 @@ enum target_state {
 #define STLINK_F_HAS_DPBANKSEL          (1 << 8)
 #define STLINK_F_HAS_RW8_512BYTES       (1 << 9)
 
+/* Error code */
+#define STLINK_DEBUG_ERR_OK              0x80
+#define STLINK_DEBUG_ERR_FAULT           0x81
+#define STLINK_DEBUG_ERR_AP_WAIT         0x10
+#define STLINK_DEBUG_ERR_AP_FAULT        0x11
+#define STLINK_DEBUG_ERR_AP_ERROR        0x12
+#define STLINK_DEBUG_ERR_DP_WAIT         0x14
+#define STLINK_DEBUG_ERR_DP_FAULT        0x15
+#define STLINK_DEBUG_ERR_DP_ERROR        0x16
+
+#define CMD_NO_RETRY 0
+#define CMD_USE_RETRY 3
+
 #define C_BUF_LEN 32
 
 enum stlink_flash_type {

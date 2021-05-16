@@ -1443,12 +1443,10 @@ void stlink_close(stlink_t *sl) {
 int stlink_exit_debug_mode(stlink_t *sl) {
   DLOG("*** stlink_exit_debug_mode ***\n");
 
-  if (sl->flash_type != STLINK_FLASH_TYPE_UNKNOWN) {
+  if (sl->flash_type != STLINK_FLASH_TYPE_UNKNOWN && 
+      sl->core_stat != TARGET_RESET) {
     // stop debugging if the target has been identified
-    int ret = stlink_write_debug32(sl, STLINK_REG_DHCSR, STLINK_REG_DHCSR_DBGKEY);
-    if (ret == -1) {
-      return (ret);
-    }
+    stlink_write_debug32(sl, STLINK_REG_DHCSR, STLINK_REG_DHCSR_DBGKEY);
   }
 
   return (sl->backend->exit_debug_mode(sl));
@@ -1684,7 +1682,7 @@ int stlink_load_device_params(stlink_t *sl) {
 }
 
 int stlink_jtag_reset(stlink_t *sl, int value) {
-  DLOG("*** stlink_jtag_reset ***\n");
+  DLOG("*** stlink_jtag_reset %d ***\n", value);
   return (sl->backend->jtag_reset(sl, value));
 }
 
@@ -1768,6 +1766,8 @@ int stlink_reset(stlink_t *sl, enum reset_type type) {
 
   DLOG("*** stlink_reset ***\n");
 
+  sl->core_stat = TARGET_RESET;
+
   if (type == RESET_AUTO) {
     // clear S_RESET_ST in DHCSR register for reset state detection
     stlink_read_debug32(sl, STLINK_REG_DHCSR, &dhcsr);
@@ -1781,9 +1781,7 @@ int stlink_reset(stlink_t *sl, enum reset_type type) {
       usleep(100);
       stlink_jtag_reset(sl, STLINK_DEBUG_APIV2_DRIVE_NRST_HIGH);
     }
-    if (sl->backend->reset(sl)) {
-      return (-1);
-    }
+    sl->backend->reset(sl);
     usleep(10000);
   }
 
@@ -1793,8 +1791,8 @@ int stlink_reset(stlink_t *sl, enum reset_type type) {
      * DDI0337E, p. 10-4, Debug Halting Control and Status Register */
 
     dhcsr = 0;
-    stlink_read_debug32(sl, STLINK_REG_DHCSR, &dhcsr);
-    if ((dhcsr & STLINK_REG_DHCSR_S_RESET_ST) == 0) {
+    int res = stlink_read_debug32(sl, STLINK_REG_DHCSR, &dhcsr);
+    if ((dhcsr & STLINK_REG_DHCSR_S_RESET_ST) == 0 && !res) {
       // reset not done yet
       // try reset through AIRCR so that NRST does not need to be connected
 
@@ -1808,8 +1806,9 @@ int stlink_reset(stlink_t *sl, enum reset_type type) {
     while (time_ms() < timeout) {
       dhcsr = STLINK_REG_DHCSR_S_RESET_ST;
       stlink_read_debug32(sl, STLINK_REG_DHCSR, &dhcsr);
-      if ((dhcsr & STLINK_REG_DHCSR_S_RESET_ST) == 0)
+      if ((dhcsr & STLINK_REG_DHCSR_S_RESET_ST) == 0) {
         return (0);
+      }
     }
 
     return (-1);
