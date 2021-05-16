@@ -4,7 +4,14 @@
 
 Release date: 2021-xx-xx
 
+This release drops support for some older operating systems. Check project README for details.
+Updated system requirements: Raised minimum version for `cmake` to 3.7.2.
+
 Features:
+
+- Support for writing option bytes on STM32F0/F1/F3 ([#346](https://github.com/stlink-org/stlink/pull/346), [#458](https://github.com/stlink-org/stlink/pull/458), [#808](https://github.com/stlink-org/stlink/pull/808), [#1084](https://github.com/stlink-org/stlink/pull/1084), [#1112](https://github.com/stlink-org/stlink/pull/1112))
+- Added chip-IDs for STM32G0B0/G0B1/G0C1/G050/G051/G061 ([#1140](https://github.com/stlink-org/stlink/pull/1140))
+- Added option byte info for STM32F411XX ([#1141](https://github.com/stlink-org/stlink/pull/1141))
 
 Updates & changes:
 

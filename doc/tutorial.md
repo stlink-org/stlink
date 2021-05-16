@@ -4,8 +4,9 @@
 
 | Option                | Tool                               | Description                                                                                                                                                                                                                                                                                                                                                                                                              | Available<br />since |
 | --------------------- | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------- |
-| --flash=n[k][m]       | st-flash                           | One can specify `--flash=128k` for example, to override the default value of 64k for the STM32F103C8T6<br />to assume 128k of flash being present. This option accepts decimal (128k), octal 0200k, or hex 0x80k values.<br />Leaving the multiplier out is equally valid, e.g.: `--flash=0x20000`. The size may be followed by an optional<br />"k" or "m" to multiply the given value by 1k (1024) or 1M respectively. | v1.4.0               |
-| --freq=n[k][m]        | st-info<br />st-flash<br />st-util | The frequency of the SWD/JTAG interface can be specified, to override the default 1800 kHz configuration.<br />This option solely accepts decimal values (5K or 1.8M) with the unit `Hz` being left out. Valid frequencies are:<br />`5K, 15K, 25K, 50K, 100K, 125K, 240K, 480K, 950K, 1200K, 1800K, 4000K(4M)`.                                                                                                         | v1.6.1               |
+| --flash=n[k, M]       | st-flash                           | One can specify `--flash=128k` for example, to override the default value of 64k for the STM32F103C8T6<br />to assume 128k of flash being present. This option accepts decimal (128k), octal 0200k, or hex 0x80k values.<br />Leaving the multiplier out is equally valid, e.g.: `--flash=0x20000`. The size may be followed by an optional<br />"k" or "M" to multiply the given value by 1k (1024) or 1M (1024 x 1024) respectively.<br />One can read arbitary addresses of memory out to a binary file with: `st-flash read out.bin 0x8000000 4096`.<br />In this example `4096 bytes` are read and subsequently written to `out.bin`.<br />Binary files (here: `in.bin`) are written into flash memory with: `st-flash write in.bin 0x8000000` | v1.4.0               |
+| --format | st-flash | Specify file image format to read or write. Valid formats are `binary` and `ihex`. | v1.3.0
+| --freq=n[k, M]        | st-info<br />st-flash<br />st-util | The frequency of the SWD/JTAG interface can be specified, to override the default 1800 kHz configuration.<br />This option solely accepts decimal values with the unit `Hz` being left out. Valid frequencies are:<br />`5k, 15k, 25k, 50k, 100k, 125k, 240k, 480k, 950k, 1200k (1.2M), 1800k (1.8M), 4000k (4M)`.                                                                                                         | v1.6.1               |
 | --opt                 | st-flash                           | Optimisation can be enabled in order to skip flashing empty (0x00 or 0xff) bytes at the end of binary file.<br />This may cause some garbage data left after a flash operation. This option was enabled by default in earlier releases.                                                                                                                                                                                  | v1.6.1               |
 | --reset               | st-flash                           | Trigger a reset after flashing. The default uses the hardware reset through `NRST` pin.<br />A software reset (via `AIRCR`; since v1.5.1) is used, if the hardware reset failed (`NRST` pin not connected).                                                                                                                                                                                                              | v1.0.0               |
 | --connect-under-reset | st-info<br />st-flash<br />st-util | Connect under reset. Option makes it possible to connect to the device before code execution. This is useful<br />when the target contains code that lets the device go to sleep, disables debug pins or other special code.                                                                                                                                                                                             | v1.6.1               |
@@ -14,10 +15,19 @@
 | --version             | st-info<br />st-flash<br />st-util | Print version information.                                                                                                                                                                                                                                                                                                                                                                                               | v1.3.0               |
 | --help                | st-flash<br />st-util              | Print list of available commands.                                                                                                                                                                                                                                                                                                                                                                                        |                      |
 
+### Reading & Writing Option Bytes
+
+Example to read and write option bytes:
+
+```
+./st-flash --debug read option_bytes_dump.bin 0x1FFF7800 4
+./st-flash --debug write option_bytes_dump.bin 0x1FFF7800
+```
+
 ### st-flash: Checksum for binary files
 
 When flashing a file, a checksum is calculated for the binary file, both in md5 and the sum algorithm.
-The latter is also used by the official ST-Link utility tool from STMicroelectronics as described in the document: [`UM0892 - User manual - STM32 ST-LINK utility software description`](https://www.st.com/resource/en/user_manual/cd00262073-stm32-stlink-utility-software-description-stmicroelectronics.pdf).
+The latter is also used by the official ST-LINK utility tool from STMicroelectronics as described in the document: [`UM0892 - User manual STM32 ST-LINK utility software description`](https://www.st.com/resource/en/user_manual/cd00262073-stm32-stlink-utility-software-description-stmicroelectronics.pdf).
 
 ### stlink-gui
 
@@ -95,6 +105,7 @@ In the following you find some hints on how to identify your chip and track down
 
 - [How to Detect STM32 Fakes](https://www.cnx-software.com/2020/03/22/how-to-detect-stm32-fakes/)
 - [Confirmation by STMicroelectronics](https://www.mikrocontroller.net/attachment/442839/couterfeit_STM.png) (Marking: 991KA 93 MYS 807)
+- [STM32 Clones: The Good, The Bad And The Ugly](https://hackaday.com/2020/10/22/stm32-clones-the-good-the-bad-and-the-ugly/)
 
 However it appears that not all counterfeited parts cause problems during operation, but some are known to not even being able to execute a basic "blinky" example binary. Further there can be problems that may not even show up or affect you directly, but somewhen later in time (or maybe never).
 This demonstrates there is no guarantee for a proper working chip with equal functionality compared to the original.
@@ -115,10 +126,6 @@ There are different variants of this message that refer to different issues:
 - `unknown chip id! 0` --> Target chip (board) is unknown.
   1. Microcontroller is in stop/standby mode.
   2. The signals `DIO` and `CLK` are reversed on the SWD-Interface.
-- `unknown chip id! 0x1a` --> _currently unknown_
-- `unknown chip id! 0x001f` --> _currently unknown_
-- `unknown chip id! 0x3e8` --> _currently unknown_
-- `unknown chip id! 0xa05f0000` --> _currently unknown_
 - `unknown chip id! 0x3748` --> A target chip (board) cannot be detected.
   1. No target is connected --> In this case `st-info --probe` displays `chip id 0x0748` with STLINK/V2 and `chip id 0x03e8` with STLINK-V3.
   2. The chip is connected but has gone into an undefined state of operation where the SWD pins are unresponsive. --> Try to use `--connect-under-reset` while pressing the reset button on the target board.
@@ -213,38 +220,6 @@ simply “continue”
 Your program should now be running, and, if you used one of the blinking
 examples from libopencm3, the LEDs on the board should be blinking for
 you.
-
-## Building and flashing a program
-
-If you want to simply flash binary files to arbitrary sections of
-memory, or read arbitary addresses of memory out to a binary file, use
-the st-flash tool, as shown below:
-
-```
-# stlink command to read 4096 from flash into out.bin
-$> ./st-flash read out.bin 0x8000000 4096
-
-# stlinkv command to write the file in.bin into flash
-$> ./st-flash write in.bin 0x8000000
-```
-
-It is also possible to write a hexfile which is more convinient:
-
-```
-$> ./st-flash --format ihex write myapp.hex
-```
-
-####
-
-Of course, you can use this instead of the gdb server, if you prefer.
-Just remember to use the “.bin” image, rather than the .elf file.
-
-```
-# write blink.bin into FLASH
-$> [sudo] ./st-flash write fancy_blink.bin 0x08000000
-```
-
-Upon reset, the board LEDs should be blinking.
 
 ## Using the gdb server
 
@@ -348,26 +323,3 @@ If you would link your executable to `0x08000000` and then do
 ```
 
 then it would be written to the memory.
-
-## Writing Option Bytes
-
-Example to read and write option bytes (currently writing only supported for STM32G0 and STM32L0)
-
-```
-./st-flash --debug --reset --format binary --flash=128k read option_bytes_dump.bin 0x1FFF7800 4
-./st-flash --debug --reset --format binary --flash=128k write option_bytes_dump.bin 0x1FFF7800
-```
-
-# FAQ
-
-Q: My breakpoints do not work at all or only work once.
-
-A: Optimizations can cause severe instruction reordering. For example, if you are doing something like `REG = 0x100;' in a loop, the code may be split into two parts: loading 0x100 into some intermediate register and moving that value to REG. When you set up a breakpoint, GDB will hook to the first instruction, which may be called only once if there are enough unused registers. In my experience, -O3 causes that frequently.
-
-Q: At some point I use GDB command `next', and it hangs.
-
-A: Sometimes when you will try to use GDB `next` command to skip a loop, it will use a rather inefficient single-stepping way of doing that. Set up a breakpoint manually in that case and do `continue`.
-
-Q: Load command does not work in GDB.
-
-A: Some people report XML/EXPAT is not enabled by default when compiling GDB. Memory map parsing thus fail. Use --enable-expat.

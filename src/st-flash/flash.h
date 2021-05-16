@@ -23,9 +23,9 @@ struct flash_opts {
     enum flash_format format;
     enum flash_area area;
     uint32_t val;
-    size_t flash_size;  // --flash=n[k][m]
+    size_t flash_size;  // --flash=n[k, M]
     int opt;            // enable empty tail data drop optimization
-    int freq;           // --freq=n[k][m] frequency of JTAG/SWD
+    int freq;           // --freq=n[k, M] frequency of JTAG/SWD
     enum connect_type connect;
 };
 
