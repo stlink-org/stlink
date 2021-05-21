@@ -89,6 +89,7 @@ Fixes:
 - Fixed STM32WB55 reading DEBUG IDCODE from the wrong address ([#1100](https://github.com/stlink-org/stlink/pull/1100), [#1101](https://github.com/stlink-org/stlink/pull/1101))
 - Applied missing changes to tests ([#1119](https://github.com/stlink-org/stlink/pull/1119))
 - Improvements for Chip_ID read ([#1008](https://github.com/stlink-org/stlink/pull/1008), [#1120](https://github.com/stlink-org/stlink/pull/1120))
+- Fixed reading of chip ID on Cortex-M0+ core ([#1017](https://github.com/stlink-org/stlink/pull/1017), [#1125](https://github.com/stlink-org/stlink/pull/1125), [#1126](https://github.com/stlink-org/stlink/pull/1126), [#1133](https://github.com/stlink-org/stlink/pull/1133))
 
 # v1.6.1
 
@@ -186,7 +187,6 @@ Fixes:
 - Set static link for `libssp` (stack-smashing protection) ([#960](https://github.com/stlink-org/stlink/pull/960), [#961](https://github.com/stlink-org/stlink/pull/961))
 - Fixed udev rules installing to wrong directory ([#966](https://github.com/stlink-org/stlink/pull/966))
 - Fixed formatting for options display in `st-flash` & `st-info` (commits [#c783d0e](https://github.com/stlink-org/stlink/commit/c783d0e777ccc83a7a8be26a4f4d3414e0478560) and [#562cd24](https://github.com/stlink-org/stlink/commit/562cd2496e696dbd22950925866aac662d81ee5f))
-- Fixed reading of chip ID on Cortex-M0+ core ([#1125](https://github.com/stlink-org/stlink/pull/1125), [#1126](https://github.com/stlink-org/stlink/pull/1126), [#1133](https://github.com/stlink-org/stlink/pull/1133))
 
 # v1.6.0
 
