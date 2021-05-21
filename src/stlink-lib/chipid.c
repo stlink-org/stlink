@@ -647,7 +647,7 @@ static const struct stlink_chipid_params devices[] = {
     {
         // STM32L011
         .chip_id = STLINK_CHIPID_STM32_L011,
-        .description = "L011",
+        .description = "L01x/L02x",
         .flash_type = STLINK_FLASH_TYPE_L0,
         .flash_size_reg = 0x1ff8007c,
         .flash_pagesize = 0x80,

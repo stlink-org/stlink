@@ -30,7 +30,7 @@ jobs:
 
     - os: osx
       env: BADGE=osx
-      osx_image: xcode10.3
+      osx_image: xcode10.3 # xcode11.3 to xcode11.3.1 fail to compile
       name: macOS 10.14.4 gcc
       compiler: gcc
       addons:
@@ -42,7 +42,7 @@ jobs:
 
     - os: osx
       env: BADGE=osx
-      osx_image: xcode10.3
+      osx_image: xcode10.3 # xcode11.3 to xcode11.3.1 fail to compile
       name: macOS 10.14.4 gcc 32-bit
       compiler: gcc
       addons:
@@ -56,7 +56,7 @@ jobs:
 
     - os: osx
       env: BADGE=osx
-      osx_image: xcode10.3
+      osx_image: xcode10.3 # xcode11.3 to xcode11.3.1 fail to compile
       name: macOS 10.14.4 clang
       compiler: clang
       addons:
@@ -68,9 +68,9 @@ jobs:
 
     - os: osx
       env: BADGE=osx
-      osx_image: xcode10.3
+      osx_image: xcode10.3 # xcode11.3 to xcode11.3.1 fail to compile
       name: macOS 10.14.4 clang 32-bit
-      compiler: gcc
+      compiler: clang
       addons:
         homebrew:
           packages:
@@ -79,6 +79,30 @@ jobs:
             - gtk+3
       before_install:
         - CFLAGS="$CFLAGS -m32"; CXXFLAGS="$CXXFLAGS -m32"; LDFLAGS="$LDFLAGS -m32";
+
+    - os: osx
+      env: BADGE=osx
+      osx_image: xcode12.5
+      name: macOS 11.3 gcc
+      compiler: gcc
+      addons:
+        homebrew:
+          packages:
+            - gcc
+            - libusb
+            - gtk+3
+
+    - os: osx
+      env: BADGE=osx
+      osx_image: xcode12.5
+      name: macOS 11.3 clang
+      compiler: clang
+      addons:
+        homebrew:
+          packages:
+            - clang
+            - libusb
+            - gtk+3
 
 script:
   - git fetch --tags
