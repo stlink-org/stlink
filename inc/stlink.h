@@ -86,6 +86,8 @@ enum target_state {
 /* Error code */
 #define STLINK_DEBUG_ERR_OK              0x80
 #define STLINK_DEBUG_ERR_FAULT           0x81
+#define STLINK_DEBUG_ERR_WRITE           0x0c
+#define STLINK_DEBUG_ERR_WRITE_VERIFY    0x0d
 #define STLINK_DEBUG_ERR_AP_WAIT         0x10
 #define STLINK_DEBUG_ERR_AP_FAULT        0x11
 #define STLINK_DEBUG_ERR_AP_ERROR        0x12
@@ -93,8 +95,10 @@ enum target_state {
 #define STLINK_DEBUG_ERR_DP_FAULT        0x15
 #define STLINK_DEBUG_ERR_DP_ERROR        0x16
 
-#define CMD_NO_RETRY 0
-#define CMD_USE_RETRY 3
+#define CMD_CHECK_NO         0
+#define CMD_CHECK_REP_LEN    1
+#define CMD_CHECK_STATUS     2
+#define CMD_CHECK_RETRY      3 /* check status and retry if wait error */
 
 #define C_BUF_LEN 32
 

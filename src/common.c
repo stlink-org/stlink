@@ -2301,9 +2301,6 @@ static void stlink_checksum(mapped_file_t *mp) {
 
 static void stlink_fwrite_finalize(stlink_t *sl, stm32_addr_t addr) {
   unsigned int val;
-  // set stack
-  stlink_read_debug32(sl, addr, &val);
-  stlink_write_reg(sl, val, 13);
   // set PC to the reset routine
   stlink_read_debug32(sl, addr + 4, &val);
   stlink_write_reg(sl, val, 15);

@@ -85,55 +85,61 @@ void _stlink_usb_close(stlink_t* sl) {
 
 ssize_t send_recv(struct stlink_libusb* handle, int terminate,
                   unsigned char* txbuf, size_t txsize, unsigned char* rxbuf, 
-                  size_t rxsize, bool check_error, int retry_cnt) {
+                  size_t rxsize, int check_error, const char *cmd) {
     // Note: txbuf and rxbuf can point to the same area
     int res, t, retry = 0;
-    int cmd = read_uint16(txbuf, (handle->protocoll == 1)?15:0);
 
     while (1) {
         res = 0;
         t = libusb_bulk_transfer(handle->usb_handle, handle->ep_req, txbuf, (int)txsize, &res, 3000);
 
         if (t) {
-            ELOG("[!] send_recv send request failed: %s (command 0x%02X)\n", libusb_error_name(t), cmd);
+            ELOG("%s send request failed: %s\n", cmd, libusb_error_name(t));
             return(-1);
         } else if ((size_t)res != txsize) {
-            ELOG("[!] send_recv send request wrote %u bytes, instead of %u (command 0x%02X)\n",
-                   (unsigned int)res, (unsigned int)txsize, cmd);
+            ELOG("%s send request wrote %u bytes, instead of %u\n",
+                   cmd, (unsigned int)res, (unsigned int)txsize);
         }
 
         if (rxsize != 0) {
             t = libusb_bulk_transfer(handle->usb_handle, handle->ep_rep, rxbuf, (int)rxsize, &res, 3000);
 
             if (t) {
-                ELOG("[!] send_recv read reply failed: %s (command 0x%02X)\n", libusb_error_name(t), cmd);
+                ELOG("%s read reply failed: %s\n", cmd, libusb_error_name(t));
                 return(-1);
             }
 
             /* Checking the command execution status stored in the first byte of the response */
-            if (handle->protocoll != 1 && check_error && 
+            if (handle->protocoll != 1 && check_error >= CMD_CHECK_STATUS && 
                         rxbuf[0] != STLINK_DEBUG_ERR_OK) {
                 switch(rxbuf[0]) {
                 case STLINK_DEBUG_ERR_AP_WAIT:
                 case STLINK_DEBUG_ERR_DP_WAIT:
-                    if (retry < retry_cnt) {
+                    if (check_error == CMD_CHECK_RETRY && retry < 3) {
                         unsigned int delay_us = (1<<retry) * 1000;
-                        DLOG("I/O: wait error (0x%02X) of command (0x%02X), delaying %u us and retry\n", rxbuf[0], cmd, delay_us);
+                        DLOG("%s wait error (0x%02X), delaying %u us and retry\n", cmd, rxbuf[0], delay_us);
                         usleep(delay_us);
                         retry++;
                         continue;
                     }
-                    DLOG("I/O: wait error (0x%02X) of command (0x%02X)\n", rxbuf[0], cmd);
+                    WLOG("%s wait error (0x%02X)\n", cmd, rxbuf[0]);
                     break;
-                case STLINK_DEBUG_ERR_FAULT: DLOG("I/O: response fault of command (0x%02X)\n", txbuf[1]); break;
-                case STLINK_DEBUG_ERR_AP_FAULT:
-                case STLINK_DEBUG_ERR_DP_FAULT: DLOG("I/O: fault status (0x%02X) of command (0x%02X)\n", rxbuf[0], cmd); break;
-                case STLINK_DEBUG_ERR_AP_ERROR:
-                case STLINK_DEBUG_ERR_DP_ERROR: DLOG("I/O: error status (0x%02X) of command (0x%02X)\n", rxbuf[0], cmd); break;
-                default: DLOG("I/O: error 0x%02X of command (0x%02X)\n", rxbuf[0], cmd); break;
+                case STLINK_DEBUG_ERR_FAULT: WLOG("%s response fault\n", cmd); break;
+                case STLINK_DEBUG_ERR_AP_FAULT: WLOG("%s access port fault\n", cmd); break;
+                case STLINK_DEBUG_ERR_DP_FAULT: WLOG("%s debug port fault\n", cmd); break;
+                case STLINK_DEBUG_ERR_AP_ERROR: WLOG("%s access port error\n", cmd); break;
+                case STLINK_DEBUG_ERR_DP_ERROR: WLOG("%s debug port error\n", cmd); break;
+                case STLINK_DEBUG_ERR_WRITE_VERIFY:  WLOG("%s verification error\n", cmd); break;
+                case STLINK_DEBUG_ERR_WRITE:  WLOG("%s write error\n", cmd); break;
+                default: WLOG("%s error (0x%02X)\n", cmd, rxbuf[0]); break;
                 }
 
                 return(-1);
+            }
+
+            if (check_error == CMD_CHECK_REP_LEN && res != (int)rxsize) {
+                ELOG("%s wrong reply length\n", cmd);
+                res = -1;
             }
         }
 
@@ -143,7 +149,7 @@ ssize_t send_recv(struct stlink_libusb* handle, int terminate,
             t = libusb_bulk_transfer(handle->usb_handle, handle->ep_rep, sg_buf, 13, &res, 3000);
 
             if (t) {
-                ELOG("[!] send_recv read storage failed: %s (command 0x%02X)\n", libusb_error_name(t), cmd);
+                ELOG("stlink: %s read storage failed: %s\n", cmd, libusb_error_name(t));
                 return(-1);
             }
 
@@ -156,8 +162,9 @@ ssize_t send_recv(struct stlink_libusb* handle, int terminate,
 }
 
 static inline int send_only(struct stlink_libusb* handle, int terminate,
-                            unsigned char* txbuf, size_t txsize) {
-    return((int)send_recv(handle, terminate, txbuf, txsize, NULL, 0, false, CMD_NO_RETRY));
+                            unsigned char* txbuf, size_t txsize,
+                            const char *cmd) {
+    return((int)send_recv(handle, terminate, txbuf, txsize, NULL, 0, CMD_CHECK_NO, cmd));
 }
 
 
@@ -201,12 +208,9 @@ int _stlink_usb_version(stlink_t *sl) {
         cmd[i++] = STLINK_GET_VERSION;
     }
 
-    size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len, false, CMD_USE_RETRY);
-    if (size != (ssize_t)rep_len) {
-        return((int)size);
-    }
+    size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len, CMD_CHECK_REP_LEN, "GET_VERSION");
 
-    return(0);
+    return(size<0?-1:0);
 }
 
 int32_t _stlink_usb_target_voltage(stlink_t *sl) {
@@ -221,12 +225,9 @@ int32_t _stlink_usb_target_voltage(stlink_t *sl) {
 
     cmd[i++] = STLINK_GET_TARGET_VOLTAGE;
 
-    size = send_recv(slu, 1, cmd, slu->cmd_len, rdata, rep_len, false, CMD_NO_RETRY);
+    size = send_recv(slu, 1, cmd, slu->cmd_len, rdata, rep_len, CMD_CHECK_REP_LEN, "GET_TARGET_VOLTAGE");
 
     if (size < 0) {
-        return(-1);
-    } else if (size != 8) {
-        printf("[!] wrong length STLINK_GET_TARGET_VOLTAGE\n");
         return(-1);
     }
 
@@ -248,10 +249,10 @@ int _stlink_usb_read_debug32(stlink_t *sl, uint32_t addr, uint32_t *data) {
     cmd[i++] = STLINK_DEBUG_COMMAND;
     cmd[i++] = STLINK_DEBUG_APIV2_READDEBUGREG;
     write_uint32(&cmd[i], addr);
-    size = send_recv(slu, 1, cmd, slu->cmd_len, rdata, rep_len, true, CMD_USE_RETRY);
+    size = send_recv(slu, 1, cmd, slu->cmd_len, rdata, rep_len, CMD_CHECK_RETRY, "READDEBUGREG");
 
     if (size < 0) {
-        return((int)size);
+        return(-1);
     }
 
     *data = read_uint32(rdata, 4);
@@ -271,13 +272,9 @@ int _stlink_usb_write_debug32(stlink_t *sl, uint32_t addr, uint32_t data) {
     cmd[i++] = STLINK_DEBUG_APIV2_WRITEDEBUGREG;
     write_uint32(&cmd[i], addr);
     write_uint32(&cmd[i + 4], data);
-    size = send_recv(slu, 1, cmd, slu->cmd_len, rdata, rep_len, true, CMD_USE_RETRY);
+    size = send_recv(slu, 1, cmd, slu->cmd_len, rdata, rep_len, CMD_CHECK_RETRY, "WRITEDEBUGREG");
 
-    if (size < 0) {
-        return((int)size);
-    }
-
-    return(0);
+    return(size<0?-1:0);
 }
 
 int _stlink_usb_get_rw_status(stlink_t *sl) {
@@ -294,15 +291,13 @@ int _stlink_usb_get_rw_status(stlink_t *sl) {
 
     if (sl->version.flags & STLINK_F_HAS_GETLASTRWSTATUS2) {
         cmd[i++] = STLINK_DEBUG_APIV2_GETLASTRWSTATUS2;
-        ret = send_recv(slu, 1, cmd, slu->cmd_len, rdata, 12, true, CMD_NO_RETRY);
+        ret = send_recv(slu, 1, cmd, slu->cmd_len, rdata, 12, CMD_CHECK_STATUS, "GETLASTRWSTATUS2");
     } else {
         cmd[i++] = STLINK_DEBUG_APIV2_GETLASTRWSTATUS;
-        ret = send_recv(slu, 1, cmd, slu->cmd_len, rdata, 2, true, CMD_NO_RETRY);
+        ret = send_recv(slu, 1, cmd, slu->cmd_len, rdata, 2, CMD_CHECK_STATUS, "GETLASTRWSTATUS");
     }
 
-    if (ret < 0) { return(-1); }
-
-    return(0);
+    return(ret<0?-1:0);
 }
 
 int _stlink_usb_write_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
@@ -316,11 +311,11 @@ int _stlink_usb_write_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
     cmd[i++] = STLINK_DEBUG_WRITEMEM_32BIT;
     write_uint32(&cmd[i], addr);
     write_uint16(&cmd[i + 4], len);
-    ret = send_only(slu, 0, cmd, slu->cmd_len);
+    ret = send_only(slu, 0, cmd, slu->cmd_len, "WRITEMEM_32BIT");
 
     if (ret == -1) { return(ret); }
 
-    ret = send_only(slu, 1, data, len);
+    ret = send_only(slu, 1, data, len, "WRITEMEM_32BIT");
 
     if (ret == -1) { return(ret); }
 
@@ -338,11 +333,11 @@ int _stlink_usb_write_mem8(stlink_t *sl, uint32_t addr, uint16_t len) {
     cmd[i++] = STLINK_DEBUG_WRITEMEM_8BIT;
     write_uint32(&cmd[i], addr);
     write_uint16(&cmd[i + 4], len);
-    ret = send_only(slu, 0, cmd, slu->cmd_len);
+    ret = send_only(slu, 0, cmd, slu->cmd_len, "WRITEMEM_32BIT");
 
     if (ret == -1) { return(ret); }
 
-    ret = send_only(slu, 1, data, len);
+    ret = send_only(slu, 1, data, len, "WRITEMEM_32BIT");
 
     if (ret == -1) { return(ret); }
 
@@ -359,7 +354,7 @@ int _stlink_usb_current_mode(stlink_t * sl) {
     int i = fill_command(sl, SG_DXFER_FROM_DEV, rep_len);
 
     cmd[i++] = STLINK_GET_CURRENT_MODE;
-    size = send_recv(slu, 1, cmd,  slu->cmd_len, data, rep_len, false, CMD_NO_RETRY);
+    size = send_recv(slu, 1, cmd,  slu->cmd_len, data, rep_len, CMD_CHECK_NO, "GET_CURRENT_MODE");
 
     if (size < 0) {
         return(-1);
@@ -386,7 +381,7 @@ int _stlink_usb_core_id(stlink_t * sl) {
         offset = 4;
     }
 
-    size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len, true, CMD_NO_RETRY);
+    size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len, CMD_CHECK_STATUS, "READ_IDCODES");
 
     if (size < 0) {
         return(-1);
@@ -431,15 +426,9 @@ int _stlink_usb_status(stlink_t * sl) {
 
     cmd[i++] = STLINK_DEBUG_COMMAND;
     cmd[i++] = STLINK_DEBUG_GETSTATUS;
-    size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len, false, CMD_NO_RETRY);
+    size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len, CMD_CHECK_NO, "GETSTATUS");
 
-    if (size < 0) {
-        return((int)size);
-    }
-
-    sl->q_len = (int)size;
-
-    if (sl->q_len > 1) {
+    if (size > 1) {
         if (sl->q_buf[0] == STLINK_CORE_RUNNING) {
             sl->core_stat = TARGET_RUNNING;
         } else if (sl->q_buf[0] == STLINK_CORE_HALTED) {
@@ -451,7 +440,7 @@ int _stlink_usb_status(stlink_t * sl) {
         sl->core_stat = TARGET_UNKNOWN;
     }
 
-    return(0);
+    return(size<0?-1:0);
 }
 
 int _stlink_usb_force_debug(stlink_t *sl) {
@@ -472,13 +461,9 @@ int _stlink_usb_force_debug(stlink_t *sl) {
 
     cmd[i++] = STLINK_DEBUG_COMMAND;
     cmd[i++] = STLINK_DEBUG_FORCEDEBUG;
-    size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len, true, CMD_USE_RETRY);
+    size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len, CMD_CHECK_RETRY, "FORCEDEBUG");
 
-    if (size < 0) {
-        return((int)size);
-    }
-
-    return(0);
+    return(size<0?-1:0);
 }
 
 int _stlink_usb_enter_swd_mode(stlink_t * sl) {
@@ -493,13 +478,9 @@ int _stlink_usb_enter_swd_mode(stlink_t * sl) {
     // select correct API-Version for entering SWD mode: V1 API (0x20) or V2 API (0x30).
     cmd[i++] = sl->version.jtag_api == STLINK_JTAG_API_V1 ? STLINK_DEBUG_APIV1_ENTER : STLINK_DEBUG_APIV2_ENTER;
     cmd[i++] = STLINK_DEBUG_ENTER_SWD;
-    size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len, true, CMD_USE_RETRY);
+    size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len, CMD_CHECK_RETRY, "ENTER_SWD");
 
-    if (size < 0) {
-        return((int)size);
-    }
-
-    return(0);
+    return(size<0?-1:0);
 }
 
 int _stlink_usb_exit_dfu_mode(stlink_t* sl) {
@@ -510,14 +491,9 @@ int _stlink_usb_exit_dfu_mode(stlink_t* sl) {
 
     cmd[i++] = STLINK_DFU_COMMAND;
     cmd[i++] = STLINK_DFU_EXIT;
-    size = send_only(slu, 1, cmd, slu->cmd_len);
+    size = send_only(slu, 1, cmd, slu->cmd_len, "DFU_EXIT");
 
-    if (size == -1) {
-        printf("[!] send_recv STLINK_DFU_EXIT\n");
-        return((int)size);
-    }
-
-    return(0);
+    return(size<0?-1:0);
 }
 
 
@@ -538,13 +514,9 @@ int _stlink_usb_reset(stlink_t * sl) {
         cmd[i++] = STLINK_DEBUG_APIV2_RESETSYS;
     }
 
-    size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len, true, CMD_USE_RETRY);
+    size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len, CMD_CHECK_RETRY, "RESETSYS");
 
-    if (size < 0) {
-        return((int)size);
-    }
-
-    return(0);
+    return(size<0?-1:0);
 }
 
 int _stlink_usb_jtag_reset(stlink_t * sl, int value) {
@@ -558,13 +530,9 @@ int _stlink_usb_jtag_reset(stlink_t * sl, int value) {
     cmd[i++] = STLINK_DEBUG_COMMAND;
     cmd[i++] = STLINK_DEBUG_APIV2_DRIVE_NRST;
     cmd[i++] = value;
-    size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len, true, CMD_USE_RETRY);
+    size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len, CMD_CHECK_RETRY, "DRIVE_NRST");
 
-    if (size < 0) {
-        return((int)size);
-    }
-
-    return(0);
+    return(size<0?-1:0);
 }
 
 
@@ -589,13 +557,9 @@ int _stlink_usb_step(stlink_t* sl) {
 
     cmd[i++] = STLINK_DEBUG_COMMAND;
     cmd[i++] = STLINK_DEBUG_STEPCORE;
-    size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len, true, CMD_USE_RETRY);
+    size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len, CMD_CHECK_RETRY, "STEPCORE");
 
-    if (size < 0) {
-        return((int)size);
-    }
-
-    return(0);
+    return(size<0?-1:0);
 }
 
 /**
@@ -624,13 +588,9 @@ int _stlink_usb_run(stlink_t* sl, enum run_type type) {
 
     cmd[i++] = STLINK_DEBUG_COMMAND;
     cmd[i++] = STLINK_DEBUG_RUNCORE;
-    size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len, true, CMD_USE_RETRY);
+    size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len, CMD_CHECK_RETRY, "RUNCORE");
 
-    if (size < 0) {
-        return((int)size);
-    }
-
-    return(0);
+    return(size<0?-1:0);
 }
 
 int _stlink_usb_set_swdclk(stlink_t* sl, int clk_freq) {
@@ -671,13 +631,9 @@ int _stlink_usb_set_swdclk(stlink_t* sl, int clk_freq) {
         cmd[i++] = STLINK_DEBUG_APIV2_SWD_SET_FREQ;
         cmd[i++] = clk_divisor & 0xFF;
         cmd[i++] = (clk_divisor >> 8) & 0xFF;
-        size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len, true, CMD_USE_RETRY);
+        size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len, CMD_CHECK_RETRY, "SWD_SET_FREQ");
 
-        if (size < 0) {
-            return((int)size);
-        }
-
-        return(0);
+        return(size<0?-1:0);
     } else if (sl->version.stlink_v == 3) {
         int speed_index;
         uint32_t map[STLINK_V3_MAX_FREQ_NB];
@@ -686,10 +642,10 @@ int _stlink_usb_set_swdclk(stlink_t* sl, int clk_freq) {
         cmd[i++] = STLINK_DEBUG_COMMAND;
         cmd[i++] = STLINK_DEBUG_APIV3_GET_COM_FREQ;
         cmd[i++] = 0; // SWD mode
-        size = send_recv(slu, 1, cmd, slu->cmd_len, data, 52, true, CMD_NO_RETRY);
+        size = send_recv(slu, 1, cmd, slu->cmd_len, data, 52, CMD_CHECK_STATUS, "GET_COM_FREQ");
 
         if (size < 0) {
-            return((int)size);
+            return(-1);
         }
 
         int speeds_size = data[8];
@@ -716,13 +672,9 @@ int _stlink_usb_set_swdclk(stlink_t* sl, int clk_freq) {
         cmd[i++] = (uint8_t)((map[speed_index] >> 16) & 0xFF);
         cmd[i++] = (uint8_t)((map[speed_index] >> 24) & 0xFF);
 
-        size = send_recv(slu, 1, cmd, slu->cmd_len, data, 8, true, CMD_NO_RETRY);
+        size = send_recv(slu, 1, cmd, slu->cmd_len, data, 8, CMD_CHECK_STATUS, "SET_COM_FREQ");
 
-        if (size < 0) {
-            return((int)size);
-        }
-
-        return(0);
+        return(size<0?-1:0);
     } else if (clk_freq) {
         WLOG("ST-Link firmware does not support frequency setup\n");
     }
@@ -739,14 +691,9 @@ int _stlink_usb_exit_debug_mode(stlink_t *sl) {
     cmd[i++] = STLINK_DEBUG_COMMAND;
     cmd[i++] = STLINK_DEBUG_EXIT;
 
-    size = send_only(slu, 1, cmd, slu->cmd_len);
+    size = send_only(slu, 1, cmd, slu->cmd_len, "DEBUG_EXIT");
 
-    if (size == -1) {
-        printf("[!] send_only STLINK_DEBUG_EXIT\n");
-        return((int)size);
-    }
-
-    return(0);
+    return(size<0?-1:0);
 }
 
 int _stlink_usb_read_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
@@ -760,10 +707,10 @@ int _stlink_usb_read_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
     cmd[i++] = STLINK_DEBUG_READMEM_32BIT;
     write_uint32(&cmd[i], addr);
     write_uint16(&cmd[i + 4], len);
-    size = send_recv(slu, 1, cmd, slu->cmd_len, data, len, false, CMD_NO_RETRY);
+    size = send_recv(slu, 1, cmd, slu->cmd_len, data, len, CMD_CHECK_NO, "READMEM_32BIT");
 
     if (size < 0) {
-        return((int)size);
+        return(-1);
     }
 
     sl->q_len = (int)size;
@@ -788,10 +735,10 @@ int _stlink_usb_read_all_regs(stlink_t *sl, struct stlink_reg *regp) {
         cmd[i++] = STLINK_DEBUG_APIV2_READALLREGS;
     }
 
-    size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len, true, CMD_NO_RETRY);
+    size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len, CMD_CHECK_STATUS, "READALLREGS");
 
     if (size < 0) {
-        return((int)size);
+        return(-1);
     }
 
     /* V1: regs data from offset 0 */
@@ -838,10 +785,10 @@ int _stlink_usb_read_reg(stlink_t *sl, int r_idx, struct stlink_reg *regp) {
     }
 
     cmd[i++] = (uint8_t)r_idx;
-    size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len, true, CMD_USE_RETRY);
+    size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len, CMD_CHECK_RETRY, "READREG");
 
     if (size < 0) {
-        return((int)size);
+        return(-1);
     }
 
     sl->q_len = (int)size;
@@ -1004,16 +951,9 @@ int _stlink_usb_write_reg(stlink_t *sl, uint32_t reg, int idx) {
 
     cmd[i++] = idx;
     write_uint32(&cmd[i], reg);
-    size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len, true, CMD_USE_RETRY);
+    size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len, CMD_CHECK_RETRY, "WRITEREG");
 
-    if (size < 0) {
-        return((int)size);
-    }
-
-    sl->q_len = (int)size;
-    stlink_print_data(sl);
-
-    return(0);
+    return(size<0?-1:0);
 }
 
 int _stlink_usb_enable_trace(stlink_t* sl, uint32_t frequency) {
@@ -1029,16 +969,9 @@ int _stlink_usb_enable_trace(stlink_t* sl, uint32_t frequency) {
     write_uint16(&cmd[i + 0], 2 * STLINK_TRACE_BUF_LEN);
     write_uint32(&cmd[i + 2], frequency);
 
-    size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len, true, CMD_NO_RETRY);
+    size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len, CMD_CHECK_STATUS, "START_TRACE_RX");
 
-    if (size < 0) {
-        return((int)size);
-    }
-
-    sl->q_len = (int)size;
-    stlink_print_data(sl);
-
-    return(0);
+    return(size<0?-1:0);
 }
 
 int _stlink_usb_disable_trace(stlink_t* sl) {
@@ -1052,16 +985,9 @@ int _stlink_usb_disable_trace(stlink_t* sl) {
     cmd[i++] = STLINK_DEBUG_COMMAND;
     cmd[i++] = STLINK_DEBUG_APIV2_STOP_TRACE_RX;
 
-    size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len, true, CMD_NO_RETRY);
+    size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len, CMD_CHECK_STATUS, "STOP_TRACE_RX");
 
-    if (size < 0) {
-        return((int)size);
-    }
-
-    sl->q_len = (int)size;
-    stlink_print_data(sl);
-
-    return(0);
+    return(size<0?-1:0);
 }
 
 int _stlink_usb_read_trace(stlink_t* sl, uint8_t* buf, size_t size) {
@@ -1073,13 +999,13 @@ int _stlink_usb_read_trace(stlink_t* sl, uint8_t* buf, size_t size) {
 
     cmd[i++] = STLINK_DEBUG_COMMAND;
     cmd[i++] = STLINK_DEBUG_APIV2_GET_TRACE_NB;
-    ssize_t send_size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len, false, CMD_NO_RETRY);
+    ssize_t send_size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len, CMD_CHECK_NO, "GET_TRACE_NB");
 
     if (send_size < 0) {
-        return((int)send_size);
+        return(-1);
     } else if (send_size != 2) {
         ELOG("STLINK_DEBUG_APIV2_GET_TRACE_NB reply size %d\n", (int)send_size);
-        return -1;
+        return(-1);
     }
 
     uint16_t trace_count = read_uint16(sl->q_buf, 0);
