@@ -1,8 +1,8 @@
-# Chipid file for F3xx small
+# Chip-ID file for F3xx small
 #
 chip_id 439
 description F3xx small
-flash_type  1
+flash_type 1
 flash_pagesize 800
 sram_size a000
 bootrom_base 1fffd800

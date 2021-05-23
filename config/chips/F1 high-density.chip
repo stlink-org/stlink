@@ -1,8 +1,8 @@
-# Chipid file for F1xx High-density
+# Chip-ID file for F1 high-density
 #
 chip_id 414
-description F1xx High-density
-flash_type  1
+description F1 high-density
+flash_type 1
 flash_pagesize 800
 sram_size 10000
 bootrom_base 1ffff000

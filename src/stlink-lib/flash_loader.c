@@ -19,44 +19,33 @@
 /* flashloaders/stm32f0.s -- compiled with thumb2 */
 static const uint8_t loader_code_stm32vl[] = {
     0x00, 0xbf, 0x00, 0xbf,
-    0x0e, 0x4f, 0x1f, 0x44,
-    0x0e, 0x4e, 0x3e, 0x44,
-    0x0e, 0x4d, 0x3d, 0x44,
-    0x4f, 0xf0, 0x01, 0x04,
-    0x34, 0x60, 0x04, 0x88,
-    0x0c, 0x80, 0x02, 0x30,
-    0x02, 0x31, 0x4f, 0xf0,
-    0x01, 0x07, 0x2c, 0x68,
-    0x3c, 0x42, 0xfc, 0xd1,
-    0x4f, 0xf0, 0x14, 0x07,
-    0x3c, 0x42, 0x01, 0xd1,
-    0x02, 0x3a, 0xf0, 0xdc,
+    0x09, 0x4f, 0x1f, 0x44,
+    0x09, 0x4d, 0x3d, 0x44,
+    0x04, 0x88, 0x0c, 0x80,
+    0x02, 0x30, 0x02, 0x31,
     0x4f, 0xf0, 0x01, 0x07,
-    0x34, 0x68, 0xbc, 0x43,
-    0x34, 0x60, 0x00, 0xbe,
+    0x2c, 0x68, 0x3c, 0x42,
+    0xfc, 0xd1, 0x4f, 0xf0,
+    0x14, 0x07, 0x3c, 0x42,
+    0x01, 0xd1, 0x02, 0x3a,
+    0xf0, 0xdc, 0x00, 0xbe,
     0x00, 0x20, 0x02, 0x40,
-    0x10, 0x00, 0x00, 0x00,
     0x0c, 0x00, 0x00, 0x00
 };
 
 /* flashloaders/stm32f0.s -- thumb1 only, same sequence as for STM32VL, bank ignored */
 static const uint8_t loader_code_stm32f0[] = {
     0xc0, 0x46, 0xc0, 0x46,
-    0x0c, 0x4f, 0x1f, 0x44,
-    0x0c, 0x4e, 0x3e, 0x44,
-    0x0c, 0x4d, 0x3d, 0x44,
-    0x0c, 0x4c, 0x34, 0x60,
+    0x08, 0x4f, 0x1f, 0x44,
+    0x08, 0x4d, 0x3d, 0x44,
     0x04, 0x88, 0x0c, 0x80,
     0x02, 0x30, 0x02, 0x31,
-    0x09, 0x4f, 0x2c, 0x68,
+    0x06, 0x4f, 0x2c, 0x68,
     0x3c, 0x42, 0xfc, 0xd1,
-    0x08, 0x4f, 0x3c, 0x42,
+    0x05, 0x4f, 0x3c, 0x42,
     0x01, 0xd1, 0x02, 0x3a,
-    0xf2, 0xdc, 0x05, 0x4f,
-    0x34, 0x68, 0xbc, 0x43,
-    0x34, 0x60, 0x00, 0xbe,
+    0xf2, 0xdc, 0x00, 0xbe,
     0x00, 0x20, 0x02, 0x40,
-    0x10, 0x00, 0x00, 0x00,
     0x0c, 0x00, 0x00, 0x00,
     0x01, 0x00, 0x00, 0x00,
     0x14, 0x00, 0x00, 0x00
@@ -159,6 +148,17 @@ int stlink_flash_loader_init(stlink_t *sl, flash_loader_t *fl) {
     size_t size = 0;
     uint32_t dfsr, cfsr, hfsr;
 
+    /* Interrupt masking.
+     * According to DDI0419C, Table C1-7 firstly force halt */
+    stlink_write_debug32(sl, STLINK_REG_DHCSR,
+                           STLINK_REG_DHCSR_DBGKEY | STLINK_REG_DHCSR_C_DEBUGEN |
+                           STLINK_REG_DHCSR_C_HALT);
+    /* and only then disable interrupts */
+    stlink_write_debug32(sl, STLINK_REG_DHCSR,
+                           STLINK_REG_DHCSR_DBGKEY | STLINK_REG_DHCSR_C_DEBUGEN |
+                           STLINK_REG_DHCSR_C_HALT |
+                           STLINK_REG_DHCSR_C_MASKINTS);
+
     // allocate the loader in SRAM
     if (stlink_flash_loader_write_to_sram(sl, &fl->loader_addr, &size) == -1) {
         WLOG("Failed to write flash loader to sram!\n");
@@ -227,10 +227,10 @@ int stlink_flash_loader_write_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* 
     const uint8_t* loader_code;
     size_t loader_size;
 
-    if (sl->chip_id == STLINK_CHIPID_STM32_L1_MEDIUM ||
+    if (sl->chip_id == STLINK_CHIPID_STM32_L1_MD ||
         sl->chip_id == STLINK_CHIPID_STM32_L1_CAT2 ||
-        sl->chip_id == STLINK_CHIPID_STM32_L1_MEDIUM_PLUS ||
-        sl->chip_id == STLINK_CHIPID_STM32_L1_HIGH ||
+        sl->chip_id == STLINK_CHIPID_STM32_L1_MD_PLUS ||
+        sl->chip_id == STLINK_CHIPID_STM32_L1_MD_PLUS_HD ||
         sl->chip_id == STLINK_CHIPID_STM32_L152_RE ||
         sl->chip_id == STLINK_CHIPID_STM32_L011 ||
         sl->chip_id == STLINK_CHIPID_STM32_L0 ||
@@ -239,16 +239,16 @@ int stlink_flash_loader_write_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* 
         loader_code = loader_code_stm32lx;
         loader_size = sizeof(loader_code_stm32lx);
     } else if (sl->core_id == STM32VL_CORE_ID ||
-               sl->chip_id == STLINK_CHIPID_STM32_F1_MEDIUM ||
-               sl->chip_id == STLINK_CHIPID_STM32_F1_HIGH ||
-               sl->chip_id == STLINK_CHIPID_STM32_F1_LOW ||
-               sl->chip_id == STLINK_CHIPID_STM32_F1_VL_MEDIUM_LOW ||
-               sl->chip_id == STLINK_CHIPID_STM32_F1_VL_HIGH ||
-               sl->chip_id == STLINK_CHIPID_STM32_F1_XL ||
+               sl->chip_id == STLINK_CHIPID_STM32_F1_MD ||
+               sl->chip_id == STLINK_CHIPID_STM32_F1_HD ||
+               sl->chip_id == STLINK_CHIPID_STM32_F1_LD ||
+               sl->chip_id == STLINK_CHIPID_STM32_F1_VL_MD_LD ||
+               sl->chip_id == STLINK_CHIPID_STM32_F1_VL_HD ||
+               sl->chip_id == STLINK_CHIPID_STM32_F1_XLD ||
                sl->chip_id == STLINK_CHIPID_STM32_F1_CONN ||
                sl->chip_id == STLINK_CHIPID_STM32_F3 ||
-               sl->chip_id == STLINK_CHIPID_STM32_F3_SMALL ||
-               sl->chip_id == STLINK_CHIPID_STM32_F303_HIGH ||
+               sl->chip_id == STLINK_CHIPID_STM32_F3xx_SMALL ||
+               sl->chip_id == STLINK_CHIPID_STM32_F303_HD ||
                sl->chip_id == STLINK_CHIPID_STM32_F37x ||
                sl->chip_id == STLINK_CHIPID_STM32_F334) {
         loader_code = loader_code_stm32vl;
@@ -260,7 +260,7 @@ int stlink_flash_loader_write_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* 
                sl->chip_id == STLINK_CHIPID_STM32_F4_HD ||
                sl->chip_id == STLINK_CHIPID_STM32_F4_DSI ||
                sl->chip_id == STLINK_CHIPID_STM32_F410 ||
-               sl->chip_id == STLINK_CHIPID_STM32_F411RE ||
+               sl->chip_id == STLINK_CHIPID_STM32_F411xx ||
                sl->chip_id == STLINK_CHIPID_STM32_F412 ||
                sl->chip_id == STLINK_CHIPID_STM32_F413 ||
                sl->chip_id == STLINK_CHIPID_STM32_F446) {
@@ -273,8 +273,8 @@ int stlink_flash_loader_write_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* 
         if (retval == -1) { return(retval); }
     } else if (sl->core_id == STM32F7_CORE_ID ||
                sl->chip_id == STLINK_CHIPID_STM32_F7 ||
-               sl->chip_id == STLINK_CHIPID_STM32_F7XXXX ||
-               sl->chip_id == STLINK_CHIPID_STM32_F72XXX)                                          {
+               sl->chip_id == STLINK_CHIPID_STM32_F76xxx ||
+               sl->chip_id == STLINK_CHIPID_STM32_F72xxx)                                          {
         int retval;
         retval = loader_v_dependent_assignment(sl,
                                                &loader_code, &loader_size,
@@ -285,16 +285,16 @@ int stlink_flash_loader_write_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* 
     } else if (sl->chip_id == STLINK_CHIPID_STM32_F0 ||
                sl->chip_id == STLINK_CHIPID_STM32_F04 ||
                sl->chip_id == STLINK_CHIPID_STM32_F0_CAN ||
-               sl->chip_id == STLINK_CHIPID_STM32_F0_SMALL ||
-               sl->chip_id == STLINK_CHIPID_STM32_F09X) {
+               sl->chip_id == STLINK_CHIPID_STM32_F0xx_SMALL ||
+               sl->chip_id == STLINK_CHIPID_STM32_F09x) {
         loader_code = loader_code_stm32f0;
         loader_size = sizeof(loader_code_stm32f0);
     } else if ((sl->chip_id == STLINK_CHIPID_STM32_L4) ||
-               (sl->chip_id == STLINK_CHIPID_STM32_L41X) ||
-               (sl->chip_id == STLINK_CHIPID_STM32_L43X) ||
-               (sl->chip_id == STLINK_CHIPID_STM32_L46X) ||
-               (sl->chip_id == STLINK_CHIPID_STM32_L4RX) ||
-               (sl->chip_id == STLINK_CHIPID_STM32_L496X)) {
+               (sl->chip_id == STLINK_CHIPID_STM32_L41x_L42x) ||
+               (sl->chip_id == STLINK_CHIPID_STM32_L43x_L44x) ||
+               (sl->chip_id == STLINK_CHIPID_STM32_L45x_L46x) ||
+               (sl->chip_id == STLINK_CHIPID_STM32_L4Rx) ||
+               (sl->chip_id == STLINK_CHIPID_STM32_L496x_L4A6x)) {
         loader_code = loader_code_stm32l4;
         loader_size = sizeof(loader_code_stm32l4);
     } else {

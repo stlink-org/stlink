@@ -1,8 +1,8 @@
-# Chipid file for L1xx Cat.2
+# Chip-ID file for L1xx cat2
 #
 chip_id 429
-description L1xx Cat.2
-flash_type  5
+description L1xx cat2
+flash_type 5
 flash_pagesize 100
 sram_size 8000
 bootrom_base 1ff00000

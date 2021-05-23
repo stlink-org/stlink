@@ -1,4 +1,4 @@
-# stm32 discovery boards, with onboard st/linkv1
+# STM32 discovery boards, with onboard st/linkv1
 # ie, STM32VL
 
 SUBSYSTEMS=="usb", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="3744", \

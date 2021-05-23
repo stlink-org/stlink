@@ -1,8 +1,8 @@
-# Chipid file for H7Ax/H7Bx
+# Chip-ID file for H7Ax/H7Bx
 #
 chip_id 480
 description H7Ax/H7Bx
-flash_type  a
+flash_type a
 flash_pagesize 2000
 sram_size 20000
 bootrom_base 1ff00000

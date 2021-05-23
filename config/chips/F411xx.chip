@@ -1,8 +1,8 @@
-# Chipid file for stm32f411re
+# Chip-ID file for F411xx
 #
 chip_id 431
-description stm32f411re
-flash_type  3
+description F411xx
+flash_type 3
 flash_pagesize 4000
 sram_size 20000
 bootrom_base 1fff0000

@@ -1,8 +1,8 @@
-# Chipid file for F2xx
+# Chip-ID file for F2
 #
 chip_id 411
-description F2xx
-flash_type  3
+description F2
+flash_type 3
 flash_pagesize 20000
 sram_size 20000
 bootrom_base 1fff0000

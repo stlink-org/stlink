@@ -1,8 +1,8 @@
-# Chipid file for F7xx
+# Chip-ID file for F7xx
 #
 chip_id 449
 description F7xx
-flash_type  3
+flash_type 3
 flash_pagesize 800
 sram_size 50000
 bootrom_base 100000

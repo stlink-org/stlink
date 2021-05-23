@@ -113,7 +113,7 @@ int parse_options(int argc, char** argv, st_state_t *st) {
     const char * help_str = "%s - usage:\n\n"
                             "  -h, --help\t\tPrint this help\n"
                             "  -V, --version\t\tPrint the version\n"
-                            "  -vXX, --verbose=XX\tSpecify a specific verbosity level (0..99)\n"
+                            "  -vXX, --verbose=XX\tSpecify a specific verbosity level (0...99)\n"
                             "  -v, --verbose\t\tSpecify generally verbose logging\n"
                             "  -p 4242, --listen_port=1234\n"
                             "\t\t\tSet the gdb server listen port. "
@@ -125,7 +125,7 @@ int parse_options(int argc, char** argv, st_state_t *st) {
                             "\t\t\tDo not reset board on connection.\n"
                             "  -u, --connect-under-reset\n"
                             "\t\t\tConnect to the board before executing any instructions.\n"                            
-                            "  -F 1800K, --freq=1M\n"
+                            "  -F 1800k, --freq=1M\n"
                             "\t\t\tSet the frequency of the SWD/JTAG interface.\n"
                             "  --semihosting\n"
                             "\t\t\tEnable semihosting support.\n"
@@ -535,14 +535,14 @@ char* make_memory_map(stlink_t *sl) {
 
     if (sl->chip_id == STLINK_CHIPID_STM32_F4 ||
         sl->chip_id == STLINK_CHIPID_STM32_F446 ||
-        sl->chip_id == STLINK_CHIPID_STM32_F411RE) {
+        sl->chip_id == STLINK_CHIPID_STM32_F411xx) {
             strcpy(map, memory_map_template_F4);
     } else if (sl->chip_id == STLINK_CHIPID_STM32_F4_DE) {
         strcpy(map, memory_map_template_F4_DE);
     } else if (sl->core_id == STM32F7_CORE_ID) {
         snprintf(map, sz, memory_map_template_F7,
                  (unsigned int)sl->sram_size);
-    } else if (sl->chip_id == STLINK_CHIPID_STM32_H74XXX) {
+    } else if (sl->chip_id == STLINK_CHIPID_STM32_H74xxx) {
         snprintf(map, sz, memory_map_template_H7,
                  (unsigned int)sl->flash_size,
                  (unsigned int)sl->flash_pgsz);
@@ -556,12 +556,12 @@ char* make_memory_map(stlink_t *sl) {
                  (unsigned int)sl->sys_base,
                  (unsigned int)sl->sys_size);
     } else if ((sl->chip_id == STLINK_CHIPID_STM32_L4) ||
-               (sl->chip_id == STLINK_CHIPID_STM32_L43X) ||
-               (sl->chip_id == STLINK_CHIPID_STM32_L46X)) {
+               (sl->chip_id == STLINK_CHIPID_STM32_L43x_L44x) ||
+               (sl->chip_id == STLINK_CHIPID_STM32_L45x_L46x)) {
         snprintf(map, sz, memory_map_template_L4,
                  (unsigned int)sl->flash_size,
                  (unsigned int)sl->flash_size);
-    } else if (sl->chip_id == STLINK_CHIPID_STM32_L496X) {
+    } else if (sl->chip_id == STLINK_CHIPID_STM32_L496x_L4A6x) {
         snprintf(map, sz, memory_map_template_L496,
                  (unsigned int)sl->flash_size,
                  (unsigned int)sl->flash_size);

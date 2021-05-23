@@ -1,8 +1,8 @@
-# Chipid file for H74x/H75x
+# Chip-ID file for H74x/H75x
 #
 chip_id 450
 description H74x/H75x
-flash_type  a
+flash_type a
 flash_pagesize 20000
 sram_size 20000
 bootrom_base 1ff00000

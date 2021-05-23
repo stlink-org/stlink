@@ -1,8 +1,8 @@
-# Chipid file for WB55
+# Chip-ID file for WB55
 #
 chip_id 495
 description WB55
-flash_type  9
+flash_type 9
 flash_pagesize 1000
 sram_size 40000
 bootrom_base 1fff0000

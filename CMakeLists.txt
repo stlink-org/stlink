@@ -2,7 +2,7 @@
 # General cmake settings
 ###
 
-cmake_minimum_required(VERSION 3.4.2)
+cmake_minimum_required(VERSION 3.7.2)
 cmake_policy(SET CMP0042 NEW)
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
@@ -199,8 +199,11 @@ else ()
     target_link_libraries(${STLINK_LIB_SHARED} ${LIBUSB_LIBRARY} ${SSP_LIB})
 endif ()
 
-install(TARGETS ${STLINK_LIB_SHARED} DESTINATION ${STLINK_LIBRARY_PATH})
-
+install(TARGETS ${STLINK_LIB_SHARED}
+        ARCHIVE DESTINATION ${STLINK_LIBRARY_PATH}
+        LIBRARY DESTINATION ${STLINK_LIBRARY_PATH}
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+        )
 
 ###
 # Static library

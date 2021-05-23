@@ -1,8 +1,8 @@
-# Chipid file for F303 high density
+# Chip-ID file for F303 high density
 #
 chip_id 446
 description F303 high density
-flash_type  1
+flash_type 1
 flash_pagesize 800
 sram_size 10000
 bootrom_base 1fffd800

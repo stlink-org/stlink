@@ -1,8 +1,8 @@
-# Chipid file for L1xx Medium-Plus-density
+# Chip-ID file for L1xx medium-plus-density
 #
 chip_id 427
-description L1xx Medium-Plus-density
-flash_type  5
+description L1xx medium-plus-density
+flash_type 5
 flash_pagesize 100
 sram_size 8000
 bootrom_base 1ff00000

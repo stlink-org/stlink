@@ -1,8 +1,8 @@
-# Chipid file for L0x3
+# Chip-ID file for L0x3
 #
 chip_id 417
 description L0x3
-flash_type  5
+flash_type 5
 flash_pagesize 80
 sram_size 2000
 bootrom_base 1ff0000

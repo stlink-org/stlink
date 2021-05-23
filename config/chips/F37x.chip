@@ -1,8 +1,8 @@
-# Chipid file for F3xx
+# Chip-ID file for F37x
 #
 chip_id 432
-description F3xx
-flash_type  1
+description F37x
+flash_type 1
 flash_pagesize 800
 sram_size a000
 bootrom_base 1ffff000

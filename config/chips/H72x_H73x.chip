@@ -1,8 +1,8 @@
-# Chipid file for H72x/H73x
+# Chip-ID file for H72x/H73x
 #
 chip_id 483
 description H72x/H73x
-flash_type  a
+flash_type a
 flash_pagesize 20000
 sram_size 20000
 bootrom_base 1ff00000

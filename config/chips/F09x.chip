@@ -1,8 +1,8 @@
-# Chipid file for F09X
+# Chip-ID file for F09x
 #
 chip_id 442
-description F09X
-flash_type  1
+description F09x
+flash_type 1
 flash_pagesize 800
 sram_size 8000
 bootrom_base 1fffd800

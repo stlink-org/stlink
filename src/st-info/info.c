@@ -8,13 +8,13 @@
 
 static void usage(void) {
     puts("st-info --version");
-    puts("st-info --probe [--connect-under-reset] [--hot-plug] [--freq=<KHz>]");
+    puts("st-info --probe [--connect-under-reset] [--hot-plug] [--freq=<kHz>]");
     puts("st-info --serial");
-    puts("st-info --flash  [--connect-under-reset] [--hot-plug] [--freq=<KHz>]");
-    puts("st-info --pagesize  [--connect-under-reset] [--hot-plug] [--freq=<KHz>]");
-    puts("st-info --sram  [--connect-under-reset] [--hot-plug] [--freq=<KHz>]");
-    puts("st-info --chipid  [--connect-under-reset] [--hot-plug] [--freq=<KHz>]");
-    puts("st-info --descr  [--connect-under-reset] [--hot-plug] [--freq=<KHz>]");
+    puts("st-info --flash  [--connect-under-reset] [--hot-plug] [--freq=<kHz>]");
+    puts("st-info --pagesize  [--connect-under-reset] [--hot-plug] [--freq=<kHz>]");
+    puts("st-info --sram  [--connect-under-reset] [--hot-plug] [--freq=<kHz>]");
+    puts("st-info --chipid  [--connect-under-reset] [--hot-plug] [--freq=<kHz>]");
+    puts("st-info --descr  [--connect-under-reset] [--hot-plug] [--freq=<kHz>]");
 }
 
 static void stlink_print_version(stlink_t *sl) {
