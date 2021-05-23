@@ -1,13 +1,13 @@
 # Chip-ID file for F413
 #
-chip_id 463
+chip_id 0x463
 description F413
 flash_type 3
 flash_pagesize 4000
-sram_size 50000
-bootrom_base 1fff0000
-bootrom_size 7800
-option_base 0
-option_size 0
-flags 2
+sram_size 0x50000
+bootrom_base 0x1fff0000
+bootrom_size 0x7800
+option_base 0x0
+option_size 0x0
+flags swo
 

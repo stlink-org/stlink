@@ -1,13 +1,13 @@
 # Chip-ID file for F1 value line
 #
-chip_id 420
+chip_id 0x420
 description F1 value line
 flash_type 1
 flash_pagesize 400
-sram_size 2000
-bootrom_base 1ffff000
-bootrom_size 800
-option_base 0
-option_size 0
-flags 2
+sram_size 0x2000
+bootrom_base 0x1ffff000
+bootrom_size 0x800
+option_base 0x0
+option_size 0x0
+flags swo
 

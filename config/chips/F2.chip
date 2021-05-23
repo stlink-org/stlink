@@ -1,13 +1,13 @@
 # Chip-ID file for F2
 #
-chip_id 411
+chip_id 0x411
 description F2
 flash_type 3
 flash_pagesize 20000
-sram_size 20000
-bootrom_base 1fff0000
-bootrom_size 7800
-option_base 1fffc000
-option_size 4
-flags 2
+sram_size 0x20000
+bootrom_base 0x1fff0000
+bootrom_size 0x7800
+option_base 0x1fffc000
+option_size 0x4
+flags swo
 

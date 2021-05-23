@@ -8,6 +8,13 @@
 #include <ctype.h>
 #include <stdlib.h>
 
+// This is the old chipid "database". 
+// It is kept here for now to be able to compare the
+// result between the "old code" and the "new code". 
+// For now if you need to change something, please 
+// change it both here and in the corresponding 
+// config/chips/*.chip file. 
+
 static struct stlink_chipid_params devices[] = {
     {
         // RM0410 document was used to find these paramaters
@@ -842,16 +849,16 @@ void dump_a_chip (FILE *fp, struct stlink_chipid_params *dev)
 {
   fprintf(fp, "# Chip-ID file for %s\n", dev->description);
   fprintf(fp, "#\n");
-  fprintf(fp, "chip_id %x\n", dev->chip_id);
+  fprintf(fp, "chip_id 0x%x\n", dev->chip_id);
   fprintf(fp, "description %s\n", dev->description);
-  fprintf(fp, "flash_type  %x\n", dev->flash_type);
-  fprintf(fp, "flash_pagesize %x\n", dev->flash_pagesize);
-  fprintf(fp, "sram_size %x\n", dev->sram_size);
-  fprintf(fp, "bootrom_base %x\n", dev->bootrom_base);
-  fprintf(fp, "bootrom_size %x\n", dev->bootrom_size);
-  fprintf(fp, "option_base %x\n", dev->option_base);
-  fprintf(fp, "option_size %x\n", dev->option_size);
-  fprintf(fp, "flags %x\n\n", dev->flags);
+  fprintf(fp, "flash_type  %d\n", dev->flash_type);
+  fprintf(fp, "flash_pagesize 0x%x\n", dev->flash_pagesize);
+  fprintf(fp, "sram_size 0x%x\n", dev->sram_size);
+  fprintf(fp, "bootrom_base 0x%x\n", dev->bootrom_base);
+  fprintf(fp, "bootrom_size 0x%x\n", dev->bootrom_size);
+  fprintf(fp, "option_base 0x%x\n", dev->option_base);
+  fprintf(fp, "option_size 0x%x\n", dev->option_size);
+  fprintf(fp, "flags %d\n\n", dev->flags);
 }
 
 
@@ -883,10 +890,10 @@ struct stlink_chipid_params *stlink_chipid_get_params(uint32_t chipid) {
 void process_chipfile(char *fname)
 {
   FILE *fp; 
-  char *p, buf[1025];
+  char *p, *pp, buf[1025];
   char word[64], value[64];
   struct stlink_chipid_params *ts;
-  int nc; 
+  int nc, ival; 
 
   //fprintf (stderr, "processing chipfile %s.\n", fname);
   fp = fopen(fname, "r");
@@ -902,30 +909,39 @@ void process_chipfile(char *fname)
     if (*p == '#') continue; // ignore comments. 
 
     sscanf(p, "%s %s", word, value);
+    ival = atoi (value);
     if (strcmp(word, "chip_id") == 0) {
-      sscanf(value, "%x", &ts->chip_id);
+      ts->chip_id = ival;
     } else if (strcmp (word, "description") == 0) {
       //ts->description = strdup (value);
       buf[strlen(p)-1] = 0; // chomp newline
       sscanf(p, "%*s %n", &nc);
       ts->description = strdup(p+nc);
     } else if (strcmp (word, "flash_type") == 0) {
-      sscanf(value, "%x", &ts->flash_type);
+      ts->flash_type = ival;
     } else if (strcmp (word, "flash_size_reg") == 0) {
-      sscanf(value, "%x", &ts->flash_size_reg);
+      ts->flash_size_reg = ival;
     } else if (strcmp (word, "flash_pagesize") == 0) {
-      sscanf(value, "%x", &ts->flash_pagesize);
+      ts->flash_pagesize = ival;
     } else if (strcmp (word, "sram_size") == 0) {
-      sscanf(value, "%x", &ts->sram_size);
+      ts->sram_size = ival;
     } else if (strcmp (word, "bootrom_base") == 0) {
-      sscanf(value, "%x", &ts->bootrom_base);
+      ts->bootrom_base = ival;
     } else if (strcmp (word, "bootrom_size") == 0) {
-      sscanf(value, "%x", &ts->bootrom_size);
+      ts->bootrom_size = ival;
     } else if (strcmp (word, "option_base") == 0) {
-      sscanf(value, "%x", &ts->option_base);
+      ts->option_base = ival;
     } else if (strcmp (word, "option_size") == 0) {
-      sscanf(value, "%x", &ts->option_size);
+      ts->option_size = ival;
     } else if (strcmp (word, "flags") == 0) {
+      pp = strtok (p, " \t\n");
+      while ((pp = strtok (NULL, " \t\n")) ) {
+	if (strcmp (pp, "none") == 0) ts->flags = 0; // not necessary: calloc did this already.
+	else if (strcmp (pp, "dualbank") == 0) ts->flags |= CHIP_F_HAS_DUAL_BANK;
+	else if (strcmp (pp, "swo") == 0) ts->flags |= CHIP_F_HAS_SWO_TRACING;
+	else fprintf (stderr, "Unknown flags word in %s: '%s'\n", 
+		      fname, pp);
+      }
       sscanf(value, "%x", &ts->flags);
     } else {
       fprintf (stderr, "Unknown keyword in %s: %s\n", 

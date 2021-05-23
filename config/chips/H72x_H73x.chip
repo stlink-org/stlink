@@ -1,13 +1,13 @@
 # Chip-ID file for H72x/H73x
 #
-chip_id 483
+chip_id 0x483
 description H72x/H73x
-flash_type a
+flash_type 10
 flash_pagesize 20000
-sram_size 20000
-bootrom_base 1ff00000
-bootrom_size 20000
-option_base 5200201c
-option_size 2c
-flags 2
+sram_size 0x20000
+bootrom_base 0x1ff00000
+bootrom_size 0x20000
+option_base 0x5200201c
+option_size 0x2c
+flags swo
 
