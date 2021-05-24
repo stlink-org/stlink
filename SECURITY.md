@@ -7,7 +7,8 @@ The following versions of the stlink toolset are currently being supported.<br /
 | Version | Supported          |
 | ------- | ------------------ |
 | develop | :white_check_mark: |
-| 1.6.x   | :white_check_mark: |
+| 1.7.x   | :white_check_mark: |
+| 1.6.x   | :x:                |
 | 1.5.x   | :x:                |
 | 1.4.0   | :x:                |
 | 1.3.x   | :x:                |

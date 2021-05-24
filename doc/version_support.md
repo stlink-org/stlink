@@ -4,7 +4,7 @@ _Source:_ pkgs.org - [libusb](https://pkgs.org/search/?q=libusb); [cmake](https:
 
 ### Microsoft Windows
 
-On Windows users should ensure that cmake 3.17.0 or any later version is installed.<br />
+On Windows users should ensure that cmake 3.20.2 or any later version is installed.<br />
 Up on compiling c-make will **automatically** download and install the latest compatible version of `libusb` (1.0.23 at the time of writing).
 
 - Windows 10
@@ -14,8 +14,8 @@ Up on compiling c-make will **automatically** download and install the latest co
 
 | Package Repository | libusb<br />version | cmake<br />version | gtk-3<br />version | Supported macOS versions |
 | ------------------ | ------------------- | ------------------ | ------------------ | ------------------------ |
-| homebrew           | 1.0.23              | 3.17.0             | 3.24.18<br />gtk+3 | 10.9 - 11.x              |
-| MacPorts           | 1.0.23              | 3.17.0             | 3.24.18<br />gtk3  | 10.4 - 11.x              |
+| homebrew           | 1.0.24              | 3.20.2             | 3.24.29<br />gtk+3 | 10.9 - 11.x              |
+| MacPorts           | 1.0.24              | 3.20.2             | 3.24.29<br />gtk3  | 10.4 - 11.x              |
 
 NOTE: In order to use a STLINK/V1 programmer on macOS, versions 10.14 or 10.15 are required.
 
