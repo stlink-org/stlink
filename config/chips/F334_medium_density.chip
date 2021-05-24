@@ -1,0 +1,13 @@
+# Chip-ID file for F334 medium density
+#
+chip_id 0x438
+description F334 medium density
+flash_type 1
+flash_pagesize 800
+sram_size 0x3000
+bootrom_base 0x1fffd800
+bootrom_size 0x2000
+option_base 0x0
+option_size 0x0
+flags swo
+

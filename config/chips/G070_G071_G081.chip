@@ -1,0 +1,13 @@
+# Chip-ID file for G070/G071/G081
+#
+chip_id 0x460
+description G070/G071/G081
+flash_type 7
+flash_pagesize 800
+sram_size 0x9000
+bootrom_base 0x1fff0000
+bootrom_size 0x7000
+option_base 0x1fff7800
+option_size 0x4
+flags none
+
