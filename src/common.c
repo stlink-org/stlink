@@ -1994,13 +1994,6 @@ int stlink_read_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
 
 int stlink_write_mem8(stlink_t *sl, uint32_t addr, uint16_t len) {
   DLOG("*** stlink_write_mem8 ***\n");
-
-  if (len > 0x40) { // !!! never ever: Writing more then 0x40 bytes gives
-                    // unexpected behaviour
-    ELOG("Data length > 64: +%d byte.\n", len);
-    return (-1);
-  }
-
   return (sl->backend->write_mem8(sl, addr, len));
 }
 
@@ -3080,11 +3073,13 @@ int stlink_verify_write_flash(stlink_t *sl, stm32_addr_t address, uint8_t *data,
 
 int stm32l1_write_half_pages(stlink_t *sl, stm32_addr_t addr, uint8_t *base,
                              uint32_t len, uint32_t pagesize) {
-  unsigned int count;
+  unsigned int count, size;
   unsigned int num_half_pages = len / pagesize;
   uint32_t val;
   uint32_t flash_regs_base = get_stm32l0_flash_base(sl);
   flash_loader_t fl;
+  bool use_loader = false;
+  int ret = 0;
 
   ILOG("Starting Half page flash write for STM32L core id\n");
 
@@ -3105,17 +3100,34 @@ int stm32l1_write_half_pages(stlink_t *sl, stm32_addr_t addr, uint8_t *base,
   wait_flash_busy(sl);
 
   for (count = 0; count < num_half_pages; count++) {
-    if (stlink_flash_loader_run(sl, &fl, addr + count * pagesize,
-                                base + count * pagesize, pagesize) == -1) {
-      WLOG("l1_stlink_flash_loader_run(%#x) failed! == -1\n",
-           addr + count * pagesize);
-      stlink_read_debug32(sl, flash_regs_base + FLASH_PECR_OFF, &val);
-      val &= ~((1 << FLASH_L1_FPRG) | (1 << FLASH_L1_PROG));
-      stlink_write_debug32(sl, flash_regs_base + FLASH_PECR_OFF, val);
-      return (-1);
+    if (use_loader) {
+      ret = stlink_flash_loader_run(sl, &fl, addr + count * pagesize,
+                                base + count * pagesize, pagesize);
+      if (ret && count == 0) {
+        /* It seems that stm32lx devices have a problem when it is blank */
+        WLOG("Failed to use flash loader, fallback to soft write\n");
+        use_loader = false;
+      }
+    }
+    if (!use_loader) {
+      if ((pagesize%64) != 0) {
+        ELOG("Page size not supported\n");
+        break;
+      }
+      ret = 0;
+      for (size = 0; size < pagesize && !ret; size += 64)
+      {
+        memcpy(sl->q_buf, base + count * pagesize + size, 64);
+        ret = stlink_write_mem8(sl, addr + count * pagesize + size, 64);
+      }
     }
 
-    // wait for sr.busy to be cleared
+    if (ret) {
+      WLOG("l1_stlink_flash_loader_run(%#x) failed! == -1\n",
+           addr + count * pagesize);
+      break;
+    }
+
     if (sl->verbose >= 1) {
       // show progress; writing procedure is slow and previous errors are
       // misleading
@@ -3123,16 +3135,14 @@ int stm32l1_write_half_pages(stlink_t *sl, stm32_addr_t addr, uint8_t *base,
       fflush(stdout);
     }
 
+    // wait for sr.busy to be cleared
     wait_flash_busy(sl);
   }
 
   stlink_read_debug32(sl, flash_regs_base + FLASH_PECR_OFF, &val);
-  val &= ~(1 << FLASH_L1_PROG);
+  val &= ~((1 << FLASH_L1_FPRG) | (1 << FLASH_L1_PROG));
   stlink_write_debug32(sl, flash_regs_base + FLASH_PECR_OFF, val);
-  stlink_read_debug32(sl, flash_regs_base + FLASH_PECR_OFF, &val);
-  val &= ~(1 << FLASH_L1_FPRG);
-  stlink_write_debug32(sl, flash_regs_base + FLASH_PECR_OFF, val);
-  return (0);
+  return (ret);
 }
 
 int stlink_flashloader_start(stlink_t *sl, flash_loader_t *fl) {
@@ -3341,9 +3351,8 @@ int stlink_flashloader_write(stlink_t *sl, flash_loader_t *fl,
     off = 0;
 
     if (len > pagesize) {
-      if (stm32l1_write_half_pages(sl, addr, base, len, pagesize) == -1) {
-        // this may happen on a blank device!
-        WLOG("\nwrite_half_pages failed == -1\n");
+      if (stm32l1_write_half_pages(sl, addr, base, len, pagesize)) {
+        return (-1);
       } else {
         off = (size_t)(len / pagesize) * pagesize;
       }
