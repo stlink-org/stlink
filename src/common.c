@@ -3073,27 +3073,18 @@ int stlink_verify_write_flash(stlink_t *sl, stm32_addr_t address, uint8_t *data,
 
 int stm32l1_write_half_pages(stlink_t *sl, stm32_addr_t addr, uint8_t *base,
                              uint32_t len, uint32_t pagesize) {
-  unsigned int count, size;
+  unsigned int count, off;
   unsigned int num_half_pages = len / pagesize;
-  uint32_t val;
+  uint32_t val, data;
   uint32_t flash_regs_base = get_stm32l0_flash_base(sl);
   flash_loader_t fl;
-  bool use_loader = false;
+  bool use_loader = true;
   int ret = 0;
 
-  ILOG("Starting Half page flash write for STM32L core id\n");
-
-  /* Flash loader initialisation */
-  if (stlink_flash_loader_init(sl, &fl) == -1) {
-    WLOG("stlink_flash_loader_init() == -1\n");
-    return (-1);
-  }
-
-  // unlock already done
+  // enable half page write
   stlink_read_debug32(sl, flash_regs_base + FLASH_PECR_OFF, &val);
   val |= (1 << FLASH_L1_FPRG);
   stlink_write_debug32(sl, flash_regs_base + FLASH_PECR_OFF, val);
-
   val |= (1 << FLASH_L1_PROG);
   stlink_write_debug32(sl, flash_regs_base + FLASH_PECR_OFF, val);
 
@@ -3110,15 +3101,11 @@ int stm32l1_write_half_pages(stlink_t *sl, stm32_addr_t addr, uint8_t *base,
       }
     }
     if (!use_loader) {
-      if ((pagesize%64) != 0) {
-        ELOG("Page size not supported\n");
-        break;
-      }
       ret = 0;
-      for (size = 0; size < pagesize && !ret; size += 64)
+      for (off = 0; off < pagesize && !ret; off += 4)
       {
-        memcpy(sl->q_buf, base + count * pagesize + size, 64);
-        ret = stlink_write_mem8(sl, addr + count * pagesize + size, 64);
+        write_uint32((unsigned char *)&data, *(uint32_t *)(base + count * pagesize + off));
+        ret = stlink_write_debug32(sl, addr + count * pagesize + off, data);
       }
     }
 
@@ -3139,6 +3126,7 @@ int stm32l1_write_half_pages(stlink_t *sl, stm32_addr_t addr, uint8_t *base,
     wait_flash_busy(sl);
   }
 
+  // disable half page write
   stlink_read_debug32(sl, flash_regs_base + FLASH_PECR_OFF, &val);
   val &= ~((1 << FLASH_L1_FPRG) | (1 << FLASH_L1_PROG));
   stlink_write_debug32(sl, flash_regs_base + FLASH_PECR_OFF, val);
@@ -3246,6 +3234,12 @@ int stlink_flashloader_start(stlink_t *sl, flash_loader_t *fl) {
       ELOG("pecr.prglock not clear\n");
       return (-1);
     }
+
+    /* Flash loader initialisation */
+    if (stlink_flash_loader_init(sl, fl) == -1) {
+      ELOG("stlink_flash_loader_init() == -1\n");
+      return (-1);
+    }
   } else if ((sl->flash_type == STLINK_FLASH_TYPE_F0) ||
              (sl->flash_type == STLINK_FLASH_TYPE_F1_XL)) {
     ILOG("Starting Flash write for VL/F0/F3/F1_XL\n");
@@ -3347,6 +3341,8 @@ int stlink_flashloader_write(stlink_t *sl, flash_loader_t *fl,
       flash_regs_base = STM32L_FLASH_REGS_ADDR;
       pagesize = L1_WRITE_BLOCK_SIZE;
     }
+
+    DLOG("Starting %3u page write\r\n", (unsigned int)(len / sl->flash_pgsz));
 
     off = 0;
 
