@@ -122,16 +122,16 @@ ssize_t send_recv(struct stlink_libusb* handle, int terminate,
                         retry++;
                         continue;
                     }
-                    WLOG("%s wait error (0x%02X)\n", cmd, rxbuf[0]);
+                    DLOG("%s wait error (0x%02X)\n", cmd, rxbuf[0]);
                     break;
-                case STLINK_DEBUG_ERR_FAULT: WLOG("%s response fault\n", cmd); break;
-                case STLINK_DEBUG_ERR_AP_FAULT: WLOG("%s access port fault\n", cmd); break;
-                case STLINK_DEBUG_ERR_DP_FAULT: WLOG("%s debug port fault\n", cmd); break;
-                case STLINK_DEBUG_ERR_AP_ERROR: WLOG("%s access port error\n", cmd); break;
-                case STLINK_DEBUG_ERR_DP_ERROR: WLOG("%s debug port error\n", cmd); break;
-                case STLINK_DEBUG_ERR_WRITE_VERIFY:  WLOG("%s verification error\n", cmd); break;
-                case STLINK_DEBUG_ERR_WRITE:  WLOG("%s write error\n", cmd); break;
-                default: WLOG("%s error (0x%02X)\n", cmd, rxbuf[0]); break;
+                case STLINK_DEBUG_ERR_FAULT: DLOG("%s response fault\n", cmd); break;
+                case STLINK_DEBUG_ERR_AP_FAULT: DLOG("%s access port fault\n", cmd); break;
+                case STLINK_DEBUG_ERR_DP_FAULT: DLOG("%s debug port fault\n", cmd); break;
+                case STLINK_DEBUG_ERR_AP_ERROR: DLOG("%s access port error\n", cmd); break;
+                case STLINK_DEBUG_ERR_DP_ERROR: DLOG("%s debug port error\n", cmd); break;
+                case STLINK_DEBUG_ERR_WRITE_VERIFY:  DLOG("%s verification error\n", cmd); break;
+                case STLINK_DEBUG_ERR_WRITE:  DLOG("%s write error\n", cmd); break;
+                default: DLOG("%s error (0x%02X)\n", cmd, rxbuf[0]); break;
                 }
 
                 return(-1);
@@ -149,7 +149,7 @@ ssize_t send_recv(struct stlink_libusb* handle, int terminate,
             t = libusb_bulk_transfer(handle->usb_handle, handle->ep_rep, sg_buf, 13, &res, 3000);
 
             if (t) {
-                ELOG("stlink: %s read storage failed: %s\n", cmd, libusb_error_name(t));
+                ELOG("%s read storage failed: %s\n", cmd, libusb_error_name(t));
                 return(-1);
             }
 
@@ -306,6 +306,12 @@ int _stlink_usb_write_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
     unsigned char* const cmd  = sl->c_buf;
     int i, ret;
 
+    if ((sl->version.jtag_api < STLINK_JTAG_API_V3 && len > 64) ||
+        (sl->version.jtag_api >= STLINK_JTAG_API_V3 && len > 512)) {
+        ELOG("WRITEMEM_32BIT: bulk packet limits exceeded (data len %d byte)\n", len);
+        return (-1);
+    }
+
     i = fill_command(sl, SG_DXFER_TO_DEV, len);
     cmd[i++] = STLINK_DEBUG_COMMAND;
     cmd[i++] = STLINK_DEBUG_WRITEMEM_32BIT;
@@ -330,7 +336,7 @@ int _stlink_usb_write_mem8(stlink_t *sl, uint32_t addr, uint16_t len) {
 
     if ((sl->version.jtag_api < STLINK_JTAG_API_V3 && len > 64) ||
         (sl->version.jtag_api >= STLINK_JTAG_API_V3 && len > 512)) {
-        ELOG("WRITEMEM_32BIT: bulk packet limits exceeded (data len %d byte)\n", len);
+        ELOG("WRITEMEM_8BIT: bulk packet limits exceeded (data len %d byte)\n", len);
         return (-1);
     }
 
@@ -339,11 +345,11 @@ int _stlink_usb_write_mem8(stlink_t *sl, uint32_t addr, uint16_t len) {
     cmd[i++] = STLINK_DEBUG_WRITEMEM_8BIT;
     write_uint32(&cmd[i], addr);
     write_uint16(&cmd[i + 4], len);
-    ret = send_only(slu, 0, cmd, slu->cmd_len, "WRITEMEM_32BIT");
+    ret = send_only(slu, 0, cmd, slu->cmd_len, "WRITEMEM_8BIT");
 
     if (ret == -1) { return(ret); }
 
-    ret = send_only(slu, 1, data, len, "WRITEMEM_32BIT");
+    ret = send_only(slu, 1, data, len, "WRITEMEM_8BIT");
 
     if (ret == -1) { return(ret); }
 

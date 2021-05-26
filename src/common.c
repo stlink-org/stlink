@@ -2636,20 +2636,21 @@ int stlink_fread(stlink_t *sl, const char *path, bool is_ihex,
 int write_buffer_to_sram(stlink_t *sl, flash_loader_t *fl, const uint8_t *buf,
                          size_t size) {
   // write the buffer right after the loader
+  int ret = 0;
   size_t chunk = size & ~0x3;
   size_t rem = size & 0x3;
 
   if (chunk) {
     memcpy(sl->q_buf, buf, chunk);
-    stlink_write_mem32(sl, fl->buf_addr, chunk);
+    ret = stlink_write_mem32(sl, fl->buf_addr, chunk);
   }
 
-  if (rem) {
+  if (rem && !ret) {
     memcpy(sl->q_buf, buf + chunk, rem);
-    stlink_write_mem8(sl, (fl->buf_addr) + (uint32_t)chunk, rem);
+    ret = stlink_write_mem8(sl, (fl->buf_addr) + (uint32_t)chunk, rem);
   }
 
-  return (0);
+  return (ret);
 }
 
 uint32_t calculate_F4_sectornum(uint32_t flashaddr) {
@@ -3075,7 +3076,7 @@ int stm32l1_write_half_pages(stlink_t *sl, stm32_addr_t addr, uint8_t *base,
                              uint32_t len, uint32_t pagesize) {
   unsigned int count, off;
   unsigned int num_half_pages = len / pagesize;
-  uint32_t val, data;
+  uint32_t val;
   uint32_t flash_regs_base = get_stm32l0_flash_base(sl);
   flash_loader_t fl;
   bool use_loader = true;
@@ -3102,10 +3103,10 @@ int stm32l1_write_half_pages(stlink_t *sl, stm32_addr_t addr, uint8_t *base,
     }
     if (!use_loader) {
       ret = 0;
-      for (off = 0; off < pagesize && !ret; off += 4)
-      {
-        write_uint32((unsigned char *)&data, *(uint32_t *)(base + count * pagesize + off));
-        ret = stlink_write_debug32(sl, addr + count * pagesize + off, data);
+      for (off = 0; off < pagesize && !ret; off += 64) {
+        size_t chunk = (pagesize - off > 64) ? 64 : pagesize - off;
+        memcpy(sl->q_buf, base + count * pagesize + off, chunk);
+        ret = stlink_write_mem32(sl, addr + count * pagesize + off, chunk);
       }
     }
 
@@ -3237,8 +3238,8 @@ int stlink_flashloader_start(stlink_t *sl, flash_loader_t *fl) {
 
     /* Flash loader initialisation */
     if (stlink_flash_loader_init(sl, fl) == -1) {
-      ELOG("stlink_flash_loader_init() == -1\n");
-      return (-1);
+      // L0/L1 have fallback to soft write
+      WLOG("stlink_flash_loader_init() == -1\n");
     }
   } else if ((sl->flash_type == STLINK_FLASH_TYPE_F0) ||
              (sl->flash_type == STLINK_FLASH_TYPE_F1_XL)) {

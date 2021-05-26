@@ -14,7 +14,13 @@
 
 #define STM32F0_WDG_KR_KEY_RELOAD 0xAAAA
 
-/* DO NOT MODIFY SOURCECODE DIRECTLY, EDIT ASSEMBLY FILES INSTEAD */
+/* !!!
+ * !!! DO NOT MODIFY FLASH LOADERS DIRECTLY!
+ * !!!
+ * 
+ * Edit assembly files in the '/flashloaders' instead. The sizes of binary 
+ * flash loaders must be aligned by 4 (it's written by stlink_write_mem32)
+ */
 
 /* flashloaders/stm32f0.s -- compiled with thumb2 */
 static const uint8_t loader_code_stm32vl[] = {
@@ -322,9 +328,7 @@ int stlink_flash_loader_run(stlink_t *sl, flash_loader_t* fl, stm32_addr_t targe
 
     DLOG("Running flash loader, write address:%#x, size: %u\n", target, (unsigned int)size);
 
-    // TODO: This can never return -1
     if (write_buffer_to_sram(sl, fl, buf, size) == -1) {
-        // IMPOSSIBLE!
         ELOG("write_buffer_to_sram() == -1\n");
         return(-1);
     }
