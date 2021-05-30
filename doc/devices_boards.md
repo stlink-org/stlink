@@ -51,7 +51,7 @@ Tested non-official ST boards [incl. STLINK programmers]:
 | ------- | ------------ | ------------- |
 | 0x411   | STM32F2yyxx  | (all devices) |
 
-**STM32F1 / ARM Cortex M3 / Core-ID: 0x2ba01477 (STM3F1c_CORE_ID)**
+**STM32F1 / ARM Cortex M3 / Core-ID: 0x2ba01477 (STM32F1c_CORE_ID)**
 
 | Product-Code  | Chip-ID | STLink<br />Programmer | Boards                                                                                          |
 | ------------- | ------- | ---------------------- | ----------------------------------------------------------------------------------------------- |
