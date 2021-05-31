@@ -866,7 +866,7 @@ static struct stlink_chipid_params devices[] = {
     {
         // STM32H7A3/7B3
         // RM0455
-        .chip_id = STLINK_CHIPID_STM32_H7AX,
+        .chip_id = STLINK_CHIPID_STM32_H7Ax,
         .description = "H7Ax/H7Bx",
         .flash_type = STLINK_FLASH_TYPE_H7,
         .flash_size_reg = 0x08FFF80C, // "Flash size register" (p.2949)
@@ -883,7 +883,7 @@ static struct stlink_chipid_params devices[] = {
     {
         // STM32H72x/H73x
         // RM0468
-        .chip_id = STLINK_CHIPID_STM32_H72X,
+        .chip_id = STLINK_CHIPID_STM32_H72x,
         .description = "H72x/H73x",
         .flash_type = STLINK_FLASH_TYPE_H7,
         .flash_size_reg = 0x1FF1E880, // "Flash size register" (p.3286)
