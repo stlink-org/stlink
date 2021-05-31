@@ -23,12 +23,12 @@ elif [ "$TRAVIS_JOB_NAME" == "linux-mingw-32" ]; then
     make && rm -rf build-mingw-32 && cd -
 
 elif [ "$TRAVIS_OS_NAME" == "osx" ]; then
-    echo "--> Building Debug..."
+    echo "--> make debug..."
     mkdir -p build/Debug && cd build/Debug
     cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=$PWD/install $DIR
-    make && cd -
+    make debug && cd -
 
-    echo "--> Building Release with package..."
+    echo "--> make package..."
     mkdir -p build/Release && cd build/Release
     cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$PWD/install $DIR
     make package && cd -

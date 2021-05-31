@@ -17,6 +17,7 @@ Updates & changes:
 
 - Added instructions for bug-reports and feature-requests to contribution guidelines ([#906](https://github.com/stlink-org/stlink/pull/906))
 - Added travis CI configuration for macOS 10.14 to maintain capability for 32-bit compilation ([#f5ada94](https://github.com/stlink-org/stlink/commit/f5ada9474cdb87ff37de0d4eb9e75622b5870646))
+- Updated description of chip id 0x0457 to L01x/L02x ([#1143](https://github.com/stlink-org/stlink/pull/1143), [#1144](https://github.com/stlink-org/stlink/pull/1144))
 
 Fixes:
 - cmake: Install shared libraries in proper directories ([#1142](https://github.com/stlink-org/stlink/pull/1142))
