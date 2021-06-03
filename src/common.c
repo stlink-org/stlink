@@ -1664,7 +1664,7 @@ int stlink_load_device_params(stlink_t *sl) {
   // H7 devices with small flash has one bank
   if (sl->chip_flags & CHIP_F_HAS_DUAL_BANK &&
       sl->flash_type == STLINK_FLASH_TYPE_H7) {
-    if ((flash_size / sl->flash_pgsz) <= 1)
+    if ((sl->flash_size / sl->flash_pgsz) <= 1)
       sl->chip_flags &= ~CHIP_F_HAS_DUAL_BANK;
   }
 
