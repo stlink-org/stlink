@@ -1273,6 +1273,7 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, enum connect_type connect,
 
     if (cnt < 0) {
         WLOG ("Couldn't find %s ST-Link devices\n", (devBus && devAddr) ? "matched" : "any");
+        libusb_free_device_list(list, 1);
         goto on_error;
     } else {
         ret = libusb_open(list[cnt], &slu->usb_handle);
