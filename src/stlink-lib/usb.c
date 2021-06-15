@@ -1203,7 +1203,7 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, enum connect_type connect,
     libusb_set_option(slu->libusb_ctx, LIBUSB_OPTION_LOG_LEVEL, ugly_libusb_log_level(verbose));
 #endif
 
-    libusb_device **list;
+    libusb_device **list = NULL;
     // TODO: We should use ssize_t and use it as a counter if > 0.
     // As per libusb API: ssize_t libusb_get_device_list (libusb_context *ctx, libusb_device ***list)
     int cnt = (int)libusb_get_device_list(slu->libusb_ctx, &list);
@@ -1232,7 +1232,7 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, enum connect_type connect,
         ILOG("bus %03d dev %03d\n", devBus, devAddr);
     }
 
-    while (cnt--) {
+    while (cnt-- > 0) {
         struct libusb_device_handle *handle;
 
         libusb_get_device_descriptor(list[cnt], &desc);
