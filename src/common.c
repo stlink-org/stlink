@@ -1275,8 +1275,8 @@ static void stop_wdg_in_debug(stlink_t *sl) {
   case STLINK_FLASH_TYPE_F1_XL:
   case STLINK_FLASH_TYPE_G4:
     dbgmcu_cr = STM32F0_DBGMCU_CR;
-    set =
-        (1 << STM32F0_DBGMCU_CR_IWDG_STOP) | (1 << STM32F0_DBGMCU_CR_WWDG_STOP);
+    set = (1 << STM32F0_DBGMCU_CR_IWDG_STOP) | 
+          (1 << STM32F0_DBGMCU_CR_WWDG_STOP);
     break;
   case STLINK_FLASH_TYPE_F4:
   case STLINK_FLASH_TYPE_F7:
@@ -1441,13 +1441,12 @@ void stlink_close(stlink_t *sl) {
 }
 
 int stlink_exit_debug_mode(stlink_t *sl) {
-  int ret;
-
   DLOG("*** stlink_exit_debug_mode ***\n");
-  ret = stlink_write_debug32(sl, STLINK_REG_DHCSR, STLINK_REG_DHCSR_DBGKEY);
 
-  if (ret == -1) {
-    return (ret);
+  if (sl->flash_type != STLINK_FLASH_TYPE_UNKNOWN && 
+      sl->core_stat != TARGET_RESET) {
+    // stop debugging if the target has been identified
+    stlink_write_debug32(sl, STLINK_REG_DHCSR, STLINK_REG_DHCSR_DBGKEY);
   }
 
   return (sl->backend->exit_debug_mode(sl));
@@ -1462,9 +1461,12 @@ int stlink_enter_swd_mode(stlink_t *sl) {
 int stlink_force_debug(stlink_t *sl) {
   DLOG("*** stlink_force_debug_mode ***\n");
   int res = sl->backend->force_debug(sl);
+  if (res) {
+     return (res);
+  }
   // Stop the watchdogs in the halted state for suppress target reboot
   stop_wdg_in_debug(sl);
-  return (res);
+  return (0);
 }
 
 int stlink_exit_dfu_mode(stlink_t *sl) {
@@ -1540,6 +1542,7 @@ int stlink_chip_id(stlink_t *sl, uint32_t *chip_id) {
 
   if (ret || !(*chip_id)) {
     *chip_id = 0;
+    ret = ret?:-1;
     ELOG("Could not find chip id!\n");
   } else {
     *chip_id = (*chip_id) & 0xfff;
@@ -1679,7 +1682,7 @@ int stlink_load_device_params(stlink_t *sl) {
 }
 
 int stlink_jtag_reset(stlink_t *sl, int value) {
-  DLOG("*** stlink_jtag_reset ***\n");
+  DLOG("*** stlink_jtag_reset %d ***\n", value);
   return (sl->backend->jtag_reset(sl, value));
 }
 
@@ -1763,6 +1766,8 @@ int stlink_reset(stlink_t *sl, enum reset_type type) {
 
   DLOG("*** stlink_reset ***\n");
 
+  sl->core_stat = TARGET_RESET;
+
   if (type == RESET_AUTO) {
     // clear S_RESET_ST in DHCSR register for reset state detection
     stlink_read_debug32(sl, STLINK_REG_DHCSR, &dhcsr);
@@ -1771,14 +1776,12 @@ int stlink_reset(stlink_t *sl, enum reset_type type) {
   if (type == RESET_HARD || type == RESET_AUTO) {
     // hardware target reset
     if (sl->version.stlink_v > 1) {
-      stlink_jtag_reset(sl, STLINK_JTAG_DRIVE_NRST_LOW);
+      stlink_jtag_reset(sl, STLINK_DEBUG_APIV2_DRIVE_NRST_LOW);
       // minimum reset pulse duration of 20 us (RM0008, 8.1.2 Power reset)
       usleep(100);
-      stlink_jtag_reset(sl, STLINK_JTAG_DRIVE_NRST_HIGH);
+      stlink_jtag_reset(sl, STLINK_DEBUG_APIV2_DRIVE_NRST_HIGH);
     }
-    if (sl->backend->reset(sl)) {
-      return (-1);
-    }
+    sl->backend->reset(sl);
     usleep(10000);
   }
 
@@ -1788,8 +1791,8 @@ int stlink_reset(stlink_t *sl, enum reset_type type) {
      * DDI0337E, p. 10-4, Debug Halting Control and Status Register */
 
     dhcsr = 0;
-    stlink_read_debug32(sl, STLINK_REG_DHCSR, &dhcsr);
-    if ((dhcsr & STLINK_REG_DHCSR_S_RESET_ST) == 0) {
+    int res = stlink_read_debug32(sl, STLINK_REG_DHCSR, &dhcsr);
+    if ((dhcsr & STLINK_REG_DHCSR_S_RESET_ST) == 0 && !res) {
       // reset not done yet
       // try reset through AIRCR so that NRST does not need to be connected
 
@@ -1803,8 +1806,9 @@ int stlink_reset(stlink_t *sl, enum reset_type type) {
     while (time_ms() < timeout) {
       dhcsr = STLINK_REG_DHCSR_S_RESET_ST;
       stlink_read_debug32(sl, STLINK_REG_DHCSR, &dhcsr);
-      if ((dhcsr & STLINK_REG_DHCSR_S_RESET_ST) == 0)
+      if ((dhcsr & STLINK_REG_DHCSR_S_RESET_ST) == 0) {
         return (0);
+      }
     }
 
     return (-1);
@@ -1926,11 +1930,7 @@ int stlink_version(stlink_t *sl) {
   DLOG("swim version   = 0x%x\n", sl->version.swim_v);
 
   if (sl->version.jtag_v == 0) {
-    DLOG("    notice: the firmware doesn't support a jtag/swd interface\n");
-  }
-
-  if (sl->version.swim_v == 0) {
-    DLOG("    notice: the firmware doesn't support a swim interface\n");
+    WLOG("    warning: stlink doesn't support JTAG/SWD interface\n");
   }
 
   return (0);
@@ -1994,13 +1994,6 @@ int stlink_read_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
 
 int stlink_write_mem8(stlink_t *sl, uint32_t addr, uint16_t len) {
   DLOG("*** stlink_write_mem8 ***\n");
-
-  if (len > 0x40) { // !!! never ever: Writing more then 0x40 bytes gives
-                    // unexpected behaviour
-    ELOG("Data length > 64: +%d byte.\n", len);
-    return (-1);
-  }
-
   return (sl->backend->write_mem8(sl, addr, len));
 }
 
@@ -2301,9 +2294,6 @@ static void stlink_checksum(mapped_file_t *mp) {
 
 static void stlink_fwrite_finalize(stlink_t *sl, stm32_addr_t addr) {
   unsigned int val;
-  // set stack
-  stlink_read_debug32(sl, addr, &val);
-  stlink_write_reg(sl, val, 13);
   // set PC to the reset routine
   stlink_read_debug32(sl, addr + 4, &val);
   stlink_write_reg(sl, val, 15);
@@ -2646,20 +2636,21 @@ int stlink_fread(stlink_t *sl, const char *path, bool is_ihex,
 int write_buffer_to_sram(stlink_t *sl, flash_loader_t *fl, const uint8_t *buf,
                          size_t size) {
   // write the buffer right after the loader
+  int ret = 0;
   size_t chunk = size & ~0x3;
   size_t rem = size & 0x3;
 
   if (chunk) {
     memcpy(sl->q_buf, buf, chunk);
-    stlink_write_mem32(sl, fl->buf_addr, chunk);
+    ret = stlink_write_mem32(sl, fl->buf_addr, chunk);
   }
 
-  if (rem) {
+  if (rem && !ret) {
     memcpy(sl->q_buf, buf + chunk, rem);
-    stlink_write_mem8(sl, (fl->buf_addr) + (uint32_t)chunk, rem);
+    ret = stlink_write_mem8(sl, (fl->buf_addr) + (uint32_t)chunk, rem);
   }
 
-  return (0);
+  return (ret);
 }
 
 uint32_t calculate_F4_sectornum(uint32_t flashaddr) {
@@ -3083,42 +3074,48 @@ int stlink_verify_write_flash(stlink_t *sl, stm32_addr_t address, uint8_t *data,
 
 int stm32l1_write_half_pages(stlink_t *sl, stm32_addr_t addr, uint8_t *base,
                              uint32_t len, uint32_t pagesize) {
-  unsigned int count;
+  unsigned int count, off;
   unsigned int num_half_pages = len / pagesize;
   uint32_t val;
   uint32_t flash_regs_base = get_stm32l0_flash_base(sl);
   flash_loader_t fl;
+  bool use_loader = true;
+  int ret = 0;
 
-  ILOG("Starting Half page flash write for STM32L core id\n");
-
-  /* Flash loader initialisation */
-  if (stlink_flash_loader_init(sl, &fl) == -1) {
-    WLOG("stlink_flash_loader_init() == -1\n");
-    return (-1);
-  }
-
-  // unlock already done
+  // enable half page write
   stlink_read_debug32(sl, flash_regs_base + FLASH_PECR_OFF, &val);
   val |= (1 << FLASH_L1_FPRG);
   stlink_write_debug32(sl, flash_regs_base + FLASH_PECR_OFF, val);
-
   val |= (1 << FLASH_L1_PROG);
   stlink_write_debug32(sl, flash_regs_base + FLASH_PECR_OFF, val);
 
   wait_flash_busy(sl);
 
   for (count = 0; count < num_half_pages; count++) {
-    if (stlink_flash_loader_run(sl, &fl, addr + count * pagesize,
-                                base + count * pagesize, pagesize) == -1) {
-      WLOG("l1_stlink_flash_loader_run(%#x) failed! == -1\n",
-           addr + count * pagesize);
-      stlink_read_debug32(sl, flash_regs_base + FLASH_PECR_OFF, &val);
-      val &= ~((1 << FLASH_L1_FPRG) | (1 << FLASH_L1_PROG));
-      stlink_write_debug32(sl, flash_regs_base + FLASH_PECR_OFF, val);
-      return (-1);
+    if (use_loader) {
+      ret = stlink_flash_loader_run(sl, &fl, addr + count * pagesize,
+                                base + count * pagesize, pagesize);
+      if (ret && count == 0) {
+        /* It seems that stm32lx devices have a problem when it is blank */
+        WLOG("Failed to use flash loader, fallback to soft write\n");
+        use_loader = false;
+      }
+    }
+    if (!use_loader) {
+      ret = 0;
+      for (off = 0; off < pagesize && !ret; off += 64) {
+        size_t chunk = (pagesize - off > 64) ? 64 : pagesize - off;
+        memcpy(sl->q_buf, base + count * pagesize + off, chunk);
+        ret = stlink_write_mem32(sl, addr + count * pagesize + off, chunk);
+      }
     }
 
-    // wait for sr.busy to be cleared
+    if (ret) {
+      WLOG("l1_stlink_flash_loader_run(%#x) failed! == -1\n",
+           addr + count * pagesize);
+      break;
+    }
+
     if (sl->verbose >= 1) {
       // show progress; writing procedure is slow and previous errors are
       // misleading
@@ -3126,16 +3123,15 @@ int stm32l1_write_half_pages(stlink_t *sl, stm32_addr_t addr, uint8_t *base,
       fflush(stdout);
     }
 
+    // wait for sr.busy to be cleared
     wait_flash_busy(sl);
   }
 
+  // disable half page write
   stlink_read_debug32(sl, flash_regs_base + FLASH_PECR_OFF, &val);
-  val &= ~(1 << FLASH_L1_PROG);
+  val &= ~((1 << FLASH_L1_FPRG) | (1 << FLASH_L1_PROG));
   stlink_write_debug32(sl, flash_regs_base + FLASH_PECR_OFF, val);
-  stlink_read_debug32(sl, flash_regs_base + FLASH_PECR_OFF, &val);
-  val &= ~(1 << FLASH_L1_FPRG);
-  stlink_write_debug32(sl, flash_regs_base + FLASH_PECR_OFF, val);
-  return (0);
+  return (ret);
 }
 
 int stlink_flashloader_start(stlink_t *sl, flash_loader_t *fl) {
@@ -3239,6 +3235,12 @@ int stlink_flashloader_start(stlink_t *sl, flash_loader_t *fl) {
       ELOG("pecr.prglock not clear\n");
       return (-1);
     }
+
+    /* Flash loader initialisation */
+    if (stlink_flash_loader_init(sl, fl) == -1) {
+      // L0/L1 have fallback to soft write
+      WLOG("stlink_flash_loader_init() == -1\n");
+    }
   } else if ((sl->flash_type == STLINK_FLASH_TYPE_F0) ||
              (sl->flash_type == STLINK_FLASH_TYPE_F1_XL)) {
     ILOG("Starting Flash write for VL/F0/F3/F1_XL\n");
@@ -3341,12 +3343,13 @@ int stlink_flashloader_write(stlink_t *sl, flash_loader_t *fl,
       pagesize = L1_WRITE_BLOCK_SIZE;
     }
 
+    DLOG("Starting %3u page write\r\n", (unsigned int)(len / sl->flash_pgsz));
+
     off = 0;
 
     if (len > pagesize) {
-      if (stm32l1_write_half_pages(sl, addr, base, len, pagesize) == -1) {
-        // this may happen on a blank device!
-        WLOG("\nwrite_half_pages failed == -1\n");
+      if (stm32l1_write_half_pages(sl, addr, base, len, pagesize)) {
+        return (-1);
       } else {
         off = (size_t)(len / pagesize) * pagesize;
       }
@@ -4899,27 +4902,29 @@ int stlink_fwrite_option_bytes(stlink_t *sl, const char *path,
 }
 
 int stlink_target_connect(stlink_t *sl, enum connect_type connect) {
-  uint32_t dhcsr;
-
   if (connect == CONNECT_UNDER_RESET) {
-    stlink_jtag_reset(sl, STLINK_JTAG_DRIVE_NRST_LOW);
+    stlink_enter_swd_mode(sl);
+
+    stlink_jtag_reset(sl, STLINK_DEBUG_APIV2_DRIVE_NRST_LOW);
+
+    // try to halt the core before reset
+    // this is useful if the NRST pin is not connected
+    sl->backend->force_debug(sl);
 
     // minimum reset pulse duration of 20 us (RM0008, 8.1.2 Power reset)
     usleep(20);
 
-    if (stlink_current_mode(sl) != STLINK_DEV_DEBUG_MODE) {
-      stlink_enter_swd_mode(sl);
+    stlink_jtag_reset(sl, STLINK_DEBUG_APIV2_DRIVE_NRST_HIGH);
+
+    // try to halt the core after reset
+    unsigned timeout = time_ms() + 10;
+    while (time_ms() < timeout) {
+      sl->backend->force_debug(sl);
+      usleep(100);
     }
-    stlink_force_debug(sl);
-
-    // clear S_RESET_ST in DHCSR register
-    stlink_read_debug32(sl, STLINK_REG_DHCSR, &dhcsr);
-
-    stlink_jtag_reset(sl, STLINK_JTAG_DRIVE_NRST_HIGH);
-    usleep(10000);
 
     // check NRST connection
-    dhcsr = 0;
+    uint32_t dhcsr = 0;
     stlink_read_debug32(sl, STLINK_REG_DHCSR, &dhcsr);
     if ((dhcsr & STLINK_REG_DHCSR_S_RESET_ST) == 0) {
       WLOG("NRST is not connected\n");
@@ -4929,8 +4934,10 @@ int stlink_target_connect(stlink_t *sl, enum connect_type connect) {
     stlink_soft_reset(sl, 1 /* halt on reset */);
   }
 
-  if (stlink_current_mode(sl) != STLINK_DEV_DEBUG_MODE) {
-    stlink_enter_swd_mode(sl);
+  if (stlink_current_mode(sl) != STLINK_DEV_DEBUG_MODE &&
+        stlink_enter_swd_mode(sl)) {
+    printf("Failed to enter SWD mode\n");
+    return -1;
   }
 
   if (connect == CONNECT_NORMAL) {

@@ -25,7 +25,7 @@ extern "C" {
 // #define Q_BUF_LEN    96
 #define Q_BUF_LEN (1024 * 100)
 
-// STLINK_DEBUG_RESETSYS, etc:
+/* Statuses of core */
 enum target_state {
     TARGET_UNKNOWN = 0,
     TARGET_RUNNING = 1,
@@ -37,38 +37,15 @@ enum target_state {
 #define STLINK_CORE_RUNNING             0x80
 #define STLINK_CORE_HALTED              0x81
 
-#define STLINK_GET_VERSION              0xF1
-#define STLINK_GET_CURRENT_MODE         0xF5
-#define STLINK_GET_TARGET_VOLTAGE       0xF7
-
-#define STLINK_DEBUG_COMMAND            0xF2
-#define STLINK_DFU_COMMAND              0xF3
-#define STLINK_DFU_EXIT                 0x07
-
-// STLINK_GET_CURRENT_MODE
+/* STLINK modes */
 #define STLINK_DEV_DFU_MODE             0x00
 #define STLINK_DEV_MASS_MODE            0x01
 #define STLINK_DEV_DEBUG_MODE           0x02
 #define STLINK_DEV_UNKNOWN_MODE           -1
 
-// TODO - possible poor names...
-#define STLINK_SWD_ENTER                0x30
-#define STLINK_SWD_READCOREID           0x32 // TBD
-#define STLINK_JTAG_WRITEDEBUG_32BIT    0x35
-#define STLINK_JTAG_READDEBUG_32BIT     0x36
-#define STLINK_JTAG_DRIVE_NRST          0x3C
-
 /* NRST pin states */
-#define STLINK_JTAG_DRIVE_NRST_LOW      0x00
-#define STLINK_JTAG_DRIVE_NRST_HIGH     0x01
-#define STLINK_JTAG_DRIVE_NRST_PULSE    0x02
-
-#define STLINK_DEBUG_APIV2_SWD_SET_FREQ 0x43
-
-#define STLINK_APIV3_SET_COM_FREQ       0x61
-#define STLINK_APIV3_GET_COM_FREQ       0x62
-
-#define STLINK_APIV3_GET_VERSION_EX     0xFB
+#define STLINK_DEBUG_APIV2_DRIVE_NRST_LOW  0x00
+#define STLINK_DEBUG_APIV2_DRIVE_NRST_HIGH 0x01
 
 /* Baud rate divisors for SWDCLK */
 #define STLINK_SWDCLK_4MHZ_DIVISOR        0
@@ -105,6 +82,23 @@ enum target_state {
 #define STLINK_F_HAS_AP_INIT            (1 << 7)
 #define STLINK_F_HAS_DPBANKSEL          (1 << 8)
 #define STLINK_F_HAS_RW8_512BYTES       (1 << 9)
+
+/* Error code */
+#define STLINK_DEBUG_ERR_OK              0x80
+#define STLINK_DEBUG_ERR_FAULT           0x81
+#define STLINK_DEBUG_ERR_WRITE           0x0c
+#define STLINK_DEBUG_ERR_WRITE_VERIFY    0x0d
+#define STLINK_DEBUG_ERR_AP_WAIT         0x10
+#define STLINK_DEBUG_ERR_AP_FAULT        0x11
+#define STLINK_DEBUG_ERR_AP_ERROR        0x12
+#define STLINK_DEBUG_ERR_DP_WAIT         0x14
+#define STLINK_DEBUG_ERR_DP_FAULT        0x15
+#define STLINK_DEBUG_ERR_DP_ERROR        0x16
+
+#define CMD_CHECK_NO         0
+#define CMD_CHECK_REP_LEN    1
+#define CMD_CHECK_STATUS     2
+#define CMD_CHECK_RETRY      3 /* check status and retry if wait error */
 
 #define C_BUF_LEN 32
 

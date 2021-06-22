@@ -470,7 +470,7 @@ int _stlink_sg_enter_jtag_mode(stlink_t *sl) {
     DLOG("\n*** stlink_enter_jtag_mode ***\n");
     clear_cdb(sg);
     sg->cdb_cmd_blk[1] = STLINK_DEBUG_APIV1_ENTER;
-    sg->cdb_cmd_blk[2] = STLINK_DEBUG_ENTER_JTAG;
+    sg->cdb_cmd_blk[2] = STLINK_DEBUG_ENTER_JTAG_RESET;
     sl->q_len = 0;
     return(stlink_q(sl));
 }
@@ -570,7 +570,7 @@ int _stlink_sg_reset(stlink_t *sl) {
 int _stlink_sg_jtag_reset(stlink_t *sl, int value) {
     struct stlink_libsg *sg = sl->backend_data;
     clear_cdb(sg);
-    sg->cdb_cmd_blk[1] = STLINK_JTAG_DRIVE_NRST;
+    sg->cdb_cmd_blk[1] = STLINK_DEBUG_APIV2_DRIVE_NRST;
     sg->cdb_cmd_blk[2] = (value) ? 0 : 1;
     sl->q_len = 3;
     sg->q_addr = 2;
@@ -876,7 +876,7 @@ int _stlink_sg_write_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
 int _stlink_sg_write_debug32(stlink_t *sl, uint32_t addr, uint32_t data) {
     struct stlink_libsg *sg = sl->backend_data;
     clear_cdb(sg);
-    sg->cdb_cmd_blk[1] = STLINK_JTAG_WRITEDEBUG_32BIT;
+    sg->cdb_cmd_blk[1] = STLINK_DEBUG_APIV2_WRITEDEBUGREG;
     // 2-5: addr
     write_uint32(sg->cdb_cmd_blk + 2, addr);
     write_uint32(sg->cdb_cmd_blk + 6, data);
@@ -888,7 +888,7 @@ int _stlink_sg_write_debug32(stlink_t *sl, uint32_t addr, uint32_t data) {
 int _stlink_sg_read_debug32(stlink_t *sl, uint32_t addr, uint32_t *data) {
     struct stlink_libsg *sg = sl->backend_data;
     clear_cdb(sg);
-    sg->cdb_cmd_blk[1] = STLINK_JTAG_READDEBUG_32BIT;
+    sg->cdb_cmd_blk[1] = STLINK_DEBUG_APIV2_READDEBUGREG;
     // 2-5: addr
     write_uint32(sg->cdb_cmd_blk + 2, addr);
     sl->q_len = 8;
