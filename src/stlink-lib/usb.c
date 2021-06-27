@@ -306,12 +306,6 @@ int _stlink_usb_write_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
     unsigned char* const cmd  = sl->c_buf;
     int i, ret;
 
-    if ((sl->version.jtag_api < STLINK_JTAG_API_V3 && len > 64) ||
-        (sl->version.jtag_api >= STLINK_JTAG_API_V3 && len > 512)) {
-        ELOG("WRITEMEM_32BIT: bulk packet limits exceeded (data len %d byte)\n", len);
-        return (-1);
-    }
-
     i = fill_command(sl, SG_DXFER_TO_DEV, len);
     cmd[i++] = STLINK_DEBUG_COMMAND;
     cmd[i++] = STLINK_DEBUG_WRITEMEM_32BIT;
