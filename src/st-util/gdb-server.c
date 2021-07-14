@@ -501,6 +501,24 @@ static const char* const memory_map_template_H7 =
     "  <memory type=\"rom\" start=\"0x1ff00000\" length=\"0x20000\"/>"      // bootrom
     "</memory-map>";
 
+static const char* const memory_map_template_H72X3X =
+    "<?xml version=\"1.0\"?>"
+    "<!DOCTYPE memory-map PUBLIC \"+//IDN gnu.org//DTD GDB Memory Map V1.0//EN\""
+    "     \"http://sourceware.org/gdb/gdb-memory-map.dtd\">"
+    "<memory-map>"
+    "  <memory type=\"rom\" start=\"0x00000000\" length=\"0x40000\"/>"         // ITCMRAM 64kB + Optional remap
+    "  <memory type=\"ram\" start=\"0x20000000\" length=\"0x20000\"/>"         // DTCMRAM 128kB
+    "  <memory type=\"ram\" start=\"0x24000000\" length=\"0x80000\"/>"         // RAM D1 320kB
+    "  <memory type=\"ram\" start=\"0x30000000\" length=\"0x08000\"/>"         // RAM D2 23kB
+    "  <memory type=\"ram\" start=\"0x38000000\" length=\"0x04000\"/>"         // RAM D3 16kB
+	"  <memory type=\"ram\" start=\"0x38800000\" length=\"0x01000\"/>"         // Backup RAM 4kB
+    "  <memory type=\"flash\" start=\"0x08000000\" length=\"0x%x\">"
+    "    <property name=\"blocksize\">0x%x</property>"
+    "  </memory>"
+    "  <memory type=\"ram\" start=\"0x40000000\" length=\"0x1fffffff\"/>"   // peripheral regs
+    "  <memory type=\"ram\" start=\"0xe0000000\" length=\"0x1fffffff\"/>"   // cortex regs
+    "  <memory type=\"rom\" start=\"0x1ff00000\" length=\"0x20000\"/>"      // bootrom
+    "</memory-map>";
 
 static const char* const memory_map_template_F4_DE =
     "<?xml version=\"1.0\"?>"
@@ -563,7 +581,11 @@ char* make_memory_map(stlink_t *sl) {
         snprintf(map, sz, memory_map_template_L496,
                  (unsigned int)sl->flash_size,
                  (unsigned int)sl->flash_size);
-    } else {
+    } else if (sl->chip_id == STLINK_CHIPID_STM32_H72X) {
+        snprintf(map, sz, memory_map_template_H72X3X,
+                 (unsigned int)sl->flash_size,
+                 (unsigned int)sl->flash_pgsz);	
+	} else {
         snprintf(map, sz, memory_map_template,
                  (unsigned int)sl->flash_size,
                  (unsigned int)sl->sram_size,
