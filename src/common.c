@@ -241,7 +241,6 @@
 
 // STM32L0x flash register base and offsets RM0090 - DM00031020.pdf
 #define STM32L0_FLASH_REGS_ADDR ((uint32_t)0x40022000)
-#define STM32L1_FLASH_REGS_ADDR ((uint32_t)0x40023c00)
 
 #define STM32L0_FLASH_PELOCK (0)
 #define STM32L0_FLASH_OPTLOCK (2)
@@ -450,10 +449,11 @@ static uint32_t get_stm32l0_flash_base(stlink_t *sl) {
   case STLINK_CHIPID_STM32_L1_MEDIUM:
   case STLINK_CHIPID_STM32_L1_MEDIUM_PLUS:
   case STLINK_CHIPID_STM32_L1_HIGH:
-    return (STM32L1_FLASH_REGS_ADDR);
+  case STLINK_CHIPID_STM32_L152_RE:
+    return (STM32L_FLASH_REGS_ADDR);
 
   default:
-    WLOG("Flash base use default L0 address");
+    WLOG("Flash base use default L0 address\n");
     return (STM32L0_FLASH_REGS_ADDR);
   }
 }
@@ -3204,15 +3204,7 @@ int stlink_flashloader_start(stlink_t *sl, flash_loader_t *fl) {
     ILOG("Starting Flash write for L0\n");
 
     uint32_t val;
-    uint32_t flash_regs_base;
-    if (sl->chip_id == STLINK_CHIPID_STM32_L0 ||
-        sl->chip_id == STLINK_CHIPID_STM32_L0_CAT5 ||
-        sl->chip_id == STLINK_CHIPID_STM32_L0_CAT2 ||
-        sl->chip_id == STLINK_CHIPID_STM32_L011) {
-      flash_regs_base = STM32L0_FLASH_REGS_ADDR;
-    } else {
-      flash_regs_base = STM32L_FLASH_REGS_ADDR;
-    }
+    uint32_t flash_regs_base = get_stm32l0_flash_base(sl);
 
     // disable pecr protection
     stlink_write_debug32(sl, flash_regs_base + FLASH_PEKEYR_OFF,
@@ -3327,19 +3319,9 @@ int stlink_flashloader_write(stlink_t *sl, flash_loader_t *fl,
     }
   } else if (sl->flash_type == STLINK_FLASH_TYPE_L0) {
     uint32_t val;
-    uint32_t flash_regs_base;
-    uint32_t pagesize;
-
-    if (sl->chip_id == STLINK_CHIPID_STM32_L0 ||
-        sl->chip_id == STLINK_CHIPID_STM32_L0_CAT5 ||
-        sl->chip_id == STLINK_CHIPID_STM32_L0_CAT2 ||
-        sl->chip_id == STLINK_CHIPID_STM32_L011) {
-      flash_regs_base = STM32L0_FLASH_REGS_ADDR;
-      pagesize = L0_WRITE_BLOCK_SIZE;
-    } else {
-      flash_regs_base = STM32L_FLASH_REGS_ADDR;
-      pagesize = L1_WRITE_BLOCK_SIZE;
-    }
+    uint32_t flash_regs_base = get_stm32l0_flash_base(sl);
+    uint32_t pagesize = (flash_regs_base==STM32L0_FLASH_REGS_ADDR)?
+                                L0_WRITE_BLOCK_SIZE:L1_WRITE_BLOCK_SIZE;
 
     off = 0;
 
@@ -3456,15 +3438,8 @@ int stlink_flashloader_stop(stlink_t *sl, flash_loader_t *fl) {
     lock_flash(sl);
   } else if (sl->flash_type == STLINK_FLASH_TYPE_L0) {
     uint32_t val;
-    uint32_t flash_regs_base;
-    if (sl->chip_id == STLINK_CHIPID_STM32_L0 ||
-        sl->chip_id == STLINK_CHIPID_STM32_L0_CAT5 ||
-        sl->chip_id == STLINK_CHIPID_STM32_L0_CAT2 ||
-        sl->chip_id == STLINK_CHIPID_STM32_L011) {
-      flash_regs_base = STM32L0_FLASH_REGS_ADDR;
-    } else {
-      flash_regs_base = STM32L_FLASH_REGS_ADDR;
-    }
+    uint32_t flash_regs_base = get_stm32l0_flash_base(sl);
+
     // reset lock bits
     stlink_read_debug32(sl, flash_regs_base + FLASH_PECR_OFF, &val);
     val |= (1 << 0) | (1 << 1) | (1 << 2);
