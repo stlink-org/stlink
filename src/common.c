@@ -449,7 +449,7 @@ static uint32_t get_stm32l0_flash_base(stlink_t *sl) {
   case STLINK_CHIPID_STM32_L1_MD:
   case STLINK_CHIPID_STM32_L1_MD_PLUS:
   case STLINK_CHIPID_STM32_L1_MD_PLUS_HD:
-    return (STM32L1_FLASH_REGS_ADDR);
+    return (STM32L_FLASH_REGS_ADDR);
 
   default:
     WLOG("Flash base use default L0 address\n");
