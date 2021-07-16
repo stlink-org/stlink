@@ -1,0 +1,13 @@
+# Chip-ID file for L4xx
+#
+chip_id 0x415
+description L4xx
+flash_type 6
+flash_pagesize 800
+sram_size 0x18000
+bootrom_base 0x1fff0000
+bootrom_size 0x7000
+option_base 0x1fff7800
+option_size 0x4
+flags swo
+

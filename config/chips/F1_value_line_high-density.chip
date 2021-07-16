@@ -1,0 +1,13 @@
+# Chip-ID file for F1 value line high-density
+#
+chip_id 0x428
+description F1 value line high-density
+flash_type 1
+flash_pagesize 800
+sram_size 0x8000
+bootrom_base 0x1ffff000
+bootrom_size 0x800
+option_base 0x0
+option_size 0x0
+flags swo
+

@@ -495,22 +495,11 @@ static void connect_button_cb(GtkWidget *widget, gpointer data) {
 
     if (gui->sl != NULL) { return; }
 
-    gui->sl = stlink_v1_open(0, 1); // try version 1 then version 2
-
-    if (gui->sl == NULL) { gui->sl = stlink_open_usb(0, 1, NULL, 0); }
+    gui->sl = stlink_open_usb(0, 1, NULL, 0);
 
     if (gui->sl == NULL) {
         stlink_gui_set_info_error_message(gui, "Failed to connect to STLink.");
         return;
-    }
-
-    // code below taken from flash/main.c, refactoring might be in order
-    if (stlink_current_mode(gui->sl) == STLINK_DEV_DFU_MODE) {
-        stlink_exit_dfu_mode(gui->sl);
-    }
-
-    if (stlink_current_mode(gui->sl) != STLINK_DEV_DEBUG_MODE) {
-        stlink_enter_swd_mode(gui->sl);
     }
 
     stlink_gui_set_connected(gui);
@@ -893,6 +882,8 @@ int main(int argc, char **argv) {
     STlinkGUI *gui;
 
     gtk_init(&argc, &argv);
+
+    init_chipids (ETC_STLINK_DIR);
 
     gui = g_object_new(STLINK_TYPE_GUI, NULL);
     stlink_gui_build_ui(gui);

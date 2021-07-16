@@ -1,4 +1,4 @@
-# stm32 nucleo boards, with onboard st/linkv2-1
+# STM32 nucleo boards, with onboard st/linkv2-1
 # ie, STM32F0, STM32F4.
 # STM32VL has st/linkv1, which is quite different
 

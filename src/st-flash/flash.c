@@ -61,6 +61,7 @@ int main(int ac, char** av) {
     }
 
     printf("st-flash %s\n", STLINK_VERSION);
+    init_chipids (ETC_STLINK_DIR);
 
     sl = stlink_open_usb(o.log_level, o.connect, (char *)o.serial, o.freq);
 
@@ -68,7 +69,7 @@ int main(int ac, char** av) {
 
     if (sl->flash_type == STLINK_FLASH_TYPE_UNKNOWN) {
         printf("Failed to connect to target\n");
-        return(-1);
+        goto on_error;
     }
 
     if ( o.flash_size != 0u && o.flash_size != sl->flash_size ) {
@@ -83,20 +84,6 @@ int main(int ac, char** av) {
     signal(SIGINT, &cleanup);
     signal(SIGTERM, &cleanup);
     signal(SIGSEGV, &cleanup);
-
-    if (stlink_current_mode(sl) == STLINK_DEV_DFU_MODE) {
-        if (stlink_exit_dfu_mode(sl)) {
-            printf("Failed to exit DFU mode\n");
-            goto on_error;
-        }
-    }
-
-    if (stlink_current_mode(sl) != STLINK_DEV_DEBUG_MODE) {
-        if (stlink_enter_swd_mode(sl)) {
-            printf("Failed to enter SWD mode\n");
-            goto on_error;
-        }
-    }
 
     // core must be halted to use RAM based flashloaders
     if (stlink_force_debug(sl)) {
