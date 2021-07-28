@@ -125,9 +125,12 @@ Tested non-official ST boards [incl. STLINK programmers]:
 
 **STM32H7 / ARM Cortex M7F / Core-ID: 0x6ba02477 (STM32H7_CORE_ID)**
 
-| Chip-ID | Product-Code   |
-| ------- | -------------- |
-| 0x450   | STM32H74x/H75x |
+| Chip-ID | Product-Code  |
+| ------- | ------------- |
+| 0x450   | STM32H7**4**x |
+| 0x450   | STM32H7**5**x |
+| 0x480   | STM32H7**A**x |
+| 0x480   | STM32H7**B**x |
 
 **STM32G0 / ARM Cortex M0+ / Core-ID: 0x0bc11477 (STM32G0_CORE_ID)**
 
@@ -146,6 +149,7 @@ Tested non-official ST boards [incl. STLINK programmers]:
 | 0x468   | STM32G4**41**xx |
 | 0x469   | STM32G4**7**xxx |
 | 0x469   | STM32G4**8**xxx |
+| 0x479   | STM32G4**91**xx |
 
 **STM32L0 / ARM Cortex M0+ / Core-ID: 0x0bc11477 (STM32L0_CORE_ID)**
 
