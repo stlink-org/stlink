@@ -973,7 +973,7 @@ void process_chipfile(char *fname)
   char *p, *pp, buf[1025];
   char word[64], value[64];
   struct stlink_chipid_params *ts;
-  int nc, ival; 
+  int nc; 
 
   //fprintf (stderr, "processing chipfile %s.\n", fname);
   fp = fopen(fname, "r");
@@ -989,30 +989,39 @@ void process_chipfile(char *fname)
     if (*p == '#') continue; // ignore comments. 
 
     sscanf(p, "%s %s", word, value);
-    ival = atoi (value);
     if (strcmp(word, "chip_id") == 0) {
-      ts->chip_id = ival;
+      if (sscanf(value, "%i", &ts->chip_id) < 1)
+	fprintf(stderr, "Failed to parse chip id\n");
     } else if (strcmp (word, "description") == 0) {
       //ts->description = strdup (value);
       buf[strlen(p)-1] = 0; // chomp newline
       sscanf(p, "%*s %n", &nc);
       ts->description = strdup(p+nc);
     } else if (strcmp (word, "flash_type") == 0) {
-      ts->flash_type = ival;
+      // may set invalid flash types (not defined in enum stlink_flash_type)
+      if (sscanf(value, "%i", (int *) &ts->flash_type) < 1)
+	fprintf(stderr, "Failed to parse flash type\n");
     } else if (strcmp (word, "flash_size_reg") == 0) {
-      ts->flash_size_reg = ival;
+      if (sscanf(value, "%i", &ts->flash_size_reg) < 1)
+	fprintf(stderr, "Failed to parse flash size reg\n");
     } else if (strcmp (word, "flash_pagesize") == 0) {
-      ts->flash_pagesize = ival;
+      if (sscanf(value, "%i", &ts->flash_pagesize) < 1)
+	fprintf(stderr, "Failed to parse flash page size\n");
     } else if (strcmp (word, "sram_size") == 0) {
-      ts->sram_size = ival;
+      if (sscanf(value, "%i", &ts->sram_size) < 1)
+	fprintf(stderr, "Failed to parse SRAM size\n");
     } else if (strcmp (word, "bootrom_base") == 0) {
-      ts->bootrom_base = ival;
+      if (sscanf(value, "%i", &ts->bootrom_base) < 1)
+	fprintf(stderr, "Failed to parse BootROM base\n");
     } else if (strcmp (word, "bootrom_size") == 0) {
-      ts->bootrom_size = ival;
+      if (sscanf(value, "%i", &ts->bootrom_size) < 1)
+	fprintf(stderr, "Failed to parse BootROM size\n");
     } else if (strcmp (word, "option_base") == 0) {
-      ts->option_base = ival;
+      if (sscanf(value, "%i", &ts->option_base) < 1)
+	fprintf(stderr, "Failed to parse option base\n");
     } else if (strcmp (word, "option_size") == 0) {
-      ts->option_size = ival;
+      if (sscanf(value, "%i", &ts->option_size) < 1)
+	fprintf(stderr, "Failed to parse option size\n");
     } else if (strcmp (word, "flags") == 0) {
       pp = strtok (p, " \t\n");
       while ((pp = strtok (NULL, " \t\n")) ) {
