@@ -998,9 +998,10 @@ void process_chipfile(char *fname)
       sscanf(p, "%*s %n", &nc);
       ts->description = strdup(p+nc);
     } else if (strcmp (word, "flash_type") == 0) {
-      // may set invalid flash types (not defined in enum stlink_flash_type)
       if (sscanf(value, "%i", (int *) &ts->flash_type) < 1)
 	fprintf(stderr, "Failed to parse flash type\n");
+      else if (ts->flash_type <= STLINK_FLASH_TYPE_UNKNOWN || ts->flash_type >= STLINK_FLASH_TYPE_MAX)
+	fprintf(stderr, "Unrecognized flash type\n");
     } else if (strcmp (word, "flash_size_reg") == 0) {
       if (sscanf(value, "%i", &ts->flash_size_reg) < 1)
 	fprintf(stderr, "Failed to parse flash size reg\n");
