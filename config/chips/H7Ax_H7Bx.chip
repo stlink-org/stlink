@@ -3,7 +3,7 @@
 chip_id 0x480
 description H7Ax/H7Bx
 flash_type 10
-flash_pagesize 2000
+flash_pagesize 0x2000
 sram_size 0x20000
 bootrom_base 0x1ff00000
 bootrom_size 0x20000

@@ -3,7 +3,7 @@
 chip_id 0x460
 description G070/G071/G081
 flash_type 7
-flash_pagesize 800
+flash_pagesize 0x800
 sram_size 0x9000
 bootrom_base 0x1fff0000
 bootrom_size 0x7000

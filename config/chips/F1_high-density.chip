@@ -3,7 +3,7 @@
 chip_id 0x414
 description F1 high-density
 flash_type 1
-flash_pagesize 800
+flash_pagesize 0x800
 sram_size 0x10000
 bootrom_base 0x1ffff000
 bootrom_size 0x800

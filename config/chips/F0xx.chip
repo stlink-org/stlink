@@ -3,7 +3,7 @@
 chip_id 0x440
 description F0xx
 flash_type 1
-flash_pagesize 400
+flash_pagesize 0x400
 sram_size 0x2000
 bootrom_base 0x1fffec00
 bootrom_size 0xc00

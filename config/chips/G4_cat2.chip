@@ -3,7 +3,7 @@
 chip_id 0x468
 description G4 cat2
 flash_type 8
-flash_pagesize 800
+flash_pagesize 0x800
 sram_size 0x8000
 bootrom_base 0x1fff0000
 bootrom_size 0x7000

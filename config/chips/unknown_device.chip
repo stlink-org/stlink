@@ -3,7 +3,7 @@
 chip_id 0x0
 description unknown device
 flash_type 0
-flash_pagesize 0
+flash_pagesize 0x0
 sram_size 0x0
 bootrom_base 0x0
 bootrom_size 0x0

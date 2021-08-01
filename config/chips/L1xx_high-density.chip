@@ -3,7 +3,7 @@
 chip_id 0x436
 description L1xx high-density
 flash_type 5
-flash_pagesize 100
+flash_pagesize 0x100
 sram_size 0xc000
 bootrom_base 0x1ff00000
 bootrom_size 0x1000
