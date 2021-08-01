@@ -70,7 +70,8 @@ enum stlink_stm32_chipids {
     STLINK_CHIPID_STM32_G4_CAT4          = 0x479,
     STLINK_CHIPID_STM32_H7Ax             = 0x480, /* RM0455, p.2863 */
     STLINK_CHIPID_STM32_H72x             = 0x483, /* RM0468, p.3199 */
-    STLINK_CHIPID_STM32_WB55             = 0x495
+    STLINK_CHIPID_STM32_WB55             = 0x495,
+    STLINK_CHIPID_STM32_WLE              = 0x497
 };
 
 #define CHIP_F_HAS_DUAL_BANK    (1 << 0)

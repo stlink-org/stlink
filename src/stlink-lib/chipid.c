@@ -848,6 +848,18 @@ static struct stlink_chipid_params devices[] = {
         .flags = CHIP_F_HAS_SWO_TRACING,
     },
     {
+        // STM32WLEx
+        .chip_id = STLINK_CHIPID_STM32_WLE,
+        .description = "WLEx",
+        .flash_type = STLINK_FLASH_TYPE_WB,
+        .flash_size_reg = 0x1FFF75E0,
+        .flash_pagesize = 0x800, // 2k
+        .sram_size = 0x10000,
+        .bootrom_base = 0x1fff0000, // see the memory map
+        .bootrom_size = 0x7000,
+        .flags = CHIP_F_HAS_SWO_TRACING,
+    },
+    {
         // STM32H742/743/753 (from RM0433)
         .chip_id = STLINK_CHIPID_STM32_H74xxx,
         .description = "H74x/H75x",
