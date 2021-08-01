@@ -954,7 +954,9 @@ struct stlink_chipid_params *stlink_chipid_get_params(uint32_t chipid) {
   p2 = stlink_chipid_get_params_old(chipid);
 
 #if 1
-  if (memcmp (p2, params, sizeof (struct stlink_chipid_params) - sizeof (struct stlink_chipid_params *)) != 0) {
+  if (params == NULL) {
+    params = p2;
+  } else if (memcmp (p2, params, sizeof (struct stlink_chipid_params) - sizeof (struct stlink_chipid_params *)) != 0) {
     //fprintf (stderr, "Error, chipid params not identical\n");
     //return NULL;
     fprintf(stderr, "---------- old ------------\n");
