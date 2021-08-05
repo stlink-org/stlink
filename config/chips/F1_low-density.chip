@@ -3,7 +3,7 @@
 chip_id 0x412
 description F1 low-density
 flash_type 1
-flash_pagesize 400
+flash_pagesize 0x400
 sram_size 0x2800
 bootrom_base 0x1ffff000
 bootrom_size 0x800

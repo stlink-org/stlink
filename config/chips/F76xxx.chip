@@ -3,7 +3,7 @@
 chip_id 0x451
 description F76xxx
 flash_type 4
-flash_pagesize 800
+flash_pagesize 0x800
 sram_size 0x80000
 bootrom_base 0x200000
 bootrom_size 0xedc0

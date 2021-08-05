@@ -3,7 +3,7 @@
 chip_id 0x457
 description L011
 flash_type 5
-flash_pagesize 80
+flash_pagesize 0x80
 sram_size 0x2000
 bootrom_base 0x1ff00000
 bootrom_size 0x2000

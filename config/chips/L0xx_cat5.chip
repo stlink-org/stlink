@@ -3,7 +3,7 @@
 chip_id 0x447
 description L0xx cat5
 flash_type 5
-flash_pagesize 80
+flash_pagesize 0x80
 sram_size 0x5000
 bootrom_base 0x1ff0000
 bootrom_size 0x2000

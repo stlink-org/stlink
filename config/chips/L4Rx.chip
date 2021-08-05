@@ -3,7 +3,7 @@
 chip_id 0x470
 description L4Rx
 flash_type 6
-flash_pagesize 1000
+flash_pagesize 0x1000
 sram_size 0xa0000
 bootrom_base 0x1fff0000
 bootrom_size 0x7000

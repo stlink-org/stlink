@@ -3,7 +3,7 @@
 chip_id 0x466
 description G030/G031/G041
 flash_type 7
-flash_pagesize 800
+flash_pagesize 0x800
 sram_size 0x2000
 bootrom_base 0x1fff0000
 bootrom_size 0x2000
