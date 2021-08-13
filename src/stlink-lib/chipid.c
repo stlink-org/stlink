@@ -1144,7 +1144,7 @@ void init_chipids(char *dir_to_scan)
     return;
   };
   hFind = FindFirstFileA(file_pattern, &ffd);
-  if (INVALID_HANDLE_VALUE == hFind){
+  if (INVALID_HANDLE_VALUE == hFind) {
     ELOG("Can't find any chip description file in %s.\n", file_pattern);
     return;
   }
