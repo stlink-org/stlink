@@ -1155,7 +1155,7 @@ void init_chipids(char *dir_to_scan)
       StringCchCatA(filepath, STLINK_ARRAY_SIZE(file_pattern), "\\");
       StringCchCatA(filepath, STLINK_ARRAY_SIZE(file_pattern), ffd.cFileName);
       process_chipfile(filepath);
-  } while(FindNextFileA(hFind, &ffd) != 0);
+  } while (FindNextFileA(hFind, &ffd) != 0);
 
   FindClose(hFind);
 }
