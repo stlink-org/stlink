@@ -75,6 +75,11 @@ if (STLINK_HAVE_UNISTD_H)
     add_definitions(-DSTLINK_HAVE_UNISTD_H)
 endif ()
 
+CHECK_INCLUDE_FILE(dirent.h STLINK_HAVE_DIRENT_H)
+if (STLINK_HAVE_DIRENT_H)
+    add_definitions(-DSTLINK_HAVE_DIRENT_H)
+endif ()
+
 if (MSVC)
     # Use string.h rather than strings.h and disable annoying warnings
     add_definitions(-DHAVE_STRING_H -D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_WARNINGS /wd4710)

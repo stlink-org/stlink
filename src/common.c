@@ -1541,7 +1541,7 @@ int stlink_chip_id(stlink_t *sl, uint32_t *chip_id) {
 
   if (ret || !(*chip_id)) {
     *chip_id = 0;
-    ret = ret?:-1;
+    ret = ret?ret:-1;
     ELOG("Could not find chip id!\n");
   } else {
     *chip_id = (*chip_id) & 0xfff;
