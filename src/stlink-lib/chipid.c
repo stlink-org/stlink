@@ -1,7 +1,6 @@
 #include <stlink.h>
 #include "chipid.h"
 
-#include <dirent.h> 
 #include <string.h> 
 #include <errno.h> 
 #include <stdio.h>
@@ -962,7 +961,7 @@ struct stlink_chipid_params *stlink_chipid_get_params(uint32_t chipid) {
   //  fprintf (stderr, "getparams: %x\n", chipid);
   for (params = devicelist ; params != NULL ; params = params -> next)
     if (params->chip_id == chipid) break;
-  
+
   p2 = stlink_chipid_get_params_old(chipid);
 
 #if 1
@@ -1061,7 +1060,7 @@ void dump_chips (void)
   struct stlink_chipid_params *ts;
   char *p, buf[100];
   FILE *fp;
-  
+
   for (size_t n = 0; n < STLINK_ARRAY_SIZE(devices); n++) {
     ts = &devices[n];
 
@@ -1086,7 +1085,9 @@ void dump_chips (void)
   }
 }
 
-void init_chipids(char *dir_to_scan) 
+#if defined(STLINK_HAVE_DIRENT_H)
+#include <dirent.h>
+void init_chipids(char *dir_to_scan)
 {
   DIR *d;
   size_t nl; // namelen 
@@ -1121,11 +1122,45 @@ void init_chipids(char *dir_to_scan)
       dump_a_chip (stderr, op);
       fprintf (stderr, "---------- new ------------\n");
       dump_a_chip (stderr, p);
-      
+
     }
   }
 #endif
 }
+#endif //STLINK_HAVE_DIRENT_H
+
+#if defined(_WIN32) && !defined(STLINK_HAVE_DIRENT_H)
+#include <fileapi.h>
+#include <strsafe.h>
+void init_chipids(char *dir_to_scan)
+{
+  HANDLE hFind = INVALID_HANDLE_VALUE;
+  WIN32_FIND_DATAA ffd;
+  char file_pattern[MAX_PATH] = {0};
+  char filepath[MAX_PATH] = {0};
+  StringCchCopyA(file_pattern, STLINK_ARRAY_SIZE(file_pattern), dir_to_scan);
+  if (FAILED(StringCchCatA(file_pattern, STLINK_ARRAY_SIZE(file_pattern), "\\*.chip"))) {
+    ELOG("Path to chips's dir too long.\n");
+    return;
+  };
+  hFind = FindFirstFileA(file_pattern, &ffd);
+  if (INVALID_HANDLE_VALUE == hFind){
+    ELOG("Can't find any chip description file in %s.\n", file_pattern);
+    return;
+  }
+
+  do {
+      memset(filepath, 0, STLINK_ARRAY_SIZE(filepath));
+      StringCchCopyA(filepath, STLINK_ARRAY_SIZE(filepath), dir_to_scan);
+      StringCchCatA(filepath, STLINK_ARRAY_SIZE(file_pattern), "\\");
+      StringCchCatA(filepath, STLINK_ARRAY_SIZE(file_pattern), ffd.cFileName);
+      process_chipfile(filepath);
+  } while(FindNextFileA(hFind, &ffd) != 0);
+
+  FindClose(hFind);
+}
+#endif //defined(_WIN32) && !defined(STLINK_HAVE_DIRENT_H)
+
 
 
 
