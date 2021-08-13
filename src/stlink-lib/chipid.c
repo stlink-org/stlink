@@ -1158,7 +1158,3 @@ void init_chipids(char *dir_to_scan) {
     FindClose(hFind);
 }
 #endif //defined(_WIN32) && !defined(STLINK_HAVE_DIRENT_H)
-
-
-
-
