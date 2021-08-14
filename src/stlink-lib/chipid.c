@@ -1139,7 +1139,6 @@ void init_chipids(char *dir_to_scan) {
         return;
     }
 
-    ;
     hFind = FindFirstFileA(file_pattern, &ffd);
 
     if (INVALID_HANDLE_VALUE == hFind) {
@@ -1150,8 +1149,8 @@ void init_chipids(char *dir_to_scan) {
     do {
         memset(filepath, 0, STLINK_ARRAY_SIZE(filepath));
         StringCchCopyA(filepath, STLINK_ARRAY_SIZE(filepath), dir_to_scan);
-        StringCchCatA(filepath, STLINK_ARRAY_SIZE(file_pattern), "\\");
-        StringCchCatA(filepath, STLINK_ARRAY_SIZE(file_pattern), ffd.cFileName);
+        StringCchCatA(filepath, STLINK_ARRAY_SIZE(filepath), "\\");
+        StringCchCatA(filepath, STLINK_ARRAY_SIZE(filepath), ffd.cFileName);
         process_chipfile(filepath);
     } while (FindNextFileA(hFind, &ffd) != 0);
 
