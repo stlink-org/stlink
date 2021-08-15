@@ -1,3 +1,13 @@
+stlink (1.7.0+ds-1) unstable; urgency=medium
+
+  * Merge tag 'v1.7.0' into debian. (Closes: #984356)
+  * Bump Standards-Version to 4.5.1, no changes.
+  * Bump debhelper-compat to 13, no changes.
+  * Update install files, paths have been fixed upstream.
+  * Update symbols file for 1.7.0.
+
+ -- Luca Boccassi <bluca@debian.org>  Sun, 15 Aug 2021 14:23:25 +0100
+
 stlink (1.6.1+ds-3) unstable; urgency=medium
 
   * Add cross.patch to fix cross-compilation. Thanks Helmut! (Closes:
