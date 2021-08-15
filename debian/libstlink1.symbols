@@ -29,6 +29,8 @@ libstlink.so.1 libstlink1 #MINVER#
  _stlink_usb_close@Base 1.5.0
  _stlink_usb_core_id@Base 1.5.0
  _stlink_usb_current_mode@Base 1.5.0
+ _stlink_usb_disable_trace@Base 1.7.0
+ _stlink_usb_enable_trace@Base 1.7.0
  _stlink_usb_enter_swd_mode@Base 1.5.0
  _stlink_usb_exit_debug_mode@Base 1.5.0
  _stlink_usb_exit_dfu_mode@Base 1.5.0
@@ -40,6 +42,7 @@ libstlink.so.1 libstlink1 #MINVER#
  _stlink_usb_read_debug32@Base 1.5.0
  _stlink_usb_read_mem32@Base 1.5.0
  _stlink_usb_read_reg@Base 1.5.0
+ _stlink_usb_read_trace@Base 1.7.0
  _stlink_usb_read_unsupported_reg@Base 1.5.0
  _stlink_usb_reset@Base 1.5.0
  _stlink_usb_run@Base 1.5.0
@@ -54,10 +57,12 @@ libstlink.so.1 libstlink1 #MINVER#
  _stlink_usb_write_mem8@Base 1.5.0
  _stlink_usb_write_reg@Base 1.5.0
  _stlink_usb_write_unsupported_reg@Base 1.5.0
+ arg_parse_freq@Base 1.7.0
  calculate_F4_sectornum@Base 1.5.0
  calculate_F7_sectornum@Base 1.5.0
+ calculate_H7_sectornum@Base 1.7.0
  calculate_L4_page@Base 1.5.0
- is_bigendian@Base 1.5.0
+#MISSING: 1.7.0# is_bigendian@Base 1.5.0
  read_uint16@Base 1.5.0
  read_uint32@Base 1.5.0
  send_recv@Base 1.5.0
@@ -81,6 +86,9 @@ libstlink.so.1 libstlink1 #MINVER#
  stlink_flash_loader_init@Base 1.5.0
  stlink_flash_loader_run@Base 1.5.0
  stlink_flash_loader_write_to_sram@Base 1.5.0
+ stlink_flashloader_start@Base 1.7.0
+ stlink_flashloader_stop@Base 1.7.0
+ stlink_flashloader_write@Base 1.7.0
  stlink_force_debug@Base 1.5.0
  stlink_fread@Base 1.5.0
  stlink_fwrite_flash@Base 1.5.0
@@ -105,20 +113,36 @@ libstlink.so.1 libstlink1 #MINVER#
  stlink_read_mem32@Base 1.5.0
  stlink_read_option_bytes32@Base 1.6.1
  stlink_read_option_bytes_Gx@Base 1.6.1
+ stlink_read_option_bytes_boot_add32@Base 1.7.0
+ stlink_read_option_bytes_boot_add_f7@Base 1.7.0
  stlink_read_option_bytes_f2@Base 1.6.0
  stlink_read_option_bytes_f4@Base 1.6.0
+ stlink_read_option_bytes_f7@Base 1.7.0
  stlink_read_option_bytes_generic@Base 1.6.1
+ stlink_read_option_control_register1_32@Base 1.7.0
+ stlink_read_option_control_register1_f7@Base 1.7.0
+ stlink_read_option_control_register32@Base 1.7.0
+ stlink_read_option_control_register_Gx@Base 1.7.0
+ stlink_read_option_control_register_f2@Base 1.7.0
+ stlink_read_option_control_register_f4@Base 1.7.0
+ stlink_read_option_control_register_f7@Base 1.7.0
  stlink_read_reg@Base 1.5.0
  stlink_read_unsupported_reg@Base 1.5.0
  stlink_reset@Base 1.5.0
  stlink_run@Base 1.5.0
  stlink_run_at@Base 1.5.0
+ stlink_serial@Base 1.7.0
  stlink_set_hw_bp@Base 1.5.0
  stlink_set_swdclk@Base 1.5.0
+ stlink_soft_reset@Base 1.7.0
  stlink_stat@Base 1.5.0
  stlink_status@Base 1.5.0
  stlink_step@Base 1.5.0
+ stlink_target_connect@Base 1.7.0
  stlink_target_voltage@Base 1.5.0
+ stlink_trace_disable@Base 1.7.0
+ stlink_trace_enable@Base 1.7.0
+ stlink_trace_read@Base 1.7.0
  stlink_v1_open@Base 1.5.0
  stlink_v1_open_inner@Base 1.5.0
  stlink_verify_write_flash@Base 1.5.0
@@ -130,9 +154,13 @@ libstlink.so.1 libstlink1 #MINVER#
  stlink_write_mem8@Base 1.5.0
  stlink_write_option_bytes32@Base 1.6.1
  stlink_write_option_bytes@Base 1.6.0
+ stlink_write_option_bytes_boot_add32@Base 1.7.0
+ stlink_write_option_control_register1_32@Base 1.7.0
+ stlink_write_option_control_register32@Base 1.7.0
  stlink_write_reg@Base 1.5.0
  stlink_write_unsupported_reg@Base 1.5.0
  stm32l1_write_half_pages@Base 1.5.0
+ time_ms@Base 1.7.0
  ugly_init@Base 1.5.0
  ugly_libusb_log_level@Base 1.6.1
  ugly_log@Base 1.5.0
