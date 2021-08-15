@@ -1,9 +1,9 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: stlink
-Upstream-Contact: Luca Bocassi <bluca@debian.org>
+Upstream-Contact: Nightwalker-87 <stlink-org>
 Source: https://github.com/stlink-org/stlink
-Disclaimer:
-Comment:
+Files-Excluded: stlinkv1_macos_driver
+
 Files: *
 Copyright: 2011-2020 stlink-org
     Martin Capitanio [capnm]
@@ -11,7 +11,7 @@ Copyright: 2011-2020 stlink-org
     Jerry Jacobs [xor-gate]
     [Nightwalker-87]
     and many others...
-    A list of contributors can be found in "contributors.txt".
+    An extended list of contributors can be found in "contributors.txt".
 License: BSD-3-clause
     Redistribution and use in source and binary forms, with or without
     modification, are permitted provided that the following conditions are met:

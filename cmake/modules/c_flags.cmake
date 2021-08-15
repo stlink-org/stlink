@@ -18,6 +18,7 @@ function(add_cflag_if_supported flag)
 endfunction()
 
 add_cflag_if_supported("-std=gnu11")
+add_cflag_if_supported("-std=gnu18")
 add_cflag_if_supported("-Wall")
 add_cflag_if_supported("-Wextra")
 add_cflag_if_supported("-Wshadow")
@@ -40,7 +41,7 @@ if (NOT CMAKE_SYSTEM_NAME STREQUAL "OpenBSD")
     add_cflag_if_supported("-Wredundant-decls")
 endif ()
 
-if (NOT WIN32)
+if (NOT (WIN32 OR (EXISTS "/etc/debian_version" AND MINGW)))
     add_cflag_if_supported("-fPIC")
 endif ()
 

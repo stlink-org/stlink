@@ -2,15 +2,12 @@
 
 ISMACOS=$(sw_vers -productVersion)
 case $ISMACOS in
-10.13*)
-    KEXT="stlink_shield_10_13.kext"
-    ;;
 10.14*)
     KEXT="stlink_shield_10_14.kext"
     ;;
 10.15*)
     KEXT="stlink_shield_10_15.kext"
-    ;;
+    ;; 
 *)
     echo "OS X version not supported."
     exit 1

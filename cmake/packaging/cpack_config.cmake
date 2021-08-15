@@ -12,6 +12,7 @@ set(CPACK_PACKAGE_VENDOR "stlink-org")
 set(CMAKE_PROJECT_HOMEPAGE_URL "https://github.com/stlink-org/stlink")
 
 set(CPACK_SET_DESTDIR "ON")
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/dist)
 set(CPACK_OUTPUT_FILE_PREFIX "${CMAKE_BINARY_DIR}/dist")
 
 if (APPLE)                                                                      # macOS
@@ -53,7 +54,7 @@ elseif (EXISTS "/etc/debian_version" AND NOT EXISTS WIN32) # Package-build is av
 
     # CPACK_DEBIAN_PACKAGE_ARCHITECTURE  --> Default: Output of dpkg --print-architecture
     set(CPACK_DEBIAN_PACKAGE_DEPENDS "pkg-config, build-essential, debhelper (>=9), cmake (>= 3.4.2), libusb-1.0-0-dev (>= 1.0.20)")
-    set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Luca Boccassi <bluca@debian.org>")
+    set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Nightwalker-87 <stlink-org>")
     # CPACK_DEBIAN_PACKAGE_DESCRIPTION   --> Default: CPACK_DEBIAN_PACKAGE_DESCRIPTION (as it is set)
     # CPACK_DEBIAN_PACKAGE_SECTION       --> Default: “devel”
     # CPACK_DEBIAN_ARCHIVE_TYPE          --> Default: “gnutar”
