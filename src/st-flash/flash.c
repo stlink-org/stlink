@@ -152,15 +152,15 @@ int main(int ac, char** av) {
             }
         } else if (o.area == FLASH_OPTCR) {
             DLOG("@@@@ Write %d (%0#10x) to option control register\n", o.val, o.val);
-          
+
             err = stlink_write_option_control_register32(sl, o.val);
         } else if (o.area == FLASH_OPTCR1) {
             DLOG("@@@@ Write %d (%0#10x) to option control register 1\n", o.val, o.val);
-            
+
             err = stlink_write_option_control_register1_32(sl, o.val);
         } else if (o.area == FLASH_OPTION_BYTES_BOOT_ADD) {
             DLOG("@@@@ Write %d (%0#10x) to option bytes boot address\n", o.val, o.val);
-          
+
             err = stlink_write_option_bytes_boot_add32(sl, o.val);
         } else {
             err = -1;
@@ -194,9 +194,12 @@ int main(int ac, char** av) {
                 goto on_error;
             }
         } else if (o.area == FLASH_OPTION_BYTES) {
-            uint8_t remaining_option_length = sl->option_size / 4;
-            DLOG("@@@@ Read %d (%#x) option bytes from %#10x\n", remaining_option_length, remaining_option_length, sl->option_base);
-            
+            size_t remaining_option_length = sl->option_size / 4;
+            DLOG("@@@@ Read %u (%#x) option bytes from %#10x\n",
+                (unsigned)remaining_option_length,
+                (unsigned)remaining_option_length,
+                sl->option_base);
+
             if (NULL != o.filename) {
                 if (0 == o.size) {
                     o.size = sl->option_size;

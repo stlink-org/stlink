@@ -424,8 +424,8 @@ void write_uint32(unsigned char *buf, uint32_t ui) {
 }
 
 void write_uint16(unsigned char *buf, uint16_t ui) {
-  buf[0] = ui;
-  buf[1] = ui >> 8;
+  buf[0] = (uint8_t)ui;
+  buf[1] = (uint8_t)(ui >> 8);
 }
 
 uint32_t read_uint32(const unsigned char *c, const int pt) {
@@ -1274,7 +1274,7 @@ static void stop_wdg_in_debug(stlink_t *sl) {
   case STLINK_FLASH_TYPE_F1_XL:
   case STLINK_FLASH_TYPE_G4:
     dbgmcu_cr = STM32F0_DBGMCU_CR;
-    set = (1 << STM32F0_DBGMCU_CR_IWDG_STOP) | 
+    set = (1 << STM32F0_DBGMCU_CR_IWDG_STOP) |
           (1 << STM32F0_DBGMCU_CR_WWDG_STOP);
     break;
   case STLINK_FLASH_TYPE_F4:
@@ -1442,7 +1442,7 @@ void stlink_close(stlink_t *sl) {
 int stlink_exit_debug_mode(stlink_t *sl) {
   DLOG("*** stlink_exit_debug_mode ***\n");
 
-  if (sl->flash_type != STLINK_FLASH_TYPE_UNKNOWN && 
+  if (sl->flash_type != STLINK_FLASH_TYPE_UNKNOWN &&
       sl->core_stat != TARGET_RESET) {
     // stop debugging if the target has been identified
     stlink_write_debug32(sl, STLINK_REG_DHCSR, STLINK_REG_DHCSR_DBGKEY);
@@ -2253,7 +2253,7 @@ static int check_file(stlink_t *sl, mapped_file_t *mf, stm32_addr_t addr) {
       aligned_size = (cmp_size + 4) & ~(4 - 1);
     }
 
-    stlink_read_mem32(sl, addr + (uint32_t)off, aligned_size);
+    stlink_read_mem32(sl, addr + (uint32_t)off, (uint16_t)aligned_size);
 
     if (memcmp(sl->q_buf, mf->base + off, cmp_size)) {
       return (-1);
@@ -2342,12 +2342,12 @@ int stlink_mwrite_sram(stlink_t *sl, uint8_t *data, uint32_t length,
       size += 2;
     } // round size if needed
 
-    stlink_write_mem32(sl, addr + (uint32_t)off, size);
+    stlink_write_mem32(sl, addr + (uint32_t)off, (uint16_t)size);
   }
 
   if (length > len) {
     memcpy(sl->q_buf, data + len, length - len);
-    stlink_write_mem8(sl, addr + (uint32_t)len, length - len);
+    stlink_write_mem8(sl, addr + (uint32_t)len, (uint16_t)(length - len));
   }
 
   error = 0; // success
@@ -2409,12 +2409,12 @@ int stlink_fwrite_sram(stlink_t *sl, const char *path, stm32_addr_t addr) {
       size += 2;
     } // round size if needed
 
-    stlink_write_mem32(sl, addr + (uint32_t)off, size);
+    stlink_write_mem32(sl, addr + (uint32_t)off, (uint16_t)size);
   }
 
   if (mf.len > len) {
     memcpy(sl->q_buf, mf.base + len, mf.len - len);
-    stlink_write_mem8(sl, addr + (uint32_t)len, mf.len - len);
+    stlink_write_mem8(sl, addr + (uint32_t)len, (uint16_t)(mf.len - len));
   }
 
   // check the file has been written
@@ -2462,7 +2462,7 @@ static int stlink_read(stlink_t *sl, stm32_addr_t addr, size_t size,
       aligned_size = (cmp_size + 4) & ~(4 - 1);
     }
 
-    stlink_read_mem32(sl, addr + (uint32_t)off, aligned_size);
+    stlink_read_mem32(sl, addr + (uint32_t)off, (uint16_t)aligned_size);
 
     if (!fn(fn_arg, sl->q_buf, aligned_size)) {
       goto on_error;
@@ -2641,12 +2641,12 @@ int write_buffer_to_sram(stlink_t *sl, flash_loader_t *fl, const uint8_t *buf,
 
   if (chunk) {
     memcpy(sl->q_buf, buf, chunk);
-    ret = stlink_write_mem32(sl, fl->buf_addr, chunk);
+    ret = stlink_write_mem32(sl, fl->buf_addr, (uint16_t)chunk);
   }
 
   if (rem && !ret) {
     memcpy(sl->q_buf, buf + chunk, rem);
-    ret = stlink_write_mem8(sl, (fl->buf_addr) + (uint32_t)chunk, rem);
+    ret = stlink_write_mem8(sl, (fl->buf_addr) + (uint32_t)chunk, (uint16_t)rem);
   }
 
   return (ret);
@@ -3059,7 +3059,7 @@ int stlink_verify_write_flash(stlink_t *sl, stm32_addr_t address, uint8_t *data,
       aligned_size = (cmp_size + 4) & ~(4 - 1);
     }
 
-    stlink_read_mem32(sl, address + (uint32_t)off, aligned_size);
+    stlink_read_mem32(sl, address + (uint32_t)off, (uint16_t)aligned_size);
 
     if (memcmp(sl->q_buf, data + off, cmp_size)) {
       ELOG("Verification of flash failed at offset: %u\n", (unsigned int)off);
@@ -3105,7 +3105,7 @@ int stm32l1_write_half_pages(stlink_t *sl, stm32_addr_t addr, uint8_t *base,
       for (off = 0; off < pagesize && !ret; off += 64) {
         size_t chunk = (pagesize - off > 64) ? 64 : pagesize - off;
         memcpy(sl->q_buf, base + count * pagesize + off, chunk);
-        ret = stlink_write_mem32(sl, addr + count * pagesize + off, chunk);
+        ret = stlink_write_mem32(sl, addr + count * pagesize + off, (uint16_t)chunk);
       }
     }
 

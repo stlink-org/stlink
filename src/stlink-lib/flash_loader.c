@@ -17,8 +17,8 @@
 /* !!!
  * !!! DO NOT MODIFY FLASH LOADERS DIRECTLY!
  * !!!
- * 
- * Edit assembly files in the '/flashloaders' instead. The sizes of binary 
+ *
+ * Edit assembly files in the '/flashloaders' instead. The sizes of binary
  * flash loaders must be aligned by 4 (it's written by stlink_write_mem32)
  */
 
@@ -280,7 +280,7 @@ int stlink_flash_loader_write_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* 
     } else if (sl->core_id == STM32F7_CORE_ID ||
                sl->chip_id == STLINK_CHIPID_STM32_F7 ||
                sl->chip_id == STLINK_CHIPID_STM32_F76xxx ||
-               sl->chip_id == STLINK_CHIPID_STM32_F72xxx)                                          {
+               sl->chip_id == STLINK_CHIPID_STM32_F72xxx) {
         int retval;
         retval = loader_v_dependent_assignment(sl,
                                                &loader_code, &loader_size,
@@ -310,7 +310,7 @@ int stlink_flash_loader_write_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* 
     }
 
     memcpy(sl->q_buf, loader_code, loader_size);
-    int ret = stlink_write_mem32(sl, sl->sram_base, loader_size);
+    int ret = stlink_write_mem32(sl, sl->sram_base, (uint16_t)loader_size);
 
     if (ret) { return(ret); }
 
@@ -382,10 +382,10 @@ int stlink_flash_loader_run(stlink_t *sl, flash_loader_t* fl, stm32_addr_t targe
     // check written byte count
     stlink_read_reg(sl, 2, &rr);
 
-    /* The chunk size for loading is not rounded. The flash loader 
-     * subtracts the size of the written block (1-8 bytes) from 
-     * the remaining size each time. A negative value may mean that 
-     * several bytes garbage has been written due to the unaligned 
+    /* The chunk size for loading is not rounded. The flash loader
+     * subtracts the size of the written block (1-8 bytes) from
+     * the remaining size each time. A negative value may mean that
+     * several bytes garbage has been written due to the unaligned
      * firmware size.
      */
     if ((int32_t)rr.r[2] > 0 || (int32_t)rr.r[2] < -7) {
