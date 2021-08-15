@@ -124,7 +124,7 @@ int parse_options(int argc, char** argv, st_state_t *st) {
                             "  -n, --no-reset, --hot-plug\n"
                             "\t\t\tDo not reset board on connection.\n"
                             "  -u, --connect-under-reset\n"
-                            "\t\t\tConnect to the board before executing any instructions.\n"                            
+                            "\t\t\tConnect to the board before executing any instructions.\n"
                             "  -F 1800k, --freq=1M\n"
                             "\t\t\tSet the frequency of the SWD/JTAG interface.\n"
                             "  --semihosting\n"
@@ -167,7 +167,7 @@ int parse_options(int argc, char** argv, st_state_t *st) {
 
             st->listen_port = q;
             break;
-            
+
         case 'm':
             st->persistent = true;
             break;
@@ -586,7 +586,7 @@ char* make_memory_map(stlink_t *sl) {
     } else if (sl->chip_id == STLINK_CHIPID_STM32_H72x) {
         snprintf(map, sz, memory_map_template_H72x3x,
                  (unsigned int)sl->flash_size,
-                 (unsigned int)sl->flash_pgsz);	
+                 (unsigned int)sl->flash_pgsz);
 	} else {
         snprintf(map, sz, memory_map_template,
                  (unsigned int)sl->flash_size,
@@ -726,7 +726,7 @@ static void init_code_breakpoints(stlink_t *sl) {
         // IHI0029D, p. 48, Lock Access Register
         stlink_write_debug32(sl, STLINK_REG_CM7_FP_LAR, STLINK_REG_CM7_FP_LAR_KEY);
     }
-    
+
     for (int i = 0; i < code_break_num; i++) {
         code_breaks[i].type = 0;
         stlink_write_debug32(sl, STLINK_REG_CM3_FP_COMPn(i), 0);
@@ -757,7 +757,7 @@ static int update_code_breakpoint(stlink_t *sl, stm32_addr_t addr, int set) {
         type = CODE_BREAK_REMAP;
         fpb_addr = addr;
     }
-    
+
     int id = -1;
     for (int i = 0; i < code_break_num; i++)
         if (fpb_addr == code_breaks[i].addr || (set && code_breaks[i].type == 0)) {
@@ -778,7 +778,7 @@ static int update_code_breakpoint(stlink_t *sl, stm32_addr_t addr, int set) {
         bp->type |= type;
     else
         bp->type &= ~type;
-    
+
     // DDI0403E, p. 759, FP_COMPn register description
     mask = ((bp->type&0x03) << 30) | bp->addr | 1;
 
@@ -936,7 +936,7 @@ struct cache_level_desc {
 
 struct cache_desc_t {
     unsigned used;
-    
+
     // minimal line size in bytes
     unsigned int dminline;
     unsigned int iminline;
@@ -988,7 +988,7 @@ static void init_cache (stlink_t *sl) {
         cache_desc.used = 1;
     cache_desc.dminline = 4 << ((ctr >> 16) & 0x0f);
     cache_desc.iminline = 4 << (ctr & 0x0f);
-    
+
     stlink_read_debug32(sl, STLINK_REG_CM7_CLIDR, &clidr);
     cache_desc.louu = (clidr >> 27) & 7;
 
@@ -1698,7 +1698,7 @@ int serve(stlink_t *sl, st_state_t *st) {
 
                 for (unsigned int i = 0; i < align_count; i++) {
                     char hextmp[3] = { hexdata[i * 2], hexdata[i * 2 + 1], 0 };
-                    uint8_t byte = strtoul(hextmp, NULL, 16);
+                    uint8_t byte = (uint8_t)strtoul(hextmp, NULL, 16);
                     sl->q_buf[i] = byte;
                 }
 
@@ -1714,7 +1714,7 @@ int serve(stlink_t *sl, st_state_t *st) {
 
                 for (unsigned int i = 0; i < aligned_count; i++) {
                     char hextmp[3] = { hexdata[i * 2], hexdata[i * 2 + 1], 0 };
-                    uint8_t byte = strtoul(hextmp, NULL, 16);
+                    uint8_t byte = (uint8_t)strtoul(hextmp, NULL, 16);
                     sl->q_buf[i] = byte;
                 }
 
@@ -1728,7 +1728,7 @@ int serve(stlink_t *sl, st_state_t *st) {
             if (count) {
                 for (unsigned int i = 0; i < count; i++) {
                     char hextmp[3] = { hexdata[i * 2], hexdata[i * 2 + 1], 0 };
-                    uint8_t byte = strtoul(hextmp, NULL, 16);
+                    uint8_t byte = (uint8_t)strtoul(hextmp, NULL, 16);
                     sl->q_buf[i] = byte;
                 }
 
