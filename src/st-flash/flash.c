@@ -195,7 +195,10 @@ int main(int ac, char** av) {
             }
         } else if (o.area == FLASH_OPTION_BYTES) {
             size_t remaining_option_length = sl->option_size / 4;
-            DLOG("@@@@ Read %d (%#x) option bytes from %#10x\n", remaining_option_length, remaining_option_length, sl->option_base);
+            DLOG("@@@@ Read %u (%#x) option bytes from %#10x\n",
+                (unsigned)remaining_option_length,
+                (unsigned)remaining_option_length,
+                sl->option_base);
 
             if (NULL != o.filename) {
                 if (0 == o.size) {
