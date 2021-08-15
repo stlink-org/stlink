@@ -46,6 +46,7 @@ Georg von Zengen
 Giuseppe Barba
 Greg Alexander [galexander1]
 Greg Meiste [meisteg]
+Grzegorz Szymaszek [gszy]
 Guillaume Revaillot [grevaillot]
 Hakkavélin <hakkavelin@braudrist.lan>
 Halt Hammerzeit
