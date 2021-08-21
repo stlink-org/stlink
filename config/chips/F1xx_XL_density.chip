@@ -1,0 +1,13 @@
+# Chip-ID file for F1xx XL-density
+#
+chip_id 0x430
+description F1xx XL-density
+flash_type 2
+flash_pagesize 0x800
+sram_size 0x18000
+bootrom_base 0x1fffe000
+bootrom_size 0x1800
+option_base 0x0
+option_size 0x0
+flags swo
+

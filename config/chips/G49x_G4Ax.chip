@@ -1,0 +1,13 @@
+# Chip-ID file for G49x/G4Ax
+#
+chip_id 0x479
+description G49x/G4Ax
+flash_type 8
+flash_pagesize 0x800
+sram_size 0x1c000
+bootrom_base 0x1fff0000
+bootrom_size 0x7000
+option_base 0x1ffff800
+option_size 0x4
+flags swo
+

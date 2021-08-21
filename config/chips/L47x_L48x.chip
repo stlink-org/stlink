@@ -1,0 +1,13 @@
+# Chip-ID file for L47x/L48x
+#
+chip_id 0x415
+description L47x/L48x
+flash_type 6
+flash_pagesize 0x800
+sram_size 0x18000
+bootrom_base 0x1fff0000
+bootrom_size 0x7000
+option_base 0x1fff7800
+option_size 0x4
+flags swo
+

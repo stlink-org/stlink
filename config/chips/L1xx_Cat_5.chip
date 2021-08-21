@@ -1,0 +1,13 @@
+# Chip-ID file for L1xx Cat.5
+#
+chip_id 0x437
+description L1xx Cat.5
+flash_type 5
+flash_pagesize 0x100
+sram_size 0x14000
+bootrom_base 0x1ff00000
+bootrom_size 0x1000
+option_base 0x0
+option_size 0x0
+flags swo
+
