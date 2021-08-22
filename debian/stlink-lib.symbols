@@ -1,4 +1,4 @@
-libstlink.so.1 libstlink1 #MINVER#
+stlink-lib.so.1 stlink-lib #MINVER#
  Md5Calculate@Base 1.6.1
  Md5Finalise@Base 1.6.1
  Md5Initialise@Base 1.6.1

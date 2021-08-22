@@ -1,8 +1,8 @@
 .debhelper
-files
-debhelper-build-stamp
 *.log
 *.substvars
+debhelper-build-stamp
+files
 libstlink-dev
 libstlink
 stlink-gui

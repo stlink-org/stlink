@@ -9,44 +9,40 @@ Homepage: https://github.com/stlink-org/stlink
 Vcs-Git: https://github.com/bluca/stlink.git -b debian
 Vcs-Browser: https://github.com/bluca/stlink
 
-Package: libstlink-dev
+Package: stlink-lib-dev
 Section: libdevel
 Architecture: linux-any
 Multi-Arch: same
-Depends: libstlink1 (= ${binary:Version}), ${misc:Depends}
-Description: OpenSource ST-Link tools replacement.
- Flashing tools for STMicroelectronics STM32VL and STM32L. The transport layers
- STLINKv1 and STLINKv2 are supported.
+Depends: stlink-lib (= ${binary:Version}), ${misc:Depends}
+Replaces: libstlink-dev (<< 1.7.0+ds-1)
+Breaks: libstlink-dev (<< 1.7.0+ds-1)
+Description: Open source version of the STMicroelectronics STLINK Tools
  .
- This package contains the development files for stlink.
+ This package contains development files for stlink.
 
-Package: libstlink1
+Package: stlink-lib
 Section: libs
 Architecture: linux-any
 Multi-Arch: same
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: OpenSource ST-Link tools replacement.
- Flashing tools for STMicroelectronics STM32VL and STM32L. The transport layers
- STLINKv1 and STLINKv2 are supported.
+Replaces: libstlink1 (<< 1.7.0+ds-1)
+Breaks: libstlink1 (<< 1.7.0+ds-1)
+Description: Open source version of the STMicroelectronics STLINK Tools
  .
  This package contains the shared library for stlink.
 
 Package: stlink-tools
 Architecture: linux-any
-Depends: libstlink1 (= ${binary:Version}), ${shlibs:Depends}, ${misc:Depends}
-Description: OpenSource ST-Link tools replacement.
- Flashing tools for STMicroelectronics STM32VL and STM32L. The transport layers
- STLINKv1 and STLINKv2 are supported.
+Depends: stlink-lib (= ${binary:Version}), ${shlibs:Depends}, ${misc:Depends}
+Description: Open source version of the STMicroelectronics STLINK Tools
  .
- This package contains commandline utilities for stlink, and modprobe and
- udev rules.
+ This package contains commandline utilities for stlink, as well as modprobe
+ and udev rules.
 
 Package: stlink-gui
 Architecture: linux-any
-Depends: libstlink1 (= ${binary:Version}), stlink-tools (= ${binary:Version}),
+Depends: stlink-lib (= ${binary:Version}), stlink-tools (= ${binary:Version}),
  ${shlibs:Depends}, ${misc:Depends}
-Description: OpenSource ST-Link tools replacement.
- Flashing tools for STMicroelectronics STM32VL and STM32L. The transport layers
- STLINKv1 and STLINKv2 are supported.
+Description: Open source version of the STMicroelectronics STLINK Tools
  .
  This package contains a GUI tool for stlink.
