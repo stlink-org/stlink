@@ -1,0 +1,13 @@
+# Chip-ID file for L0xx Cat.5
+#
+chip_id 0x447
+description L0xx Cat.5
+flash_type 5
+flash_pagesize 0x80
+sram_size 0x5000
+bootrom_base 0x1ff0000
+bootrom_size 0x2000
+option_base 0x1ff80000
+option_size 0x14
+flags dualbank
+

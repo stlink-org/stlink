@@ -1,0 +1,13 @@
+# Chip-ID file for F411xC/E
+#
+chip_id 0x431
+description F411xC/E
+flash_type 3
+flash_pagesize 0x4000
+sram_size 0x20000
+bootrom_base 0x1fff0000
+bootrom_size 0x7800
+option_base 0x0
+option_size 0x0
+flags swo
+

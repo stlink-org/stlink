@@ -1,7 +1,7 @@
-# Chip-ID file for L4Rx
+# Chip-ID file for L4Px
 #
-chip_id 0x470
-description L4Rx
+chip_id 0x471
+description L4Px
 flash_type 6
 flash_pagesize 0x1000
 sram_size 0xa0000
