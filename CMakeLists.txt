@@ -9,11 +9,6 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-set(CMAKE_STLINK_ETC_DIR  etc)
-set(CMAKE_ETC_CHIPS_DIR  ${CMAKE_STLINK_ETC_DIR}/stlink/chips)
-set(CMAKE_ETC_CHIPS_DIR_ABS  ${CMAKE_INSTALL_PREFIX}/${CMAKE_ETC_CHIPS_DIR})
-add_definitions( -DETC_STLINK_DIR="${CMAKE_ETC_CHIPS_DIR_ABS}" )
-
 
 ###
 # General project settings
@@ -22,6 +17,11 @@ add_definitions( -DETC_STLINK_DIR="${CMAKE_ETC_CHIPS_DIR_ABS}" )
 project(stlink C)
 set(PROJECT_DESCRIPTION "Open source version of the STMicroelectronics ST-LINK Tools")
 include(GNUInstallDirs) # Define GNU standard installation directories
+
+## MCU configuration files
+set(CMAKE_CHIPS_SUBDIR stlink/chips)
+set(CMAKE_CHIPS_DIR  ${CMAKE_INSTALL_PREFIX}/${CMAKE_CHIPS_SUBDIR})
+add_definitions( -DETC_STLINK_DIR="${CMAKE_CHIPS_DIR}" )
 
 ## Determine project version
 include(${CMAKE_MODULE_PATH}/get_version.cmake)
@@ -287,8 +287,9 @@ install(TARGETS st-info DESTINATION ${CMAKE_INSTALL_BINDIR})
 install(TARGETS st-util DESTINATION ${CMAKE_INSTALL_BINDIR})
 install(TARGETS st-trace DESTINATION ${CMAKE_INSTALL_BINDIR})
 
+# Install MCU configuration files
 file(GLOB CHIP_FILES ${CMAKE_SOURCE_DIR}/config/chips/*.chip)
-install(FILES ${CHIP_FILES} DESTINATION ${CMAKE_ETC_CHIPS_DIR})
+install(FILES ${CHIP_FILES} DESTINATION ${CMAKE_CHIPS_DIR})
 
 
 ###

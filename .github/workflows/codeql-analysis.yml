@@ -35,7 +35,7 @@ jobs:
 
     steps:
       - name: Install dependencies
-        run: sudo apt-get install gcc-10 libusb-1.0.0-dev libgtk-3-dev rpm
+        run: sudo apt update && sudo apt-get install gcc-10 libusb-1.0.0-dev libgtk-3-dev rpm
       - name: Checkout repository
         uses: actions/checkout@v2
 

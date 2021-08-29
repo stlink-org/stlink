@@ -2199,7 +2199,7 @@ static int map_file(mapped_file_t *mf, const char *path) {
 
   if (sizeof(st.st_size) != sizeof(size_t)) {
     // on 32 bit systems, check if there is an overflow
-    if (st.st_size > (off_t)INT32_MAX) {
+    if (st.st_size > (off_t)SSIZE_MAX) {
       fprintf(stderr, "mmap() size_t overflow for file %s\n", path);
       goto on_error;
     }
@@ -2213,7 +2213,7 @@ static int map_file(mapped_file_t *mf, const char *path) {
     goto on_error;
   }
 
-  mf->len = st.st_size;
+  mf->len = (size_t)st.st_size;
   error = 0; // success
 
 on_error:
