@@ -25,6 +25,7 @@ Updates & changes:
 - Drop execute bits from source code files ([#1167](https://github.com/stlink-org/stlink/pull/1167))
 - Use proper Markdown headers for supported MCUs ([#1168](https://github.com/stlink-org/stlink/pull/1168))
 - Removed redundant array ([#1178](https://github.com/stlink-org/stlink/pull/1178))
+- Updated chip config files from the library structs ([#1181](https://github.com/stlink-org/stlink/pull/1181))
 
 Fixes:
 - cmake: Install shared libraries in proper directories ([#1142](https://github.com/stlink-org/stlink/pull/1142))
@@ -37,6 +38,9 @@ Fixes:
 - Fixed parsing hex numbers in chip config files ([#1169](https://github.com/stlink-org/stlink/pull/1169))
 - Corrected flash_pagesize to use hex format ([#1172](https://github.com/stlink-org/stlink/pull/1172))
 - Fixed compilation for MSVC ([#1176](https://github.com/stlink-org/stlink/pull/1176))
+- Fixed few warnings for msvc about type conversion with possible lost data ([#1179](https://github.com/stlink-org/stlink/pull/1179))
+- st-flash and other utilities search for chip files in the wrong directory ([#1180](https://github.com/stlink-org/stlink/pull/1180), commit [#c8fc656](https://github.com/stlink-org/stlink/commit/c8fc6561fead79ad49c09d82bab864745086792c))
+- Fixed broken build on 32 bit systems ([#985](https://github.com/stlink-org/stlink/pull/985), [#1175](https://github.com/stlink-org/stlink/pull/1175), commit [#c8fc656](https://github.com/stlink-org/stlink/commit/c8fc6561fead79ad49c09d82bab864745086792c))
 
 # v1.7.0
 
