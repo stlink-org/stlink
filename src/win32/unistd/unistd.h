@@ -51,6 +51,9 @@
  */
 
 #define ssize_t int
+#ifndef SSIZE_MAX
+#define SSIZE_MAX ((sizeof(ssize_t) == 4) ? 2147483647 : 9223372036854775807)
+#endif
 
 #define STDIN_FILENO  0
 #define STDOUT_FILENO 1
