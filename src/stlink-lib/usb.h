@@ -26,6 +26,7 @@ extern "C" {
 #define STLINK_USB_PID_STLINK_V3E_PID       0x374e
 #define STLINK_USB_PID_STLINK_V3S_PID       0x374f
 #define STLINK_USB_PID_STLINK_V3_2VCP_PID   0x3753
+#define STLINK_USB_PID_STLINK_V3_NO_MSD_PID 0x3754
 
 #define STLINK_V1_USB_PID(pid) ((pid) == STLINK_USB_PID_STLINK)
 
@@ -38,7 +39,8 @@ extern "C" {
 #define STLINK_V3_USB_PID(pid) ((pid) == STLINK_USB_PID_STLINK_V3_USBLOADER || \
                                 (pid) == STLINK_USB_PID_STLINK_V3E_PID || \
                                 (pid) == STLINK_USB_PID_STLINK_V3S_PID || \
-                                (pid) == STLINK_USB_PID_STLINK_V3_2VCP_PID)
+                                (pid) == STLINK_USB_PID_STLINK_V3_2VCP_PID || \
+                                (pid) == STLINK_USB_PID_STLINK_V3_NO_MSD_PID)
 
 #define STLINK_SUPPORTED_USB_PID(pid) (STLINK_V1_USB_PID(pid) || \
                                        STLINK_V2_USB_PID(pid) || \
