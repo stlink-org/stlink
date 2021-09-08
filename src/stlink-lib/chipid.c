@@ -906,6 +906,7 @@ void dump_a_chip (FILE *fp, struct stlink_chipid_params *dev) {
     fprintf(fp, "chip_id 0x%x\n", dev->chip_id);
     fprintf(fp, "description %s\n", dev->description);
     fprintf(fp, "flash_type  %d\n", dev->flash_type);
+    fprintf(fp, "flash_size_reg 0x%x\n", dev->flash_size_reg);
     fprintf(fp, "flash_pagesize 0x%x\n", dev->flash_pagesize);
     fprintf(fp, "sram_size 0x%x\n", dev->sram_size);
     fprintf(fp, "bootrom_base 0x%x\n", dev->bootrom_base);
