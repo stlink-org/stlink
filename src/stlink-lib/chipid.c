@@ -916,7 +916,7 @@ void dump_a_chip (FILE *fp, struct stlink_chipid_params *dev) {
     fprintf(fp, "flags %d\n\n", dev->flags);
 }
 
-static int chipid_params_eq(struct stlink_chipid_params *p1, struct stlink_chipid_params *p2)
+static int chipid_params_eq(const struct stlink_chipid_params *p1, const struct stlink_chipid_params *p2)
 {
     return p1->chip_id == p2->chip_id &&
         p1->description && p2->description &&
