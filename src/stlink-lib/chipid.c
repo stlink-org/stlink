@@ -906,6 +906,7 @@ void dump_a_chip (FILE *fp, struct stlink_chipid_params *dev) {
     fprintf(fp, "chip_id 0x%x\n", dev->chip_id);
     fprintf(fp, "description %s\n", dev->description);
     fprintf(fp, "flash_type  %d\n", dev->flash_type);
+    fprintf(fp, "flash_size_reg 0x%x\n", dev->flash_size_reg);
     fprintf(fp, "flash_pagesize 0x%x\n", dev->flash_pagesize);
     fprintf(fp, "sram_size 0x%x\n", dev->sram_size);
     fprintf(fp, "bootrom_base 0x%x\n", dev->bootrom_base);
@@ -913,6 +914,22 @@ void dump_a_chip (FILE *fp, struct stlink_chipid_params *dev) {
     fprintf(fp, "option_base 0x%x\n", dev->option_base);
     fprintf(fp, "option_size 0x%x\n", dev->option_size);
     fprintf(fp, "flags %d\n\n", dev->flags);
+}
+
+static int chipid_params_eq(const struct stlink_chipid_params *p1, const struct stlink_chipid_params *p2)
+{
+    return p1->chip_id == p2->chip_id &&
+        p1->description && p2->description &&
+        strcmp(p1->description, p2->description) == 0 &&
+        p1->flash_type == p2->flash_type &&
+        p1->flash_size_reg == p2->flash_size_reg &&
+        p1->flash_pagesize == p2->flash_pagesize &&
+        p1->sram_size == p2->sram_size &&
+        p1->bootrom_base == p2->bootrom_base &&
+        p1->bootrom_size == p2->bootrom_size &&
+        p1->option_base == p2->option_base &&
+        p1->option_size == p2->option_size &&
+        p1->flags == p2->flags;
 }
 
 struct stlink_chipid_params *stlink_chipid_get_params(uint32_t chipid) {
@@ -930,7 +947,7 @@ struct stlink_chipid_params *stlink_chipid_get_params(uint32_t chipid) {
 #if 1
     if (params == NULL) {
         params = p2;
-    } else if (memcmp (p2, params, sizeof(struct stlink_chipid_params) - sizeof(struct stlink_chipid_params *)) != 0) {
+    } else if (!chipid_params_eq(params, p2)) {
         // fprintf (stderr, "Error, chipid params not identical\n");
         // return NULL;
         fprintf(stderr, "---------- old ------------\n");
@@ -984,7 +1001,7 @@ void process_chipfile(char *fname) {
         } else if (strcmp (word, "flash_type") == 0) {
             if (sscanf(value, "%i", (int *)&ts->flash_type) < 1) {
                 fprintf(stderr, "Failed to parse flash type\n");
-            } else if (ts->flash_type <= STLINK_FLASH_TYPE_UNKNOWN || ts->flash_type >= STLINK_FLASH_TYPE_MAX) {
+            } else if (ts->flash_type < STLINK_FLASH_TYPE_UNKNOWN || ts->flash_type >= STLINK_FLASH_TYPE_MAX) {
                 fprintf(stderr, "Unrecognized flash type\n");
             }
         } else if (strcmp (word, "flash_size_reg") == 0) {
