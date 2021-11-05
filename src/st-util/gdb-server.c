@@ -518,6 +518,8 @@ static const char* const memory_map_template_H72x3x =
     "    <property name=\"blocksize\">0x%x</property>"
     "  </memory>"
     "  <memory type=\"ram\" start=\"0x40000000\" length=\"0x1fffffff\"/>"   // peripheral regs
+    "  <memory type=\"ram\" start=\"0x60000000\" length=\"0x3fffffff\"/>"   // External Memory
+	"  <memory type=\"ram\" start=\"0xC0000000\" length=\"0x1fffffff\"/>"   // External device
     "  <memory type=\"ram\" start=\"0xe0000000\" length=\"0x1fffffff\"/>"   // cortex regs
     "  <memory type=\"rom\" start=\"0x1ff00000\" length=\"0x20000\"/>"      // bootrom
     "</memory-map>";
