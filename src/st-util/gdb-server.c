@@ -513,13 +513,13 @@ static const char* const memory_map_template_H72x3x =
     "  <memory type=\"ram\" start=\"0x24000000\" length=\"0x80000\"/>"         // RAM D1 320kB
     "  <memory type=\"ram\" start=\"0x30000000\" length=\"0x08000\"/>"         // RAM D2 23kB
     "  <memory type=\"ram\" start=\"0x38000000\" length=\"0x04000\"/>"         // RAM D3 16kB
-	"  <memory type=\"ram\" start=\"0x38800000\" length=\"0x01000\"/>"         // Backup RAM 4kB
+    "  <memory type=\"ram\" start=\"0x38800000\" length=\"0x01000\"/>"         // Backup RAM 4kB
     "  <memory type=\"flash\" start=\"0x08000000\" length=\"0x%x\">"
     "    <property name=\"blocksize\">0x%x</property>"
     "  </memory>"
     "  <memory type=\"ram\" start=\"0x40000000\" length=\"0x1fffffff\"/>"   // peripheral regs
     "  <memory type=\"ram\" start=\"0x60000000\" length=\"0x3fffffff\"/>"   // External Memory
-	"  <memory type=\"ram\" start=\"0xC0000000\" length=\"0x1fffffff\"/>"   // External device
+    "  <memory type=\"ram\" start=\"0xC0000000\" length=\"0x1fffffff\"/>"   // External device
     "  <memory type=\"ram\" start=\"0xe0000000\" length=\"0x1fffffff\"/>"   // cortex regs
     "  <memory type=\"rom\" start=\"0x1ff00000\" length=\"0x20000\"/>"      // bootrom
     "</memory-map>";
