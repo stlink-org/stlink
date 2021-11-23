@@ -244,18 +244,19 @@ Description:
 Backend:		"jtag_reset"
 Arguments:
   sl:		Pointer to the stlink data structure, returned by stlink_v1_open() or stlink_open_usb()
-  value: 	0: drive low, 1: drive high, 2: ????
+  value: 	0: drive low, 1: drive high, 2: pulse
 Return:		-1 for error. 0 for success.
 
 
 Include:		inc/stlink.h
-Prototype:	int stlink_run(stlink_t *sl);
+Prototype:	int stlink_run(stlink_t *sl, enum run_type type);
 Definition: 	src/common.c
 Description:
   Just calls the backend "run" procedure.
 Backend:		"run"
 Arguments:
-  sl:	Pointer to the stlink data structure, returned by stlink_v1_open() or stlink_open_usb()
+  sl:	    Pointer to the stlink data structure, returned by stlink_v1_open() or stlink_open_usb()
+  type: 	RUN_NORMAL - run target, RUN_FLASH_LOADER - run target with masking interrupts
 Return:		-1 for error. 0 for success.
 
 Include:		inc/stlink.h
@@ -300,7 +301,7 @@ Return:		-1 for error. 0 for success.
     int stlink_current_mode(stlink_t *sl);
     int stlink_force_debug(stlink_t *sl);
     int stlink_target_voltage(stlink_t *sl);
-    int stlink_set_swdclk(stlink_t *sl, uint16_t divisor);
+    int stlink_set_swdclk(stlink_t *sl, int freq_khz);
 
     int stlink_erase_flash_mass(stlink_t* sl);
     int stlink_write_flash(stlink_t* sl, stm32_addr_t address, uint8_t* data, uint32_t length, uint8_t eraseonly);

@@ -1,0 +1,13 @@
+# Chip-ID file for F76x/F77x
+#
+chip_id 0x451
+description F76x/F77x
+flash_type 4
+flash_pagesize 0x800
+sram_size 0x80000
+bootrom_base 0x200000
+bootrom_size 0xedc0
+option_base 0x1fff0000
+option_size 0x20
+flags dualbank swo
+

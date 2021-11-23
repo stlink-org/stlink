@@ -41,7 +41,7 @@ if (NOT CMAKE_SYSTEM_NAME STREQUAL "OpenBSD")
     add_cflag_if_supported("-Wredundant-decls")
 endif ()
 
-if (NOT WIN32)
+if (NOT (WIN32 OR (EXISTS "/etc/debian_version" AND MINGW)))
     add_cflag_if_supported("-fPIC")
 endif ()
 

@@ -1,0 +1,13 @@
+# Chip-ID file for F303/F328/F334
+#
+chip_id 0x438
+description F303/F328/F334
+flash_type 1
+flash_pagesize 0x800
+sram_size 0x3000
+bootrom_base 0x1fffd800
+bootrom_size 0x2000
+option_base 0x1ffff800
+option_size 0x10
+flags swo
+

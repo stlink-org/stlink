@@ -1,6 +1,6 @@
 % st-flash(1) Open Source STMicroelectronics Stlink Tools  | stlink
 %
-% Feb 2018
+% Oct 2020
 
 # NAME
 st-info - Provides information about connected STLink and STM32 devices
@@ -13,9 +13,9 @@ st-info - Provides information about connected STLink and STM32 devices
 # DESCRIPTION
 
 Provides information about connected STLink programmers and STM32 devices:
-Serial code, OpenOCD hla-serial, flash, page size, sram, chipid, description.
+Serial code, flash, page size, sram, chipid, description.
 
-The STLink device to probe can be specified via the environment variable 
+The STLink device to probe can be specified via the environment variable
 STLINK_DEVICE on the format <USB_BUS>:<USB_ADDR>.
 
 # OPTIONS
@@ -28,9 +28,6 @@ STLINK_DEVICE on the format <USB_BUS>:<USB_ADDR>.
 
 \--serial
 :   Display the serial code of the device
-
-\--hla-serial
-:   Display the hex escaped serial code of the device
 
 \--flash
 :   Display amount of flash memory available in the device
@@ -52,6 +49,12 @@ STLINK_DEVICE on the format <USB_BUS>:<USB_ADDR>.
 Display information about connected programmers and devices
 
     $ st-info --probe
+    Found 1 stlink programmers
+     serial:     57FF72067265575742132067
+     flash:      131072 (pagesize: 128)
+     sram:       20480
+     chipid:     0x0447
+     descr:      L0xx Category 5
 
 
 # SEE ALSO

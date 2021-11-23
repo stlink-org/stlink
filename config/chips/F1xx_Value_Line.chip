@@ -1,0 +1,13 @@
+# Chip-ID file for F1xx Value Line
+#
+chip_id 0x420
+description F1xx Value Line
+flash_type 1
+flash_pagesize 0x400
+sram_size 0x2000
+bootrom_base 0x1ffff000
+bootrom_size 0x800
+option_base 0x1ffff800
+option_size 0x10
+flags swo
+

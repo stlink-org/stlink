@@ -10,7 +10,7 @@
         int (*core_id) (stlink_t * stl);
         int (*reset) (stlink_t * stl);
         int (*jtag_reset) (stlink_t * stl, int value);
-        int (*run) (stlink_t * stl);
+        int (*run) (stlink_t * stl, enum run_type type);
         int (*status) (stlink_t * stl);
         int (*version) (stlink_t *sl);
         int (*read_debug32) (stlink_t *sl, uint32_t addr, uint32_t *data);
@@ -28,7 +28,10 @@
         int (*current_mode) (stlink_t * stl);
         int (*force_debug) (stlink_t *sl);
         int32_t (*target_voltage) (stlink_t *sl);
-        int (*set_swdclk) (stlink_t * stl, uint16_t divisor);
+        int (*set_swdclk) (stlink_t * stl, int freq_khz);
+        int (*trace_enable) (stlink_t * sl, uint32_t frequency);
+        int (*trace_disable) (stlink_t * sl);
+        int (*trace_read) (stlink_t * sl, uint8_t* buf, size_t size);
     } stlink_backend_t;
 
 #endif // STLINK_BACKEND_H_

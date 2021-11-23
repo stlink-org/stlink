@@ -489,41 +489,17 @@ static void stlink_gui_set_connected(STlinkGUI *gui) {
 
 static void connect_button_cb(GtkWidget *widget, gpointer data) {
     STlinkGUI *gui;
-    gint i;
     (void)widget;
 
     gui = STLINK_GUI(data);
 
     if (gui->sl != NULL) { return; }
 
-    gui->sl = stlink_v1_open(0, 1); // try version 1 then version 2
-
-    if (gui->sl == NULL) { gui->sl = stlink_open_usb(0, 1, NULL, 0); }
+    gui->sl = stlink_open_usb(0, 1, NULL, 0);
 
     if (gui->sl == NULL) {
         stlink_gui_set_info_error_message(gui, "Failed to connect to STLink.");
         return;
-    }
-
-    // code below taken from flash/main.c, refactoring might be in order
-    if (stlink_current_mode(gui->sl) == STLINK_DEV_DFU_MODE) {
-        stlink_exit_dfu_mode(gui->sl);
-    }
-
-    if (stlink_current_mode(gui->sl) != STLINK_DEV_DEBUG_MODE) {
-        stlink_enter_swd_mode(gui->sl);
-    }
-
-    // disable DMA - Set All DMA CCR Registers to zero. - AKS 1/7/2013
-    if (gui->sl->chip_id == STLINK_CHIPID_STM32_F4) {
-        memset(gui->sl->q_buf, 0, 4);
-
-        for (i = 0; i < 8; i++) {
-            stlink_write_mem32(gui->sl, 0x40026000 + 0x10 + 0x18 * i, 4);
-            stlink_write_mem32(gui->sl, 0x40026400 + 0x10 + 0x18 * i, 4);
-            stlink_write_mem32(gui->sl, 0x40026000 + 0x24 + 0x18 * i, 4);
-            stlink_write_mem32(gui->sl, 0x40026400 + 0x24 + 0x18 * i, 4);
-        }
     }
 
     stlink_gui_set_connected(gui);
@@ -906,6 +882,8 @@ int main(int argc, char **argv) {
     STlinkGUI *gui;
 
     gtk_init(&argc, &argv);
+
+    init_chipids (ETC_STLINK_DIR);
 
     gui = g_object_new(STLINK_TYPE_GUI, NULL);
     stlink_gui_build_ui(gui);

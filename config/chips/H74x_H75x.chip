@@ -1,0 +1,13 @@
+# Chip-ID file for H74x/H75x
+#
+chip_id 0x450
+description H74x/H75x
+flash_type 10
+flash_pagesize 0x20000
+sram_size 0x20000
+bootrom_base 0x1ff00000
+bootrom_size 0x20000
+option_base 0x5200201c
+option_size 0x2c
+flags dualbank swo
+

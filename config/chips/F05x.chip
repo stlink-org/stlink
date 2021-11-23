@@ -1,0 +1,13 @@
+# Chip-ID file for F05x
+#
+chip_id 0x440
+description F05x
+flash_type 1
+flash_pagesize 0x400
+sram_size 0x2000
+bootrom_base 0x1fffec00
+bootrom_size 0xc00
+option_base 0x1ffff800
+option_size 0x10
+flags none
+

@@ -1,0 +1,13 @@
+# Chip-ID file for F4x5/F4x7
+#
+chip_id 0x413
+description F4x5/F4x7
+flash_type 3
+flash_pagesize 0x4000
+sram_size 0x30000
+bootrom_base 0x1fff0000
+bootrom_size 0x7800
+option_base 0x40023c14
+option_size 0x4
+flags swo
+

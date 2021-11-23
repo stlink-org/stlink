@@ -1,0 +1,13 @@
+# Chip-ID file for F42x/F43x
+#
+chip_id 0x419
+description F42x/F43x
+flash_type 3
+flash_pagesize 0x4000
+sram_size 0x40000
+bootrom_base 0x1fff0000
+bootrom_size 0x7800
+option_base 0x0
+option_size 0x0
+flags swo
+

@@ -1,0 +1,13 @@
+# Chip-ID file for F07x
+#
+chip_id 0x448
+description F07x
+flash_type 1
+flash_pagesize 0x800
+sram_size 0x4000
+bootrom_base 0x1fffc800
+bootrom_size 0x3000
+option_base 0x1ffff800
+option_size 0x10
+flags none
+

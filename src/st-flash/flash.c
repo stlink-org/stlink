@@ -17,7 +17,7 @@ static void cleanup(int signum) {
     (void)signum;
 
     if (connected_stlink) { // switch back to mass storage mode before closing
-        stlink_run(connected_stlink);
+        stlink_run(connected_stlink, RUN_NORMAL);
         stlink_exit_debug_mode(connected_stlink);
         stlink_close(connected_stlink);
     }
@@ -26,9 +26,9 @@ static void cleanup(int signum) {
 }
 
 static void usage(void) {
-    puts("command line:   ./st-flash [--debug] [--reset] [--opt] [--serial <serial>] [--format <format>] [--flash=<fsize>] [--freq=<Hz>] [--area=<area>] {read|write} [path] [addr] [size]");
-    puts("command line:   ./st-flash [--debug] [--freq=<Hz>] [--serial <serial>] erase");
-    puts("command line:   ./st-flash [--debug] [--freq=<Hz>] [--serial <serial>] reset");
+    puts("command line:   ./st-flash [--debug] [--reset] [--connect-under-reset] [--hot-plug] [--opt] [--serial <serial>] [--format <format>] [--flash=<fsize>] [--freq=<kHz>] [--area=<area>] {read|write} [path] [addr] [size]");
+    puts("command line:   ./st-flash [--debug] [--connect-under-reset] [--hot-plug] [--freq=<kHz>] [--serial <serial>] erase");
+    puts("command line:   ./st-flash [--debug] [--freq=<kHz>] [--serial <serial>] reset");
     puts("   <addr>, <serial> and <size>: Use hex format.");
     puts("   <fsize>: Use decimal, octal or hex (prefix 0xXXX) format, optionally followed by k=KB, or m=MB (eg. --flash=128k)");
     puts("   <format>: Can be 'binary' (default) or 'ihex', although <addr> must be specified for binary format only.");
@@ -52,6 +52,7 @@ int main(int ac, char** av) {
     uint8_t * mem = NULL;
 
     o.size = 0;
+    o.connect = CONNECT_NORMAL;
 
     if (flash_get_opts(&o, ac - 1, av + 1) == -1) {
         printf("invalid command line\n");
@@ -60,14 +61,15 @@ int main(int ac, char** av) {
     }
 
     printf("st-flash %s\n", STLINK_VERSION);
+    init_chipids (ETC_STLINK_DIR);
 
-    sl = stlink_open_usb(o.log_level, 1, (char *)o.serial, o.freq);
+    sl = stlink_open_usb(o.log_level, o.connect, (char *)o.serial, o.freq);
 
     if (sl == NULL) { return(-1); }
 
     if (sl->flash_type == STLINK_FLASH_TYPE_UNKNOWN) {
         printf("Failed to connect to target\n");
-        return(-1);
+        goto on_error;
     }
 
     if ( o.flash_size != 0u && o.flash_size != sl->flash_size ) {
@@ -82,47 +84,6 @@ int main(int ac, char** av) {
     signal(SIGINT, &cleanup);
     signal(SIGTERM, &cleanup);
     signal(SIGSEGV, &cleanup);
-
-    if (stlink_current_mode(sl) == STLINK_DEV_DFU_MODE) {
-        if (stlink_exit_dfu_mode(sl)) {
-            printf("Failed to exit DFU mode\n");
-            goto on_error;
-        }
-    }
-
-    if (stlink_current_mode(sl) != STLINK_DEV_DEBUG_MODE) {
-        if (stlink_enter_swd_mode(sl)) {
-            printf("Failed to enter SWD mode\n");
-            goto on_error;
-        }
-    }
-
-    if (o.reset) {
-        if (sl->version.stlink_v > 1) {
-            if (stlink_jtag_reset(sl, 2)) {
-                printf("Failed to reset JTAG\n");
-                goto on_error;
-            }
-        }
-
-        if (stlink_reset(sl)) {
-            printf("Failed to reset device\n");
-            goto on_error;
-        }
-    }
-
-    // disable DMA - Set All DMA CCR Registers to zero. - AKS 1/7/2013
-    if (sl->chip_id == STLINK_CHIPID_STM32_F4) {
-        memset(sl->q_buf, 0, 4);
-        
-        for (int i = 0; i < 8; i++) {
-            stlink_write_mem32(sl, 0x40026000 + 0x10 + 0x18 * i, 4);
-            stlink_write_mem32(sl, 0x40026400 + 0x10 + 0x18 * i, 4);
-            stlink_write_mem32(sl, 0x40026000 + 0x24 + 0x18 * i, 4);
-            stlink_write_mem32(sl, 0x40026400 + 0x24 + 0x18 * i, 4);
-
-        }
-    }
 
     // core must be halted to use RAM based flashloaders
     if (stlink_force_debug(sl)) {
@@ -191,15 +152,15 @@ int main(int ac, char** av) {
             }
         } else if (o.area == FLASH_OPTCR) {
             DLOG("@@@@ Write %d (%0#10x) to option control register\n", o.val, o.val);
-          
+
             err = stlink_write_option_control_register32(sl, o.val);
         } else if (o.area == FLASH_OPTCR1) {
             DLOG("@@@@ Write %d (%0#10x) to option control register 1\n", o.val, o.val);
-            
+
             err = stlink_write_option_control_register1_32(sl, o.val);
         } else if (o.area == FLASH_OPTION_BYTES_BOOT_ADD) {
             DLOG("@@@@ Write %d (%0#10x) to option bytes boot address\n", o.val, o.val);
-          
+
             err = stlink_write_option_bytes_boot_add32(sl, o.val);
         } else {
             err = -1;
@@ -214,14 +175,7 @@ int main(int ac, char** av) {
             goto on_error;
         }
     } else if (o.cmd == CMD_RESET) {
-        if (sl->version.stlink_v > 1) {
-            if (stlink_jtag_reset(sl, 2)) {
-                printf("Failed to reset JTAG\n");
-                goto on_error;
-            }
-        }
-
-        if (stlink_reset(sl)) {
+        if (stlink_reset(sl, RESET_AUTO)) {
             printf("Failed to reset device\n");
             goto on_error;
         }
@@ -240,9 +194,12 @@ int main(int ac, char** av) {
                 goto on_error;
             }
         } else if (o.area == FLASH_OPTION_BYTES) {
-            uint8_t remaining_option_length = sl->option_size / 4;
-            DLOG("@@@@ Read %d (%#x) option bytes from %#10x\n", remaining_option_length, remaining_option_length, sl->option_base);
-            
+            size_t remaining_option_length = sl->option_size / 4;
+            DLOG("@@@@ Read %u (%#x) option bytes from %#10x\n",
+                (unsigned)remaining_option_length,
+                (unsigned)remaining_option_length,
+                sl->option_base);
+
             if (NULL != o.filename) {
                 if (0 == o.size) {
                     o.size = sl->option_size;
@@ -289,9 +246,7 @@ int main(int ac, char** av) {
     }
 
     if (o.reset) {
-        if (sl->version.stlink_v > 1) { stlink_jtag_reset(sl, 2); }
-
-        stlink_reset(sl);
+        stlink_reset(sl, RESET_AUTO);
     }
 
     err = 0; // success

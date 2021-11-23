@@ -1,3 +1,9 @@
+stlink (1.7.0) unstable; urgency=medium
+
+  * Release v1.7.0
+
+ -- Nightwalker-87 <stlink-org>  Sun, 25 Apr 2021 00:00:00 +0100
+
 stlink (1.6.1) unstable; urgency=medium
 
   * Initial cpack-based package release for Debian/Ubuntu

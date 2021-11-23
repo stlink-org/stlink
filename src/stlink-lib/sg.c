@@ -161,7 +161,7 @@ static int dump_CDB_command(uint8_t *cdb, uint8_t cdb_len) {
     }
 
     sprintf(dbugp, "]\n");
-    DLOG(dbugblah);
+    DLOG("%s",dbugblah);
     return(0);
 }
 
@@ -274,7 +274,7 @@ static void get_sense(libusb_device_handle *handle, uint8_t endpoint_in, uint8_t
     }
 
     if (transferred != sizeof(sense)) {
-        WLOG("received unexpected amount of sense: %d != %d\n", transferred, sizeof(sense));
+        WLOG("received unexpected amount of sense: %d != %u\n", transferred, (unsigned)sizeof(sense));
     }
 
     uint32_t received_tag;
@@ -470,7 +470,7 @@ int _stlink_sg_enter_jtag_mode(stlink_t *sl) {
     DLOG("\n*** stlink_enter_jtag_mode ***\n");
     clear_cdb(sg);
     sg->cdb_cmd_blk[1] = STLINK_DEBUG_APIV1_ENTER;
-    sg->cdb_cmd_blk[2] = STLINK_DEBUG_ENTER_JTAG;
+    sg->cdb_cmd_blk[2] = STLINK_DEBUG_ENTER_JTAG_RESET;
     sl->q_len = 0;
     return(stlink_q(sl));
 }
@@ -570,7 +570,7 @@ int _stlink_sg_reset(stlink_t *sl) {
 int _stlink_sg_jtag_reset(stlink_t *sl, int value) {
     struct stlink_libsg *sg = sl->backend_data;
     clear_cdb(sg);
-    sg->cdb_cmd_blk[1] = STLINK_JTAG_DRIVE_NRST;
+    sg->cdb_cmd_blk[1] = STLINK_DEBUG_APIV2_DRIVE_NRST;
     sg->cdb_cmd_blk[2] = (value) ? 0 : 1;
     sl->q_len = 3;
     sg->q_addr = 2;
@@ -731,8 +731,9 @@ void stlink_write_dreg(stlink_t *sl, uint32_t reg, uint32_t addr) {
 }
 
 // force the core exit the debug mode.
-int _stlink_sg_run(stlink_t *sl) {
+int _stlink_sg_run(stlink_t *sl, enum run_type type) {
     struct stlink_libsg *sg = sl->backend_data;
+    (void)(type); //unused
     clear_cdb(sg);
     sg->cdb_cmd_blk[1] = STLINK_DEBUG_RUNCORE;
     sl->q_len = 2;
@@ -875,7 +876,7 @@ int _stlink_sg_write_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
 int _stlink_sg_write_debug32(stlink_t *sl, uint32_t addr, uint32_t data) {
     struct stlink_libsg *sg = sl->backend_data;
     clear_cdb(sg);
-    sg->cdb_cmd_blk[1] = STLINK_JTAG_WRITEDEBUG_32BIT;
+    sg->cdb_cmd_blk[1] = STLINK_DEBUG_APIV2_WRITEDEBUGREG;
     // 2-5: addr
     write_uint32(sg->cdb_cmd_blk + 2, addr);
     write_uint32(sg->cdb_cmd_blk + 6, data);
@@ -887,7 +888,7 @@ int _stlink_sg_write_debug32(stlink_t *sl, uint32_t addr, uint32_t data) {
 int _stlink_sg_read_debug32(stlink_t *sl, uint32_t addr, uint32_t *data) {
     struct stlink_libsg *sg = sl->backend_data;
     clear_cdb(sg);
-    sg->cdb_cmd_blk[1] = STLINK_JTAG_READDEBUG_32BIT;
+    sg->cdb_cmd_blk[1] = STLINK_DEBUG_APIV2_READDEBUGREG;
     // 2-5: addr
     write_uint32(sg->cdb_cmd_blk + 2, addr);
     sl->q_len = 8;
@@ -944,7 +945,10 @@ static stlink_backend_t _stlink_sg_backend = {
     _stlink_sg_current_mode,
     _stlink_sg_force_debug,
     NULL,                   // target_voltage
-    NULL                    // set_swdclk
+    NULL,                   // set_swdclk
+    NULL,                   // trace_enable
+    NULL,                   // trace_disable
+    NULL,                   // trace_read
 };
 
 static stlink_t* stlink_open(const int verbose) {
@@ -1111,7 +1115,7 @@ stlink_t* stlink_v1_open(const int verbose, int reset) {
     stlink_enter_swd_mode(sl);
 
     // now we are ready to read the parameters
-    if (reset) { stlink_reset(sl); }
+    if (reset) { stlink_reset(sl, RESET_AUTO); }
 
     stlink_load_device_params(sl);
     ILOG("Successfully opened a stlink v1 debugger\n");

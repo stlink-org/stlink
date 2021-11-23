@@ -2,7 +2,7 @@
 # General cmake settings
 ###
 
-cmake_minimum_required(VERSION 3.4.2)
+cmake_minimum_required(VERSION 3.7.2)
 cmake_policy(SET CMP0042 NEW)
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
@@ -17,6 +17,11 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 project(stlink C)
 set(PROJECT_DESCRIPTION "Open source version of the STMicroelectronics ST-LINK Tools")
 include(GNUInstallDirs) # Define GNU standard installation directories
+
+## MCU configuration files
+set(CMAKE_CHIPS_SUBDIR stlink/chips)
+set(CMAKE_CHIPS_DIR  ${CMAKE_INSTALL_PREFIX}/${CMAKE_CHIPS_SUBDIR})
+add_definitions( -DETC_STLINK_DIR="${CMAKE_CHIPS_DIR}" )
 
 ## Determine project version
 include(${CMAKE_MODULE_PATH}/get_version.cmake)
@@ -60,9 +65,19 @@ if (STLINK_HAVE_SYS_MMAN_H)
     add_definitions(-DSTLINK_HAVE_SYS_MMAN_H)
 endif()
 
+CHECK_INCLUDE_FILE(sys/time.h STLINK_HAVE_SYS_TIME_H)
+if (STLINK_HAVE_SYS_TIME_H)
+    add_definitions(-DSTLINK_HAVE_SYS_TIME_H)
+endif()
+
 CHECK_INCLUDE_FILE(unistd.h STLINK_HAVE_UNISTD_H)
 if (STLINK_HAVE_UNISTD_H)
     add_definitions(-DSTLINK_HAVE_UNISTD_H)
+endif ()
+
+CHECK_INCLUDE_FILE(dirent.h STLINK_HAVE_DIRENT_H)
+if (STLINK_HAVE_DIRENT_H)
+    add_definitions(-DSTLINK_HAVE_DIRENT_H)
 endif ()
 
 if (MSVC)
@@ -104,6 +119,7 @@ set(STLINK_HEADERS
         src/stlink-lib/md5.h
         src/stlink-lib/sg.h
         src/stlink-lib/usb.h
+        src/stlink-lib/helper.h
         )
 
 set(STLINK_SOURCE
@@ -114,6 +130,7 @@ set(STLINK_SOURCE
         src/stlink-lib/md5.c
         src/stlink-lib/sg.c
         src/stlink-lib/usb.c
+        src/stlink-lib/helper.c
         )
 
 if (WIN32)
@@ -131,6 +148,11 @@ if (WIN32)
         include_directories(src/win32/mmap)
         set(STLINK_SOURCE "${STLINK_SOURCE};src/win32/mmap.c")
         set(STLINK_HEADERS "${STLINK_HEADERS};src/win32/mmap.h")
+    endif()
+
+    if (NOT STLINK_HAVE_SYS_TIME_H)
+        set(STLINK_SOURCE "${STLINK_SOURCE};src/win32/sys_time.c")
+        set(STLINK_HEADERS "${STLINK_HEADERS};src/win32/sys_time.h")
     endif()
 endif ()
 
@@ -155,11 +177,7 @@ execute_process(COMMAND bash -c "export LD_LIBRARY_PATH=${CMAKE_INSTALL_LIBDIR}"
 ###
 
 # Set library name
-if (NOT WIN32)
-    set(STLINK_LIB_SHARED ${PROJECT_NAME})
-else (WIN32)
-    set(STLINK_LIB_SHARED ${PROJECT_NAME}-shared)
-endif ()
+set(STLINK_LIB_SHARED ${PROJECT_NAME}-shared)
 
 add_library(${STLINK_LIB_SHARED} SHARED ${STLINK_HEADERS} ${STLINK_SOURCE})
 
@@ -186,8 +204,11 @@ else ()
     target_link_libraries(${STLINK_LIB_SHARED} ${LIBUSB_LIBRARY} ${SSP_LIB})
 endif ()
 
-install(TARGETS ${STLINK_LIB_SHARED} DESTINATION ${STLINK_LIBRARY_PATH})
-
+install(TARGETS ${STLINK_LIB_SHARED}
+        ARCHIVE DESTINATION ${STLINK_LIBRARY_PATH}
+        LIBRARY DESTINATION ${STLINK_LIBRARY_PATH}
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+        )
 
 ###
 # Static library
@@ -195,6 +216,10 @@ install(TARGETS ${STLINK_LIB_SHARED} DESTINATION ${STLINK_LIBRARY_PATH})
 
 # Set library name
 set(STLINK_LIB_STATIC ${PROJECT_NAME}-static)
+set(STLINK_LIB_STATIC_OUTPUT_NAME ${PROJECT_NAME})
+if (MSVC)
+    set(STLINK_LIB_STATIC_OUTPUT_NAME ${PROJECT_NAME}-static)
+endif()
 
 add_library(${STLINK_LIB_STATIC} STATIC ${STLINK_HEADERS} ${STLINK_SOURCE})
 
@@ -206,7 +231,7 @@ message(STATUS "VERSION: ${STLINK_STATIC_VERSION}")
 set_target_properties(${STLINK_LIB_STATIC} PROPERTIES
         SOVERSION ${PROJECT_VERSION_MAJOR}
         VERSION ${STLINK_STATIC_VERSION}
-        OUTPUT_NAME ${PROJECT_NAME}
+        OUTPUT_NAME ${STLINK_LIB_STATIC_OUTPUT_NAME}
         )
 
 # Link static library
@@ -231,30 +256,40 @@ install(TARGETS ${STLINK_LIB_STATIC} ARCHIVE DESTINATION ${STLINK_LIBRARY_PATH})
 set(ST-FLASH_SOURCES src/st-flash/flash.c src/st-flash/flash_opts.c)
 set(ST-INFO_SOURCES src/st-info/info.c)
 set(ST-UTIL_SOURCES src/st-util/gdb-remote.c src/st-util/gdb-server.c src/st-util/semihosting.c)
+set(ST-TRACE_SOURCES src/st-trace/trace.c)
 
 if (MSVC)
     # Add getopt to sources
     include_directories(src/win32/getopt)
     set(ST-UTIL_SOURCES "${ST-UTIL_SOURCES};src/win32/getopt/getopt.c")
+    set(ST-TRACE_SOURCES "${ST-TRACE_SOURCES};src/win32/getopt/getopt.c")
 endif ()
 
 add_executable(st-flash ${ST-FLASH_SOURCES})
 add_executable(st-info ${ST-INFO_SOURCES})
 add_executable(st-util ${ST-UTIL_SOURCES})
+add_executable(st-trace ${ST-TRACE_SOURCES})
 
 if (WIN32 OR APPLE)
     target_link_libraries(st-flash ${STLINK_LIB_STATIC} ${SSP_LIB})
     target_link_libraries(st-info ${STLINK_LIB_STATIC} ${SSP_LIB})
     target_link_libraries(st-util ${STLINK_LIB_STATIC} ${SSP_LIB})
+    target_link_libraries(st-trace ${STLINK_LIB_STATIC} ${SSP_LIB})
 else ()
     target_link_libraries(st-flash ${STLINK_LIB_SHARED} ${SSP_LIB})
     target_link_libraries(st-info ${STLINK_LIB_SHARED} ${SSP_LIB})
     target_link_libraries(st-util ${STLINK_LIB_SHARED} ${SSP_LIB})
+    target_link_libraries(st-trace ${STLINK_LIB_SHARED} ${SSP_LIB})
 endif ()
 
 install(TARGETS st-flash DESTINATION ${CMAKE_INSTALL_BINDIR})
 install(TARGETS st-info DESTINATION ${CMAKE_INSTALL_BINDIR})
 install(TARGETS st-util DESTINATION ${CMAKE_INSTALL_BINDIR})
+install(TARGETS st-trace DESTINATION ${CMAKE_INSTALL_BINDIR})
+
+# Install MCU configuration files
+file(GLOB CHIP_FILES ${CMAKE_SOURCE_DIR}/config/chips/*.chip)
+install(FILES ${CHIP_FILES} DESTINATION ${CMAKE_CHIPS_DIR})
 
 
 ###

@@ -1,0 +1,13 @@
+# Chip-ID file for F302/F303/F358
+#
+chip_id 0x422
+description F302/F303/F358
+flash_type 1
+flash_pagesize 0x800
+sram_size 0xa000
+bootrom_base 0x1ffff000
+bootrom_size 0x800
+option_base 0x1ffff800
+option_size 0x10
+flags swo
+
