@@ -41,6 +41,10 @@
     #define MINIMAL_API_VERSION 0x01000104 // v1.0.20
 #endif
 
+#if defined (__OpenBSD__)
+    #define MINIMAL_API_VERSION 0x01000107 // v1.0.23
+#endif
+
 #if (LIBUSB_API_VERSION < MINIMAL_API_VERSION)
     #error unsupported libusb version
 #endif
