@@ -43,6 +43,23 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")                                   
         message(FATAL_ERROR "Expected libusb library not found on your system! Verify your system integrity.")
     endif ()
 
+elseif (CMAKE_SYSTEM_NAME STREQUAL "OpenBSD")
+    FIND_PATH(
+        LIBUSB_INCLUDE_DIR NAMES libusb.h
+        HINTS /usr/local/include
+	PATH_SUFFIXES libusb-1.0
+        )
+    set(LIBUSB_NAME usb-1.0)
+    find_library(
+        LIBUSB_LIBRARY NAMES ${LIBUSB_NAME}
+        HINTS /usr/local
+        )
+    FIND_PACKAGE_HANDLE_STANDARD_ARGS(libusb DEFAULT_MSG LIBUSB_LIBRARY LIBUSB_INCLUDE_DIR)
+    mark_as_advanced(LIBUSB_INCLUDE_DIR LIBUSB_LIBRARY)
+    if (NOT LIBUSB_FOUND)
+        message(FATAL_ERROR "Expected libusb library not found on your system! Verify your system integrity.")
+    endif ()
+
 elseif (WIN32 OR (EXISTS "/etc/debian_version" AND MINGW))                      # Windows or MinGW-toolchain on Debian
     # for MinGW/MSYS/MSVC: 64-bit or 32-bit?
     if (CMAKE_SIZEOF_VOID_P EQUAL 8)
