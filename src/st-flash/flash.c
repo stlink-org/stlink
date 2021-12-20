@@ -27,7 +27,7 @@ static void cleanup(int signum) {
 
 static void usage(void) {
     puts("command line:   ./st-flash [--debug] [--reset] [--connect-under-reset] [--hot-plug] [--opt] [--serial <serial>] [--format <format>] [--flash=<fsize>] [--freq=<kHz>] [--area=<area>] {read|write} [path] [addr] [size]");
-    puts("command line:   ./st-flash [--debug] [--connect-under-reset] [--hot-plug] [--freq=<kHz>] [--serial <serial>] erase");
+    puts("command line:   ./st-flash [--debug] [--connect-under-reset] [--hot-plug] [--freq=<kHz>] [--serial <serial>] erase [addr] [size]");
     puts("command line:   ./st-flash [--debug] [--freq=<kHz>] [--serial <serial>] reset");
     puts("   <addr>, <serial> and <size>: Use hex format.");
     puts("   <fsize>: Use decimal, octal or hex (prefix 0xXXX) format, optionally followed by k=KB, or m=MB (eg. --flash=128k)");
@@ -168,7 +168,10 @@ int main(int ac, char** av) {
             goto on_error;
         }
     } else if (o.cmd == FLASH_CMD_ERASE) {
-        err = stlink_erase_flash_mass(sl);
+        if (o.size != 0 && o.addr >= sl->flash_base && (o.addr + o.size) <= (sl->flash_base + sl->flash_size))
+          err = stlink_erase_flash_section(sl, o.addr, o.size);
+        else
+          err = stlink_erase_flash_mass(sl);
 
         if (err == -1) {
             printf("stlink_erase_flash_mass() == -1\n");

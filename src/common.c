@@ -2951,19 +2951,13 @@ int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr) {
   return check_flash_error(sl);
 }
 
-int stlink_erase_flash_mass(stlink_t *sl) {
-  int err = 0;
-
-  // TODO: User MER bit to mass-erase WB series.
-  if (sl->flash_type == STLINK_FLASH_TYPE_L0 ||
-      sl->flash_type == STLINK_FLASH_TYPE_WB) {
+int stlink_erase_flash_section(stlink_t *sl, stm32_addr_t base_addr, size_t size) {
     // erase each page
-    int i = 0, num_pages = (int)(sl->flash_size / sl->flash_pgsz);
-
+    int i = 0, num_pages = (int)(size / sl->flash_pgsz);
     for (i = 0; i < num_pages; i++) {
       // addr must be an addr inside the page
       stm32_addr_t addr =
-          (stm32_addr_t)sl->flash_base + i * (stm32_addr_t)sl->flash_pgsz;
+          (stm32_addr_t)base_addr + i * (stm32_addr_t)sl->flash_pgsz;
 
       if (stlink_erase_flash_page(sl, addr)) {
         WLOG("Failed to erase_flash_page(%#x) == -1\n", addr);
@@ -2975,6 +2969,18 @@ int stlink_erase_flash_mass(stlink_t *sl) {
     }
 
     fprintf(stdout, "\n");
+    return 0;
+}
+
+int stlink_erase_flash_mass(stlink_t *sl) {
+  int err = 0;
+
+  // TODO: User MER bit to mass-erase WB series.
+  if (sl->flash_type == STLINK_FLASH_TYPE_L0 ||
+      sl->flash_type == STLINK_FLASH_TYPE_WB) {
+
+    stlink_erase_flash_section(sl, sl->flash_base, sl->flash_size);
+
   } else {
     wait_flash_busy(sl);
     clear_flash_error(sl);
