@@ -1,0 +1,14 @@
+# Chip-ID file for STM32WBx0 device (STM32WB55xx, STM32WB35xx, STM32WB50CG, STM32WB30CE)
+#
+dev_type STM32WBx0 device
+ref_manual_id 0434           // also RM0471
+chip_id 0x495                // STLINK_CHIPID_STM32_WB55
+flash_type 9                 // STLINK_FLASH_TYPE_WB
+flash_size_reg 0x1fff75e0
+flash_pagesize 0x1000        // 4k
+sram_size 0x40000
+bootrom_base 0x1fff0000
+bootrom_size 0x7000
+option_base 0x0
+option_size 0x0
+flags swo

@@ -1671,7 +1671,7 @@ int stlink_load_device_params(stlink_t *sl) {
   }
 
   ILOG("%s: %u KiB SRAM, %u KiB flash in at least %u %s pages.\n",
-       params->description, (unsigned)(sl->sram_size / 1024),
+       params->dev_type, (unsigned)(sl->sram_size / 1024),
        (unsigned)(sl->flash_size / 1024),
        (sl->flash_pgsz < 1024) ? (unsigned)(sl->flash_pgsz)
                                : (unsigned)(sl->flash_pgsz / 1024),

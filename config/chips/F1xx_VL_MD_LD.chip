@@ -1,0 +1,14 @@
+# Chip-ID file for STMF1xx Value Line medium & low density device
+#
+dev_type STM32F1xx Value Line medium & low density device
+ref_manual_id 0041
+chip_id 0x420                // STLINK_CHIPID_STM32_F1_VL_MD_LD
+flash_type 1                 // STLINK_FLASH_TYPE_F0
+flash_size_reg 0x1ffff7e0
+flash_pagesize 0x400
+sram_size 0x2000             // 0x1000 for low density devices
+bootrom_base 0x1ffff000
+bootrom_size 0x800
+option_base 0x1ffff800       // STM32_F0_OPTION_BYTES_BASE
+option_size 0x10             // 16
+flags swo

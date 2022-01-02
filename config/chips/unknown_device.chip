@@ -1,8 +1,10 @@
 # Chip-ID file for unknown device
 #
-chip_id 0x0
-description unknown device
-flash_type 0
+dev_type unknown device
+ref_manual_id 0000
+chip_id 0x0                  // STLINK_CHIPID_UNKNOWN
+flash_type 0                 // STLINK_FLASH_TYPE_UNKNOWN
+flash_size_reg 0x0
 flash_pagesize 0x0
 sram_size 0x0
 bootrom_base 0x0
@@ -10,4 +12,3 @@ bootrom_size 0x0
 option_base 0x0
 option_size 0x0
 flags none
-

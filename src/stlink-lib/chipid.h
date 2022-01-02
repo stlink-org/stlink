@@ -79,8 +79,9 @@ enum stlink_stm32_chipids {
 
 /** Chipid parameters */
 struct stlink_chipid_params {
+    char *dev_type;
+    char *ref_manual_id;
     uint32_t chip_id;
-    char *description;
     enum stlink_flash_type flash_type;
     uint32_t flash_size_reg;
     uint32_t flash_pagesize;
@@ -92,7 +93,6 @@ struct stlink_chipid_params {
     uint32_t flags;
   struct stlink_chipid_params * next;
 };
-
 
 struct stlink_chipid_params *stlink_chipid_get_params(uint32_t chipid);
   void init_chipids(char *dir_to_scan); 
