@@ -110,3 +110,9 @@ When there is no executable available for your platform or you need the latest (
 - Please start new forks from the develop branch, as pull requests will go into this branch as well.
 
 Please also refer to our [Contribution Guidelines](CONTRIBUTING.md).
+
+## User Reviews
+
+*I hope it's not to out of topic, but I've been so frustrated with AVR related things on OpenBSD, the fact that stlink built out of the box without needing to touch anything was so relieving. Literally made my whole weekend better!
+I take it's thanks to @Crest and also to the stlink-org team (@Nightwalker-87 and @xor-gate it seems) to have made a software that's not unfriendly to the "fringe" OSes.
+Thank you <3"* - nbonfils, 11.12.2021
