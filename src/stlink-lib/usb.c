@@ -1221,6 +1221,8 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, enum connect_type connect,
 
     libusb_free_device_list(list, 1);
 
+// libusb_kernel_driver_active is not available on Windows.
+#if !defined(_WIN32)
     if (libusb_kernel_driver_active(slu->usb_handle, 0) == 1) {
         ret = libusb_detach_kernel_driver(slu->usb_handle, 0);
 
@@ -1229,6 +1231,7 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, enum connect_type connect,
             goto on_libusb_error;
         }
     }
+#endif
 
     if (libusb_get_configuration(slu->usb_handle, &config)) {
         // this may fail for a previous configured device
