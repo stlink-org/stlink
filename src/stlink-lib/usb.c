@@ -1290,7 +1290,7 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, enum connect_type connect,
         // the NRST pin must be pull down before selecting the SWD/JTAG mode
         if (mode == STLINK_DEV_DEBUG_MODE) {
             DLOG("-- exit_debug_mode\n");
-            _stlink_usb_exit_dfu_mode(sl);
+            _stlink_usb_exit_debug_mode(sl);
         }
 
         _stlink_usb_jtag_reset(sl, STLINK_DEBUG_APIV2_DRIVE_NRST_LOW);
