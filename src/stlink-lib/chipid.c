@@ -28,8 +28,8 @@ void dump_a_chip (FILE *fp, struct stlink_chipid_params *dev) {
     fprintf(fp, "# Reference Manual: RM%s\n", dev->ref_manual_id);
     fprintf(fp, "#\n");
     fprintf(fp, "chip_id 0x%x\n", dev->chip_id);
-    fprintf(fp, "flash_type  %d\n", dev->flash_type);
-    fprintf(fp, "flash_size_reg  %x\n", dev->flash_size_reg);
+    fprintf(fp, "flash_type %d\n", dev->flash_type);
+    fprintf(fp, "flash_size_reg 0x%x\n", dev->flash_size_reg);
     fprintf(fp, "flash_pagesize 0x%x\n", dev->flash_pagesize);
     fprintf(fp, "sram_size 0x%x\n", dev->sram_size);
     fprintf(fp, "bootrom_base 0x%x\n", dev->bootrom_base);
@@ -42,8 +42,8 @@ void dump_a_chip (FILE *fp, struct stlink_chipid_params *dev) {
 static int chipid_params_eq(const struct stlink_chipid_params *p1, const struct stlink_chipid_params *p2)
 {
     return p1->chip_id == p2->chip_id &&
-        p1->description && p2->description &&
-        strcmp(p1->description, p2->description) == 0 &&
+        p1->dev_type && p2->dev_type &&
+        strcmp(p1->dev_type, p2->dev_type) == 0 &&
         p1->flash_type == p2->flash_type &&
         p1->flash_size_reg == p2->flash_size_reg &&
         p1->flash_pagesize == p2->flash_pagesize &&
@@ -205,8 +205,8 @@ void dump_chips (void) {
         fprintf(fp, "# Reference Manual: RM%s\n", ts->ref_manual_id);
         fprintf(fp, "#\n");
         fprintf(fp, "chip_id %x\n", ts->chip_id);
-        fprintf(fp, "flash_type  %x\n", ts->flash_type);
-        fprintf(fp, "flash_size_reg  %x\n", ts->flash_size_reg);
+        fprintf(fp, "flash_type %x\n", ts->flash_type);
+        fprintf(fp, "flash_size_reg %x\n", ts->flash_size_reg);
         fprintf(fp, "flash_pagesize %x\n", ts->flash_pagesize);
         fprintf(fp, "sram_size %x\n", ts->sram_size);
         fprintf(fp, "bootrom_base %x\n", ts->bootrom_base);

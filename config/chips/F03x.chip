@@ -1,13 +1,14 @@
-# Chip-ID file for F03x
+# Chip-ID file for STM32F03x device
 #
-chip_id 0x444
-description F03x
-flash_type 1
-flash_pagesize 0x400
-sram_size 0x1000
+dev_type STM32F03x
+ref_manual_id 0091
+chip_id 0x444                // STLINK_CHIPID_STM32_F0xx_SMALL
+flash_type 1                 // STLINK_FLASH_TYPE_F0
+flash_size_reg 0x1ffff7cc
+flash_pagesize 0x400         // 1 KB
+sram_size 0x1000             // 4 KB
 bootrom_base 0x1fffec00
-bootrom_size 0xc00
-option_base 0x1ffff800
-option_size 0x10
+bootrom_size 0xc00           // 3 KB
+option_base 0x1ffff800       // STM32_F0_OPTION_BYTES_BASE
+option_size 0x10             // 16 B
 flags none
-

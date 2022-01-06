@@ -1,13 +1,14 @@
-# Chip-ID file for F07x
+# Chip-ID file for STM32F07x device
 #
-chip_id 0x448
-description F07x
-flash_type 1
-flash_pagesize 0x800
-sram_size 0x4000
+dev_type STM32F07x
+ref_manual_id 0091
+chip_id 0x448                // STLINK_CHIPID_STM32_F0_CAN
+flash_type 1                 // STLINK_FLASH_TYPE_F0
+flash_size_reg 0x1ffff7cc
+flash_pagesize 0x800         // 2 KB
+sram_size 0x4000             // 16 KB
 bootrom_base 0x1fffc800
-bootrom_size 0x3000
-option_base 0x1ffff800
-option_size 0x10
+bootrom_size 0x3000          // 12 KB
+option_base 0x1ffff800       // STM32_F0_OPTION_BYTES_BASE
+option_size 0x10             // 16 B
 flags none
-

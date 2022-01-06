@@ -1,15 +1,15 @@
-# Chip-ID file for STM32F1xx CL device
+# Chip-ID file for STM32F1xx Connectivity Line device
 #
-dev_type STM32F1xx Connectivity Line device
+dev_type STM32F1xx_CL
 ref_manual_id 0008
 chip_id 0x418                // STLINK_CHIPID_STM32_F1_CONN
 flash_type 1                 // STLINK_FLASH_TYPE_F0
 flash_size_reg 0x1ffff7e0
-flash_pagesize 0x800
-sram_size 0x10000
+flash_pagesize 0x800         // 2 KB
+sram_size 0x10000            // 64 KB
 bootrom_base 0x1fffb000
-bootrom_size 0x4800
+bootrom_size 0x4800          // 18 KB
 option_base 0x1ffff800       // STM32_F0_OPTION_BYTES_BASE
-option_size 0x10             // 16
+option_size 0x10             // 16 B
 flags swo
 

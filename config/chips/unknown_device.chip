@@ -1,6 +1,6 @@
 # Chip-ID file for unknown device
 #
-dev_type unknown device
+dev_type unknown
 ref_manual_id 0000
 chip_id 0x0                  // STLINK_CHIPID_UNKNOWN
 flash_type 0                 // STLINK_FLASH_TYPE_UNKNOWN

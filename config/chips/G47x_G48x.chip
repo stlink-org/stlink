@@ -1,13 +1,14 @@
-# Chip-ID file for G47x/G48x
+# Chip-ID file for STM32G47x / STM32G48x device
 #
-chip_id 0x469
-description G47x/G48x
-flash_type 8
-flash_pagesize 0x800
-sram_size 0x20000
+dev_type STM32G47x_G48x
+ref_manual_id 0440
+chip_id 0x469                // STLINK_CHIPID_STM32_G4_CAT3
+flash_type 8                 // STLINK_FLASH_TYPE_G4
+flash_size_reg 0x1fff75e0
+flash_pagesize 0x800         // 2 KB
+sram_size 0x20000            // 128 KB
 bootrom_base 0x1fff0000
-bootrom_size 0x7000
-option_base 0x1ffff800
-option_size 0x4
-flags dualbank swo
-
+bootrom_size 0x7000          // 28 KB
+option_base 0x1ffff800       // STM32_G4_OPTION_BYTES_BASE
+option_size 0x4              // 4 B
+flags swo dualbank
