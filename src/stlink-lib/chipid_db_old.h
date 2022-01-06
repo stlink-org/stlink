@@ -7,194 +7,6 @@
 
 static struct stlink_chipid_params devices[] = {
     {
-        // STM32L100/L15x/L16x Cat.1
-        // RM0038
-        .chip_id = STLINK_CHIPID_STM32_L1_MD,
-        .dev_type = "L1xx Cat.1",
-        .flash_type = STLINK_FLASH_TYPE_L0,
-        .flash_size_reg = 0x1ff8004c,
-        .flash_pagesize = 0x100,
-        .sram_size = 0x4000, // up to 16k
-        .bootrom_base = 0x1ff00000,
-        .bootrom_size = 0x1000,
-        .flags = CHIP_F_HAS_SWO_TRACING,
-    },
-    {
-        // STM32L100/L15x/L16x Cat.2
-        // RM0038
-        .chip_id = STLINK_CHIPID_STM32_L1_CAT2,
-        .dev_type = "L1xx Cat.2",
-        .flash_type = STLINK_FLASH_TYPE_L0,
-        .flash_size_reg = 0x1ff8004c,
-        .flash_pagesize = 0x100,
-        .sram_size = 0x8000, // up to 32k
-        .bootrom_base = 0x1ff00000,
-        .bootrom_size = 0x1000,
-        .flags = CHIP_F_HAS_SWO_TRACING,
-    },
-    {
-        // STM32L100/L15x/L16x Cat.3
-        // RM0038
-        .chip_id = STLINK_CHIPID_STM32_L1_MD_PLUS,
-        .dev_type = "L1xx Cat.3",
-        .flash_type = STLINK_FLASH_TYPE_L0,
-        .flash_size_reg = 0x1ff800cc,
-        .flash_pagesize = 0x100,
-        .sram_size = 0x8000, // up to 32k
-        .bootrom_base = 0x1ff00000,
-        .bootrom_size = 0x1000,
-        .flags = CHIP_F_HAS_SWO_TRACING,
-    },
-    {
-        // STM32L100/L15x/L16x Cat.4
-        // RM0038
-        .chip_id = STLINK_CHIPID_STM32_L1_MD_PLUS_HD,
-        .dev_type = "L1xx Cat.4",
-        .flash_type = STLINK_FLASH_TYPE_L0,
-        .flash_size_reg = 0x1ff800cc,
-        .flash_pagesize = 0x100,
-        .sram_size = 0xC000, // up to 48k
-        .bootrom_base = 0x1ff00000,
-        .bootrom_size = 0x1000,
-        .option_base = STM32_L1_OPTION_BYTES_BASE,
-        .option_size = 8,
-        .flags = CHIP_F_HAS_SWO_TRACING,
-    },
-    {
-        // STM32L100/L15x/L16x Cat.5
-        // RM0038
-        .chip_id = STLINK_CHIPID_STM32_L152_RE,
-        .dev_type = "L1xx Cat.5",
-        .flash_type = STLINK_FLASH_TYPE_L0,
-        .flash_size_reg = 0x1ff800cc,
-        .flash_pagesize = 0x100,
-        .sram_size = 0x14000, // up to 80k
-        .bootrom_base = 0x1ff00000,
-        .bootrom_size = 0x1000,
-        .flags = CHIP_F_HAS_SWO_TRACING,
-    },
-    {
-        // STM32L47x/L48x
-        // RM0351
-        .chip_id = STLINK_CHIPID_STM32_L4,
-        .dev_type = "L47x/L48x",
-        .flash_type = STLINK_FLASH_TYPE_L4,
-        .flash_size_reg = 0x1FFF75e0, // "Flash size data register" (sec 45.2, page 1671)
-        .flash_pagesize = 0x800, // 2k (sec 3.2, page 78; also appears in sec 3.3.1
-                   // and tables 4-6 on pages 79-81)
-                   // SRAM1 is "up to" 96k in the standard Cortex-M memory map;
-                   // SRAM2 is 32k mapped at at 0x10000000 (sec 2.3, page 73 for
-                   // sizes; table 2, page 74 for SRAM2 location)
-        .sram_size = 0x18000,
-        .bootrom_base = 0x1fff0000, // Tables 4-6, pages 80-81 (Bank 1 system memory)
-        .bootrom_size = 0x7000, // 28k (per bank), same source as base
-        .option_base = STM32_L4_OPTION_BYTES_BASE,
-        .option_size = 4,
-        .flags = CHIP_F_HAS_SWO_TRACING,
-    },
-    {
-        // STM32L4RX
-        // RM0432
-        .chip_id = STLINK_CHIPID_STM32_L4Rx,
-        .dev_type = "L4Rx",
-        .flash_type = STLINK_FLASH_TYPE_L4,
-        .flash_size_reg = 0x1fff75e0, // "Flash size data register" (sec 58.2, page 2274)
-        .flash_pagesize = 0x1000, // 4k, section 3.3, pg 117-120
-        // TODO: flash_pagesize can be 8k depend on the dual-bank mode and flash size
-        .sram_size = 0xa0000, // 192k (SRAM1) + 64k SRAM2 + 384k SRAM3 = 640k, or 0xA0000
-        .bootrom_base = 0x1fff0000, // 3.3.1, pg 117
-        .bootrom_size = 0x7000, // 28k (per bank), same source as base (pg 117)
-        .flags = CHIP_F_HAS_DUAL_BANK | CHIP_F_HAS_SWO_TRACING,
-    },
-    {
-        // STM32L4PX
-        // RM0432
-        .chip_id = STLINK_CHIPID_STM32_L4PX,
-        .dev_type = "L4Px",
-        .flash_type = STLINK_FLASH_TYPE_L4,
-        .flash_size_reg = 0x1fff75e0, // "Flash size data register" (sec 58.2, page 2274)
-        .flash_pagesize = 0x1000, // 4k, section 3.3, pg 117-120
-        // TODO: flash_pagesize can be 8k depend on the dual-bank mode and flash size
-        .sram_size = 0xa0000, // 192k (SRAM1) + 64k SRAM2 + 384k SRAM3 = 640k, or 0xA0000
-        .bootrom_base = 0x1fff0000, // 3.3.1, pg 117
-        .bootrom_size = 0x7000, // 28k (per bank), same source as base (pg 117)
-        .flags = CHIP_F_HAS_DUAL_BANK | CHIP_F_HAS_SWO_TRACING,
-    },
-    {
-        // STLINK_CHIPID_STM32_L41x_L42x
-        // RM0394 (rev 4), DS12469 (rev 5)
-        .chip_id = STLINK_CHIPID_STM32_L41x_L42x,
-        .dev_type = "L41x/L42x",
-        .flash_type = STLINK_FLASH_TYPE_L4,
-        .flash_size_reg = 0x1fff75e0, // "Flash size data register" (RM0394,
-                                      // sec 47.2, page 1586)
-        .flash_pagesize = 0x800,      // 2k (DS12469, sec 3.4, page 17)
-                                      // SRAM1 is 32k at 0x20000000
-        // SRAM2 is 8k at 0x10000000 and 0x20008000
-        // (DS12469, sec 3.5, page 18)
-        .sram_size = 0xa000, // 40k (DS12469, sec 3.5, page 18)
-        .bootrom_base = 0x1fff0000,         // System Memory (RM0394, sec 3.3.1, table 8)
-        .bootrom_size = 0x7000, // 28k, same source as base
-        .flags = CHIP_F_HAS_SWO_TRACING,
-    },
-    {
-        // STLINK_CHIPID_STM32_L43x_L44x
-        // RM0392
-        .chip_id = STLINK_CHIPID_STM32_L43x_L44x,
-        .dev_type = "L43x/L44x",
-        .flash_type = STLINK_FLASH_TYPE_L4,
-        .flash_size_reg = 0x1fff75e0, // "Flash size data register" (sec 43.2, page 1410)
-        .flash_pagesize = 0x800, // 2k (sec 3.2, page 74; also appears in sec 3.3.1
-                   // and tables 7-8 on pages 75-76)
-                   // SRAM1 is "up to" 64k in the standard Cortex-M memory map;
-                   // SRAM2 is 16k mapped at 0x10000000 (sec 2.3, page 73 for
-                   // sizes; table 2, page 74 for SRAM2 location)
-        .sram_size = 0xc000,
-        .bootrom_base = 0x1fff0000, // Tables 4-6, pages 80-81 (Bank 1 system memory)
-        .bootrom_size = 0x7000, // 28k (per bank), same source as base
-        .option_base = STM32_L4_OPTION_BYTES_BASE,
-        .option_size = 4,
-        .flags = CHIP_F_HAS_SWO_TRACING,
-    },
-    {
-        // STLINK_CHIPID_STM32_L496x_L4A6x
-        // RM0351 (rev 5)
-        .chip_id = STLINK_CHIPID_STM32_L496x_L4A6x,
-        .dev_type = "L496x/L4A6x",
-        .flash_type = STLINK_FLASH_TYPE_L4,
-        .flash_size_reg = 0x1fff75e0, // "Flash size data register" (sec 49.2, page 1809)
-        .flash_pagesize = 0x800, // Page erase (2 Kbyte) (sec 3.2, page 93)
-                   // SRAM1 is 256k at 0x20000000
-                   // SRAM2 is 64k at 0x20040000 (sec 2.2.1, fig 2, page 74)
-        .sram_size = 0x40000,       // Embedded SRAM (sec 2.4, page 84)
-        .bootrom_base = 0x1fff0000, // System Memory (Bank 1) (sec 3.3.1)
-        .bootrom_size = 0x7000,     // 28k (per bank), same source as base
-        .option_base = STM32_L4_OPTION_BYTES_BASE,
-        .option_size = 4,
-        .flags = CHIP_F_HAS_SWO_TRACING,
-    },
-    {
-        // STLINK_CHIPID_STM32_L45x_L46x
-        // RM0394 (updated version of RM0392?)
-        .chip_id = STLINK_CHIPID_STM32_L45x_L46x,
-        .dev_type = "L45x/46x",
-        .flash_type = STLINK_FLASH_TYPE_L4,
-        .flash_size_reg = 0x1fff75e0, // "Flash size data register" (sec 45.2, page 1463)
-        .flash_pagesize = 0x800, // 2k (sec 3.2, page 73; also appears in sec 3.3.1
-                   // and tables 7 on pages 73-74)
-                   // SRAM1 is 128k at 0x20000000;
-                   // SRAM2 is 32k mapped at 0x10000000 (sec 2.4.2, table 3-4,
-                   // page 68, also fig 2 on page 63)
-        .sram_size = 0x20000,
-        .bootrom_base = 0x1fff0000, // Tables 6, pages 71-72 (Bank 1 system
-                                    // memory, also fig 2 on page 63)
-        .bootrom_size = 0x7000,     // 28k (per bank), same source as base
-        .flags = CHIP_F_HAS_SWO_TRACING,
-    },
-// ########################################################################
-// ########################################################################
-// ########################################################################
-    {
         // STM32F03x
         // RM0091
         .chip_id = STLINK_CHIPID_STM32_F0xx_SMALL,
@@ -840,6 +652,191 @@ static struct stlink_chipid_params devices[] = {
         .option_base = STM32_L0_OPTION_BYTES_BASE,
         .option_size = 20,
         .flags = CHIP_F_HAS_DUAL_BANK,
+    },
+    {
+        // STM32L100/L15x/L16x Cat.1
+        // RM0038
+        .chip_id = STLINK_CHIPID_STM32_L1_MD,
+        .dev_type = "L1xx Cat.1",
+        .flash_type = STLINK_FLASH_TYPE_L0,
+        .flash_size_reg = 0x1ff8004c,
+        .flash_pagesize = 0x100,
+        .sram_size = 0x4000, // up to 16k
+        .bootrom_base = 0x1ff00000,
+        .bootrom_size = 0x1000,
+        .flags = CHIP_F_HAS_SWO_TRACING,
+    },
+    {
+        // STM32L100/L15x/L16x Cat.2
+        // RM0038
+        .chip_id = STLINK_CHIPID_STM32_L1_CAT2,
+        .dev_type = "L1xx Cat.2",
+        .flash_type = STLINK_FLASH_TYPE_L0,
+        .flash_size_reg = 0x1ff8004c,
+        .flash_pagesize = 0x100,
+        .sram_size = 0x8000, // up to 32k
+        .bootrom_base = 0x1ff00000,
+        .bootrom_size = 0x1000,
+        .flags = CHIP_F_HAS_SWO_TRACING,
+    },
+    {
+        // STM32L100/L15x/L16x Cat.3
+        // RM0038
+        .chip_id = STLINK_CHIPID_STM32_L1_MD_PLUS,
+        .dev_type = "L1xx Cat.3",
+        .flash_type = STLINK_FLASH_TYPE_L0,
+        .flash_size_reg = 0x1ff800cc,
+        .flash_pagesize = 0x100,
+        .sram_size = 0x8000, // up to 32k
+        .bootrom_base = 0x1ff00000,
+        .bootrom_size = 0x1000,
+        .flags = CHIP_F_HAS_SWO_TRACING,
+    },
+    {
+        // STM32L100/L15x/L16x Cat.4
+        // RM0038
+        .chip_id = STLINK_CHIPID_STM32_L1_MD_PLUS_HD,
+        .dev_type = "L1xx Cat.4",
+        .flash_type = STLINK_FLASH_TYPE_L0,
+        .flash_size_reg = 0x1ff800cc,
+        .flash_pagesize = 0x100,
+        .sram_size = 0xC000, // up to 48k
+        .bootrom_base = 0x1ff00000,
+        .bootrom_size = 0x1000,
+        .option_base = STM32_L1_OPTION_BYTES_BASE,
+        .option_size = 8,
+        .flags = CHIP_F_HAS_SWO_TRACING,
+    },
+    {
+        // STM32L100/L15x/L16x Cat.5
+        // RM0038
+        .chip_id = STLINK_CHIPID_STM32_L152_RE,
+        .dev_type = "L1xx Cat.5",
+        .flash_type = STLINK_FLASH_TYPE_L0,
+        .flash_size_reg = 0x1ff800cc,
+        .flash_pagesize = 0x100,
+        .sram_size = 0x14000, // up to 80k
+        .bootrom_base = 0x1ff00000,
+        .bootrom_size = 0x1000,
+        .flags = CHIP_F_HAS_SWO_TRACING,
+    },
+    {
+        // STLINK_CHIPID_STM32_L41x_L42x
+        // RM0394 (rev 4), DS12469 (rev 5)
+        .chip_id = STLINK_CHIPID_STM32_L41x_L42x,
+        .dev_type = "L41x/L42x",
+        .flash_type = STLINK_FLASH_TYPE_L4,
+        .flash_size_reg = 0x1fff75e0, // "Flash size data register" (RM0394,
+                                      // sec 47.2, page 1586)
+        .flash_pagesize = 0x800,      // 2k (DS12469, sec 3.4, page 17)
+                                      // SRAM1 is 32k at 0x20000000
+        // SRAM2 is 8k at 0x10000000 and 0x20008000
+        // (DS12469, sec 3.5, page 18)
+        .sram_size = 0xa000, // 40k (DS12469, sec 3.5, page 18)
+        .bootrom_base = 0x1fff0000,         // System Memory (RM0394, sec 3.3.1, table 8)
+        .bootrom_size = 0x7000, // 28k, same source as base
+        .flags = CHIP_F_HAS_SWO_TRACING,
+    },
+    {
+        // STLINK_CHIPID_STM32_L43x_L44x
+        // RM0392
+        .chip_id = STLINK_CHIPID_STM32_L43x_L44x,
+        .dev_type = "L43x/L44x",
+        .flash_type = STLINK_FLASH_TYPE_L4,
+        .flash_size_reg = 0x1fff75e0, // "Flash size data register" (sec 43.2, page 1410)
+        .flash_pagesize = 0x800, // 2k (sec 3.2, page 74; also appears in sec 3.3.1
+                   // and tables 7-8 on pages 75-76)
+                   // SRAM1 is "up to" 64k in the standard Cortex-M memory map;
+                   // SRAM2 is 16k mapped at 0x10000000 (sec 2.3, page 73 for
+                   // sizes; table 2, page 74 for SRAM2 location)
+        .sram_size = 0xc000,
+        .bootrom_base = 0x1fff0000, // Tables 4-6, pages 80-81 (Bank 1 system memory)
+        .bootrom_size = 0x7000, // 28k (per bank), same source as base
+        .option_base = STM32_L4_OPTION_BYTES_BASE,
+        .option_size = 4,
+        .flags = CHIP_F_HAS_SWO_TRACING,
+    },
+    {
+        // STLINK_CHIPID_STM32_L45x_L46x
+        // RM0394 (updated version of RM0392?)
+        .chip_id = STLINK_CHIPID_STM32_L45x_L46x,
+        .dev_type = "L45x/46x",
+        .flash_type = STLINK_FLASH_TYPE_L4,
+        .flash_size_reg = 0x1fff75e0, // "Flash size data register" (sec 45.2, page 1463)
+        .flash_pagesize = 0x800, // 2k (sec 3.2, page 73; also appears in sec 3.3.1
+                   // and tables 7 on pages 73-74)
+                   // SRAM1 is 128k at 0x20000000;
+                   // SRAM2 is 32k mapped at 0x10000000 (sec 2.4.2, table 3-4,
+                   // page 68, also fig 2 on page 63)
+        .sram_size = 0x20000,
+        .bootrom_base = 0x1fff0000, // Tables 6, pages 71-72 (Bank 1 system
+                                    // memory, also fig 2 on page 63)
+        .bootrom_size = 0x7000,     // 28k (per bank), same source as base
+        .flags = CHIP_F_HAS_SWO_TRACING,
+    },
+    {
+        // STM32L47x/L48x
+        // RM0351
+        .chip_id = STLINK_CHIPID_STM32_L4,
+        .dev_type = "L47x/L48x",
+        .flash_type = STLINK_FLASH_TYPE_L4,
+        .flash_size_reg = 0x1FFF75e0, // "Flash size data register" (sec 45.2, page 1671)
+        .flash_pagesize = 0x800, // 2k (sec 3.2, page 78; also appears in sec 3.3.1
+                   // and tables 4-6 on pages 79-81)
+                   // SRAM1 is "up to" 96k in the standard Cortex-M memory map;
+                   // SRAM2 is 32k mapped at at 0x10000000 (sec 2.3, page 73 for
+                   // sizes; table 2, page 74 for SRAM2 location)
+        .sram_size = 0x18000,
+        .bootrom_base = 0x1fff0000, // Tables 4-6, pages 80-81 (Bank 1 system memory)
+        .bootrom_size = 0x7000, // 28k (per bank), same source as base
+        .option_base = STM32_L4_OPTION_BYTES_BASE,
+        .option_size = 4,
+        .flags = CHIP_F_HAS_SWO_TRACING,
+    },
+    {
+        // STLINK_CHIPID_STM32_L496x_L4A6x
+        // RM0351 (rev 5)
+        .chip_id = STLINK_CHIPID_STM32_L496x_L4A6x,
+        .dev_type = "L496x/L4A6x",
+        .flash_type = STLINK_FLASH_TYPE_L4,
+        .flash_size_reg = 0x1fff75e0, // "Flash size data register" (sec 49.2, page 1809)
+        .flash_pagesize = 0x800, // Page erase (2 Kbyte) (sec 3.2, page 93)
+                   // SRAM1 is 256k at 0x20000000
+                   // SRAM2 is 64k at 0x20040000 (sec 2.2.1, fig 2, page 74)
+        .sram_size = 0x40000,       // Embedded SRAM (sec 2.4, page 84)
+        .bootrom_base = 0x1fff0000, // System Memory (Bank 1) (sec 3.3.1)
+        .bootrom_size = 0x7000,     // 28k (per bank), same source as base
+        .option_base = STM32_L4_OPTION_BYTES_BASE,
+        .option_size = 4,
+        .flags = CHIP_F_HAS_SWO_TRACING,
+    },
+    {
+        // STM32L4PX
+        // RM0432
+        .chip_id = STLINK_CHIPID_STM32_L4PX,
+        .dev_type = "L4Px",
+        .flash_type = STLINK_FLASH_TYPE_L4,
+        .flash_size_reg = 0x1fff75e0, // "Flash size data register" (sec 58.2, page 2274)
+        .flash_pagesize = 0x1000, // 4k, section 3.3, pg 117-120
+        // TODO: flash_pagesize can be 8k depend on the dual-bank mode and flash size
+        .sram_size = 0xa0000, // 192k (SRAM1) + 64k SRAM2 + 384k SRAM3 = 640k, or 0xA0000
+        .bootrom_base = 0x1fff0000, // 3.3.1, pg 117
+        .bootrom_size = 0x7000, // 28k (per bank), same source as base (pg 117)
+        .flags = CHIP_F_HAS_DUAL_BANK | CHIP_F_HAS_SWO_TRACING,
+    },
+    {
+        // STM32L4RX
+        // RM0432
+        .chip_id = STLINK_CHIPID_STM32_L4Rx,
+        .dev_type = "L4Rx",
+        .flash_type = STLINK_FLASH_TYPE_L4,
+        .flash_size_reg = 0x1fff75e0, // "Flash size data register" (sec 58.2, page 2274)
+        .flash_pagesize = 0x1000, // 4k, section 3.3, pg 117-120
+        // TODO: flash_pagesize can be 8k depend on the dual-bank mode and flash size
+        .sram_size = 0xa0000, // 192k (SRAM1) + 64k SRAM2 + 384k SRAM3 = 640k, or 0xA0000
+        .bootrom_base = 0x1fff0000, // 3.3.1, pg 117
+        .bootrom_size = 0x7000, // 28k (per bank), same source as base (pg 117)
+        .flags = CHIP_F_HAS_DUAL_BANK | CHIP_F_HAS_SWO_TRACING,
     },
     {
         // STM32WB55xx, STM32WB35xx, STM32WB50CG/30CE

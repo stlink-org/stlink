@@ -1,13 +1,14 @@
-# Chip-ID file for L43x/L44x
+# Chip-ID file for STM32L43x / STM32L44x device
 #
-chip_id 0x435
-description L43x/L44x
-flash_type 6
-flash_pagesize 0x800
-sram_size 0xc000
+dev_type STM32L41x_L42x
+ref_manual_id 0392
+chip_id 0x435                // STLINK_CHIPID_STM32_L43x_L44x
+flash_type 6                 // STLINK_FLASH_TYPE_L4
+flash_size_reg 0x1fff75e0
+flash_pagesize 0x800         // 2 KB
+sram_size 0xc000             // 48 KB
 bootrom_base 0x1fff0000
-bootrom_size 0x7000
-option_base 0x1fff7800
-option_size 0x4
+bootrom_size 0x7000          // 28 KB
+option_base 0x1fff7800       // STM32_L4_OPTION_BYTES_BASE
+option_size 0x4              // 4 B
 flags swo
-

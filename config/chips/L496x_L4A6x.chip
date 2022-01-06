@@ -1,13 +1,14 @@
-# Chip-ID file for L496x/L4A6x
+# Chip-ID file for STM32L496x / STM32L4A6x device
 #
-chip_id 0x461
-description L496x/L4A6x
-flash_type 6
-flash_pagesize 0x800
-sram_size 0x40000
+dev_type STM32L496x_L4A6x
+ref_manual_id 0351
+chip_id 0x461                // STLINK_CHIPID_STM32_L496x_L4A6x
+flash_type 6                 // STLINK_FLASH_TYPE_L4
+flash_size_reg 0x1fff75e0
+flash_pagesize 0x800         // 2 KB
+sram_size 0x40000            // 256 KB
 bootrom_base 0x1fff0000
-bootrom_size 0x7000
-option_base 0x1fff7800
-option_size 0x4
+bootrom_size 0x7000          // 28 KB
+option_base 0x1fff7800       // STM32_L4_OPTION_BYTES_BASE
+option_size 0x4              // 4 B
 flags swo
-
