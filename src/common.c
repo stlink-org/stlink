@@ -27,6 +27,10 @@
 #define O_BINARY 0
 #endif
 
+#ifndef MAX_FILE_SIZE
+#define MAX_FILE_SIZE (1<<20) // signed long int max value
+#endif
+
 #ifdef _MSC_VER
 #define __attribute__(x)
 #endif
@@ -2200,8 +2204,9 @@ static int map_file(mapped_file_t *mf, const char *path) {
 
   if (sizeof(st.st_size) != sizeof(size_t)) {
     // on 32 bit systems, check if there is an overflow
-    if (st.st_size > (off_t)SSIZE_MAX) {
-      fprintf(stderr, "mmap() size_t overflow for file %s\n", path);
+	if (st.st_size > (off_t)MAX_FILE_SIZE  /*1 GB*/ ) {
+	  // limit file size to 1 GB
+      fprintf(stderr, "mmap() file %s too big\n", path);
       goto on_error;
     }
   }
