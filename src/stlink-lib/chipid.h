@@ -13,7 +13,7 @@ struct stlink_chipid_params {
     char *dev_type;
     char *ref_manual_id;
     uint32_t chip_id;
-    enum stlink_flash_type flash_type;
+    enum stm32_flash_type flash_type;
     uint32_t flash_size_reg;
     uint32_t flash_pagesize;
     uint32_t sram_size;

@@ -3,7 +3,7 @@
 dev_type STM32WLEx
 ref_manual_id 0033
 chip_id 0x497                // STLINK_CHIPID_STM32_WLE
-flash_type 9                 // STLINK_FLASH_TYPE_WB
+flash_type 11                // STM32_FLASH_TYPE_WB_WL
 flash_size_reg 0x1fff75e0
 flash_pagesize 0x800         // 2 KB
 sram_size 0x10000            // 64 KB

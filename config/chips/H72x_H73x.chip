@@ -3,7 +3,7 @@
 dev_type STM32H72x_H73x
 ref_manual_id 0468
 chip_id 0x483                // STLINK_CHIPID_STM32_H72x
-flash_type 10                // STLINK_FLASH_TYPE_H7
+flash_type 7                 // STM32_FLASH_TYPE_H7
 flash_size_reg 0x1ff1e880
 flash_pagesize 0x20000       // 128 KB
 sram_size 0x20000            // 128 KB "DTCM"

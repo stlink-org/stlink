@@ -2,6 +2,7 @@
 #include <string.h>
 #include <unistd.h>
 
+#include <stm32.h>
 #include <stlink.h>
 #include <helper.h>
 #include "flash_loader.h"
@@ -176,7 +177,7 @@ int stlink_flash_loader_init(stlink_t *sl, flash_loader_t *fl) {
     ILOG("Successfully loaded flash loader in sram\n");
 
     // set address of IWDG key register for reset it
-    if (sl->flash_type == STLINK_FLASH_TYPE_H7) {
+    if (sl->flash_type == STM32_FLASH_TYPE_H7) {
         fl->iwdg_kr = STM32H7_WDG_KR;
     } else {
         fl->iwdg_kr = STM32F0_WDG_KR;
@@ -333,7 +334,7 @@ int stlink_flash_loader_run(stlink_t *sl, flash_loader_t* fl, stm32_addr_t targe
         return(-1);
     }
 
-    if ((sl->flash_type == STLINK_FLASH_TYPE_F1_XL) && (target >= FLASH_BANK2_START_ADDR)) {
+    if ((sl->flash_type == STM32_FLASH_TYPE_F1_XL) && (target >= FLASH_BANK2_START_ADDR)) {
         flash_base = FLASH_REGS_BANK2_OFS;
     }
 

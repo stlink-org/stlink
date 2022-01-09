@@ -3,7 +3,7 @@
 dev_type STM32F301_F302_F318
 ref_manual_id 0365           // also RM0366
 chip_id 0x439                // STLINK_CHIPID_STM32_F3xx_SMALL
-flash_type 1                 // STLINK_FLASH_TYPE_F0
+flash_type 1                 // STM32_FLASH_TYPE_F0_F1_F3
 flash_size_reg 0x1ffff7cc
 flash_pagesize 0x800         // 2 KB
 sram_size 0xa000             // 40 KB

@@ -200,6 +200,7 @@ enum run_type {
 
 typedef struct _stlink stlink_t;
 
+#include <stm32.h>
 #include <backend.h>
 
 struct _stlink {
@@ -222,8 +223,8 @@ struct _stlink {
     char serial[STLINK_SERIAL_BUFFER_SIZE];
     int freq;                    // set by stlink_open_usb(), values: STLINK_SWDCLK_xxx_DIVISOR
 
-    enum stlink_flash_type flash_type;
-    // stlink_chipid_params.flash_type, set by stlink_load_device_params(), values: STLINK_FLASH_TYPE_xxx
+    enum stm32_flash_type flash_type;
+    // stlink_chipid_params.flash_type, set by stlink_load_device_params(), values: STM32_FLASH_TYPE_xx
 
     stm32_addr_t flash_base;     // STM32_FLASH_BASE, set by stlink_load_device_params()
     size_t flash_size;           // calculated by stlink_load_device_params()

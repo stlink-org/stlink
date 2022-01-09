@@ -129,7 +129,7 @@ void process_chipfile(char *fname) {
         } else if (strcmp (word, "flash_type") == 0) {
             if (sscanf(value, "%i", (int *)&ts->flash_type) < 1) {
                 fprintf(stderr, "Failed to parse flash type\n");
-            } else if ((ts->flash_type < STLINK_FLASH_TYPE_UNKNOWN) || (ts->flash_type >= STLINK_FLASH_TYPE_MAX)) {
+            } else if ((ts->flash_type < STM32_FLASH_TYPE_UNKNOWN) || (ts->flash_type >= STM32_FLASH_TYPE_UNDEFINED)) {
                 fprintf(stderr, "Unrecognized flash type\n");
             }
         } else if (strcmp (word, "flash_size_reg") == 0) {

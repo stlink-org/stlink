@@ -3,7 +3,7 @@
 dev_type STM32F74x_F75x
 ref_manual_id 0385
 chip_id 0x449                // STLINK_CHIPID_STM32_F7
-flash_type 3                 // STLINK_FLASH_TYPE_F4
+flash_type 4                 // STM32_FLASH_TYPE_F7
 flash_size_reg 0x1ff0f442
 flash_pagesize 0x800         // 2 KB
 sram_size 0x50000            // 320 KB

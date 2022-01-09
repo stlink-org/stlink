@@ -13,6 +13,24 @@
 #define STM32H7_CORE_ID      0x6ba02477 // STM32H7 SWD ID Code
 #define STM32H7_CORE_ID_JTAG 0x6ba00477 // STM32H7 JTAG ID Code (RM0433 p.3065)
 
+/* STM32 flash types */
+// New flash type definitions must go before STM32_FLASH_TYPE_UNDEFINED
+// with the latter updated to the highest enum value.
+enum stm32_flash_type {
+    STM32_FLASH_TYPE_UNKNOWN   =  0,
+    STM32_FLASH_TYPE_F0_F1_F3  =  1,
+    STM32_FLASH_TYPE_F1_XL     =  2,
+    STM32_FLASH_TYPE_F2_F4     =  3,
+    STM32_FLASH_TYPE_F7        =  4,
+    STM32_FLASH_TYPE_G0        =  5, // 7
+    STM32_FLASH_TYPE_G4        =  6, // 8
+    STM32_FLASH_TYPE_H7        =  7, // 10
+    STM32_FLASH_TYPE_L0_L1     =  8, // 5
+    STM32_FLASH_TYPE_L4_L4P    =  9, // 6
+    STM32_FLASH_TYPE_L5_U5     = 10, // new
+    STM32_FLASH_TYPE_WB_WL     = 11, // 9
+    STM32_FLASH_TYPE_UNDEFINED = 12, // max. value exceeded
+};
 
 /* Constant STM32 memory address */
 #define STM32_SRAM_BASE            ((uint32_t)0x20000000)
