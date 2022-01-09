@@ -2,7 +2,7 @@
 #
 dev_type STM32F401xD_xE
 ref_manual_id 0368
-chip_id 0x433                // STLINK_CHIPID_STM32_F4_DE
+chip_id 0x433                // STM32_CHIPID_STM32_F4_DE
 flash_type 3                 // STM32_FLASH_TYPE_F2_F4
 flash_size_reg 0x1fff7a22
 flash_pagesize 0x4000        // 16 KB

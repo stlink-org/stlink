@@ -2,7 +2,7 @@
 #
 dev_type STM32L496x_L4A6x
 ref_manual_id 0351
-chip_id 0x461                // STLINK_CHIPID_STM32_L496x_L4A6x
+chip_id 0x461                // STM32_CHIPID_STM32_L496x_L4A6x
 flash_type 9                 // STM32_FLASH_TYPE_L4_L4P
 flash_size_reg 0x1fff75e0
 flash_pagesize 0x800         // 2 KB

@@ -2,7 +2,7 @@
 #
 dev_type STM32G43x_G44x
 ref_manual_id 0440
-chip_id 0x468                // STLINK_CHIPID_STM32_G4_CAT2
+chip_id 0x468                // STM32_CHIPID_STM32_G4_CAT2
 flash_type 6                 // STM32_FLASH_TYPE_G4
 flash_size_reg 0x1fff75e0
 flash_pagesize 0x800         // 2 KB

@@ -2,7 +2,7 @@
 #
 dev_type STM32F1xx_LD
 ref_manual_id 0008
-chip_id 0x412                // STLINK_CHIPID_STM32_F1_LD
+chip_id 0x412                // STM32_CHIPID_STM32_F1_LD
 flash_type 1                 // STM32_FLASH_TYPE_F0_F1_F3
 flash_size_reg 0x1ffff7e0
 flash_pagesize 0x400         // 1 KB

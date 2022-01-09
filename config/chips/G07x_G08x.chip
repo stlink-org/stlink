@@ -2,7 +2,7 @@
 #
 dev_type STM32G07x_G08x
 ref_manual_id 0444
-chip_id 0x460                // STLINK_CHIPID_STM32_G0_CAT2
+chip_id 0x460                // STM32_CHIPID_STM32_G0_CAT2
 flash_type 5                 // STM32_FLASH_TYPE_G0
 flash_size_reg 0x1fff75e0
 flash_pagesize 0x800         // 2 KB

@@ -540,7 +540,7 @@ int main(int argc, char **argv) {
 
   stlink->verbose = settings.logging_level;
 
-  if (stlink->chip_id == STLINK_CHIPID_UNKNOWN) {
+  if (stlink->chip_id == STM32_CHIPID_UNKNOWN) {
     ELOG("Your stlink is not connected to a device\n");
     if (!settings.force)
       return APP_RESULT_STLINK_MISSING_DEVICE;

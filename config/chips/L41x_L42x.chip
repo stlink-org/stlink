@@ -2,7 +2,7 @@
 #
 dev_type STM32L41x_L42x
 ref_manual_id 0394
-chip_id 0x464                // STLINK_CHIPID_STM32_L41x_L42x
+chip_id 0x464                // STM32_CHIPID_STM32_L41x_L42x
 flash_type 9                 // STM32_FLASH_TYPE_L4_L4P
 flash_size_reg 0x1fff75e0
 flash_pagesize 0x800         // 2 KB
