@@ -5,7 +5,7 @@
 // change it both here and in the corresponding
 // config/chips/*.chip file.
 
-static struct stlink_chipid_params devices[] = {
+//static struct stlink_chipid_params devices[] = {
     {
         // STM32F03x
         // RM0091
@@ -874,4 +874,4 @@ static struct stlink_chipid_params devices[] = {
         .bootrom_base = 0x0,
         .bootrom_size = 0x0,
     },
-};
+//};

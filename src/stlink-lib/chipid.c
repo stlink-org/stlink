@@ -1,6 +1,6 @@
 #include <stlink.h>
 #include "chipid.h"
-#include "chipid_db_old.h"
+//#include "chipid_db_old.h"
 
 #include <string.h>
 #include <errno.h>
@@ -9,17 +9,17 @@
 #include <stdlib.h>
 
 
-struct stlink_chipid_params *stlink_chipid_get_params_old(uint32_t chipid) {
-    struct stlink_chipid_params *params = NULL;
+// struct stlink_chipid_params *stlink_chipid_get_params_old(uint32_t chipid) {
+//     struct stlink_chipid_params *params = NULL;
 
-    for (size_t n = 0; n < STLINK_ARRAY_SIZE(devices); n++)
-        if (devices[n].chip_id == chipid) {
-            params = &devices[n];
-            break;
-        }
+//     for (size_t n = 0; n < STLINK_ARRAY_SIZE(devices); n++)
+//         if (devices[n].chip_id == chipid) {
+//             params = &devices[n];
+//             break;
+//         }
 
-    return (params);
-}
+//     return (params);
+// }
 
 static struct stlink_chipid_params *devicelist;
 
@@ -165,7 +165,7 @@ void process_chipfile(char *fname) {
 
             while ((pp = strtok (NULL, " \t\n"))) {
                 if (strcmp (pp, "none") == 0) {
-                    ts->flags = 0;               // not necessary: calloc did this already.
+                    // NOP
                 } else if (strcmp (pp, "dualbank") == 0) {
                     ts->flags |= CHIP_F_HAS_DUAL_BANK;
                 } else if (strcmp (pp, "swo") == 0) {
@@ -187,37 +187,37 @@ void process_chipfile(char *fname) {
     devicelist = ts;
 }
 
-void dump_chips (void) {
-    struct stlink_chipid_params *ts;
-    char *p, buf[100];
-    FILE *fp;
+// void dump_chips (void) {
+//     struct stlink_chipid_params *ts;
+//     char *p, buf[100];
+//     FILE *fp;
 
-    for (size_t n = 0; n < STLINK_ARRAY_SIZE(devices); n++) {
-        ts = &devices[n];
+//     for (size_t n = 0; n < STLINK_ARRAY_SIZE(devices); n++) {
+//         ts = &devices[n];
 
-        strcpy(buf, ts->dev_type);
+//         strcpy(buf, ts->dev_type);
 
-        while ((p = strchr(buf, '/'))) // change slashes to underscore.
-            *p = '_';
+//         while ((p = strchr(buf, '/'))) // change slashes to underscore.
+//             *p = '_';
 
-        strcat(buf, ".chip");
-        fp = fopen(buf, "w");
-        fprintf(fp, "# Device Type: %s\n", ts->dev_type);
-        fprintf(fp, "# Reference Manual: RM%s\n", ts->ref_manual_id);
-        fprintf(fp, "#\n");
-        fprintf(fp, "chip_id %x\n", ts->chip_id);
-        fprintf(fp, "flash_type %x\n", ts->flash_type);
-        fprintf(fp, "flash_size_reg %x\n", ts->flash_size_reg);
-        fprintf(fp, "flash_pagesize %x\n", ts->flash_pagesize);
-        fprintf(fp, "sram_size %x\n", ts->sram_size);
-        fprintf(fp, "bootrom_base %x\n", ts->bootrom_base);
-        fprintf(fp, "bootrom_size %x\n", ts->bootrom_size);
-        fprintf(fp, "option_base %x\n", ts->option_base);
-        fprintf(fp, "option_size %x\n", ts->option_size);
-        fprintf(fp, "flags %x\n\n", ts->flags);
-        fclose(fp);
-    }
-}
+//         strcat(buf, ".chip");
+//         fp = fopen(buf, "w");
+//         fprintf(fp, "# Device Type: %s\n", ts->dev_type);
+//         fprintf(fp, "# Reference Manual: RM%s\n", ts->ref_manual_id);
+//         fprintf(fp, "#\n");
+//         fprintf(fp, "chip_id %x\n", ts->chip_id);
+//         fprintf(fp, "flash_type %x\n", ts->flash_type);
+//         fprintf(fp, "flash_size_reg %x\n", ts->flash_size_reg);
+//         fprintf(fp, "flash_pagesize %x\n", ts->flash_pagesize);
+//         fprintf(fp, "sram_size %x\n", ts->sram_size);
+//         fprintf(fp, "bootrom_base %x\n", ts->bootrom_base);
+//         fprintf(fp, "bootrom_size %x\n", ts->bootrom_size);
+//         fprintf(fp, "option_base %x\n", ts->option_base);
+//         fprintf(fp, "option_size %x\n", ts->option_size);
+//         fprintf(fp, "flags %x\n\n", ts->flags);
+//         fclose(fp);
+//     }
+// }
 
 #if defined(STLINK_HAVE_DIRENT_H)
 #include <dirent.h>
@@ -248,7 +248,7 @@ void init_chipids(char *dir_to_scan) {
         closedir(d);
     } else {
         perror (dir_to_scan);
-        return; // XXX
+        return;
     }
 }
 #endif //STLINK_HAVE_DIRENT_H

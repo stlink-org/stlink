@@ -106,19 +106,21 @@ enum target_state {
 
 #define C_BUF_LEN 32
 
+/* Old flash type definitions */
+// TODO: Transition to the new defines in stm32.h
 enum stlink_flash_type {
-    STLINK_FLASH_TYPE_UNKNOWN = 0,
-    STLINK_FLASH_TYPE_F0,    // used by f0, f1 (except f1xl),f3. */
-    STLINK_FLASH_TYPE_F1_XL, // f0 flash with dual bank, apparently */
-    STLINK_FLASH_TYPE_F4,    // used by f2, f4 */
-    STLINK_FLASH_TYPE_F7,
-    STLINK_FLASH_TYPE_L0,    // l0, l1 */
-    STLINK_FLASH_TYPE_L4,    // l4, l4+ */
-    STLINK_FLASH_TYPE_G0,
-    STLINK_FLASH_TYPE_G4,
-    STLINK_FLASH_TYPE_WB,
-    STLINK_FLASH_TYPE_H7,
-    STLINK_FLASH_TYPE_MAX,
+    /*  0 */ STLINK_FLASH_TYPE_UNKNOWN = 0,
+    /*  1 */ STLINK_FLASH_TYPE_F0,    // used by f0, f1 (except f1xl),f3. */
+    /*  2 */ STLINK_FLASH_TYPE_F1_XL, // f0 flash with dual bank */
+    /*  3 */ STLINK_FLASH_TYPE_F4,    // used by f2, f4 */
+    /*  4 */ STLINK_FLASH_TYPE_F7,
+    /*  5 */ STLINK_FLASH_TYPE_L0,    // l0, l1 */
+    /*  6 */ STLINK_FLASH_TYPE_L4,    // l4, l4+ */
+    /*  7 */ STLINK_FLASH_TYPE_G0,
+    /*  8 */ STLINK_FLASH_TYPE_G4,
+    /*  9 */ STLINK_FLASH_TYPE_WB,
+    /* 10 */ STLINK_FLASH_TYPE_H7,
+    /* 11 */ STLINK_FLASH_TYPE_MAX,
 };
 
 struct stlink_reg {
