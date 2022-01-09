@@ -2952,6 +2952,11 @@ int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr) {
 }
 
 int stlink_erase_flash_section(stlink_t *sl, stm32_addr_t base_addr, size_t size) {
+  if (base_addr < sl->flash_base || (base_addr + size) > (sl->flash_base + sl->flash_size)) {
+    ELOG("Invalid address or flash size\n");
+    return (-1);
+  }
+
   stm32_addr_t addr = (stm32_addr_t)base_addr;
 
   do {
