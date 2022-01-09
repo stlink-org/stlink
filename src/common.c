@@ -2957,10 +2957,25 @@ int stlink_erase_flash_section(stlink_t *sl, stm32_addr_t base_addr, size_t size
     return (-1);
   }
 
-  stm32_addr_t addr = (stm32_addr_t)base_addr;
+  stm32_addr_t addr = sl->flash_base;
+
+  // Make sure the requested address is aligned with the beginning of a page
+  while (addr < base_addr) {
+    addr += stlink_calculate_pagesize(sl, addr);
+  }
+  if (addr != base_addr) {
+    ELOG("The address to erase is not aligned with the beginning of a page\n");
+    return -1;
+  }
 
   do {
     size_t page_size = stlink_calculate_pagesize(sl, addr);
+
+    // Check if we are going further than the requested size
+    if ((addr + page_size) > (base_addr + size)) {
+      ELOG("Invalid size (not aligned with a page). Page size at address %#x is %#lx\n", addr, page_size);
+      return -1;
+    }
 
     if (stlink_erase_flash_page(sl, addr)) {
       WLOG("Failed to erase_flash_page(%#x) == -1\n", addr);
