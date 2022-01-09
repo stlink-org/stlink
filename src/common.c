@@ -2952,24 +2952,25 @@ int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr) {
 }
 
 int stlink_erase_flash_section(stlink_t *sl, stm32_addr_t base_addr, size_t size) {
-    // erase each page
-    int i = 0, num_pages = (int)(size / sl->flash_pgsz);
-    for (i = 0; i < num_pages; i++) {
-      // addr must be an addr inside the page
-      stm32_addr_t addr =
-          (stm32_addr_t)base_addr + i * (stm32_addr_t)sl->flash_pgsz;
+  stm32_addr_t addr = (stm32_addr_t)base_addr;
 
-      if (stlink_erase_flash_page(sl, addr)) {
-        WLOG("Failed to erase_flash_page(%#x) == -1\n", addr);
-        return (-1);
-      }
+  do {
+    size_t page_size = stlink_calculate_pagesize(sl, addr);
 
-      fprintf(stdout, "-> Flash page at %5d/%5d erased\n", i, num_pages);
-      fflush(stdout);
+    if (stlink_erase_flash_page(sl, addr)) {
+      WLOG("Failed to erase_flash_page(%#x) == -1\n", addr);
+      return (-1);
     }
 
-    fprintf(stdout, "\n");
-    return 0;
+    fprintf(stdout, "-> Flash page at %#x erased (size: %#lx)\n", addr, page_size);
+    fflush(stdout);
+
+    // check the next page is within the range to erase
+    addr += page_size;
+  } while (addr < (base_addr + size));
+
+  fprintf(stdout, "\n");
+  return 0;
 }
 
 int stlink_erase_flash_mass(stlink_t *sl) {
