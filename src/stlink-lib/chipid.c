@@ -39,45 +39,46 @@ void dump_a_chip (FILE *fp, struct stlink_chipid_params *dev) {
     fprintf(fp, "flags %d\n\n", dev->flags);
 }
 
-static int chipid_params_eq(const struct stlink_chipid_params *p1, const struct stlink_chipid_params *p2)
-{
-    return p1->chip_id == p2->chip_id &&
-        p1->dev_type && p2->dev_type &&
-        strcmp(p1->dev_type, p2->dev_type) == 0 &&
-        p1->flash_type == p2->flash_type &&
-        p1->flash_size_reg == p2->flash_size_reg &&
-        p1->flash_pagesize == p2->flash_pagesize &&
-        p1->sram_size == p2->sram_size &&
-        p1->bootrom_base == p2->bootrom_base &&
-        p1->bootrom_size == p2->bootrom_size &&
-        p1->option_base == p2->option_base &&
-        p1->option_size == p2->option_size &&
-        p1->flags == p2->flags;
-}
+// static int chipid_params_eq(const struct stlink_chipid_params *p1, const struct stlink_chipid_params *p2)
+// {
+//     return p1->chip_id == p2->chip_id &&
+//         p1->dev_type && p2->dev_type &&
+//         strcmp(p1->dev_type, p2->dev_type) == 0 &&
+//         p1->flash_type == p2->flash_type &&
+//         p1->flash_size_reg == p2->flash_size_reg &&
+//         p1->flash_pagesize == p2->flash_pagesize &&
+//         p1->sram_size == p2->sram_size &&
+//         p1->bootrom_base == p2->bootrom_base &&
+//         p1->bootrom_size == p2->bootrom_size &&
+//         p1->option_base == p2->option_base &&
+//         p1->option_size == p2->option_size &&
+//         p1->flags == p2->flags;
+// }
 
-struct stlink_chipid_params *stlink_chipid_get_params(uint32_t chipid) {
+struct stlink_chipid_params *stlink_chipid_get_params(uint32_t chip_id) {
     struct stlink_chipid_params *params = NULL;
-    struct stlink_chipid_params *p2;
-
+//  struct stlink_chipid_params *p2;
     for (params = devicelist; params != NULL; params = params->next)
-        if (params->chip_id == chipid) {
+        if (params->chip_id == chip_id) {
+            fprintf(stderr, "\ndetected chip_id parametres\n\n");
+            dump_a_chip(stderr, params);
             break;
         }
 
-    p2 = stlink_chipid_get_params_old(chipid);
+//  p2 = stlink_chipid_get_params_old(chipid);
 
-#if 1
-    if (params == NULL) {
-        params = p2;
-    } else if (!chipid_params_eq(params, p2)) {
-        // fprintf (stderr, "Error, chipid params not identical\n");
-        // return NULL;
-        fprintf(stderr, "---------- old ------------\n");
-        dump_a_chip(stderr, p2);
-        fprintf(stderr, "---------- new ------------\n");
-        dump_a_chip(stderr, params);
-    }
-#endif
+// #if 1
+//     if (params == NULL) {
+//         params = p2;
+//     } else if (!chipid_params_eq(params, p2)) {
+//         // fprintf (stderr, "Error, chipid params not identical\n");
+//         // return NULL;
+//         fprintf(stderr, "---------- old ------------\n");
+//         dump_a_chip(stderr, p2);
+//         fprintf(stderr, "---------- new ------------\n");
+//         dump_a_chip(stderr, params);
+//     }
+// #endif
     return(params);
 }
 

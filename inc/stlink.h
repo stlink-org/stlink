@@ -83,6 +83,10 @@ enum target_state {
 #define STLINK_F_HAS_DPBANKSEL          (1 << 8)
 #define STLINK_F_HAS_RW8_512BYTES       (1 << 9)
 
+/* Additional MCU features */
+#define CHIP_F_HAS_DUAL_BANK    (1 << 0)
+#define CHIP_F_HAS_SWO_TRACING  (1 << 1)
+
 /* Error code */
 #define STLINK_DEBUG_ERR_OK              0x80
 #define STLINK_DEBUG_ERR_FAULT           0x81
