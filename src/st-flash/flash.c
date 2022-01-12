@@ -169,7 +169,7 @@ int main(int ac, char** av) {
         }
     } else if (o.cmd == FLASH_CMD_ERASE) {
         if (o.size > 0 && o.addr > 0)
-          err = stlink_erase_flash_section(sl, o.addr, o.size);
+          err = stlink_erase_flash_section(sl, o.addr, o.size, false);
         else
           err = stlink_erase_flash_mass(sl);
 
