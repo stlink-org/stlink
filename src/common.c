@@ -3491,7 +3491,6 @@ int stlink_flashloader_stop(stlink_t *sl, flash_loader_t *fl) {
 
 int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t *base,
                        uint32_t len, uint8_t eraseonly) {
-  size_t off;
   int ret;
   flash_loader_t fl;
   ILOG("Attempting to write %d (%#x) bytes to stm32 address: %u (%#x)\n", len,
@@ -3525,23 +3524,8 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t *base,
   // make sure we've loaded the context with the chip details
   stlink_core_id(sl);
 
-  // Erase each page
-  int page_count = 0;
-
-  for (off = 0; off < len;
-       off += stlink_calculate_pagesize(sl, addr + (uint32_t)off)) {
-    // addr must be an addr inside the page
-    if (stlink_erase_flash_page(sl, addr + (uint32_t)off) == -1) {
-      ELOG("Failed to erase_flash_page(%#x) == -1\n", (unsigned)(addr + off));
-      return (-1);
-    }
-
-    ILOG("Flash page at addr: 0x%08lx erased\n", (unsigned long)(addr + off));
-    page_count++;
-  }
-
-  ILOG("Finished erasing %d pages of %u (%#x) bytes\n", page_count,
-       (unsigned)(sl->flash_pgsz), (unsigned)(sl->flash_pgsz));
+  // Erase this section of the flash
+  stlink_erase_flash_section(sl, addr, len);
 
   if (eraseonly) {
     return (0);
