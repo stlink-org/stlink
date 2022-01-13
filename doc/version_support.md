@@ -17,7 +17,7 @@ Up on compiling c-make will **automatically** download and install the latest co
 | homebrew           | 1.0.24              | 3.20.2             | 3.24.29<br />gtk+3 | 10.9 - 11.x              |
 | MacPorts           | 1.0.24              | 3.20.2             | 3.24.29<br />gtk3  | 10.4 - 11.x              |
 
-NOTE: In order to use a STLINK/V1 programmer on macOS, versions 10.14 or 10.15 are required.
+NOTE: In order to use a STLINK/V1 programmer on macOS, version 10.15 is required.
 
 ### Linux-/Unix-based:
 

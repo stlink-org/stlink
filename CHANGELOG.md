@@ -2,7 +2,7 @@
 
 # v1.7.1
 
-Release date: 2021-xx-xx
+Release date: 2022-xx-xx
 
 This release drops support for some older operating systems. Check project README for details.
 Updated system requirements: Raised minimum version for `cmake` to 3.7.2.
