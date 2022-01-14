@@ -289,6 +289,8 @@ int stlink_cpu_id(stlink_t *sl, cortex_m3_cpuid_t *cpuid);
 
 int stlink_erase_flash_page(stlink_t* sl, stm32_addr_t flashaddr);
 uint32_t stlink_calculate_pagesize(stlink_t *sl, uint32_t flashaddr);
+int stlink_check_address_range_validity(stlink_t *sl, stm32_addr_t addr, size_t size);
+int stlink_check_address_alignment(stlink_t *sl, stm32_addr_t addr);
 uint16_t read_uint16(const unsigned char *c, const int pt);
 void stlink_core_stat(stlink_t *sl);
 void stlink_print_data(stlink_t *sl);

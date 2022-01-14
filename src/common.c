@@ -2951,23 +2951,47 @@ int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr) {
   return check_flash_error(sl);
 }
 
-int stlink_erase_flash_section(stlink_t *sl, stm32_addr_t base_addr, size_t size, bool align_size) {
-  if (base_addr < sl->flash_base || (base_addr + size) > (sl->flash_base + sl->flash_size)) {
-    ELOG("Invalid address or size\n");
+// Check if an address and size are within the flash
+int stlink_check_address_range_validity(stlink_t *sl, stm32_addr_t addr, size_t size) {
+  if (addr < sl->flash_base || addr >= (sl->flash_base + sl->flash_size)) {
+    ELOG("Invalid address, it should be within 0x%08x - 0x%08lx\n", sl->flash_base, (sl->flash_base + sl->flash_size -1));
     return (-1);
   }
+  if ((addr + size) > (sl->flash_base + sl->flash_size)) {
+    ELOG("The size exceeds the size of the flash (0x%08lx bytes available)\n", (sl->flash_base + sl->flash_size - addr));
+    return (-1);
+  }
+  return 0;
+}
 
-  stm32_addr_t addr = sl->flash_base;
+// Check if an address is aligned with the beginning of a page
+int stlink_check_address_alignment(stlink_t *sl, stm32_addr_t addr) {
+  stm32_addr_t page = sl->flash_base;
+
+  while (page < addr) {
+    page += stlink_calculate_pagesize(sl, page);
+  }
+
+  if (page != addr) {
+    return -1;
+  }
+
+  return 0;
+}
+
+int stlink_erase_flash_section(stlink_t *sl, stm32_addr_t base_addr, size_t size, bool align_size) {
+  // Check the address and size validity
+  if (stlink_check_address_range_validity(sl, base_addr, size) < 0) {
+    return -1;
+  }
 
   // Make sure the requested address is aligned with the beginning of a page
-  while (addr < base_addr) {
-    addr += stlink_calculate_pagesize(sl, addr);
-  }
-  if (addr != base_addr) {
+  if (stlink_check_address_alignment(sl, base_addr) < 0) {
     ELOG("The address to erase is not aligned with the beginning of a page\n");
     return -1;
   }
 
+  stm32_addr_t addr = base_addr;
   do {
     size_t page_size = stlink_calculate_pagesize(sl, addr);
 
@@ -3498,22 +3522,13 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t *base,
   // check addr range is inside the flash
   stlink_calculate_pagesize(sl, addr);
 
-  if (addr < sl->flash_base) {
-    ELOG("addr too low %#x < %#x\n", addr, sl->flash_base);
-    return (-1);
-  } else if ((addr + len) < addr) {
-    ELOG("addr overruns\n");
-    return (-1);
-  } else if ((addr + len) > (sl->flash_base + sl->flash_size)) {
-    ELOG("addr too high\n");
-    return (-1);
-  } else if (addr & 1) {
-    ELOG("unaligned addr 0x%x\n", addr);
+  // Check the address and size validity
+  if (stlink_check_address_range_validity(sl, addr, len) < 0) {
     return (-1);
   } else if (len & 1) {
     WLOG("unaligned len 0x%x -- padding with zero\n", len);
     len += 1;
-  } else if (addr & (sl->flash_pgsz - 1)) {
+  } else if (stlink_check_address_alignment(sl, addr) < 0) {
     ELOG("addr not a multiple of current pagesize (%u bytes), not supported, "
          "check page start address and compare with flash module organisation "
          "in related ST reference manual of your device.\n",
