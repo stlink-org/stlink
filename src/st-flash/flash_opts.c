@@ -234,7 +234,24 @@ int flash_get_opts(struct flash_opts* o, int ac, char** av) {
         return(-1);
 
     case FLASH_CMD_ERASE:    // no more arguments expected
-        if (ac != 0) { return(-1); }
+        if (ac != 0 && ac != 2) { return(-1); }
+        if (ac == 2) {
+            uint32_t address;
+            result = get_integer_from_char_array(av[0], &address);
+            if (result != 0) {
+                return bad_arg ("addr");
+            } else {
+                o->addr = (stm32_addr_t) address;
+            }
+
+            uint32_t size;
+            result = get_integer_from_char_array(av[1], &size);
+            if (result != 0) {
+                return bad_arg ("size");
+            } else {
+                o->size = (size_t) size;
+            }
+        }
 
         break;
 
