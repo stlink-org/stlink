@@ -245,7 +245,7 @@ int stlink_flash_loader_write_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* 
         sl->chip_id == STM32_CHIPID_STM32_L0_CAT2) {
         loader_code = loader_code_stm32lx;
         loader_size = sizeof(loader_code_stm32lx);
-    } else if (sl->core_id == STM32VL_CORE_ID ||
+    } else if (sl->core_id == STM32_CORE_ID_M3_F1 ||
                sl->chip_id == STM32_CHIPID_STM32_F1_MD ||
                sl->chip_id == STM32_CHIPID_STM32_F1_HD ||
                sl->chip_id == STM32_CHIPID_STM32_F1_LD ||
@@ -278,7 +278,7 @@ int stlink_flash_loader_write_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* 
                                                loader_code_stm32f4_lv, sizeof(loader_code_stm32f4_lv));
 
         if (retval == -1) { return(retval); }
-    } else if (sl->core_id == STM32F7_CORE_ID ||
+    } else if (sl->core_id == STM32_CORE_ID_M7_F7 ||
                sl->chip_id == STM32_CHIPID_STM32_F7 ||
                sl->chip_id == STM32_CHIPID_STM32_F76xxx ||
                sl->chip_id == STM32_CHIPID_STM32_F72xxx) {

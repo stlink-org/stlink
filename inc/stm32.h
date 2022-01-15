@@ -7,11 +7,20 @@
 #ifndef STM32_H
 #define STM32_H
 
-/* Cortex-M core ids */
-#define STM32VL_CORE_ID      0x1ba01477
-#define STM32F7_CORE_ID      0x5ba02477
-#define STM32H7_CORE_ID      0x6ba02477 // STM32H7 SWD ID Code
-#define STM32H7_CORE_ID_JTAG 0x6ba00477 // STM32H7 JTAG ID Code (RM0433 p.3065)
+/* Cortex-M core ids (CPUTAPID) */
+#define STM32_CORE_ID_M3_F2_JTAG    0x0ba00477 // unused // F2 JTAG (RM0033 p.1326)
+//#define STM32_CORE_ID_M33_JTAG      0x0ba04477 // unused // L5 JTAG
+#define STM32_CORE_ID_M0            0x0bb11477 // unused // F0
+#define STM32_CORE_ID_M0P           0x0bc11477 // unused // L0, G0
+#define STM32_CORE_ID_M33           0x0be01477 // unused // L5 SWD (RM0351 p.2029)
+#define STM32_CORE_ID_M33_JTAG      0x0be02477 // unused // L5 JTAG (RM0438 p.2029)
+#define STM32_CORE_ID_M3_F1         0x1ba01477 // F1 (RM0008 p.1092)
+#define STM32_CORE_ID_M4F_L4        0x1ba01477 // unused // L4 (RM0351 p.1845)
+#define STM32_CORE_ID_M4F_F4        0x2ba01477 // unused // F4 (RM0090 p.1695)
+#define STM32_CORE_ID_M4F_F4_JTAG   0x4ba00477 // unused // F4 JTAG (RM090 p.1691)
+#define STM32_CORE_ID_M7_F7         0x5ba02477 // F7
+#define STM32_CORE_ID_M7_H7         0x6ba02477 // H7
+#define STM32_CORE_ID_M7_H7_JTAG    0x6ba00477 // H7 JTAG (RM0433 p.3065)
 
 /* STM32 flash types */
 // New flash type definitions must go before STM32_FLASH_TYPE_UNDEFINED
@@ -22,13 +31,13 @@ enum stm32_flash_type {
     STM32_FLASH_TYPE_F1_XL     =  2,
     STM32_FLASH_TYPE_F2_F4     =  3,
     STM32_FLASH_TYPE_F7        =  4,
-    STM32_FLASH_TYPE_G0        =  5, // 7
-    STM32_FLASH_TYPE_G4        =  6, // 8
-    STM32_FLASH_TYPE_H7        =  7, // 10
-    STM32_FLASH_TYPE_L0_L1     =  8, // 5
-    STM32_FLASH_TYPE_L4_L4P    =  9, // 6
-    STM32_FLASH_TYPE_L5_U5     = 10, // new
-    STM32_FLASH_TYPE_WB_WL     = 11, // 9
+    STM32_FLASH_TYPE_G0        =  5,
+    STM32_FLASH_TYPE_G4        =  6,
+    STM32_FLASH_TYPE_H7        =  7,
+    STM32_FLASH_TYPE_L0_L1     =  8,
+    STM32_FLASH_TYPE_L4_L4P    =  9,
+    STM32_FLASH_TYPE_L5_U5     = 10,
+    STM32_FLASH_TYPE_WB_WL     = 11,
     STM32_FLASH_TYPE_UNDEFINED = 12, // max. value exceeded
 };
 

@@ -1514,7 +1514,7 @@ int stlink_chip_id(stlink_t *sl, uint32_t *chip_id) {
    *
    */
 
-  if ((sl->core_id == STM32H7_CORE_ID || sl->core_id == STM32H7_CORE_ID_JTAG) &&
+  if ((sl->core_id == STM32_CORE_ID_M7_H7 || sl->core_id == STM32_CORE_ID_M7_H7_JTAG) &&
       cpu_id.part == STLINK_REG_CMx_CPUID_PARTNO_CM7) {
     // STM32H7 chipid in 0x5c001000 (RM0433 pg3189)
     ret = stlink_read_debug32(sl, 0x5c001000, chip_id);

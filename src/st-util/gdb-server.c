@@ -559,7 +559,7 @@ char* make_memory_map(stlink_t *sl) {
             strcpy(map, memory_map_template_F4);
     } else if (sl->chip_id == STM32_CHIPID_STM32_F4_DE) {
         strcpy(map, memory_map_template_F4_DE);
-    } else if (sl->core_id == STM32F7_CORE_ID) {
+    } else if (sl->core_id == STM32_CORE_ID_M7_F7) {
         snprintf(map, sz, memory_map_template_F7,
                  (unsigned int)sl->sram_size);
     } else if (sl->chip_id == STM32_CHIPID_STM32_H74xxx) {
