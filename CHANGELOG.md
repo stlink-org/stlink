@@ -5,7 +5,11 @@
 Release date: 2022-xx-xx
 
 This release drops support for some older operating systems. Check project README for details.
-Updated system requirements: Raised minimum version for `cmake` to 3.7.2.
+
+Updated system requirements:
+- `cmake` >= 3.10.2
+- `libusb` >= 1.0.21
+- `libgtk-dev` >= 3.22.30
 
 Features:
 
@@ -15,6 +19,9 @@ Features:
 - Expanded and revised list of chips ([#1145](https://github.com/stlink-org/stlink/pull/1145), [#1164](https://github.com/stlink-org/stlink/pull/1164))
 - [STM32H72X/3X]: Added full access to all device memory ([#1158](https://github.com/stlink-org/stlink/pull/1158), [#1159](https://github.com/stlink-org/stlink/pull/1159))
 - Added support for STM32WLEx ([#1173](https://github.com/stlink-org/stlink/pull/1173))
+- Added support for STLINK-V3 devices with no MSD ([#1185](https://github.com/stlink-org/stlink/pull/1185))
+- Updated gdb-server.c to allow external memory access on STM32H73xx ([#1196](https://github.com/stlink-org/stlink/pull/1196), [#1197](https://github.com/stlink-org/stlink/pull/1197))
+- Erase addr size / section of the flash memory with st-flash ([#1213](https://github.com/stlink-org/stlink/pull/1213)) 
 
 Updates & changes:
 
@@ -22,10 +29,12 @@ Updates & changes:
 - Added instructions for bug-reports and feature-requests to contribution guidelines ([#906](https://github.com/stlink-org/stlink/pull/906))
 - Added travis CI configuration for macOS 10.14 to maintain capability for 32-bit compilation ([#f5ada94](https://github.com/stlink-org/stlink/commit/f5ada9474cdb87ff37de0d4eb9e75622b5870646))
 - Updated description of chip id 0x0457 to L01x/L02x ([#1143](https://github.com/stlink-org/stlink/pull/1143), [#1144](https://github.com/stlink-org/stlink/pull/1144))
-- Drop execute bits from source code files ([#1167](https://github.com/stlink-org/stlink/pull/1167))
+- Dropped execute bits from source code files ([#1167](https://github.com/stlink-org/stlink/pull/1167))
 - Use proper Markdown headers for supported MCUs ([#1168](https://github.com/stlink-org/stlink/pull/1168))
 - Removed redundant array ([#1178](https://github.com/stlink-org/stlink/pull/1178))
 - Updated chip config files from the library structs ([#1181](https://github.com/stlink-org/stlink/pull/1181))
+- [doc] Corrected file path in tutorial ([#1186](https://github.com/stlink-org/stlink/pull/1186))
+- Improved chipid checks and printouts ([#1188](https://github.com/stlink-org/stlink/pull/1188)) 
 
 Fixes:
 - cmake: Install shared libraries in proper directories ([#1142](https://github.com/stlink-org/stlink/pull/1142))
@@ -41,6 +50,9 @@ Fixes:
 - Fixed few warnings for msvc about type conversion with possible lost data ([#1179](https://github.com/stlink-org/stlink/pull/1179))
 - st-flash and other utilities search for chip files in the wrong directory ([#1180](https://github.com/stlink-org/stlink/pull/1180), commit [#c8fc656](https://github.com/stlink-org/stlink/commit/c8fc6561fead79ad49c09d82bab864745086792c))
 - Fixed broken build on 32 bit systems ([#985](https://github.com/stlink-org/stlink/pull/985), [#1175](https://github.com/stlink-org/stlink/pull/1175), commit [#c8fc656](https://github.com/stlink-org/stlink/commit/c8fc6561fead79ad49c09d82bab864745086792c))
+- Define 'SSIZE_MAX' if not defined ([#1183](https://github.com/stlink-org/stlink/pull/1183))
+- Fixed compliation for OpenBSD 7.0 ([#1202](https://github.com/stlink-org/stlink/pull/1202))
+- Included 'SSIZE_MAX' from 'limits.h' in 'src/common.c' ([#1207](https://github.com/stlink-org/stlink/pull/1207))
 
 # v1.7.0
 

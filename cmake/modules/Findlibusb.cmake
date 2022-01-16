@@ -72,7 +72,7 @@ elseif (WIN32 OR (EXISTS "/etc/debian_version" AND MINGW)) # Windows or MinGW-to
 
     if (WIN32 AND NOT EXISTS "/etc/debian_version") # Skip this for Debian...
         # Preparations for installing libusb library
-        set(LIBUSB_WIN_VERSION 1.0.23)                  # set libusb version
+        set(LIBUSB_WIN_VERSION 1.0.24)                  # set libusb version
         set(LIBUSB_WIN_ARCHIVE libusb-${LIBUSB_WIN_VERSION}.7z)
         if (WIN32 AND NOT EXISTS "/etc/debian_version") # ... on native Windows systems
             set(LIBUSB_WIN_ARCHIVE_PATH ${CMAKE_BINARY_DIR}/${LIBUSB_WIN_ARCHIVE})

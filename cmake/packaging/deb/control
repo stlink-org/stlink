@@ -1,7 +1,7 @@
 Source: stlink
 Priority: optional
 Maintainer: Nightwalker-87 <stlink-org>
-Build-Depends: cmake, dh-cmake, debhelper (>= 9), libusb-1.0-0-dev, libgtk-3-dev
+Build-Depends: cmake (>= 3.10.2), dh-cmake, debhelper (>= 9), libusb-1.0-0-dev (>= 1.0.21), libgtk-3-dev (>= 3.22.30)
 Standards-Version: 4.5.0
 Rules-Requires-Root: no
 Section: electronics
