@@ -1,6 +1,5 @@
 #include <stlink.h>
 #include "chipid.h"
-//#include "chipid_db_old.h"
 
 #include <string.h>
 #include <errno.h>

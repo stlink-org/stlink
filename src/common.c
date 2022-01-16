@@ -2645,8 +2645,8 @@ int stlink_erase_flash_mass(stlink_t *sl) {
   int err = 0;
 
   // TODO: User MER bit to mass-erase WB series.
-  if (sl->flash_type == STLINK_FLASH_TYPE_L0_L1 ||
-      sl->flash_type == STLINK_FLASH_TYPE_WB_WL) {
+  if (sl->flash_type == STM32_FLASH_TYPE_L0_L1 ||
+      sl->flash_type == STM32_FLASH_TYPE_WB_WL) {
 
     err = stlink_erase_flash_section(sl, sl->flash_base, sl->flash_size, false);
 
