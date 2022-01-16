@@ -2,7 +2,7 @@
 #
 dev_type STM32F46x_F47x
 ref_manual_id 0090           // RM0090 (Rev. 2)
-chip_id 0x434                // STM32_CHIPID_STM32_F4_DSI
+chip_id 0x434                // STM32_CHIPID_F4_DSI
 flash_type 3                 // STM32_FLASH_TYPE_F2_F4
 flash_size_reg 0x1fff7a22
 flash_pagesize 0x4000        // 16 KB

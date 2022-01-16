@@ -4,9 +4,6 @@
 #include <stm32.h>
 #include <stlink.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /** Chipid parametres */
 struct stlink_chipid_params {
@@ -28,8 +25,5 @@ struct stlink_chipid_params {
 struct stlink_chipid_params *stlink_chipid_get_params(uint32_t chipid);
   void init_chipids(char *dir_to_scan); 
 
-#ifdef __cplusplus
-}
-#endif
 
 #endif // STLINK_CHIPID_H_

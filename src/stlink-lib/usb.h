@@ -12,9 +12,6 @@
 #include <libusb_settings.h>
 #include "logging.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 #define STLINK_USB_VID_ST                   0x0483
 #define STLINK_USB_PID_STLINK               0x3744
@@ -73,8 +70,5 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, enum connect_type connect,
 size_t stlink_probe_usb(stlink_t **stdevs[], enum connect_type connect, int freq);
 void stlink_probe_usb_free(stlink_t **stdevs[], size_t size);
 
-#ifdef __cplusplus
-}
-#endif
 
 #endif // STLINK_USB_H

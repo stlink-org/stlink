@@ -2,7 +2,7 @@
 #
 dev_type STM32F2xx
 ref_manual_id 0033
-chip_id 0x411                // STM32_CHIPID_STM32_F2
+chip_id 0x411                // STM32_CHIPID_F2
 flash_type 3                 // STM32_FLASH_TYPE_F2_F4
 flash_size_reg 0x1fff7a22
 flash_pagesize 0x20000       // 128 KB

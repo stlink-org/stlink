@@ -234,43 +234,43 @@ int stlink_flash_loader_write_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* 
     const uint8_t* loader_code;
     size_t loader_size;
 
-    if (sl->chip_id == STM32_CHIPID_STM32_L1_MD ||
-        sl->chip_id == STM32_CHIPID_STM32_L1_CAT2 ||
-        sl->chip_id == STM32_CHIPID_STM32_L1_MD_PLUS ||
-        sl->chip_id == STM32_CHIPID_STM32_L1_MD_PLUS_HD ||
-        sl->chip_id == STM32_CHIPID_STM32_L152_RE ||
-        sl->chip_id == STM32_CHIPID_STM32_L011 ||
-        sl->chip_id == STM32_CHIPID_STM32_L0 ||
-        sl->chip_id == STM32_CHIPID_STM32_L0_CAT5 ||
-        sl->chip_id == STM32_CHIPID_STM32_L0_CAT2) {
+    if (sl->chip_id == STM32_CHIPID_L1_MD ||
+        sl->chip_id == STM32_CHIPID_L1_CAT2 ||
+        sl->chip_id == STM32_CHIPID_L1_MD_PLUS ||
+        sl->chip_id == STM32_CHIPID_L1_MD_PLUS_HD ||
+        sl->chip_id == STM32_CHIPID_L152_RE ||
+        sl->chip_id == STM32_CHIPID_L011 ||
+        sl->chip_id == STM32_CHIPID_L0 ||
+        sl->chip_id == STM32_CHIPID_L0_CAT5 ||
+        sl->chip_id == STM32_CHIPID_L0_CAT2) {
         loader_code = loader_code_stm32lx;
         loader_size = sizeof(loader_code_stm32lx);
     } else if (sl->core_id == STM32_CORE_ID_M3_F1 ||
-               sl->chip_id == STM32_CHIPID_STM32_F1_MD ||
-               sl->chip_id == STM32_CHIPID_STM32_F1_HD ||
-               sl->chip_id == STM32_CHIPID_STM32_F1_LD ||
-               sl->chip_id == STM32_CHIPID_STM32_F1_VL_MD_LD ||
-               sl->chip_id == STM32_CHIPID_STM32_F1_VL_HD ||
-               sl->chip_id == STM32_CHIPID_STM32_F1_XLD ||
-               sl->chip_id == STM32_CHIPID_STM32_F1_CONN ||
-               sl->chip_id == STM32_CHIPID_STM32_F3 ||
-               sl->chip_id == STM32_CHIPID_STM32_F3xx_SMALL ||
-               sl->chip_id == STM32_CHIPID_STM32_F303_HD ||
-               sl->chip_id == STM32_CHIPID_STM32_F37x ||
-               sl->chip_id == STM32_CHIPID_STM32_F334) {
+               sl->chip_id == STM32_CHIPID_F1_MD ||
+               sl->chip_id == STM32_CHIPID_F1_HD ||
+               sl->chip_id == STM32_CHIPID_F1_LD ||
+               sl->chip_id == STM32_CHIPID_F1_VL_MD_LD ||
+               sl->chip_id == STM32_CHIPID_F1_VL_HD ||
+               sl->chip_id == STM32_CHIPID_F1_XLD ||
+               sl->chip_id == STM32_CHIPID_F1_CONN ||
+               sl->chip_id == STM32_CHIPID_F3 ||
+               sl->chip_id == STM32_CHIPID_F3xx_SMALL ||
+               sl->chip_id == STM32_CHIPID_F303_HD ||
+               sl->chip_id == STM32_CHIPID_F37x ||
+               sl->chip_id == STM32_CHIPID_F334) {
         loader_code = loader_code_stm32vl;
         loader_size = sizeof(loader_code_stm32vl);
-    } else if (sl->chip_id == STM32_CHIPID_STM32_F2 ||
-               sl->chip_id == STM32_CHIPID_STM32_F4 ||
-               sl->chip_id == STM32_CHIPID_STM32_F4_DE ||
-               sl->chip_id == STM32_CHIPID_STM32_F4_LP ||
-               sl->chip_id == STM32_CHIPID_STM32_F4_HD ||
-               sl->chip_id == STM32_CHIPID_STM32_F4_DSI ||
-               sl->chip_id == STM32_CHIPID_STM32_F410 ||
-               sl->chip_id == STM32_CHIPID_STM32_F411xx ||
-               sl->chip_id == STM32_CHIPID_STM32_F412 ||
-               sl->chip_id == STM32_CHIPID_STM32_F413 ||
-               sl->chip_id == STM32_CHIPID_STM32_F446) {
+    } else if (sl->chip_id == STM32_CHIPID_F2 ||
+               sl->chip_id == STM32_CHIPID_F4 ||
+               sl->chip_id == STM32_CHIPID_F4_DE ||
+               sl->chip_id == STM32_CHIPID_F4_LP ||
+               sl->chip_id == STM32_CHIPID_F4_HD ||
+               sl->chip_id == STM32_CHIPID_F4_DSI ||
+               sl->chip_id == STM32_CHIPID_F410 ||
+               sl->chip_id == STM32_CHIPID_F411xx ||
+               sl->chip_id == STM32_CHIPID_F412 ||
+               sl->chip_id == STM32_CHIPID_F413 ||
+               sl->chip_id == STM32_CHIPID_F446) {
         int retval;
         retval = loader_v_dependent_assignment(sl,
                                                &loader_code, &loader_size,
@@ -279,9 +279,9 @@ int stlink_flash_loader_write_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* 
 
         if (retval == -1) { return(retval); }
     } else if (sl->core_id == STM32_CORE_ID_M7_F7 ||
-               sl->chip_id == STM32_CHIPID_STM32_F7 ||
-               sl->chip_id == STM32_CHIPID_STM32_F76xxx ||
-               sl->chip_id == STM32_CHIPID_STM32_F72xxx) {
+               sl->chip_id == STM32_CHIPID_F7 ||
+               sl->chip_id == STM32_CHIPID_F76xxx ||
+               sl->chip_id == STM32_CHIPID_F72xxx) {
         int retval;
         retval = loader_v_dependent_assignment(sl,
                                                &loader_code, &loader_size,
@@ -289,19 +289,19 @@ int stlink_flash_loader_write_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* 
                                                loader_code_stm32f7_lv, sizeof(loader_code_stm32f7_lv));
 
         if (retval == -1) { return(retval); }
-    } else if (sl->chip_id == STM32_CHIPID_STM32_F0 ||
-               sl->chip_id == STM32_CHIPID_STM32_F04 ||
-               sl->chip_id == STM32_CHIPID_STM32_F0_CAN ||
-               sl->chip_id == STM32_CHIPID_STM32_F0xx_SMALL ||
-               sl->chip_id == STM32_CHIPID_STM32_F09x) {
+    } else if (sl->chip_id == STM32_CHIPID_F0 ||
+               sl->chip_id == STM32_CHIPID_F04 ||
+               sl->chip_id == STM32_CHIPID_F0_CAN ||
+               sl->chip_id == STM32_CHIPID_F0xx_SMALL ||
+               sl->chip_id == STM32_CHIPID_F09x) {
         loader_code = loader_code_stm32f0;
         loader_size = sizeof(loader_code_stm32f0);
-    } else if ((sl->chip_id == STM32_CHIPID_STM32_L4) ||
-               (sl->chip_id == STM32_CHIPID_STM32_L41x_L42x) ||
-               (sl->chip_id == STM32_CHIPID_STM32_L43x_L44x) ||
-               (sl->chip_id == STM32_CHIPID_STM32_L45x_L46x) ||
-               (sl->chip_id == STM32_CHIPID_STM32_L4Rx) ||
-               (sl->chip_id == STM32_CHIPID_STM32_L496x_L4A6x)) {
+    } else if ((sl->chip_id == STM32_CHIPID_L4) ||
+               (sl->chip_id == STM32_CHIPID_L41x_L42x) ||
+               (sl->chip_id == STM32_CHIPID_L43x_L44x) ||
+               (sl->chip_id == STM32_CHIPID_L45x_L46x) ||
+               (sl->chip_id == STM32_CHIPID_L4Rx) ||
+               (sl->chip_id == STM32_CHIPID_L496x_L4A6x)) {
         loader_code = loader_code_stm32l4;
         loader_size = sizeof(loader_code_stm32l4);
     } else {

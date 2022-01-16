@@ -2,7 +2,7 @@
 #
 dev_type STM32F37x
 ref_manual_id 0313
-chip_id 0x432                // STM32_CHIPID_STM32_F37x
+chip_id 0x432                // STM32_CHIPID_F37x
 flash_type 1                 // STM32_FLASH_TYPE_F0_F1_F3
 flash_size_reg 0x1ffff7cc
 flash_pagesize 0x800         // 2 KB

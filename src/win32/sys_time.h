@@ -12,15 +12,8 @@ struct timezone {
     int tz_dsttime;
 };
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 int gettimeofday(struct timeval *tv, struct timezone *tz);
 
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* STLINK_HAVE_SYS_TIME_H */
 

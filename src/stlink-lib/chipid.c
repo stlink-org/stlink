@@ -9,18 +9,6 @@
 #include <stdlib.h>
 
 
-// struct stlink_chipid_params *stlink_chipid_get_params_old(uint32_t chipid) {
-//     struct stlink_chipid_params *params = NULL;
-
-//     for (size_t n = 0; n < STLINK_ARRAY_SIZE(devices); n++)
-//         if (devices[n].chip_id == chipid) {
-//             params = &devices[n];
-//             break;
-//         }
-
-//     return (params);
-// }
-
 static struct stlink_chipid_params *devicelist;
 
 void dump_a_chip (FILE *fp, struct stlink_chipid_params *dev) {
@@ -39,22 +27,6 @@ void dump_a_chip (FILE *fp, struct stlink_chipid_params *dev) {
     fprintf(fp, "flags %d\n\n", dev->flags);
 }
 
-// static int chipid_params_eq(const struct stlink_chipid_params *p1, const struct stlink_chipid_params *p2)
-// {
-//     return p1->chip_id == p2->chip_id &&
-//         p1->dev_type && p2->dev_type &&
-//         strcmp(p1->dev_type, p2->dev_type) == 0 &&
-//         p1->flash_type == p2->flash_type &&
-//         p1->flash_size_reg == p2->flash_size_reg &&
-//         p1->flash_pagesize == p2->flash_pagesize &&
-//         p1->sram_size == p2->sram_size &&
-//         p1->bootrom_base == p2->bootrom_base &&
-//         p1->bootrom_size == p2->bootrom_size &&
-//         p1->option_base == p2->option_base &&
-//         p1->option_size == p2->option_size &&
-//         p1->flags == p2->flags;
-// }
-
 struct stlink_chipid_params *stlink_chipid_get_params(uint32_t chip_id) {
     struct stlink_chipid_params *params = NULL;
 //  struct stlink_chipid_params *p2;
@@ -65,20 +37,6 @@ struct stlink_chipid_params *stlink_chipid_get_params(uint32_t chip_id) {
             break;
         }
 
-//  p2 = stlink_chipid_get_params_old(chipid);
-
-// #if 1
-//     if (params == NULL) {
-//         params = p2;
-//     } else if (!chipid_params_eq(params, p2)) {
-//         // fprintf (stderr, "Error, chipid params not identical\n");
-//         // return NULL;
-//         fprintf(stderr, "---------- old ------------\n");
-//         dump_a_chip(stderr, p2);
-//         fprintf(stderr, "---------- new ------------\n");
-//         dump_a_chip(stderr, params);
-//     }
-// #endif
     return(params);
 }
 
@@ -186,38 +144,6 @@ void process_chipfile(char *fname) {
     ts->next = devicelist;
     devicelist = ts;
 }
-
-// void dump_chips (void) {
-//     struct stlink_chipid_params *ts;
-//     char *p, buf[100];
-//     FILE *fp;
-
-//     for (size_t n = 0; n < STLINK_ARRAY_SIZE(devices); n++) {
-//         ts = &devices[n];
-
-//         strcpy(buf, ts->dev_type);
-
-//         while ((p = strchr(buf, '/'))) // change slashes to underscore.
-//             *p = '_';
-
-//         strcat(buf, ".chip");
-//         fp = fopen(buf, "w");
-//         fprintf(fp, "# Device Type: %s\n", ts->dev_type);
-//         fprintf(fp, "# Reference Manual: RM%s\n", ts->ref_manual_id);
-//         fprintf(fp, "#\n");
-//         fprintf(fp, "chip_id %x\n", ts->chip_id);
-//         fprintf(fp, "flash_type %x\n", ts->flash_type);
-//         fprintf(fp, "flash_size_reg %x\n", ts->flash_size_reg);
-//         fprintf(fp, "flash_pagesize %x\n", ts->flash_pagesize);
-//         fprintf(fp, "sram_size %x\n", ts->sram_size);
-//         fprintf(fp, "bootrom_base %x\n", ts->bootrom_base);
-//         fprintf(fp, "bootrom_size %x\n", ts->bootrom_size);
-//         fprintf(fp, "option_base %x\n", ts->option_base);
-//         fprintf(fp, "option_size %x\n", ts->option_size);
-//         fprintf(fp, "flags %x\n\n", ts->flags);
-//         fclose(fp);
-//     }
-// }
 
 #if defined(STLINK_HAVE_DIRENT_H)
 #include <dirent.h>

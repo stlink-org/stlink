@@ -2,7 +2,7 @@
 #
 dev_type STM32F76x_F77x
 ref_manual_id 0410
-chip_id 0x451                // STM32_CHIPID_STM32_F76xxx
+chip_id 0x451                // STM32_CHIPID_F76xxx
 flash_type 4                 // STM32_FLASH_TYPE_F7
 flash_size_reg 0x1ff0f442
 flash_pagesize 0x800         // 2 KB
