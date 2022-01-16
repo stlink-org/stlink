@@ -7,20 +7,44 @@
 #ifndef STM32_H
 #define STM32_H
 
-/* Cortex-M core ids (CPUTAPID) */
-#define STM32_CORE_ID_M3_F2_JTAG    0x0ba00477 // unused // F2 JTAG (RM0033 p.1326)
-//#define STM32_CORE_ID_M33_JTAG      0x0ba04477 // unused // L5 JTAG
-#define STM32_CORE_ID_M0            0x0bb11477 // unused // F0
-#define STM32_CORE_ID_M0P           0x0bc11477 // unused // L0, G0
-#define STM32_CORE_ID_M33           0x0be01477 // unused // L5 SWD (RM0351 p.2029)
-#define STM32_CORE_ID_M33_JTAG      0x0be02477 // unused // L5 JTAG (RM0438 p.2029)
-#define STM32_CORE_ID_M3_F1         0x1ba01477 // F1 (RM0008 p.1092)
-#define STM32_CORE_ID_M4F_L4        0x1ba01477 // unused // L4 (RM0351 p.1845)
-#define STM32_CORE_ID_M4F_F4        0x2ba01477 // unused // F4 (RM0090 p.1695)
-#define STM32_CORE_ID_M4F_F4_JTAG   0x4ba00477 // unused // F4 JTAG (RM090 p.1691)
-#define STM32_CORE_ID_M7_F7         0x5ba02477 // F7
-#define STM32_CORE_ID_M7_H7         0x6ba02477 // H7
-#define STM32_CORE_ID_M7_H7_JTAG    0x6ba00477 // H7 JTAG (RM0433 p.3065)
+/* STM32 Cortex-M core ids (CPUTAPID) */
+#define STM32_CORE_ID_M0_SWD         0x0bb11477 // (RM0091 Section 32.5.3) F0 SW-DP
+                                                // (RM0444 Section 40.5.3) G0 SW-DP
+
+#define STM32_CORE_ID_M0P_SWD        0x0bc11477 // (RM0385 Section 27.5.3) L0 SW-DP
+
+#define STM32_CORE_ID_M3_r1p1_SWD    0x1ba01477 // (RM0008 Section 31.8.3) F1 SW-DP
+#define STM32_CORE_ID_M3_r1p1_JTAG   0x3ba00477 // (RM0008 Section 31.6.3) F1 JTAG
+
+#define STM32_CORE_ID_M3_r2p0_SWD    0x2ba01477 // (RM0033 Section 32.8.3) F2 SW-DP
+                                                // (RM0038 Section 30.8.3) L1 SW-DP
+#define STM32_CORE_ID_M3_r2p0_JTAG   0x0ba00477 // (RM0033 Section 32.6.3) F2 JTAG
+                                                // (RM0038 Section 30.6.2) L1 JTAG
+
+#define STM32_CORE_ID_M4_r0p1_SWD    0x1ba01477 // (RM0316 Section 33.8.3) F3 SW-DP
+                                                // (RM0351 Section 48.8.3) L4 SW-DP
+                                                // (RM0432 Section 57.8.3) L4+ SW-DP
+#define STM32_CORE_ID_M4_r0p1_JTAG   0x4ba00477 // (RM0316 Section 33.6.3) F3 JTAG
+                                                // (RM0351 Section 48.6.3) L4 JTAG
+                                                // (RM0432 Section 57.6.3) L4+ JTAG
+
+#define STM32_CORE_ID_M4F_r0p1_SWD   0x2ba01477 // (RM0090 Section 38.8.3) F4 SW-DP
+                                                // (RM0090 Section 47.8.3) G4 SW-DP
+#define STM32_CORE_ID_M4F_r0p1_JTAG  0x4ba00477 // (RM0090 Section 38.6.3) F4 JTAG
+                                                // (RM0090 Section 47.6.3) G4 JTAG
+
+#define STM32_CORE_ID_M7F_SWD        0x5ba02477 // (RM0385 Section 40.8.3) F7 SW-DP
+#define STM32_CORE_ID_M7F_JTAG       0x5ba00477 // (RM0385 Section 40.6.3) F7 JTAG
+
+#define STM32_CORE_ID_M7F_H7_SWD     0x6ba02477 // (RM0433 Section 60.4.1) H7 SW-DP
+#define STM32_CORE_ID_M7F_H7_JTAG    0x6ba00477 // (RM0433 Section 60.4.1) H7 JTAG
+
+#define STM32_CORE_ID_M33_SWD        0x0be02477 // (RM0438 Section 52.2.10) L5 SW-DP
+                                                // (RM0456 Section 65.3.3) U5 SW-DP
+#define STM32_CORE_ID_M33_JTAGD      0x0be01477 // (RM0438 Section 52.2.10) L5 JTAG-DP
+                                                // (RM0456 Section 65.3.3) U5 JTAG-DP
+#define STM32_CORE_ID_M33_JTAG       0x0ba04477 // (RM0438 Section 52.2.8) L5 JTAG
+                                                // (RM0456 Section 56.3.1) U5 JTAG
 
 /* STM32 flash types */
 // New flash type definitions must go before STM32_FLASH_TYPE_UNDEFINED
