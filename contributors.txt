@@ -7,6 +7,8 @@ Andrea Mucignat
 Andrew Andrianov [necromant]
 Andrey Yurovsky
 Andy Isaacson
+Andreas Sandberg [andysan]
+Antoine Faure [antoinefaure]
 Anton [Ant-ON]
 Áron Radics
 A. Sheaff
@@ -24,6 +26,7 @@ Chris Samuelson
 Christian Deussen [nullsub]
 Christophe Levantis
 Craig Lilley
+Crest [Crest]
 Dan Dev
 Dan Hepler
 Daniel Campoverde [alx741]

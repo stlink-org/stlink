@@ -264,6 +264,7 @@ int stlink_trace_enable(stlink_t* sl, uint32_t frequency);
 int stlink_trace_disable(stlink_t* sl);
 int stlink_trace_read(stlink_t* sl, uint8_t* buf, size_t size);
 int stlink_erase_flash_mass(stlink_t* sl);
+int stlink_erase_flash_section(stlink_t *sl, stm32_addr_t base_addr, size_t size, bool align_size);
 int stlink_write_flash(stlink_t* sl, stm32_addr_t address, uint8_t* data, uint32_t length, uint8_t eraseonly);
 int stlink_parse_ihex(const char* path, uint8_t erased_pattern, uint8_t * * mem, size_t * size, uint32_t * begin);
 uint8_t stlink_get_erased_pattern(stlink_t *sl);
@@ -278,6 +279,8 @@ int stlink_cpu_id(stlink_t *sl, cortex_m3_cpuid_t *cpuid);
 
 int stlink_erase_flash_page(stlink_t* sl, stm32_addr_t flashaddr);
 uint32_t stlink_calculate_pagesize(stlink_t *sl, uint32_t flashaddr);
+int stlink_check_address_range_validity(stlink_t *sl, stm32_addr_t addr, size_t size);
+int stlink_check_address_alignment(stlink_t *sl, stm32_addr_t addr);
 uint16_t read_uint16(const unsigned char *c, const int pt);
 void stlink_core_stat(stlink_t *sl);
 void stlink_print_data(stlink_t *sl);
