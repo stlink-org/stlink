@@ -1,3 +1,4 @@
+
 /*
  * File: stlink.h
  *
@@ -13,6 +14,7 @@
 #include <stdbool.h>
 
 #include "stm32.h"
+#include "stm32flash.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -284,7 +286,7 @@ int stlink_mwrite_sram(stlink_t *sl, uint8_t* data, uint32_t length, stm32_addr_
 int stlink_fwrite_sram(stlink_t *sl, const char* path, stm32_addr_t addr);
 int stlink_verify_write_flash(stlink_t *sl, stm32_addr_t address, uint8_t *data, uint32_t length);
 
-int stlink_chip_id(stlink_t *sl, uint32_t *chip_id);
+//int stlink_chip_id(stlink_t *sl, uint32_t *chip_id);
 int stlink_cpu_id(stlink_t *sl, cortex_m3_cpuid_t *cpuid);
 
 int stlink_erase_flash_page(stlink_t* sl, stm32_addr_t flashaddr);
@@ -292,7 +294,7 @@ uint32_t stlink_calculate_pagesize(stlink_t *sl, uint32_t flashaddr);
 int stlink_check_address_range_validity(stlink_t *sl, stm32_addr_t addr, size_t size);
 int stlink_check_address_alignment(stlink_t *sl, stm32_addr_t addr);
 uint16_t read_uint16(const unsigned char *c, const int pt);
-void stlink_core_stat(stlink_t *sl);
+//void stlink_core_stat(stlink_t *sl);
 void stlink_print_data(stlink_t *sl);
 unsigned int is_bigendian(void);
 uint32_t read_uint32(const unsigned char *c, const int pt);
