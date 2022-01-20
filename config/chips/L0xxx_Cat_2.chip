@@ -3,7 +3,7 @@
 dev_type STM32L0xxx_Cat_2
 ref_manual_id 0451           // also RM0377
 chip_id 0x425                // STM32_CHIPID_L0_CAT2
-flash_type 8                 // STM32_FLASH_TYPE_L0_L1
+flash_type L0_L1
 flash_size_reg 0x1ff8007c
 flash_pagesize 0x80          // 128 B
 sram_size 0x2000             // 8 KB

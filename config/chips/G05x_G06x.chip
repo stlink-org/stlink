@@ -3,7 +3,7 @@
 dev_type STM32G05x_G06x
 ref_manual_id 0444
 chip_id 0x456                // STM32_CHIPID_G0_CAT4
-flash_type 5                 // STM32_FLASH_TYPE_G0
+flash_type G0
 flash_size_reg 0x1fff75e0
 flash_pagesize 0x800         // 2 KB
 sram_size 0x9000             // 36 KB

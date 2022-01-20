@@ -1,3 +1,4 @@
+#include <stm32.h>
 #include <stlink.h>
 #include "chipid.h"
 
@@ -6,7 +7,6 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <stdlib.h>
-
 
 static struct stlink_chipid_params *devicelist;
 
@@ -28,7 +28,6 @@ void dump_a_chip (FILE *fp, struct stlink_chipid_params *dev) {
 
 struct stlink_chipid_params *stlink_chipid_get_params(uint32_t chip_id) {
     struct stlink_chipid_params *params = NULL;
-//  struct stlink_chipid_params *p2;
     for (params = devicelist; params != NULL; params = params->next)
         if (params->chip_id == chip_id) {
             fprintf(stderr, "\ndetected chip_id parametres\n\n");
@@ -74,7 +73,7 @@ void process_chipfile(char *fname) {
             buf[strlen(p) - 1] = 0; // chomp newline
             sscanf(p, "%*s %n", &nc);
             ts->dev_type = strdup(p + nc);
-        } else if (strcmp (word, "ref_manual_id") == 0) {
+        } else if (strcmp(word, "ref_manual_id") == 0) {
             // ts->ref_manual_id = strdup (value);
             buf[strlen(p) - 1] = 0; // chomp newline
             sscanf(p, "%*s %n", &nc);
@@ -83,59 +82,80 @@ void process_chipfile(char *fname) {
             if (sscanf(value, "%i", &ts->chip_id) < 1) {
                 fprintf(stderr, "Failed to parse chip-id\n");
             }
-        } else if (strcmp (word, "flash_type") == 0) {
-            if (sscanf(value, "%i", (int *)&ts->flash_type) < 1) {
-                fprintf(stderr, "Failed to parse flash type\n");
-            } else if ((ts->flash_type < STM32_FLASH_TYPE_UNKNOWN) || (ts->flash_type >= STM32_FLASH_TYPE_UNDEFINED)) {
-                fprintf(stderr, "Unrecognized flash type\n");
+        } else if (strcmp(word, "flash_type") == 0) {
+            if (strcmp(value, "F0_F1_F3") == 0) {
+                ts->flash_type = STM32_FLASH_TYPE_F0_F1_F3;
+            } else if (strcmp(value, "F1_XL") == 0) {
+                ts->flash_type = STM32_FLASH_TYPE_F1_XL;
+            } else if (strcmp(value, "F2_F4") == 0) {
+                ts->flash_type = STM32_FLASH_TYPE_F2_F4;
+            } else if (strcmp(value, "F7") == 0) {
+                ts->flash_type = STM32_FLASH_TYPE_F7;
+            } else if (strcmp(value, "G0") == 0) {
+                ts->flash_type = STM32_FLASH_TYPE_G0;
+            } else if (strcmp(value, "G4") == 0) {
+                ts->flash_type = STM32_FLASH_TYPE_G4;
+            } else if (strcmp(value, "H7") == 0) {
+                ts->flash_type = STM32_FLASH_TYPE_H7;
+            } else if (strcmp(value, "L0_L1") == 0) {
+                ts->flash_type = STM32_FLASH_TYPE_L0_L1;
+            } else if (strcmp(value, "L4_L4P") == 0) {
+                ts->flash_type = STM32_FLASH_TYPE_L4_L4P;
+            } else if (strcmp(value, "L5_U5") == 0) {
+                ts->flash_type = STM32_FLASH_TYPE_L5_U5;
+            } else if (strcmp(value, "WB_WL") == 0) {
+                ts->flash_type = STM32_FLASH_TYPE_WB_WL;
+            } else {
+                ts->flash_type = STM32_FLASH_TYPE_UNKNOWN;
+                fprintf(stderr, "Failed to parse flash type or unrecognized flash type\n");
             }
-        } else if (strcmp (word, "flash_size_reg") == 0) {
+        } else if (strcmp(word, "flash_size_reg") == 0) {
             if (sscanf(value, "%i", &ts->flash_size_reg) < 1) {
                 fprintf(stderr, "Failed to parse flash size reg\n");
             }
-        } else if (strcmp (word, "flash_pagesize") == 0) {
+        } else if (strcmp(word, "flash_pagesize") == 0) {
             if (sscanf(value, "%i", &ts->flash_pagesize) < 1) {
                 fprintf(stderr, "Failed to parse flash page size\n");
             }
-        } else if (strcmp (word, "sram_size") == 0) {
+        } else if (strcmp(word, "sram_size") == 0) {
             if (sscanf(value, "%i", &ts->sram_size) < 1) {
                 fprintf(stderr, "Failed to parse SRAM size\n");
             }
-        } else if (strcmp (word, "bootrom_base") == 0) {
+        } else if (strcmp(word, "bootrom_base") == 0) {
             if (sscanf(value, "%i", &ts->bootrom_base) < 1) {
                 fprintf(stderr, "Failed to parse BootROM base\n");
             }
-        } else if (strcmp (word, "bootrom_size") == 0) {
+        } else if (strcmp(word, "bootrom_size") == 0) {
             if (sscanf(value, "%i", &ts->bootrom_size) < 1) {
                 fprintf(stderr, "Failed to parse BootROM size\n");
             }
-        } else if (strcmp (word, "option_base") == 0) {
+        } else if (strcmp(word, "option_base") == 0) {
             if (sscanf(value, "%i", &ts->option_base) < 1) {
                 fprintf(stderr, "Failed to parse option base\n");
             }
-        } else if (strcmp (word, "option_size") == 0) {
+        } else if (strcmp(word, "option_size") == 0) {
             if (sscanf(value, "%i", &ts->option_size) < 1) {
                 fprintf(stderr, "Failed to parse option size\n");
             }
-        } else if (strcmp (word, "flags") == 0) {
+        } else if (strcmp(word, "flags") == 0) {
             pp = strtok (p, " \t\n");
 
             while ((pp = strtok (NULL, " \t\n"))) {
-                if (strcmp (pp, "none") == 0) {
+                if (strcmp(pp, "none") == 0) {
                     // NOP
-                } else if (strcmp (pp, "dualbank") == 0) {
+                } else if (strcmp(pp, "dualbank") == 0) {
                     ts->flags |= CHIP_F_HAS_DUAL_BANK;
-                } else if (strcmp (pp, "swo") == 0) {
+                } else if (strcmp(pp, "swo") == 0) {
                     ts->flags |= CHIP_F_HAS_SWO_TRACING;
                 } else {
-                    fprintf (stderr, "Unknown flags word in %s: '%s'\n",
+                    fprintf(stderr, "Unknown flags word in %s: '%s'\n",
                              fname, pp);
                 }
             }
 
             sscanf(value, "%x", &ts->flags);
         } else {
-            fprintf (stderr, "Unknown keyword in %s: %s\n",
+            fprintf(stderr, "Unknown keyword in %s: %s\n",
                      fname, word);
         }
     }
@@ -156,7 +176,6 @@ void init_chipids(char *dir_to_scan) {
     }
 
     devicelist = NULL;
-    // dump_chips ();
     d = opendir(dir_to_scan);
 
     if (d) {

@@ -3,7 +3,7 @@
 dev_type STM32F302_F303_F398_HD
 ref_manual_id 0365           // also RM0316 (Rev 5)
 chip_id 0x446                // STM32_CHIPID_F303_HD
-flash_type 1                 // STM32_FLASH_TYPE_F0_F1_F3
+flash_type F0_F1_F3
 flash_size_reg 0x1ffff7cc
 flash_pagesize 0x800         // 2 KB
 sram_size 0x10000            // 64 KB

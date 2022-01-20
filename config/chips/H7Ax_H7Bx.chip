@@ -3,7 +3,7 @@
 dev_type STM32H7Ax_H7Bx
 ref_manual_id 0455
 chip_id 0x480                // STM32_CHIPID_H7Ax
-flash_type 7                 // STM32_FLASH_TYPE_H7
+flash_type H7
 flash_size_reg 0x08fff80c
 flash_pagesize 0x2000        // 8 KB
 sram_size 0x20000            // 128 KB "DTCM"
