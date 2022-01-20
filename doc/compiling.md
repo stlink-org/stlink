@@ -7,7 +7,7 @@
 On Windows users should ensure that the following software is installed:
 
 - `git` (_optional, but recommended_)
-- `cmake` (3.17.0 or later)
+- `cmake`
 - `MinGW-w64` (7.0.0 or later) with GCC toolchain 8.1.0
 
 ### Installation
@@ -95,7 +95,7 @@ Install the following packages from your package repository:
 - `git`
 - `gcc` or `clang` or `mingw32-gcc` or `mingw64-gcc` (C-compiler; very likely gcc is already present)
 - `build-essential` (on Debian based distros (Debian, Ubuntu))
-- `cmake` (3.4.2 or later, use the latest version available from the repository)
+- `cmake`
 - `rpm` (on Debian based distros (Debian, Ubuntu), needed for package build with `make package`)
 - `libusb-1.0`
 - `libusb-1.0-0-dev` (development headers for building)

@@ -53,7 +53,7 @@ elseif (EXISTS "/etc/debian_version" AND NOT EXISTS WIN32) # Package-build is av
     set(CPACK_DEBIAN_PACKAGE_RELEASE "1")
 
     # CPACK_DEBIAN_PACKAGE_ARCHITECTURE  --> Default: Output of dpkg --print-architecture
-    set(CPACK_DEBIAN_PACKAGE_DEPENDS "pkg-config, build-essential, debhelper (>=9), cmake (>= 3.4.2), libusb-1.0-0-dev (>= 1.0.20)")
+    set(CPACK_DEBIAN_PACKAGE_DEPENDS "pkg-config, build-essential, debhelper (>=9), cmake (>= 3.10.2), libusb-1.0-0-dev (>= 1.0.21)")
     set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Nightwalker-87 <stlink-org>")
     # CPACK_DEBIAN_PACKAGE_DESCRIPTION   --> Default: CPACK_DEBIAN_PACKAGE_DESCRIPTION (as it is set)
     # CPACK_DEBIAN_PACKAGE_SECTION       --> Default: “devel”

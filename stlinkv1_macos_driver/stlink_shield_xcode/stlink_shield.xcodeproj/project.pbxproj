@@ -8,7 +8,6 @@
 
 /* Begin PBXFileReference section */
 		8CD33C31149BB80D0033D618 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		8F9084FD24786F0F009109AD /* stlink_shield_10_14.kext */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = stlink_shield_10_14.kext; sourceTree = BUILT_PRODUCTS_DIR; };
 		8F90850924786F39009109AD /* stlink_shield_10_15.kext */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = stlink_shield_10_15.kext; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -34,7 +33,6 @@
 		19C28FB6FE9D52B211CA2CBB /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				8F9084FD24786F0F009109AD /* stlink_shield_10_14.kext */,
 				8F90850924786F39009109AD /* stlink_shield_10_15.kext */,
 			);
 			name = Products;
@@ -60,26 +58,6 @@
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
-		8F9084F324786F0F009109AD /* stlink_shield_10_14 */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 8F9084FA24786F0F009109AD /* Build configuration list for PBXNativeTarget "stlink_shield_10_14" */;
-			buildPhases = (
-				8F9084F424786F0F009109AD /* ShellScript */,
-				8F9084F524786F0F009109AD /* Headers */,
-				8F9084F624786F0F009109AD /* Resources */,
-				8F9084F824786F0F009109AD /* Sources */,
-				8F9084F924786F0F009109AD /* ShellScript */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			name = stlink_shield_10_14;
-			productInstallPath = "$(SYSTEM_LIBRARY_DIR)/Extensions";
-			productName = NanosMouse;
-			productReference = 8F9084FD24786F0F009109AD /* stlink_shield_10_14.kext */;
-			productType = "com.apple.product-type.kernel-extension.iokit";
-		};
 		8F9084FF24786F39009109AD /* stlink_shield_10_15 */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 8F90850624786F39009109AD /* Build configuration list for PBXNativeTarget "stlink_shield_10_15" */;
@@ -120,7 +98,6 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				8F9084F324786F0F009109AD /* stlink_shield_10_14 */,
 				8F9084FF24786F39009109AD /* stlink_shield_10_15 */,
 			);
 		};
@@ -458,24 +435,6 @@
 			};
 			name = Release;
 		};
-		8F9084FB24786F0F009109AD /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_IDENTITY = "-";
-				MACOSX_DEPLOYMENT_TARGET = 10.14;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-			};
-			name = Debug;
-		};
-		8F9084FC24786F0F009109AD /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_IDENTITY = "-";
-				MACOSX_DEPLOYMENT_TARGET = 10.14;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-			};
-			name = Release;
-		};
 		8F90850724786F39009109AD /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -502,15 +461,6 @@
 			buildConfigurations = (
 				3EEA308808D71E4B002CBB49 /* Debug */,
 				3EEA308908D71E4B002CBB49 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		8F9084FA24786F0F009109AD /* Build configuration list for PBXNativeTarget "stlink_shield_10_14" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				8F9084FB24786F0F009109AD /* Debug */,
-				8F9084FC24786F0F009109AD /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

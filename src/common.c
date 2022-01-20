@@ -2956,30 +2956,81 @@ int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr) {
   return check_flash_error(sl);
 }
 
+// Check if an address and size are within the flash
+int stlink_check_address_range_validity(stlink_t *sl, stm32_addr_t addr, size_t size) {
+  if (addr < sl->flash_base || addr >= (sl->flash_base + sl->flash_size)) {
+    ELOG("Invalid address, it should be within 0x%08x - 0x%08lx\n", sl->flash_base, (sl->flash_base + sl->flash_size -1));
+    return (-1);
+  }
+  if ((addr + size) > (sl->flash_base + sl->flash_size)) {
+    ELOG("The size exceeds the size of the flash (0x%08lx bytes available)\n", (sl->flash_base + sl->flash_size - addr));
+    return (-1);
+  }
+  return 0;
+}
+
+// Check if an address is aligned with the beginning of a page
+int stlink_check_address_alignment(stlink_t *sl, stm32_addr_t addr) {
+  stm32_addr_t page = sl->flash_base;
+
+  while (page < addr) {
+    page += stlink_calculate_pagesize(sl, page);
+  }
+
+  if (page != addr) {
+    return -1;
+  }
+
+  return 0;
+}
+
+int stlink_erase_flash_section(stlink_t *sl, stm32_addr_t base_addr, size_t size, bool align_size) {
+  // Check the address and size validity
+  if (stlink_check_address_range_validity(sl, base_addr, size) < 0) {
+    return -1;
+  }
+
+  // Make sure the requested address is aligned with the beginning of a page
+  if (stlink_check_address_alignment(sl, base_addr) < 0) {
+    ELOG("The address to erase is not aligned with the beginning of a page\n");
+    return -1;
+  }
+
+  stm32_addr_t addr = base_addr;
+  do {
+    size_t page_size = stlink_calculate_pagesize(sl, addr);
+
+    // Check if size is aligned with a page, unless we want to completely erase the last page
+    if ((addr + page_size) > (base_addr + size) && !align_size) {
+      ELOG("Invalid size (not aligned with a page). Page size at address %#x is %#lx\n", addr, page_size);
+      return -1;
+    }
+
+    if (stlink_erase_flash_page(sl, addr)) {
+      WLOG("Failed to erase_flash_page(%#x) == -1\n", addr);
+      return (-1);
+    }
+
+    fprintf(stdout, "-> Flash page at %#x erased (size: %#lx)\n", addr, page_size);
+    fflush(stdout);
+
+    // check the next page is within the range to erase
+    addr += page_size;
+  } while (addr < (base_addr + size));
+
+  fprintf(stdout, "\n");
+  return 0;
+}
+
 int stlink_erase_flash_mass(stlink_t *sl) {
   int err = 0;
 
   // TODO: User MER bit to mass-erase WB series.
   if (sl->flash_type == STLINK_FLASH_TYPE_L0 ||
       sl->flash_type == STLINK_FLASH_TYPE_WB) {
-    // erase each page
-    int i = 0, num_pages = (int)(sl->flash_size / sl->flash_pgsz);
 
-    for (i = 0; i < num_pages; i++) {
-      // addr must be an addr inside the page
-      stm32_addr_t addr =
-          (stm32_addr_t)sl->flash_base + i * (stm32_addr_t)sl->flash_pgsz;
+    err = stlink_erase_flash_section(sl, sl->flash_base, sl->flash_size, false);
 
-      if (stlink_erase_flash_page(sl, addr)) {
-        WLOG("Failed to erase_flash_page(%#x) == -1\n", addr);
-        return (-1);
-      }
-
-      fprintf(stdout, "-> Flash page at %5d/%5d erased\n", i, num_pages);
-      fflush(stdout);
-    }
-
-    fprintf(stdout, "\n");
   } else {
     wait_flash_busy(sl);
     clear_flash_error(sl);
@@ -3469,7 +3520,6 @@ int stlink_flashloader_stop(stlink_t *sl, flash_loader_t *fl) {
 
 int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t *base,
                        uint32_t len, uint8_t eraseonly) {
-  size_t off;
   int ret;
   flash_loader_t fl;
   ILOG("Attempting to write %d (%#x) bytes to stm32 address: %u (%#x)\n", len,
@@ -3477,22 +3527,13 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t *base,
   // check addr range is inside the flash
   stlink_calculate_pagesize(sl, addr);
 
-  if (addr < sl->flash_base) {
-    ELOG("addr too low %#x < %#x\n", addr, sl->flash_base);
-    return (-1);
-  } else if ((addr + len) < addr) {
-    ELOG("addr overruns\n");
-    return (-1);
-  } else if ((addr + len) > (sl->flash_base + sl->flash_size)) {
-    ELOG("addr too high\n");
-    return (-1);
-  } else if (addr & 1) {
-    ELOG("unaligned addr 0x%x\n", addr);
+  // Check the address and size validity
+  if (stlink_check_address_range_validity(sl, addr, len) < 0) {
     return (-1);
   } else if (len & 1) {
     WLOG("unaligned len 0x%x -- padding with zero\n", len);
     len += 1;
-  } else if (addr & (sl->flash_pgsz - 1)) {
+  } else if (stlink_check_address_alignment(sl, addr) < 0) {
     ELOG("addr not a multiple of current pagesize (%u bytes), not supported, "
          "check page start address and compare with flash module organisation "
          "in related ST reference manual of your device.\n",
@@ -3503,23 +3544,11 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t *base,
   // make sure we've loaded the context with the chip details
   stlink_core_id(sl);
 
-  // Erase each page
-  int page_count = 0;
-
-  for (off = 0; off < len;
-       off += stlink_calculate_pagesize(sl, addr + (uint32_t)off)) {
-    // addr must be an addr inside the page
-    if (stlink_erase_flash_page(sl, addr + (uint32_t)off) == -1) {
-      ELOG("Failed to erase_flash_page(%#x) == -1\n", (unsigned)(addr + off));
-      return (-1);
-    }
-
-    ILOG("Flash page at addr: 0x%08lx erased\n", (unsigned long)(addr + off));
-    page_count++;
+  // Erase this section of the flash
+  if (stlink_erase_flash_section(sl, addr, len, true) < 0) {
+    ELOG("Failed to erase the flash prior to writing\n");
+    return (-1);
   }
-
-  ILOG("Finished erasing %d pages of %u (%#x) bytes\n", page_count,
-       (unsigned)(sl->flash_pgsz), (unsigned)(sl->flash_pgsz));
 
   if (eraseonly) {
     return (0);
