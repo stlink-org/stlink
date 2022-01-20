@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #include <stlink.h>
 #include "common_flash.h"
 

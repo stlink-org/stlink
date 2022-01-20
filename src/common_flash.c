@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stlink.h>
 #include <unistd.h>
+#include <string.h>
 #include "calculate.h"
 #include "common_flash.h"
 #include "map_file.h"
