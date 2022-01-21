@@ -14,7 +14,6 @@ struct timezone {
 
 int gettimeofday(struct timeval *tv, struct timezone *tz);
 
-
 #endif /* STLINK_HAVE_SYS_TIME_H */
 
 #endif /* STLINK_TIME_H */

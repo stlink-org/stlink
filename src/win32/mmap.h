@@ -13,10 +13,8 @@
 #define MAP_ANONYMOUS (1 << 5)
 #define MAP_FAILED    ((void *)-1)
 
-
 void *mmap(void *addr, size_t len, int prot, int flags, int fd, long long offset);
 int munmap(void *addr, size_t len);
-
 
 #endif /* HAVE_SYS_MMAN_H */
 

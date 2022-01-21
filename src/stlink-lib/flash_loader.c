@@ -7,17 +7,16 @@
 #include <helper.h>
 #include "flash_loader.h"
 
-#define FLASH_REGS_BANK2_OFS 0x40
-#define FLASH_BANK2_START_ADDR 0x08080000
+#define FLASH_REGS_BANK2_OFS      0x40
+#define FLASH_BANK2_START_ADDR    0x08080000
 
 #define STM32F0_WDG_KR            0x40003000
 #define STM32H7_WDG_KR            0x58004800
 
 #define STM32F0_WDG_KR_KEY_RELOAD 0xAAAA
 
-/* !!!
- * !!! DO NOT MODIFY FLASH LOADERS DIRECTLY!
- * !!!
+/*
+ * !!! DO NOT MODIFY FLASH LOADERS DIRECTLY !!!
  *
  * Edit assembly files in the '/flashloaders' instead. The sizes of binary
  * flash loaders must be aligned by 4 (it's written by stlink_write_mem32)
@@ -155,8 +154,7 @@ int stlink_flash_loader_init(stlink_t *sl, flash_loader_t *fl) {
     size_t size = 0;
     uint32_t dfsr, cfsr, hfsr;
 
-    /* Interrupt masking.
-     * According to DDI0419C, Table C1-7 firstly force halt */
+    /* Interrupt masking according to DDI0419C, Table C1-7 firstly force halt */
     stlink_write_debug32(sl, STLINK_REG_DHCSR,
                            STLINK_REG_DHCSR_DBGKEY | STLINK_REG_DHCSR_C_DEBUGEN |
                            STLINK_REG_DHCSR_C_HALT);
@@ -354,7 +352,8 @@ int stlink_flash_loader_run(stlink_t *sl, flash_loader_t* fl, stm32_addr_t targe
     /* Run loader */
     stlink_run(sl, RUN_FLASH_LOADER);
 
-/* This piece of code used to try to spin for .1 second by waiting doing 10000 rounds of 10 µs.
+/* 
+ * This piece of code used to try to spin for .1 second by waiting doing 10000 rounds of 10 µs.
  * But because this usually runs on Unix-like OSes, the 10 µs get rounded up to the "tick"
  * (actually almost two ticks) of the system. 1 ms. Thus, the ten thousand attempts, when
  * "something goes wrong" that requires the error message "flash loader run error" would wait
@@ -383,7 +382,8 @@ int stlink_flash_loader_run(stlink_t *sl, flash_loader_t* fl, stm32_addr_t targe
     // check written byte count
     stlink_read_reg(sl, 2, &rr);
 
-    /* The chunk size for loading is not rounded. The flash loader
+    /* 
+     * The chunk size for loading is not rounded. The flash loader
      * subtracts the size of the written block (1-8 bytes) from
      * the remaining size each time. A negative value may mean that
      * several bytes garbage has been written due to the unaligned

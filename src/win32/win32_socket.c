@@ -123,7 +123,8 @@ static void set_socket_errno(int winsock_err) {
     }
 }
 
-/* A wrapper around the socket() function.
+/*
+ * A wrapper around the socket() function.
  * The purpose of this wrapper is to ensure that the global errno symbol is set if an error occurs,
  * even if we are using winsock.
  */
@@ -135,7 +136,8 @@ SOCKET win32_socket(int domain, int type, int protocol) {
     return(fd);
 }
 
-/* A wrapper around the connect() function.
+/* 
+ * A wrapper around the connect() function.
  * The purpose of this wrapper is to ensure that the global errno symbol is set if an error occurs,
  * even if we are using winsock.
  */
