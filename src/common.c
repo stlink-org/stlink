@@ -2198,13 +2198,11 @@ static int map_file(mapped_file_t *mf, const char *path) {
     goto on_error;
   }
 
-  if (sizeof(st.st_size) != sizeof(size_t)) {
-    // on 32 bit systems, check if there is an overflow
-    if (st.st_size > (off_t)SSIZE_MAX) {
-      fprintf(stderr, "mmap() size_t overflow for file %s\n", path);
-      goto on_error;
-    }
+  if (st.st_size > (intmax_t) SIZE_MAX ) {
+    fprintf(stderr, "mmap() file %s too big\n", path);
+    goto on_error;
   }
+
 
   mf->base =
       (uint8_t *)mmap(NULL, (size_t)(st.st_size), PROT_READ, MAP_SHARED, fd, 0);

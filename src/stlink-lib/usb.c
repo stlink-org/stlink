@@ -1134,33 +1134,8 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, enum connect_type connect,
 #endif
 
     libusb_device **list = NULL;
-    // TODO: We should use ssize_t and use it as a counter if > 0.
-    // As per libusb API: ssize_t libusb_get_device_list (libusb_context *ctx, libusb_device ***list)
-    int cnt = (int)libusb_get_device_list(slu->libusb_ctx, &list);
+    ssize_t cnt = libusb_get_device_list(slu->libusb_ctx, &list);
     struct libusb_device_descriptor desc;
-    int devBus  = 0;
-    int devAddr = 0;
-
-    // TODO: Reading a environment variable in a usb open function is not very nice, this should
-    // be refactored and moved into the CLI tools, and instead of giving USB_BUS:USB_ADDR a real
-    // stlink serial string should be passed to this function. Probably people are using this
-    // but this is very odd because as programmer can change to multiple busses and it is better
-    // to detect them based on serial.
-    char *device = getenv("STLINK_DEVICE");
-
-    if (device) {
-        char *c = strchr(device, ':');
-
-        if (c == NULL) {
-            WLOG("STLINK_DEVICE must be <USB_BUS>:<USB_ADDR> format\n");
-            goto on_error;
-        }
-
-        devBus = atoi(device);
-        *c++ = 0;
-        devAddr = atoi(c);
-        ILOG("bus %03d dev %03d\n", devBus, devAddr);
-    }
 
     while (cnt-- > 0) {
         struct libusb_device_handle *handle;
@@ -1168,13 +1143,6 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, enum connect_type connect,
         libusb_get_device_descriptor(list[cnt], &desc);
 
         if (desc.idVendor != STLINK_USB_VID_ST) { continue; }
-
-        if (devBus && devAddr) {
-            if ((libusb_get_bus_number(list[cnt]) != devBus) ||
-                (libusb_get_device_address(list[cnt]) != devAddr)) {
-                continue;
-            }
-        }
 
         ret = libusb_open(list[cnt], &handle);
 
@@ -1202,7 +1170,7 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, enum connect_type connect,
     }
 
     if (cnt < 0) {
-        WLOG ("Couldn't find %s ST-Link devices\n", (devBus && devAddr) ? "matched" : "any");
+        WLOG ("Couldn't find any ST-Link devices\n");
         libusb_free_device_list(list, 1);
         goto on_error;
     } else {
@@ -1221,6 +1189,8 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, enum connect_type connect,
 
     libusb_free_device_list(list, 1);
 
+// libusb_kernel_driver_active is not available on Windows.
+#if !defined(_WIN32)
     if (libusb_kernel_driver_active(slu->usb_handle, 0) == 1) {
         ret = libusb_detach_kernel_driver(slu->usb_handle, 0);
 
@@ -1229,6 +1199,7 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, enum connect_type connect,
             goto on_libusb_error;
         }
     }
+#endif
 
     if (libusb_get_configuration(slu->usb_handle, &config)) {
         // this may fail for a previous configured device
@@ -1287,7 +1258,7 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, enum connect_type connect,
         // the NRST pin must be pull down before selecting the SWD/JTAG mode
         if (mode == STLINK_DEV_DEBUG_MODE) {
             DLOG("-- exit_debug_mode\n");
-            _stlink_usb_exit_dfu_mode(sl);
+            _stlink_usb_exit_debug_mode(sl);
         }
 
         _stlink_usb_jtag_reset(sl, STLINK_DEBUG_APIV2_DRIVE_NRST_LOW);
