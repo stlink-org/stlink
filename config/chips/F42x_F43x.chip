@@ -2,7 +2,7 @@
 #
 dev_type STM32F42x_F43x
 ref_manual_id 0090           // RM0090 (Rev. 2)
-chip_id 0x463                // STM32_CHIPID_F4_HD
+chip_id 0x419                // STM32_CHIPID_F4_HD
 flash_type F2_F4
 flash_size_reg 0x1fff7a22
 flash_pagesize 0x4000        // 16 KB

@@ -51,7 +51,7 @@ Tested non-official ST boards [incl. STLINK programmers]:
 | ------- | ------------ | ------------- |
 | 0x411   | STM32F2yyxx  | (all devices) |
 
-## STM32F1 Clone / ARM Cortex M3 (Core-ID: 0x2ba01477)
+## STM32F1 Clone / ARM Cortex M3 (Core-ID: 0x2ba01477) [may work, but without support!]
 
 | Product-Code  | Chip-ID | STLink<br />Programmer | Boards                                                                                          |
 | ------------- | ------- | ---------------------- | ----------------------------------------------------------------------------------------------- |
@@ -85,7 +85,7 @@ Tested non-official ST boards [incl. STLINK programmers]:
 | 0x446   | _N/A_        | xD xE     |      | F302    | F303 |                |
 | 0x446   | _N/A_        | -         |      |         |      | F398           |
 
-## STM32F3 Clone / ARM Cortex M4F (Core-ID: 0x2ba01477)
+## STM32F3 Clone / ARM Cortex M4F (Core-ID: 0x2ba01477) [may work, but without support!]
 
 | Product-Code | Chip-ID | STLINK<br />Programmer | Boards                             |
 | ------------ | ------- | ---------------------- | ---------------------------------- |
