@@ -81,7 +81,7 @@ SUBSYSTEMS=="usb", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="374b", \
 
 and the `idVendor` of `0483` and `idProduct` of `374b` matches the vendor id from the `lsusb` output.
 
-Make sure that you have all 4 files from here: https://github.com/stlink-org/stlink/tree/master/config/udev/rules.d in your `/etc/udev/rules.d` directory. After copying new files or editing excisting files in `/etc/udev/ruled.d` you should run the following:
+Make sure that you have all 3 files from here: https://github.com/stlink-org/stlink/tree/master/etc/udev/rules.d in your `/etc/udev/rules.d` directory. After copying new files or editing existing files in `/etc/udev/ruled.d` you should run the following:
 
 ```
 sudo udevadm control --reload-rules

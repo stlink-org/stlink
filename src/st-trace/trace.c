@@ -540,7 +540,7 @@ int main(int argc, char **argv) {
 
   stlink->verbose = settings.logging_level;
 
-  if (stlink->chip_id == STLINK_CHIPID_UNKNOWN) {
+  if (stlink->chip_id == STM32_CHIPID_UNKNOWN) {
     ELOG("Your stlink is not connected to a device\n");
     if (!settings.force)
       return APP_RESULT_STLINK_MISSING_DEVICE;
@@ -555,7 +555,7 @@ int main(int argc, char **argv) {
   if (!(stlink->chip_flags & CHIP_F_HAS_SWO_TRACING)) {
     const struct stlink_chipid_params *params =
         stlink_chipid_get_params(stlink->chip_id);
-    ELOG("We do not support SWO output for device '%s'\n", params->description);
+    ELOG("We do not support SWO output for device '%s'\n", params->dev_type);
     if (!settings.force)
       return APP_RESULT_STLINK_UNSUPPORTED_DEVICE;
   }

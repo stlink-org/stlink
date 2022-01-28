@@ -83,6 +83,10 @@ enum target_state {
 #define STLINK_F_HAS_DPBANKSEL          (1 << 8)
 #define STLINK_F_HAS_RW8_512BYTES       (1 << 9)
 
+/* Additional MCU features */
+#define CHIP_F_HAS_DUAL_BANK    (1 << 0)
+#define CHIP_F_HAS_SWO_TRACING  (1 << 1)
+
 /* Error code */
 #define STLINK_DEBUG_ERR_OK              0x80
 #define STLINK_DEBUG_ERR_FAULT           0x81
@@ -101,21 +105,6 @@ enum target_state {
 #define CMD_CHECK_RETRY      3 /* check status and retry if wait error */
 
 #define C_BUF_LEN 32
-
-enum stlink_flash_type {
-    STLINK_FLASH_TYPE_UNKNOWN = 0,
-    STLINK_FLASH_TYPE_F0,    // used by f0, f1 (except f1xl),f3. */
-    STLINK_FLASH_TYPE_F1_XL, // f0 flash with dual bank, apparently */
-    STLINK_FLASH_TYPE_F4,    // used by f2, f4 */
-    STLINK_FLASH_TYPE_F7,
-    STLINK_FLASH_TYPE_L0,    // l0, l1 */
-    STLINK_FLASH_TYPE_L4,    // l4, l4+ */
-    STLINK_FLASH_TYPE_G0,
-    STLINK_FLASH_TYPE_G4,
-    STLINK_FLASH_TYPE_WB,
-    STLINK_FLASH_TYPE_H7,
-    STLINK_FLASH_TYPE_MAX,
-};
 
 struct stlink_reg {
     uint32_t r[16];
@@ -194,6 +183,7 @@ enum run_type {
 
 typedef struct _stlink stlink_t;
 
+#include <stm32.h>
 #include <backend.h>
 
 struct _stlink {
@@ -216,8 +206,8 @@ struct _stlink {
     char serial[STLINK_SERIAL_BUFFER_SIZE];
     int freq;                    // set by stlink_open_usb(), values: STLINK_SWDCLK_xxx_DIVISOR
 
-    enum stlink_flash_type flash_type;
-    // stlink_chipid_params.flash_type, set by stlink_load_device_params(), values: STLINK_FLASH_TYPE_xxx
+    enum stm32_flash_type flash_type;
+    // stlink_chipid_params.flash_type, set by stlink_load_device_params(), values: STM32_FLASH_TYPE_xx
 
     stm32_addr_t flash_base;     // STM32_FLASH_BASE, set by stlink_load_device_params()
     size_t flash_size;           // calculated by stlink_load_device_params()

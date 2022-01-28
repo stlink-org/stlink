@@ -2,7 +2,7 @@
 
 The following devices are supported by the stlink toolset.
 
-## STM32F0 / ARM Cortex M0 / Core-ID: 0x0bb11477 (STM32F0_CORE_ID)
+## STM32F0 / ARM Cortex M0
 
 | Chip-ID | Product-Code        |
 | ------- | ------------------- |
@@ -19,7 +19,7 @@ The following devices are supported by the stlink toolset.
 | 0x442   | STM32F0**9**xxx     |
 
 
-## STM32F1 / ARM Cortex M3 / Core-ID: 0x1ba01477 (STM32F1_CORE_ID)
+## STM32F1 / ARM Cortex M3
 
 | Product-Code      | Product Line            |
 | ----------------- | ----------------------- |
@@ -45,20 +45,20 @@ Tested non-official ST boards [incl. STLINK programmers]:
 - HY-STM32 (STM32F103VETx) [v1, v2]
 - DecaWave EVB1000 (STM32F105RCTx) [v1, v2]
 
-## STM32F2 / ARM Cortex M3 / Core-ID: 0x2ba01477 (STM32F2_CORE_ID)
+## STM32F2 / ARM Cortex M3
 
 | Chip-ID | Product-Code | Product Line  |
 | ------- | ------------ | ------------- |
 | 0x411   | STM32F2yyxx  | (all devices) |
 
-## STM32F1 / ARM Cortex M3 / Core-ID: 0x2ba01477 (STM32F1c_CORE_ID)
+## STM32F1 Clone / ARM Cortex M3 (Core-ID: 0x2ba01477) [may work, but without support!]
 
 | Product-Code  | Chip-ID | STLink<br />Programmer | Boards                                                                                          |
 | ------------- | ------- | ---------------------- | ----------------------------------------------------------------------------------------------- |
 | CKS32F103C8Tx | 0x410   | v2                     | "STM32"-Bluepill ( _**Fake-Marking !**_ )<br />STM32F103C8T6 clone from China Key Systems (CKS) |
 | CKS32F103C8Tx | 0x410   | v2                     | CKS32-Bluepill (Clone)<br />STM32F103C8T6 clone from China Key Systems (CKS)                    |
 
-## STM32F3 / ARM Cortex M4F / Core-ID: 0x2ba01477 (STM32F3_CORE_ID)
+## STM32F3 / ARM Cortex M4F
 
 | Product-Code      | Product Line                                                  |
 | ----------------- | ------------------------------------------------------------- |
@@ -85,13 +85,13 @@ Tested non-official ST boards [incl. STLINK programmers]:
 | 0x446   | _N/A_        | xD xE     |      | F302    | F303 |                |
 | 0x446   | _N/A_        | -         |      |         |      | F398           |
 
-## STM32F3 / ARM Cortex M4F / Core-ID: 0x2ba01477 (STM32F3c_CORE_ID)
+## STM32F3 Clone / ARM Cortex M4F (Core-ID: 0x2ba01477) [may work, but without support!]
 
 | Product-Code | Chip-ID | STLINK<br />Programmer | Boards                             |
 | ------------ | ------- | ---------------------- | ---------------------------------- |
 | GD32F303VGT6 | 0x430   | [v2]                   | STM32F303 clone from GigaDevice GD |
 
-## STM32F4 / ARM Cortex M4F / Core-ID: 0x2ba01477 (STM32F4_CORE_ID)
+## STM32F4 / ARM Cortex M4F
 
 | Chip-ID | Product-Code        |
 | ------- | ------------------- |
@@ -112,7 +112,7 @@ Tested non-official ST boards [incl. STLINK programmers]:
 | 0x463   | STM32F4**13**xx     |
 | 0x463   | STM32F4**23**xx     |
 
-## STM32F7 / ARM Cortex M7F / Core-ID: 0x5ba02477 (STM32F7_CORE_ID)
+## STM32F7 / ARM Cortex M7F
 
 | Chip-ID | Product-Code    |
 | ------- | --------------- |
@@ -123,7 +123,7 @@ Tested non-official ST boards [incl. STLINK programmers]:
 | 0x451   | STM32F7**6**xxx |
 | 0x451   | STM32F7**7**xxx |
 
-## STM32H7 / ARM Cortex M7F / Core-ID: 0x6ba02477 (STM32H7_CORE_ID)
+## STM32H7 / ARM Cortex M7F
 
 | Chip-ID | Product-Code  |
 | ------- | ------------- |
@@ -132,7 +132,7 @@ Tested non-official ST boards [incl. STLINK programmers]:
 | 0x480   | STM32H7**A**x |
 | 0x480   | STM32H7**B**x |
 
-## STM32G0 / ARM Cortex M0+ / Core-ID: 0x0bc11477 (STM32G0_CORE_ID)
+## STM32G0 / ARM Cortex M0+
 
 | Chip-ID | Product-Code    |
 | ------- | --------------- |
@@ -141,7 +141,7 @@ Tested non-official ST boards [incl. STLINK programmers]:
 | 0x460   | STM32G0**7**xxx |
 | 0x460   | STM32G0**8**xxx |
 
-## STM32G4 / ARM Cortex M4F / Core-ID: 0x2ba01477 (STM32G4_CORE_ID)
+## STM32G4 / ARM Cortex M4F
 
 | Chip-ID | Product-Code    |
 | ------- | --------------- |
@@ -151,7 +151,7 @@ Tested non-official ST boards [incl. STLINK programmers]:
 | 0x469   | STM32G4**8**xxx |
 | 0x479   | STM32G4**91**xx |
 
-## STM32L0 / ARM Cortex M0+ / Core-ID: 0x0bc11477 (STM32L0_CORE_ID)
+## STM32L0 / ARM Cortex M0+
 
 | Chip-ID | Product-Code    |
 | ------- | --------------- |
@@ -164,7 +164,7 @@ Tested non-official ST boards [incl. STLINK programmers]:
 | 0x447   | STM32L0**7**xxx |
 | 0x447   | STM32L0**8**xxx |
 
-## STM32L1 / ARM Cortex M3 / Core-ID: 0x2ba01477 (STM32L1_CORE_ID)
+## STM32L1 / ARM Cortex M3
 
 | Chip-ID | Product-Code     |
 | ------- | ---------------- |
@@ -178,7 +178,7 @@ Tested non-official ST boards [incl. STLINK programmers]:
 | 0x436   | STM32L1xxx**D**  |
 | 0x437   | STM32L1xxx**E**  |
 
-## STM32L4 / ARM Cortex M4F / Core-ID: 0x2ba01477 (STM32L4_CORE_ID)
+## STM32L4 / ARM Cortex M4F
 
 | Chip-ID | Product-Code    |
 | ------- | --------------- |
@@ -197,7 +197,7 @@ Tested non-official ST boards [incl. STLINK programmers]:
 | 0x471   | STM32L4**P5**xx |
 | 0x471   | STM32L4**Q5**xx |
 
-## STM32W / ARM Cortex M3 / Core-ID: 0x2ba01477 (STM32W_CORE_ID)
+## STM32W / ARM Cortex M3
 
 | Chip-ID | Product-Code    |
 | ------- | --------------- |

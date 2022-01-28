@@ -429,7 +429,7 @@ static gchar *dev_format_chip_id(guint32 chip_id) {
 
     if (!params) { return(g_strdup_printf("0x%x", chip_id)); }
 
-    return(g_strdup(params->description));
+    return(g_strdup(params->dev_type));
 }
 
 static gchar *dev_format_mem_size(gsize flash_size) {
