@@ -4,7 +4,8 @@
 #include <stm32.h>
 #include <stlink.h>
 
-/** Chipid parametres */
+
+/** Chipid parameters */
 struct stlink_chipid_params {
     char *dev_type;
     char *ref_manual_id;
@@ -22,6 +23,6 @@ struct stlink_chipid_params {
 };
 
 struct stlink_chipid_params *stlink_chipid_get_params(uint32_t chipid);
-  void init_chipids(char *dir_to_scan); 
+  void init_chipids(char *dir_to_scan);
 
 #endif // STLINK_CHIPID_H_
