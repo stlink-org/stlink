@@ -8,6 +8,7 @@
 #include <string.h>
 #include <sys/types.h>
 
+#include <stm32.h>
 #include <stlink.h>
 #include "flash.h"
 
@@ -67,7 +68,7 @@ int main(int ac, char** av) {
 
     if (sl == NULL) { return(-1); }
 
-    if (sl->flash_type == STLINK_FLASH_TYPE_UNKNOWN) {
+    if (sl->flash_type == STM32_FLASH_TYPE_UNKNOWN) {
         printf("Failed to connect to target\n");
         goto on_error;
     }

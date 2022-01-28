@@ -226,7 +226,7 @@ int main(int argc, char** argv) {
     sl = stlink_open_usb(state.logging_level, state.connect_mode, state.serialnumber, state.freq);
     if (sl == NULL) { return(1); }
 
-    if (sl->chip_id == STLINK_CHIPID_UNKNOWN) {
+    if (sl->chip_id == STM32_CHIPID_UNKNOWN) {
         ELOG("Unsupported Target (Chip ID is %#010x, Core ID is %#010x).\n", sl->chip_id, sl->core_id);
         return(1);
     }
@@ -553,39 +553,39 @@ char* make_memory_map(stlink_t *sl) {
     char* map = malloc(sz);
     map[0] = '\0';
 
-    if (sl->chip_id == STLINK_CHIPID_STM32_F4 ||
-        sl->chip_id == STLINK_CHIPID_STM32_F446 ||
-        sl->chip_id == STLINK_CHIPID_STM32_F411xx) {
+    if (sl->chip_id == STM32_CHIPID_F4 ||
+        sl->chip_id == STM32_CHIPID_F446 ||
+        sl->chip_id == STM32_CHIPID_F411xx) {
             strcpy(map, memory_map_template_F4);
-    } else if (sl->chip_id == STLINK_CHIPID_STM32_F4_DE) {
+    } else if (sl->chip_id == STM32_CHIPID_F4_DE) {
         strcpy(map, memory_map_template_F4_DE);
-    } else if (sl->core_id == STM32F7_CORE_ID) {
+    } else if (sl->core_id == STM32_CORE_ID_M7F_SWD) {
         snprintf(map, sz, memory_map_template_F7,
                  (unsigned int)sl->sram_size);
-    } else if (sl->chip_id == STLINK_CHIPID_STM32_H74xxx) {
+    } else if (sl->chip_id == STM32_CHIPID_H74xxx) {
         snprintf(map, sz, memory_map_template_H7,
                  (unsigned int)sl->flash_size,
                  (unsigned int)sl->flash_pgsz);
-    } else if (sl->chip_id == STLINK_CHIPID_STM32_F4_HD) {
+    } else if (sl->chip_id == STM32_CHIPID_F4_HD) {
         strcpy(map, memory_map_template_F4_HD);
-    } else if (sl->chip_id == STLINK_CHIPID_STM32_F2) {
+    } else if (sl->chip_id == STM32_CHIPID_F2) {
         snprintf(map, sz, memory_map_template_F2,
                  (unsigned int)sl->flash_size,
                  (unsigned int)sl->sram_size,
                  (unsigned int)sl->flash_size - 0x20000,
                  (unsigned int)sl->sys_base,
                  (unsigned int)sl->sys_size);
-    } else if ((sl->chip_id == STLINK_CHIPID_STM32_L4) ||
-               (sl->chip_id == STLINK_CHIPID_STM32_L43x_L44x) ||
-               (sl->chip_id == STLINK_CHIPID_STM32_L45x_L46x)) {
+    } else if ((sl->chip_id == STM32_CHIPID_L4) ||
+               (sl->chip_id == STM32_CHIPID_L43x_L44x) ||
+               (sl->chip_id == STM32_CHIPID_L45x_L46x)) {
         snprintf(map, sz, memory_map_template_L4,
                  (unsigned int)sl->flash_size,
                  (unsigned int)sl->flash_size);
-    } else if (sl->chip_id == STLINK_CHIPID_STM32_L496x_L4A6x) {
+    } else if (sl->chip_id == STM32_CHIPID_L496x_L4A6x) {
         snprintf(map, sz, memory_map_template_L496,
                  (unsigned int)sl->flash_size,
                  (unsigned int)sl->flash_size);
-    } else if (sl->chip_id == STLINK_CHIPID_STM32_H72x) {
+    } else if (sl->chip_id == STM32_CHIPID_H72x) {
         snprintf(map, sz, memory_map_template_H72x3x,
                  (unsigned int)sl->flash_size,
                  (unsigned int)sl->flash_pgsz);
@@ -1847,7 +1847,7 @@ int serve(stlink_t *sl, st_state_t *st) {
             stlink_close(sl);
 
             sl = stlink_open_usb(st->logging_level, st->connect_mode, st->serialnumber, st->freq);
-            if (sl == NULL || sl->chip_id == STLINK_CHIPID_UNKNOWN) { cleanup(0); }
+            if (sl == NULL || sl->chip_id == STM32_CHIPID_UNKNOWN) { cleanup(0); }
 
             connected_stlink = sl;
 

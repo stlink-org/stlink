@@ -30,4 +30,5 @@ int gettimeofday(struct timeval *tv, struct timezone *tz) {
 
     return 0;
 }
+
 #endif //STLINK_HAVE_SYS_TIME_H

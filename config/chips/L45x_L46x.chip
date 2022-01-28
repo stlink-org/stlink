@@ -1,0 +1,14 @@
+# Chip-ID file for STM32L45x / STM32L46x device
+#
+dev_type STM32L45x_L46x
+ref_manual_id 0394
+chip_id 0x462                // STM32_CHIPID_L45x_L46x
+flash_type L4_L4P
+flash_size_reg 0x1fff75e0
+flash_pagesize 0x800         // 2 KB
+sram_size 0x20000            // 128 KB
+bootrom_base 0x1fff0000
+bootrom_size 0x7000          // 28 KB
+option_base 0x0
+option_size 0x0
+flags swo

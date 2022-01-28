@@ -74,7 +74,6 @@
  *         part to an existing options line for usb-storage).
  */
 
-
 #define __USE_GNU
 #include <assert.h>
 #include <stdio.h>

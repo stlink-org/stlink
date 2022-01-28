@@ -64,7 +64,7 @@ void stlink_close(stlink_t *sl) {
 int stlink_exit_debug_mode(stlink_t *sl) {
   DLOG("*** stlink_exit_debug_mode ***\n");
 
-  if (sl->flash_type != STLINK_FLASH_TYPE_UNKNOWN &&
+  if (sl->flash_type != STM32_FLASH_TYPE_UNKNOWN &&
       sl->core_stat != TARGET_RESET) {
     // stop debugging if the target has been identified
     stlink_write_debug32(sl, STLINK_REG_DHCSR, STLINK_REG_DHCSR_DBGKEY);
@@ -225,7 +225,7 @@ int stlink_load_device_params(stlink_t *sl) {
     return (-1);
   }
 
-  if (params->flash_type == STLINK_FLASH_TYPE_UNKNOWN) {
+  if (params->flash_type == STM32_FLASH_TYPE_UNKNOWN) {
     WLOG("Invalid flash type, please check device declaration\n");
     sl->flash_size = 0;
     return (0);
@@ -287,7 +287,7 @@ int stlink_load_device_params(stlink_t *sl) {
 
   // H7 devices with small flash has one bank
   if (sl->chip_flags & CHIP_F_HAS_DUAL_BANK &&
-      sl->flash_type == STLINK_FLASH_TYPE_H7) {
+      sl->flash_type == STM32_FLASH_TYPE_H7) {
     if ((sl->flash_size / sl->flash_pgsz) <= 1)
       sl->chip_flags &= ~CHIP_F_HAS_DUAL_BANK;
   }
@@ -913,7 +913,7 @@ int stlink_parse_ihex(const char *path, uint8_t erased_pattern, uint8_t **mem,
 }
 // 280
 uint8_t stlink_get_erased_pattern(stlink_t *sl) {
-  if (sl->flash_type == STLINK_FLASH_TYPE_L0) {
+  if (sl->flash_type == STM32_FLASH_TYPE_L0_L1) {
     return (0x00);
   } else {
     return (0xff);
@@ -975,31 +975,31 @@ static void stop_wdg_in_debug(stlink_t *sl) {
   uint32_t value;
 
   switch (sl->flash_type) {
-  case STLINK_FLASH_TYPE_F0:
-  case STLINK_FLASH_TYPE_F1_XL:
-  case STLINK_FLASH_TYPE_G4:
+  case STM32_FLASH_TYPE_F0_F1_F3:
+  case STM32_FLASH_TYPE_F1_XL:
+  case STM32_FLASH_TYPE_G4:
     dbgmcu_cr = STM32F0_DBGMCU_CR;
     set = (1 << STM32F0_DBGMCU_CR_IWDG_STOP) |
           (1 << STM32F0_DBGMCU_CR_WWDG_STOP);
     break;
-  case STLINK_FLASH_TYPE_F4:
-  case STLINK_FLASH_TYPE_F7:
-  case STLINK_FLASH_TYPE_L4:
+  case STM32_FLASH_TYPE_F2_F4:
+  case STM32_FLASH_TYPE_F7:
+  case STM32_FLASH_TYPE_L4:
     dbgmcu_cr = STM32F4_DBGMCU_APB1FZR1;
     set = (1 << STM32F4_DBGMCU_APB1FZR1_IWDG_STOP) |
           (1 << STM32F4_DBGMCU_APB1FZR1_WWDG_STOP);
     break;
-  case STLINK_FLASH_TYPE_L0:
-  case STLINK_FLASH_TYPE_G0:
+  case STM32_FLASH_TYPE_L0_L1:
+  case STM32_FLASH_TYPE_G0:
     dbgmcu_cr = STM32L0_DBGMCU_APB1_FZ;
     set = (1 << STM32L0_DBGMCU_APB1_FZ_IWDG_STOP) |
           (1 << STM32L0_DBGMCU_APB1_FZ_WWDG_STOP);
     break;
-  case STLINK_FLASH_TYPE_H7:
+  case STM32_FLASH_TYPE_H7:
     dbgmcu_cr = STM32H7_DBGMCU_APB1HFZ;
     set = (1 << STM32H7_DBGMCU_APB1HFZ_IWDG_STOP);
     break;
-  case STLINK_FLASH_TYPE_WB:
+  case STM32_FLASH_TYPE_WB:
     dbgmcu_cr = STM32WB_DBGMCU_APB1FZR1;
     set = (1 << STM32WB_DBGMCU_APB1FZR1_IWDG_STOP) |
           (1 << STM32WB_DBGMCU_APB1FZR1_WWDG_STOP);

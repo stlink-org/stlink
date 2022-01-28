@@ -9,10 +9,6 @@
 #include <stlink.h>
 #include <libusb_settings.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* Device access */
 #define RDWR        0
 #define RO      1
@@ -59,9 +55,5 @@ struct stlink_libsg {
 };
 
 stlink_t* stlink_v1_open(const int verbose, int reset);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif // STLINK_SG_H

@@ -20,7 +20,8 @@
 #pragma warning(pop)
 #endif
 
-/* winsock doesn't feature poll(), so there is a version implemented in terms of select() in win32_socket.c.
+/*
+ * winsock doesn't feature poll(), so there is a version implemented in terms of select() in win32_socket.c.
  * The following definitions are copied from linux man pages.
  * A poll() macro is defined to call the version in win32_socket.c.
  */
@@ -40,7 +41,8 @@ struct pollfd {
 #endif
 #define poll(x, y, z)     win32_poll(x, y, z)
 
-/* These wrappers do nothing special except set the global errno variable if an error occurs
+/* 
+ * These wrappers do nothing special except set the global errno variable if an error occurs
  * (winsock doesn't do this by default).
  * They set errno to unix-like values (i.e. WSAEWOULDBLOCK is mapped to EAGAIN),
  * so code outside of this file "shouldn't" have to worry about winsock specific error handling.

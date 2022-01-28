@@ -1,0 +1,15 @@
+# Chip-ID file for STM32U5x5 device
+#
+dev_type STM32U5x5
+ref_manual_id 0456
+chip_id 0x0                  // (temporary setting only!)
+flash_type 0                 // (temporary setting only!)
+flash_size_reg 0x0bfa07a0
+flash_pagesize 0x2000        // 8 KB
+sram_size 0xc4800            // 786 KB
+bootrom_base 0x0bf90000
+bootrom_size 0x8000          // 32 KB
+option_base 0x0
+option_size 0x0
+flags none
+
