@@ -1,7 +1,7 @@
 /*
  * File: map_file.h
  *
- * TODO: add a description
+ * File mapping
  */
 
 #ifndef MAP_FILE_H

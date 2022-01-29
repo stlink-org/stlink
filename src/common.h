@@ -1,7 +1,7 @@
 /*
  * File: common.h
  *
- * TODO: add a description
+ * General helper functions
  */
 
 #ifndef COMMON_H

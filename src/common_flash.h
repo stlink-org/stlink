@@ -1,7 +1,7 @@
 /*
  * File: common_flash.h
  *
- * TODO: add a description
+ * Flash operations
  */
 
 #ifndef COMMON_FLASH_H

@@ -1,7 +1,7 @@
 /*
  * File: calculate.h
  *
- * TODO: add a description
+ * Calculation of sector numbers and pages
  */
 
 #ifndef CALCULATE_H
