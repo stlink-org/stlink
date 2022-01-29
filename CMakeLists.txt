@@ -110,6 +110,8 @@ add_subdirectory(inc)
 set(STLINK_HEADERS
         inc/backend.h
         inc/stlink.h
+        src/common_flash.h
+        src/calculate.h
         src/stlink-lib/commands.h
         src/stlink-lib/libusb_settings.h
         src/stlink-lib/reg.h
@@ -123,7 +125,13 @@ set(STLINK_HEADERS
         )
 
 set(STLINK_SOURCE
+        src/read_write.c
         src/common.c
+		src/option_bytes.c
+		src/common_flash.c
+        src/map_file.c
+        src/flashloader.c
+        src/calculate.c
         src/stlink-lib/chipid.c
         src/stlink-lib/flash_loader.c
         src/stlink-lib/logging.c
