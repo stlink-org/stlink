@@ -54,9 +54,9 @@ uint32_t calculate_L4_page(stlink_t *sl, uint32_t flashaddr) {
   stlink_read_debug32(sl, STM32L4_FLASH_OPTR, &flashopt);
   flashaddr -= STM32_FLASH_BASE;
 
-  if (sl->chip_id == STLINK_CHIPID_STM32_L4 ||
-      sl->chip_id == STLINK_CHIPID_STM32_L496x_L4A6x ||
-      sl->chip_id == STLINK_CHIPID_STM32_L4Rx) {
+  if (sl->chip_id == STM32_CHIPID_L4 ||
+      sl->chip_id == STM32_CHIPID_L496x_L4A6x ||
+      sl->chip_id == STM32_CHIPID_L4Rx) {
     // this chip use dual banked flash
     if (flashopt & (uint32_t)(1lu << STM32L4_FLASH_OPTR_DUALBANK)) {
       uint32_t banksize = (uint32_t)sl->flash_size / 2;

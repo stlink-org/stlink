@@ -300,7 +300,7 @@
 #define FLASH_H7_CR_SER 2
 #define FLASH_H7_CR_BER 3
 #define FLASH_H7_CR_PSIZE 4
-#define FLASH_H7_CR_START(chipid) (chipid == STLINK_CHIPID_STM32_H7Ax ? 5 : 7)
+#define FLASH_H7_CR_START(chipid) (chipid == STM32_CHIPID_H7Ax ? 5 : 7)
 #define FLASH_H7_CR_SNB 8
 #define FLASH_H7_CR_SNB_MASK 0x700
 

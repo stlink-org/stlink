@@ -119,17 +119,17 @@ int stlink_read_option_bytes32(stlink_t *sl, uint32_t *option_byte) {
   }
 
   switch (sl->chip_id) {
-  case STLINK_CHIPID_STM32_F2:
+  case STM32_CHIPID_F2:
     return stlink_read_option_bytes_f2(sl, option_byte);
-  case STLINK_CHIPID_STM32_F4:
-  case STLINK_CHIPID_STM32_F446:
+  case STM32_CHIPID_F4:
+  case STM32_CHIPID_F446:
     return stlink_read_option_bytes_f4(sl, option_byte);
-  case STLINK_CHIPID_STM32_F76xxx:
+  case STM32_CHIPID_F76xxx:
     return stlink_read_option_bytes_f7(sl, option_byte);
-  case STLINK_CHIPID_STM32_G0_CAT1:
-  case STLINK_CHIPID_STM32_G0_CAT2:
-  case STLINK_CHIPID_STM32_G4_CAT2:
-  case STLINK_CHIPID_STM32_G4_CAT3:
+  case STM32_CHIPID_G0_CAT1:
+  case STM32_CHIPID_G0_CAT2:
+  case STM32_CHIPID_G4_CAT2:
+  case STM32_CHIPID_G4_CAT3:
     return stlink_read_option_bytes_Gx(sl, option_byte);
   default:
     return stlink_read_option_bytes_generic(sl, option_byte);
@@ -513,27 +513,27 @@ int stlink_write_option_bytes(stlink_t *sl, stm32_addr_t addr, uint8_t *base,
   }
 
   switch (sl->flash_type) {
-  case STLINK_FLASH_TYPE_F0:
-  case STLINK_FLASH_TYPE_F1_XL:
+  case STM32_FLASH_TYPE_F0_F1_F3:
+  case STM32_FLASH_TYPE_F1_XL:
     ret = stlink_write_option_bytes_f0(sl, base, addr, len);
     break;
-  case STLINK_FLASH_TYPE_F4:
+  case STM32_FLASH_TYPE_F2_F4:
     ret = stlink_write_option_bytes_f4(sl, base, addr, len);
     break;
-  case STLINK_FLASH_TYPE_F7:
+  case STM32_FLASH_TYPE_F7:
     ret = stlink_write_option_bytes_f7(sl, base, addr, len);
     break;
-  case STLINK_FLASH_TYPE_L0:
+  case STM32_FLASH_TYPE_L0_L1:
     ret = stlink_write_option_bytes_l0(sl, base, addr, len);
     break;
-  case STLINK_FLASH_TYPE_L4:
+  case STM32_FLASH_TYPE_L4_L4P:
     ret = stlink_write_option_bytes_l4(sl, base, addr, len);
     break;
-  case STLINK_FLASH_TYPE_G0:
-  case STLINK_FLASH_TYPE_G4:
+  case STM32_FLASH_TYPE_G0:
+  case STM32_FLASH_TYPE_G4:
     ret = stlink_write_option_bytes_gx(sl, base, addr, len);
     break;
-  case STLINK_FLASH_TYPE_H7:
+  case STM32_FLASH_TYPE_H7:
     ret = stlink_write_option_bytes_h7(sl, base, addr, len);
     break;
   default:
@@ -739,11 +739,11 @@ int stlink_write_option_control_register32(stlink_t *sl,
   }
 
   switch (sl->flash_type) {
-  case STLINK_FLASH_TYPE_F0:
-  case STLINK_FLASH_TYPE_F1_XL:
+  case STM32_FLASH_TYPE_F0_F1_F3:
+  case STM32_FLASH_TYPE_F1_XL:
     ret = stlink_write_option_control_register_f0(sl, option_control_register);
     break;
-  case STLINK_FLASH_TYPE_F7:
+  case STM32_FLASH_TYPE_F7:
     ret = stlink_write_option_control_register_f7(sl, option_control_register);
     break;
   default:
@@ -788,7 +788,7 @@ int stlink_write_option_control_register1_32(
   }
 
   switch (sl->flash_type) {
-  case STLINK_FLASH_TYPE_F7:
+  case STM32_FLASH_TYPE_F7:
     ret =
         stlink_write_option_control_register1_f7(sl, option_control_register1);
     break;
@@ -847,7 +847,7 @@ int stlink_write_option_bytes_boot_add32(stlink_t *sl,
   }
 
   switch (sl->flash_type) {
-  case STLINK_FLASH_TYPE_F7:
+  case STM32_FLASH_TYPE_F7:
     ret = stlink_write_option_bytes_boot_add_f7(sl, option_bytes_boot_add);
     break;
   default:
@@ -937,7 +937,7 @@ int stlink_read_option_control_register1_32(stlink_t *sl,
   }
 
   switch (sl->flash_type) {
-  case STLINK_FLASH_TYPE_F7:
+  case STM32_FLASH_TYPE_F7:
     return stlink_read_option_control_register1_f7(sl, option_byte);
   default:
     return -1;
@@ -971,7 +971,7 @@ int stlink_read_option_bytes_boot_add32(stlink_t *sl, uint32_t *option_byte) {
   }
 
   switch (sl->flash_type) {
-  case STLINK_FLASH_TYPE_F7:
+  case STM32_FLASH_TYPE_F7:
     return stlink_read_option_bytes_boot_add_f7(sl, option_byte);
   default:
     return -1;
@@ -1016,10 +1016,10 @@ int stlink_read_option_control_register32(stlink_t *sl, uint32_t *option_byte) {
   }
 
   switch (sl->flash_type) {
-  case STLINK_FLASH_TYPE_F0:
-  case STLINK_FLASH_TYPE_F1_XL:
+  case STM32_FLASH_TYPE_F0_F1_F3:
+  case STM32_FLASH_TYPE_F1_XL:
     return stlink_read_option_control_register_f0(sl, option_byte);
-  case STLINK_FLASH_TYPE_F7:
+  case STM32_FLASH_TYPE_F7:
     return stlink_read_option_control_register_f7(sl, option_byte);
   default:
     return -1;

@@ -134,7 +134,7 @@ int stlink_chip_id(stlink_t *sl, uint32_t *chip_id) {
    *
    */
 
-  if ((sl->core_id == STM32H7_CORE_ID || sl->core_id == STM32H7_CORE_ID_JTAG) &&
+  if ((sl->core_id == STM32_CORE_ID_M7F_H7_SWD || sl->core_id == STM32_CORE_ID_M7F_H7_JTAG) &&
       cpu_id.part == STLINK_REG_CMx_CPUID_PARTNO_CM7) {
     // STM32H7 chipid in 0x5c001000 (RM0433 pg3189)
     ret = stlink_read_debug32(sl, 0x5c001000, chip_id);
@@ -242,14 +242,14 @@ int stlink_load_device_params(stlink_t *sl) {
 
   flash_size = flash_size & 0xffff;
 
-  if ((sl->chip_id == STLINK_CHIPID_STM32_L1_MD ||
-       sl->chip_id == STLINK_CHIPID_STM32_F1_VL_MD_LD ||
-       sl->chip_id == STLINK_CHIPID_STM32_L1_MD_PLUS) &&
+  if ((sl->chip_id == STM32_CHIPID_L1_MD ||
+       sl->chip_id == STM32_CHIPID_F1_VL_MD_LD ||
+       sl->chip_id == STM32_CHIPID_L1_MD_PLUS) &&
       (flash_size == 0)) {
     sl->flash_size = 128 * 1024;
-  } else if (sl->chip_id == STLINK_CHIPID_STM32_L1_CAT2) {
+  } else if (sl->chip_id == STM32_CHIPID_L1_CAT2) {
     sl->flash_size = (flash_size & 0xff) * 1024;
-  } else if ((sl->chip_id & 0xFFF) == STLINK_CHIPID_STM32_L1_MD_PLUS_HD) {
+  } else if ((sl->chip_id & 0xFFF) == STM32_CHIPID_L1_MD_PLUS_HD) {
     // 0 is 384k and 1 is 256k
     if (flash_size == 0) {
       sl->flash_size = 384 * 1024;
@@ -271,12 +271,12 @@ int stlink_load_device_params(stlink_t *sl) {
 
   // medium and low devices have the same chipid. ram size depends on flash
   // size. STM32F100xx datasheet Doc ID 16455 Table 2
-  if (sl->chip_id == STLINK_CHIPID_STM32_F1_VL_MD_LD &&
+  if (sl->chip_id == STM32_CHIPID_F1_VL_MD_LD &&
       sl->flash_size < 64 * 1024) {
     sl->sram_size = 0x1000;
   }
 
-  if (sl->chip_id == STLINK_CHIPID_STM32_G4_CAT3) {
+  if (sl->chip_id == STM32_CHIPID_G4_CAT3) {
     uint32_t flash_optr;
     stlink_read_debug32(sl, STM32Gx_FLASH_OPTR, &flash_optr);
 
@@ -293,7 +293,7 @@ int stlink_load_device_params(stlink_t *sl) {
   }
 
   ILOG("%s: %u KiB SRAM, %u KiB flash in at least %u %s pages.\n",
-       params->description, (unsigned)(sl->sram_size / 1024),
+       params->dev_type, (unsigned)(sl->sram_size / 1024),
        (unsigned)(sl->flash_size / 1024),
        (sl->flash_pgsz < 1024) ? (unsigned)(sl->flash_pgsz)
                                : (unsigned)(sl->flash_pgsz / 1024),
@@ -712,16 +712,16 @@ int write_buffer_to_sram(stlink_t *sl, flash_loader_t *fl, const uint8_t *buf,
 }
 // 291
 uint32_t stlink_calculate_pagesize(stlink_t *sl, uint32_t flashaddr) {
-  if ((sl->chip_id == STLINK_CHIPID_STM32_F2) ||
-      (sl->chip_id == STLINK_CHIPID_STM32_F4) ||
-      (sl->chip_id == STLINK_CHIPID_STM32_F4_DE) ||
-      (sl->chip_id == STLINK_CHIPID_STM32_F4_LP) ||
-      (sl->chip_id == STLINK_CHIPID_STM32_F4_HD) ||
-      (sl->chip_id == STLINK_CHIPID_STM32_F411xx) ||
-      (sl->chip_id == STLINK_CHIPID_STM32_F446) ||
-      (sl->chip_id == STLINK_CHIPID_STM32_F4_DSI) ||
-      (sl->chip_id == STLINK_CHIPID_STM32_F72xxx) ||
-      (sl->chip_id == STLINK_CHIPID_STM32_F412)) {
+  if ((sl->chip_id == STM32_CHIPID_F2) ||
+      (sl->chip_id == STM32_CHIPID_F4) ||
+      (sl->chip_id == STM32_CHIPID_F4_DE) ||
+      (sl->chip_id == STM32_CHIPID_F4_LP) ||
+      (sl->chip_id == STM32_CHIPID_F4_HD) ||
+      (sl->chip_id == STM32_CHIPID_F411xx) ||
+      (sl->chip_id == STM32_CHIPID_F446) ||
+      (sl->chip_id == STM32_CHIPID_F4_DSI) ||
+      (sl->chip_id == STM32_CHIPID_F72xxx) ||
+      (sl->chip_id == STM32_CHIPID_F412)) {
     uint32_t sector = calculate_F4_sectornum(flashaddr);
 
     if (sector >= 12) {
@@ -735,8 +735,8 @@ uint32_t stlink_calculate_pagesize(stlink_t *sl, uint32_t flashaddr) {
     } else {
       sl->flash_pgsz = 0x20000;
     }
-  } else if (sl->chip_id == STLINK_CHIPID_STM32_F7 ||
-             sl->chip_id == STLINK_CHIPID_STM32_F76xxx) {
+  } else if (sl->chip_id == STM32_CHIPID_F7 ||
+             sl->chip_id == STM32_CHIPID_F76xxx) {
     uint32_t sector = calculate_F7_sectornum(flashaddr);
 
     if (sector < 4) {
@@ -984,7 +984,7 @@ static void stop_wdg_in_debug(stlink_t *sl) {
     break;
   case STM32_FLASH_TYPE_F2_F4:
   case STM32_FLASH_TYPE_F7:
-  case STM32_FLASH_TYPE_L4:
+  case STM32_FLASH_TYPE_L4_L4P:
     dbgmcu_cr = STM32F4_DBGMCU_APB1FZR1;
     set = (1 << STM32F4_DBGMCU_APB1FZR1_IWDG_STOP) |
           (1 << STM32F4_DBGMCU_APB1FZR1_WWDG_STOP);
@@ -999,7 +999,7 @@ static void stop_wdg_in_debug(stlink_t *sl) {
     dbgmcu_cr = STM32H7_DBGMCU_APB1HFZ;
     set = (1 << STM32H7_DBGMCU_APB1HFZ_IWDG_STOP);
     break;
-  case STM32_FLASH_TYPE_WB:
+  case STM32_FLASH_TYPE_WB_WL:
     dbgmcu_cr = STM32WB_DBGMCU_APB1FZR1;
     set = (1 << STM32WB_DBGMCU_APB1FZR1_IWDG_STOP) |
           (1 << STM32WB_DBGMCU_APB1FZR1_WWDG_STOP);
