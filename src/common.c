@@ -4,15 +4,20 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <md5.h>
 #include <stlink.h>
 #include <stm32.h>
-#include <string.h>
-#include <stdlib.h>
+
 #include "common_flash.h"
 #include "calculate.h"
 #include "map_file.h"
 #include "common.h"
+
+#ifndef O_BINARY
+#define O_BINARY 0
+#endif
 
 #ifdef _MSC_VER
 #define __attribute__(x)
@@ -110,7 +115,7 @@ int stlink_core_id(stlink_t *sl) {
   DLOG("core_id = 0x%08x\n", sl->core_id);
   return (ret);
 }
-
+// 287
 // stlink_chip_id() is called by stlink_load_device_params()
 // do not call this procedure directly.
 int stlink_chip_id(stlink_t *sl, uint32_t *chip_id) {
@@ -120,8 +125,7 @@ int stlink_chip_id(stlink_t *sl, uint32_t *chip_id) {
   // Read the CPU ID to determine where to read the core id
   if (stlink_cpu_id(sl, &cpu_id) ||
       cpu_id.implementer_id != STLINK_REG_CMx_CPUID_IMPL_ARM) {
-    ELOG("Can not connect to target. Please use \'connect under reset\' and "
-         "try again\n");
+    ELOG("Can not connect to target. Please use \'connect under reset\' and try again\n");
     return -1;
   }
 
@@ -174,7 +178,7 @@ int stlink_chip_id(stlink_t *sl, uint32_t *chip_id) {
 
   return (ret);
 }
-
+// 288
 /**
  * Cortex M tech ref manual, CPUID register description
  * @param sl stlink context
@@ -203,102 +207,100 @@ int stlink_cpu_id(stlink_t *sl, cortex_m3_cpuid_t *cpuid) {
  * @param sl
  * @return 0 for success, or -1 for unsupported core type.
  */
- int stlink_load_device_params(stlink_t *sl) {
-   // This seems to normally work so is unnecessary info for a normal user.
-   // Demoted to debug. -- REW
-   DLOG("Loading device parameters....\n");
-   const struct stlink_chipid_params *params = NULL;
-   stlink_core_id(sl);
-   uint32_t flash_size;
+int stlink_load_device_params(stlink_t *sl) {
+  // This seems to normally work so is unnecessary info for a normal user.
+  // Demoted to debug. -- REW
+  DLOG("Loading device parameters....\n");
+  const struct stlink_chipid_params *params = NULL;
+  stlink_core_id(sl);
+  uint32_t flash_size;
 
-   if (stlink_chip_id(sl, &sl->chip_id)) {
-     return (-1);
-   }
+  if (stlink_chip_id(sl, &sl->chip_id)) {
+    return (-1);
+  }
 
-   params = stlink_chipid_get_params(sl->chip_id);
+  params = stlink_chipid_get_params(sl->chip_id);
 
-   if (params == NULL) {
-     WLOG("unknown chip id! %#x\n", sl->chip_id);
-     return (-1);
-   }
+  if (params == NULL) {
+    WLOG("unknown chip id! %#x\n", sl->chip_id);
+    return (-1);
+  }
 
-   if (params->flash_type == STM32_FLASH_TYPE_UNKNOWN) {
-     WLOG("Invalid flash type, please check device declaration\n");
-     sl->flash_size = 0;
-     return (0);
-   }
+  if (params->flash_type == STM32_FLASH_TYPE_UNKNOWN) {
+    WLOG("Invalid flash type, please check device declaration\n");
+    sl->flash_size = 0;
+    return (0);
+  }
 
-   // These are fixed...
-   sl->flash_base = STM32_FLASH_BASE;
-   sl->sram_base = STM32_SRAM_BASE;
-   stlink_read_debug32(sl, (params->flash_size_reg) & ~3, &flash_size);
+  // These are fixed...
+  sl->flash_base = STM32_FLASH_BASE;
+  sl->sram_base = STM32_SRAM_BASE;
+  stlink_read_debug32(sl, (params->flash_size_reg) & ~3, &flash_size);
 
-   if (params->flash_size_reg & 2) {
-     flash_size = flash_size >> 16;
-   }
+  if (params->flash_size_reg & 2) {
+    flash_size = flash_size >> 16;
+  }
 
-   flash_size = flash_size & 0xffff;
+  flash_size = flash_size & 0xffff;
 
-   if ((sl->chip_id == STM32_CHIPID_L1_MD ||
+  if ((sl->chip_id == STM32_CHIPID_L1_MD ||
         sl->chip_id == STM32_CHIPID_F1_VL_MD_LD ||
         sl->chip_id == STM32_CHIPID_L1_MD_PLUS) &&
-       (flash_size == 0)) {
-     sl->flash_size = 128 * 1024;
-   } else if (sl->chip_id == STM32_CHIPID_L1_CAT2) {
-     sl->flash_size = (flash_size & 0xff) * 1024;
-   } else if ((sl->chip_id & 0xFFF) == STM32_CHIPID_L1_MD_PLUS_HD) {
-     // 0 is 384k and 1 is 256k
-     if (flash_size == 0) {
-       sl->flash_size = 384 * 1024;
-     } else {
-       sl->flash_size = 256 * 1024;
-     }
-   } else {
-     sl->flash_size = flash_size * 1024;
-   }
+      (flash_size == 0)) {
+    sl->flash_size = 128 * 1024;
+  } else if (sl->chip_id == STM32_CHIPID_L1_CAT2) {
+    sl->flash_size = (flash_size & 0xff) * 1024;
+  } else if ((sl->chip_id & 0xFFF) == STM32_CHIPID_L1_MD_PLUS_HD) {
+    // 0 is 384k and 1 is 256k
+    if (flash_size == 0) {
+      sl->flash_size = 384 * 1024;
+    } else {
+      sl->flash_size = 256 * 1024;
+    }
+  } else {
+    sl->flash_size = flash_size * 1024;
+  }
 
-   sl->flash_type = params->flash_type;
-   sl->flash_pgsz = params->flash_pagesize;
-   sl->sram_size = params->sram_size;
-   sl->sys_base = params->bootrom_base;
-   sl->sys_size = params->bootrom_size;
-   sl->option_base = params->option_base;
-   sl->option_size = params->option_size;
-   sl->chip_flags = params->flags;
+  sl->flash_type = params->flash_type;
+  sl->flash_pgsz = params->flash_pagesize;
+  sl->sram_size = params->sram_size;
+  sl->sys_base = params->bootrom_base;
+  sl->sys_size = params->bootrom_size;
+  sl->option_base = params->option_base;
+  sl->option_size = params->option_size;
+  sl->chip_flags = params->flags;
 
-   // medium and low devices have the same chipid. ram size depends on flash
-   // size. STM32F100xx datasheet Doc ID 16455 Table 2
-   if (sl->chip_id == STM32_CHIPID_F1_VL_MD_LD &&
-       sl->flash_size < 64 * 1024) {
-     sl->sram_size = 0x1000;
-   }
+  // medium and low devices have the same chipid. ram size depends on flash
+  // size. STM32F100xx datasheet Doc ID 16455 Table 2
+  if (sl->chip_id == STM32_CHIPID_F1_VL_MD_LD &&
+      sl->flash_size < 64 * 1024) {
+    sl->sram_size = 0x1000;
+  }
 
-   if (sl->chip_id == STM32_CHIPID_G4_CAT3) {
-     uint32_t flash_optr;
-     stlink_read_debug32(sl, STM32Gx_FLASH_OPTR, &flash_optr);
+  if (sl->chip_id == STM32_CHIPID_G4_CAT3) {
+    uint32_t flash_optr;
+    stlink_read_debug32(sl, STM32Gx_FLASH_OPTR, &flash_optr);
 
-     if (!(flash_optr & (1 << STM32G4_FLASH_OPTR_DBANK))) {
-       sl->flash_pgsz <<= 1;
-     }
-   }
+    if (!(flash_optr & (1 << STM32G4_FLASH_OPTR_DBANK))) {
+      sl->flash_pgsz <<= 1;
+    }
+  }
 
-   // H7 devices with small flash has one bank
-   if (sl->chip_flags & CHIP_F_HAS_DUAL_BANK &&
-       sl->flash_type == STM32_FLASH_TYPE_H7) {
-     if ((sl->flash_size / sl->flash_pgsz) <= 1)
-       sl->chip_flags &= ~CHIP_F_HAS_DUAL_BANK;
-   }
+  // H7 devices with small flash has one bank
+  if (sl->chip_flags & CHIP_F_HAS_DUAL_BANK &&
+      sl->flash_type == STM32_FLASH_TYPE_H7) {
+    if ((sl->flash_size / sl->flash_pgsz) <= 1)
+      sl->chip_flags &= ~CHIP_F_HAS_DUAL_BANK;
+  }
 
-   ILOG("%s: %u KiB SRAM, %u KiB flash in at least %u %s pages.\n",
-        params->dev_type, (unsigned)(sl->sram_size / 1024),
-        (unsigned)(sl->flash_size / 1024),
-        (sl->flash_pgsz < 1024) ? (unsigned)(sl->flash_pgsz)
-                                : (unsigned)(sl->flash_pgsz / 1024),
-        (sl->flash_pgsz < 1024) ? "byte" : "KiB");
+  ILOG("%s: %u KiB SRAM, %u KiB flash in at least %u %s pages.\n",
+      params->dev_type, (unsigned)(sl->sram_size / 1024), (unsigned)(sl->flash_size / 1024),
+      (sl->flash_pgsz < 1024) ? (unsigned)(sl->flash_pgsz) : (unsigned)(sl->flash_pgsz / 1024),
+      (sl->flash_pgsz < 1024) ? "byte" : "KiB");
 
-   return (0);
- }
-
+  return (0);
+}
+// 254
 int stlink_reset(stlink_t *sl, enum reset_type type) {
   uint32_t dhcsr;
   unsigned timeout;
@@ -908,7 +910,7 @@ int stlink_parse_ihex(const char *path, uint8_t erased_pattern, uint8_t **mem,
 
   return (res);
 }
-
+// 280
 uint8_t stlink_get_erased_pattern(stlink_t *sl) {
   if (sl->flash_type == STM32_FLASH_TYPE_L0_L1) {
     return (0x00);
@@ -917,6 +919,7 @@ uint8_t stlink_get_erased_pattern(stlink_t *sl) {
   }
 }
 
+// 322
 int stlink_target_connect(stlink_t *sl, enum connect_type connect) {
   if (connect == CONNECT_UNDER_RESET) {
     stlink_enter_swd_mode(sl);

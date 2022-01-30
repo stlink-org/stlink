@@ -1,17 +1,18 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <md5.h>
-#include <stlink.h>
 #include <unistd.h>
+#include <stlink.h>
+#include <logging.h>
 
 #include "map_file.h"
 
-#ifndef MAX_FILE_SIZE
-#define MAX_FILE_SIZE (1<<20) // 1 GB max file size
-#endif
-
 #ifndef O_BINARY
 #define O_BINARY 0
+#endif
+
+#ifndef MAX_FILE_SIZE
+#define MAX_FILE_SIZE (1<<20) // 1 GB max file size
 #endif
 
 int map_file(mapped_file_t *mf, const char *path) {

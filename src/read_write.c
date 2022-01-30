@@ -1,6 +1,6 @@
 #include <stdio.h>
-#include <stlink.h>
 #include <string.h>
+#include <stlink.h>
 
 // Endianness
 // https://commandcenter.blogspot.com/2012/04/byte-order-fallacy.html
