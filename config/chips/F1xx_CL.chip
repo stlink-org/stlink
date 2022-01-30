@@ -1,4 +1,4 @@
-# Chip-ID file for STM32F1xx Connectivity Line device
+# Chip-ID file for STM32F1xx Connectivity Line device (F105 / F107)
 #
 dev_type STM32F1xx_CL
 ref_manual_id 0008
