@@ -1,6 +1,7 @@
 
 /*
  * File: stlink.h
+ *
  * This should contain all the common top level stlink interfaces,
  * regardless of how the backend does the work....
  */
@@ -184,7 +185,7 @@ enum run_type {
 
 typedef struct _stlink stlink_t;
 
-#include <stm32.h>  // Is it really need?
+#include <stm32.h>
 #include <backend.h>
 
 struct _stlink {
