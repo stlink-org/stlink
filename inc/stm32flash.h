@@ -2,9 +2,7 @@
 #define STM32FLASH_H
 
 /* stm32f FPEC flash controller interface, pm0063 manual */
-// TODO - all of this needs to be abstracted out....
-// STM32F05x is identical, based on RM0091 (DM00031936, Doc ID 018940 Rev 2,
-// August 2012)
+// STM32F05x is identical, based on RM0091 (DM00031936, Doc ID 018940 Rev 2, August 2012)
 #define FLASH_REGS_ADDR 0x40022000
 #define FLASH_REGS_SIZE 0x28
 

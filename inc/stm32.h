@@ -149,11 +149,11 @@ enum stm32_chipids {
 /* ============ */
 
 /* Constant STM32 memory address */
-#define STM32_SRAM_BASE            ((uint32_t)0x20000000)
-#define STM32_FLASH_BASE           ((uint32_t)0x08000000)
+#define STM32_SRAM_BASE              ((uint32_t)0x20000000)
+#define STM32_FLASH_BASE             ((uint32_t)0x08000000)
 
-#define STM32_F1_FLASH_BANK2_BASE  ((uint32_t)0x08080000)
-#define STM32_H7_FLASH_BANK2_BASE  ((uint32_t)0x08100000)
+#define STM32_F1_FLASH_BANK2_BASE    ((uint32_t)0x08080000)
+#define STM32_H7_FLASH_BANK2_BASE    ((uint32_t)0x08100000)
 
 #define STM32F0_DBGMCU_CR 0xE0042004
 #define STM32F0_DBGMCU_CR_IWDG_STOP 8
@@ -194,8 +194,5 @@ enum stm32_chipids {
 
 #define STM32WB_RCC_AHB1ENR 0x58000048
 #define STM32WB_RCC_DMAEN 0x00000003 // DMA2EN | DMA1EN
-
-#define L1_WRITE_BLOCK_SIZE 0x80
-#define L0_WRITE_BLOCK_SIZE 0x40
 
 #endif // STM32_H

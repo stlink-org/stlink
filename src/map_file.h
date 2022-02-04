@@ -7,6 +7,10 @@
 #ifndef MAP_FILE_H
 #define MAP_FILE_H
 
+#ifndef O_BINARY
+#define O_BINARY 0
+#endif
+
 #ifdef STLINK_HAVE_SYS_MMAN_H
 #include <sys/mman.h>
 #else
@@ -21,7 +25,7 @@ typedef struct mapped_file {
 
 #define MAPPED_FILE_INITIALIZER                                                \
   { NULL, 0 }
-  
+
 int map_file(mapped_file_t *, const char *);
 void unmap_file(mapped_file_t *);
 

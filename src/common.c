@@ -5,9 +5,11 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <md5.h>
 #include <string.h>
+#include <md5.h>
 #include <stlink.h>
+#include <stm32.h>
+
 #include "common_flash.h"
 #include "calculate.h"
 #include "map_file.h"
@@ -123,8 +125,7 @@ int stlink_chip_id(stlink_t *sl, uint32_t *chip_id) {
   // Read the CPU ID to determine where to read the core id
   if (stlink_cpu_id(sl, &cpu_id) ||
       cpu_id.implementer_id != STLINK_REG_CMx_CPUID_IMPL_ARM) {
-    ELOG("Can not connect to target. Please use \'connect under reset\' and "
-         "try again\n");
+    ELOG("Can not connect to target. Please use \'connect under reset\' and try again\n");
     return -1;
   }
 
@@ -243,8 +244,8 @@ int stlink_load_device_params(stlink_t *sl) {
   flash_size = flash_size & 0xffff;
 
   if ((sl->chip_id == STM32_CHIPID_L1_MD ||
-       sl->chip_id == STM32_CHIPID_F1_VL_MD_LD ||
-       sl->chip_id == STM32_CHIPID_L1_MD_PLUS) &&
+        sl->chip_id == STM32_CHIPID_F1_VL_MD_LD ||
+        sl->chip_id == STM32_CHIPID_L1_MD_PLUS) &&
       (flash_size == 0)) {
     sl->flash_size = 128 * 1024;
   } else if (sl->chip_id == STM32_CHIPID_L1_CAT2) {
@@ -293,11 +294,9 @@ int stlink_load_device_params(stlink_t *sl) {
   }
 
   ILOG("%s: %u KiB SRAM, %u KiB flash in at least %u %s pages.\n",
-       params->dev_type, (unsigned)(sl->sram_size / 1024),
-       (unsigned)(sl->flash_size / 1024),
-       (sl->flash_pgsz < 1024) ? (unsigned)(sl->flash_pgsz)
-                               : (unsigned)(sl->flash_pgsz / 1024),
-       (sl->flash_pgsz < 1024) ? "byte" : "KiB");
+      params->dev_type, (unsigned)(sl->sram_size / 1024), (unsigned)(sl->flash_size / 1024),
+      (sl->flash_pgsz < 1024) ? (unsigned)(sl->flash_pgsz) : (unsigned)(sl->flash_pgsz / 1024),
+      (sl->flash_pgsz < 1024) ? "byte" : "KiB");
 
   return (0);
 }
@@ -919,6 +918,7 @@ uint8_t stlink_get_erased_pattern(stlink_t *sl) {
     return (0xff);
   }
 }
+
 // 322
 int stlink_target_connect(stlink_t *sl, enum connect_type connect) {
   if (connect == CONNECT_UNDER_RESET) {

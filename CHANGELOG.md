@@ -21,7 +21,7 @@ Features:
 - Added support for STM32WLEx ([#1173](https://github.com/stlink-org/stlink/pull/1173))
 - Added support for STLINK-V3 devices with no MSD ([#1185](https://github.com/stlink-org/stlink/pull/1185))
 - Updated gdb-server.c to allow external memory access on STM32H73xx ([#1196](https://github.com/stlink-org/stlink/pull/1196), [#1197](https://github.com/stlink-org/stlink/pull/1197))
-- Erase addr size / section of the flash memory with st-flash ([#1213](https://github.com/stlink-org/stlink/pull/1213)) 
+- Erase addr size / section of the flash memory with st-flash ([#1213](https://github.com/stlink-org/stlink/pull/1213))
 
 Updates & changes:
 
@@ -34,7 +34,7 @@ Updates & changes:
 - Removed redundant array ([#1178](https://github.com/stlink-org/stlink/pull/1178))
 - Updated chip config files from the library structs ([#1181](https://github.com/stlink-org/stlink/pull/1181))
 - [doc] Corrected file path in tutorial ([#1186](https://github.com/stlink-org/stlink/pull/1186))
-- Improved chipid checks and printouts ([#1188](https://github.com/stlink-org/stlink/pull/1188)) 
+- Improved chipid checks and printouts ([#1188](https://github.com/stlink-org/stlink/pull/1188))
 
 Fixes:
 - cmake: Install shared libraries in proper directories ([#1142](https://github.com/stlink-org/stlink/pull/1142))
