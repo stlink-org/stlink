@@ -14,8 +14,8 @@ Up on compiling c-make will **automatically** download and install the latest co
 
 | Package Repository | libusb | cmake  | gtk-3-dev          | Supported macOS versions |
 | ------------------ | ------ | ------ | ------------------ | ------------------------ |
-| homebrew           | 1.0.24 | 3.22.1 | 3.24.30<br />gtk+3 | **10.10 - 12.x**         |
-| MacPorts           | 1.0.24 | 3.22.1 | 3.24.31<br />gtk3  | **10.4 - 12.x**          |
+| homebrew           | 1.0.25 | 3.22.1 | 3.24.30<br />gtk+3 | **10.10 - 12.x**         |
+| MacPorts           | 1.0.25 | 3.22.1 | 3.24.31<br />gtk3  | **10.4 - 12.x**          |
 
 NOTE: In order to use a STLINK/V1 programmer on macOS, version 10.15 is required.
 

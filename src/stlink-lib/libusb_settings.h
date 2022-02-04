@@ -18,6 +18,7 @@
  *  v1.0.22    | 0x01000106
  *  v1.0.23    | 0x01000107
  *  v1.0.24    | 0x01000108
+ *  v1.0.25    | 0x01000109
  */
 
 #if defined (__FreeBSD__)
@@ -31,13 +32,13 @@
 #if defined (__FreeBSD__)
     #define MINIMAL_API_VERSION 0x01000102 // v1.0.16
 #elif defined (__OpenBSD__)
-    #define MINIMAL_API_VERSION 0x01000104 // v1.0.20
+    #define MINIMAL_API_VERSION 0x01000105 // v1.0.21
 #elif defined (__linux__)
-    #define MINIMAL_API_VERSION 0x01000104 // v1.0.20
+    #define MINIMAL_API_VERSION 0x01000105 // v1.0.21
 #elif defined (__APPLE__)
-    #define MINIMAL_API_VERSION 0x01000104 // v1.0.20
+    #define MINIMAL_API_VERSION 0x01000109 // v1.0.25
 #elif defined (_WIN32)
-    #define MINIMAL_API_VERSION 0x01000104 // v1.0.20
+    #define MINIMAL_API_VERSION 0x01000109 // v1.0.25
 #endif
 
 #if (LIBUSB_API_VERSION < MINIMAL_API_VERSION)
