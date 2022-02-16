@@ -162,9 +162,11 @@
 #define STM32WB_FLASH_SRRVR (STM32WB_FLASH_REGS_ADDR + 0x84)
 
 // WB Flash control register.
-#define STM32WB_FLASH_CR_STRT (16)    /* Start */
-#define STM32WB_FLASH_CR_OPTLOCK (30) /* Option Lock */
-#define STM32WB_FLASH_CR_LOCK (31)    /* Lock */
+#define STM32WB_FLASH_CR_STRT (16)       /* Start */
+#define STM32WB_FLASH_CR_OPTSTRT (17)    /* Start writing option bytes */
+#define STM32WB_FLASH_CR_OBL_LAUNCH (27) /* Forces the option byte loading */
+#define STM32WB_FLASH_CR_OPTLOCK (30)    /* Option Lock */
+#define STM32WB_FLASH_CR_LOCK (31)       /* Lock */
 // WB Flash status register.
 #define STM32WB_FLASH_SR_ERROR_MASK (0x3f8) /* SR [9:3] */
 #define STM32WB_FLASH_SR_PROGERR (3)        /* Programming alignment error */
