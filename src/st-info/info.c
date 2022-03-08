@@ -29,7 +29,6 @@ static void stlink_print_version(stlink_t *sl) {
 }
 
 static void stlink_print_info(stlink_t *sl) {
-    const struct stlink_chipid_params *params = NULL;
 
     if (!sl) { return; }
 
@@ -38,9 +37,6 @@ static void stlink_print_info(stlink_t *sl) {
     printf("  flash:      %u (pagesize: %u)\n", (uint32_t)sl->flash_size, (uint32_t)sl->flash_pgsz);
     printf("  sram:       %u\n", (uint32_t)sl->sram_size);
     printf("  chipid:     0x%.3x\n", sl->chip_id);
-
-    params = stlink_chipid_get_params(sl->chip_id);
-    if (params) { printf("  dev-type:   %s\n", params->dev_type); }
 }
 
 static void stlink_probe(enum connect_type connect, int freq) {
@@ -68,6 +64,8 @@ static int print_data(int ac, char **av) {
         printf("v%s\n", STLINK_VERSION);
         return(0);
     }
+
+    init_chipids(ETC_STLINK_DIR);
 
     for (int i=2; i<ac; i++) {
         
@@ -134,8 +132,6 @@ int main(int ac, char** av) {
         usage();
         return(-1);
     }
-
-    init_chipids (ETC_STLINK_DIR);
 
     err = print_data(ac, av);
 
