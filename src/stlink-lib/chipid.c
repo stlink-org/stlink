@@ -30,8 +30,8 @@ struct stlink_chipid_params *stlink_chipid_get_params(uint32_t chip_id) {
     struct stlink_chipid_params *params = NULL;
     for (params = devicelist; params != NULL; params = params->next)
         if (params->chip_id == chip_id) {
-            fprintf(stderr, "\ndetected chip_id parametres\n\n");
-            dump_a_chip(stderr, params);
+            fprintf(stdout, "\ndetected chip_id parametres\n\n");
+            dump_a_chip(stdout, params);
             break;
         }
 
@@ -40,7 +40,7 @@ struct stlink_chipid_params *stlink_chipid_get_params(uint32_t chip_id) {
 
 void process_chipfile(char *fname) {
     FILE *fp;
-    char *p, *pp, buf[1025];
+    char *p, buf[128];
     char word[64], value[64];
     struct stlink_chipid_params *ts;
     int nc;
@@ -55,29 +55,23 @@ void process_chipfile(char *fname) {
 
     ts = calloc(sizeof(struct stlink_chipid_params), 1);
 
-    while (fgets(buf, 1024, fp) != NULL) {
-        for (p = buf; isspace (*p); p++);
+    while (fgets(buf, sizeof(buf), fp) != NULL) {
 
-        if (!*p) {
-            continue; // we hit end-of-line with only whitespace
-        }
-
-        if (*p == '#') {
+        if(strncmp(buf, "#", strlen("#")) == 0)
             continue; // ignore comments
-        }
 
-        sscanf(p, "%s %s", word, value);
+        sscanf(buf, "%s %s", word, value);
 
         if (strcmp (word, "dev_type") == 0) {
             // ts->dev_type = strdup (value);
-            buf[strlen(p) - 1] = 0; // chomp newline
-            sscanf(p, "%*s %n", &nc);
-            ts->dev_type = strdup(p + nc);
+            buf[strlen(buf) - 1] = 0; // chomp newline
+            sscanf(buf, "%*s %n", &nc);
+            ts->dev_type = strdup(buf + nc);
         } else if (strcmp(word, "ref_manual_id") == 0) {
             // ts->ref_manual_id = strdup (value);
-            buf[strlen(p) - 1] = 0; // chomp newline
-            sscanf(p, "%*s %n", &nc);
-            ts->ref_manual_id = strdup(p + nc);
+            buf[strlen(buf) - 1] = 0; // chomp newline
+            sscanf(buf, "%*s %n", &nc);
+            ts->ref_manual_id = strdup(buf + nc);
         } else if (strcmp(word, "chip_id") == 0) {
             if (sscanf(value, "%i", &ts->chip_id) < 1) {
                 fprintf(stderr, "Failed to parse chip-id\n");
@@ -138,18 +132,18 @@ void process_chipfile(char *fname) {
                 fprintf(stderr, "Failed to parse option size\n");
             }
         } else if (strcmp(word, "flags") == 0) {
-            pp = strtok (p, " \t\n");
+            p = strtok (buf, " \t\n");
 
-            while ((pp = strtok (NULL, " \t\n"))) {
-                if (strcmp(pp, "none") == 0) {
+            while ((p = strtok (NULL, " \t\n"))) {
+                if (strcmp(p, "none") == 0) {
                     // NOP
-                } else if (strcmp(pp, "dualbank") == 0) {
+                } else if (strcmp(p, "dualbank") == 0) {
                     ts->flags |= CHIP_F_HAS_DUAL_BANK;
-                } else if (strcmp(pp, "swo") == 0) {
+                } else if (strcmp(p, "swo") == 0) {
                     ts->flags |= CHIP_F_HAS_SWO_TRACING;
                 } else {
                     fprintf(stderr, "Unknown flags word in %s: '%s'\n",
-                             fname, pp);
+                             fname, p);
                 }
             }
 
@@ -159,7 +153,7 @@ void process_chipfile(char *fname) {
                      fname, word);
         }
     }
-
+    fclose(fp);
     ts->next = devicelist;
     devicelist = ts;
 }
