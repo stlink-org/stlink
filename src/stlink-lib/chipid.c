@@ -10,28 +10,28 @@
 
 static struct stlink_chipid_params *devicelist;
 
-void dump_a_chip (FILE *fp, struct stlink_chipid_params *dev) {
-    fprintf(fp, "# Device Type: %s\n", dev->dev_type);
-    fprintf(fp, "# Reference Manual: RM%s\n", dev->ref_manual_id);
-    fprintf(fp, "#\n");
-    fprintf(fp, "chip_id 0x%x\n", dev->chip_id);
-    fprintf(fp, "flash_type %d\n", dev->flash_type);
-    fprintf(fp, "flash_size_reg 0x%x\n", dev->flash_size_reg);
-    fprintf(fp, "flash_pagesize 0x%x\n", dev->flash_pagesize);
-    fprintf(fp, "sram_size 0x%x\n", dev->sram_size);
-    fprintf(fp, "bootrom_base 0x%x\n", dev->bootrom_base);
-    fprintf(fp, "bootrom_size 0x%x\n", dev->bootrom_size);
-    fprintf(fp, "option_base 0x%x\n", dev->option_base);
-    fprintf(fp, "option_size 0x%x\n", dev->option_size);
-    fprintf(fp, "flags %d\n\n", dev->flags);
+void dump_a_chip (struct stlink_chipid_params *dev) {
+    DLOG("# Device Type: %s\n", dev->dev_type);
+    DLOG("# Reference Manual: RM%s\n", dev->ref_manual_id);
+    DLOG("#\n");
+    DLOG("chip_id 0x%x\n", dev->chip_id);
+    DLOG("flash_type %d\n", dev->flash_type);
+    DLOG("flash_size_reg 0x%x\n", dev->flash_size_reg);
+    DLOG("flash_pagesize 0x%x\n", dev->flash_pagesize);
+    DLOG("sram_size 0x%x\n", dev->sram_size);
+    DLOG("bootrom_base 0x%x\n", dev->bootrom_base);
+    DLOG("bootrom_size 0x%x\n", dev->bootrom_size);
+    DLOG("option_base 0x%x\n", dev->option_base);
+    DLOG("option_size 0x%x\n", dev->option_size);
+    DLOG("flags %d\n\n", dev->flags);
 }
 
 struct stlink_chipid_params *stlink_chipid_get_params(uint32_t chip_id) {
     struct stlink_chipid_params *params = NULL;
     for (params = devicelist; params != NULL; params = params->next)
         if (params->chip_id == chip_id) {
-            fprintf(stdout, "\ndetected chip_id parametres\n\n");
-            dump_a_chip(stdout, params);
+            DLOG("detected chip_id parameters\n\n");
+            dump_a_chip(params);
             break;
         }
 
@@ -57,7 +57,7 @@ void process_chipfile(char *fname) {
 
     while (fgets(buf, sizeof(buf), fp) != NULL) {
 
-        if(strncmp(buf, "#", strlen("#")) == 0)
+        if (strncmp(buf, "#", strlen("#")) == 0)
             continue; // ignore comments
 
         sscanf(buf, "%s %s", word, value);
