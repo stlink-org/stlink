@@ -60,6 +60,10 @@ void process_chipfile(char *fname) {
         if (strncmp(buf, "#", strlen("#")) == 0)
             continue; // ignore comments
 
+        if ((strncmp(buf, "\n", strlen("\n")) == 0) ||
+            (strncmp(buf, " ", strlen(" ")) == 0))
+            continue; // ignore empty lines
+
         sscanf(buf, "%s %s", word, value);
 
         if (strcmp (word, "dev_type") == 0) {
