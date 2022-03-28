@@ -40,7 +40,7 @@ struct stlink_chipid_params *stlink_chipid_get_params(uint32_t chip_id) {
 
 void process_chipfile(char *fname) {
     FILE *fp;
-    char *p, buf[128];
+    char *p, buf[256];
     char word[64], value[64];
     struct stlink_chipid_params *ts;
     int nc;
