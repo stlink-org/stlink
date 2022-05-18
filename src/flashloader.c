@@ -83,6 +83,9 @@ static void set_flash_cr_pg(stlink_t *sl, unsigned bank) {
     cr_reg = STM32L4_FLASH_CR;
     x &= ~STM32L4_FLASH_CR_OPBITS;
     x |= (1 << STM32L4_FLASH_CR_PG);
+  } else if (sl->flash_type == STM32_FLASH_TYPE_L5_U5) {
+    cr_reg = STM32L5_FLASH_NSCR;
+    x |= (1 << FLASH_CR_PG);
   } else if (sl->flash_type == STM32_FLASH_TYPE_G0 ||
              sl->flash_type == STM32_FLASH_TYPE_G4) {
     cr_reg = STM32Gx_FLASH_CR;
@@ -120,6 +123,10 @@ static void set_dma_state(stlink_t *sl, flash_loader_t *fl, int bckpRstr) {
   case STM32_FLASH_TYPE_G0:
     rcc = STM32G0_RCC_AHBENR;
     rcc_dma_mask = STM32G0_RCC_DMAEN;
+    break;
+  case STM32_FLASH_TYPE_L5_U5:
+    rcc = STM32L5_RCC_AHB1ENR;
+    rcc_dma_mask = STM32L5_RCC_DMAEN;
     break;
   case STM32_FLASH_TYPE_G4:
   case STM32_FLASH_TYPE_L4_L4P:
@@ -209,9 +216,10 @@ int stlink_flashloader_start(stlink_t *sl, flash_loader_t *fl) {
     // set programming mode
     set_flash_cr_pg(sl, BANK_1);
   } else if (sl->flash_type == STM32_FLASH_TYPE_WB_WL ||
+             sl->flash_type == STM32_FLASH_TYPE_L5_U5 ||
              sl->flash_type == STM32_FLASH_TYPE_G0 ||
              sl->flash_type == STM32_FLASH_TYPE_G4) {
-    ILOG("Starting Flash write for WB/G0/G4\n");
+    ILOG("Starting Flash write for WB/L5/G0/G4\n");
 
     unlock_flash_if(sl);         // unlock flash if necessary
     set_flash_cr_pg(sl, BANK_1); // set PG 'allow programming' bit
@@ -313,6 +321,7 @@ int stlink_flashloader_write(stlink_t *sl, flash_loader_t *fl,
       off += size;
     }
   } else if (sl->flash_type == STM32_FLASH_TYPE_WB_WL ||
+             sl->flash_type == STM32_FLASH_TYPE_L5_U5 ||
              sl->flash_type == STM32_FLASH_TYPE_G0 ||
              sl->flash_type == STM32_FLASH_TYPE_G4) {
     DLOG("Starting %3u page write\r\n", (unsigned int)(len / sl->flash_pgsz));
@@ -446,6 +455,7 @@ int stlink_flashloader_stop(stlink_t *sl, flash_loader_t *fl) {
       (sl->flash_type == STM32_FLASH_TYPE_F2_F4) ||
       (sl->flash_type == STM32_FLASH_TYPE_F7) ||
       (sl->flash_type == STM32_FLASH_TYPE_L4_L4P) ||
+      (sl->flash_type == STM32_FLASH_TYPE_L5_U5) ||
       (sl->flash_type == STM32_FLASH_TYPE_WB_WL) ||
       (sl->flash_type == STM32_FLASH_TYPE_G0) ||
       (sl->flash_type == STM32_FLASH_TYPE_G4) ||

@@ -1,0 +1,14 @@
+# Chip-ID file for STM32L5x2 device
+#
+dev_type STM32L552
+ref_manual_id 0438
+chip_id 0x472                // (temporary setting only!) - updated
+flash_type L5_U5             // (temporary setting only!)
+flash_size_reg 0x0bfa05e0    // updated
+flash_pagesize 0x1000        // 4 KB - updated
+sram_size 0x40000            // 256 KB - updated
+bootrom_base 0x0bf90000      // updated
+bootrom_size 0x8000          // 32 KB - updated
+option_base 0x0
+option_size 0x0
+flags none
