@@ -1057,7 +1057,7 @@ int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr) {
       // sec 6.9.9
       val &= ~(0x7F << 3);
       val |= ((flash_page & 0x7F) << 3) | (1 << FLASH_CR_PER);
-      stlink_write_debug32(sl, STM32Gx_FLASH_CR, val);
+      stlink_write_debug32(sl, STM32L5_FLASH_NSCR, val);
     } else if (sl->flash_type == STM32_FLASH_TYPE_G0) {
       uint32_t flash_page =
           ((flashaddr - STM32_FLASH_BASE) / (uint32_t)(sl->flash_pgsz));
