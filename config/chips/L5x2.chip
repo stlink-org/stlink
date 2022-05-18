@@ -1,6 +1,6 @@
-# Chip-ID file for STM32L552 device
+# Chip-ID file for STM32L5x2 device
 #
-dev_type STM32L552
+dev_type STM32L5x2
 ref_manual_id 0438
 chip_id 0x472                // RM0438, pg. 2157
 flash_type L5_U5             // ???
