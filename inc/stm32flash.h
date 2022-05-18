@@ -224,7 +224,7 @@
 #define STM32L5_FLASH_NSCR_NSPG 0        /* Program */
 #define STM32L5_FLASH_NSCR_NSPER 1       /* Page erase */
 #define STM32L5_FLASH_NSCR_NSMER1 2      /* Bank 1 erase */
-#define STM32L5_FLASH_NSCR_NSPNB 3       /* Page number (8 bits) */
+#define STM32L5_FLASH_NSCR_NSPNB 3       /* Page number (7 bits) */
 #define STM32L5_FLASH_NSCR_NSBKER 11     /* Bank select for page erase */
 #define STM32L5_FLASH_NSCR_NSMER2 15     /* Bank 2 erase */
 #define STM32L5_FLASH_NSCR_NSSTRT 16     /* Start command */
@@ -246,7 +246,7 @@
 #define STM32L5_FLASH_NSSR_NSPGSERR 7
 #define STM32L5_FLASH_NSSR_OPTWERR 12
 #define STM32L5_FLASH_NSSR_BSY 16        /* Busy */
-#define STM32L5_FLASH_NSSR_ERROR_MASK (0x3fa)
+#define STM32L5_FLASH_NSSR_ERROR_MASK (0x20fa)
 
 // STM32L0x flash register base and offsets RM0090 - DM00031020.pdf
 #define STM32L0_FLASH_REGS_ADDR ((uint32_t)0x40022000)
