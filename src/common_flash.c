@@ -419,6 +419,14 @@ static void unlock_flash(stlink_t *sl) {
   } else if (sl->flash_type == STM32_FLASH_TYPE_L4_L4P) {
     key_reg = STM32L4_FLASH_KEYR;
   } else if (sl->flash_type == STM32_FLASH_TYPE_L5_U5) {
+    // Set voltage scaling range to 0 to perform flash operations
+    // RM0438 pg. 183
+    uint32_t mask = (0x3 << STM32L5_PWR_CR1_VOS);
+    stlink_read_debug32(sl, STM32L5_PWR_CR1, &val);
+    if (val & mask) {
+      val &= ~mask;
+      stlink_write_debug32(sl, STM32L5_PWR_CR1, val);
+    }
     key_reg = STM32L5_FLASH_NSKEYR;
   } else if (sl->flash_type == STM32_FLASH_TYPE_G0 ||
              sl->flash_type == STM32_FLASH_TYPE_G4) {
