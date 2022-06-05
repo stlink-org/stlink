@@ -419,11 +419,12 @@ static void unlock_flash(stlink_t *sl) {
   } else if (sl->flash_type == STM32_FLASH_TYPE_L4_L4P) {
     key_reg = STM32L4_FLASH_KEYR;
   } else if (sl->flash_type == STM32_FLASH_TYPE_L5_U5) {
-    // Set voltage scaling range to 0 to perform flash operations
+    // Set voltage scaling to range 0 to perform flash operations
     // RM0438 pg. 183
-    uint32_t mask = (0x3 << STM32L5_PWR_CR1_VOS);
+    uint32_t mask = (0b11 << STM32L5_PWR_CR1_VOS);
+    uint32_t val;
     stlink_read_debug32(sl, STM32L5_PWR_CR1, &val);
-    if (val & mask) {
+    if ((val & mask) > (1 << STM32L5_PWR_CR1_VOS)) {
       val &= ~mask;
       stlink_write_debug32(sl, STM32L5_PWR_CR1, val);
     }
@@ -1059,9 +1060,19 @@ int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr) {
 
       stlink_write_debug32(sl, STM32WB_FLASH_CR, val);
     } else if (sl->flash_type == STM32_FLASH_TYPE_L5_U5) {
-      uint32_t flash_page =
-          ((flashaddr - STM32_FLASH_BASE) / (uint32_t)(sl->flash_pgsz));
+      uint32_t flash_page;
       stlink_read_debug32(sl, STM32L5_FLASH_NSCR, &val);
+      if (sl->flash_pgsz == 0x800 && (flashaddr - STM32_FLASH_BASE) >= sl->flash_size/2) {
+        flash_page = (flashaddr - STM32_FLASH_BASE - sl->flash_size/2) /
+          (uint32_t)(sl->flash_pgsz);
+        // set bank 2 for erasure
+        val |= (1 << STM32L5_FLASH_NSCR_NSBKER);
+      } else {
+        flash_page =
+            ((flashaddr - STM32_FLASH_BASE) / (uint32_t)(sl->flash_pgsz));
+        // set bank 1 for erasure
+        val &= ~(1 << STM32L5_FLASH_NSCR_NSBKER);
+      }
       // sec 6.9.9
       val &= ~(0x7F << 3);
       val |= ((flash_page & 0x7F) << 3) | (1 << FLASH_CR_PER);
