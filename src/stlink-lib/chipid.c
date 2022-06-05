@@ -107,7 +107,12 @@ void process_chipfile(char *fname) {
                 ts->flash_type = STM32_FLASH_TYPE_WB_WL;
             } else {
                 ts->flash_type = STM32_FLASH_TYPE_UNKNOWN;
-                fprintf(stderr, "Failed to parse flash type or unrecognized flash type\n");
+                fprintf(
+                    stderr,
+                    "Failed to parse flash type or unrecognized flash type %s from file %s\n",
+                    value,
+                    fname
+                );
             }
         } else if (strcmp(word, "flash_size_reg") == 0) {
             if (sscanf(value, "%i", &ts->flash_size_reg) < 1) {
