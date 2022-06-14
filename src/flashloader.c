@@ -330,7 +330,7 @@ int stlink_flashloader_write(stlink_t *sl, flash_loader_t *fl,
 
       if ((off % sl->flash_pgsz) > (sl->flash_pgsz - 5)) {
         fprintf(stdout, "\r%3u/%3u pages written",
-                (unsigned int)(off / sl->flash_pgsz),
+                (unsigned int)(off / sl->flash_pgsz + 1),
                 (unsigned int)(len / sl->flash_pgsz));
         fflush(stdout);
       }
@@ -371,7 +371,7 @@ int stlink_flashloader_write(stlink_t *sl, flash_loader_t *fl,
 
       if ((off % sl->flash_pgsz) > (sl->flash_pgsz - 5)) {
         fprintf(stdout, "\r%3u/%3u pages written",
-                (unsigned int)(off / sl->flash_pgsz),
+                (unsigned int)(off / sl->flash_pgsz + 1),
                 (unsigned int)(len / sl->flash_pgsz));
         fflush(stdout);
       }
