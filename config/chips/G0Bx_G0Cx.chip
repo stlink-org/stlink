@@ -10,5 +10,5 @@ sram_size 0x9000             // 36 KB
 bootrom_base 0x1fff0000
 bootrom_size 0x7000          // 28 KB
 option_base 0x1fff7800       // STM32_G0_OPTION_BYTES_BASE
-option_size 0x4              // 4 B
+option_size 0x7F             // 128 B
 flags dualbank
