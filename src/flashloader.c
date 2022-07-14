@@ -94,7 +94,7 @@ static void set_flash_cr_pg(stlink_t *sl, unsigned bank) {
     cr_reg = (bank == BANK_1) ? FLASH_H7_CR1 : FLASH_H7_CR2;
     x |= (1 << FLASH_H7_CR_PG);
   } else {
-    cr_reg = FLASH_CR;
+    cr_reg = (bank == BANK_1) ? FLASH_CR : FLASH_CR2;
     x = (1 << FLASH_CR_PG);
   }
 
