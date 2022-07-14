@@ -215,7 +215,8 @@ To do this with only one simple command, type:
 1. Change into the project source directory: `cd stlink`
 2. Run `make clean` to clean remnants of any previous builds.
 3. Run `make release` to create the _Release_ target
-4. Run `make debug` to create the _Debug_ target (_optional_)<br />
+4. Run `make install` to full install the package with complete system integration. This might require sudo permissions.
+5. Run `make debug` to create the _Debug_ target (_optional_)<br />
    The debug target is only necessary in order to modify the sources and to run under a debugger.
 
 ## Build options
