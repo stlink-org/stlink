@@ -98,11 +98,50 @@ static void usage(void) {
   puts("  -V, --version         Print this version");
   puts("  -vXX, --verbose=XX    Specify a specific verbosity level (0..99)");
   puts("  -v, --verbose         Specify a generally verbose logging");
-  puts("  -cXX, --clock=XX      Specify the core frequency in MHz");
-  puts("  -tXX, --trace=XX      Specify the trace frequency in Hz");
+  puts("  -cXX, --clock=XX      Specify the core frequency, optionally followed by");
+  puts("                        k=kHz, m=MHz, or g=GHz (eg. --clock=180m)");
+  puts("  -tXX, --trace=XX      Specify the trace frequency, optionally followed by");
+  puts("                        k=kHz, m=MHz, or g=GHz (eg. --trace=2m)");
   puts("  -n, --no-reset        Do not reset board on connection");
   puts("  -sXX, --serial=XX     Use a specific serial number");
   puts("  -f, --force           Ignore most initialization errors");
+}
+
+static bool parse_frequency(char* text, uint32_t* result)
+{
+  if (text == NULL) {
+    ELOG("Invalid frequency.\n");
+    return false;
+  }
+
+  char* suffix = text;
+  double value = strtod(text, &suffix);
+
+  if (value == 0.0) {
+    ELOG("Invalid frequency.\n");
+    return false;
+  }
+
+  double scale = 1.0;
+  if (*suffix == 'k')
+    scale = 1000;
+  else if (*suffix == 'm')
+    scale = 1000000;
+  else if (*suffix == 'g')
+    scale = 1000000000;
+  else if (*suffix != '\0') {
+    ELOG("Unknown frequency suffix '%s'.\n", suffix);
+    return false;
+  }
+
+  value *= scale;
+  if (value <= 0 || value > 0xFFFFFFFFul) {
+    ELOG("Frequency is out of valid range.\n");
+    return false;
+  }
+
+  *result = (uint32_t)value;
+  return true;
 }
 
 bool parse_options(int argc, char **argv, st_settings_t *settings) {
@@ -150,10 +189,12 @@ bool parse_options(int argc, char **argv, st_settings_t *settings) {
       ugly_init(settings->logging_level);
       break;
     case 'c':
-      settings->core_frequency = atoi(optarg) * 1000000;
+      if (!parse_frequency(optarg, &settings->core_frequency))
+        error = true;
       break;
     case 't':
-      settings->trace_frequency = atoi(optarg);
+      if (!parse_frequency(optarg, &settings->trace_frequency))
+        error = true;
       break;
     case 'n':
       settings->reset_board = false;
@@ -200,8 +241,7 @@ static bool enable_trace(stlink_t *stlink, const st_settings_t *settings,
     if (!settings->force)
       return false;
   }
-
-  if (settings->reset_board && stlink_reset(stlink, RESET_AUTO)) {
+  if (settings->reset_board && stlink_reset(stlink, RESET_SOFT_AND_HALT)) {
     ELOG("Unable to reset device\n");
     if (!settings->force)
       return false;
@@ -268,13 +308,12 @@ static bool enable_trace(stlink_t *stlink, const st_settings_t *settings,
                            STLINK_REG_DWT_CTRL_CYCCNT_ENA);
   stlink_write_debug32(stlink, STLINK_REG_DEMCR, STLINK_REG_DEMCR_TRCENA);
 
-  uint32_t prescaler;
-  stlink_read_debug32(stlink, STLINK_REG_TPI_ACPR_MAX, &prescaler);
+  uint32_t prescaler = 0;
+  stlink_read_debug32(stlink, STLINK_REG_TPI_ACPR, &prescaler);
   if (prescaler) {
     uint32_t system_clock_speed = (prescaler + 1) * trace_frequency;
-    uint32_t system_clock_speed_mhz = (system_clock_speed + 500000) / 1000000;
-    ILOG("Trace Port Interface configured to expect a %d MHz system clock.\n",
-         system_clock_speed_mhz);
+    ILOG("Trace Port Interface configured to expect a %d Hz system clock.\n",
+         system_clock_speed);
   } else {
     WLOG("Trace Port Interface not configured.  Specify the system clock with "
          "a --clock=XX command\n");
@@ -440,13 +479,12 @@ static void check_for_configuration_error(stlink_t *stlink, st_trace_t *trace,
   }
 
   if (error_no_data || error_low_data || error_bad_data) {
-    uint32_t prescaler;
+    uint32_t prescaler = 0;
     stlink_read_debug32(stlink, STLINK_REG_TPI_ACPR, &prescaler);
     if (prescaler) {
       uint32_t system_clock_speed = (prescaler + 1) * trace_frequency;
-      uint32_t system_clock_speed_mhz = (system_clock_speed + 500000) / 1000000;
-      WLOG("Verify the system clock is running at %d MHz.\n",
-           system_clock_speed_mhz);
+      WLOG("Verify the system clock is running at %d Hz.\n",
+           system_clock_speed);
     }
     WLOG("Try specifying the system clock with the --clock=XX command line "
          "option.\n");
@@ -511,7 +549,6 @@ int main(int argc, char **argv) {
   }
   init_chipids (ETC_STLINK_DIR);
 
-
   DLOG("show_help = %s\n", settings.show_help ? "true" : "false");
   DLOG("show_version = %s\n", settings.show_version ? "true" : "false");
   DLOG("logging_level = %d\n", settings.logging_level);
@@ -563,9 +600,18 @@ int main(int argc, char **argv) {
   uint32_t trace_frequency = settings.trace_frequency;
   if (!trace_frequency)
     trace_frequency = STLINK_DEFAULT_TRACE_FREQUENCY;
-  if (trace_frequency > stlink->max_trace_freq) {
-    ELOG("Invalid trace frequency %d (max %d)\n", trace_frequency,
-         stlink->max_trace_freq);
+  uint32_t max_trace_freq = stlink->max_trace_freq;
+  uint32_t min_trace_freq = 0;
+
+  if (settings.core_frequency != 0) {
+    if (max_trace_freq > settings.core_frequency / 5)
+    	max_trace_freq = settings.core_frequency / 5;
+    min_trace_freq = settings.core_frequency / (STLINK_REG_TPI_ACPR_MAX + 1);
+  }
+  if (trace_frequency > max_trace_freq ||
+      trace_frequency < min_trace_freq) {
+    ELOG("Invalid trace frequency %d (min %d max %d)\n", trace_frequency,
+    		min_trace_freq, max_trace_freq);
     if (!settings.force)
       return APP_RESULT_UNSUPPORTED_TRACE_FREQUENCY;
   }
