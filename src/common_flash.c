@@ -21,6 +21,7 @@ uint32_t get_stm32l0_flash_base(stlink_t *sl) {
   case STM32_CHIPID_L1_MD:
   case STM32_CHIPID_L1_MD_PLUS:
   case STM32_CHIPID_L1_MD_PLUS_HD:
+  case STM32_CHIPID_L152_RE:
     return (STM32L_FLASH_REGS_ADDR);
 
   default:
