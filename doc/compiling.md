@@ -120,7 +120,7 @@ or execute (Debian-based systems only): `apt-get install gcc build-essential cma
 1. Change into the project source directory: `cd stlink`
 2. Run `make clean` -- required by some linux variants.
 3. Run `make release` to create the _Release_ target
-4. Run `make install` to full install the package with complete system integration
+4. Run `make install` to full install the package with complete system integration. This might require sudo permissions.
 5. Run `make debug` to create the _Debug_ target (_optional_)<br />
    The debug target is only necessary in order to modify the sources and to run under a debugger.
 6. Run `make package`to build a Debian Package. The generated packages can be found in the subdirectory `./build/dist`.
@@ -215,8 +215,11 @@ To do this with only one simple command, type:
 1. Change into the project source directory: `cd stlink`
 2. Run `make clean` to clean remnants of any previous builds.
 3. Run `make release` to create the _Release_ target
-4. Run `make debug` to create the _Debug_ target (_optional_)<br />
+4. Run `make install` to full install the package with complete system integration. This might require sudo permissions.
+5. Run `make debug` to create the _Debug_ target (_optional_)<br />
    The debug target is only necessary in order to modify the sources and to run under a debugger.
+
+As an option you may also install to an individual user-defined folder e.g `$HOME` with `make install DESTDIR=$HOME`.
 
 ## Build options
 
