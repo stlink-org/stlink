@@ -156,7 +156,11 @@ void clear_flash_error(stlink_t *sl) {
     write_flash_sr(sl, BANK_1, STM32Gx_FLASH_SR_ERROR_MASK);
     break;
   case STM32_FLASH_TYPE_L0_L1:
-    write_flash_sr(sl, BANK_1, STM32L0_FLASH_SR_ERROR_MASK);
+    if (get_stm32l0_flash_base(sl) == STM32L_FLASH_REGS_ADDR) {
+      write_flash_sr(sl, BANK_1, STM32L1_FLASH_SR_ERROR_MASK);
+    } else {
+      write_flash_sr(sl, BANK_1, STM32L0_FLASH_SR_ERROR_MASK);
+    }
     break;
   case STM32_FLASH_TYPE_L4_L4P:
     write_flash_sr(sl, BANK_1, STM32L4_FLASH_SR_ERROR_MASK);
@@ -282,9 +286,14 @@ int check_flash_error(stlink_t *sl) {
     PGAERR = (1 << STM32Gx_FLASH_SR_PGAERR);
     break;
   case STM32_FLASH_TYPE_L0_L1:
-    res = read_flash_sr(sl, BANK_1) & STM32L0_FLASH_SR_ERROR_MASK;
+    res = read_flash_sr(sl, BANK_1);
+    if (get_stm32l0_flash_base(sl) == STM32L_FLASH_REGS_ADDR) {
+      res &= STM32L1_FLASH_SR_ERROR_MASK;
+    } else {
+      res &= STM32L0_FLASH_SR_ERROR_MASK;
+      PROGERR = (1 << STM32L0_FLASH_SR_NOTZEROERR);
+    }
     WRPERR = (1 << STM32L0_FLASH_SR_WRPERR);
-    PROGERR = (1 << STM32L0_FLASH_SR_NOTZEROERR);
     PGAERR = (1 << STM32L0_FLASH_SR_PGAERR);
     break;
   case STM32_FLASH_TYPE_L4_L4P:

@@ -991,9 +991,15 @@ static void stop_wdg_in_debug(stlink_t *sl) {
     break;
   case STM32_FLASH_TYPE_L0_L1:
   case STM32_FLASH_TYPE_G0:
-    dbgmcu_cr = STM32L0_DBGMCU_APB1_FZ;
-    set = (1 << STM32L0_DBGMCU_APB1_FZ_IWDG_STOP) |
-          (1 << STM32L0_DBGMCU_APB1_FZ_WWDG_STOP);
+    if (get_stm32l0_flash_base(sl) == STM32L_FLASH_REGS_ADDR) {
+      dbgmcu_cr = STM32L1_DBGMCU_APB1_FZ;
+      set = (1 << STM32L1_DBGMCU_APB1_FZ_IWDG_STOP) |
+            (1 << STM32L1_DBGMCU_APB1_FZ_WWDG_STOP);
+    } else {
+      dbgmcu_cr = STM32L0_DBGMCU_APB1_FZ;
+      set = (1 << STM32L0_DBGMCU_APB1_FZ_IWDG_STOP) |
+            (1 << STM32L0_DBGMCU_APB1_FZ_WWDG_STOP);
+    }
     break;
   case STM32_FLASH_TYPE_H7:
     dbgmcu_cr = STM32H7_DBGMCU_APB1HFZ;
