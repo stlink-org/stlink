@@ -51,8 +51,10 @@ Greg Alexander [galexander1]
 Greg Meiste [meisteg]
 Grzegorz Szymaszek [gszy]
 Guillaume Revaillot [grevaillot]
+Gwenhael Goavec-Merou [trabucayre]
 Hakkavélin <hakkavelin@braudrist.lan>
 Halt Hammerzeit
+[hydroconstructor]
 htk <htk@vdr.fritz.box>
 Ian Griffiths
 Jack Peel
@@ -115,6 +117,7 @@ Sean Simmons
 Sergey Alirzaev
 Simon Derr [sderr]
 Simon Wright
+[simplerobot]
 Stany Marcel
 Stefan Misik
 Sven Wegener
