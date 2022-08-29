@@ -22,12 +22,16 @@ Features:
 - Added support for STLINK-V3 devices with no MSD ([#1185](https://github.com/stlink-org/stlink/pull/1185))
 - Updated gdb-server.c to allow external memory access on STM32H73xx ([#1196](https://github.com/stlink-org/stlink/pull/1196), [#1197](https://github.com/stlink-org/stlink/pull/1197))
 - Erase addr size / section of the flash memory with st-flash ([#1213](https://github.com/stlink-org/stlink/pull/1213))
+- Added writing and reading for STM32WL option bytes ([#1226](https://github.com/stlink-org/stlink/pull/1226), [#1227](https://github.com/stlink-org/stlink/pull/1227))
+- Added parametres option_base, option_size for F401xD_xE ([#1235](https://github.com/stlink-org/stlink/pull/1235))
+- Added support for option bytes to F1xx_XLD (GD32F30x) ([#1250](https://github.com/stlink-org/stlink/pull/1250))
+- Added option byte address for L4Rx devices ([#1254](https://github.com/stlink-org/stlink/pull/1254))
 
 Updates & changes:
 
 - [refactoring] Moved chip-specific parameters into separate files ([#237](https://github.com/stlink-org/stlink/pull/237), [#1129](https://github.com/stlink-org/stlink/pull/1129))
 - Added instructions for bug-reports and feature-requests to contribution guidelines ([#906](https://github.com/stlink-org/stlink/pull/906))
-- Added travis CI configuration for macOS 10.14 to maintain capability for 32-bit compilation ([#f5ada94](https://github.com/stlink-org/stlink/commit/f5ada9474cdb87ff37de0d4eb9e75622b5870646))
+- Added travis CI configuration for macOS 10.14 to maintain capability for 32-bit compilation (commit [#f5ada94](https://github.com/stlink-org/stlink/commit/f5ada9474cdb87ff37de0d4eb9e75622b5870646))
 - Updated description of chip id 0x0457 to L01x/L02x ([#1143](https://github.com/stlink-org/stlink/pull/1143), [#1144](https://github.com/stlink-org/stlink/pull/1144))
 - Dropped execute bits from source code files ([#1167](https://github.com/stlink-org/stlink/pull/1167))
 - Use proper Markdown headers for supported MCUs ([#1168](https://github.com/stlink-org/stlink/pull/1168))
@@ -35,6 +39,10 @@ Updates & changes:
 - Updated chip config files from the library structs ([#1181](https://github.com/stlink-org/stlink/pull/1181))
 - [doc] Corrected file path in tutorial ([#1186](https://github.com/stlink-org/stlink/pull/1186))
 - Improved chipid checks and printouts ([#1188](https://github.com/stlink-org/stlink/pull/1188))
+- [refactoring] Sourcefile 'common.c' ([#1218](https://github.com/stlink-org/stlink/pull/1218), [#1220](https://github.com/stlink-org/stlink/pull/1220))
+- Set C standard through cmake variables ([#1221](https://github.com/stlink-org/stlink/pull/1221))
+- [doc] Added make install to the macOS compiling instructions ([#1259](https://github.com/stlink-org/stlink/pull/1259))
+- [doc] Linux Install from code Documentation improvement ([#1263](https://github.com/stlink-org/stlink/pull/1263), (commit [#2926648](https://github.com/stlink-org/stlink/commit/2926648be78f32919c0624bf1060b17fffde8b0d))
 
 Fixes:
 - cmake: Install shared libraries in proper directories ([#1142](https://github.com/stlink-org/stlink/pull/1142))
@@ -53,6 +61,10 @@ Fixes:
 - Define 'SSIZE_MAX' if not defined ([#1183](https://github.com/stlink-org/stlink/pull/1183))
 - Fixed compliation for OpenBSD 7.0 ([#1202](https://github.com/stlink-org/stlink/pull/1202))
 - Included 'SSIZE_MAX' from 'limits.h' in 'src/common.c' ([#1207](https://github.com/stlink-org/stlink/pull/1207))
+- Fix for libusb_kernel_driver_active & error handling for st.st_size () ([#1210](https://github.com/stlink-org/stlink/pull/1210), [#1211](https://github.com/stlink-org/stlink/pull/1211), [#1214](https://github.com/stlink-org/stlink/pull/1214)
+- st-trace: Fixed clock issues ([#1251](https://github.com/stlink-org/stlink/pull/1251), [#1252](https://github.com/stlink-org/stlink/pull/1252))
+- Fixed flash regs addr for STM32L152RET6 in common_flash.c ([#1265](https://github.com/stlink-org/stlink/pull/1265))
+- Fixed flash, dbgmcu and rcc registers for STM32L1 ([#1266](https://github.com/stlink-org/stlink/pull/1266))
 
 # v1.7.0
 

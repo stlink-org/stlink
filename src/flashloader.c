@@ -97,7 +97,7 @@ static void set_flash_cr_pg(stlink_t *sl, unsigned bank) {
     cr_reg = (bank == BANK_1) ? FLASH_H7_CR1 : FLASH_H7_CR2;
     x |= (1 << FLASH_H7_CR_PG);
   } else {
-    cr_reg = FLASH_CR;
+    cr_reg = (bank == BANK_1) ? FLASH_CR : FLASH_CR2;
     x = (1 << FLASH_CR_PG);
   }
 
@@ -134,8 +134,13 @@ static void set_dma_state(stlink_t *sl, flash_loader_t *fl, int bckpRstr) {
     rcc_dma_mask = STM32G4_RCC_DMAEN;
     break;
   case STM32_FLASH_TYPE_L0_L1:
-    rcc = STM32L0_RCC_AHBENR;
-    rcc_dma_mask = STM32L0_RCC_DMAEN;
+    if (get_stm32l0_flash_base(sl) == STM32L_FLASH_REGS_ADDR) {
+      rcc = STM32L1_RCC_AHBENR;
+      rcc_dma_mask = STM32L1_RCC_DMAEN;
+    } else {
+      rcc = STM32L0_RCC_AHBENR;
+      rcc_dma_mask = STM32L0_RCC_DMAEN;
+    }
     break;
   case STM32_FLASH_TYPE_H7:
     rcc = STM32H7_RCC_AHB1ENR;

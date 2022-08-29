@@ -30,7 +30,6 @@ static void stlink_print_version(stlink_t *sl) {
 
 static void stlink_print_info(stlink_t *sl) {
     const struct stlink_chipid_params *params = NULL;
-
     if (!sl) { return; }
 
     printf("  version:    "); stlink_print_version(sl);
@@ -68,6 +67,8 @@ static int print_data(int ac, char **av) {
         printf("v%s\n", STLINK_VERSION);
         return(0);
     }
+
+    init_chipids(ETC_STLINK_DIR);
 
     for (int i=2; i<ac; i++) {
         
@@ -134,8 +135,6 @@ int main(int ac, char** av) {
         usage();
         return(-1);
     }
-
-    init_chipids (ETC_STLINK_DIR);
 
     err = print_data(ac, av);
 
