@@ -1,4 +1,12 @@
 #!/bin/bash
 # This `DEBIAN/postinst` script is run post-installation
 
+STLINK_GUI_BIN="/usr/bin/stlink-gui"
+
+cp -a ${STLINK_GUI_BIN} /usr/share/stlink/stlink-gui
+
+echo "exec /usr/share/stlink-gui" > ${STLINK_GUI_BIN}
+
+chmod +x ${STLINK_GUI_BIN}
+
 depmod -a
