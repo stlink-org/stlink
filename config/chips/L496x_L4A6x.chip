@@ -6,7 +6,7 @@ chip_id 0x461                // STM32_CHIPID_L496x_L4A6x
 flash_type L4_L4P
 flash_size_reg 0x1fff75e0
 flash_pagesize 0x800         // 2 KB
-sram_size 0x40000            // 256 KB
+sram_size 0x50000            // 320 KB
 bootrom_base 0x1fff0000
 bootrom_size 0x7000          // 28 KB
 option_base 0x1fff7800       // STM32_L4_OPTION_BYTES_BASE
