@@ -20,7 +20,7 @@ if (WIN32 AND (NOT EXISTS "/etc/debian_version"))                           # Wi
     set(CPACK_PACKAGE_FILE_NAME "${PROJECT_NAME}-${PROJECT_VERSION}-win32")
     set(CPACK_INSTALL_PREFIX "")
 
-elseif (WIN32)                                                                  # Windows cross-build on Debian/Ubuntu
+elseif (WIN32)                                                              # Windows cross-build on Debian/Ubuntu
     set(CPACK_GENERATOR "ZIP")
     set(CPACK_PACKAGE_FILE_NAME "${PROJECT_NAME}-${PROJECT_VERSION}-${TOOLCHAIN_PREFIX}")
     set(CPACK_INSTALL_PREFIX "")

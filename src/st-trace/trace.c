@@ -547,7 +547,7 @@ int main(int argc, char **argv) {
     usage();
     return APP_RESULT_INVALID_PARAMS;
   }
-  init_chipids (ETC_STLINK_DIR);
+  init_chipids (STLINK_CHIPS_DIR);
 
   DLOG("show_help = %s\n", settings.show_help ? "true" : "false");
   DLOG("show_version = %s\n", settings.show_version ? "true" : "false");

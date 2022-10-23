@@ -13,22 +13,69 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS ON)
 
+###
+#
+# Default cmake directories:
+#
+# | Target Type             | GNUInstallDirs Variable        | Built-In Default      |
+# | ---                     | ---                            | ---                   |
+# | RUNTIME                 | ${CMAKE_INSTALL_BINDIR}        | bin                   |
+# | LIBRARY                 | ${CMAKE_INSTALL_LIBDIR}        | lib                   |
+# | ARCHIVE                 | ${CMAKE_INSTALL_LIBDIR}        | lib                   |
+# | PRIVATE_HEADER          | ${CMAKE_INSTALL_INCLUDEDIR}    | include               |
+# | PUBLIC_HEADER           | ${CMAKE_INSTALL_INCLUDEDIR}    | include               |
+# | FILE_SET (type HEADERS) | ${CMAKE_INSTALL_INCLUDEDIR}    | include               |
+#
+# | TYPE Argument           | GNUInstallDirs Variable        | Built-In Default      |
+# | ---                     | ---                            | ---                   |
+# | BIN                     | ${CMAKE_INSTALL_BINDIR}        | bin                   |
+# | SBIN                    | ${CMAKE_INSTALL_SBINDIR}       | sbin                  |
+# | LIB                     | ${CMAKE_INSTALL_LIBDIR}        | lib                   |
+# | INCLUDE                 | ${CMAKE_INSTALL_INCLUDEDIR}    | include               |
+# | SYSCONF                 | ${CMAKE_INSTALL_SYSCONFDIR}    | etc                   |
+# | SHAREDSTATE             | ${CMAKE_INSTALL_SHARESTATEDIR} | com                   |
+# | LOCALSTATE              | ${CMAKE_INSTALL_LOCALSTATEDIR} | var                   |
+# | RUNSTATE                | ${CMAKE_INSTALL_RUNSTATEDIR}   | <LOCALSTATE dir>/run  |
+# | DATA                    | ${CMAKE_INSTALL_DATADIR}       | <DATAROOT dir>        |
+# | INFO                    | ${CMAKE_INSTALL_INFODIR}       | <DATAROOT dir>/info   |
+# | LOCALE                  | ${CMAKE_INSTALL_LOCALEDIR}     | <DATAROOT dir>/locale |
+# | MAN                     | ${CMAKE_INSTALL_MANDIR}        | <DATAROOT dir>/man    |
+# | DOC                     | ${CMAKE_INSTALL_DOCDIR}        | <DATAROOT dir>/doc    |
+#
+# ${CMAKE_BINARY_DIR}
+# This is the full path to the top level of the current CMake build tree.
+# For an in-source build, this would be the same as CMAKE_SOURCE_DIR.
+#
+# ${CMAKE_SOURCE_DIR}
+# This is the full path to the top level of the current CMake source tree.
+# For an in-source build, this would be the same as CMAKE_BINARY_DIR.
+#
+# ${CMAKE_CURRENT_BINARY_DIR}
+# The path to the binary directory currently being processed.
+# This is the full path to the build directory that is currently being processed by cmake.
+# Each directory added by add_subdirectory() will create a binary directory in the build tree,
+# and as it is being processed this variable will be set.
+# For in-source builds this is the current source directory being processed.
+#
+# ${CMAKE_CURRENT_SOURCE_DIR}
+# The path to the source directory currently being processed.
+# This is the full path to the source directory that is currently being processed by cmake.
+#
+###
+
 
 ###
-# General project settings
+# General Project Settings
 ###
 
 project(stlink C)
 set(PROJECT_DESCRIPTION "Open source version of the STMicroelectronics ST-LINK Tools")
+include(${CMAKE_MODULE_PATH}/get_version.cmake) # Determine project version
+
 include(GNUInstallDirs) # Define GNU standard installation directories
 
-## MCU configuration files
-set(CMAKE_CHIPS_SUBDIR stlink/chips)
-set(CMAKE_CHIPS_DIR  ${CMAKE_INSTALL_PREFIX}/${CMAKE_CHIPS_SUBDIR})
-add_definitions( -DETC_STLINK_DIR="${CMAKE_CHIPS_DIR}" )
-
-## Determine project version
-include(${CMAKE_MODULE_PATH}/get_version.cmake)
+# Define install directory /usr/share
+set(CMAKE_INSTALL_SHAREDIR /usr/share/)
 
 ## Set C build flags
 if (NOT MSVC)
@@ -178,8 +225,6 @@ endif ()
 # Libraries
 ###
 
-set(STLINK_LIBRARY_PATH ${CMAKE_INSTALL_LIBDIR} CACHE PATH "Main library install directory")
-
 # Set the environment variable LD_LIBRARY_PATH to point to /usr/local/lib (per default).
 execute_process(COMMAND bash -c "export LD_LIBRARY_PATH=${CMAKE_INSTALL_LIBDIR}")
 
@@ -205,21 +250,15 @@ set_target_properties(${STLINK_LIB_SHARED} PROPERTIES
         )
 
 # Link shared library
-if (APPLE)     # ... with Apple macOS libraries
-    find_library(ObjC objc)
-    find_library(CoreFoundation CoreFoundation)
-    find_library(IOKit IOKit)
-    find_library(Security Security)
-    target_link_libraries(${STLINK_LIB_SHARED} ${LIBUSB_LIBRARY} ${SSP_LIB} ${ObjC} ${CoreFoundation} ${IOKit} ${Security})
-elseif (WIN32) # ... with Windows libraries
+if (WIN32) # ... with Windows libraries
     target_link_libraries(${STLINK_LIB_SHARED} ${LIBUSB_LIBRARY} ${SSP_LIB} wsock32 ws2_32)
 else ()
     target_link_libraries(${STLINK_LIB_SHARED} ${LIBUSB_LIBRARY} ${SSP_LIB})
 endif ()
 
 install(TARGETS ${STLINK_LIB_SHARED}
-        ARCHIVE DESTINATION ${STLINK_LIBRARY_PATH}
-        LIBRARY DESTINATION ${STLINK_LIBRARY_PATH}
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
         )
 
@@ -248,19 +287,13 @@ set_target_properties(${STLINK_LIB_STATIC} PROPERTIES
         )
 
 # Link static library
-if (APPLE)     # ... with Apple macOS libraries
-    find_library(ObjC objc)
-    find_library(CoreFoundation CoreFoundation)
-    find_library(IOKit IOKit)
-    find_library(Security Security)
-    target_link_libraries(${STLINK_LIB_STATIC} ${LIBUSB_LIBRARY} ${SSP_LIB} ${ObjC} ${CoreFoundation} ${IOKit} ${Security})
-elseif (WIN32) # ... with Windows libraries
+if (WIN32) # ... with Windows libraries
     target_link_libraries(${STLINK_LIB_STATIC} ${LIBUSB_LIBRARY} ${SSP_LIB} wsock32 ws2_32)
 else ()
     target_link_libraries(${STLINK_LIB_STATIC} ${LIBUSB_LIBRARY} ${SSP_LIB})
 endif ()
 
-install(TARGETS ${STLINK_LIB_STATIC} ARCHIVE DESTINATION ${STLINK_LIBRARY_PATH})
+install(TARGETS ${STLINK_LIB_STATIC} ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
 
 ###
@@ -284,7 +317,7 @@ add_executable(st-info ${ST-INFO_SOURCES})
 add_executable(st-util ${ST-UTIL_SOURCES})
 add_executable(st-trace ${ST-TRACE_SOURCES})
 
-if (WIN32 OR APPLE)
+if (WIN32)
     target_link_libraries(st-flash ${STLINK_LIB_STATIC} ${SSP_LIB})
     target_link_libraries(st-info ${STLINK_LIB_STATIC} ${SSP_LIB})
     target_link_libraries(st-util ${STLINK_LIB_STATIC} ${SSP_LIB})
@@ -300,10 +333,6 @@ install(TARGETS st-flash DESTINATION ${CMAKE_INSTALL_BINDIR})
 install(TARGETS st-info DESTINATION ${CMAKE_INSTALL_BINDIR})
 install(TARGETS st-util DESTINATION ${CMAKE_INSTALL_BINDIR})
 install(TARGETS st-trace DESTINATION ${CMAKE_INSTALL_BINDIR})
-
-# Install MCU configuration files
-file(GLOB CHIP_FILES ${CMAKE_SOURCE_DIR}/config/chips/*.chip)
-install(FILES ${CHIP_FILES} DESTINATION ${CMAKE_CHIPS_DIR})
 
 
 ###
@@ -326,13 +355,19 @@ endif ()
 # Additional build tasks
 ###
 
-add_subdirectory(src/stlink-gui)  # contains subordinate CMakeLists to build GUI
-add_subdirectory(tests)           # contains subordinate CMakeLists to build test executables
-add_subdirectory(cmake/packaging) # contains subordinate CMakeLists to build packages
+# MCU configuration files
+set(CMAKE_CHIPS_DIR ${CMAKE_INSTALL_SHAREDIR}/${PROJECT_NAME}/chips)
+add_definitions( -DSTLINK_CHIPS_DIR="${CMAKE_CHIPS_DIR}" )
+file(GLOB CHIP_FILES ${CMAKE_SOURCE_DIR}/config/chips/*.chip)
+install(FILES ${CHIP_FILES} DESTINATION ${CMAKE_CHIPS_DIR})
 
+# Documentation / manpages
 option(STLINK_GENERATE_MANPAGES "Generate manpages with pandoc" OFF)
 add_subdirectory(doc/man)         # contains subordinate CMakeLists to generate manpages
 
+add_subdirectory(src/stlink-gui)  # contains subordinate CMakeLists to build GUI
+add_subdirectory(tests)           # contains subordinate CMakeLists to build test executables
+add_subdirectory(cmake/packaging) # contains subordinate CMakeLists to build packages
 
 ###
 # Uninstall target

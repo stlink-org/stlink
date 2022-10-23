@@ -62,7 +62,7 @@ int main(int ac, char** av) {
     }
 
     printf("st-flash %s\n", STLINK_VERSION);
-    init_chipids (ETC_STLINK_DIR);
+    init_chipids (STLINK_CHIPS_DIR);
 
     sl = stlink_open_usb(o.log_level, o.connect, (char *)o.serial, o.freq);
 

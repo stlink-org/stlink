@@ -68,7 +68,7 @@ static int print_data(int ac, char **av) {
         return(0);
     }
 
-    init_chipids(ETC_STLINK_DIR);
+    init_chipids(STLINK_CHIPS_DIR);
 
     for (int i=2; i<ac; i++) {
         

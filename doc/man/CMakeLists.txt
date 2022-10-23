@@ -30,7 +30,7 @@ foreach (manpage ${MANPAGES})
     endif ()
 
     if (f AND NOT WIN32)
-        install(FILES ${f} DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/man/man1)
+        install(FILES ${f} DESTINATION ${CMAKE_INSTALL_DATADIR}/man/man1)
         unset(f)
     endif ()
 endforeach ()
