@@ -20,7 +20,7 @@ labels: ""
 In order to allow developers to isolate and target your respective issue, please take some time to select the check boxes below and fill out each of the following items appropriate to your specific problem.
 
 - [ ] Programmer/board type: [enter here] (e.g STLINK /V1, /V2, /V2-onboard, /V2-clone, /V3)
-- [ ] Operating system an version: [enter here] (e.g Linux, macOS, Windows)
+- [ ] Operating system an version: [enter here] (e.g Linux, Windows)
 - [ ] **stlink tools version** and/or git commit hash: [enter here] (e.g v1.6.1/git-d0416149)
 - [ ] stlink commandline tool name: [enter here] (e.g `st-info`, `st-flash`, `st-trace`, `st-util`)
 - [ ] Target chip (and board, if applicable): [enter here] (e.g STM32F103C8T6 (NUCLEO-F103RB))

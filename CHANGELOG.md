@@ -42,7 +42,7 @@ Updates & changes:
 - [refactoring] Sourcefile 'common.c' ([#1218](https://github.com/stlink-org/stlink/pull/1218), [#1220](https://github.com/stlink-org/stlink/pull/1220))
 - Set C standard through cmake variables ([#1221](https://github.com/stlink-org/stlink/pull/1221))
 - [doc] Added make install to the macOS compiling instructions ([#1259](https://github.com/stlink-org/stlink/pull/1259))
-- [doc] Linux Install from code Documentation improvement ([#1263](https://github.com/stlink-org/stlink/pull/1263), (commit [#2926648](https://github.com/stlink-org/stlink/commit/2926648be78f32919c0624bf1060b17fffde8b0d))
+- [doc] Linux Install from code Documentation improvement ([#1263](https://github.com/stlink-org/stlink/pull/1263), (commit [#43498de](https://github.com/stlink-org/stlink/commit/43498dedf651260ef34197e512d35e3ad7142401))
 
 Fixes:
 - cmake: Install shared libraries in proper directories ([#1142](https://github.com/stlink-org/stlink/pull/1142))
@@ -63,6 +63,7 @@ Fixes:
 - Included 'SSIZE_MAX' from 'limits.h' in 'src/common.c' ([#1207](https://github.com/stlink-org/stlink/pull/1207))
 - Fix for libusb_kernel_driver_active & error handling for st.st_size () ([#1210](https://github.com/stlink-org/stlink/pull/1210), [#1211](https://github.com/stlink-org/stlink/pull/1211), [#1214](https://github.com/stlink-org/stlink/pull/1214)
 - st-trace: Fixed clock issues ([#1251](https://github.com/stlink-org/stlink/pull/1251), [#1252](https://github.com/stlink-org/stlink/pull/1252))
+- Fixed compilation with gcc-12 ([#1257](https://github.com/stlink-org/stlink/pull/1257), [#1267](https://github.com/stlink-org/stlink/pull/1267))
 - Fixed flash regs addr for STM32L152RET6 in common_flash.c ([#1265](https://github.com/stlink-org/stlink/pull/1265))
 - Fixed flash, dbgmcu and rcc registers for STM32L1 ([#1266](https://github.com/stlink-org/stlink/pull/1266))
 

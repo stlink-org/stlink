@@ -9,7 +9,6 @@
 [![CodeQL](https://github.com/stlink-org/stlink/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/stlink-org/stlink/actions/workflows/codeql-analysis.yml)
 [![C/C++ CI](https://github.com/stlink-org/stlink/actions/workflows/c-cpp.yml/badge.svg?branch=testing)](https://github.com/stlink-org/stlink/actions/workflows/c-cpp.yml)
 [![Linux Status](https://img.shields.io/travis/stlink-org/stlink/master?env=BADGE=linux&label=linux)](https://travis-ci.org/stlink-org/stlink)
-[![macOS Status](https://img.shields.io/travis/stlink-org/stlink/master?env=BADGE=osx&label=osx)](https://travis-ci.org/stlink-org/stlink)
 
 Recent new features and bugfixes can be found in the [Changelog](CHANGELOG.md) of this software project.
 
@@ -22,7 +21,7 @@ The stlink library and tools are licensed under the **[BSD-3 License](LICENSE.md
 stlink is an open source toolset to program and debug STM32 devices and boards manufactured by STMicroelectronics.
 It supports several so called STLINK programmer boards (and clones thereof) which use a microcontroller chip to translate commands from USB to JTAG/SWD. There are four generations available on the market which are _all_ supported by this toolset:
 
-- **STLINK/V1** _[obsolete as of 21-11-2019, continued support by this toolset] \*)_
+- **STLINK/V1** _[obsolete as of 21-11-2019, continued support by this toolset]_
   - transport layer: SCSI passthru commands over USB
   - stand-alone programmer
   - on-board on STM32VL Discovery boards
@@ -37,8 +36,6 @@ It supports several so called STLINK programmer boards (and clones thereof) whic
   - transport layer: raw USB commands
   - stand-alone programmer (STLINK-V3SET, STLINK-V3MINI, STLINK-V3MODS)
   - on-board on some STM32 Nucleo boards (STLINK-V3E)
-
-_\*)_ *Note: Support for the STLINK/V1 on macOS is limited to 10.15. Due to the deprecation and removal of macOS Kernel Extensions (KEXT) there will be no support for this programmer on macOS 11 or any later version.*
 
 On the user level there is no difference in handling or operation between these different revisions.
 
@@ -69,15 +66,6 @@ As of Release v1.6.1 stand-alone Windows binaries are made available (again) on 
 Please ensure to select the correct version for your system (i686 or x86_64). The archive file can be unzipped to any desired location as it does not contain any hardcoded paths. However we suggest to move the unzipped application folder to `C:\Program Files\` on 32-bit systems and to `C:\Program Files (x86)\` on 64-bit systems (the toolset is 32-bit).
 
 Alternatively one may compile and install from source as described in our [compiling manual](doc/compiling.md#Windows).
-
-**macOS**:
-
-We recommend to install from:
-
-- [homebrew](https://formulae.brew.sh/formula/stlink) or
-- [MacPorts](https://ports.macports.org/port/stlink)
-
-Alternatively one can compile and install from source as described in our [compiling manual](doc/compiling.md#macOS).
 
 **Linux**:
 

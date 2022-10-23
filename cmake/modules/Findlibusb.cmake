@@ -10,24 +10,7 @@
 
 include(FindPackageHandleStandardArgs)
 
-if (APPLE)                                                 # macOS
-    FIND_PATH(
-        LIBUSB_INCLUDE_DIR NAMES libusb.h
-        HINTS /usr /usr/local /opt
-        PATH_SUFFIXES libusb-1.0
-        )
-    set(LIBUSB_NAME libusb-1.0.a)
-    find_library(
-        LIBUSB_LIBRARY NAMES ${LIBUSB_NAME}
-        HINTS /usr /usr/local /opt
-        )
-    FIND_PACKAGE_HANDLE_STANDARD_ARGS(libusb DEFAULT_MSG LIBUSB_LIBRARY LIBUSB_INCLUDE_DIR)
-    mark_as_advanced(LIBUSB_INCLUDE_DIR LIBUSB_LIBRARY)
-    if (NOT LIBUSB_FOUND)
-        message(FATAL_ERROR "No libusb library found on your system! Install libusb-1.0 from Homebrew or MacPorts")
-    endif ()
-
-elseif (CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")              # FreeBSD; libusb is integrated into the system
+if (CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")                  # FreeBSD; libusb is integrated into the system
     FIND_PATH(
         LIBUSB_INCLUDE_DIR NAMES libusb.h
         HINTS /usr/include

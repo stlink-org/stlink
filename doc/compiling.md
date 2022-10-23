@@ -183,48 +183,6 @@ Choose one of the following options _before_ connecting the device to your compu
   1. `cp stlink_v1.modprobe.conf /etc/modprobe.d`
   2. `modprobe -r usb-storage && modprobe usb-storage`
 
-## macOS
-
-### Common requirements
-
-The best and recommended way is to install a package manager for open source software,
-either [homebrew](https://brew.sh) or [MacPorts](https://www.macports.org/).
-
-Then install the following dependencies from the package repository:
-
-- `git`
-- `gcc` or `llvm` (for clang) (C-compiler)
-- `cmake`
-- `libusb`
-- `gtk+3` or `gtk3` (_optional_, needed for `stlink-gui`)
-
-To do this with only one simple command, type:
-
-- for homebrew:
-  - with gcc: `sudo brew install git gcc cmake libusb gtk+3` or
-  - with clang: `sudo brew install git llvm cmake libusb gtk+3` or
-- for MacPorts:
-  - with gcc: `sudo port install git gcc10 cmake libusb gtk3` or
-  - with clang: `sudo port install git llvm-10 cmake libusb gtk3`
-
-### Installation
-
-1. Open a new terminal window
-2. Create a new destination folder at a place of your choice e.g. at `~/git`: `mkdir $HOME/git`
-3. Change to this directory: `cd ~/git`
-4. Fetch the project sourcefiles by running `git clone https://github.com/stlink-org/stlink.git`
-
-### Building
-
-1. Change into the project source directory: `cd stlink`
-2. Run `make clean` to clean remnants of any previous builds.
-3. Run `make release` to create the _Release_ target
-4. Run `make install` to full install the package with complete system integration. This might require sudo permissions.
-5. Run `make debug` to create the _Debug_ target. (_optional_)<br />
-   The debug target is only necessary in order to modify the sources and to run under a debugger.
-
-As an option you may also install to an individual user-defined folder e.g `$HOME` with `make install DESTDIR=$HOME`.
-
 ## Build options
 
 ### Build using a different directory for shared libs

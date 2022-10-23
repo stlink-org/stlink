@@ -1,6 +1,5 @@
 # Warning: This example assumes that you are building on a host with pkg-config available (e.g. linux).
-# The logic required to build under windows/mingw and/or mac was intentionally omitted to keep this
-# CMakeLists as small as possible.
+# The logic required to build under windows/mingw was intentionally omitted to keep this CMakeLists as small as possible.
 
 cmake_minimum_required(VERSION 3.4.2)
 

@@ -15,12 +15,7 @@ set(CPACK_SET_DESTDIR "ON")
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/dist)
 set(CPACK_OUTPUT_FILE_PREFIX "${CMAKE_BINARY_DIR}/dist")
 
-if (APPLE)                                                                      # macOS
-    set(CPACK_GENERATOR "ZIP")
-    set(CPACK_PACKAGE_FILE_NAME "${PROJECT_NAME}-${PROJECT_VERSION}-macos-amd64")
-    set(CPACK_INSTALL_PREFIX "")
-
-elseif (WIN32 AND (NOT EXISTS "/etc/debian_version"))                           # Windows
+if (WIN32 AND (NOT EXISTS "/etc/debian_version"))                           # Windows
     set(CPACK_GENERATOR "ZIP")
     set(CPACK_PACKAGE_FILE_NAME "${PROJECT_NAME}-${PROJECT_VERSION}-win32")
     set(CPACK_INSTALL_PREFIX "")

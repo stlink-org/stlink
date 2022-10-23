@@ -179,7 +179,7 @@ int getopt_long(int argc,
 
             if (match->has_arg == required_argument) {
                 /* Only scan the next argv for required arguments. Behavior is not
-                   specified, but has been observed with Ubuntu and macOS. */
+                   specified, but has been observed with Ubuntu. */
                 if (optarg == NULL && ++optind < argc) { optarg = argv[optind]; }
 
                 if (optarg == NULL) { retval = ':'; }
