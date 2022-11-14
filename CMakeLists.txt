@@ -74,8 +74,8 @@ include(${CMAKE_MODULE_PATH}/get_version.cmake) # Determine project version
 
 include(GNUInstallDirs) # Define GNU standard installation directories
 
-# Define install directory /usr/share
-set(CMAKE_INSTALL_SHAREDIR /usr/share/)
+# Define install directory /usr/local/share [the new MacOS does not allow changes to /usr/share ]
+set(CMAKE_INSTALL_SHAREDIR /usr/local/share/)
 
 ## Set C build flags
 if (NOT MSVC)
