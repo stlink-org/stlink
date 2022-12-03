@@ -74,8 +74,17 @@ include(${CMAKE_MODULE_PATH}/get_version.cmake) # Determine project version
 
 include(GNUInstallDirs) # Define GNU standard installation directories
 
-# Define install directory /usr/local/share [the new MacOS does not allow changes to /usr/share ]
-set(CMAKE_INSTALL_SHAREDIR /usr/local/share/)
+# Define install directory /usr/local/share [not /usr/share on MacOS]
+cmake_host_system_information(RESULT OS_NAME QUERY OS_NAME)
+message(STATUS "Checking for OS_NAME: ${OS_NAME}")
+
+if (OS_NAME STREQUAL "macOS")
+	message(STATUS "set(CMAKE_INSTALL_SHAREDIR /usr/local/share)")
+	set(CMAKE_INSTALL_SHAREDIR /usr/local/share/)
+else ()
+	message(STATUS "set(CMAKE_INSTALL_SHAREDIR /usr/share)")
+        set(CMAKE_INSTALL_SHAREDIR /usr/share/)
+endif ()
 
 ## Set C build flags
 if (NOT MSVC)
