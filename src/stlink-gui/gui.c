@@ -301,7 +301,14 @@ static gpointer stlink_gui_populate_filemem_view(gpointer data) {
 
         if (gui->file_mem.memory) { g_free(gui->file_mem.memory); }
 
-        gui->file_mem.size   = g_file_info_get_size(file_info);
+	goffset file_size = g_file_info_get_size(file_info);
+
+	if ((0 > file_size) && (G_MAXSIZE <= file_size)) {
+	  stlink_gui_set_info_error_message(gui, "File too large.");
+	  goto out_input;
+	}
+
+        gui->file_mem.size   = (gsize) file_info;
         gui->file_mem.memory = g_malloc(gui->file_mem.size);
 
         for (off = 0; off < (gint)gui->file_mem.size; off += MEM_READ_SIZE) {
