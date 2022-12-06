@@ -303,7 +303,7 @@ static gpointer stlink_gui_populate_filemem_view(gpointer data) {
 
 	goffset file_size = g_file_info_get_size(file_info);
 
-	if ((0 > file_size) && (G_MAXSIZE <= file_size)) {
+	if ((0 > file_size) && ((goffset)G_MAXSIZE <= file_size)) {
 	  stlink_gui_set_info_error_message(gui, "File too large.");
 	  goto out_input;
 	}
