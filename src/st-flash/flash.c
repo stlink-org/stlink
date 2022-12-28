@@ -11,6 +11,7 @@
 #include <stm32.h>
 #include <stlink.h>
 #include "flash.h"
+#include "option_bytes.h"
 
 static stlink_t *connected_stlink = NULL;
 

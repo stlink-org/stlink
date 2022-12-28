@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <string.h>
 #include "calculate.h"
+#include "flashloader.h"
 #include "common_flash.h"
 #include "map_file.h"
 #include "common.h"
