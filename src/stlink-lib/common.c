@@ -414,7 +414,7 @@ int stlink_status(stlink_t *sl) {
 }
 // 257
 int stlink_version(stlink_t *sl) {
-  DLOG("*** looking up stlink version\n");
+  DLOG("*** looking up stlink version ***\n");
 
   if (sl->backend->version(sl)) {
     return (-1);

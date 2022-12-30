@@ -2,7 +2,7 @@
 
 # v1.7.1
 
-Release date: 2022-xx-xx
+Release date: 2023-xx-xx
 
 This release drops support for some older operating systems. Check project README for details.
 
@@ -18,7 +18,7 @@ Features:
 - Added option byte info for STM32F411XX ([#1141](https://github.com/stlink-org/stlink/pull/1141))
 - Expanded and revised list of chips ([#1145](https://github.com/stlink-org/stlink/pull/1145), [#1164](https://github.com/stlink-org/stlink/pull/1164))
 - [STM32H72X/3X]: Added full access to all device memory ([#1158](https://github.com/stlink-org/stlink/pull/1158), [#1159](https://github.com/stlink-org/stlink/pull/1159))
-- Added support for STM32WLEx ([#1173](https://github.com/stlink-org/stlink/pull/1173))
+- Added support for STM32WLEx ([#1173](https://github.com/stlink-org/stlink/pull/1173), [#1273](https://github.com/stlink-org/stlink/pull/1273))
 - Added support for STLINK-V3 devices with no MSD ([#1185](https://github.com/stlink-org/stlink/pull/1185))
 - Updated gdb-server.c to allow external memory access on STM32H73xx ([#1196](https://github.com/stlink-org/stlink/pull/1196), [#1197](https://github.com/stlink-org/stlink/pull/1197))
 - Erase addr size / section of the flash memory with st-flash ([#1213](https://github.com/stlink-org/stlink/pull/1213))
@@ -26,10 +26,12 @@ Features:
 - Added parametres option_base, option_size for F401xD_xE ([#1235](https://github.com/stlink-org/stlink/pull/1235))
 - Added support for option bytes to F1xx_XLD (GD32F30x) ([#1250](https://github.com/stlink-org/stlink/pull/1250))
 - Added option byte address for L4Rx devices ([#1254](https://github.com/stlink-org/stlink/pull/1254))
+- Added udev-rule rule for the STLink v3 MINIE programmer ([#1274](https://github.com/stlink-org/stlink/pull/1274), [#1281](https://github.com/stlink-org/stlink/pull/1281))
 
 Updates & changes:
 
 - [refactoring] Moved chip-specific parameters into separate files ([#237](https://github.com/stlink-org/stlink/pull/237), [#1129](https://github.com/stlink-org/stlink/pull/1129))
+- [refactoring] General maintenance for code structure ([#903](https://github.com/stlink-org/stlink/pull/903), [#1090](https://github.com/stlink-org/stlink/pull/1090), [#1199](https://github.com/stlink-org/stlink/pull/1199), [#1212](https://github.com/stlink-org/stlink/pull/1212), [#1216](https://github.com/stlink-org/stlink/pull/1216))
 - Added instructions for bug-reports and feature-requests to contribution guidelines ([#906](https://github.com/stlink-org/stlink/pull/906))
 - Added travis CI configuration for macOS 10.14 to maintain capability for 32-bit compilation (commit [#f5ada94](https://github.com/stlink-org/stlink/commit/f5ada9474cdb87ff37de0d4eb9e75622b5870646))
 - Updated description of chip id 0x0457 to L01x/L02x ([#1143](https://github.com/stlink-org/stlink/pull/1143), [#1144](https://github.com/stlink-org/stlink/pull/1144))
@@ -45,6 +47,7 @@ Updates & changes:
 - [doc] Linux Install from code Documentation improvement ([#1263](https://github.com/stlink-org/stlink/pull/1263), (commit [#43498de](https://github.com/stlink-org/stlink/commit/43498dedf651260ef34197e512d35e3ad7142401))
 
 Fixes:
+- cmake: Install shared libraries in proper directories ([#1098](https://github.com/stlink-org/stlink/pull/1098), [#1138](https://github.com/stlink-org/stlink/pull/1138), [#1154](https://github.com/stlink-org/stlink/pull/1154))
 - cmake: Install shared libraries in proper directories ([#1142](https://github.com/stlink-org/stlink/pull/1142))
 - Fixed clearance of the H7 dual bank flag ([#1146](https://github.com/stlink-org/stlink/pull/1146), [#1147](https://github.com/stlink-org/stlink/pull/1147))
 - Fix for 'libusb_devices were leaked' when no ST-LINK programmer was found ([#1150](https://github.com/stlink-org/stlink/pull/1150))
@@ -66,6 +69,10 @@ Fixes:
 - Fixed compilation with gcc-12 ([#1257](https://github.com/stlink-org/stlink/pull/1257), [#1267](https://github.com/stlink-org/stlink/pull/1267))
 - Fixed flash regs addr for STM32L152RET6 in common_flash.c ([#1265](https://github.com/stlink-org/stlink/pull/1265))
 - Fixed flash, dbgmcu and rcc registers for STM32L1 ([#1266](https://github.com/stlink-org/stlink/pull/1266))
+- Fixed compilation with gcc-12 ([#1257](https://github.com/stlink-org/stlink/pull/1257), [#1267](https://github.com/stlink-org/stlink/pull/1267))
+- Fixes for project compilation ([#1270](https://github.com/stlink-org/stlink/pull/1270), [#1271](https://github.com/stlink-org/stlink/pull/1271), [#1283](https://github.com/stlink-org/stlink/pull/1283), [#1286](https://github.com/stlink-org/stlink/pull/1286),commit [#f93adb9](https://github.com/stlink-org/stlink/commit/f93adb92f2e4ecf05a9361cb723c98693586929d))
+- [compilation] Corrected path to stlink/chips subdirectory ([#1276](https://github.com/stlink-org/stlink/pull/1276), [#1279](https://github.com/stlink-org/stlink/pull/1279))
+- [compilation] Fixed GUI compilation failure on OpenBSD i386 ([#1284](https://github.com/stlink-org/stlink/pull/1284))
 
 # v1.7.0
 
@@ -96,7 +103,7 @@ Updates & changes:
 - [doc] Updated documentation on target resetting ([#261](https://github.com/stlink-org/stlink/pull/261), [#533](https://github.com/stlink-org/stlink/pull/533), [#1107](https://github.com/stlink-org/stlink/pull/1107))
 - [doc] Added note on `(gdb) run` command (commit [#03793d4](https://github.com/stlink-org/stlink/commit/03793d42b6078344a9ef8ad55f1d5d0fc19e486e), [#267](https://github.com/stlink-org/stlink/pull/267))
 - [doc] `st-flash --reset` parameter (one solution for #356) ([#642](https://github.com/stlink-org/stlink/pull/642))
-- [refactoring] General maintenance ([#864](https://github.com/stlink-org/stlink/pull/864), [#976](https://github.com/stlink-org/stlink/pull/976), [#978](https://github.com/stlink-org/stlink/pull/978))
+- [refactoring] General maintenance ([#864](https://github.com/stlink-org/stlink/pull/864). [#978](https://github.com/stlink-org/stlink/pull/978))
 - Imported debian pkg-settings ([#986](https://github.com/stlink-org/stlink/pull/986))
 - Add support for FreeBSD's `libusb` reimplementation ([#992](https://github.com/stlink-org/stlink/pull/992), [#993](https://github.com/stlink-org/stlink/pull/993))
 - [doc] Added explanation about STM32F103 fake chips (commit [#a66557a](https://github.com/stlink-org/stlink/commit/a66557a102d48e69feb0a9746e8e42c4baf31fe2), [#1024](https://github.com/stlink-org/stlink/pull/1024))
@@ -117,7 +124,7 @@ Fixes:
 - doc/man: Fixed installation directory ([#970](https://github.com/stlink-org/stlink/pull/970))
 - Fixed installation path for desktop-file and icons ([#972](https://github.com/stlink-org/stlink/pull/972))
 - Fix for static linking of `libssp` ([#973](https://github.com/stlink-org/stlink/pull/973), [#974](https://github.com/stlink-org/stlink/pull/974))
-- [regression] Fixed wrong formatting for library install path ([#978](https://github.com/stlink-org/stlink/pull/978), [#1089](https://github.com/stlink-org/stlink/pull/1089))
+- [regression] Fixed wrong formatting for library install path ([#978](https://github.com/stlink-org/stlink/pull/978), [#1089](https://github.com/stlink-org/stlink/pull/1089), [#1277](https://github.com/stlink-org/stlink/pull/1277))
 - Fixed installation of header files needed for compiling with `libstlink.so.1.6.1` (commit [#31b1fa1](https://github.com/stlink-org/stlink/commit/31b1fa16201521e2aaf464576f2f169981abede0), [#982](https://github.com/stlink-org/stlink/pull/982))
 - Fixed `connect under reset` for `st-flash` and `st-util` ([#983](https://github.com/stlink-org/stlink/pull/983))
 - Fix for `mmap() size_t overflow` in `st-flash` ([#988](https://github.com/stlink-org/stlink/pull/988), [#989](https://github.com/stlink-org/stlink/pull/989))
@@ -190,7 +197,7 @@ Updates & changes:
 - [doc] `st-flash --flash=n[k][m]` command line option to override device model ([#902](https://github.com/stlink-org/stlink/pull/902))
 - [refactoring] Improved cmake build process ([#912](https://github.com/stlink-org/stlink/pull/912))
   - Set up a `libusb` log level accordingly to verbosity ([#894](https://github.com/stlink-org/stlink/pull/894)
-  - [compatibility] Updated `libusb` to v1.0.23 ([#895](https://github.com/stlink-org/stlink/pull/895, [#1089](https://github.com/stlink-org/stlink/pull/1089))
+  - [compatibility] Updated `libusb` to v1.0.23 ([#895](https://github.com/stlink-org/stlink/pull/895)
   - Updated compiling doc & version support ([#896](https://github.com/stlink-org/stlink/pull/896), [#897](https://github.com/stlink-org/stlink/pull/897), [#899](https://github.com/stlink-org/stlink/pull/899))
   - Version requirements & pkg-maintainer
   - Fixed install paths in build script

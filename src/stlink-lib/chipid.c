@@ -67,20 +67,22 @@ void process_chipfile(char *fname) {
         sscanf(buf, "%s %s", word, value);
 
         if (strcmp (word, "dev_type") == 0) {
-            // ts->dev_type = strdup (value);
             buf[strlen(buf) - 1] = 0; // chomp newline
             sscanf(buf, "%*s %n", &nc);
             ts->dev_type = strdup(buf + nc);
         } else if (strcmp(word, "ref_manual_id") == 0) {
-            // ts->ref_manual_id = strdup (value);
             buf[strlen(buf) - 1] = 0; // chomp newline
             sscanf(buf, "%*s %n", &nc);
             ts->ref_manual_id = strdup(buf + nc);
         } else if (strcmp(word, "chip_id") == 0) {
+            buf[strlen(buf) - 1] = 0; // chomp newline
+            sscanf(buf, "%*s %n", &nc);
             if (sscanf(value, "%i", &ts->chip_id) < 1) {
                 fprintf(stderr, "Failed to parse chip-id\n");
             }
         } else if (strcmp(word, "flash_type") == 0) {
+            buf[strlen(buf) - 1] = 0; // chomp newline
+            sscanf(buf, "%*s %n", &nc);
             if (strcmp(value, "F0_F1_F3") == 0) {
                 ts->flash_type = STM32_FLASH_TYPE_F0_F1_F3;
             } else if (strcmp(value, "F1_XL") == 0) {
@@ -105,37 +107,52 @@ void process_chipfile(char *fname) {
                 ts->flash_type = STM32_FLASH_TYPE_WB_WL;
             } else {
                 ts->flash_type = STM32_FLASH_TYPE_UNKNOWN;
-                fprintf(stderr, "Failed to parse flash type or unrecognized flash type\n");
             }
         } else if (strcmp(word, "flash_size_reg") == 0) {
+            buf[strlen(buf) - 1] = 0; // chomp newline
+            sscanf(buf, "%*s %n", &nc);
             if (sscanf(value, "%i", &ts->flash_size_reg) < 1) {
                 fprintf(stderr, "Failed to parse flash size reg\n");
             }
         } else if (strcmp(word, "flash_pagesize") == 0) {
+            buf[strlen(buf) - 1] = 0; // chomp newline
+            sscanf(buf, "%*s %n", &nc);
             if (sscanf(value, "%i", &ts->flash_pagesize) < 1) {
                 fprintf(stderr, "Failed to parse flash page size\n");
             }
         } else if (strcmp(word, "sram_size") == 0) {
+            buf[strlen(buf) - 1] = 0; // chomp newline
+            sscanf(buf, "%*s %n", &nc);
             if (sscanf(value, "%i", &ts->sram_size) < 1) {
                 fprintf(stderr, "Failed to parse SRAM size\n");
             }
         } else if (strcmp(word, "bootrom_base") == 0) {
+            buf[strlen(buf) - 1] = 0; // chomp newline
+            sscanf(buf, "%*s %n", &nc);
             if (sscanf(value, "%i", &ts->bootrom_base) < 1) {
                 fprintf(stderr, "Failed to parse BootROM base\n");
             }
         } else if (strcmp(word, "bootrom_size") == 0) {
+            buf[strlen(buf) - 1] = 0; // chomp newline
+            sscanf(buf, "%*s %n", &nc);
             if (sscanf(value, "%i", &ts->bootrom_size) < 1) {
                 fprintf(stderr, "Failed to parse BootROM size\n");
             }
         } else if (strcmp(word, "option_base") == 0) {
+            buf[strlen(buf) - 1] = 0; // chomp newline
+            sscanf(buf, "%*s %n", &nc);
             if (sscanf(value, "%i", &ts->option_base) < 1) {
                 fprintf(stderr, "Failed to parse option base\n");
             }
         } else if (strcmp(word, "option_size") == 0) {
+            buf[strlen(buf) - 1] = 0; // chomp newline
+            sscanf(buf, "%*s %n", &nc);
             if (sscanf(value, "%i", &ts->option_size) < 1) {
                 fprintf(stderr, "Failed to parse option size\n");
             }
         } else if (strcmp(word, "flags") == 0) {
+            buf[strlen(buf) - 1] = 0; // chomp newline
+            sscanf(buf, "%*s %n", &nc);
             p = strtok (buf, " \t\n");
 
             while ((p = strtok (NULL, " \t\n"))) {
@@ -153,8 +170,7 @@ void process_chipfile(char *fname) {
 
             sscanf(value, "%x", &ts->flags);
         } else {
-            fprintf(stderr, "Unknown keyword in %s: %s\n",
-                     fname, word);
+            fprintf(stderr, "Unknown keyword in %s: %s\n", fname, word);
         }
     }
     fclose(fp);
@@ -164,6 +180,7 @@ void process_chipfile(char *fname) {
 
 #if defined(STLINK_HAVE_DIRENT_H)
 #include <dirent.h>
+
 void init_chipids(char *dir_to_scan) {
     DIR *d;
     size_t nl; // namelen
@@ -198,6 +215,7 @@ void init_chipids(char *dir_to_scan) {
 #if defined(_WIN32) && !defined(STLINK_HAVE_DIRENT_H)
 #include <fileapi.h>
 #include <strsafe.h>
+
 void init_chipids(char *dir_to_scan) {
     HANDLE hFind = INVALID_HANDLE_VALUE;
     WIN32_FIND_DATAA ffd;

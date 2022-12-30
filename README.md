@@ -67,7 +67,7 @@ Please ensure to select the correct version for your system (i686 or x86_64). Th
 
 Alternatively one may compile and install from source as described in our [compiling manual](doc/compiling.md#Windows).
 
-**Linux**:
+**Linux / Unix**:
 
 We recommend to install `stlink-tools` from the package repository of the used distribution:
 
@@ -78,13 +78,7 @@ We recommend to install `stlink-tools` from the package repository of the used d
 - Arch Linux: [(Link)](https://www.archlinux.org/packages/community/x86_64/stlink)
 - Alpine Linux: [(Link)](https://pkgs.alpinelinux.org/packages?name=stlink)
 - Fedora: [(Link)](https://src.fedoraproject.org/rpms/stlink)
-- Gentoo Linux: [(Link)](https://packages.gentoo.org/packages/dev-embedded/stlink)
-
-**Other Operating Systems**:
-
-- RedHat/CentOS 8: Users can install from [EPEL repository](https://src.fedoraproject.org/rpms/stlink/branch/epel8)
 - FreeBSD: Users can install from [freshports](https://www.freshports.org/devel/stlink)
-- MacOS: Users can open a terminal window and then follow the same procedure as for installing on Linux
 
 ## Installation from source (advanced users)
 
