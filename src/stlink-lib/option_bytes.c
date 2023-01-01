@@ -510,8 +510,7 @@ static int stlink_write_option_bytes_h7(stlink_t *sl, stm32_addr_t addr, uint8_t
     case FLASH_H7_REGS_ADDR + 0x3c: // FLASH_WPSN_PRG1
     case FLASH_H7_REGS_ADDR + 0x44: // FLASH_BOOT_PRG
       /* Write to FLASH_xxx_PRG registers */
-      write_uint32((unsigned char *)&data,
-                   *(uint32_t *)(base)); // write options bytes
+      write_uint32((unsigned char *)&data, *(uint32_t *)(base)); // write options bytes
 
       WLOG("Writing option bytes %#10x to %#10x\n", data, addr);
 
@@ -534,8 +533,7 @@ static int stlink_write_option_bytes_h7(stlink_t *sl, stm32_addr_t addr, uint8_t
 
       /* Check for errors */
       if ((val & (1 << FLASH_H7_OPTSR_OPTCHANGEERR)) != 0) {
-        stlink_write_debug32(sl, FLASH_H7_OPTCCR,
-                             1 << FLASH_H7_OPTCCR_CLR_OPTCHANGEERR);
+        stlink_write_debug32(sl, FLASH_H7_OPTCCR, 1 << FLASH_H7_OPTCCR_CLR_OPTCHANGEERR);
         return -1;
       }
       break;
@@ -753,8 +751,7 @@ int stlink_write_option_bytes(stlink_t *sl, stm32_addr_t addr, uint8_t *base, ui
   int ret = -1;
 
   if (sl->option_base == 0) {
-    ELOG(
-        "Option bytes writing is currently not supported for connected chip\n");
+    ELOG("Option bytes writing is currently not supported for connected chip\n");
     return (-1);
   }
 
@@ -771,8 +768,7 @@ int stlink_write_option_bytes(stlink_t *sl, stm32_addr_t addr, uint8_t *base, ui
   wait_flash_busy(sl);
 
   if (unlock_flash_if(sl)) {
-    ELOG("Flash unlock failed! System reset required to be able to unlock it "
-         "again!\n");
+    ELOG("Flash unlock failed! System reset required to be able to unlock it again!\n");
     return (-1);
   }
 
@@ -809,8 +805,7 @@ int stlink_write_option_bytes(stlink_t *sl, stm32_addr_t addr, uint8_t *base, ui
     ret = stlink_write_option_bytes_wb(sl, addr, base, len);
     break;
   default:
-    ELOG("Option bytes writing is currently not implemented for connected "
-         "chip\n");
+    ELOG("Option bytes writing is currently not implemented for connected chip\n");
     break;
   }
 
@@ -892,8 +887,7 @@ int stlink_write_option_control_register32(stlink_t *sl, uint32_t option_cr) {
   wait_flash_busy(sl);
 
   if (unlock_flash_if(sl)) {
-    ELOG("Flash unlock failed! System reset required to be able to unlock it "
-         "again!\n");
+    ELOG("Flash unlock failed! System reset required to be able to unlock it again!\n");
     return -1;
   }
 
@@ -915,8 +909,7 @@ int stlink_write_option_control_register32(stlink_t *sl, uint32_t option_cr) {
         stlink_write_option_control_register_wb(sl, option_cr);
     break;
   default:
-    ELOG("Option control register writing is currently not implemented for "
-         "connected chip\n");
+    ELOG("Option control register writing is currently not implemented for connected chip\n");
     break;
   }
 
@@ -965,8 +958,7 @@ int stlink_write_option_control_register1_32(stlink_t *sl, uint32_t option_cr1) 
   wait_flash_busy(sl);
 
   if (unlock_flash_if(sl)) {
-    ELOG("Flash unlock failed! System reset required to be able to unlock it "
-         "again!\n");
+    ELOG("Flash unlock failed! System reset required to be able to unlock it again!\n");
     return -1;
   }
 
@@ -1050,8 +1042,7 @@ int stlink_write_option_bytes32(stlink_t *sl, uint32_t option_byte) {
  */
 int stlink_read_option_bytes_boot_add32(stlink_t *sl, uint32_t *option_byte) {
   if (sl->option_base == 0) {
-    ELOG("Option bytes boot address read is currently not supported for "
-         "connected chip\n");
+    ELOG("Option bytes boot address read is currently not supported for connected chip\n");
     return -1;
   }
 
@@ -1076,8 +1067,7 @@ int stlink_write_option_bytes_boot_add32(stlink_t *sl, uint32_t option_bytes_boo
   wait_flash_busy(sl);
 
   if (unlock_flash_if(sl)) {
-    ELOG("Flash unlock failed! System reset required to be able to unlock it "
-         "again!\n");
+    ELOG("Flash unlock failed! System reset required to be able to unlock it again!\n");
     return -1;
   }
 
@@ -1091,8 +1081,7 @@ int stlink_write_option_bytes_boot_add32(stlink_t *sl, uint32_t option_bytes_boo
     ret = stlink_write_option_bytes_boot_add_f7(sl, option_bytes_boot_add);
     break;
   default:
-    ELOG("Option bytes boot address writing is currently not implemented for "
-         "connected chip\n");
+    ELOG("Option bytes boot address writing is currently not implemented for connected chip\n");
     break;
   }
 

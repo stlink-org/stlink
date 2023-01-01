@@ -254,6 +254,7 @@ int main(int ac, char** av) {
 
     if (o.reset) {
         stlink_reset(sl, RESET_AUTO);
+        stlink_run(sl, RUN_NORMAL);
     }
 
     err = 0; // success

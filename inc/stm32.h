@@ -117,8 +117,10 @@ enum stm32_chipids {
     STM32_CHIPID_G4_CAT3          = 0x469,
     STM32_CHIPID_L4Rx             = 0x470, /* RM0432, p.2247, found on the STM32L4R9I-DISCO board */
     STM32_CHIPID_L4PX             = 0x471, /* RM0432, p.2247 */
+    STM32_CHIPID_L5x2xx           = 0x472, /* RM0438, p.2157 */
     STM32_CHIPID_G4_CAT4          = 0x479,
     STM32_CHIPID_H7Ax             = 0x480, /* RM0455, p.2863 */
+    STM32_CHIPID_U5x5             = 0x482, /* RM0456, p.2991 */
     STM32_CHIPID_H72x             = 0x483, /* RM0468, p.3199 */
     STM32_CHIPID_WB55             = 0x495,
     STM32_CHIPID_WLE              = 0x497,
@@ -196,10 +198,16 @@ enum stm32_chipids {
 #define STM32L1_RCC_AHBENR 0x4002381C
 #define STM32L1_RCC_DMAEN 0x30000000 // DMA2EN | DMA1EN
 
+#define STM32L5_RCC_AHB1ENR 0x40021048                  // RM0438, p. 91,377
+#define STM32L5_RCC_DMAEN 0x00000003 // DMA2EN | DMA1EN // RM0438, p. 378
+
 #define STM32H7_RCC_AHB1ENR 0x58024538
 #define STM32H7_RCC_DMAEN 0x00000003 // DMA2EN | DMA1EN
 
 #define STM32WB_RCC_AHB1ENR 0x58000048
 #define STM32WB_RCC_DMAEN 0x00000003 // DMA2EN | DMA1EN
+
+#define STM32L5_PWR_CR1 0x40007000                      // RM0438, p. 93,324
+#define STM32L5_PWR_CR1_VOS 8
 
 #endif // STM32_H
