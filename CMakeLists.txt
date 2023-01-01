@@ -74,7 +74,7 @@ include(${CMAKE_MODULE_PATH}/get_version.cmake) # Determine project version
 
 include(GNUInstallDirs) # Define GNU standard installation directories
 
-# Define install directory /usr/local/share [not /usr/share on MacOS]
+# Define install directory /usr/local/share
 cmake_host_system_information(RESULT OS_NAME QUERY OS_NAME)
 message(STATUS "Checking for OS_NAME: ${OS_NAME}")
 
