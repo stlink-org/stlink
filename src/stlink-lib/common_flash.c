@@ -739,7 +739,7 @@ void clear_flash_cr_pg(stlink_t *sl, unsigned bank) {
 
 static void wait_flash_busy_progress(stlink_t *sl) {
   int i = 0;
-  fprintf(stdout, "Mass erasing");
+  fprintf(stdout, "Mass erasing...");
   fflush(stdout);
 
   while (is_flash_busy(sl)) {

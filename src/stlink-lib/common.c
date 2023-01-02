@@ -342,11 +342,9 @@ int stlink_reset(stlink_t *sl, enum reset_type type) {
     dhcsr = 0;
     int res = stlink_read_debug32(sl, STLINK_REG_DHCSR, &dhcsr);
     if ((dhcsr & STLINK_REG_DHCSR_S_RESET_ST) == 0 && !res) {
-      // reset not done yet
-      // try reset through AIRCR so that NRST does not need to be connected
-
-      WLOG("NRST is not connected\n");
-      DLOG("Using reset through SYSRESETREQ\n");
+      // reset not done yet --> try reset through AIRCR so that NRST does not need to be connected
+      ILOG("NRST is not connected --> using software reset via AIRCR\n");
+      DLOG("NRST not connected --> Reset through SYSRESETREQ\n");
       return stlink_soft_reset(sl, 0);
     }
 

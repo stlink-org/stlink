@@ -179,6 +179,7 @@ int main(int ac, char** av) {
             printf("stlink_erase_flash_mass() == -1\n");
             goto on_error;
         }
+        printf("Mass erase completed successfully.\n");
     } else if (o.cmd == CMD_RESET) {
         if (stlink_reset(sl, RESET_AUTO)) {
             printf("Failed to reset device\n");
