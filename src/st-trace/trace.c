@@ -88,7 +88,7 @@ static void abort_trace() { g_abort_trace = true; }
 BOOL WINAPI CtrlHandler(DWORD fdwCtrlType) {
   (void)fdwCtrlType;
   abort_trace();
-  return FALSE;
+  return TRUE;
 }
 #endif
 
