@@ -84,7 +84,7 @@ We recommend to install `stlink-tools` from the package repository of the used d
 
 - RedHat/CentOS 8: Users can install from [EPEL repository](https://src.fedoraproject.org/rpms/stlink/branch/epel8)
 - FreeBSD: Users can install from [freshports](https://www.freshports.org/devel/stlink)
-- MacOS: Users can open a terminal window and then follow the same procedure as for installing on Linux
+- MacOS: **Support for macOS will end with v1.7.1.** Please use v1.7.0 (current ***master*** branch) and the related documentation instead.
 
 ## Installation from source (advanced users)
 
