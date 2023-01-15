@@ -166,35 +166,41 @@ add_subdirectory(inc)
 set(STLINK_HEADERS
         inc/backend.h
         inc/stlink.h
-        src/stlink-lib/common_flash.h
+        inc/stm32.h
+        inc/stm32flash.h
         src/stlink-lib/calculate.h
-        src/stlink-lib/commands.h
-        src/stlink-lib/libusb_settings.h
-        src/stlink-lib/reg.h
         src/stlink-lib/chipid.h
+        src/stlink-lib/commands.h
+        src/stlink-lib/common_flash.h
+        src/stlink-lib/common.h
         src/stlink-lib/flash_loader.h
+        src/stlink-lib/flashloader.h
+        src/stlink-lib/helper.h
+        src/stlink-lib/libusb_settings.h
         src/stlink-lib/logging.h
+        src/stlink-lib/map_file.h
         src/stlink-lib/md5.h
+        src/stlink-lib/option_bytes.h
+        src/stlink-lib/reg.h
         src/stlink-lib/sg.h
         src/stlink-lib/usb.h
-        src/stlink-lib/helper.h
         )
 
 set(STLINK_SOURCE
-        src/stlink-lib/read_write.c
-        src/stlink-lib/common.c
-        src/stlink-lib/option_bytes.c
-        src/stlink-lib/common_flash.c
-        src/stlink-lib/map_file.c
-        src/stlink-lib/flashloader.c
         src/stlink-lib/calculate.c
         src/stlink-lib/chipid.c
+        src/stlink-lib/common_flash.c
+        src/stlink-lib/common.c
         src/stlink-lib/flash_loader.c
+        src/stlink-lib/flashloader.c
+        src/stlink-lib/helper.c
         src/stlink-lib/logging.c
+        src/stlink-lib/map_file.c
         src/stlink-lib/md5.c
+        src/stlink-lib/option_bytes.c
+        src/stlink-lib/read_write.c
         src/stlink-lib/sg.c
         src/stlink-lib/usb.c
-        src/stlink-lib/helper.c
         )
 
 if (WIN32)
