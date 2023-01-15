@@ -88,8 +88,9 @@ Tested non-official ST boards [incl. STLINK programmers]:
 
 | Product-Code | Chip-ID | STLINK<br />Programmer | Boards                             |
 | ------------ | ------- | ---------------------- | ---------------------------------- |
-| GD32F303VGT6 | 0x430   | [v2]                   | STM32F303 clone from GigaDevice GD |
 | GD32F303CGT6 | 0x430   | [v2]                   | STM32F303 clone from GigaDevice GD |
+| GD32F303VET6 | 0x414   | [v2]                   | STM32F303 clone from GigaDevice GD |
+| GD32F303VGT6 | 0x430   | [v2]                   | STM32F303 clone from GigaDevice GD |
 
 ## STM32F4 / ARM Cortex M4F
 
