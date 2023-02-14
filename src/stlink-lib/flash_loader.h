@@ -1,8 +1,7 @@
 /*
- * File: stlink.h
+ * File: flash_loader.h
  *
- * This should contain all the common top level stlink interfaces,
- * regardless of how the backend does the work....
+ * Flash loader
  */
  
 #ifndef STLINK_FLASH_LOADER_H_

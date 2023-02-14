@@ -296,23 +296,6 @@ int write_loader_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* size);
 int stlink_fread(stlink_t* sl, const char* path, bool is_ihex, stm32_addr_t addr, size_t size);
 int stlink_load_device_params(stlink_t *sl);
 
-int stlink_read_option_bytes32(stlink_t *sl, uint32_t* option_byte);
-int stlink_read_option_bytes_boot_add32(stlink_t *sl, uint32_t* option_byte);
-int stlink_read_option_control_register32(stlink_t *sl, uint32_t* option_byte);
-int stlink_read_option_control_register1_32(stlink_t *sl, uint32_t* option_byte);
-
-int stlink_write_option_bytes32(stlink_t *sl, uint32_t option_byte);
-int stlink_write_option_bytes_boot_add32(stlink_t *sl, uint32_t option_bytes_boot_add);
-int stlink_write_option_control_register32(stlink_t *sl, uint32_t option_control_register);
-int stlink_write_option_control_register1_32(stlink_t *sl, uint32_t option_control_register1);
-
-int stlink_write_option_bytes(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uint32_t len);
-int stlink_fwrite_option_bytes(stlink_t *sl, const char* path, stm32_addr_t addr);
-
-int stlink_flashloader_start(stlink_t *sl, flash_loader_t *fl);
-int stlink_flashloader_write(stlink_t *sl, flash_loader_t *fl, stm32_addr_t addr, uint8_t* base, uint32_t len);
-int stlink_flashloader_stop(stlink_t *sl, flash_loader_t *fl);
-
 int stlink_target_connect(stlink_t *sl, enum connect_type connect);
 
 #include <sg.h>

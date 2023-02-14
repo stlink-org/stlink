@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stlink.h>
+#include "flashloader.h"
 #include "common_flash.h"
 
 #define L1_WRITE_BLOCK_SIZE 0x80
@@ -79,7 +80,7 @@ static void set_flash_cr_pg(stlink_t *sl, unsigned bank) {
   } else if (sl->flash_type == STM32_FLASH_TYPE_F7) {
     cr_reg = FLASH_F7_CR;
     x |= 1 << FLASH_CR_PG;
-  } else if (sl->flash_type == STM32_FLASH_TYPE_L4_L4P) {
+  } else if (sl->flash_type == STM32_FLASH_TYPE_L4) {
     cr_reg = STM32L4_FLASH_CR;
     x &= ~STM32L4_FLASH_CR_OPBITS;
     x |= (1 << STM32L4_FLASH_CR_PG);
@@ -122,7 +123,7 @@ static void set_dma_state(stlink_t *sl, flash_loader_t *fl, int bckpRstr) {
     rcc_dma_mask = STM32G0_RCC_DMAEN;
     break;
   case STM32_FLASH_TYPE_G4:
-  case STM32_FLASH_TYPE_L4_L4P:
+  case STM32_FLASH_TYPE_L4:
     rcc = STM32G4_RCC_AHB1ENR;
     rcc_dma_mask = STM32G4_RCC_DMAEN;
     break;
@@ -169,7 +170,7 @@ int stlink_flashloader_start(stlink_t *sl, flash_loader_t *fl) {
 
   if ((sl->flash_type == STM32_FLASH_TYPE_F2_F4) ||
       (sl->flash_type == STM32_FLASH_TYPE_F7) ||
-      (sl->flash_type == STM32_FLASH_TYPE_L4_L4P)) {
+      (sl->flash_type == STM32_FLASH_TYPE_L4)) {
     ILOG("Starting Flash write for F2/F4/F7/L4\n");
 
     // Flash loader initialisation
@@ -193,7 +194,7 @@ int stlink_flashloader_start(stlink_t *sl, flash_loader_t *fl) {
       return (-1);
     }
 
-    if (sl->flash_type == STM32_FLASH_TYPE_L4_L4P) {
+    if (sl->flash_type == STM32_FLASH_TYPE_L4) {
       // L4 does not have a byte-write mode
       if (voltage < 1710) {
         ELOG("Target voltage (%d mV) too low for flash writes!\n", voltage);
@@ -303,7 +304,7 @@ int stlink_flashloader_write(stlink_t *sl, flash_loader_t *fl,
   size_t off;
   if ((sl->flash_type == STM32_FLASH_TYPE_F2_F4) ||
       (sl->flash_type == STM32_FLASH_TYPE_F7) ||
-      (sl->flash_type == STM32_FLASH_TYPE_L4_L4P)) {
+      (sl->flash_type == STM32_FLASH_TYPE_L4)) {
     size_t buf_size = (sl->sram_size > 0x8000) ? 0x8000 : 0x4000;
     for (off = 0; off < len;) {
       size_t size = len - off > buf_size ? buf_size : len - off;
@@ -450,7 +451,7 @@ int stlink_flashloader_stop(stlink_t *sl, flash_loader_t *fl) {
       (sl->flash_type == STM32_FLASH_TYPE_F1_XL) ||
       (sl->flash_type == STM32_FLASH_TYPE_F2_F4) ||
       (sl->flash_type == STM32_FLASH_TYPE_F7) ||
-      (sl->flash_type == STM32_FLASH_TYPE_L4_L4P) ||
+      (sl->flash_type == STM32_FLASH_TYPE_L4) ||
       (sl->flash_type == STM32_FLASH_TYPE_WB_WL) ||
       (sl->flash_type == STM32_FLASH_TYPE_G0) ||
       (sl->flash_type == STM32_FLASH_TYPE_G4) ||

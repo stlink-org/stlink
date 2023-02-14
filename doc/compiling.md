@@ -1,6 +1,6 @@
 # Compiling from sources
 
-## Microsoft Windows (10, 8.1)
+## Microsoft Windows (10, 11)
 
 ### Common Requirements
 

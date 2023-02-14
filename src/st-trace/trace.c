@@ -171,8 +171,7 @@ bool parse_options(int argc, char **argv, st_settings_t *settings) {
   settings->serial_number = NULL;
   ugly_init(settings->logging_level);
 
-  while ((c = getopt_long(argc, argv, "hVv::c:ns:f", long_options,
-                          &option_index)) != -1) {
+  while ((c = getopt_long(argc, argv, "hVv::c:ns:f", long_options, &option_index)) != -1) {
     switch (c) {
     case 'h':
       settings->show_help = true;

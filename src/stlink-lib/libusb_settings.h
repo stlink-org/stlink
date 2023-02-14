@@ -19,6 +19,7 @@
  *  v1.0.23    | 0x01000107
  *  v1.0.24    | 0x01000108
  *  v1.0.25    | 0x01000109
+ *  v1.0.26    | 0x01000110
  */
 
 #if defined (__FreeBSD__)
@@ -35,8 +36,6 @@
     #define MINIMAL_API_VERSION 0x01000105 // v1.0.21
 #elif defined (__linux__)
     #define MINIMAL_API_VERSION 0x01000105 // v1.0.21
-#elif defined (__APPLE__)
-    #define MINIMAL_API_VERSION 0x01000109 // v1.0.25
 #elif defined (_WIN32)
     #define MINIMAL_API_VERSION 0x01000109 // v1.0.25
 #endif

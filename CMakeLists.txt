@@ -74,17 +74,13 @@ include(${CMAKE_MODULE_PATH}/get_version.cmake) # Determine project version
 
 include(GNUInstallDirs) # Define GNU standard installation directories
 
-# Define install directory /usr/local/share [not /usr/share on MacOS]
+# Define install directory /usr/local/share
 cmake_host_system_information(RESULT OS_NAME QUERY OS_NAME)
 message(STATUS "Checking for OS_NAME: ${OS_NAME}")
 
-if (OS_NAME STREQUAL "macOS")
-	message(STATUS "set(CMAKE_INSTALL_SHAREDIR /usr/local/share)")
-	set(CMAKE_INSTALL_SHAREDIR /usr/local/share/)
-else ()
-	message(STATUS "set(CMAKE_INSTALL_SHAREDIR /usr/share)")
-        set(CMAKE_INSTALL_SHAREDIR /usr/share/)
-endif ()
+message(STATUS "set(CMAKE_INSTALL_SHAREDIR /usr/share)")
+set(CMAKE_INSTALL_SHAREDIR /usr/share/)
+
 
 ## Set C build flags
 if (NOT MSVC)
@@ -170,35 +166,41 @@ add_subdirectory(inc)
 set(STLINK_HEADERS
         inc/backend.h
         inc/stlink.h
-        src/common_flash.h
-        src/calculate.h
-        src/stlink-lib/commands.h
-        src/stlink-lib/libusb_settings.h
-        src/stlink-lib/reg.h
+        inc/stm32.h
+        inc/stm32flash.h
+        src/stlink-lib/calculate.h
         src/stlink-lib/chipid.h
+        src/stlink-lib/commands.h
+        src/stlink-lib/common_flash.h
+        src/stlink-lib/common.h
         src/stlink-lib/flash_loader.h
+        src/stlink-lib/flashloader.h
+        src/stlink-lib/helper.h
+        src/stlink-lib/libusb_settings.h
         src/stlink-lib/logging.h
+        src/stlink-lib/map_file.h
         src/stlink-lib/md5.h
+        src/stlink-lib/option_bytes.h
+        src/stlink-lib/reg.h
         src/stlink-lib/sg.h
         src/stlink-lib/usb.h
-        src/stlink-lib/helper.h
         )
 
 set(STLINK_SOURCE
-        src/read_write.c
-        src/common.c
-		src/option_bytes.c
-		src/common_flash.c
-        src/map_file.c
-        src/flashloader.c
-        src/calculate.c
+        src/stlink-lib/calculate.c
         src/stlink-lib/chipid.c
+        src/stlink-lib/common_flash.c
+        src/stlink-lib/common.c
         src/stlink-lib/flash_loader.c
+        src/stlink-lib/flashloader.c
+        src/stlink-lib/helper.c
         src/stlink-lib/logging.c
+        src/stlink-lib/map_file.c
         src/stlink-lib/md5.c
+        src/stlink-lib/option_bytes.c
+        src/stlink-lib/read_write.c
         src/stlink-lib/sg.c
         src/stlink-lib/usb.c
-        src/stlink-lib/helper.c
         )
 
 if (WIN32)

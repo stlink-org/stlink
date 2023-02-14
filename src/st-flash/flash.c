@@ -11,6 +11,7 @@
 #include <stm32.h>
 #include <stlink.h>
 #include "flash.h"
+#include "option_bytes.h"
 
 static stlink_t *connected_stlink = NULL;
 
@@ -70,6 +71,7 @@ int main(int ac, char** av) {
 
     if (sl->flash_type == STM32_FLASH_TYPE_UNKNOWN) {
         printf("Failed to connect to target\n");
+        fprintf(stderr, "Failed to parse flash type or unrecognized flash type\n");
         goto on_error;
     }
 
@@ -97,8 +99,10 @@ int main(int ac, char** av) {
         goto on_error;
     }
 
-    if (o.cmd == FLASH_CMD_WRITE) {                                             // write
+    if (o.cmd == FLASH_CMD_WRITE) {
         size_t size = 0;
+
+        // write
         if (o.format == FLASH_FORMAT_IHEX) {
             err = stlink_parse_ihex(o.filename, stlink_get_erased_pattern(sl), &mem, &size, &o.addr);
 
@@ -107,8 +111,7 @@ int main(int ac, char** av) {
                 goto on_error;
             }
         }
-        if ((o.addr >= sl->flash_base) &&
-            (o.addr < sl->flash_base + sl->flash_size)) {
+        if ((o.addr >= sl->flash_base) && (o.addr < sl->flash_base + sl->flash_size)) {
             if (o.format == FLASH_FORMAT_IHEX) {
                 err = stlink_mwrite_flash(sl, mem, (uint32_t)size, o.addr);
             } else {
@@ -119,8 +122,7 @@ int main(int ac, char** av) {
                 printf("stlink_fwrite_flash() == -1\n");
                 goto on_error;
             }
-        } else if ((o.addr >= sl->sram_base) &&
-                   (o.addr < sl->sram_base + sl->sram_size)) {
+        } else if ((o.addr >= sl->sram_base) && (o.addr < sl->sram_base + sl->sram_size)) {
             if (o.format == FLASH_FORMAT_IHEX) {
                 err = stlink_mwrite_sram(sl, mem, (uint32_t)size, o.addr);
             } else {
@@ -131,8 +133,7 @@ int main(int ac, char** av) {
                 printf("stlink_fwrite_sram() == -1\n");
                 goto on_error;
             }
-        } else if ((o.addr >= sl->option_base) &&
-                   (o.addr < sl->option_base + sl->option_size)) {
+        } else if ((o.addr >= sl->option_base) && (o.addr < sl->option_base + sl->option_size)) {
             err = stlink_fwrite_option_bytes(sl, o.filename, o.addr);
 
             if (err == -1) {
@@ -169,11 +170,11 @@ int main(int ac, char** av) {
             goto on_error;
         }
     } else if (o.cmd == FLASH_CMD_ERASE) {
-        if (o.size > 0 && o.addr > 0)
+        if (o.size > 0 && o.addr > 0) {
           err = stlink_erase_flash_section(sl, o.addr, o.size, false);
-        else
+        } else {
           err = stlink_erase_flash_mass(sl);
-
+        }
         if (err == -1) {
             printf("stlink_erase_flash_mass() == -1\n");
             goto on_error;
@@ -183,7 +184,9 @@ int main(int ac, char** av) {
             printf("Failed to reset device\n");
             goto on_error;
         }
-    } else {                                                                    // read
+    } else {
+
+        // read
         if ((o.area == FLASH_MAIN_MEMORY) || (o.area == FLASH_SYSTEM_MEMORY)) {
             if ((o.size == 0) && (o.addr >= sl->flash_base) && (o.addr < sl->flash_base + sl->flash_size)) {
                 o.size = sl->flash_size;

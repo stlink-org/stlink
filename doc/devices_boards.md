@@ -53,10 +53,9 @@ Tested non-official ST boards [incl. STLINK programmers]:
 
 ## STM32F1 Clone / ARM Cortex M3 (Core-ID: 0x2ba01477) [may work, but without support!]
 
-| Product-Code  | Chip-ID | STLink<br />Programmer | Boards                                                                                          |
-| ------------- | ------- | ---------------------- | ----------------------------------------------------------------------------------------------- |
-| CKS32F103C8Tx | 0x410   | v2                     | "STM32"-Bluepill ( _**Fake-Marking !**_ )<br />STM32F103C8T6 clone from China Key Systems (CKS) |
-| CKS32F103C8Tx | 0x410   | v2                     | CKS32-Bluepill (Clone)<br />STM32F103C8T6 clone from China Key Systems (CKS)                    |
+| Product-Code  | Chip-ID | STLink<br />Programmer | Boards                                                                                                                               |
+| ------------- | ------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| CKS32F103C8Tx | 0x410   | v2                     | STM32F103C8T6 clone from China Key Systems (CKS) either as<br />CKS32-Bluepill or even as "STM32"-Bluepill with _**Fake-Marking !**_ |
 
 ## STM32F3 / ARM Cortex M4F
 
