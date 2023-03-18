@@ -279,8 +279,7 @@ int stlink_load_device_params(stlink_t *sl) {
 
   // medium and low devices have the same chipid. ram size depends on flash
   // size. STM32F100xx datasheet Doc ID 16455 Table 2
-  if (sl->chip_id == STM32_CHIPID_F1_VL_MD_LD &&
-      sl->flash_size < 64 * 1024) {
+  if (sl->chip_id == STM32_CHIPID_F1_VL_MD_LD && sl->flash_size < 64 * 1024) {
     sl->sram_size = 0x1000;
   }
 

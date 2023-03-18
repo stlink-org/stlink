@@ -10,5 +10,5 @@ sram_size 0x20000            // 128 KB
 bootrom_base 0x1fff0000
 bootrom_size 0x7800          // 30 KB
 option_base 0x40023c14       // STM32_F4_OPTION_BYTES_BASE
-option_size 0x4              // 4 B
+option_size 0x10             // 16 B
 flags swo

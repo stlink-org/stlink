@@ -242,8 +242,7 @@ static int stlink_write_option_bytes_f4(stlink_t *sl, stm32_addr_t addr, uint8_t
 int stlink_read_option_bytes_f7(stlink_t *sl, uint32_t *option_byte) {
   int err = -1;
   for (uint32_t counter = 0; counter < (sl->option_size / 4 - 1); counter++) {
-    err = stlink_read_debug32(sl, sl->option_base + counter * sizeof(uint32_t),
-                              option_byte);
+    err = stlink_read_debug32(sl, sl->option_base + counter * sizeof(uint32_t), option_byte);
     if (err == -1) {
       return err;
     } else {
@@ -272,8 +271,7 @@ static int stlink_write_option_bytes_f7(stlink_t *sl, stm32_addr_t addr, uint8_t
   // Clear errors
   clear_flash_error(sl);
 
-  ILOG("Asked to write option byte %#10x to %#010x.\n", *(uint32_t *)(base),
-       addr);
+  ILOG("Asked to write option byte %#10x to %#010x.\n", *(uint32_t *)(base), addr);
   write_uint32((unsigned char *)&option_byte, *(uint32_t *)(base));
   ILOG("Write %d option bytes %#010x to %#010x!\n", len, option_byte, addr);
 
@@ -306,8 +304,7 @@ static int stlink_write_option_bytes_f7(stlink_t *sl, stm32_addr_t addr, uint8_t
 
   ret = check_flash_error(sl);
   if (!ret)
-    ILOG("Wrote %d option bytes %#010x to %#010x!\n", len, *(uint32_t *)base,
-         addr);
+    ILOG("Wrote %d option bytes %#010x to %#010x!\n", len, *(uint32_t *)base, addr);
 
   /* option bytes are reloaded at reset only, no obl. */
 
