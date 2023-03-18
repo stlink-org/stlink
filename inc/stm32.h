@@ -9,35 +9,37 @@
 
 /* STM32 Cortex-M core ids (CPUTAPID) */
 enum stm32_core_id {
-    STM32_CORE_ID_M0_SWD        = 0x0bb11477,   // (RM0091 Section 32.5.3) F0 SW-DP
-                                                // (RM0444 Section 40.5.3) G0 SW-DP
-    STM32_CORE_ID_M0P_SWD       = 0x0bc11477,   // (RM0385 Section 27.5.3) L0 SW-DP
-    STM32_CORE_ID_M3_r1p1_SWD   = 0x1ba01477,   // (RM0008 Section 31.8.3) F1 SW-DP
-    STM32_CORE_ID_M3_r1p1_JTAG  = 0x3ba00477,   // (RM0008 Section 31.6.3) F1 JTAG
-    STM32_CORE_ID_M3_r2p0_SWD   = 0x2ba01477,   // (RM0033 Section 32.8.3) F2 SW-DP
-                                                // (RM0038 Section 30.8.3) L1 SW-DP
-    STM32_CORE_ID_M3_r2p0_JTAG  = 0x0ba00477,   // (RM0033 Section 32.6.3) F2 JTAG
-                                                // (RM0038 Section 30.6.2) L1 JTAG
-    STM32_CORE_ID_M4_r0p1_SWD   = 0x1ba01477,   // (RM0316 Section 33.8.3) F3 SW-DP
-                                                // (RM0351 Section 48.8.3) L4 SW-DP
-                                                // (RM0432 Section 57.8.3) L4+ SW-DP
-    STM32_CORE_ID_M4_r0p1_JTAG  = 0x4ba00477,   // (RM0316 Section 33.6.3) F3 JTAG
-                                                // (RM0351 Section 48.6.3) L4 JTAG
-                                                // (RM0432 Section 57.6.3) L4+ JTAG
-    STM32_CORE_ID_M4F_r0p1_SWD  = 0x2ba01477,   // (RM0090 Section 38.8.3) F4 SW-DP
-                                                // (RM0090 Section 47.8.3) G4 SW-DP
-    STM32_CORE_ID_M4F_r0p1_JTAG = 0x4ba00477,   // (RM0090 Section 38.6.3) F4 JTAG
-                                                // (RM0090 Section 47.6.3) G4 JTAG
-    STM32_CORE_ID_M7F_SWD       = 0x5ba02477,   // (RM0385 Section 40.8.3) F7 SW-DP
-    STM32_CORE_ID_M7F_JTAG      = 0x5ba00477,   // (RM0385 Section 40.6.3) F7 JTAG
-    STM32_CORE_ID_M7F_H7_SWD    = 0x6ba02477,   // (RM0433 Section 60.4.1) H7 SW-DP
-    STM32_CORE_ID_M7F_H7_JTAG   = 0x6ba00477,   // (RM0433 Section 60.4.1) H7 JTAG
-    STM32_CORE_ID_M33_SWD       = 0x0be02477,   // (RM0438 Section 52.2.10) L5 SW-DP
-                                                // (RM0456 Section 65.3.3) U5 SW-DP
-    STM32_CORE_ID_M33_JTAGD     = 0x0be01477,   // (RM0438 Section 52.2.10) L5 JTAG-DP
-                                                // (RM0456 Section 65.3.3) U5 JTAG-DP
-    STM32_CORE_ID_M33_JTAG      = 0x0ba04477,   // (RM0438 Section 52.2.8) L5 JTAG
-                                                // (RM0456 Section 56.3.1) U5 JTAG
+    STM32_CORE_ID_M0_SWD            = 0x0bb11477,   // (RM0091 Section 32.5.3) F0 SW-DP
+                                                    // (RM0444 Section 40.5.3) G0 SW-DP
+    STM32_CORE_ID_M0P_SWD           = 0x0bc11477,   // (RM0385 Section 27.5.3) L0 SW-DP
+    STM32_CORE_ID_M3_r1p1_SWD       = 0x1ba01477,   // (RM0008 Section 31.8.3) F1 SW-DP
+    STM32_CORE_ID_M3_r1p1_JTAG      = 0x3ba00477,   // (RM0008 Section 31.6.3) F1 JTAG
+    STM32_CORE_ID_M3_r2p0_SWD       = 0x2ba01477,   // (RM0033 Section 32.8.3) F2 SW-DP
+                                                    // (RM0038 Section 30.8.3) L1 SW-DP
+    STM32_CORE_ID_M3_r2p0_JTAG      = 0x0ba00477,   // (RM0033 Section 32.6.3) F2 JTAG
+                                                    // (RM0038 Section 30.6.2) L1 JTAG
+    STM32_CORE_ID_M4_r0p1_SWD       = 0x1ba01477,   // (RM0316 Section 33.8.3) F3 SW-DP
+                                                    // (RM0351 Section 48.8.3) L4 SW-DP
+                                                    // (RM0432 Section 57.8.3) L4+ SW-DP
+    STM32_CORE_ID_M4_r0p1_JTAG      = 0x4ba00477,   // (RM0316 Section 33.6.3) F3 JTAG
+                                                    // (RM0351 Section 48.6.3) L4 JTAG
+                                                    // (RM0432 Section 57.6.3) L4+ JTAG
+    STM32_CORE_ID_M4F_r0p1_SWD      = 0x2ba01477,   // (RM0090 Section 38.8.3) F4 SW-DP
+                                                    // (RM0090 Section 47.8.3) G4 SW-DP
+    STM32_CORE_ID_M4F_r0p1_JTAG     = 0x4ba00477,   // (RM0090 Section 38.6.3) F4 JTAG
+                                                    // (RM0090 Section 47.6.3) G4 JTAG
+    STM32_CORE_ID_M7F_SWD           = 0x5ba02477,   // (RM0385 Section 40.8.3) F7 SW-DP
+    STM32_CORE_ID_M7F_JTAG          = 0x5ba00477,   // (RM0385 Section 40.6.3) F7 JTAG
+    STM32_CORE_ID_M7F_M33_SWD       = 0x6ba02477,   // (RM0481 Section 58.3.3) H5 SW-DP
+                                                    // (RM0433 Section 60.4.1) H7 SW-DP
+    STM32_CORE_ID_M7F_M33_JTAG      = 0x6ba00477,   // (RM0481 Section 58.3.1) H5 JTAG
+                                                    // (RM0433 Section 60.4.1) H7 SW-DP
+    STM32_CORE_ID_M33_SWD           = 0x0be02477,   // (RM0438 Section 52.2.10) L5 SW-DP
+                                                    // (RM0456 Section 65.3.3) U5 SW-DP
+    STM32_CORE_ID_M33_JTAGD         = 0x0be01477,   // (RM0438 Section 52.2.10) L5 JTAG-DP
+                                                    // (RM0456 Section 65.3.3) U5 JTAG-DP
+    STM32_CORE_ID_M33_JTAG          = 0x0ba04477,   // (RM0438 Section 52.2.8) L5 JTAG
+                                                    // (RM0456 Section 56.3.1) U5 JTAG
 };
 
 /* STM32 flash types */
@@ -122,6 +124,7 @@ enum stm32_chipids {
     STM32_CHIPID_H7Ax             = 0x480, /* RM0455, p.2863 */
     STM32_CHIPID_U5x5             = 0x482, /* RM0456, p.2991 */
     STM32_CHIPID_H72x             = 0x483, /* RM0468, p.3199 */
+    STM32_CHIPID_H5xx             = 0x484, /* RM0481, p.3085 */
     STM32_CHIPID_WB55             = 0x495,
     STM32_CHIPID_WLE              = 0x497,
 };
