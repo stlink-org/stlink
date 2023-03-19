@@ -51,8 +51,7 @@ int stm32l1_write_half_pages(stlink_t *sl, stm32_addr_t addr, uint8_t *base,
     }
 
     if (sl->verbose >= 1) {
-      // show progress; writing procedure is slow and previous errors are
-      // misleading
+      // show progress; writing procedure is slow and previous errors are misleading
       fprintf(stdout, "\r%3u/%u halfpages written", count + 1, num_half_pages);
       fflush(stdout);
     }
