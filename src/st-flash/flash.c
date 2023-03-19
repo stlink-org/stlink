@@ -169,7 +169,10 @@ int main(int ac, char** av) {
             printf("Unknown memory region\n");
             goto on_error;
         }
+    
     } else if (o.cmd == FLASH_CMD_ERASE) {
+
+        // erase
         if (o.size > 0 && o.addr > 0) {
           err = stlink_erase_flash_section(sl, o.addr, o.size, false);
         } else {
@@ -180,11 +183,15 @@ int main(int ac, char** av) {
             goto on_error;
         }
         printf("Mass erase completed successfully.\n");
+    
     } else if (o.cmd == CMD_RESET) {
+
+        // reset
         if (stlink_reset(sl, RESET_AUTO)) {
             printf("Failed to reset device\n");
             goto on_error;
         }
+    
     } else {
 
         // read
