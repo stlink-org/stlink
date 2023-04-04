@@ -441,8 +441,7 @@ static void unlock_flash(stlink_t *sl) {
     // Set voltage scaling to range 0 to perform flash operations (RM0438 p. 183)
     uint32_t mask = (0b11 << STM32L5_PWR_CR1_VOS);
     uint32_t val;
-    stlink_read_debug32(sl, STM32L5_PWR_CR1, &val);
-    if ((val & mask) > (1 << STM32L5_PWR_CR1_VOS)) {
+    if (!stlink_read_debug32(sl, STM32L5_PWR_CR1, &val) && (val & mask) > (1 << STM32L5_PWR_CR1_VOS)) {
       val &= ~mask;
       stlink_write_debug32(sl, STM32L5_PWR_CR1, val);
     }

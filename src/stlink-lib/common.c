@@ -292,6 +292,15 @@ int stlink_load_device_params(stlink_t *sl) {
     }
   }
 
+  if (sl->chip_id == STM32_CHIPID_L5x2xx) {
+    uint32_t flash_optr;
+    stlink_read_debug32(sl, STM32L5_FLASH_OPTR, &flash_optr);
+
+    if (sl->flash_size == 512*1024 && (flash_optr & (1 << 22)) != 0) {
+      sl->flash_pgsz = 0x800;
+    }
+  }
+  
   // H7 devices with small flash has one bank
   if (sl->chip_flags & CHIP_F_HAS_DUAL_BANK &&
       sl->flash_type == STM32_FLASH_TYPE_H7) {

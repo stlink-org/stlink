@@ -215,6 +215,6 @@ enum stm32_chipids {
 #define STM32WB_RCC_DMAEN 0x00000003 // DMA2EN | DMA1EN
 
 #define STM32L5_PWR_CR1 0x40007000                      // RM0438, p. 93,324
-#define STM32L5_PWR_CR1_VOS 8
+#define STM32L5_PWR_CR1_VOS 9
 
 #endif // STM32_H
