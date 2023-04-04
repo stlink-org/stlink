@@ -1,10 +1,10 @@
-_Source:_ [pkgs.org](https://pkgs.org/search) - libusb, cmake, gtk, libgtk) (as of Jan 2022)
+_Source:_ [pkgs.org](https://pkgs.org/search) - libusb, cmake, gtk, libgtk (as of Apr 2023)
 
 ## Supported Operating Systems
 
 ### Microsoft Windows
 
-On Windows users should ensure that cmake **3.10.2** or any later version is installed.<br />
+On Windows users should ensure that cmake **3.13.0** or any later version is installed.<br />
 Up on compiling c-make will **automatically** download and install the latest compatible version of `libusb`.
 
 - Windows 10
@@ -61,7 +61,7 @@ Other Linux-/Unix-based Operating Systems:
 | Slackware Current        | 1.0.24                         | 3.21.4     | 3.24.31     |                          |
 | Adélie 1.0               | 1.0.23                         | 3.**16.4** | 3.24.23     |                          |
 
-## Unsupported Operating Systems (as of Release v1.7.1)
+## Unsupported Operating Systems (as of Release v1.8.0)
 
 Systems with highlighted versions remain compatible with this toolset.
 
@@ -77,7 +77,7 @@ Systems with highlighted versions remain compatible with this toolset.
 | Alpine 3.12                              | 1.0.**23**                     | 3.**17.2** | May 2022               |
 | openSUSE Leap 15.3 [x64]                 | 1.0.**21**                     | 3.**17.0** | Dec 2022               |
 | Fedora 32 [x64]                          | 1.0.**23** (`libusbx`)         | 3.**17.0** | May 2021               |
-| openSUSE Leap 15.2 [x64]                 | 1.0.**21**                     | 3.**17.0** | Dec 2021               |
+| openSUSE Leap 15.2 [x64]                 | 1.0.21                         | 3.**17.0** | Dec 2021               |
 | Ubuntu 20.10 (Groovy)                    | 1.0.**23**                     | 3.**16.3** | Jul 2021               |
 | NetBSD 7.x                               | 1.0.**22**                     | 3.**16.1** | Jun 2020               |
 | Alpine 3.11                              | 1.0.**23**                     | 3.**15.5** | Nov 2021               |
@@ -88,8 +88,8 @@ Systems with highlighted versions remain compatible with this toolset.
 | Fedora 30                                | 1.0.**22**(`libusbx`)          | 3.**14.2** | May 2020               |
 | Ubuntu 19.10 (Eoan)                      | 1.0.**23**                     | 3.**13.4** | Jul 2020               |
 | Alpine 3.9                               | 1.0.**22**                     | 3.**13.0** | Jan 2021               |
-| Ubuntu 18.04 LTS (Bionic)                | 1.0.**21**                     | 3.**10.2** | **Apr 2023**           |
-| openSUSE Leap 15.1 [x64]                 | 1.0.**21**                     | 3.**10.2** | Jan 2021               |
+| Ubuntu 18.04 LTS (Bionic)                | 1.0.21                         | 3.10.2     | Apr 2023               |
+| openSUSE Leap 15.1 [x64]                 | 1.0.21                         | 3.10.2     | Jan 2021               |
 | Debian 9 (Stretch)                       | 1.0.21                         | 3.7.2      | Jun 2022               |
 | Slackware 14.2                           | 1.0.20                         | 3.5.2      |                        |
 | OpenMandriva Lx 3.0x                     | 1.0.20                         | 3.4.2      |                        |
