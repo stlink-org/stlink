@@ -21,6 +21,7 @@ Maintained versions of:
 - Arch Linux
 - FreeBSD
 - NetBSD
+- OpenBSD
 
 Other Linux-/Unix-based Operating Systems:
 
@@ -75,7 +76,7 @@ Systems with highlighted versions remain compatible with this toolset.
 | Ubuntu 21.04 (Hirsute)                   | 1.0.**24**                     | 3.**18.4** | Jan 2022               |
 | Fedora 33 [x64]                          | 1.0.**23** (`libusbx`)         | 3.**18.3** | Nov 2021               |
 | Alpine 3.12                              | 1.0.**23**                     | 3.**17.2** | May 2022               |
-| openSUSE Leap 15.3 [x64]                 | 1.0.**21**                     | 3.**17.0** | Dec 2022               |
+| openSUSE Leap 15.3 [x64]                 | 1.0.21                         | 3.**17.0** | Dec 2022               |
 | Fedora 32 [x64]                          | 1.0.**23** (`libusbx`)         | 3.**17.0** | May 2021               |
 | openSUSE Leap 15.2 [x64]                 | 1.0.21                         | 3.**17.0** | Dec 2021               |
 | Ubuntu 20.10 (Groovy)                    | 1.0.**23**                     | 3.**16.3** | Jul 2021               |
