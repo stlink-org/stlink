@@ -24,19 +24,12 @@ if (NOT WIN32 AND NOT CMAKE_CROSSCOMPILING)
 
         set(GUI_SOURCES gui.c gui.h)
 
-        ## stlink-gui-local
-        add_executable(stlink-gui-local ${GUI_SOURCES})
-        file(COPY stlink-gui.ui DESTINATION ${CMAKE_BINARY_DIR}/bin)
-        set_target_properties(stlink-gui-local PROPERTIES
-                COMPILE_DEFINITIONS STLINK_UI_DIR="${CMAKE_BINARY_DIR}/bin")
-        target_link_libraries(stlink-gui-local ${STLINK_LIB_SHARED} ${SSP_LIB} ${GTK3_LDFLAGS})
-
         ## stlink-gui
         add_executable(stlink-gui ${GUI_SOURCES})
         install(FILES stlink-gui.ui DESTINATION ${CMAKE_INSTALL_SHAREDIR}/${PROJECT_NAME})
         set_target_properties(stlink-gui PROPERTIES
                 COMPILE_DEFINITIONS STLINK_UI_DIR="${CMAKE_INSTALL_SHAREDIR}/${PROJECT_NAME}")
         target_link_libraries(stlink-gui ${STLINK_LIB_SHARED} ${SSP_LIB} ${GTK3_LDFLAGS})
-        install(TARGETS stlink-gui DESTINATION ${CMAKE_INSTALL_SHAREDIR}/${PROJECT_NAME})
+        install(TARGETS stlink-gui DESTINATION ${CMAKE_BINDIR})
     endif ()
 endif ()

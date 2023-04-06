@@ -78,8 +78,8 @@ include(GNUInstallDirs) # Define GNU standard installation directories
 cmake_host_system_information(RESULT OS_NAME QUERY OS_NAME)
 message(STATUS "Checking for OS_NAME: ${OS_NAME}")
 
-message(STATUS "set(CMAKE_INSTALL_SHAREDIR /usr/share)")
-set(CMAKE_INSTALL_SHAREDIR /usr/share/)
+message(STATUS "set(CMAKE_INSTALL_SHAREDIR /usr/local/share)")
+set(CMAKE_INSTALL_SHAREDIR /usr/local/share/)
 
 
 ## Set C build flags

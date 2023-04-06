@@ -72,7 +72,7 @@
 #define FLASH_L1_FPRG 10
 #define FLASH_L1_PROG 3
 
-// Flash registers common to STM32G0 and STM32G4 series.
+// Flash registers common to STM32G0 and STM32G4 series (RM0440, p. 146)
 #define STM32Gx_FLASH_REGS_ADDR ((uint32_t)0x40022000)
 #define STM32Gx_FLASH_ACR (STM32Gx_FLASH_REGS_ADDR + 0x00)
 #define STM32Gx_FLASH_KEYR (STM32Gx_FLASH_REGS_ADDR + 0x08)
@@ -206,6 +206,43 @@
 #define STM32L4_FLASH_CR_PAGEMASK (uint32_t)(0x1fflu << STM32L4_FLASH_CR_PNB)
 
 #define STM32L4_FLASH_OPTR_DUALBANK 21
+
+// Flash registers common to STM32L5 series (RM0438, p. 241)
+#define STM32L5_FLASH_REGS_ADDR ((uint32_t)0x40022000)
+#define STM32L5_FLASH_ACR (STM32L5_FLASH_REGS_ADDR + 0x00)
+#define STM32L5_FLASH_NSKEYR (STM32L5_FLASH_REGS_ADDR + 0x08)
+#define STM32L5_FLASH_OPTKEYR (STM32L5_FLASH_REGS_ADDR + 0x10)
+#define STM32L5_FLASH_NSSR (STM32L5_FLASH_REGS_ADDR + 0x20)
+#define STM32L5_FLASH_NSCR (STM32L5_FLASH_REGS_ADDR + 0x28)
+#define STM32L5_FLASH_ECCR (STM32L5_FLASH_REGS_ADDR + 0x30)
+#define STM32L5_FLASH_OPTR (STM32L5_FLASH_REGS_ADDR + 0x40)
+
+// FLASH_NSCR (RM0438, p. 242)
+#define STM32L5_FLASH_NSCR_NSPG 0        /* Program */
+#define STM32L5_FLASH_NSCR_NSPER 1       /* Page erase */
+#define STM32L5_FLASH_NSCR_NSMER1 2      /* Bank 1 erase */
+#define STM32L5_FLASH_NSCR_NSPNB 3       /* Page number (7 bits) */
+#define STM32L5_FLASH_NSCR_NSBKER 11     /* Bank select for page erase */
+#define STM32L5_FLASH_NSCR_NSMER2 15     /* Bank 2 erase */
+#define STM32L5_FLASH_NSCR_NSSTRT 16     /* Start command */
+#define STM32L5_FLASH_NSCR_NSOPTSTRT 17  /* Start writing option bytes */
+#define STM32L5_FLASH_NSCR_NSEOPIE 24
+#define STM32L5_FLASH_NSCR_NSERRIE 25
+#define STM32L5_FLASH_NSCR_OBL_LAUNCH 27 /* Option bytes reload */
+#define STM32L5_FLASH_NSCR_OPTLOCK 30    /* Lock option bytes */
+#define STM32L5_FLASH_NSCR_NSLOCK 31     /* Lock control register */
+
+// FLASH_NSSR (RM0438, p. 241)
+#define STM32L5_FLASH_NSSR_NSEOP 0       /* End of Operation */
+#define STM32L5_FLASH_NSSR_NSOPERR 1
+#define STM32L5_FLASH_NSSR_NSPROGERR 3
+#define STM32L5_FLASH_NSSR_NSWRPERR 4
+#define STM32L5_FLASH_NSSR_NSPGAERR 5
+#define STM32L5_FLASH_NSSR_NSSIZERR 6
+#define STM32L5_FLASH_NSSR_NSPGSERR 7
+#define STM32L5_FLASH_NSSR_OPTWERR 12
+#define STM32L5_FLASH_NSSR_BSY 16        /* Busy */
+#define STM32L5_FLASH_NSSR_ERROR_MASK (0x20fa)
 
 // STM32L0x flash register base and offsets RM0090 - DM00031020.pdf
 #define STM32L0_FLASH_REGS_ADDR ((uint32_t)0x40022000)

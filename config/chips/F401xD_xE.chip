@@ -9,6 +9,6 @@ flash_pagesize 0x4000        // 16 KB
 sram_size 0x18000            // 96 KB
 bootrom_base 0x1fff0000
 bootrom_size 0x7800          // 30 KB
-option_base 0x40023C14
-option_size 0x4
+option_base 0x40023C14       // STM32_F4_OPTION_BYTES_BASE
+option_size 0x4              // 4 B
 flags swo

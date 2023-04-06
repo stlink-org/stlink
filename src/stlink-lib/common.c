@@ -62,6 +62,7 @@ void stlink_close(stlink_t *sl) {
   sl->backend->close(sl);
   free(sl);
 }
+
 // 250
 int stlink_exit_debug_mode(stlink_t *sl) {
   DLOG("*** stlink_exit_debug_mode ***\n");
@@ -74,11 +75,13 @@ int stlink_exit_debug_mode(stlink_t *sl) {
 
   return (sl->backend->exit_debug_mode(sl));
 }
+
 //248
 int stlink_enter_swd_mode(stlink_t *sl) {
   DLOG("*** stlink_enter_swd_mode ***\n");
   return (sl->backend->enter_swd_mode(sl));
 }
+
 // 271
 // Force the core into the debug mode -> halted state.
 int stlink_force_debug(stlink_t *sl) {
@@ -91,11 +94,13 @@ int stlink_force_debug(stlink_t *sl) {
   stop_wdg_in_debug(sl);
   return (0);
 }
+
 // 251
 int stlink_exit_dfu_mode(stlink_t *sl) {
   DLOG("*** stlink_exit_dfu_mode ***\n");
   return (sl->backend->exit_dfu_mode(sl));
 }
+
 // 253
 int stlink_core_id(stlink_t *sl) {
   int ret;
@@ -115,6 +120,7 @@ int stlink_core_id(stlink_t *sl) {
   DLOG("core_id = 0x%08x\n", sl->core_id);
   return (ret);
 }
+
 // 287
 // stlink_chip_id() is called by stlink_load_device_params()
 // do not call this procedure directly.
@@ -132,10 +138,9 @@ int stlink_chip_id(stlink_t *sl, uint32_t *chip_id) {
   /*
    * the chip_id register in the reference manual have
    * DBGMCU_IDCODE / DBG_IDCODE name
-   *
    */
 
-  if ((sl->core_id == STM32_CORE_ID_M7F_H7_SWD || sl->core_id == STM32_CORE_ID_M7F_H7_JTAG) &&
+  if ((sl->core_id == STM32_CORE_ID_M7F_M33_SWD || sl->core_id == STM32_CORE_ID_M7F_M33_JTAG) &&
       cpu_id.part == STLINK_REG_CMx_CPUID_PARTNO_CM7) {
     // STM32H7 chipid in 0x5c001000 (RM0433 pg3189)
     ret = stlink_read_debug32(sl, 0x5c001000, chip_id);
@@ -178,6 +183,7 @@ int stlink_chip_id(stlink_t *sl, uint32_t *chip_id) {
 
   return (ret);
 }
+
 // 288
 /**
  * Cortex M tech ref manual, CPUID register description
@@ -201,6 +207,7 @@ int stlink_cpu_id(stlink_t *sl, cortex_m3_cpuid_t *cpuid) {
   cpuid->revision = raw & 0xf;
   return (0);
 }
+
 // 303
 /**
  * Reads and decodes the flash parameters, as dynamically as possible
@@ -272,8 +279,7 @@ int stlink_load_device_params(stlink_t *sl) {
 
   // medium and low devices have the same chipid. ram size depends on flash
   // size. STM32F100xx datasheet Doc ID 16455 Table 2
-  if (sl->chip_id == STM32_CHIPID_F1_VL_MD_LD &&
-      sl->flash_size < 64 * 1024) {
+  if (sl->chip_id == STM32_CHIPID_F1_VL_MD_LD && sl->flash_size < 64 * 1024) {
     sl->sram_size = 0x1000;
   }
 
@@ -286,6 +292,15 @@ int stlink_load_device_params(stlink_t *sl) {
     }
   }
 
+  if (sl->chip_id == STM32_CHIPID_L5x2xx) {
+    uint32_t flash_optr;
+    stlink_read_debug32(sl, STM32L5_FLASH_OPTR, &flash_optr);
+
+    if (sl->flash_size == 512*1024 && (flash_optr & (1 << 22)) != 0) {
+      sl->flash_pgsz = 0x800;
+    }
+  }
+  
   // H7 devices with small flash has one bank
   if (sl->chip_flags & CHIP_F_HAS_DUAL_BANK &&
       sl->flash_type == STM32_FLASH_TYPE_H7) {
@@ -300,6 +315,7 @@ int stlink_load_device_params(stlink_t *sl) {
 
   return (0);
 }
+
 // 254
 int stlink_reset(stlink_t *sl, enum reset_type type) {
   uint32_t dhcsr;
@@ -334,11 +350,9 @@ int stlink_reset(stlink_t *sl, enum reset_type type) {
     dhcsr = 0;
     int res = stlink_read_debug32(sl, STLINK_REG_DHCSR, &dhcsr);
     if ((dhcsr & STLINK_REG_DHCSR_S_RESET_ST) == 0 && !res) {
-      // reset not done yet
-      // try reset through AIRCR so that NRST does not need to be connected
-
-      WLOG("NRST is not connected\n");
-      DLOG("Using reset through SYSRESETREQ\n");
+      // reset not done yet --> try reset through AIRCR so that NRST does not need to be connected
+      ILOG("NRST is not connected --> using software reset via AIRCR\n");
+      DLOG("NRST not connected --> Reset through SYSRESETREQ\n");
       return stlink_soft_reset(sl, 0);
     }
 
@@ -361,6 +375,81 @@ int stlink_reset(stlink_t *sl, enum reset_type type) {
 
   return (0);
 }
+
+int stlink_soft_reset(stlink_t *sl, int halt_on_reset) {
+  int ret;
+  unsigned timeout;
+  uint32_t dhcsr, dfsr;
+
+  DLOG("*** stlink_soft_reset %s***\n", halt_on_reset ? "(halt) " : "");
+
+  // halt core and enable debugging (if not already done)
+  // C_DEBUGEN is required to Halt on reset (DDI0337E, p. 10-6)
+  stlink_write_debug32(sl, STLINK_REG_DHCSR,
+                       STLINK_REG_DHCSR_DBGKEY | STLINK_REG_DHCSR_C_HALT |
+                           STLINK_REG_DHCSR_C_DEBUGEN);
+
+  // enable Halt on reset by set VC_CORERESET and TRCENA (DDI0337E, p. 10-10)
+  if (halt_on_reset) {
+    stlink_write_debug32(
+        sl, STLINK_REG_CM3_DEMCR,
+        STLINK_REG_CM3_DEMCR_TRCENA | STLINK_REG_CM3_DEMCR_VC_HARDERR |
+            STLINK_REG_CM3_DEMCR_VC_BUSERR | STLINK_REG_CM3_DEMCR_VC_CORERESET);
+
+    // clear VCATCH in the DFSR register
+    stlink_write_debug32(sl, STLINK_REG_DFSR, STLINK_REG_DFSR_VCATCH);
+  } else {
+    stlink_write_debug32(sl, STLINK_REG_CM3_DEMCR,
+                         STLINK_REG_CM3_DEMCR_TRCENA |
+                             STLINK_REG_CM3_DEMCR_VC_HARDERR |
+                             STLINK_REG_CM3_DEMCR_VC_BUSERR);
+  }
+
+  // clear S_RESET_ST in the DHCSR register
+  stlink_read_debug32(sl, STLINK_REG_DHCSR, &dhcsr);
+
+  // soft reset (core reset) by SYSRESETREQ (DDI0337E, p. 8-23)
+  ret = stlink_write_debug32(sl, STLINK_REG_AIRCR,
+                             STLINK_REG_AIRCR_VECTKEY |
+                                 STLINK_REG_AIRCR_SYSRESETREQ);
+  if (ret) {
+    ELOG("Soft reset failed: error write to AIRCR\n");
+    return (ret);
+  }
+
+  // waiting for a reset within 500ms
+  // DDI0337E, p. 10-4, Debug Halting Control and Status Register
+  timeout = time_ms() + 500;
+  while (time_ms() < timeout) {
+    // DDI0337E, p. 10-4, Debug Halting Control and Status Register
+    dhcsr = STLINK_REG_DHCSR_S_RESET_ST;
+    stlink_read_debug32(sl, STLINK_REG_DHCSR, &dhcsr);
+    if ((dhcsr & STLINK_REG_DHCSR_S_RESET_ST) == 0) {
+      if (halt_on_reset) {
+        // waiting halt by the SYSRESETREQ exception
+        // DDI0403E, p. C1-699, Debug Fault Status Register
+        dfsr = 0;
+        stlink_read_debug32(sl, STLINK_REG_DFSR, &dfsr);
+        if ((dfsr & STLINK_REG_DFSR_VCATCH) == 0) {
+          continue;
+        }
+      }
+      timeout = 0;
+      break;
+    }
+  }
+
+  // reset DFSR register. DFSR is power-on reset only (DDI0337H, p. 7-5)
+  stlink_write_debug32(sl, STLINK_REG_DFSR, STLINK_REG_DFSR_CLEAR);
+
+  if (timeout) {
+    ELOG("Soft reset failed: timeout\n");
+    return (-1);
+  }
+
+  return (0);
+}
+
 // 255
 int stlink_run(stlink_t *sl, enum run_type type) {
   struct stlink_reg rr;
@@ -377,11 +466,13 @@ int stlink_run(stlink_t *sl, enum run_type type) {
 
   return (sl->backend->run(sl, type));
 }
+
 // 273
 int stlink_set_swdclk(stlink_t *sl, int freq_khz) {
   DLOG("*** set_swdclk ***\n");
   return (sl->backend->set_swdclk(sl, freq_khz));
 }
+
 // 293
 // this function is called by stlink_status()
 // do not call stlink_core_stat() directly, always use stlink_status()
@@ -403,6 +494,7 @@ void stlink_core_stat(stlink_t *sl) {
     DLOG("  core status: unknown\n");
   }
 }
+
 // 256
 int stlink_status(stlink_t *sl) {
   int ret;
@@ -412,6 +504,7 @@ int stlink_status(stlink_t *sl) {
   stlink_core_stat(sl);
   return (ret);
 }
+
 // 257
 int stlink_version(stlink_t *sl) {
   DLOG("*** looking up stlink version ***\n");
@@ -435,6 +528,7 @@ int stlink_version(stlink_t *sl) {
 
   return (0);
 }
+
 // 272
 int stlink_target_voltage(stlink_t *sl) {
   int voltage = -1;
@@ -454,16 +548,19 @@ int stlink_target_voltage(stlink_t *sl) {
 
   return (voltage);
 }
+
 // 299
 bool stlink_is_core_halted(stlink_t *sl) {
   stlink_status(sl);
   return (sl->core_stat == TARGET_HALTED);
 }
+
 // 269
 int stlink_step(stlink_t *sl) {
   DLOG("*** stlink_step ***\n");
   return (sl->backend->step(sl));
 }
+
 // 270
 int stlink_current_mode(stlink_t *sl) {
   int mode = sl->backend->current_mode(sl);
@@ -483,20 +580,24 @@ int stlink_current_mode(stlink_t *sl) {
   DLOG("stlink mode: unknown!\n");
   return (STLINK_DEV_UNKNOWN_MODE);
 }
+
 // 274
 int stlink_trace_enable(stlink_t *sl, uint32_t frequency) {
   DLOG("*** stlink_trace_enable ***\n");
   return (sl->backend->trace_enable(sl, frequency));
 }
+
 // 275
 int stlink_trace_disable(stlink_t *sl) {
   DLOG("*** stlink_trace_disable ***\n");
   return (sl->backend->trace_disable(sl));
 }
+
 // 276
 int stlink_trace_read(stlink_t *sl, uint8_t *buf, size_t size) {
   return (sl->backend->trace_read(sl, buf, size));
 }
+
 // 294
 void stlink_print_data(stlink_t *sl) {
   if (sl->q_len <= 0 || sl->verbose < UDEBUG) {
@@ -523,9 +624,9 @@ void stlink_print_data(stlink_t *sl) {
   // DLOG("\n\n");
   fprintf(stderr, "\n");
 }
+
 // 283
-int stlink_mwrite_sram(stlink_t *sl, uint8_t *data, uint32_t length,
-                       stm32_addr_t addr) {
+int stlink_mwrite_sram(stlink_t *sl, uint8_t *data, uint32_t length, stm32_addr_t addr) {
   // write the file in sram at addr
 
   int error = -1;
@@ -581,6 +682,7 @@ int stlink_mwrite_sram(stlink_t *sl, uint8_t *data, uint32_t length,
 on_error:
   return (error);
 }
+
 //284
 int stlink_fwrite_sram(stlink_t *sl, const char *path, stm32_addr_t addr) {
   // write the file in sram at addr
@@ -655,9 +757,9 @@ on_error:
   unmap_file(&mf);
   return (error);
 }
+
 // 302
-int stlink_fread(stlink_t *sl, const char *path, bool is_ihex,
-                 stm32_addr_t addr, size_t size) {
+int stlink_fread(stlink_t *sl, const char *path, bool is_ihex, stm32_addr_t addr, size_t size) {
   // read size bytes from addr to file
   ILOG("read from address %#010x size %u\n", addr, (unsigned)size);
 
@@ -689,9 +791,9 @@ int stlink_fread(stlink_t *sl, const char *path, bool is_ihex,
   close(fd);
   return (error);
 }
+
 // 300
-int write_buffer_to_sram(stlink_t *sl, flash_loader_t *fl, const uint8_t *buf,
-                         size_t size) {
+int write_buffer_to_sram(stlink_t *sl, flash_loader_t *fl, const uint8_t *buf, size_t size) {
   // write the buffer right after the loader
   int ret = 0;
   size_t chunk = size & ~0x3;
@@ -709,6 +811,7 @@ int write_buffer_to_sram(stlink_t *sl, flash_loader_t *fl, const uint8_t *buf,
 
   return (ret);
 }
+
 // 291
 uint32_t stlink_calculate_pagesize(stlink_t *sl, uint32_t flashaddr) {
   if ((sl->chip_id == STM32_CHIPID_F2) ||
@@ -749,6 +852,7 @@ uint32_t stlink_calculate_pagesize(stlink_t *sl, uint32_t flashaddr) {
 
   return ((uint32_t)sl->flash_pgsz);
 }
+
 // 279
 int stlink_parse_ihex(const char *path, uint8_t erased_pattern, uint8_t **mem,
                       size_t *size, uint32_t *begin) {
@@ -910,6 +1014,7 @@ int stlink_parse_ihex(const char *path, uint8_t erased_pattern, uint8_t **mem,
 
   return (res);
 }
+
 // 280
 uint8_t stlink_get_erased_pattern(stlink_t *sl) {
   if (sl->flash_type == STM32_FLASH_TYPE_L0_L1) {
@@ -1024,79 +1129,6 @@ int stlink_jtag_reset(stlink_t *sl, int value) {
   return (sl->backend->jtag_reset(sl, value));
 }
 
-int stlink_soft_reset(stlink_t *sl, int halt_on_reset) {
-  int ret;
-  unsigned timeout;
-  uint32_t dhcsr, dfsr;
-
-  DLOG("*** stlink_soft_reset %s***\n", halt_on_reset ? "(halt) " : "");
-
-  // halt core and enable debugging (if not already done)
-  // C_DEBUGEN is required to Halt on reset (DDI0337E, p. 10-6)
-  stlink_write_debug32(sl, STLINK_REG_DHCSR,
-                       STLINK_REG_DHCSR_DBGKEY | STLINK_REG_DHCSR_C_HALT |
-                           STLINK_REG_DHCSR_C_DEBUGEN);
-
-  // enable Halt on reset by set VC_CORERESET and TRCENA (DDI0337E, p. 10-10)
-  if (halt_on_reset) {
-    stlink_write_debug32(
-        sl, STLINK_REG_CM3_DEMCR,
-        STLINK_REG_CM3_DEMCR_TRCENA | STLINK_REG_CM3_DEMCR_VC_HARDERR |
-            STLINK_REG_CM3_DEMCR_VC_BUSERR | STLINK_REG_CM3_DEMCR_VC_CORERESET);
-
-    // clear VCATCH in the DFSR register
-    stlink_write_debug32(sl, STLINK_REG_DFSR, STLINK_REG_DFSR_VCATCH);
-  } else {
-    stlink_write_debug32(sl, STLINK_REG_CM3_DEMCR,
-                         STLINK_REG_CM3_DEMCR_TRCENA |
-                             STLINK_REG_CM3_DEMCR_VC_HARDERR |
-                             STLINK_REG_CM3_DEMCR_VC_BUSERR);
-  }
-
-  // clear S_RESET_ST in the DHCSR register
-  stlink_read_debug32(sl, STLINK_REG_DHCSR, &dhcsr);
-
-  // soft reset (core reset) by SYSRESETREQ (DDI0337E, p. 8-23)
-  ret = stlink_write_debug32(sl, STLINK_REG_AIRCR,
-                             STLINK_REG_AIRCR_VECTKEY |
-                                 STLINK_REG_AIRCR_SYSRESETREQ);
-  if (ret) {
-    ELOG("Soft reset failed: error write to AIRCR\n");
-    return (ret);
-  }
-
-  // waiting for a reset within 500ms
-  // DDI0337E, p. 10-4, Debug Halting Control and Status Register
-  timeout = time_ms() + 500;
-  while (time_ms() < timeout) {
-    // DDI0337E, p. 10-4, Debug Halting Control and Status Register
-    dhcsr = STLINK_REG_DHCSR_S_RESET_ST;
-    stlink_read_debug32(sl, STLINK_REG_DHCSR, &dhcsr);
-    if ((dhcsr & STLINK_REG_DHCSR_S_RESET_ST) == 0) {
-      if (halt_on_reset) {
-        // waiting halt by the SYSRESETREQ exception
-        // DDI0403E, p. C1-699, Debug Fault Status Register
-        dfsr = 0;
-        stlink_read_debug32(sl, STLINK_REG_DFSR, &dfsr);
-        if ((dfsr & STLINK_REG_DFSR_VCATCH) == 0) {
-          continue;
-        }
-      }
-      timeout = 0;
-      break;
-    }
-  }
-
-  // reset DFSR register. DFSR is power-on reset only (DDI0337H, p. 7-5)
-  stlink_write_debug32(sl, STLINK_REG_DFSR, STLINK_REG_DFSR_CLEAR);
-
-  if (timeout) {
-    ELOG("Soft reset failed: timeout\n");
-    return (-1);
-  }
-
-  return (0);
-}
 /**
  * Decode the version bits, originally from -sg, verified with usb
  * @param sl stlink context, assumed to contain valid data in the buffer
@@ -1283,8 +1315,7 @@ on_error:
 }
 
 static bool stlink_fread_worker(void *arg, uint8_t *block, ssize_t len) {
-  struct stlink_fread_worker_arg *the_arg =
-      (struct stlink_fread_worker_arg *)arg;
+  struct stlink_fread_worker_arg *the_arg = (struct stlink_fread_worker_arg *)arg;
 
   if (write(the_arg->fd, block, len) != len) {
     fprintf(stderr, "write() != aligned_size\n");
@@ -1315,8 +1346,7 @@ static uint8_t stlink_parse_hex(const char *hex) {
   return ((d[0] << 4) | (d[1]));
 }
 
-static bool
-stlink_fread_ihex_newsegment(struct stlink_fread_ihex_worker_arg *the_arg) {
+static bool stlink_fread_ihex_newsegment(struct stlink_fread_ihex_worker_arg *the_arg) {
   uint32_t addr = the_arg->addr;
   uint8_t sum = 2 + 4 + (uint8_t)((addr & 0xFF000000) >> 24) +
                 (uint8_t)((addr & 0x00FF0000) >> 16);
@@ -1330,8 +1360,7 @@ stlink_fread_ihex_newsegment(struct stlink_fread_ihex_worker_arg *the_arg) {
   return (true);
 }
 
-static bool
-stlink_fread_ihex_writeline(struct stlink_fread_ihex_worker_arg *the_arg) {
+static bool stlink_fread_ihex_writeline(struct stlink_fread_ihex_worker_arg *the_arg) {
   uint8_t count = the_arg->buf_pos;
 
   if (count == 0) {
@@ -1399,8 +1428,7 @@ static bool stlink_fread_ihex_worker(void *arg, uint8_t *block, ssize_t len) {
   return (true);
 }
 
-static bool
-stlink_fread_ihex_finalize(struct stlink_fread_ihex_worker_arg *the_arg) {
+static bool stlink_fread_ihex_finalize(struct stlink_fread_ihex_worker_arg *the_arg) {
   if (!stlink_fread_ihex_writeline(the_arg)) {
     return (false);
   }

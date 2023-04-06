@@ -10,8 +10,8 @@
 /* STM32 Cortex-M core ids (CPUTAPID) */
 enum stm32_core_id {
     STM32_CORE_ID_M0_SWD        = 0x0bb11477,   // (RM0091 Section 32.5.3) F0 SW-DP
-                                                // (RM0444 Section 40.5.3) G0 SW-DP
-    STM32_CORE_ID_M0P_SWD       = 0x0bc11477,   // (RM0385 Section 27.5.3) L0 SW-DP
+    STM32_CORE_ID_M0P_SWD       = 0x0bc11477,   // (RM0444 Section 40.5.3) G0 SW-DP
+                                                // (RM0377 Section 27.5.3) L0 SW-DP
     STM32_CORE_ID_M3_r1p1_SWD   = 0x1ba01477,   // (RM0008 Section 31.8.3) F1 SW-DP
     STM32_CORE_ID_M3_r1p1_JTAG  = 0x3ba00477,   // (RM0008 Section 31.6.3) F1 JTAG
     STM32_CORE_ID_M3_r2p0_SWD   = 0x2ba01477,   // (RM0033 Section 32.8.3) F2 SW-DP
@@ -29,9 +29,15 @@ enum stm32_core_id {
     STM32_CORE_ID_M4F_r0p1_JTAG = 0x4ba00477,   // (RM0090 Section 38.6.3) F4 JTAG
                                                 // (RM0090 Section 47.6.3) G4 JTAG
     STM32_CORE_ID_M7F_SWD       = 0x5ba02477,   // (RM0385 Section 40.8.3) F7 SW-DP
+                                                // (RM0473 Section 33.4.4) WB SW-DP
+                                                // (RM0453 Section 38.4.1) WL SW-DP
     STM32_CORE_ID_M7F_JTAG      = 0x5ba00477,   // (RM0385 Section 40.6.3) F7 JTAG
-    STM32_CORE_ID_M7F_H7_SWD    = 0x6ba02477,   // (RM0433 Section 60.4.1) H7 SW-DP
-    STM32_CORE_ID_M7F_H7_JTAG   = 0x6ba00477,   // (RM0433 Section 60.4.1) H7 JTAG
+    STM32_CORE_ID_M7F_M33_SWD   = 0x6ba02477,   // (RM0481 Section 58.3.3) H5 SW-DP
+                                                // (RM0433 Section 60.4.1) H7 SW-DP
+    STM32_CORE_ID_M7F_M33_JTAG  = 0x6ba00477,   // (RM0481 Section 58.3.1) H5 JTAG
+                                                // (RM0433 Section 60.4.1) H7 JTAG
+                                                // (RM0473 Section 33.4.1) WB JTAG
+                                                // (RM0453 Section 38.3.8) WL JTAG
     STM32_CORE_ID_M33_SWD       = 0x0be02477,   // (RM0438 Section 52.2.10) L5 SW-DP
                                                 // (RM0456 Section 65.3.3) U5 SW-DP
     STM32_CORE_ID_M33_JTAGD     = 0x0be01477,   // (RM0438 Section 52.2.10) L5 JTAG-DP
@@ -106,20 +112,23 @@ enum stm32_chipids {
     STM32_CHIPID_G0_CAT4          = 0x456, /* G051/G061 */
     STM32_CHIPID_L011             = 0x457,
     STM32_CHIPID_F410             = 0x458,
-    STM32_CHIPID_G0_CAT2          = 0x460, /* G070/G071/G081 */
+    STM32_CHIPID_G0_CAT2          = 0x460, /* G07x/G08x */
     STM32_CHIPID_L496x_L4A6x      = 0x461,
     STM32_CHIPID_L45x_L46x        = 0x462,
     STM32_CHIPID_F413             = 0x463,
     STM32_CHIPID_L41x_L42x        = 0x464,
-    STM32_CHIPID_G0_CAT1          = 0x466, /* G030/G031/G041 */
-    STM32_CHIPID_G0_CAT3          = 0x467, /* G0B1/G0C1 */
+    STM32_CHIPID_G0_CAT1          = 0x466, /* G03x/G04x */
+    STM32_CHIPID_G0_CAT3          = 0x467, /* G0Bx/G0Cx */
     STM32_CHIPID_G4_CAT2          = 0x468, /* RM0440, section 46.6.1 "MCU device ID code" */
     STM32_CHIPID_G4_CAT3          = 0x469,
     STM32_CHIPID_L4Rx             = 0x470, /* RM0432, p.2247, found on the STM32L4R9I-DISCO board */
     STM32_CHIPID_L4PX             = 0x471, /* RM0432, p.2247 */
+    STM32_CHIPID_L5x2xx           = 0x472, /* RM0438, p.2157 */
     STM32_CHIPID_G4_CAT4          = 0x479,
     STM32_CHIPID_H7Ax             = 0x480, /* RM0455, p.2863 */
+    STM32_CHIPID_U5x5             = 0x482, /* RM0456, p.2991 */
     STM32_CHIPID_H72x             = 0x483, /* RM0468, p.3199 */
+    STM32_CHIPID_H5xx             = 0x484, /* RM0481, p.3085 */
     STM32_CHIPID_WB55             = 0x495,
     STM32_CHIPID_WLE              = 0x497,
 };
@@ -196,10 +205,16 @@ enum stm32_chipids {
 #define STM32L1_RCC_AHBENR 0x4002381C
 #define STM32L1_RCC_DMAEN 0x30000000 // DMA2EN | DMA1EN
 
+#define STM32L5_RCC_AHB1ENR 0x40021048                  // RM0438, p. 91,377
+#define STM32L5_RCC_DMAEN 0x00000003 // DMA2EN | DMA1EN // RM0438, p. 378
+
 #define STM32H7_RCC_AHB1ENR 0x58024538
 #define STM32H7_RCC_DMAEN 0x00000003 // DMA2EN | DMA1EN
 
 #define STM32WB_RCC_AHB1ENR 0x58000048
 #define STM32WB_RCC_DMAEN 0x00000003 // DMA2EN | DMA1EN
+
+#define STM32L5_PWR_CR1 0x40007000                      // RM0438, p. 93,324
+#define STM32L5_PWR_CR1_VOS 9
 
 #endif // STM32_H
