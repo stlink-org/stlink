@@ -1007,11 +1007,8 @@ int stlink_read_option_bytes32(stlink_t *sl, uint32_t *option_byte) {
   case STM32_CHIPID_F76xxx:
     return stlink_read_option_bytes_f7(sl, option_byte);
   case STM32_CHIPID_G0_CAT1:
-    return stlink_read_option_bytes_gx(sl, option_byte);
   case STM32_CHIPID_G0_CAT2:
-    return stlink_read_option_bytes_gx(sl, option_byte);
   case STM32_CHIPID_G4_CAT2:
-    return stlink_read_option_bytes_gx(sl, option_byte);
   case STM32_CHIPID_G4_CAT3:
     return stlink_read_option_bytes_gx(sl, option_byte);
   default:

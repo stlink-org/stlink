@@ -1,18 +1,21 @@
-#include <helper.h>
-#include <fcntl.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <md5.h>
+
+#include <fcntl.h>
+#include <helper.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
+
 #include <stlink.h>
 #include <stm32.h>
 
-#include "common_flash.h"
 #include "calculate.h"
+#include "common_flash.h"
 #include "map_file.h"
+#include "md5.h"
+
 #include "common.h"
 
 #ifndef O_BINARY

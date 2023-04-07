@@ -1,17 +1,22 @@
 /* Simple wrapper around the stlink_flash_write function */
 
-// TODO - this should be done as just a simple flag to the st-util command line...
-
-#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include <fcntl.h>
+#include <signal.h>
 #include <sys/types.h>
+#include <unistd.h>
 
 #include <stm32.h>
 #include <stlink.h>
+
+#include <common_flash.h>
+#include <map_file.h>
+#include <option_bytes.h>
+
 #include "flash.h"
-#include "option_bytes.h"
 
 static stlink_t *connected_stlink = NULL;
 
@@ -215,20 +220,25 @@ int main(int ac, char** av) {
                 (unsigned)remaining_option_length,
                 sl->option_base);
 
-            if (NULL != o.filename) {
-                if (0 == o.size) {
-                    o.size = sl->option_size;
-                }
-                err = stlink_fread(sl, o.filename, o.format == FLASH_FORMAT_IHEX, sl->option_base, o.size);
-            } else {
-                uint32_t option_byte = 0;
-                err = stlink_read_option_bytes32(sl, &option_byte);
-                if (err == -1) {
-                    printf("could not read option bytes (%d)\n", err);
+            uint32_t option_byte = 0;
+            err = stlink_read_option_bytes32(sl, &option_byte);
+            if (err == -1) {
+                printf("could not read option bytes (%d)\n", err);
+                goto on_error;
+            } else if (NULL != o.filename) {
+                int fd = open(o.filename, O_RDWR | O_TRUNC | O_CREAT | O_BINARY, 00700);
+                if (fd == -1) {
+                    fprintf(stderr, "open(%s) == -1\n", o.filename);
                     goto on_error;
-                } else {
-                    printf("%08x\n", option_byte);
                 }
+                err = (uint32_t)write(fd, &option_byte, 4);
+                if (err == -1) {
+                    printf("could not write buffer to file (%d)\n", err);
+                    goto on_error;
+                }
+                close(fd);
+            } else {
+                printf("%08x\n", option_byte);
             }
         } else if (o.area == FLASH_OPTION_BYTES_BOOT_ADD) {
             uint32_t option_byte = 0;

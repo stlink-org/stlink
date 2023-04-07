@@ -1,11 +1,13 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+
+#include <errno.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <stdlib.h>
-#include <errno.h>
 
 #include <stlink.h>
+
 #include <logging.h>
 #include "semihosting.h"
 
@@ -256,8 +258,7 @@ int do_semihosting (stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret) {
             return(-1);
         }
 
-        DLOG("Semihosting: write(%d, target_addr:0x%08x, %u)\n", fd, buffer_address,
-             buffer_len);
+        DLOG("Semihosting: write(%d, target_addr:0x%08x, %u)\n", fd, buffer_address, buffer_len);
 
         *ret = (uint32_t)write(fd, buffer, buffer_len);
         saved_errno = errno;
