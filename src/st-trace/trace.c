@@ -591,7 +591,8 @@ int main(int argc, char **argv) {
   if (!(stlink->chip_flags & CHIP_F_HAS_SWO_TRACING)) {
     const struct stlink_chipid_params *params =
         stlink_chipid_get_params(stlink->chip_id);
-    ELOG("We do not support SWO output for device '%s'\n", params->dev_type);
+    ELOG("We do not support SWO output for device '%s'\n",
+        params ? params->dev_type : "");
     if (!settings.force)
       return APP_RESULT_STLINK_UNSUPPORTED_DEVICE;
   }
