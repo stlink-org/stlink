@@ -64,7 +64,10 @@ void process_chipfile(char *fname) {
         (strncmp(buf, " ", strlen(" ")) == 0))
       continue; // ignore empty lines
 
-    sscanf(buf, "%63s %63s", word, value);
+    if (sscanf(buf, "%63s %63s", word, value) != 2) {
+      fprintf(stderr, "Failed to read keyword or value\n");
+      continue;
+    }
 
     if (strcmp(word, "dev_type") == 0) {
       buf[strlen(buf) - 1] = 0; // chomp newline
