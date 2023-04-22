@@ -64,7 +64,7 @@ void process_chipfile(char *fname) {
         (strncmp(buf, " ", strlen(" ")) == 0))
       continue; // ignore empty lines
 
-    sscanf(buf, "%s %s", word, value);
+    sscanf(buf, "%63s %63s", word, value);
 
     if (strcmp(word, "dev_type") == 0) {
       buf[strlen(buf) - 1] = 0; // chomp newline
