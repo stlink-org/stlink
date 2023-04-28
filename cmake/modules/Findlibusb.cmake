@@ -60,7 +60,7 @@ elseif (WIN32 OR (EXISTS "/etc/debian_version" AND MINGW)) # Windows or MinGW-to
         if (WIN32 AND NOT EXISTS "/etc/debian_version") # ... on native Windows systems
             set(LIBUSB_WIN_ARCHIVE_PATH ${CMAKE_BINARY_DIR}/${LIBUSB_WIN_ARCHIVE})
             set(LIBUSB_WIN_OUTPUT_FOLDER ${CMAKE_BINARY_DIR}/3rdparty/libusb-${LIBUSB_WIN_VERSION})
-        else (EXISTS "/etc/debian_version" AND MINGW)   # ... only for cross-building on Debian
+        elseif (EXISTS "/etc/debian_version" AND MINGW)   # ... only for cross-building on Debian
             set(LIBUSB_WIN_ARCHIVE_PATH ${CMAKE_SOURCE_DIR}/build-mingw-${ARCH}/${LIBUSB_WIN_ARCHIVE})
             set(LIBUSB_WIN_OUTPUT_FOLDER ${CMAKE_SOURCE_DIR}/build-mingw-${ARCH}/3rdparty/libusb-${LIBUSB_WIN_VERSION})
         endif ()
@@ -102,7 +102,7 @@ elseif (WIN32 OR (EXISTS "/etc/debian_version" AND MINGW)) # Windows or MinGW-to
                 NO_CMAKE_FIND_ROOT_PATH
                 )
 
-        else (MSVC)
+        elseif (MSVC)
             set(LIBUSB_NAME libusb-1.0.lib)
             find_library(
                 LIBUSB_LIBRARY NAMES ${LIBUSB_NAME}
