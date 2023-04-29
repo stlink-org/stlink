@@ -160,8 +160,10 @@ int parse_options(int argc, char** argv, st_state_t *st) {
 
             break;
         case 'p':
-            sscanf(optarg, "%i", &q);
-            if (q < 0) {
+            if (sscanf(optarg, "%i", &q) != 1) {
+                fprintf(stderr, "Invalid port %s\n", optarg);
+                exit(EXIT_FAILURE);
+            } else if (q < 0) {
                 fprintf(stderr, "Can't use a negative port to listen on: %d\n", q);
                 exit(EXIT_FAILURE);
             }
