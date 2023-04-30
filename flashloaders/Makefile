@@ -1,5 +1,5 @@
-# The flash loader code cannot be compiled by the system gcc. This 
-# makefile use arm-none-eabi-gcc for this purpose
+# The flash loader code cannot be compiled by the system gcc.
+# This makefile uses arm-none-eabi-gcc for this purpose.
 
 CROSS_COMPILE ?= arm-none-eabi-
 

@@ -391,7 +391,7 @@ int stlink_flash_loader_run(stlink_t *sl, flash_loader_t* fl, stm32_addr_t targe
      * firmware size.
      */
     if ((int32_t)rr.r[2] > 0 || (int32_t)rr.r[2] < -7) {
-        ELOG("Write error\n");
+        ELOG("Flash loader write error\n");
         goto error;
     }
 

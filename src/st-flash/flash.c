@@ -188,6 +188,12 @@ int main(int ac, char** av) {
             goto on_error;
         }
         printf("Mass erase completed successfully.\n");
+
+        // reset after erase
+        if (stlink_reset(sl, RESET_AUTO)) {
+            printf("Failed to reset device\n");
+            goto on_error;
+        }
     
     } else if (o.cmd == CMD_RESET) {
 
