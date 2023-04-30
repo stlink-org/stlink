@@ -288,16 +288,16 @@ int stlink_load_device_params(stlink_t *sl) {
 
   if (sl->chip_id == STM32_CHIPID_G4_CAT3) {
     uint32_t flash_optr;
-    stlink_read_debug32(sl, STM32Gx_FLASH_OPTR, &flash_optr);
+    stlink_read_debug32(sl, FLASH_Gx_OPTR, &flash_optr);
 
-    if (!(flash_optr & (1 << STM32G4_FLASH_OPTR_DBANK))) {
+    if (!(flash_optr & (1 << FLASH_G4_OPTR_DBANK))) {
       sl->flash_pgsz <<= 1;
     }
   }
 
   if (sl->chip_id == STM32_CHIPID_L5x2xx) {
     uint32_t flash_optr;
-    stlink_read_debug32(sl, STM32L5_FLASH_OPTR, &flash_optr);
+    stlink_read_debug32(sl, FLASH_L5_OPTR, &flash_optr);
 
     if (sl->flash_size == 512*1024 && (flash_optr & (1 << 22)) != 0) {
       sl->flash_pgsz = 0x800;
@@ -1099,7 +1099,7 @@ static void stop_wdg_in_debug(stlink_t *sl) {
     break;
   case STM32_FLASH_TYPE_L0_L1:
   case STM32_FLASH_TYPE_G0:
-    if (get_stm32l0_flash_base(sl) == STM32L_FLASH_REGS_ADDR) {
+    if (get_stm32l0_flash_base(sl) == FLASH_Lx_REGS_ADDR) {
       dbgmcu_cr = STM32L1_DBGMCU_APB1_FZ;
       set = (1 << STM32L1_DBGMCU_APB1_FZ_IWDG_STOP) |
             (1 << STM32L1_DBGMCU_APB1_FZ_WWDG_STOP);

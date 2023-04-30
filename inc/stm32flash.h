@@ -59,206 +59,206 @@
 #define FLASH_CR_OPTWRE 9
 #define FLASH_CR_OBL_LAUNCH 13
 
-#define STM32L_FLASH_REGS_ADDR ((uint32_t)0x40023c00)
-#define STM32L_FLASH_ACR (STM32L_FLASH_REGS_ADDR + 0x00)
-#define STM32L_FLASH_PECR (STM32L_FLASH_REGS_ADDR + 0x04)
-#define STM32L_FLASH_PDKEYR (STM32L_FLASH_REGS_ADDR + 0x08)
-#define STM32L_FLASH_PEKEYR (STM32L_FLASH_REGS_ADDR + 0x0c)
-#define STM32L_FLASH_PRGKEYR (STM32L_FLASH_REGS_ADDR + 0x10)
-#define STM32L_FLASH_OPTKEYR (STM32L_FLASH_REGS_ADDR + 0x14)
-#define STM32L_FLASH_SR (STM32L_FLASH_REGS_ADDR + 0x18)
-#define STM32L_FLASH_OBR (STM32L_FLASH_REGS_ADDR + 0x1c)
-#define STM32L_FLASH_WRPR (STM32L_FLASH_REGS_ADDR + 0x20)
+#define FLASH_Lx_REGS_ADDR ((uint32_t)0x40023c00)
+#define FLASH_Lx_ACR (FLASH_Lx_REGS_ADDR + 0x00)
+#define FLASH_Lx_PECR (FLASH_Lx_REGS_ADDR + 0x04)
+#define FLASH_Lx_PDKEYR (FLASH_Lx_REGS_ADDR + 0x08)
+#define FLASH_Lx_PEKEYR (FLASH_Lx_REGS_ADDR + 0x0c)
+#define FLASH_Lx_PRGKEYR (FLASH_Lx_REGS_ADDR + 0x10)
+#define FLASH_Lx_OPTKEYR (FLASH_Lx_REGS_ADDR + 0x14)
+#define FLASH_Lx_SR (FLASH_Lx_REGS_ADDR + 0x18)
+#define FLASH_Lx_OBR (FLASH_Lx_REGS_ADDR + 0x1c)
+#define FLASH_Lx_WRPR (FLASH_Lx_REGS_ADDR + 0x20)
 #define FLASH_L1_FPRG 10
 #define FLASH_L1_PROG 3
 
 // Flash registers common to STM32G0 and STM32G4 series (RM0440, p. 146)
-#define STM32Gx_FLASH_REGS_ADDR ((uint32_t)0x40022000)
-#define STM32Gx_FLASH_ACR (STM32Gx_FLASH_REGS_ADDR + 0x00)
-#define STM32Gx_FLASH_KEYR (STM32Gx_FLASH_REGS_ADDR + 0x08)
-#define STM32Gx_FLASH_OPTKEYR (STM32Gx_FLASH_REGS_ADDR + 0x0c)
-#define STM32Gx_FLASH_SR (STM32Gx_FLASH_REGS_ADDR + 0x10)
-#define STM32Gx_FLASH_CR (STM32Gx_FLASH_REGS_ADDR + 0x14)
-#define STM32Gx_FLASH_ECCR (STM32Gx_FLASH_REGS_ADDR + 0x18)
-#define STM32Gx_FLASH_OPTR (STM32Gx_FLASH_REGS_ADDR + 0x20)
+#define FLASH_Gx_REGS_ADDR ((uint32_t)0x40022000)
+#define FLASH_Gx_ACR (FLASH_Gx_REGS_ADDR + 0x00)
+#define FLASH_Gx_KEYR (FLASH_Gx_REGS_ADDR + 0x08)
+#define FLASH_Gx_OPTKEYR (FLASH_Gx_REGS_ADDR + 0x0c)
+#define FLASH_Gx_SR (FLASH_Gx_REGS_ADDR + 0x10)
+#define FLASH_Gx_CR (FLASH_Gx_REGS_ADDR + 0x14)
+#define FLASH_Gx_ECCR (FLASH_Gx_REGS_ADDR + 0x18)
+#define FLASH_Gx_OPTR (FLASH_Gx_REGS_ADDR + 0x20)
 
 // G0 (RM0444 Table 1, sec 3.7)
 // Mostly the same as G4 chips, but the notation
 // varies a bit after the 'OPTR' register.
-#define STM32G0_FLASH_REGS_ADDR (STM32Gx_FLASH_REGS_ADDR)
-#define STM32G0_FLASH_PCROP1ASR (STM32G0_FLASH_REGS_ADDR + 0x24)
-#define STM32G0_FLASH_PCROP1AER (STM32G0_FLASH_REGS_ADDR + 0x28)
-#define STM32G0_FLASH_WRP1AR (STM32G0_FLASH_REGS_ADDR + 0x2C)
-#define STM32G0_FLASH_WRP1BR (STM32G0_FLASH_REGS_ADDR + 0x30)
-#define STM32G0_FLASH_PCROP1BSR (STM32G0_FLASH_REGS_ADDR + 0x34)
-#define STM32G0_FLASH_PCROP1BER (STM32G0_FLASH_REGS_ADDR + 0x38)
-#define STM32G0_FLASH_SECR (STM32G0_FLASH_REGS_ADDR + 0x80)
+#define FLASH_G0_REGS_ADDR (FLASH_Gx_REGS_ADDR)
+#define FLASH_G0_PCROP1ASR (FLASH_G0_REGS_ADDR + 0x24)
+#define FLASH_G0_PCROP1AER (FLASH_G0_REGS_ADDR + 0x28)
+#define FLASH_G0_WRP1AR (FLASH_G0_REGS_ADDR + 0x2C)
+#define FLASH_G0_WRP1BR (FLASH_G0_REGS_ADDR + 0x30)
+#define FLASH_G0_PCROP1BSR (FLASH_G0_REGS_ADDR + 0x34)
+#define FLASH_G0_PCROP1BER (FLASH_G0_REGS_ADDR + 0x38)
+#define FLASH_G0_SECR (FLASH_G0_REGS_ADDR + 0x80)
 
 // G4 (RM0440 Table 17, sec 3.7.19)
 // Mostly the same as STM32G0 chips, but there are a few extra
 // registers because 'cat 3' devices can have two Flash banks.
-#define STM32G4_FLASH_REGS_ADDR (STM32Gx_FLASH_REGS_ADDR)
-#define STM32G4_FLASH_PDKEYR (STM32G4_FLASH_REGS_ADDR + 0x04)
-#define STM32G4_FLASH_PCROP1SR (STM32G4_FLASH_REGS_ADDR + 0x24)
-#define STM32G4_FLASH_PCROP1ER (STM32G4_FLASH_REGS_ADDR + 0x28)
-#define STM32G4_FLASH_WRP1AR (STM32G4_FLASH_REGS_ADDR + 0x2C)
-#define STM32G4_FLASH_WRP1BR (STM32G4_FLASH_REGS_ADDR + 0x30)
-#define STM32G4_FLASH_PCROP2SR (STM32G4_FLASH_REGS_ADDR + 0x44)
-#define STM32G4_FLASH_PCROP2ER (STM32G4_FLASH_REGS_ADDR + 0x48)
-#define STM32G4_FLASH_WRP2AR (STM32G4_FLASH_REGS_ADDR + 0x4C)
-#define STM32G4_FLASH_WRP2BR (STM32G4_FLASH_REGS_ADDR + 0x50)
-#define STM32G4_FLASH_SEC1R (STM32G4_FLASH_REGS_ADDR + 0x70)
-#define STM32G4_FLASH_SEC2R (STM32G4_FLASH_REGS_ADDR + 0x74)
+#define FLASH_G4_REGS_ADDR (FLASH_Gx_REGS_ADDR)
+#define FLASH_G4_PDKEYR (FLASH_G4_REGS_ADDR + 0x04)
+#define FLASH_G4_PCROP1SR (FLASH_G4_REGS_ADDR + 0x24)
+#define FLASH_G4_PCROP1ER (FLASH_G4_REGS_ADDR + 0x28)
+#define FLASH_G4_WRP1AR (FLASH_G4_REGS_ADDR + 0x2C)
+#define FLASH_G4_WRP1BR (FLASH_G4_REGS_ADDR + 0x30)
+#define FLASH_G4_PCROP2SR (FLASH_G4_REGS_ADDR + 0x44)
+#define FLASH_G4_PCROP2ER (FLASH_G4_REGS_ADDR + 0x48)
+#define FLASH_G4_WRP2AR (FLASH_G4_REGS_ADDR + 0x4C)
+#define FLASH_G4_WRP2BR (FLASH_G4_REGS_ADDR + 0x50)
+#define FLASH_G4_SEC1R (FLASH_G4_REGS_ADDR + 0x70)
+#define FLASH_G4_SEC2R (FLASH_G4_REGS_ADDR + 0x74)
 
 // G0/G4 FLASH control register
-#define STM32Gx_FLASH_CR_PG (0)      /* Program */
-#define STM32Gx_FLASH_CR_PER (1)     /* Page erase */
-#define STM32Gx_FLASH_CR_MER1 (2)    /* Mass erase */
-#define STM32Gx_FLASH_CR_PNB (3)     /* Page number */
-#define STM32G0_FLASH_CR_PNG_LEN (5) /* STM32G0: 5 page number bits */
-#define STM32G4_FLASH_CR_PNG_LEN (7) /* STM32G4: 7 page number bits */
-#define STM32Gx_FLASH_CR_MER2 (15)   /* Mass erase (2nd bank)*/
-#define STM32Gx_FLASH_CR_STRT (16)   /* Start */
-#define STM32Gx_FLASH_CR_OPTSTRT                                               \
+#define FLASH_Gx_CR_PG (0)      /* Program */
+#define FLASH_Gx_CR_PER (1)     /* Page erase */
+#define FLASH_Gx_CR_MER1 (2)    /* Mass erase */
+#define FLASH_Gx_CR_PNB (3)     /* Page number */
+#define FLASH_G0_CR_PNG_LEN (5) /* STM32G0: 5 page number bits */
+#define FLASH_G4_CR_PNG_LEN (7) /* STM32G4: 7 page number bits */
+#define FLASH_Gx_CR_MER2 (15)   /* Mass erase (2nd bank)*/
+#define FLASH_Gx_CR_STRT (16)   /* Start */
+#define FLASH_Gx_CR_OPTSTRT                                               \
   (17)                              /* Start of modification of option bytes */
-#define STM32Gx_FLASH_CR_FSTPG (18) /* Fast programming */
-#define STM32Gx_FLASH_CR_EOPIE (24) /* End of operation interrupt enable */
-#define STM32Gx_FLASH_CR_ERRIE (25) /* Error interrupt enable */
-#define STM32Gx_FLASH_CR_OBL_LAUNCH (27) /* Forces the option byte loading */
-#define STM32Gx_FLASH_CR_OPTLOCK (30)    /* Options Lock */
-#define STM32Gx_FLASH_CR_LOCK (31)       /* FLASH_CR Lock */
+#define FLASH_Gx_CR_FSTPG (18) /* Fast programming */
+#define FLASH_Gx_CR_EOPIE (24) /* End of operation interrupt enable */
+#define FLASH_Gx_CR_ERRIE (25) /* Error interrupt enable */
+#define FLASH_Gx_CR_OBL_LAUNCH (27) /* Forces the option byte loading */
+#define FLASH_Gx_CR_OPTLOCK (30)    /* Options Lock */
+#define FLASH_Gx_CR_LOCK (31)       /* FLASH_CR Lock */
 
 // G0/G4 FLASH status register
-#define STM32Gx_FLASH_SR_ERROR_MASK (0x3fa)
-#define STM32Gx_FLASH_SR_PROGERR (3)
-#define STM32Gx_FLASH_SR_WRPERR (4)
-#define STM32Gx_FLASH_SR_PGAERR (5)
-#define STM32Gx_FLASH_SR_BSY (16) /* FLASH_SR Busy */
-#define STM32Gx_FLASH_SR_EOP (0)  /* FLASH_EOP End of Operation */
+#define FLASH_Gx_SR_ERROR_MASK (0x3fa)
+#define FLASH_Gx_SR_PROGERR (3)
+#define FLASH_Gx_SR_WRPERR (4)
+#define FLASH_Gx_SR_PGAERR (5)
+#define FLASH_Gx_SR_BSY (16) /* FLASH_SR Busy */
+#define FLASH_Gx_SR_EOP (0)  /* FLASH_EOP End of Operation */
 
 // G4 FLASH option register
-#define STM32G4_FLASH_OPTR_DBANK (22) /* FLASH_OPTR Dual Bank Mode */
+#define FLASH_G4_OPTR_DBANK (22) /* FLASH_OPTR Dual Bank Mode */
 
 // WB (RM0434)
-#define STM32WB_FLASH_REGS_ADDR ((uint32_t)0x58004000)
-#define STM32WB_FLASH_ACR (STM32WB_FLASH_REGS_ADDR + 0x00)
-#define STM32WB_FLASH_KEYR (STM32WB_FLASH_REGS_ADDR + 0x08)
-#define STM32WB_FLASH_OPT_KEYR (STM32WB_FLASH_REGS_ADDR + 0x0C)
-#define STM32WB_FLASH_SR (STM32WB_FLASH_REGS_ADDR + 0x10)
-#define STM32WB_FLASH_CR (STM32WB_FLASH_REGS_ADDR + 0x14)
-#define STM32WB_FLASH_ECCR (STM32WB_FLASH_REGS_ADDR + 0x18)
-#define STM32WB_FLASH_OPTR (STM32WB_FLASH_REGS_ADDR + 0x20)
-#define STM32WB_FLASH_PCROP1ASR (STM32WB_FLASH_REGS_ADDR + 0x24)
-#define STM32WB_FLASH_PCROP1AER (STM32WB_FLASH_REGS_ADDR + 0x28)
-#define STM32WB_FLASH_WRP1AR (STM32WB_FLASH_REGS_ADDR + 0x2C)
-#define STM32WB_FLASH_WRP1BR (STM32WB_FLASH_REGS_ADDR + 0x30)
-#define STM32WB_FLASH_PCROP1BSR (STM32WB_FLASH_REGS_ADDR + 0x34)
-#define STM32WB_FLASH_PCROP1BER (STM32WB_FLASH_REGS_ADDR + 0x38)
-#define STM32WB_FLASH_IPCCBR (STM32WB_FLASH_REGS_ADDR + 0x3C)
-#define STM32WB_FLASH_C2ACR (STM32WB_FLASH_REGS_ADDR + 0x5C)
-#define STM32WB_FLASH_C2SR (STM32WB_FLASH_REGS_ADDR + 0x60)
-#define STM32WB_FLASH_C2CR (STM32WB_FLASH_REGS_ADDR + 0x64)
-#define STM32WB_FLASH_SFR (STM32WB_FLASH_REGS_ADDR + 0x80)
-#define STM32WB_FLASH_SRRVR (STM32WB_FLASH_REGS_ADDR + 0x84)
+#define FLASH_WB_REGS_ADDR ((uint32_t)0x58004000)
+#define FLASH_WB_ACR (FLASH_WB_REGS_ADDR + 0x00)
+#define FLASH_WB_KEYR (FLASH_WB_REGS_ADDR + 0x08)
+#define FLASH_WB_OPT_KEYR (FLASH_WB_REGS_ADDR + 0x0C)
+#define FLASH_WB_SR (FLASH_WB_REGS_ADDR + 0x10)
+#define FLASH_WB_CR (FLASH_WB_REGS_ADDR + 0x14)
+#define FLASH_WB_ECCR (FLASH_WB_REGS_ADDR + 0x18)
+#define FLASH_WB_OPTR (FLASH_WB_REGS_ADDR + 0x20)
+#define FLASH_WB_PCROP1ASR (FLASH_WB_REGS_ADDR + 0x24)
+#define FLASH_WB_PCROP1AER (FLASH_WB_REGS_ADDR + 0x28)
+#define FLASH_WB_WRP1AR (FLASH_WB_REGS_ADDR + 0x2C)
+#define FLASH_WB_WRP1BR (FLASH_WB_REGS_ADDR + 0x30)
+#define FLASH_WB_PCROP1BSR (FLASH_WB_REGS_ADDR + 0x34)
+#define FLASH_WB_PCROP1BER (FLASH_WB_REGS_ADDR + 0x38)
+#define FLASH_WB_IPCCBR (FLASH_WB_REGS_ADDR + 0x3C)
+#define FLASH_WB_C2ACR (FLASH_WB_REGS_ADDR + 0x5C)
+#define FLASH_WB_C2SR (FLASH_WB_REGS_ADDR + 0x60)
+#define FLASH_WB_C2CR (FLASH_WB_REGS_ADDR + 0x64)
+#define FLASH_WB_SFR (FLASH_WB_REGS_ADDR + 0x80)
+#define FLASH_WB_SRRVR (FLASH_WB_REGS_ADDR + 0x84)
 
 // WB Flash control register.
-#define STM32WB_FLASH_CR_STRT (16)       /* Start */
-#define STM32WB_FLASH_CR_OPTSTRT (17)    /* Start writing option bytes */
-#define STM32WB_FLASH_CR_OBL_LAUNCH (27) /* Forces the option byte loading */
-#define STM32WB_FLASH_CR_OPTLOCK (30)    /* Option Lock */
-#define STM32WB_FLASH_CR_LOCK (31)       /* Lock */
+#define FLASH_WB_CR_STRT (16)       /* Start */
+#define FLASH_WB_CR_OPTSTRT (17)    /* Start writing option bytes */
+#define FLASH_WB_CR_OBL_LAUNCH (27) /* Forces the option byte loading */
+#define FLASH_WB_CR_OPTLOCK (30)    /* Option Lock */
+#define FLASH_WB_CR_LOCK (31)       /* Lock */
 // WB Flash status register.
-#define STM32WB_FLASH_SR_ERROR_MASK (0x3f8) /* SR [9:3] */
-#define STM32WB_FLASH_SR_PROGERR (3)        /* Programming alignment error */
-#define STM32WB_FLASH_SR_WRPERR (4)         /* Write protection error */
-#define STM32WB_FLASH_SR_PGAERR (5)         /* Programming error */
-#define STM32WB_FLASH_SR_BSY (16)           /* Busy */
+#define FLASH_WB_SR_ERROR_MASK (0x3f8) /* SR [9:3] */
+#define FLASH_WB_SR_PROGERR (3)        /* Programming alignment error */
+#define FLASH_WB_SR_WRPERR (4)         /* Write protection error */
+#define FLASH_WB_SR_PGAERR (5)         /* Programming error */
+#define FLASH_WB_SR_BSY (16)           /* Busy */
 
 // 32L4 register base is at FLASH_REGS_ADDR (0x40022000)
-#define STM32L4_FLASH_KEYR (FLASH_REGS_ADDR + 0x08)
-#define STM32L4_FLASH_OPTKEYR (FLASH_REGS_ADDR + 0x0C)
-#define STM32L4_FLASH_SR (FLASH_REGS_ADDR + 0x10)
-#define STM32L4_FLASH_CR (FLASH_REGS_ADDR + 0x14)
-#define STM32L4_FLASH_OPTR (FLASH_REGS_ADDR + 0x20)
+#define FLASH_L4_KEYR (FLASH_REGS_ADDR + 0x08)
+#define FLASH_L4_OPTKEYR (FLASH_REGS_ADDR + 0x0C)
+#define FLASH_L4_SR (FLASH_REGS_ADDR + 0x10)
+#define FLASH_L4_CR (FLASH_REGS_ADDR + 0x14)
+#define FLASH_L4_OPTR (FLASH_REGS_ADDR + 0x20)
 
-#define STM32L4_FLASH_SR_ERROR_MASK 0x3f8 /* SR [9:3] */
-#define STM32L4_FLASH_SR_PROGERR 3
-#define STM32L4_FLASH_SR_WRPERR 4
-#define STM32L4_FLASH_SR_PGAERR 5
-#define STM32L4_FLASH_SR_BSY 16
+#define FLASH_L4_SR_ERROR_MASK 0x3f8 /* SR [9:3] */
+#define FLASH_L4_SR_PROGERR 3
+#define FLASH_L4_SR_WRPERR 4
+#define FLASH_L4_SR_PGAERR 5
+#define FLASH_L4_SR_BSY 16
 
-#define STM32L4_FLASH_CR_LOCK 31       /* Lock control register */
-#define STM32L4_FLASH_CR_OPTLOCK 30    /* Lock option bytes */
-#define STM32L4_FLASH_CR_PG 0          /* Program */
-#define STM32L4_FLASH_CR_PER 1         /* Page erase */
-#define STM32L4_FLASH_CR_MER1 2        /* Bank 1 erase */
-#define STM32L4_FLASH_CR_MER2 15       /* Bank 2 erase */
-#define STM32L4_FLASH_CR_STRT 16       /* Start command */
-#define STM32L4_FLASH_CR_OPTSTRT 17    /* Start writing option bytes */
-#define STM32L4_FLASH_CR_BKER 11       /* Bank select for page erase */
-#define STM32L4_FLASH_CR_PNB 3         /* Page number (8 bits) */
-#define STM32L4_FLASH_CR_OBL_LAUNCH 27 /* Option bytes reload */
+#define FLASH_L4_CR_LOCK 31       /* Lock control register */
+#define FLASH_L4_CR_OPTLOCK 30    /* Lock option bytes */
+#define FLASH_L4_CR_PG 0          /* Program */
+#define FLASH_L4_CR_PER 1         /* Page erase */
+#define FLASH_L4_CR_MER1 2        /* Bank 1 erase */
+#define FLASH_L4_CR_MER2 15       /* Bank 2 erase */
+#define FLASH_L4_CR_STRT 16       /* Start command */
+#define FLASH_L4_CR_OPTSTRT 17    /* Start writing option bytes */
+#define FLASH_L4_CR_BKER 11       /* Bank select for page erase */
+#define FLASH_L4_CR_PNB 3         /* Page number (8 bits) */
+#define FLASH_L4_CR_OBL_LAUNCH 27 /* Option bytes reload */
 // Bits requesting flash operations (useful when we want to clear them)
-#define STM32L4_FLASH_CR_OPBITS                                                \
-  (uint32_t)((1lu << STM32L4_FLASH_CR_PG) | (1lu << STM32L4_FLASH_CR_PER) |    \
-             (1lu << STM32L4_FLASH_CR_MER1) | (1lu << STM32L4_FLASH_CR_MER1))
+#define FLASH_L4_CR_OPBITS                                                \
+  (uint32_t)((1lu << FLASH_L4_CR_PG) | (1lu << FLASH_L4_CR_PER) |    \
+             (1lu << FLASH_L4_CR_MER1) | (1lu << FLASH_L4_CR_MER1))
 // Page is fully specified by BKER and PNB
-#define STM32L4_FLASH_CR_PAGEMASK (uint32_t)(0x1fflu << STM32L4_FLASH_CR_PNB)
+#define FLASH_L4_CR_PAGEMASK (uint32_t)(0x1fflu << FLASH_L4_CR_PNB)
 
-#define STM32L4_FLASH_OPTR_DUALBANK 21
+#define FLASH_L4_OPTR_DUALBANK 21
 
 // Flash registers common to STM32L5 series (RM0438, p. 241)
-#define STM32L5_FLASH_REGS_ADDR ((uint32_t)0x40022000)
-#define STM32L5_FLASH_ACR (STM32L5_FLASH_REGS_ADDR + 0x00)
-#define STM32L5_FLASH_NSKEYR (STM32L5_FLASH_REGS_ADDR + 0x08)
-#define STM32L5_FLASH_OPTKEYR (STM32L5_FLASH_REGS_ADDR + 0x10)
-#define STM32L5_FLASH_NSSR (STM32L5_FLASH_REGS_ADDR + 0x20)
-#define STM32L5_FLASH_NSCR (STM32L5_FLASH_REGS_ADDR + 0x28)
-#define STM32L5_FLASH_ECCR (STM32L5_FLASH_REGS_ADDR + 0x30)
-#define STM32L5_FLASH_OPTR (STM32L5_FLASH_REGS_ADDR + 0x40)
+#define FLASH_L5_REGS_ADDR ((uint32_t)0x40022000)
+#define FLASH_L5_ACR (FLASH_L5_REGS_ADDR + 0x00)
+#define FLASH_L5_NSKEYR (FLASH_L5_REGS_ADDR + 0x08)
+#define FLASH_L5_OPTKEYR (FLASH_L5_REGS_ADDR + 0x10)
+#define FLASH_L5_NSSR (FLASH_L5_REGS_ADDR + 0x20)
+#define FLASH_L5_NSCR (FLASH_L5_REGS_ADDR + 0x28)
+#define FLASH_L5_ECCR (FLASH_L5_REGS_ADDR + 0x30)
+#define FLASH_L5_OPTR (FLASH_L5_REGS_ADDR + 0x40)
 
 // FLASH_NSCR (RM0438, p. 242)
-#define STM32L5_FLASH_NSCR_NSPG 0        /* Program */
-#define STM32L5_FLASH_NSCR_NSPER 1       /* Page erase */
-#define STM32L5_FLASH_NSCR_NSMER1 2      /* Bank 1 erase */
-#define STM32L5_FLASH_NSCR_NSPNB 3       /* Page number (7 bits) */
-#define STM32L5_FLASH_NSCR_NSBKER 11     /* Bank select for page erase */
-#define STM32L5_FLASH_NSCR_NSMER2 15     /* Bank 2 erase */
-#define STM32L5_FLASH_NSCR_NSSTRT 16     /* Start command */
-#define STM32L5_FLASH_NSCR_NSOPTSTRT 17  /* Start writing option bytes */
-#define STM32L5_FLASH_NSCR_NSEOPIE 24
-#define STM32L5_FLASH_NSCR_NSERRIE 25
-#define STM32L5_FLASH_NSCR_OBL_LAUNCH 27 /* Option bytes reload */
-#define STM32L5_FLASH_NSCR_OPTLOCK 30    /* Lock option bytes */
-#define STM32L5_FLASH_NSCR_NSLOCK 31     /* Lock control register */
+#define FLASH_L5_NSCR_NSPG 0        /* Program */
+#define FLASH_L5_NSCR_NSPER 1       /* Page erase */
+#define FLASH_L5_NSCR_NSMER1 2      /* Bank 1 erase */
+#define FLASH_L5_NSCR_NSPNB 3       /* Page number (7 bits) */
+#define FLASH_L5_NSCR_NSBKER 11     /* Bank select for page erase */
+#define FLASH_L5_NSCR_NSMER2 15     /* Bank 2 erase */
+#define FLASH_L5_NSCR_NSSTRT 16     /* Start command */
+#define FLASH_L5_NSCR_NSOPTSTRT 17  /* Start writing option bytes */
+#define FLASH_L5_NSCR_NSEOPIE 24
+#define FLASH_L5_NSCR_NSERRIE 25
+#define FLASH_L5_NSCR_OBL_LAUNCH 27 /* Option bytes reload */
+#define FLASH_L5_NSCR_OPTLOCK 30    /* Lock option bytes */
+#define FLASH_L5_NSCR_NSLOCK 31     /* Lock control register */
 
 // FLASH_NSSR (RM0438, p. 241)
-#define STM32L5_FLASH_NSSR_NSEOP 0       /* End of Operation */
-#define STM32L5_FLASH_NSSR_NSOPERR 1
-#define STM32L5_FLASH_NSSR_NSPROGERR 3
-#define STM32L5_FLASH_NSSR_NSWRPERR 4
-#define STM32L5_FLASH_NSSR_NSPGAERR 5
-#define STM32L5_FLASH_NSSR_NSSIZERR 6
-#define STM32L5_FLASH_NSSR_NSPGSERR 7
-#define STM32L5_FLASH_NSSR_OPTWERR 12
-#define STM32L5_FLASH_NSSR_BSY 16        /* Busy */
-#define STM32L5_FLASH_NSSR_ERROR_MASK (0x20fa)
+#define FLASH_L5_NSSR_NSEOP 0       /* End of Operation */
+#define FLASH_L5_NSSR_NSOPERR 1
+#define FLASH_L5_NSSR_NSPROGERR 3
+#define FLASH_L5_NSSR_NSWRPERR 4
+#define FLASH_L5_NSSR_NSPGAERR 5
+#define FLASH_L5_NSSR_NSSIZERR 6
+#define FLASH_L5_NSSR_NSPGSERR 7
+#define FLASH_L5_NSSR_OPTWERR 12
+#define FLASH_L5_NSSR_BSY 16        /* Busy */
+#define FLASH_L5_NSSR_ERROR_MASK (0x20fa)
 
 // STM32L0x flash register base and offsets RM0090 - DM00031020.pdf
-#define STM32L0_FLASH_REGS_ADDR ((uint32_t)0x40022000)
+#define FLASH_L0_REGS_ADDR ((uint32_t)0x40022000)
 
-#define STM32L0_FLASH_PELOCK (0)
-#define STM32L0_FLASH_OPTLOCK (2)
-#define STM32L0_FLASH_OBL_LAUNCH (18)
+#define FLASH_L0_PELOCK (0)
+#define FLASH_L0_OPTLOCK (2)
+#define FLASH_L0_OBL_LAUNCH (18)
 
-#define STM32L0_FLASH_SR_ERROR_MASK 0x00013F00
-#define STM32L0_FLASH_SR_WRPERR 8
-#define STM32L0_FLASH_SR_PGAERR 9
-#define STM32L0_FLASH_SR_NOTZEROERR 16
+#define FLASH_L0_SR_ERROR_MASK 0x00013F00
+#define FLASH_L0_SR_WRPERR 8
+#define FLASH_L0_SR_PGAERR 9
+#define FLASH_L0_SR_NOTZEROERR 16
 
-#define STM32L1_FLASH_SR_ERROR_MASK 0x00003F00
-#define STM32L1_FLASH_SR_WRPERR 8
-#define STM32L1_FLASH_SR_PGAERR 9
+#define FLASH_L1_SR_ERROR_MASK 0x00003F00
+#define FLASH_L1_SR_WRPERR 8
+#define FLASH_L1_SR_PGAERR 9
 
 #define FLASH_ACR_OFF ((uint32_t)0x00)
 #define FLASH_PECR_OFF ((uint32_t)0x04)

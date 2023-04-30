@@ -495,18 +495,18 @@ static void set_flash_cr_pg(stlink_t *sl, unsigned bank) {
     cr_reg = FLASH_F7_CR;
     x |= 1 << FLASH_CR_PG;
   } else if (sl->flash_type == STM32_FLASH_TYPE_L4) {
-    cr_reg = STM32L4_FLASH_CR;
-    x &= ~STM32L4_FLASH_CR_OPBITS;
-    x |= (1 << STM32L4_FLASH_CR_PG);
+    cr_reg = FLASH_L4_CR;
+    x &= ~FLASH_L4_CR_OPBITS;
+    x |= (1 << FLASH_L4_CR_PG);
   } else if (sl->flash_type == STM32_FLASH_TYPE_L5_U5) {
-    cr_reg = STM32L5_FLASH_NSCR;
+    cr_reg = FLASH_L5_NSCR;
     x |= (1 << FLASH_CR_PG);
   } else if (sl->flash_type == STM32_FLASH_TYPE_G0 ||
              sl->flash_type == STM32_FLASH_TYPE_G4) {
-    cr_reg = STM32Gx_FLASH_CR;
+    cr_reg = FLASH_Gx_CR;
     x |= (1 << FLASH_CR_PG);
   } else if (sl->flash_type == STM32_FLASH_TYPE_WB_WL) {
-    cr_reg = STM32WB_FLASH_CR;
+    cr_reg = FLASH_WB_CR;
     x |= (1 << FLASH_CR_PG);
   } else if (sl->flash_type == STM32_FLASH_TYPE_H7) {
     cr_reg = (bank == BANK_1) ? FLASH_H7_CR1 : FLASH_H7_CR2;
@@ -545,7 +545,7 @@ static void set_dma_state(stlink_t *sl, flash_loader_t *fl, int bckpRstr) {
     rcc_dma_mask = STM32G4_RCC_DMAEN;
     break;
   case STM32_FLASH_TYPE_L0_L1:
-    if (get_stm32l0_flash_base(sl) == STM32L_FLASH_REGS_ADDR) {
+    if (get_stm32l0_flash_base(sl) == FLASH_Lx_REGS_ADDR) {
       rcc = STM32L1_RCC_AHBENR;
       rcc_dma_mask = STM32L1_RCC_DMAEN;
     } else {
@@ -770,7 +770,7 @@ int stlink_flashloader_write(stlink_t *sl, flash_loader_t *fl,
   } else if (sl->flash_type == STM32_FLASH_TYPE_L0_L1) {
     uint32_t val;
     uint32_t flash_regs_base = get_stm32l0_flash_base(sl);
-    uint32_t pagesize = (flash_regs_base==STM32L0_FLASH_REGS_ADDR)?
+    uint32_t pagesize = (flash_regs_base == FLASH_L0_REGS_ADDR)?
                                 L0_WRITE_BLOCK_SIZE:L1_WRITE_BLOCK_SIZE;
 
     DLOG("Starting %3u page write\r\n", (unsigned int)(len / sl->flash_pgsz));
