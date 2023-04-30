@@ -1,8 +1,8 @@
-#ifndef SYS_HELPER_H
-#define SYS_HELPER_H
+#ifndef HELPER_H_
+#define HELPER_H_
 
 unsigned time_ms();
 
 int arg_parse_freq(const char *str);
 
-#endif /* SYS_HELPER_H */
+#endif // HELPER_H_

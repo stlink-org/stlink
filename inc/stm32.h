@@ -4,8 +4,8 @@
  * STM32-specific defines & identification parametres
  */
 
-#ifndef STM32_H
-#define STM32_H
+#ifndef STM32_H_
+#define STM32_H_
 
 /* STM32 Cortex-M core ids (CPUTAPID) */
 enum stm32_core_id {
@@ -217,4 +217,4 @@ enum stm32_chipids {
 #define STM32L5_PWR_CR1 0x40007000                      // RM0438, p. 93,324
 #define STM32L5_PWR_CR1_VOS 9
 
-#endif // STM32_H
+#endif // STM32_H_

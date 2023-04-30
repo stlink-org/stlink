@@ -1,5 +1,5 @@
-#ifndef STLINK_TOOLS_FLASH_H_
-#define STLINK_TOOLS_FLASH_H_
+#ifndef FLASH_H_
+#define FLASH_H_
 
 #include <stdint.h>
 
@@ -33,4 +33,4 @@ struct flash_opts {
 
 int flash_get_opts(struct flash_opts* o, int ac, char** av);
 
-#endif // STLINK_FLASH_H_
+#endif // FLASH_H_

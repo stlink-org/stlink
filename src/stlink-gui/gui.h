@@ -1,5 +1,5 @@
-#ifndef __STLINK_GUI_H__
-#define __STLINK_GUI_H__
+#ifndef GUI_H_
+#define GUI_H_
 
 #include <glib-object.h>
 
@@ -89,4 +89,4 @@ struct _STlinkGUIClass {
 GType stlink_gui_get_type(void);
 int export_to_file(const char*filename, const struct mem_t flash_mem);
 
-#endif // __STLINK_GUI_H__
+#endif // GUI_H_

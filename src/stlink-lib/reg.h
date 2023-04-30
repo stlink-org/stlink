@@ -1,5 +1,5 @@
-#ifndef STLINK_REG_H_
-#define STLINK_REG_H_
+#ifndef REG_H_
+#define REG_H_
 
 #define STLINK_REG_CM3_CPUID                0xE000ED00
 
@@ -123,4 +123,4 @@
 #define STLINK_REG_CM7_ICIALLU              0xE000EF50
 #define STLINK_REG_CM7_CCSIDR               0xE000ED80
 
-#endif // STLINK_REG_H_
+#endif // REG_H_

@@ -1,5 +1,5 @@
-#ifndef _SEMIHOSTING_H_
-#define _SEMIHOSTING_H_
+#ifndef SEMIHOSTING_H_
+#define SEMIHOSTING_H_
 
 #include <stlink.h>
 
@@ -31,4 +31,4 @@
 
 int do_semihosting(stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret);
 
-#endif // _SEMIHOSTING_H_
+#endif // SEMIHOSTING_H_

@@ -5,6 +5,15 @@
  * This is free and unencumbered software released into the public domain - June 2013 - waterjuice.org
  */
 
+/*
+ * File: md5.h
+ *
+ * MD5 hash function
+ */
+
+#ifndef MD5_H_
+#define MD5_H_
+
 #pragma once
 
 #include <stdint.h>
@@ -61,3 +70,5 @@ void Md5Finalise(Md5Context* Context /* [in out] */, MD5_HASH* Digest /* [in] */
  * Calculates the MD5 hash of the buffer.
  */
 void Md5Calculate(void const* Buffer /* [in] */, uint32_t BufferSize /* [in] */, MD5_HASH* Digest /* [in] */);
+
+#endif // MD5_H_

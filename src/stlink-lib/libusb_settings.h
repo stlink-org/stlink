@@ -1,5 +1,5 @@
-#ifndef LIBUSB_SETTINGS_H
-#define LIBUSB_SETTINGS_H
+#ifndef LIBUSB_SETTINGS_H_
+#define LIBUSB_SETTINGS_H_
 
 #include <libusb.h>
 
@@ -44,4 +44,4 @@
     #error unsupported libusb version
 #endif
 
-#endif // LIBUSB_SETTINGS_H
+#endif // LIBUSB_SETTINGS_H_

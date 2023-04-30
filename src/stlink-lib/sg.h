@@ -3,8 +3,8 @@
  * Author: karl
  */
 
-#ifndef STLINK_SG_H
-#define STLINK_SG_H
+#ifndef SG_H_
+#define SG_H_
 
 #include <stlink.h>
 #include <libusb_settings.h>
@@ -56,4 +56,4 @@ struct stlink_libsg {
 
 stlink_t* stlink_v1_open(const int verbose, int reset);
 
-#endif // STLINK_SG_H
+#endif // SG_H_

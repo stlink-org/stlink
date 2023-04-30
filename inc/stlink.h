@@ -6,8 +6,8 @@
  * regardless of how the backend does the work....
  */
 
-#ifndef STLINK_H
-#define STLINK_H
+#ifndef STLINK_H_
+#define STLINK_H_
 
 #include <stdint.h>
 #include <stddef.h>
@@ -311,4 +311,4 @@ int stlink_target_connect(stlink_t *sl, enum connect_type connect);
 }
 #endif
 
-#endif // STLINK_H
+#endif // STLINK_H_

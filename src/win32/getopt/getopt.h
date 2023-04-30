@@ -1,5 +1,5 @@
-#ifndef INCLUDED_GETOPT_PORT_H
-#define INCLUDED_GETOPT_PORT_H
+#ifndef GETOPT_H_
+#define GETOPT_H_
 
 #if defined(__cplusplus)
 extern "C" {
@@ -38,4 +38,4 @@ int getopt_long(int argc,
 }
 #endif
 
-#endif // INCLUDED_GETOPT_PORT_H
+#endif // GETOPT_H_

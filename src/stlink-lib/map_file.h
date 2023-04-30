@@ -4,8 +4,8 @@
  * File mapping
  */
 
-#ifndef MAP_FILE_H
-#define MAP_FILE_H
+#ifndef MAP_FILE_H_
+#define MAP_FILE_H_
 
 #ifndef O_BINARY
 #define O_BINARY 0
@@ -29,4 +29,4 @@ typedef struct mapped_file {
 int map_file(mapped_file_t *, const char *);
 void unmap_file(mapped_file_t *);
 
-#endif // MAP_FILE_H
+#endif // MAP_FILE_H_

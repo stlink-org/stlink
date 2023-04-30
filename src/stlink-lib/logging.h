@@ -2,8 +2,8 @@
  * Ugly, low performance, configurable level, logging "framework"
  */
 
-#ifndef UGLYLOGGING_H
-#define UGLYLOGGING_H
+#ifndef LOGGING_H_
+#define LOGGING_H_
 
 #ifdef  __cplusplus
 extern "C" {
@@ -45,4 +45,4 @@ int ugly_libusb_log_level(enum ugly_loglevel v);
 }
 #endif
 
-#endif  // UGLYLOGGING_H
+#endif  // LOGGING_H_

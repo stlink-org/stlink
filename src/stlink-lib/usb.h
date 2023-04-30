@@ -3,8 +3,8 @@
  * Author: karl
  */
 
-#ifndef STLINK_USB_H
-#define STLINK_USB_H
+#ifndef USB_H_
+#define USB_H_
 
 #include <stdbool.h>
 
@@ -70,4 +70,4 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, enum connect_type connect,
 size_t stlink_probe_usb(stlink_t **stdevs[], enum connect_type connect, int freq);
 void stlink_probe_usb_free(stlink_t **stdevs[], size_t size);
 
-#endif // STLINK_USB_H
+#endif // USB_H_

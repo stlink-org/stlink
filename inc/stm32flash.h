@@ -1,5 +1,5 @@
-#ifndef STM32FLASH_H
-#define STM32FLASH_H
+#ifndef STM32FLASH_H_
+#define STM32FLASH_H_
 
 /* stm32f FPEC flash controller interface, pm0063 manual */
 // STM32F05x is identical, based on RM0091 (DM00031936, Doc ID 018940 Rev 2, August 2012)
@@ -378,4 +378,4 @@
 #define FLASH_H7_OPTSR_CUR (FLASH_H7_REGS_ADDR + 0x1c)
 #define FLASH_H7_OPTCCR (FLASH_H7_REGS_ADDR + 0x24)
 
-#endif // STM32FLASH_H
+#endif // STM32FLASH_H_
