@@ -238,10 +238,10 @@ int stlink_flash_loader_write_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* 
         sl->chip_id == STM32_CHIPID_L1_MD_PLUS ||
         sl->chip_id == STM32_CHIPID_L1_MD_PLUS_HD ||
         sl->chip_id == STM32_CHIPID_L152_RE ||
-        sl->chip_id == STM32_CHIPID_L011 ||
-        sl->chip_id == STM32_CHIPID_L0 ||
-        sl->chip_id == STM32_CHIPID_L0_CAT5 ||
-        sl->chip_id == STM32_CHIPID_L0_CAT2) {
+        sl->chip_id == STM32_CHIPID_L0_CAT1 ||
+        sl->chip_id == STM32_CHIPID_L0_CAT2 ||
+        sl->chip_id == STM32_CHIPID_L0_CAT3 ||
+        sl->chip_id == STM32_CHIPID_L0_CAT5) {
         loader_code = loader_code_stm32lx;
         loader_size = sizeof(loader_code_stm32lx);
     } else if (sl->core_id == STM32_CORE_ID_M3_r1p1_SWD ||

@@ -12,10 +12,10 @@
 
 uint32_t get_stm32l0_flash_base(stlink_t *sl) {
   switch (sl->chip_id) {
-  case STM32_CHIPID_L0:
-  case STM32_CHIPID_L0_CAT5:
+  case STM32_CHIPID_L0_CAT1:
   case STM32_CHIPID_L0_CAT2:
-  case STM32_CHIPID_L011:
+  case STM32_CHIPID_L0_CAT3:
+  case STM32_CHIPID_L0_CAT5:
     return (STM32L0_FLASH_REGS_ADDR);
 
   case STM32_CHIPID_L1_CAT2:

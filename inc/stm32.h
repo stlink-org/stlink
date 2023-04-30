@@ -76,7 +76,7 @@ enum stm32_chipids {
     STM32_CHIPID_F1_HD            = 0x414, /* high density */
     STM32_CHIPID_L4               = 0x415,
     STM32_CHIPID_L1_MD            = 0x416, /* medium density */
-    STM32_CHIPID_L0               = 0x417,
+    STM32_CHIPID_L0_CAT3          = 0x417,
     STM32_CHIPID_F1_CONN          = 0x418, /* connectivity line */
     STM32_CHIPID_F4_HD            = 0x419, /* high density */
     STM32_CHIPID_F1_VL_MD_LD      = 0x420, /* value line medium & low density */
@@ -110,7 +110,7 @@ enum stm32_chipids {
     STM32_CHIPID_F76xxx           = 0x451,
     STM32_CHIPID_F72xxx           = 0x452, /* Nucleo F722ZE board */
     STM32_CHIPID_G0_CAT4          = 0x456, /* G051/G061 */
-    STM32_CHIPID_L011             = 0x457,
+    STM32_CHIPID_L0_CAT1          = 0x457,
     STM32_CHIPID_F410             = 0x458,
     STM32_CHIPID_G0_CAT2          = 0x460, /* G07x/G08x */
     STM32_CHIPID_L496x_L4A6x      = 0x461,
