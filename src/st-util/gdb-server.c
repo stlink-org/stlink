@@ -28,7 +28,7 @@
 #include <stlink.h>
 #include <helper.h>
 #include <logging.h>
-#include "flashloader.h"
+#include "flash_loader.h"
 #include "gdb-remote.h"
 #include "gdb-server.h"
 #include "semihosting.h"

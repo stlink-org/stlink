@@ -8,7 +8,6 @@
 ![GitHub contributors](https://img.shields.io/github/contributors/stlink-org/stlink)
 [![CodeQL](https://github.com/stlink-org/stlink/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/stlink-org/stlink/actions/workflows/codeql-analysis.yml)
 [![C/C++ CI](https://github.com/stlink-org/stlink/actions/workflows/c-cpp.yml/badge.svg?branch=testing)](https://github.com/stlink-org/stlink/actions/workflows/c-cpp.yml)
-[![Linux Status](https://img.shields.io/travis/stlink-org/stlink/master?env=BADGE=linux&label=linux)](https://travis-ci.org/stlink-org/stlink)
 
 Recent new features and bugfixes can be found in the [Changelog](CHANGELOG.md) of this software project.
 

@@ -174,7 +174,6 @@ set(STLINK_HEADERS
         src/stlink-lib/common_flash.h
         src/stlink-lib/common.h
         src/stlink-lib/flash_loader.h
-        src/stlink-lib/flashloader.h
         src/stlink-lib/helper.h
         src/stlink-lib/libusb_settings.h
         src/stlink-lib/logging.h
@@ -192,7 +191,6 @@ set(STLINK_SOURCE
         src/stlink-lib/common_flash.c
         src/stlink-lib/common.c
         src/stlink-lib/flash_loader.c
-        src/stlink-lib/flashloader.c
         src/stlink-lib/helper.c
         src/stlink-lib/logging.c
         src/stlink-lib/map_file.c
