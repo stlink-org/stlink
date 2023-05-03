@@ -348,7 +348,8 @@ int stlink_reset(stlink_t *sl, enum reset_type type) {
   if (type == RESET_AUTO) {
     /* Check if the S_RESET_ST bit is set in DHCSR
      * This means that a reset has occurred
-     * DDI0337E, p. 10-4, Debug Halting Control and Status Register */
+     * DDI0337E, p. 10-4, Debug Halting Control and Status Register
+     */
 
     dhcsr = 0;
     int res = stlink_read_debug32(sl, STLINK_REG_DHCSR, &dhcsr);

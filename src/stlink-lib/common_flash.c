@@ -1154,7 +1154,7 @@ int stlink_erase_flash_section(stlink_t *sl, stm32_addr_t base_addr, size_t size
     // Check if size is aligned with a page, unless we want to completely erase the last page
     if ((addr + page_size) > (base_addr + size) && !align_size) {
       ELOG("Invalid size (not aligned with a page). Page size at address %#x is %#lx\n", addr, page_size);
-      return -1;
+      return (-1);
     }
 
     if (stlink_erase_flash_page(sl, addr)) {
