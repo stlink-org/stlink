@@ -11,8 +11,8 @@
  * MD5 hash function
  */
 
-#ifndef MD5_H_
-#define MD5_H_
+#ifndef MD5_H
+#define MD5_H
 
 #pragma once
 
@@ -71,4 +71,4 @@ void Md5Finalise(Md5Context* Context /* [in out] */, MD5_HASH* Digest /* [in] */
  */
 void Md5Calculate(void const* Buffer /* [in] */, uint32_t BufferSize /* [in] */, MD5_HASH* Digest /* [in] */);
 
-#endif // MD5_H_
+#endif // MD5_H

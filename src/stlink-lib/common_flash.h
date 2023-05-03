@@ -4,8 +4,8 @@
  * Flash operations
  */
 
-#ifndef COMMON_FLASH_H_
-#define COMMON_FLASH_H_
+#ifndef COMMON_FLASH_H
+#define COMMON_FLASH_H
 
 void lock_flash(stlink_t *);
 void clear_flash_error(stlink_t *);
@@ -25,4 +25,4 @@ void clear_flash_cr_pg(stlink_t *, unsigned);
 uint32_t read_flash_cr(stlink_t *, unsigned);
 uint32_t get_stm32l0_flash_base(stlink_t *);
 
-#endif // COMMON_FLASH_H_
+#endif // COMMON_FLASH_H

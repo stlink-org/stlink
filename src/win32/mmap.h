@@ -1,5 +1,5 @@
-#ifndef MMAP_H_
-#define MMAP_H_
+#ifndef MMAP_H
+#define MMAP_H
 
 #ifdef STLINK_HAVE_SYS_MMAN_H
 #include <sys/mman.h>
@@ -18,4 +18,4 @@ int munmap(void *addr, size_t len);
 
 #endif // STLINK_HAVE_SYS_MMAN_H
 
-#endif // MMAP_H_
+#endif // MMAP_H

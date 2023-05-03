@@ -1,5 +1,5 @@
-#ifndef CHIPID_H_
-#define CHIPID_H_
+#ifndef CHIPID_H
+#define CHIPID_H
 
 #include <stm32.h>
 #include <stlink.h>
@@ -24,4 +24,4 @@ struct stlink_chipid_params {
 struct stlink_chipid_params *stlink_chipid_get_params(uint32_t chipid);
   void init_chipids(char *dir_to_scan);
 
-#endif // CHIPID_H_
+#endif // CHIPID_H

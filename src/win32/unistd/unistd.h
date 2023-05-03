@@ -1,5 +1,5 @@
-#ifndef UNISTD_H_
-#define UNISTD_H_
+#ifndef UNISTD_H
+#define UNISTD_H
 
 /*
  * This file intended to serve as a drop-in replacement for unistd.h on Windows
@@ -72,4 +72,4 @@ typedef unsigned __int64 uint64_t;
 int usleep(unsigned int waitTime);
 #endif
 
-#endif // UNISTD_H_
+#endif // UNISTD_H

@@ -1,5 +1,5 @@
-#ifndef SYS_TIME_H_
-#define SYS_TIME_H_
+#ifndef SYS_TIME_H
+#define SYS_TIME_H
 
 #ifdef STLINK_HAVE_SYS_TIME_H
 
@@ -18,4 +18,4 @@ int gettimeofday(struct timeval *tv, struct timezone *tz);
 
 #endif // STLINK_HAVE_SYS_TIME_H
 
-#endif // SYS_TIME_H_
+#endif // SYS_TIME_H

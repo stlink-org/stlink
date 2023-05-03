@@ -1,5 +1,5 @@
-#ifndef BACKEND_H_
-#define BACKEND_H_
+#ifndef BACKEND_H
+#define BACKEND_H
 
     typedef struct _stlink_backend {
         void (*close) (stlink_t * sl);
@@ -34,4 +34,4 @@
         int (*trace_read) (stlink_t * sl, uint8_t* buf, size_t size);
     } stlink_backend_t;
 
-#endif // BACKEND_H_
+#endif // BACKEND_H

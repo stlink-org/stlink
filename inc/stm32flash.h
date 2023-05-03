@@ -1,5 +1,5 @@
-#ifndef STM32FLASH_H_
-#define STM32FLASH_H_
+#ifndef STM32FLASH_H
+#define STM32FLASH_H
 
 /* STM32Fx FPEC flash controller interface, PM0063 manual */
 // STM32F05x is identical, based on RM0091 (DM00031936, Doc ID 018940 Rev.2, Aug 2012)
@@ -408,4 +408,4 @@
 #define FLASH_WB_SR_PGAERR (5)         /* Programming error */
 #define FLASH_WB_SR_BSY (16)           /* Busy */
 
-#endif // STM32FLASH_H_
+#endif // STM32FLASH_H
