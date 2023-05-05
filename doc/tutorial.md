@@ -104,7 +104,7 @@ In this known example one finds the counterfeited "STM32F103C8T6" MCUs to identi
 In the following you find some hints on how to identify your chip and track down fraud:
 
 - [How to Detect STM32 Fakes](https://www.cnx-software.com/2020/03/22/how-to-detect-stm32-fakes/)
-- [Confirmation by STMicroelectronics](https://www.mikrocontroller.net/attachment/442839/couterfeit_STM.png) (Marking: 991KA 93 MYS 807)
+- [Confirmation by STMicroelectronics](https://www.mikrocontroller.net/attachment/442839/couterfeit_STM.PNG) (Marking: 991KA 93 MYS 807)
 - [STM32 Clones: The Good, The Bad And The Ugly](https://hackaday.com/2020/10/22/stm32-clones-the-good-the-bad-and-the-ugly/)
 
 However it appears that not all counterfeited parts cause problems during operation, but some are known to not even being able to execute a basic "blinky" example binary. Further there can be problems that may not even show up or affect you directly, but somewhen later in time (or maybe never).

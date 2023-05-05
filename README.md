@@ -49,7 +49,7 @@ The STlink toolset includes:
 
 ## Supported operating systems and hardware combinations
 
-Currently known working MCU targets are listed in [devices_boards.md](doc/devices_boards.md).
+Currently known working MCU targets are listed in [supported devices.md](<doc/supported devices.md>).
 
 A list of supported operating can be found in [version_support.md](doc/version_support.md).
 

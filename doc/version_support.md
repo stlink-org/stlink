@@ -1,4 +1,4 @@
-_Source:_ [pkgs.org](https://pkgs.org/search) - libusb, cmake, gtk, libgtk (as of Apr 2023)
+_Source:_ [pkgs.org](https://pkgs.org) - libusb, cmake, gtk, libgtk (as of Apr 2023)
 
 ## Supported Operating Systems
 
