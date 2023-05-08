@@ -1,11 +1,12 @@
-#include <string.h>
-#include <sys/types.h>
+#include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
+#include <sys/types.h>
 
 #include "mmap.h"
 
-void *mmap (void *addr, size_t len, int prot, int flags, int fd, long long offset) {
+void *mmap (void *addr, size_t len, int32_t prot, int32_t flags, int32_t fd, int64_t offset) {
     void *buf;
     ssize_t count;
 
@@ -31,7 +32,7 @@ void *mmap (void *addr, size_t len, int prot, int flags, int fd, long long offse
     (void)flags;
 }
 
-int munmap (void *addr, size_t len) {
+int32_t munmap (void *addr, size_t len) {
     free (addr);
     return(0);
     (void)len;

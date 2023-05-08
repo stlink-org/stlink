@@ -18,19 +18,19 @@ struct flash_opts {
     const char* filename;
     stm32_addr_t addr;
     size_t size;
-    int reset;
-    int log_level;
+    int32_t reset;
+    int32_t log_level;
     enum flash_format format;
     enum flash_area area;
     uint32_t val;
     size_t flash_size;  // --flash=n[k, M]
-    int opt;            // enable empty tail data drop optimization
-    int freq;           // --freq=n[k, M] frequency of JTAG/SWD
+    int32_t opt;            // enable empty tail data drop optimization
+    int32_t freq;           // --freq=n[k, M] frequency of JTAG/SWD
     enum connect_type connect;
 };
 
 #define FLASH_OPTS_INITIALIZER {0, { 0 }, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 
-int flash_get_opts(struct flash_opts* o, int ac, char** av);
+int32_t flash_get_opts(struct flash_opts* o, int32_t ac, char** av);
 
 #endif // FLASH_H

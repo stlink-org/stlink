@@ -1,8 +1,8 @@
+#include <limits.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdint.h>
-#include <limits.h>
 
 #if !defined(_MSC_VER)
 #include <sys/time.h>
@@ -17,7 +17,7 @@
 #endif
 
 #include <stlink.h>
-#include <helper.h>
+#include "helper.h"
 #include "usb.h"
 
 enum SCSI_Generic_Direction {SG_DXFER_TO_DEV = 0, SG_DXFER_FROM_DEV = 0x80};
@@ -26,11 +26,11 @@ static inline uint32_t le_to_h_u32(const uint8_t* buf) {
     return((uint32_t)((uint32_t)buf[0] | (uint32_t)buf[1] << 8 | (uint32_t)buf[2] << 16 | (uint32_t)buf[3] << 24));
 }
 
-static int _stlink_match_speed_map(const uint32_t *map, unsigned int map_size, uint32_t khz) {
-    unsigned int i;
-    int speed_index = -1;
-    int speed_diff = INT_MAX;
-    int last_valid_speed = -1;
+static int32_t _stlink_match_speed_map(const uint32_t *map, uint32_t map_size, uint32_t khz) {
+    uint32_t i;
+    int32_t speed_index = -1;
+    int32_t speed_diff = INT_MAX;
+    int32_t last_valid_speed = -1;
     bool match = true;
 
     for (i = 0; i < map_size; i++) {
@@ -42,7 +42,7 @@ static int _stlink_match_speed_map(const uint32_t *map, unsigned int map_size, u
             speed_index = i;
             break;
         } else {
-            int current_diff = khz - map[i];
+            int32_t current_diff = khz - map[i];
             // get abs value for comparison
             current_diff = (current_diff > 0) ? current_diff : -current_diff;
 
@@ -83,26 +83,26 @@ void _stlink_usb_close(stlink_t* sl) {
     }
 }
 
-ssize_t send_recv(struct stlink_libusb* handle, int terminate,
+ssize_t send_recv(struct stlink_libusb* handle, int32_t terminate,
                   unsigned char* txbuf, size_t txsize, unsigned char* rxbuf, 
-                  size_t rxsize, int check_error, const char *cmd) {
+                  size_t rxsize, int32_t check_error, const char *cmd) {
     // Note: txbuf and rxbuf can point to the same area
-    int res, t, retry = 0;
+    int32_t res, t, retry = 0;
 
     while (1) {
         res = 0;
-        t = libusb_bulk_transfer(handle->usb_handle, handle->ep_req, txbuf, (int)txsize, &res, 3000);
+        t = libusb_bulk_transfer(handle->usb_handle, handle->ep_req, txbuf, (int32_t)txsize, &res, 3000);
 
         if (t) {
             ELOG("%s send request failed: %s\n", cmd, libusb_error_name(t));
             return(-1);
         } else if ((size_t)res != txsize) {
             ELOG("%s send request wrote %u bytes, instead of %u\n",
-                   cmd, (unsigned int)res, (unsigned int)txsize);
+                   cmd, (uint32_t)res, (uint32_t)txsize);
         }
 
         if (rxsize != 0) {
-            t = libusb_bulk_transfer(handle->usb_handle, handle->ep_rep, rxbuf, (int)rxsize, &res, 3000);
+            t = libusb_bulk_transfer(handle->usb_handle, handle->ep_rep, rxbuf, (int32_t)rxsize, &res, 3000);
 
             if (t) {
                 ELOG("%s read reply failed: %s\n", cmd, libusb_error_name(t));
@@ -116,7 +116,7 @@ ssize_t send_recv(struct stlink_libusb* handle, int terminate,
                 case STLINK_DEBUG_ERR_AP_WAIT:
                 case STLINK_DEBUG_ERR_DP_WAIT:
                     if (check_error == CMD_CHECK_RETRY && retry < 3) {
-                        unsigned int delay_us = (1<<retry) * 1000;
+                        uint32_t delay_us = (1<<retry) * 1000;
                         DLOG("%s wait error (0x%02X), delaying %u us and retry\n", cmd, rxbuf[0], delay_us);
                         usleep(delay_us);
                         retry++;
@@ -137,7 +137,7 @@ ssize_t send_recv(struct stlink_libusb* handle, int terminate,
                 return(-1);
             }
 
-            if (check_error == CMD_CHECK_REP_LEN && res != (int)rxsize) {
+            if (check_error == CMD_CHECK_REP_LEN && res != (int32_t)rxsize) {
                 ELOG("%s wrong reply length\n", cmd);
                 res = -1;
             }
@@ -161,17 +161,17 @@ ssize_t send_recv(struct stlink_libusb* handle, int terminate,
     }
 }
 
-static inline int send_only(struct stlink_libusb* handle, int terminate,
+static inline int32_t send_only(struct stlink_libusb* handle, int32_t terminate,
                             unsigned char* txbuf, size_t txsize,
                             const char *cmd) {
-    return((int)send_recv(handle, terminate, txbuf, txsize, NULL, 0, CMD_CHECK_NO, cmd));
+    return((int32_t)send_recv(handle, terminate, txbuf, txsize, NULL, 0, CMD_CHECK_NO, cmd));
 }
 
 
-static int fill_command(stlink_t * sl, enum SCSI_Generic_Direction dir, uint32_t len) {
+static int32_t fill_command(stlink_t * sl, enum SCSI_Generic_Direction dir, uint32_t len) {
     struct stlink_libusb * const slu = sl->backend_data;
     unsigned char* const cmd = sl->c_buf;
-    int i = 0;
+    int32_t i = 0;
     memset(cmd, 0, sizeof(sl->c_buf));
 
     if (slu->protocoll == 1) {
@@ -189,13 +189,13 @@ static int fill_command(stlink_t * sl, enum SCSI_Generic_Direction dir, uint32_t
     return(i);
 }
 
-int _stlink_usb_version(stlink_t *sl) {
+int32_t _stlink_usb_version(stlink_t *sl) {
     struct stlink_libusb * const slu = sl->backend_data;
     unsigned char* const data = sl->q_buf;
     unsigned char* const cmd  = sl->c_buf;
     ssize_t size;
     uint32_t rep_len;
-    int i;
+    int32_t i;
 
     if (sl->version.stlink_v == 3) {
         // STLINK-V3 version is determined by another command 
@@ -219,9 +219,9 @@ int32_t _stlink_usb_target_voltage(stlink_t *sl) {
     unsigned char* const cmd  = sl->c_buf;
     ssize_t size;
     uint32_t rep_len = 8;
-    int i = fill_command(sl, SG_DXFER_FROM_DEV, rep_len);
+    int32_t i = fill_command(sl, SG_DXFER_FROM_DEV, rep_len);
     uint32_t factor, reading;
-    int voltage;
+    int32_t voltage;
 
     cmd[i++] = STLINK_GET_TARGET_VOLTAGE;
 
@@ -238,14 +238,14 @@ int32_t _stlink_usb_target_voltage(stlink_t *sl) {
     return(voltage);
 }
 
-int _stlink_usb_read_debug32(stlink_t *sl, uint32_t addr, uint32_t *data) {
+int32_t _stlink_usb_read_debug32(stlink_t *sl, uint32_t addr, uint32_t *data) {
     struct stlink_libusb * const slu = sl->backend_data;
     unsigned char* const rdata = sl->q_buf;
     unsigned char* const cmd  = sl->c_buf;
     ssize_t size;
-    const int rep_len = 8;
+    const int32_t rep_len = 8;
 
-    int i = fill_command(sl, SG_DXFER_FROM_DEV, rep_len);
+    int32_t i = fill_command(sl, SG_DXFER_FROM_DEV, rep_len);
     cmd[i++] = STLINK_DEBUG_COMMAND;
     cmd[i++] = STLINK_DEBUG_APIV2_READDEBUGREG;
     write_uint32(&cmd[i], addr);
@@ -260,14 +260,14 @@ int _stlink_usb_read_debug32(stlink_t *sl, uint32_t addr, uint32_t *data) {
     return(0);
 }
 
-int _stlink_usb_write_debug32(stlink_t *sl, uint32_t addr, uint32_t data) {
+int32_t _stlink_usb_write_debug32(stlink_t *sl, uint32_t addr, uint32_t data) {
     struct stlink_libusb * const slu = sl->backend_data;
     unsigned char* const rdata = sl->q_buf;
     unsigned char* const cmd  = sl->c_buf;
     ssize_t size;
-    const int rep_len = 2;
+    const int32_t rep_len = 2;
 
-    int i = fill_command(sl, SG_DXFER_FROM_DEV, rep_len);
+    int32_t i = fill_command(sl, SG_DXFER_FROM_DEV, rep_len);
     cmd[i++] = STLINK_DEBUG_COMMAND;
     cmd[i++] = STLINK_DEBUG_APIV2_WRITEDEBUGREG;
     write_uint32(&cmd[i], addr);
@@ -277,13 +277,13 @@ int _stlink_usb_write_debug32(stlink_t *sl, uint32_t addr, uint32_t data) {
     return(size<0?-1:0);
 }
 
-int _stlink_usb_get_rw_status(stlink_t *sl) {
+int32_t _stlink_usb_get_rw_status(stlink_t *sl) {
     if (sl->version.jtag_api == STLINK_JTAG_API_V1) { return(0); }
 
     unsigned char* const rdata = sl->q_buf;
     struct stlink_libusb * const slu = sl->backend_data;
     unsigned char* const cmd  = sl->c_buf;
-    int i;
+    int32_t i;
     int16_t ret = 0;
 
     i = fill_command(sl, SG_DXFER_FROM_DEV, 12);
@@ -300,11 +300,11 @@ int _stlink_usb_get_rw_status(stlink_t *sl) {
     return(ret<0?-1:0);
 }
 
-int _stlink_usb_write_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
+int32_t _stlink_usb_write_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
     struct stlink_libusb * const slu = sl->backend_data;
     unsigned char* const data = sl->q_buf;
     unsigned char* const cmd  = sl->c_buf;
-    int i, ret;
+    int32_t i, ret;
 
     i = fill_command(sl, SG_DXFER_TO_DEV, len);
     cmd[i++] = STLINK_DEBUG_COMMAND;
@@ -322,11 +322,11 @@ int _stlink_usb_write_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
     return(_stlink_usb_get_rw_status(sl));
 }
 
-int _stlink_usb_write_mem8(stlink_t *sl, uint32_t addr, uint16_t len) {
+int32_t _stlink_usb_write_mem8(stlink_t *sl, uint32_t addr, uint16_t len) {
     struct stlink_libusb * const slu = sl->backend_data;
     unsigned char* const data = sl->q_buf;
     unsigned char* const cmd  = sl->c_buf;
-    int i, ret;
+    int32_t i, ret;
 
     if ((sl->version.jtag_api < STLINK_JTAG_API_V3 && len > 64) ||
         (sl->version.jtag_api >= STLINK_JTAG_API_V3 && len > 512)) {
@@ -351,13 +351,13 @@ int _stlink_usb_write_mem8(stlink_t *sl, uint32_t addr, uint16_t len) {
 }
 
 
-int _stlink_usb_current_mode(stlink_t * sl) {
+int32_t _stlink_usb_current_mode(stlink_t * sl) {
     struct stlink_libusb * const slu = sl->backend_data;
     unsigned char* const cmd  = sl->c_buf;
     unsigned char* const data = sl->q_buf;
     ssize_t size;
-    int rep_len = 2;
-    int i = fill_command(sl, SG_DXFER_FROM_DEV, rep_len);
+    int32_t rep_len = 2;
+    int32_t i = fill_command(sl, SG_DXFER_FROM_DEV, rep_len);
 
     cmd[i++] = STLINK_GET_CURRENT_MODE;
     size = send_recv(slu, 1, cmd,  slu->cmd_len, data, rep_len, CMD_CHECK_NO, "GET_CURRENT_MODE");
@@ -369,13 +369,13 @@ int _stlink_usb_current_mode(stlink_t * sl) {
     return(sl->q_buf[0]);
 }
 
-int _stlink_usb_core_id(stlink_t * sl) {
+int32_t _stlink_usb_core_id(stlink_t * sl) {
     struct stlink_libusb * const slu = sl->backend_data;
     unsigned char* const cmd  = sl->c_buf;
     unsigned char* const data = sl->q_buf;
     ssize_t size;
-    int offset, rep_len = sl->version.jtag_api == STLINK_JTAG_API_V1 ? 4 : 12;
-    int i = fill_command(sl, SG_DXFER_FROM_DEV, rep_len);
+    int32_t offset, rep_len = sl->version.jtag_api == STLINK_JTAG_API_V1 ? 4 : 12;
+    int32_t i = fill_command(sl, SG_DXFER_FROM_DEV, rep_len);
 
     cmd[i++] = STLINK_DEBUG_COMMAND;
 
@@ -398,8 +398,8 @@ int _stlink_usb_core_id(stlink_t * sl) {
     return(0);
 }
 
-int _stlink_usb_status_v2(stlink_t *sl) {
-    int result;
+int32_t _stlink_usb_status_v2(stlink_t *sl) {
+    int32_t result;
     uint32_t status = 0;
 
     result = _stlink_usb_read_debug32(sl, STLINK_REG_DHCSR, &status);
@@ -420,15 +420,15 @@ int _stlink_usb_status_v2(stlink_t *sl) {
     return(result);
 }
 
-int _stlink_usb_status(stlink_t * sl) {
+int32_t _stlink_usb_status(stlink_t * sl) {
     if (sl->version.jtag_api != STLINK_JTAG_API_V1) { return(_stlink_usb_status_v2(sl)); }
 
     struct stlink_libusb * const slu = sl->backend_data;
     unsigned char* const data = sl->q_buf;
     unsigned char* const cmd  = sl->c_buf;
     ssize_t size;
-    int rep_len = 2;
-    int i = fill_command(sl, SG_DXFER_FROM_DEV, rep_len);
+    int32_t rep_len = 2;
+    int32_t i = fill_command(sl, SG_DXFER_FROM_DEV, rep_len);
 
     cmd[i++] = STLINK_DEBUG_COMMAND;
     cmd[i++] = STLINK_DEBUG_GETSTATUS;
@@ -449,10 +449,10 @@ int _stlink_usb_status(stlink_t * sl) {
     return(size<0?-1:0);
 }
 
-int _stlink_usb_force_debug(stlink_t *sl) {
+int32_t _stlink_usb_force_debug(stlink_t *sl) {
     struct stlink_libusb *slu = sl->backend_data;
 
-    int res;
+    int32_t res;
 
     if (sl->version.jtag_api != STLINK_JTAG_API_V1) {
         res = _stlink_usb_write_debug32(sl, STLINK_REG_DHCSR, STLINK_REG_DHCSR_DBGKEY | STLINK_REG_DHCSR_C_HALT | STLINK_REG_DHCSR_C_DEBUGEN);
@@ -462,8 +462,8 @@ int _stlink_usb_force_debug(stlink_t *sl) {
     unsigned char* const data = sl->q_buf;
     unsigned char* const cmd  = sl->c_buf;
     ssize_t size;
-    int rep_len = 2;
-    int i = fill_command(sl, SG_DXFER_FROM_DEV, rep_len);
+    int32_t rep_len = 2;
+    int32_t i = fill_command(sl, SG_DXFER_FROM_DEV, rep_len);
 
     cmd[i++] = STLINK_DEBUG_COMMAND;
     cmd[i++] = STLINK_DEBUG_FORCEDEBUG;
@@ -472,13 +472,13 @@ int _stlink_usb_force_debug(stlink_t *sl) {
     return(size<0?-1:0);
 }
 
-int _stlink_usb_enter_swd_mode(stlink_t * sl) {
+int32_t _stlink_usb_enter_swd_mode(stlink_t * sl) {
     struct stlink_libusb * const slu = sl->backend_data;
     unsigned char* const cmd  = sl->c_buf;
     ssize_t size;
     unsigned char* const data = sl->q_buf;
     const uint32_t rep_len = sl->version.jtag_api == STLINK_JTAG_API_V1 ? 0 : 2;
-    int i = fill_command(sl, SG_DXFER_FROM_DEV, rep_len);
+    int32_t i = fill_command(sl, SG_DXFER_FROM_DEV, rep_len);
 
     cmd[i++] = STLINK_DEBUG_COMMAND;
     // select correct API-Version for entering SWD mode: V1 API (0x20) or V2 API (0x30).
@@ -489,11 +489,11 @@ int _stlink_usb_enter_swd_mode(stlink_t * sl) {
     return(size<0?-1:0);
 }
 
-int _stlink_usb_exit_dfu_mode(stlink_t* sl) {
+int32_t _stlink_usb_exit_dfu_mode(stlink_t* sl) {
     struct stlink_libusb * const slu = sl->backend_data;
     unsigned char* const cmd = sl->c_buf;
     ssize_t size;
-    int i = fill_command(sl, SG_DXFER_FROM_DEV, 0);
+    int32_t i = fill_command(sl, SG_DXFER_FROM_DEV, 0);
 
     cmd[i++] = STLINK_DFU_COMMAND;
     cmd[i++] = STLINK_DFU_EXIT;
@@ -503,12 +503,12 @@ int _stlink_usb_exit_dfu_mode(stlink_t* sl) {
 }
 
 
-int _stlink_usb_reset(stlink_t * sl) {
+int32_t _stlink_usb_reset(stlink_t * sl) {
     struct stlink_libusb * const slu = sl->backend_data;
     unsigned char* const data = sl->q_buf;
     unsigned char* const cmd = sl->c_buf;
     ssize_t size;
-    int i, rep_len = 2;
+    int32_t i, rep_len = 2;
 
     // send reset command
     i = fill_command(sl, SG_DXFER_FROM_DEV, rep_len);
@@ -525,13 +525,13 @@ int _stlink_usb_reset(stlink_t * sl) {
     return(size<0?-1:0);
 }
 
-int _stlink_usb_jtag_reset(stlink_t * sl, int value) {
+int32_t _stlink_usb_jtag_reset(stlink_t * sl, int32_t value) {
     struct stlink_libusb * const slu = sl->backend_data;
     unsigned char* const data = sl->q_buf;
     unsigned char* const cmd = sl->c_buf;
     ssize_t size;
-    int rep_len = 2;
-    int i = fill_command(sl, SG_DXFER_FROM_DEV, rep_len);
+    int32_t rep_len = 2;
+    int32_t i = fill_command(sl, SG_DXFER_FROM_DEV, rep_len);
 
     cmd[i++] = STLINK_DEBUG_COMMAND;
     cmd[i++] = STLINK_DEBUG_APIV2_DRIVE_NRST;
@@ -542,7 +542,7 @@ int _stlink_usb_jtag_reset(stlink_t * sl, int value) {
 }
 
 
-int _stlink_usb_step(stlink_t* sl) {
+int32_t _stlink_usb_step(stlink_t* sl) {
     struct stlink_libusb * const slu = sl->backend_data;
 
     if (sl->version.jtag_api != STLINK_JTAG_API_V1) {
@@ -558,8 +558,8 @@ int _stlink_usb_step(stlink_t* sl) {
     unsigned char* const data = sl->q_buf;
     unsigned char* const cmd = sl->c_buf;
     ssize_t size;
-    int rep_len = 2;
-    int i = fill_command(sl, SG_DXFER_FROM_DEV, rep_len);
+    int32_t rep_len = 2;
+    int32_t i = fill_command(sl, SG_DXFER_FROM_DEV, rep_len);
 
     cmd[i++] = STLINK_DEBUG_COMMAND;
     cmd[i++] = STLINK_DEBUG_STEPCORE;
@@ -573,10 +573,10 @@ int _stlink_usb_step(stlink_t* sl) {
  * @param sl
  * @param type
  */
-int _stlink_usb_run(stlink_t* sl, enum run_type type) {
+int32_t _stlink_usb_run(stlink_t* sl, enum run_type type) {
     struct stlink_libusb * const slu = sl->backend_data;
 
-    int res;
+    int32_t res;
 
     if (sl->version.jtag_api != STLINK_JTAG_API_V1) {
         res = _stlink_usb_write_debug32(sl, STLINK_REG_DHCSR, 
@@ -589,8 +589,8 @@ int _stlink_usb_run(stlink_t* sl, enum run_type type) {
     unsigned char* const data = sl->q_buf;
     unsigned char* const cmd = sl->c_buf;
     ssize_t size;
-    int rep_len = 2;
-    int i = fill_command(sl, SG_DXFER_FROM_DEV, rep_len);
+    int32_t rep_len = 2;
+    int32_t i = fill_command(sl, SG_DXFER_FROM_DEV, rep_len);
 
     cmd[i++] = STLINK_DEBUG_COMMAND;
     cmd[i++] = STLINK_DEBUG_RUNCORE;
@@ -599,20 +599,20 @@ int _stlink_usb_run(stlink_t* sl, enum run_type type) {
     return(size<0?-1:0);
 }
 
-int _stlink_usb_set_swdclk(stlink_t* sl, int clk_freq) {
+int32_t _stlink_usb_set_swdclk(stlink_t* sl, int32_t clk_freq) {
     struct stlink_libusb * const slu = sl->backend_data;
     unsigned char* const data = sl->q_buf;
     unsigned char* const cmd = sl->c_buf;
     ssize_t size;
-    int rep_len = 2;
-    int i;
+    int32_t rep_len = 2;
+    int32_t i;
 
     // clock speed only supported by stlink/v2 and for firmware >= 22
     if (sl->version.stlink_v == 2 && sl->version.jtag_v >= 22) {
         uint16_t clk_divisor;
         if (clk_freq) {
             const uint32_t map[] = {5, 15, 25, 50, 100, 125, 240, 480, 950, 1200, 1800, 4000};
-            int speed_index = _stlink_match_speed_map(map, STLINK_ARRAY_SIZE(map), clk_freq);
+            int32_t speed_index = _stlink_match_speed_map(map, STLINK_ARRAY_SIZE(map), clk_freq);
             switch (map[speed_index]) {
             case 5:   clk_divisor = STLINK_SWDCLK_5KHZ_DIVISOR; break;
             case 15:  clk_divisor = STLINK_SWDCLK_15KHZ_DIVISOR; break;
@@ -641,7 +641,7 @@ int _stlink_usb_set_swdclk(stlink_t* sl, int clk_freq) {
 
         return(size<0?-1:0);
     } else if (sl->version.stlink_v == 3) {
-        int speed_index;
+        int32_t speed_index;
         uint32_t map[STLINK_V3_MAX_FREQ_NB];
         i = fill_command(sl, SG_DXFER_FROM_DEV, 16);
 
@@ -654,7 +654,7 @@ int _stlink_usb_set_swdclk(stlink_t* sl, int clk_freq) {
             return(-1);
         }
 
-        int speeds_size = data[8];
+        int32_t speeds_size = data[8];
         if (speeds_size > STLINK_V3_MAX_FREQ_NB) {
             speeds_size = STLINK_V3_MAX_FREQ_NB;
         }
@@ -688,11 +688,11 @@ int _stlink_usb_set_swdclk(stlink_t* sl, int clk_freq) {
     return(-1);
 }
 
-int _stlink_usb_exit_debug_mode(stlink_t *sl) {
+int32_t _stlink_usb_exit_debug_mode(stlink_t *sl) {
     struct stlink_libusb * const slu = sl->backend_data;
     unsigned char* const cmd = sl->c_buf;
     ssize_t size;
-    int i = fill_command(sl, SG_DXFER_FROM_DEV, 0);
+    int32_t i = fill_command(sl, SG_DXFER_FROM_DEV, 0);
 
     cmd[i++] = STLINK_DEBUG_COMMAND;
     cmd[i++] = STLINK_DEBUG_EXIT;
@@ -702,12 +702,12 @@ int _stlink_usb_exit_debug_mode(stlink_t *sl) {
     return(size<0?-1:0);
 }
 
-int _stlink_usb_read_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
+int32_t _stlink_usb_read_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
     struct stlink_libusb * const slu = sl->backend_data;
     unsigned char* const data = sl->q_buf;
     unsigned char* const cmd = sl->c_buf;
     ssize_t size;
-    int i = fill_command(sl, SG_DXFER_FROM_DEV, len);
+    int32_t i = fill_command(sl, SG_DXFER_FROM_DEV, len);
 
     cmd[i++] = STLINK_DEBUG_COMMAND;
     cmd[i++] = STLINK_DEBUG_READMEM_32BIT;
@@ -719,19 +719,19 @@ int _stlink_usb_read_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
         return(-1);
     }
 
-    sl->q_len = (int)size;
+    sl->q_len = (int32_t)size;
     stlink_print_data(sl);
 
     return(0);
 }
 
-int _stlink_usb_read_all_regs(stlink_t *sl, struct stlink_reg *regp) {
+int32_t _stlink_usb_read_all_regs(stlink_t *sl, struct stlink_reg *regp) {
     struct stlink_libusb * const slu = sl->backend_data;
     unsigned char* const cmd = sl->c_buf;
     unsigned char* const data = sl->q_buf;
     ssize_t size;
     uint32_t rep_len = sl->version.jtag_api == STLINK_JTAG_API_V1 ? 84 : 88;
-    int i = fill_command(sl, SG_DXFER_FROM_DEV, rep_len);
+    int32_t i = fill_command(sl, SG_DXFER_FROM_DEV, rep_len);
 
     cmd[i++] = STLINK_DEBUG_COMMAND;
 
@@ -749,8 +749,8 @@ int _stlink_usb_read_all_regs(stlink_t *sl, struct stlink_reg *regp) {
 
     /* V1: regs data from offset 0 */
     /* V2: status at offset 0, regs data from offset 4 */
-    int reg_offset = sl->version.jtag_api == STLINK_JTAG_API_V1 ? 0 : 4;
-    sl->q_len = (int)size;
+    int32_t reg_offset = sl->version.jtag_api == STLINK_JTAG_API_V1 ? 0 : 4;
+    sl->q_len = (int32_t)size;
     stlink_print_data(sl);
 
     for (i = 0; i < 16; i++) regp->r[i] = read_uint32(sl->q_buf, reg_offset + i * 4);
@@ -772,15 +772,15 @@ int _stlink_usb_read_all_regs(stlink_t *sl, struct stlink_reg *regp) {
     return(0);
 }
 
-int _stlink_usb_read_reg(stlink_t *sl, int r_idx, struct stlink_reg *regp) {
+int32_t _stlink_usb_read_reg(stlink_t *sl, int32_t r_idx, struct stlink_reg *regp) {
     struct stlink_libusb * const slu = sl->backend_data;
     unsigned char* const data = sl->q_buf;
     unsigned char* const cmd  = sl->c_buf;
     ssize_t size;
     uint32_t r;
     uint32_t rep_len = sl->version.jtag_api == STLINK_JTAG_API_V1 ? 4 : 8;
-    int reg_offset = sl->version.jtag_api == STLINK_JTAG_API_V1 ? 0 : 4;
-    int i = fill_command(sl, SG_DXFER_FROM_DEV, rep_len);
+    int32_t reg_offset = sl->version.jtag_api == STLINK_JTAG_API_V1 ? 0 : 4;
+    int32_t i = fill_command(sl, SG_DXFER_FROM_DEV, rep_len);
 
     cmd[i++] = STLINK_DEBUG_COMMAND;
 
@@ -797,7 +797,7 @@ int _stlink_usb_read_reg(stlink_t *sl, int r_idx, struct stlink_reg *regp) {
         return(-1);
     }
 
-    sl->q_len = (int)size;
+    sl->q_len = (int32_t)size;
     stlink_print_data(sl);
     r = read_uint32(sl->q_buf, reg_offset);
     DLOG("r_idx (%2d) = 0x%08x\n", r_idx, r);
@@ -826,13 +826,13 @@ int _stlink_usb_read_reg(stlink_t *sl, int r_idx, struct stlink_reg *regp) {
 }
 
 /* See section C1.6 of the ARMv7-M Architecture Reference Manual */
-int _stlink_usb_read_unsupported_reg(stlink_t *sl, int r_idx, struct stlink_reg *regp) {
+int32_t _stlink_usb_read_unsupported_reg(stlink_t *sl, int32_t r_idx, struct stlink_reg *regp) {
     uint32_t r;
-    int ret;
+    int32_t ret;
 
     sl->q_buf[0] = (unsigned char)r_idx;
 
-    for (int i = 1; i < 4; i++) sl->q_buf[i] = 0;
+    for (int32_t i = 1; i < 4; i++) sl->q_buf[i] = 0;
 
     ret = _stlink_usb_write_mem32(sl, STLINK_REG_DCRSR, 4);
 
@@ -863,8 +863,8 @@ int _stlink_usb_read_unsupported_reg(stlink_t *sl, int r_idx, struct stlink_reg 
     return(0);
 }
 
-int _stlink_usb_read_all_unsupported_regs(stlink_t *sl, struct stlink_reg *regp) {
-    int ret;
+int32_t _stlink_usb_read_all_unsupported_regs(stlink_t *sl, struct stlink_reg *regp) {
+    int32_t ret;
 
     ret = _stlink_usb_read_unsupported_reg(sl, 0x14, regp);
 
@@ -874,7 +874,7 @@ int _stlink_usb_read_all_unsupported_regs(stlink_t *sl, struct stlink_reg *regp)
 
     if (ret == -1) { return(ret); }
 
-    for (int i = 0; i < 32; i++) {
+    for (int32_t i = 0; i < 32; i++) {
         ret = _stlink_usb_read_unsupported_reg(sl, 0x40 + i, regp);
 
         if (ret == -1) { return(ret); }
@@ -884,8 +884,8 @@ int _stlink_usb_read_all_unsupported_regs(stlink_t *sl, struct stlink_reg *regp)
 }
 
 /* See section C1.6 of the ARMv7-M Architecture Reference Manual */
-int _stlink_usb_write_unsupported_reg(stlink_t *sl, uint32_t val, int r_idx, struct stlink_reg *regp) {
-    int ret;
+int32_t _stlink_usb_write_unsupported_reg(stlink_t *sl, uint32_t val, int32_t r_idx, struct stlink_reg *regp) {
+    int32_t ret;
 
     if (r_idx >= 0x1C && r_idx <= 0x1F) { // primask, basepri, faultmask, or control
         /* These are held in the same register */
@@ -939,13 +939,13 @@ int _stlink_usb_write_unsupported_reg(stlink_t *sl, uint32_t val, int r_idx, str
     return(_stlink_usb_write_mem32(sl, STLINK_REG_DCRSR, 4));
 }
 
-int _stlink_usb_write_reg(stlink_t *sl, uint32_t reg, int idx) {
+int32_t _stlink_usb_write_reg(stlink_t *sl, uint32_t reg, int32_t idx) {
     struct stlink_libusb * const slu = sl->backend_data;
     unsigned char* const data = sl->q_buf;
     unsigned char* const cmd  = sl->c_buf;
     ssize_t size;
     uint32_t rep_len = 2;
-    int i = fill_command(sl, SG_DXFER_FROM_DEV, rep_len);
+    int32_t i = fill_command(sl, SG_DXFER_FROM_DEV, rep_len);
 
     cmd[i++] = STLINK_DEBUG_COMMAND;
 
@@ -962,14 +962,14 @@ int _stlink_usb_write_reg(stlink_t *sl, uint32_t reg, int idx) {
     return(size<0?-1:0);
 }
 
-int _stlink_usb_enable_trace(stlink_t* sl, uint32_t frequency) {
+int32_t _stlink_usb_enable_trace(stlink_t* sl, uint32_t frequency) {
     struct stlink_libusb * const slu = sl->backend_data;
     unsigned char* const data = sl->q_buf;
     unsigned char* const cmd  = sl->c_buf;
     ssize_t size;
     uint32_t rep_len = 2;
 
-    int i = fill_command(sl, SG_DXFER_TO_DEV, rep_len);
+    int32_t i = fill_command(sl, SG_DXFER_TO_DEV, rep_len);
     cmd[i++] = STLINK_DEBUG_COMMAND;
     cmd[i++] = STLINK_DEBUG_APIV2_START_TRACE_RX;
     write_uint16(&cmd[i + 0], 2 * STLINK_TRACE_BUF_LEN);
@@ -980,14 +980,14 @@ int _stlink_usb_enable_trace(stlink_t* sl, uint32_t frequency) {
     return(size<0?-1:0);
 }
 
-int _stlink_usb_disable_trace(stlink_t* sl) {
+int32_t _stlink_usb_disable_trace(stlink_t* sl) {
     struct stlink_libusb * const slu = sl->backend_data;
     unsigned char* const data = sl->q_buf;
     unsigned char* const cmd  = sl->c_buf;
     ssize_t size;
     uint32_t rep_len = 2;
 
-    int i = fill_command(sl, SG_DXFER_TO_DEV, rep_len);
+    int32_t i = fill_command(sl, SG_DXFER_TO_DEV, rep_len);
     cmd[i++] = STLINK_DEBUG_COMMAND;
     cmd[i++] = STLINK_DEBUG_APIV2_STOP_TRACE_RX;
 
@@ -996,12 +996,12 @@ int _stlink_usb_disable_trace(stlink_t* sl) {
     return(size<0?-1:0);
 }
 
-int _stlink_usb_read_trace(stlink_t* sl, uint8_t* buf, size_t size) {
+int32_t _stlink_usb_read_trace(stlink_t* sl, uint8_t* buf, size_t size) {
     struct stlink_libusb * const slu = sl->backend_data;
     unsigned char* const data = sl->q_buf;
     unsigned char* const cmd  = sl->c_buf;
     uint32_t rep_len = 2;
-    int i = fill_command(sl, SG_DXFER_FROM_DEV, rep_len);
+    int32_t i = fill_command(sl, SG_DXFER_FROM_DEV, rep_len);
 
     cmd[i++] = STLINK_DEBUG_COMMAND;
     cmd[i++] = STLINK_DEBUG_APIV2_GET_TRACE_NB;
@@ -1010,7 +1010,7 @@ int _stlink_usb_read_trace(stlink_t* sl, uint8_t* buf, size_t size) {
     if (send_size < 0) {
         return(-1);
     } else if (send_size != 2) {
-        ELOG("STLINK_DEBUG_APIV2_GET_TRACE_NB reply size %d\n", (int)send_size);
+        ELOG("STLINK_DEBUG_APIV2_GET_TRACE_NB reply size %d\n", (int32_t)send_size);
         return(-1);
     }
 
@@ -1022,10 +1022,10 @@ int _stlink_usb_read_trace(stlink_t* sl, uint8_t* buf, size_t size) {
     }
 
     if (trace_count != 0) {
-        int res = 0;
-        int t = libusb_bulk_transfer(slu->usb_handle, slu->ep_trace, buf, trace_count, &res, 3000);
+        int32_t res = 0;
+        int32_t t = libusb_bulk_transfer(slu->usb_handle, slu->ep_trace, buf, trace_count, &res, 3000);
 
-        if (t || res != (int)trace_count) {
+        if (t || res != (int32_t)trace_count) {
             ELOG("read_trace read error %d\n", t);
             return(-1);
         }
@@ -1075,7 +1075,7 @@ size_t stlink_serial(struct libusb_device_handle *handle, struct libusb_device_d
 	serial[0] = '\0';
 
 	/* get the LANGID from String Descriptor Zero */
-	int ret = libusb_get_string_descriptor(handle, 0, 0, desc_serial, sizeof(desc_serial));
+	int32_t ret = libusb_get_string_descriptor(handle, 0, 0, desc_serial, sizeof(desc_serial));
 	if (ret < 4) return 0;
 
 	uint32_t langid = desc_serial[2] | (desc_serial[3] << 8);
@@ -1094,7 +1094,7 @@ size_t stlink_serial(struct libusb_device_handle *handle, struct libusb_device_d
 		if (ret < 0) return 0;
 	} else if (len == ((STLINK_SERIAL_LENGTH / 2 + 1) * 2)) { /* len == 26 */
 		/* fix-up the buggy serial */
-		for (unsigned int i = 0; i < STLINK_SERIAL_LENGTH; i += 2)
+		for (uint32_t i = 0; i < STLINK_SERIAL_LENGTH; i += 2)
 			sprintf(serial + i, "%02X", desc_serial[i + 2]);
 		serial[STLINK_SERIAL_LENGTH] = '\0';
 	} else {
@@ -1104,11 +1104,11 @@ size_t stlink_serial(struct libusb_device_handle *handle, struct libusb_device_d
 	return strlen(serial);
 }
 
-stlink_t *stlink_open_usb(enum ugly_loglevel verbose, enum connect_type connect, char serial[STLINK_SERIAL_BUFFER_SIZE], int freq) {
+stlink_t *stlink_open_usb(enum ugly_loglevel verbose, enum connect_type connect, char serial[STLINK_SERIAL_BUFFER_SIZE], int32_t freq) {
     stlink_t* sl = NULL;
     struct stlink_libusb* slu = NULL;
-    int ret = -1;
-    int config;
+    int32_t ret = -1;
+    int32_t config;
 
     sl = calloc(1, sizeof(stlink_t));
     if (sl == NULL) { goto on_malloc_error; }
@@ -1246,7 +1246,7 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, enum connect_type connect,
     // initialize stlink version (sl->version)
     stlink_version(sl);
 
-    int mode = stlink_current_mode(sl);
+    int32_t mode = stlink_current_mode(sl);
     if (mode == STLINK_DEV_DFU_MODE) {
         DLOG("-- exit_dfu_mode\n");
         _stlink_usb_exit_dfu_mode(sl);
@@ -1288,17 +1288,17 @@ on_malloc_error:
     return(NULL);
 }
 
-static size_t stlink_probe_usb_devs(libusb_device **devs, stlink_t **sldevs[], enum connect_type connect, int freq) {
+static size_t stlink_probe_usb_devs(libusb_device **devs, stlink_t **sldevs[], enum connect_type connect, int32_t freq) {
     stlink_t **_sldevs;
     libusb_device *dev;
-    int i = 0;
+    int32_t i = 0;
     size_t slcnt = 0;
     size_t slcur = 0;
 
     /* Count STLINKs */
     while ((dev = devs[i++]) != NULL) {
         struct libusb_device_descriptor desc;
-        int ret = libusb_get_device_descriptor(dev, &desc);
+        int32_t ret = libusb_get_device_descriptor(dev, &desc);
 
         if (ret < 0) {
             WLOG("failed to get libusb device descriptor (libusb error: %d)\n", ret);
@@ -1327,7 +1327,7 @@ static size_t stlink_probe_usb_devs(libusb_device **devs, stlink_t **sldevs[], e
 
     while ((dev = devs[i++]) != NULL) {
         struct libusb_device_descriptor desc;
-        int ret = libusb_get_device_descriptor(dev, &desc);
+        int32_t ret = libusb_get_device_descriptor(dev, &desc);
 
         if (ret < 0) {
             WLOG("failed to get libusb device descriptor (libusb error: %d)\n", ret);
@@ -1372,12 +1372,12 @@ static size_t stlink_probe_usb_devs(libusb_device **devs, stlink_t **sldevs[], e
     return(slcur);
 }
 
-size_t stlink_probe_usb(stlink_t **stdevs[], enum connect_type connect, int freq) {
+size_t stlink_probe_usb(stlink_t **stdevs[], enum connect_type connect, int32_t freq) {
     libusb_device **devs;
     stlink_t **sldevs;
 
     size_t slcnt = 0;
-    int r;
+    int32_t r;
     ssize_t cnt;
 
     r = libusb_init(NULL);

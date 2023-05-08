@@ -1,6 +1,8 @@
 #ifndef CHIPID_H
 #define CHIPID_H
 
+#include <stdint.h>
+
 #include <stm32.h>
 #include <stlink.h>
 

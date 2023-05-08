@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -11,9 +12,9 @@
 #include <logging.h>
 #include "semihosting.h"
 
-static int mem_read_u8(stlink_t *sl, uint32_t addr, uint8_t *data) {
-    int offset = addr % 4;
-    int len = 4;
+static int32_t mem_read_u8(stlink_t *sl, uint32_t addr, uint8_t *data) {
+    int32_t offset = addr % 4;
+    int32_t len = 4;
 
     if (sl == NULL || data == NULL) { return(-1); }
 
@@ -25,9 +26,9 @@ static int mem_read_u8(stlink_t *sl, uint32_t addr, uint8_t *data) {
 }
 
 #ifdef UNUSED
-static int mem_read_u16(stlink_t *sl, uint32_t addr, uint16_t *data) {
-    int offset = addr % 4;
-    int len = (offset > 2 ? 8 : 4);
+static int32_t mem_read_u16(stlink_t *sl, uint32_t addr, uint16_t *data) {
+    int32_t offset = addr % 4;
+    int32_t len = (offset > 2 ? 8 : 4);
 
     if (sl == NULL || data == NULL) { return(-1); }
 
@@ -38,9 +39,9 @@ static int mem_read_u16(stlink_t *sl, uint32_t addr, uint16_t *data) {
     return(0);
 }
 
-static int mem_read_u32(stlink_t *sl, uint32_t addr, uint32_t *data) {
-    int offset = addr % 4;
-    int len = (offset > 0 ? 8 : 4);
+static int32_t mem_read_u32(stlink_t *sl, uint32_t addr, uint32_t *data) {
+    int32_t offset = addr % 4;
+    int32_t len = (offset > 0 ? 8 : 4);
 
     if (sl == NULL || data == NULL) { return(-1); }
 
@@ -52,9 +53,9 @@ static int mem_read_u32(stlink_t *sl, uint32_t addr, uint32_t *data) {
 }
 #endif
 
-static int mem_read(stlink_t *sl, uint32_t addr, void *data, uint16_t len) {
-    int offset = addr % 4;
-    int read_len = len + offset;
+static int32_t mem_read(stlink_t *sl, uint32_t addr, void *data, uint16_t len) {
+    int32_t offset = addr % 4;
+    int32_t read_len = len + offset;
 
     if (sl == NULL || data == NULL) { return(-1); }
 
@@ -68,7 +69,7 @@ static int mem_read(stlink_t *sl, uint32_t addr, void *data, uint16_t len) {
     return(0);
 }
 
-static int mem_write(stlink_t *sl, uint32_t addr, void *data, uint16_t len) {
+static int32_t mem_write(stlink_t *sl, uint32_t addr, void *data, uint16_t len) {
     /* Note: this function can write more than it is asked to!
      * If addr is not an even 32 bit boundary, or len is not a multiple of 4.
      * If only 32 bit values can be written to the target, then this function should read
@@ -78,8 +79,8 @@ static int mem_write(stlink_t *sl, uint32_t addr, void *data, uint16_t len) {
      * Just return when the length is zero avoiding unneeded work. */
     if (len == 0) { return(0); }
 
-    int offset = addr % 4;
-    int write_len = len + offset;
+    int32_t offset = addr % 4;
+    int32_t write_len = len + offset;
 
     if (sl == NULL || data == NULL) { return(-1); }
 
@@ -112,7 +113,7 @@ static int mem_write(stlink_t *sl, uint32_t addr, void *data, uint16_t len) {
 #define O_BINARY 0
 #endif
 
-static int open_mode_flags[12] = {
+static int32_t open_mode_flags[12] = {
     O_RDONLY,
     O_RDONLY | O_BINARY,
     O_RDWR,
@@ -127,9 +128,9 @@ static int open_mode_flags[12] = {
     O_RDWR   | O_CREAT | O_APPEND | O_BINARY
 };
 
-static int saved_errno = 0;
+static int32_t saved_errno = 0;
 
-int do_semihosting (stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret) {
+int32_t do_semihosting (stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret) {
 
     if (sl == NULL || ret == NULL) { return(-1); }
 
@@ -200,7 +201,7 @@ int do_semihosting (stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret) {
     case SEMIHOST_SYS_CLOSE:
     {
         uint32_t args[1];
-        int fd;
+        int32_t fd;
 
         if (mem_read(sl, r1, args, sizeof(args)) != 0) {
             DLOG("Semihosting SYS_CLOSE error: cannot read args from target memory\n");
@@ -208,7 +209,7 @@ int do_semihosting (stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret) {
             return(-1);
         }
 
-        fd = (int)args[0];
+        fd = (int32_t)args[0];
 
         DLOG("Semihosting: close(%d)\n", fd);
 
@@ -222,7 +223,7 @@ int do_semihosting (stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret) {
     {
         uint32_t args[3];
         uint32_t buffer_address;
-        int fd;
+        int32_t fd;
         uint32_t buffer_len;
         void    *buffer;
 
@@ -232,7 +233,7 @@ int do_semihosting (stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret) {
             return(-1);
         }
 
-        fd             = (int)args[0];
+        fd             = (int32_t)args[0];
         buffer_address = args[1];
         buffer_len     = args[2];
 
@@ -277,7 +278,7 @@ int do_semihosting (stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret) {
     {
         uint32_t args[3];
         uint32_t buffer_address;
-        int fd;
+        int32_t fd;
         uint32_t buffer_len;
         void    *buffer;
         ssize_t read_result;
@@ -288,7 +289,7 @@ int do_semihosting (stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret) {
             return(-1);
         }
 
-        fd             = (int)args[0];
+        fd             = (int32_t)args[0];
         buffer_address = args[1];
         buffer_len     = args[2];
 
@@ -388,7 +389,7 @@ int do_semihosting (stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret) {
     case SEMIHOST_SYS_SEEK:
     {
         uint32_t args[2];
-        int fd;
+        int32_t fd;
         off_t offset;
 
         if (mem_read(sl, r1, args, sizeof(args)) != 0) {
@@ -397,10 +398,10 @@ int do_semihosting (stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret) {
             return(-1);
         }
 
-        fd = (int)args[0];
+        fd = (int32_t)args[0];
         offset = (off_t)args[1];
 
-        DLOG("Semihosting: lseek(%d, %d, SEEK_SET)\n", fd, (int)offset);
+        DLOG("Semihosting: lseek(%d, %d, SEEK_SET)\n", fd, (int32_t)offset);
         *ret = (uint32_t)lseek(fd, offset, SEEK_SET);
         saved_errno = errno;
 
@@ -437,7 +438,7 @@ int do_semihosting (stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret) {
                 return(-1);
             }
 
-            for (int i = 0; i < WRITE0_BUFFER_SIZE; i++) {
+            for (int32_t i = 0; i < WRITE0_BUFFER_SIZE; i++) {
                 if (buf[i] == 0) { return(0); }
 
                 fprintf(stderr, "%c", buf[i]);

@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -11,7 +12,7 @@
 
 struct Test {
     const char * cmd_line;
-    int res;
+    int32_t res;
     struct flash_opts opts;
 };
 
@@ -32,7 +33,7 @@ static bool cmp_mem(const uint8_t * s1, const uint8_t * s2, size_t size) {
 }
 
 static bool execute_test(const struct Test * test) {
-    int ac = 0;
+    int32_t ac = 0;
     char* av[32];
 
     /* parse (tokenize) the test command line */
@@ -53,7 +54,7 @@ static bool execute_test(const struct Test * test) {
 
     /* Call */
     struct flash_opts opts;
-    int res = flash_get_opts(&opts, ac, av);
+    int32_t res = flash_get_opts(&opts, ac, av);
 
     /* Compare results */
     bool ret = (res == test->res);
@@ -225,7 +226,7 @@ static struct Test tests[] = {
     },
 };
 
-int main() {
+int32_t main() {
     bool allOk = true;
 
     for (size_t i = 0; i < sizeof(tests) / sizeof(tests[0]); ++i)

@@ -7,9 +7,10 @@
 #define USB_H
 
 #include <stdbool.h>
+#include <stdint.h>
 
 #include <stlink.h>
-#include <libusb_settings.h>
+#include "libusb_settings.h"
 #include "logging.h"
 
 #define STLINK_USB_VID_ST                   0x0483
@@ -49,12 +50,12 @@
 struct stlink_libusb {
     libusb_context* libusb_ctx;
     libusb_device_handle* usb_handle;
-    unsigned int ep_req;
-    unsigned int ep_rep;
-    unsigned int ep_trace;
-    int protocoll;
-    unsigned int sg_transfer_idx;
-    unsigned int cmd_len;
+    uint32_t ep_req;
+    uint32_t ep_rep;
+    uint32_t ep_trace;
+    int32_t protocoll;
+    uint32_t sg_transfer_idx;
+    uint32_t cmd_len;
 };
 
 /**
@@ -66,8 +67,8 @@ struct stlink_libusb {
  * @retval !NULL  Stlink found and ready to use
  */
  
-stlink_t *stlink_open_usb(enum ugly_loglevel verbose, enum connect_type connect, char serial[STLINK_SERIAL_BUFFER_SIZE], int freq);
-size_t stlink_probe_usb(stlink_t **stdevs[], enum connect_type connect, int freq);
+stlink_t *stlink_open_usb(enum ugly_loglevel verbose, enum connect_type connect, char serial[STLINK_SERIAL_BUFFER_SIZE], int32_t freq);
+size_t stlink_probe_usb(stlink_t **stdevs[], enum connect_type connect, int32_t freq);
 void stlink_probe_usb_free(stlink_t **stdevs[], size_t size);
 
 #endif // USB_H

@@ -7,6 +7,8 @@
 #ifndef STM32_H
 #define STM32_H
 
+#include <stdint.h>
+
 /* STM32 Cortex-M core ids (CPUTAPID) */
 enum stm32_core_id {
     STM32_CORE_ID_M0_SWD        = 0x0bb11477,   // (RM0091 Section 32.5.3) F0 SW-DP

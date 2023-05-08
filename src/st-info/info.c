@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
@@ -42,26 +43,26 @@ static void stlink_print_info(stlink_t *sl) {
     if (params) { printf("  dev-type:   %s\n", params->dev_type); }
 }
 
-static void stlink_probe(enum connect_type connect, int freq) {
+static void stlink_probe(enum connect_type connect, int32_t freq) {
     stlink_t **stdevs;
     size_t size;
 
     size = stlink_probe_usb(&stdevs, connect, freq);
 
-    printf("Found %u stlink programmers\n", (unsigned int)size);
+    printf("Found %u stlink programmers\n", (uint32_t)size);
 
     for (size_t n = 0; n < size; n++) {
-        if (size > 1) printf("%u.\n", (unsigned int)n+1);
+        if (size > 1) printf("%u.\n", (uint32_t)n+1);
         stlink_print_info(stdevs[n]);
     }
 
     stlink_probe_usb_free(&stdevs, size);
 }
 
-static int print_data(int ac, char **av) {
+static int32_t print_data(int32_t ac, char **av) {
     stlink_t* sl = NULL;
     enum connect_type connect = CONNECT_NORMAL;
-    int freq = 0;
+    int32_t freq = 0;
 
     if (strcmp(av[1], "--version") == 0) {
         printf("v%s\n", STLINK_VERSION);
@@ -70,7 +71,7 @@ static int print_data(int ac, char **av) {
 
     init_chipids(STLINK_CHIPS_DIR);
 
-    for (int i=2; i<ac; i++) {
+    for (int32_t i=2; i<ac; i++) {
         
         if (strcmp(av[i], "--connect-under-reset") == 0) {
             connect = CONNECT_UNDER_RESET;
@@ -128,8 +129,8 @@ static int print_data(int ac, char **av) {
     return(0);
 }
 
-int main(int ac, char** av) {
-    int err = -1;
+int32_t main(int32_t ac, char** av) {
+    int32_t err = -1;
 
     if (ac < 2) {
         usage();

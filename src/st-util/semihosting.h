@@ -1,6 +1,8 @@
 #ifndef SEMIHOSTING_H
 #define SEMIHOSTING_H
 
+#include <stdint.h>
+
 #include <stlink.h>
 
 #define SEMIHOST_SYS_OPEN     0x01
@@ -29,6 +31,6 @@
 #define SEMIHOST_SYS_ELAPSED  0x30
 #define SEMIHOST_SYS_TICKFREQ 0x31
 
-int do_semihosting(stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret);
+int32_t do_semihosting(stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret);
 
 #endif // SEMIHOSTING_H

@@ -1,5 +1,7 @@
 #if defined(_WIN32)
 
+#include <stdint.h>
+
 #include "win32_socket.h"
 
 #undef socket
@@ -11,11 +13,11 @@
 #include <errno.h>
 #include <assert.h>
 
-int win32_poll(struct pollfd *fds, unsigned int nfds, int timo) {
+int32_t win32_poll(struct pollfd *fds, uint32_t nfds, int32_t timo) {
     struct timeval timeout, *toptr;
     fd_set ifds, ofds, efds, *ip, *op;
-    unsigned int i;
-    int rc;
+    uint32_t i;
+    int32_t rc;
 
 #ifdef _MSC_VER
 #pragma warning(disable: 4548)
@@ -99,7 +101,7 @@ int win32_poll(struct pollfd *fds, unsigned int nfds, int timo) {
     return(rc);
 }
 
-static void set_connect_errno(int winsock_err) {
+static void set_connect_errno(int32_t winsock_err) {
     switch (winsock_err) {
     case WSAEINVAL:
     case WSAEALREADY:
@@ -112,7 +114,7 @@ static void set_connect_errno(int winsock_err) {
     }
 }
 
-static void set_socket_errno(int winsock_err) {
+static void set_socket_errno(int32_t winsock_err) {
     switch (winsock_err) {
     case WSAEWOULDBLOCK:
         errno = EAGAIN;
@@ -128,7 +130,7 @@ static void set_socket_errno(int winsock_err) {
  * The purpose of this wrapper is to ensure that the global errno symbol is set if an error occurs,
  * even if we are using winsock.
  */
-SOCKET win32_socket(int domain, int type, int protocol) {
+SOCKET win32_socket(int32_t domain, int32_t type, int32_t protocol) {
     SOCKET fd = socket(domain, type, protocol);
 
     if (fd == INVALID_SOCKET) { set_socket_errno(WSAGetLastError()); }
@@ -141,8 +143,8 @@ SOCKET win32_socket(int domain, int type, int protocol) {
  * The purpose of this wrapper is to ensure that the global errno symbol is set if an error occurs,
  * even if we are using winsock.
  */
-int win32_connect(SOCKET fd, struct sockaddr *addr, socklen_t addr_len) {
-    int rc = connect(fd, addr, addr_len);
+int32_t win32_connect(SOCKET fd, struct sockaddr *addr, socklen_t addr_len) {
+    int32_t rc = connect(fd, addr, addr_len);
     assert(rc == 0 || rc == SOCKET_ERROR);
 
     if (rc == SOCKET_ERROR) { set_connect_errno(WSAGetLastError()); }
@@ -169,8 +171,8 @@ SOCKET win32_accept(SOCKET fd, struct sockaddr *addr, socklen_t *addr_len) {
  * The purpose of this wrapper is to ensure that the global errno symbol is set if an error occurs,
  * even if we are using winsock.
  */
-int win32_shutdown(SOCKET fd, int mode) {
-    int rc = shutdown(fd, mode);
+int32_t win32_shutdown(SOCKET fd, int32_t mode) {
+    int32_t rc = shutdown(fd, mode);
     assert(rc == 0 || rc == SOCKET_ERROR);
 
     if (rc == SOCKET_ERROR) { set_socket_errno(WSAGetLastError()); }
@@ -178,24 +180,24 @@ int win32_shutdown(SOCKET fd, int mode) {
     return(rc);
 }
 
-int win32_close_socket(SOCKET fd) {
-    int rc = closesocket(fd);
+int32_t win32_close_socket(SOCKET fd) {
+    int32_t rc = closesocket(fd);
 
     if (rc == SOCKET_ERROR) { set_socket_errno(WSAGetLastError()); }
 
     return(rc);
 }
 
-ssize_t win32_write_socket(SOCKET fd, void *buf, int n) {
-    int rc = send(fd, buf, n, 0);
+ssize_t win32_write_socket(SOCKET fd, void *buf, int32_t n) {
+    int32_t rc = send(fd, buf, n, 0);
 
     if (rc == SOCKET_ERROR) { set_socket_errno(WSAGetLastError()); }
 
     return(rc);
 }
 
-ssize_t win32_read_socket(SOCKET fd, void *buf, int n) {
-    int rc = recv(fd, buf, n, 0);
+ssize_t win32_read_socket(SOCKET fd, void *buf, int32_t n) {
+    int32_t rc = recv(fd, buf, n, 0);
 
     if (rc == SOCKET_ERROR) { set_socket_errno(WSAGetLastError()); }
 
@@ -205,7 +207,7 @@ ssize_t win32_read_socket(SOCKET fd, void *buf, int n) {
 
 char * win32_strtok_r(char *s, const char *delim, char **lasts) {
     register char *spanp;
-    register int c, sc;
+    register int32_t c, sc;
     char *tok;
 
 
@@ -254,7 +256,7 @@ cont:
 char *win32_strsep (char **stringp, const char *delim) {
     register char *s;
     register const char *spanp;
-    register int c, sc;
+    register int32_t c, sc;
     char *tok;
 
     if ((s = *stringp) == NULL) {
@@ -284,7 +286,7 @@ char *win32_strsep (char **stringp, const char *delim) {
 }
 
 #ifndef STLINK_HAVE_UNISTD_H
-int usleep(unsigned int waitTime) {
+int32_t usleep(uint32_t waitTime) {
     if (waitTime >= 1000) {
         /* Don't do long busy-waits.
          * However much it seems like the QPC code would be more accurate,

@@ -1,7 +1,9 @@
+#include <stdint.h>
 #include <stdio.h>
-#include <stlink.h>
 #include <unistd.h>
 #include <string.h>
+
+#include <stlink.h>
 #include "calculate.h"
 #include "flash_loader.h"
 #include "common_flash.h"
@@ -31,7 +33,7 @@ uint32_t get_stm32l0_flash_base(stlink_t *sl) {
   }
 }
 
-uint32_t read_flash_cr(stlink_t *sl, unsigned bank) {
+uint32_t read_flash_cr(stlink_t *sl, uint32_t bank) {
   uint32_t reg, res;
 
   if (sl->flash_type == STM32_FLASH_TYPE_F2_F4) {
@@ -117,7 +119,7 @@ void lock_flash(stlink_t *sl) {
   }
 }
 
-static inline int write_flash_sr(stlink_t *sl, unsigned bank, uint32_t val) {
+static inline int32_t write_flash_sr(stlink_t *sl, uint32_t bank, uint32_t val) {
   uint32_t sr_reg;
 
   if ((sl->flash_type == STM32_FLASH_TYPE_F0_F1_F3) ||
@@ -190,7 +192,7 @@ void clear_flash_error(stlink_t *sl) {
   }
 }
 
-uint32_t read_flash_sr(stlink_t *sl, unsigned bank) {
+uint32_t read_flash_sr(stlink_t *sl, uint32_t bank) {
   uint32_t res, sr_reg;
 
   if ((sl->flash_type == STM32_FLASH_TYPE_F0_F1_F3) ||
@@ -222,9 +224,9 @@ uint32_t read_flash_sr(stlink_t *sl, unsigned bank) {
   return (res);
 }
 
-unsigned int is_flash_busy(stlink_t *sl) {
+uint32_t is_flash_busy(stlink_t *sl) {
   uint32_t sr_busy_shift;
-  unsigned int res;
+  uint32_t res;
 
   if ((sl->flash_type == STM32_FLASH_TYPE_F0_F1_F3) ||
       (sl->flash_type == STM32_FLASH_TYPE_F1_XL) ||
@@ -267,7 +269,7 @@ void wait_flash_busy(stlink_t *sl) {
     ;
 }
 
-int check_flash_error(stlink_t *sl) {
+int32_t check_flash_error(stlink_t *sl) {
   uint32_t res = 0;
   uint32_t WRPERR, PROGERR, PGAERR;
 
@@ -361,7 +363,7 @@ int check_flash_error(stlink_t *sl) {
   return (0);
 }
 
-static inline unsigned int is_flash_locked(stlink_t *sl) {
+static inline uint32_t is_flash_locked(stlink_t *sl) {
   /* return non zero for true */
   uint32_t cr_lock_shift;
   uint32_t cr_reg;
@@ -463,7 +465,7 @@ static void unlock_flash(stlink_t *sl) {
 }
 
 /* unlock flash if already locked */
-int unlock_flash_if(stlink_t *sl) {
+int32_t unlock_flash_if(stlink_t *sl) {
   if (is_flash_locked(sl)) {
     unlock_flash(sl);
 
@@ -477,9 +479,9 @@ int unlock_flash_if(stlink_t *sl) {
   return (0);
 }
 
-int lock_flash_option(stlink_t *sl) {
+int32_t lock_flash_option(stlink_t *sl) {
   uint32_t optlock_shift, optcr_reg, n, optcr2_reg = 0;
-  int active_bit_level = 1;
+  int32_t active_bit_level = 1;
 
   switch (sl->flash_type) {
   case STM32_FLASH_TYPE_F0_F1_F3:
@@ -555,7 +557,7 @@ int lock_flash_option(stlink_t *sl) {
 
 static bool is_flash_option_locked(stlink_t *sl) {
   uint32_t optlock_shift, optcr_reg;
-  int active_bit_level = 1;
+  int32_t active_bit_level = 1;
   uint32_t n;
 
   switch (sl->flash_type) {
@@ -612,7 +614,7 @@ static bool is_flash_option_locked(stlink_t *sl) {
   return (n & (1u << optlock_shift));
 }
 
-static int unlock_flash_option(stlink_t *sl) {
+static int32_t unlock_flash_option(stlink_t *sl) {
   uint32_t optkey_reg, optkey2_reg = 0;
   uint32_t optkey1 = FLASH_OPTKEY1;
   uint32_t optkey2 = FLASH_OPTKEY2;
@@ -669,7 +671,7 @@ static int unlock_flash_option(stlink_t *sl) {
   return (0);
 }
 
-int unlock_flash_option_if(stlink_t *sl) {
+int32_t unlock_flash_option_if(stlink_t *sl) {
   if (is_flash_option_locked(sl)) {
     if (unlock_flash_option(sl)) {
       ELOG("Could not unlock flash option!\n");
@@ -687,7 +689,7 @@ int unlock_flash_option_if(stlink_t *sl) {
 }
 
 void write_flash_cr_psiz(stlink_t *sl, uint32_t n,
-                                       unsigned bank) {
+                                       uint32_t bank) {
   uint32_t cr_reg, psize_shift;
   uint32_t x = read_flash_cr(sl, bank);
 
@@ -707,7 +709,7 @@ void write_flash_cr_psiz(stlink_t *sl, uint32_t n,
   stlink_write_debug32(sl, cr_reg, x);
 }
 
-void clear_flash_cr_pg(stlink_t *sl, unsigned bank) {
+void clear_flash_cr_pg(stlink_t *sl, uint32_t bank) {
   uint32_t cr_reg, n;
   uint32_t bit = FLASH_CR_PG;
 
@@ -737,7 +739,7 @@ void clear_flash_cr_pg(stlink_t *sl, unsigned bank) {
 /* ------------------------------------------------------------------------ */
 
 static void wait_flash_busy_progress(stlink_t *sl) {
-  int i = 0;
+  int32_t i = 0;
   fprintf(stdout, "Mass erasing...");
   fflush(stdout);
 
@@ -754,11 +756,11 @@ static void wait_flash_busy_progress(stlink_t *sl) {
   fprintf(stdout, "\n");
 }
 
-static inline void write_flash_ar(stlink_t *sl, uint32_t n, unsigned bank) {
+static inline void write_flash_ar(stlink_t *sl, uint32_t n, uint32_t bank) {
   stlink_write_debug32(sl, (bank == BANK_1) ? FLASH_AR : FLASH_AR2, n);
 }
 
-static inline void write_flash_cr_snb(stlink_t *sl, uint32_t n, unsigned bank) {
+static inline void write_flash_cr_snb(stlink_t *sl, uint32_t n, uint32_t bank) {
   uint32_t cr_reg, snb_mask, snb_shift, ser_shift;
   uint32_t x = read_flash_cr(sl, bank);
 
@@ -783,7 +785,7 @@ static inline void write_flash_cr_snb(stlink_t *sl, uint32_t n, unsigned bank) {
   stlink_write_debug32(sl, cr_reg, x);
 }
 
-static void set_flash_cr_per(stlink_t *sl, unsigned bank) {
+static void set_flash_cr_per(stlink_t *sl, uint32_t bank) {
   uint32_t cr_reg, val;
 
   if (sl->flash_type == STM32_FLASH_TYPE_G0 ||
@@ -802,7 +804,7 @@ static void set_flash_cr_per(stlink_t *sl, unsigned bank) {
   stlink_write_debug32(sl, cr_reg, val);
 }
 
-static void clear_flash_cr_per(stlink_t *sl, unsigned bank) {
+static void clear_flash_cr_per(stlink_t *sl, uint32_t bank) {
   uint32_t cr_reg;
 
   if (sl->flash_type == STM32_FLASH_TYPE_G0 ||
@@ -836,7 +838,7 @@ static inline void write_flash_cr_bker_pnb(stlink_t *sl, uint32_t n) {
   stlink_write_debug32(sl, FLASH_L4_CR, x);
 }
 
-static void set_flash_cr_strt(stlink_t *sl, unsigned bank) {
+static void set_flash_cr_strt(stlink_t *sl, uint32_t bank) {
   uint32_t val, cr_reg, cr_strt;
 
   if (sl->flash_type == STM32_FLASH_TYPE_F2_F4) {
@@ -871,7 +873,7 @@ static void set_flash_cr_strt(stlink_t *sl, unsigned bank) {
   stlink_write_debug32(sl, cr_reg, val);
 }
 
-static void set_flash_cr_mer(stlink_t *sl, bool v, unsigned bank) {
+static void set_flash_cr_mer(stlink_t *sl, bool v, uint32_t bank) {
   uint32_t val, cr_reg, cr_mer, cr_pg;
 
   if (sl->flash_type == STM32_FLASH_TYPE_F2_F4) {
@@ -936,7 +938,7 @@ static void set_flash_cr_mer(stlink_t *sl, bool v, unsigned bank) {
  * @param flashaddr an address in the flash page to erase
  * @return 0 on success -ve on failure
  */
-int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr) {
+int32_t stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr) {
   // wait for ongoing op to finish
   wait_flash_busy(sl);
   // clear flash IO errors
@@ -1108,7 +1110,7 @@ int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr) {
     lock_flash(sl);
   } else if (sl->flash_type == STM32_FLASH_TYPE_F0_F1_F3 ||
              sl->flash_type == STM32_FLASH_TYPE_F1_XL) {
-    unsigned bank = (flashaddr < STM32_F1_FLASH_BANK2_BASE) ? BANK_1 : BANK_2;
+    uint32_t bank = (flashaddr < STM32_F1_FLASH_BANK2_BASE) ? BANK_1 : BANK_2;
     unlock_flash_if(sl);
     clear_flash_cr_pg(sl, bank);         // clear the pg bit
     set_flash_cr_per(sl, bank);          // set the page erase bit
@@ -1119,7 +1121,7 @@ int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr) {
     clear_flash_cr_per(sl, bank); // clear the page erase bit
     lock_flash(sl);
   } else if (sl->flash_type == STM32_FLASH_TYPE_H7) {
-    unsigned bank = (flashaddr < STM32_H7_FLASH_BANK2_BASE) ? BANK_1 : BANK_2;
+    uint32_t bank = (flashaddr < STM32_H7_FLASH_BANK2_BASE) ? BANK_1 : BANK_2;
     unlock_flash_if(sl); // unlock if locked
     uint32_t sector = calculate_H7_sectornum(
         sl, flashaddr, bank); // calculate the actual page from the address
@@ -1135,7 +1137,7 @@ int stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr) {
   return check_flash_error(sl);
 }
 
-int stlink_erase_flash_section(stlink_t *sl, stm32_addr_t base_addr, size_t size, bool align_size) {
+int32_t stlink_erase_flash_section(stlink_t *sl, stm32_addr_t base_addr, size_t size, bool align_size) {
   // Check the address and size validity
   if (stlink_check_address_range_validity(sl, base_addr, size) < 0) {
     return -1;
@@ -1149,11 +1151,11 @@ int stlink_erase_flash_section(stlink_t *sl, stm32_addr_t base_addr, size_t size
 
   stm32_addr_t addr = base_addr;
   do {
-    long unsigned int page_size = stlink_calculate_pagesize(sl, addr);
+    uint32_t page_size = stlink_calculate_pagesize(sl, addr);
 
     // Check if size is aligned with a page, unless we want to completely erase the last page
     if ((addr + page_size) > (base_addr + size) && !align_size) {
-      ELOG("Invalid size (not aligned with a page). Page size at address %#x is %#lx\n", addr, page_size);
+      ELOG("Invalid size (not aligned with a page). Page size at address %#x is %#x\n", addr, page_size);
       return (-1);
     }
 
@@ -1162,7 +1164,7 @@ int stlink_erase_flash_section(stlink_t *sl, stm32_addr_t base_addr, size_t size
       return (-1);
     }
 
-    fprintf(stdout, "-> Flash page at %#x erased (size: %#lx)\n", addr, page_size);
+    fprintf(stdout, "-> Flash page at %#x erased (size: %#x)\n", addr, page_size);
     fflush(stdout);
 
     // check the next page is within the range to erase
@@ -1173,8 +1175,8 @@ int stlink_erase_flash_section(stlink_t *sl, stm32_addr_t base_addr, size_t size
   return 0;
 }
 
-int stlink_erase_flash_mass(stlink_t *sl) {
-  int err = 0;
+int32_t stlink_erase_flash_mass(stlink_t *sl) {
+  int32_t err = 0;
 
   // TODO: User MER bit to mass-erase WB series.
   if (sl->flash_type == STM32_FLASH_TYPE_L0_L1 ||
@@ -1224,11 +1226,11 @@ int stlink_erase_flash_mass(stlink_t *sl) {
   return (err);
 }
 
-int stlink_mwrite_flash(stlink_t *sl, uint8_t *data, uint32_t length,
+int32_t stlink_mwrite_flash(stlink_t *sl, uint8_t *data, uint32_t length,
                         stm32_addr_t addr) {
   /* Write the block in flash at addr */
-  int err;
-  unsigned int num_empty, idx;
+  int32_t err;
+  uint32_t num_empty, idx;
   uint8_t erased_pattern = stlink_get_erased_pattern(sl);
 
   /*
@@ -1236,7 +1238,7 @@ int stlink_mwrite_flash(stlink_t *sl, uint8_t *data, uint32_t length,
    * Therfore it is turned off by default.
    */
   if (sl->opt) {
-    idx = (unsigned int)length;
+    idx = (uint32_t)length;
 
     for (num_empty = 0; num_empty != length; ++num_empty)
       if (data[--idx] != erased_pattern) {
@@ -1273,10 +1275,10 @@ int stlink_mwrite_flash(stlink_t *sl, uint8_t *data, uint32_t length,
  * @param addr where to start writing
  * @return 0 on success, -ve on failure.
  */
-int stlink_fwrite_flash(stlink_t *sl, const char *path, stm32_addr_t addr) {
+int32_t stlink_fwrite_flash(stlink_t *sl, const char *path, stm32_addr_t addr) {
   /* Write the file in flash at addr */
-  int err;
-  unsigned int num_empty, idx;
+  int32_t err;
+  uint32_t num_empty, idx;
   uint8_t erased_pattern = stlink_get_erased_pattern(sl);
   mapped_file_t mf = MAPPED_FILE_INITIALIZER;
 
@@ -1290,7 +1292,7 @@ int stlink_fwrite_flash(stlink_t *sl, const char *path, stm32_addr_t addr) {
   stlink_checksum(&mf);
 
   if (sl->opt) {
-    idx = (unsigned int)mf.len;
+    idx = (uint32_t)mf.len;
 
     for (num_empty = 0; num_empty != mf.len; ++num_empty) {
       if (mf.base[--idx] != erased_pattern) {
@@ -1323,10 +1325,10 @@ int stlink_fwrite_flash(stlink_t *sl, const char *path, stm32_addr_t addr) {
 }
 
 
-int stlink_fcheck_flash(stlink_t *sl, const char *path, stm32_addr_t addr) {
+int32_t stlink_fcheck_flash(stlink_t *sl, const char *path, stm32_addr_t addr) {
   // check the contents of path are at addr
 
-  int res;
+  int32_t res;
   mapped_file_t mf = MAPPED_FILE_INITIALIZER;
 
   if (map_file(&mf, path) == -1) {
@@ -1346,8 +1348,8 @@ int stlink_fcheck_flash(stlink_t *sl, const char *path, stm32_addr_t addr) {
  * @param length how much
  * @return 0 for success, -ve for failure
  */
-int stlink_verify_write_flash(stlink_t *sl, stm32_addr_t address, uint8_t *data,
-                              unsigned length) {
+int32_t stlink_verify_write_flash(stlink_t *sl, stm32_addr_t address, uint8_t *data,
+                              uint32_t length) {
   size_t off;
   size_t cmp_size = (sl->flash_pgsz > 0x1800) ? 0x1800 : sl->flash_pgsz;
   ILOG("Starting verification of write complete\n");
@@ -1369,7 +1371,7 @@ int stlink_verify_write_flash(stlink_t *sl, stm32_addr_t address, uint8_t *data,
     stlink_read_mem32(sl, address + (uint32_t)off, (uint16_t)aligned_size);
 
     if (memcmp(sl->q_buf, data + off, cmp_size)) {
-      ELOG("Verification of flash failed at offset: %u\n", (unsigned int)off);
+      ELOG("Verification of flash failed at offset: %u\n", (uint32_t)off);
       return (-1);
     }
   }
@@ -1379,23 +1381,23 @@ int stlink_verify_write_flash(stlink_t *sl, stm32_addr_t address, uint8_t *data,
 }
 
 // Check if an address and size are within the flash
-int stlink_check_address_range_validity(stlink_t *sl, stm32_addr_t addr, size_t size) {
-  long unsigned int logvar;
+int32_t stlink_check_address_range_validity(stlink_t *sl, stm32_addr_t addr, size_t size) {
+  uint32_t logvar;
   if (addr < sl->flash_base || addr >= (sl->flash_base + sl->flash_size)) {
     logvar = sl->flash_base + sl->flash_size - 1;
-    ELOG("Invalid address, it should be within 0x%08x - 0x%08lx\n", sl->flash_base, logvar);
+    ELOG("Invalid address, it should be within 0x%08x - 0x%08x\n", sl->flash_base, logvar);
     return (-1);
   }
   if ((addr + size) > (sl->flash_base + sl->flash_size)) {
     logvar = sl->flash_base + sl->flash_size - addr;
-    ELOG("The size exceeds the size of the flash (0x%08lx bytes available)\n", logvar);
+    ELOG("The size exceeds the size of the flash (0x%08x bytes available)\n", logvar);
     return (-1);
   }
   return 0;
 }
 
 // Check if an address is aligned with the beginning of a page
-int stlink_check_address_alignment(stlink_t *sl, stm32_addr_t addr) {
+int32_t stlink_check_address_alignment(stlink_t *sl, stm32_addr_t addr) {
   stm32_addr_t page = sl->flash_base;
 
   while (page < addr) {
@@ -1409,9 +1411,9 @@ int stlink_check_address_alignment(stlink_t *sl, stm32_addr_t addr) {
   return 0;
 }
 
-int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t *base,
+int32_t stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t *base,
                        uint32_t len, uint8_t eraseonly) {
-  int ret;
+  int32_t ret;
   flash_loader_t fl;
   ILOG("Attempting to write %d (%#x) bytes to stm32 address: %u (%#x)\n", len,
        len, addr, addr);
@@ -1428,7 +1430,7 @@ int stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t *base,
     ELOG("addr not a multiple of current pagesize (%u bytes), not supported, "
          "check page start address and compare with flash module organisation "
          "in related ST reference manual of your device.\n",
-         (unsigned)(sl->flash_pgsz));
+         (uint32_t)(sl->flash_pgsz));
     return (-1);
   }
 

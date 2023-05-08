@@ -5,6 +5,8 @@
 #ifndef LOGGING_H
 #define LOGGING_H
 
+#include <stdint.h>
+
 #ifdef  __cplusplus
 extern "C" {
 #endif
@@ -22,9 +24,9 @@ enum ugly_loglevel {
 #define PRINTF_ARRT
 #endif
 
-int ugly_init(int maximum_threshold);
-int ugly_log(int level, const char *tag, const char *format, ...) PRINTF_ARRT;
-int ugly_libusb_log_level(enum ugly_loglevel v);
+int32_t ugly_init(int32_t maximum_threshold);
+int32_t ugly_log(int32_t level, const char *tag, const char *format, ...) PRINTF_ARRT;
+int32_t ugly_libusb_log_level(enum ugly_loglevel v);
 
 #define UGLY_LOG_FILE (strstr(__FILE__, "/") != NULL ? \
                        strrchr(__FILE__, '/')  + 1 : strstr(__FILE__, "\\") != NULL ? \

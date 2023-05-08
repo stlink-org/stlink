@@ -263,7 +263,7 @@ static gpointer stlink_gui_populate_filemem_view(gpointer data) {
         uint8_t* mem   = NULL;
         size_t size    = 0;
         uint32_t begin = 0;
-        int res = stlink_parse_ihex(gui->filename, 0, &mem, &size, &begin);
+        int32_t res = stlink_parse_ihex(gui->filename, 0, &mem, &size, &begin);
 
         if (res == 0) {
             if (gui->file_mem.memory) {
@@ -440,7 +440,7 @@ static gchar *dev_format_chip_id(guint32 chip_id) {
 }
 
 static gchar *dev_format_mem_size(gsize flash_size) {
-    return(g_strdup_printf("%u kB", (unsigned int)(flash_size / 1024)));
+    return(g_strdup_printf("%u kB", (uint32_t)(flash_size / 1024)));
 }
 
 
@@ -640,7 +640,7 @@ static void flash_button_cb(GtkWidget *widget, gpointer data) {
     }
 }
 
-int export_to_file(const char*filename, const struct mem_t flash_mem) {
+int32_t export_to_file(const char*filename, const struct mem_t flash_mem) {
     printf("%s\n", filename);
     FILE * f = fopen(filename, "w");
 
@@ -885,7 +885,7 @@ static void stlink_gui_build_ui(STlinkGUI *gui) {
     stlink_gui_set_disconnected(gui);
 }
 
-int main(int argc, char **argv) {
+int32_t main(int32_t argc, char **argv) {
     STlinkGUI *gui;
 
     gtk_init(&argc, &argv);

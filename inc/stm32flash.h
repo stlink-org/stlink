@@ -1,6 +1,8 @@
 #ifndef STM32FLASH_H
 #define STM32FLASH_H
 
+#include <stdint.h>
+
 /* STM32Fx FPEC flash controller interface, PM0063 manual */
 // STM32F05x is identical, based on RM0091 (DM00031936, Doc ID 018940 Rev.2, Aug 2012)
 #define FLASH_REGS_ADDR 0x40022000

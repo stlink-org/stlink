@@ -1,5 +1,7 @@
 #if defined(_WIN32)
 
+#include <stdint.h>
+
 #define _USE_W32_SOCKETS 1
 
 #if defined(_MSC_VER)
@@ -35,8 +37,8 @@
 #define POLLNVAL    0x0020    /* Invalid request: fd not open */
 struct pollfd {
     SOCKET fd;        /* file descriptor */
-    short events;     /* requested events */
-    short revents;    /* returned events */
+    int16_t events;     /* requested events */
+    int16_t revents;    /* returned events */
 };
 #endif
 #define poll(x, y, z)     win32_poll(x, y, z)
@@ -54,15 +56,15 @@ struct pollfd {
 #define read(x, y, z)     win32_read_socket(x, y, z)
 #define write(x, y, z)    win32_write_socket(x, y, z)
 
-/* Winsock uses int instead of the usual socklen_t */
-typedef int socklen_t;
+/* Winsock uses int32_t instead of the usual socklen_t */
+typedef int32_t socklen_t;
 
-int     win32_poll(struct pollfd *, unsigned int, int);
-SOCKET  win32_socket(int, int, int);
-int     win32_connect(SOCKET, struct sockaddr*, socklen_t);
+int32_t win32_poll(struct pollfd *, uint32_t, int);
+SOCKET  win32_socket(int32_t, int32_t, int);
+int32_t win32_connect(SOCKET, struct sockaddr*, socklen_t);
 SOCKET  win32_accept(SOCKET, struct sockaddr*, socklen_t *);
-int     win32_shutdown(SOCKET, int);
-int     win32_close_socket(SOCKET fd);
+int32_t win32_shutdown(SOCKET, int);
+int32_t win32_close_socket(SOCKET fd);
 
 #define strtok_r(x, y, z) win32_strtok_r(x, y, z)
 #define strsep(x,y)       win32_strsep(x,y)
@@ -70,7 +72,7 @@ int     win32_close_socket(SOCKET fd);
 char *win32_strtok_r(char *s, const char *delim, char **lasts);
 char *win32_strsep(char **stringp, const char *delim);
 
-ssize_t win32_read_socket(SOCKET fd, void *buf, int n);
-ssize_t win32_write_socket(SOCKET fd, void *buf, int n);
+ssize_t win32_read_socket(SOCKET fd, void *buf, int32_t n);
+ssize_t win32_write_socket(SOCKET fd, void *buf, int32_t n);
 
 #endif // defined(_WIN32)

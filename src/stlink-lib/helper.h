@@ -1,8 +1,10 @@
 #ifndef HELPER_H
 #define HELPER_H
 
-unsigned time_ms();
+#include <stdint.h>
 
-int arg_parse_freq(const char *str);
+uint32_t time_ms();
+
+int32_t arg_parse_freq(const char *str);
 
 #endif // HELPER_H

@@ -1,11 +1,12 @@
 #include <fcntl.h>
-#include <sys/stat.h>
-#include <md5.h>
+#include <stdint.h>
 #include <unistd.h>
-#include <stlink.h>
-#include <logging.h>
+#include <sys/stat.h>
 
+#include <stlink.h>
+#include "logging.h"
 #include "map_file.h"
+#include "md5.h"
 
 #ifndef O_BINARY
 #define O_BINARY 0
@@ -15,11 +16,11 @@
 #define MAX_FILE_SIZE (1<<20) // 1 GB max file size
 #endif
 
-int map_file(mapped_file_t *mf, const char *path) {
-  int error = -1;
+int32_t map_file(mapped_file_t *mf, const char *path) {
+  int32_t error = -1;
   struct stat st;
 
-  const int fd = open(path, O_RDONLY | O_BINARY);
+  const int32_t fd = open(path, O_RDONLY | O_BINARY);
 
   if (fd == -1) {
     fprintf(stderr, "open(%s) == -1\n", path);

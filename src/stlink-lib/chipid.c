@@ -1,12 +1,13 @@
-#include "chipid.h"
-#include <stlink.h>
-#include <stm32.h>
-
 #include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include "chipid.h"
+#include <stlink.h>
+#include <stm32.h>
 
 static struct stlink_chipid_params *devicelist;
 
@@ -43,7 +44,7 @@ void process_chipfile(char *fname) {
   char *p, buf[256];
   char word[64], value[64];
   struct stlink_chipid_params *ts;
-  int nc;
+  int32_t nc;
 
   // fprintf (stderr, "processing chip-id file %s.\n", fname);
   fp = fopen(fname, "r");

@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -24,7 +25,7 @@ static void __attribute__((unused)) mark_buf(stlink_t *sl) {
 }
 
 
-int main(void) { // main() ripped out of old stlink-hw.c
+int32_t main(void) { // main() ripped out of old stlink-hw.c
     /* Avoid unused parameter warning */
     // set scpi lib debug level: 0 for no debug info, 10 for lots
     fputs(
@@ -81,7 +82,7 @@ int main(void) { // main() ripped out of old stlink-hw.c
 
     memset(sl->q_buf, 0, sizeof(sl->q_buf));
 
-    for (int i = 0; i < 100; i++) {
+    for (int32_t i = 0; i < 100; i++) {
         write_uint32(sl->q_buf, LED_BLUE | LED_GREEN);
         stlink_write_mem32(sl, GPIOC_ODR, 4);
         // stlink_read_mem32(sl, 0x4001100c, 4);
@@ -184,7 +185,7 @@ int main(void) { // main() ripped out of old stlink-hw.c
 #if 0 /* check file contents */
     fputs("\n+++++++ check flash memory\n\n", stderr);
     {
-        const int res = stlink_fcheck_flash(sl, "/tmp/foobar", 0x08000000);
+        const int32_t res = stlink_fcheck_flash(sl, "/tmp/foobar", 0x08000000);
         printf("_____ stlink_fcheck_flash() == %d\n", res);
     }
 #endif

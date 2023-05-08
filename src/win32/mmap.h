@@ -1,6 +1,8 @@
 #ifndef MMAP_H
 #define MMAP_H
 
+#include <stdint.h>
+
 #ifdef STLINK_HAVE_SYS_MMAN_H
 #include <sys/mman.h>
 #else
@@ -13,8 +15,8 @@
 #define MAP_ANONYMOUS (1 << 5)
 #define MAP_FAILED    ((void *)-1)
 
-void *mmap(void *addr, size_t len, int prot, int flags, int fd, long long offset);
-int munmap(void *addr, size_t len);
+void *mmap(void *addr, size_t len, int32_t prot, int32_t flags, int32_t fd, int64_t offset);
+int32_t munmap(void *addr, size_t len);
 
 #endif // STLINK_HAVE_SYS_MMAN_H
 

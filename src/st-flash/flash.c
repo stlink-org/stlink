@@ -1,6 +1,7 @@
 /* Simple wrapper around the stlink_flash_write function */
 
 #include <stdio.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -20,7 +21,7 @@
 
 static stlink_t *connected_stlink = NULL;
 
-static void cleanup(int signum) {
+static void cleanup(int32_t signum) {
     (void)signum;
 
     if (connected_stlink) { // switch back to mass storage mode before closing
@@ -52,10 +53,10 @@ static void usage(void) {
     puts("example write option control register1 byte:  ./st-flash --area=optcr1 write 0xXXXXXXXX");
 }
 
-int main(int ac, char** av) {
+int32_t main(int32_t ac, char** av) {
     stlink_t* sl = NULL;
     struct flash_opts o;
-    int err = -1;
+    int32_t err = -1;
     uint8_t * mem = NULL;
 
     o.size = 0;
@@ -82,7 +83,7 @@ int main(int ac, char** av) {
 
     if ( o.flash_size != 0u && o.flash_size != sl->flash_size ) {
         sl->flash_size = o.flash_size;
-        printf("Forcing flash size: --flash=0x%08X\n", (unsigned int)sl->flash_size);
+        printf("Forcing flash size: --flash=0x%08X\n", (uint32_t)sl->flash_size);
     }
 
     sl->verbose = o.log_level;
@@ -222,8 +223,8 @@ int main(int ac, char** av) {
         } else if (o.area == FLASH_OPTION_BYTES) {
             size_t remaining_option_length = sl->option_size / 4;
             DLOG("@@@@ Read %u (%#x) option bytes from %#10x\n",
-                (unsigned)remaining_option_length,
-                (unsigned)remaining_option_length,
+                (uint32_t)remaining_option_length,
+                (uint32_t)remaining_option_length,
                 sl->option_base);
 
             uint32_t option_byte = 0;
@@ -232,7 +233,7 @@ int main(int ac, char** av) {
                 printf("could not read option bytes (%d)\n", err);
                 goto on_error;
             } else if (NULL != o.filename) {
-                int fd = open(o.filename, O_RDWR | O_TRUNC | O_CREAT | O_BINARY, 00700);
+                int32_t fd = open(o.filename, O_RDWR | O_TRUNC | O_CREAT | O_BINARY, 00700);
                 if (fd == -1) {
                     fprintf(stderr, "open(%s) == -1\n", o.filename);
                     goto on_error;

@@ -5,6 +5,7 @@
  * This is free and unencumbered software released into the public domain - June 2013 - waterjuice.org
  */
 
+#include <stdint.h>
 #include <memory.h>
 
 #include "md5.h"
@@ -205,7 +206,7 @@ void Md5Update(Md5Context* Context /* [in out] */, void const* Buffer /* [in] */
     }
 
     if ( BufferSize >= 64 ) {
-        Buffer = TransformFunction( Context, Buffer, BufferSize & ~(unsigned long)0x3f );
+        Buffer = TransformFunction( Context, Buffer, BufferSize & ~(uint32_t)0x3f );
         BufferSize &= 0x3f;
     }
 

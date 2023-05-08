@@ -7,6 +7,7 @@
 
 #include <stdarg.h>
 #include <stddef.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #define __STDC_WANT_LIB_EXT1__ 1
@@ -14,14 +15,14 @@
 
 #include "logging.h"
 
-static int max_level = UDEBUG;
+static int32_t max_level = UDEBUG;
 
-int ugly_init(int maximum_threshold) {
+int32_t ugly_init(int32_t maximum_threshold) {
   max_level = maximum_threshold;
   return (0);
 }
 
-int ugly_log(int level, const char *tag, const char *format, ...) {
+int32_t ugly_log(int32_t level, const char *tag, const char *format, ...) {
   if (level > max_level) {
     return (0);
   }
@@ -84,7 +85,7 @@ int ugly_log(int level, const char *tag, const char *format, ...) {
  *  - LIBUSB_LOG_LEVEL_DEBUG (4)   : debug and informational messages are
  * printed to stderr
  */
-int ugly_libusb_log_level(enum ugly_loglevel v) {
+int32_t ugly_libusb_log_level(enum ugly_loglevel v) {
 #ifdef __FreeBSD__
   // FreeBSD includes its own reimplementation of libusb.
   // Its libusb_set_debug() function expects a lib_debug_level

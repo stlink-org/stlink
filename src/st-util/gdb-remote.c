@@ -5,8 +5,8 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <stdlib.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 #if defined(_WIN32)
 #include <win32_socket.h>
@@ -19,9 +19,9 @@
 
 static const char hex[] = "0123456789abcdef";
 
-int gdb_send_packet(int fd, char* data) {
-    unsigned int data_length = (unsigned int)strlen(data);
-    int length = data_length + 4;
+int32_t gdb_send_packet(int32_t fd, char* data) {
+    uint32_t data_length = (uint32_t)strlen(data);
+    int32_t length = data_length + 4;
     char* packet = malloc(length); // '$' data (hex) '#' cksum (hex)
 
     memset(packet, 0, length);
@@ -30,7 +30,7 @@ int gdb_send_packet(int fd, char* data) {
 
     uint8_t cksum = 0;
 
-    for (unsigned int i = 0; i < data_length; i++) {
+    for (uint32_t i = 0; i < data_length; i++) {
         packet[i + 1] = data[i];
         cksum += data[i];
     }
@@ -61,12 +61,12 @@ int gdb_send_packet(int fd, char* data) {
 
 #define ALLOC_STEP 1024
 
-int gdb_recv_packet(int fd, char** buffer) {
-    unsigned packet_size = ALLOC_STEP + 1, packet_idx = 0;
+int32_t gdb_recv_packet(int32_t fd, char** buffer) {
+    uint32_t packet_size = ALLOC_STEP + 1, packet_idx = 0;
     uint8_t cksum = 0;
     char recv_cksum[3] = {0};
     char* packet_buffer = malloc(packet_size);
-    unsigned state;
+    uint32_t state;
 
     if (packet_buffer == NULL) {
         return(-2);
@@ -167,7 +167,7 @@ start:
  * As we use the mode with ACK, in a (very unlikely) situation of a packet lost
  * because of this skipping, it will be resent anyway.
  */
-int gdb_check_for_interrupt(int fd) {
+int32_t gdb_check_for_interrupt(int32_t fd) {
     struct pollfd pfd;
     pfd.fd = fd;
     pfd.events = POLLIN;

@@ -1,18 +1,19 @@
 #include <stddef.h>
+#include <stdint.h>
 #include <string.h>
 
 #include "getopt.h"
 
 #if !defined(_MSC_VER)
-const int no_argument = 0;
-const int required_argument = 1;
-const int optional_argument = 2;
+const int32_t no_argument = 0;
+const int32_t required_argument = 1;
+const int32_t optional_argument = 2;
 #endif
 
 char* optarg;
-int optopt;
-int optind = 1; // The variable optind [...] shall be initialized to 1 by the system
-int opterr;
+int32_t optopt;
+int32_t optind = 1; // The variable optind [...] shall be initialized to 1 by the system
+int32_t opterr;
 
 static char* optcursor = NULL;
 
@@ -24,8 +25,8 @@ static char* optcursor = NULL;
  * [2] http://www.kernel.org/doc/man-pages/online/pages/man3/getopt.3.html
  * [3] http://www.freebsd.org/cgi/man.cgi?query=getopt&sektion=3&manpath=FreeBSD+9.0-RELEASE
  */
-int getopt(int argc, char* const argv[], const char* optstring) {
-    int optchar = -1;
+int32_t getopt(int32_t argc, char* const argv[], const char* optstring) {
+    int32_t optchar = -1;
     const char* optdecl = NULL;
 
     optarg = NULL;
@@ -125,17 +126,17 @@ no_more_optchars:
 }
 
 /* Implementation based on http://www.kernel.org/doc/man-pages/online/pages/man3/getopt.3.html */
-int getopt_long(int argc,
+int32_t getopt_long(int32_t argc,
                 char* const argv[],
                 const char* optstring,
                 const struct option* longopts,
                 int* longindex) {
     const struct option* o = longopts;
     const struct option* match = NULL;
-    int num_matches = 0;
+    int32_t num_matches = 0;
     size_t argument_name_length = 0;
     const char* current_argument = NULL;
-    int retval = -1;
+    int32_t retval = -1;
 
     optarg = NULL;
     optopt = 0;

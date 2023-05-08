@@ -3,6 +3,7 @@
 #include <signal.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
@@ -41,7 +42,7 @@
 typedef struct {
   bool show_help;
   bool show_version;
-  int logging_level;
+  int32_t logging_level;
   uint32_t core_frequency;
   uint32_t trace_frequency;
   bool reset_board;
@@ -144,7 +145,7 @@ static bool parse_frequency(char* text, uint32_t* result)
   return true;
 }
 
-bool parse_options(int argc, char **argv, st_settings_t *settings) {
+bool parse_options(int32_t argc, char **argv, st_settings_t *settings) {
 
   static struct option long_options[] = {
       {"help", no_argument, NULL, 'h'},
@@ -157,8 +158,8 @@ bool parse_options(int argc, char **argv, st_settings_t *settings) {
       {"force", no_argument, NULL, 'f'},
       {0, 0, 0, 0},
   };
-  int option_index = 0;
-  int c;
+  int32_t option_index = 0;
+  int32_t c;
   bool error = false;
 
   settings->show_help = false;
@@ -421,7 +422,7 @@ static trace_state update_trace(st_trace_t *trace, uint8_t c) {
 
 static bool read_trace(stlink_t *stlink, st_trace_t *trace) {
   uint8_t buffer[STLINK_TRACE_BUF_LEN];
-  int length = stlink_trace_read(stlink, buffer, sizeof(buffer));
+  int32_t length = stlink_trace_read(stlink, buffer, sizeof(buffer));
 
   if (length < 0) {
     ELOG("Error reading trace (%d)\n", length);
@@ -441,7 +442,7 @@ static bool read_trace(stlink_t *stlink, st_trace_t *trace) {
     trace->state = TRACE_STATE_UNKNOWN;
   }
 
-  for (int i = 0; i < length; i++) {
+  for (int32_t i = 0; i < length; i++) {
     trace->state = update_trace(trace, buffer[i]);
   }
 
@@ -531,7 +532,7 @@ static void check_for_configuration_error(stlink_t *stlink, st_trace_t *trace,
   WLOG("****\n");
 }
 
-int main(int argc, char **argv) {
+int32_t main(int32_t argc, char **argv) {
 #if defined(_WIN32)
   SetConsoleCtrlHandler((PHANDLER_ROUTINE)CtrlHandler, TRUE);
 #else

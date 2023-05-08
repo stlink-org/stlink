@@ -1,16 +1,15 @@
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+#include <unistd.h>
 #include <fcntl.h>
 #include <helper.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <unistd.h>
 
 #include <stlink.h>
 #include <stm32.h>
-
 #include "calculate.h"
 #include "common_flash.h"
 #include "map_file.h"
@@ -28,7 +27,7 @@
 
 // Private structs and functions defines
 struct stlink_fread_worker_arg {
-  int fd;
+  int32_t fd;
 };
 
 struct stlink_fread_ihex_worker_arg {
@@ -42,12 +41,12 @@ struct stlink_fread_ihex_worker_arg {
 typedef bool (*save_block_fn)(void *arg, uint8_t *block, ssize_t len);
 
 static void stop_wdg_in_debug(stlink_t *);
-int stlink_jtag_reset(stlink_t *, int);
-int stlink_soft_reset(stlink_t *, int);
+int32_t stlink_jtag_reset(stlink_t *, int);
+int32_t stlink_soft_reset(stlink_t *, int);
 void _parse_version(stlink_t *, stlink_version_t *);
 static uint8_t stlink_parse_hex(const char *);
-static int stlink_read(stlink_t *, stm32_addr_t, size_t, save_block_fn, void *);
-static bool stlink_fread_ihex_init(struct stlink_fread_ihex_worker_arg *, int, stm32_addr_t);
+static int32_t stlink_read(stlink_t *, stm32_addr_t, size_t, save_block_fn, void *);
+static bool stlink_fread_ihex_init(struct stlink_fread_ihex_worker_arg *, int32_t, stm32_addr_t);
 static bool stlink_fread_ihex_worker(void *, uint8_t *, ssize_t);
 static bool stlink_fread_ihex_finalize(struct stlink_fread_ihex_worker_arg *);
 static bool stlink_fread_worker(void *, uint8_t *, ssize_t);
@@ -67,7 +66,7 @@ void stlink_close(stlink_t *sl) {
 }
 
 // 250
-int stlink_exit_debug_mode(stlink_t *sl) {
+int32_t stlink_exit_debug_mode(stlink_t *sl) {
   DLOG("*** stlink_exit_debug_mode ***\n");
 
   if (sl->flash_type != STM32_FLASH_TYPE_UNKNOWN &&
@@ -80,16 +79,16 @@ int stlink_exit_debug_mode(stlink_t *sl) {
 }
 
 //248
-int stlink_enter_swd_mode(stlink_t *sl) {
+int32_t stlink_enter_swd_mode(stlink_t *sl) {
   DLOG("*** stlink_enter_swd_mode ***\n");
   return (sl->backend->enter_swd_mode(sl));
 }
 
 // 271
 // Force the core into the debug mode -> halted state.
-int stlink_force_debug(stlink_t *sl) {
+int32_t stlink_force_debug(stlink_t *sl) {
   DLOG("*** stlink_force_debug_mode ***\n");
-  int res = sl->backend->force_debug(sl);
+  int32_t res = sl->backend->force_debug(sl);
   if (res) {
      return (res);
   }
@@ -99,14 +98,14 @@ int stlink_force_debug(stlink_t *sl) {
 }
 
 // 251
-int stlink_exit_dfu_mode(stlink_t *sl) {
+int32_t stlink_exit_dfu_mode(stlink_t *sl) {
   DLOG("*** stlink_exit_dfu_mode ***\n");
   return (sl->backend->exit_dfu_mode(sl));
 }
 
 // 253
-int stlink_core_id(stlink_t *sl) {
-  int ret;
+int32_t stlink_core_id(stlink_t *sl) {
+  int32_t ret;
 
   DLOG("*** stlink_core_id ***\n");
   ret = sl->backend->core_id(sl);
@@ -127,8 +126,8 @@ int stlink_core_id(stlink_t *sl) {
 // 287
 // stlink_chip_id() is called by stlink_load_device_params()
 // do not call this procedure directly.
-int stlink_chip_id(stlink_t *sl, uint32_t *chip_id) {
-  int ret;
+int32_t stlink_chip_id(stlink_t *sl, uint32_t *chip_id) {
+  int32_t ret;
   cortex_m3_cpuid_t cpu_id;
 
   // Read the CPU ID to determine where to read the core id
@@ -193,7 +192,7 @@ int stlink_chip_id(stlink_t *sl, uint32_t *chip_id) {
  * @param sl stlink context
  * @param cpuid pointer to the result object
  */
-int stlink_cpu_id(stlink_t *sl, cortex_m3_cpuid_t *cpuid) {
+int32_t stlink_cpu_id(stlink_t *sl, cortex_m3_cpuid_t *cpuid) {
   uint32_t raw;
 
   if (stlink_read_debug32(sl, STLINK_REG_CM3_CPUID, &raw)) {
@@ -217,7 +216,7 @@ int stlink_cpu_id(stlink_t *sl, cortex_m3_cpuid_t *cpuid) {
  * @param sl
  * @return 0 for success, or -1 for unsupported core type.
  */
-int stlink_load_device_params(stlink_t *sl) {
+int32_t stlink_load_device_params(stlink_t *sl) {
   // This seems to normally work so is unnecessary info for a normal user.
   // Demoted to debug. -- REW
   DLOG("Loading device parameters....\n");
@@ -312,17 +311,17 @@ int stlink_load_device_params(stlink_t *sl) {
   }
 
   ILOG("%s: %u KiB SRAM, %u KiB flash in at least %u %s pages.\n",
-      params->dev_type, (unsigned)(sl->sram_size / 1024), (unsigned)(sl->flash_size / 1024),
-      (sl->flash_pgsz < 1024) ? (unsigned)(sl->flash_pgsz) : (unsigned)(sl->flash_pgsz / 1024),
+      params->dev_type, (uint32_t)(sl->sram_size / 1024), (uint32_t)(sl->flash_size / 1024),
+      (sl->flash_pgsz < 1024) ? (uint32_t)(sl->flash_pgsz) : (uint32_t)(sl->flash_pgsz / 1024),
       (sl->flash_pgsz < 1024) ? "byte" : "KiB");
 
   return (0);
 }
 
 // 254
-int stlink_reset(stlink_t *sl, enum reset_type type) {
+int32_t stlink_reset(stlink_t *sl, enum reset_type type) {
   uint32_t dhcsr;
-  unsigned timeout;
+  uint32_t timeout;
 
   DLOG("*** stlink_reset ***\n");
 
@@ -352,7 +351,7 @@ int stlink_reset(stlink_t *sl, enum reset_type type) {
      */
 
     dhcsr = 0;
-    int res = stlink_read_debug32(sl, STLINK_REG_DHCSR, &dhcsr);
+    int32_t res = stlink_read_debug32(sl, STLINK_REG_DHCSR, &dhcsr);
     if ((dhcsr & STLINK_REG_DHCSR_S_RESET_ST) == 0 && !res) {
       // reset not done yet --> try reset through AIRCR so that NRST does not need to be connected
       ILOG("NRST is not connected --> using software reset via AIRCR\n");
@@ -380,9 +379,9 @@ int stlink_reset(stlink_t *sl, enum reset_type type) {
   return (0);
 }
 
-int stlink_soft_reset(stlink_t *sl, int halt_on_reset) {
-  int ret;
-  unsigned timeout;
+int32_t stlink_soft_reset(stlink_t *sl, int32_t halt_on_reset) {
+  int32_t ret;
+  uint32_t timeout;
   uint32_t dhcsr, dfsr;
 
   DLOG("*** stlink_soft_reset %s***\n", halt_on_reset ? "(halt) " : "");
@@ -455,7 +454,7 @@ int stlink_soft_reset(stlink_t *sl, int halt_on_reset) {
 }
 
 // 255
-int stlink_run(stlink_t *sl, enum run_type type) {
+int32_t stlink_run(stlink_t *sl, enum run_type type) {
   struct stlink_reg rr;
   DLOG("*** stlink_run ***\n");
 
@@ -472,7 +471,7 @@ int stlink_run(stlink_t *sl, enum run_type type) {
 }
 
 // 273
-int stlink_set_swdclk(stlink_t *sl, int freq_khz) {
+int32_t stlink_set_swdclk(stlink_t *sl, int32_t freq_khz) {
   DLOG("*** set_swdclk ***\n");
   return (sl->backend->set_swdclk(sl, freq_khz));
 }
@@ -500,8 +499,8 @@ void stlink_core_stat(stlink_t *sl) {
 }
 
 // 256
-int stlink_status(stlink_t *sl) {
-  int ret;
+int32_t stlink_status(stlink_t *sl) {
+  int32_t ret;
 
   DLOG("*** stlink_status ***\n");
   ret = sl->backend->status(sl);
@@ -510,7 +509,7 @@ int stlink_status(stlink_t *sl) {
 }
 
 // 257
-int stlink_version(stlink_t *sl) {
+int32_t stlink_version(stlink_t *sl) {
   DLOG("*** looking up stlink version ***\n");
 
   if (sl->backend->version(sl)) {
@@ -534,8 +533,8 @@ int stlink_version(stlink_t *sl) {
 }
 
 // 272
-int stlink_target_voltage(stlink_t *sl) {
-  int voltage = -1;
+int32_t stlink_target_voltage(stlink_t *sl) {
+  int32_t voltage = -1;
   DLOG("*** reading target voltage\n");
 
   if (sl->backend->target_voltage != NULL) {
@@ -560,14 +559,14 @@ bool stlink_is_core_halted(stlink_t *sl) {
 }
 
 // 269
-int stlink_step(stlink_t *sl) {
+int32_t stlink_step(stlink_t *sl) {
   DLOG("*** stlink_step ***\n");
   return (sl->backend->step(sl));
 }
 
 // 270
-int stlink_current_mode(stlink_t *sl) {
-  int mode = sl->backend->current_mode(sl);
+int32_t stlink_current_mode(stlink_t *sl) {
+  int32_t mode = sl->backend->current_mode(sl);
 
   switch (mode) {
   case STLINK_DEV_DFU_MODE:
@@ -586,19 +585,19 @@ int stlink_current_mode(stlink_t *sl) {
 }
 
 // 274
-int stlink_trace_enable(stlink_t *sl, uint32_t frequency) {
+int32_t stlink_trace_enable(stlink_t *sl, uint32_t frequency) {
   DLOG("*** stlink_trace_enable ***\n");
   return (sl->backend->trace_enable(sl, frequency));
 }
 
 // 275
-int stlink_trace_disable(stlink_t *sl) {
+int32_t stlink_trace_disable(stlink_t *sl) {
   DLOG("*** stlink_trace_disable ***\n");
   return (sl->backend->trace_disable(sl));
 }
 
 // 276
-int stlink_trace_read(stlink_t *sl, uint8_t *buf, size_t size) {
+int32_t stlink_trace_read(stlink_t *sl, uint8_t *buf, size_t size) {
   return (sl->backend->trace_read(sl, buf, size));
 }
 
@@ -612,7 +611,7 @@ void stlink_print_data(stlink_t *sl) {
     DLOG("data_len = %d 0x%x\n", sl->q_len, sl->q_len);
   }
 
-  for (int i = 0; i < sl->q_len; i++) {
+  for (int32_t i = 0; i < sl->q_len; i++) {
     if (i % 16 == 0) {
       /*
       if (sl->q_data_dir == Q_DATA_OUT) {
@@ -622,18 +621,18 @@ void stlink_print_data(stlink_t *sl) {
       }
       */
     }
-    // DLOG(" %02x", (unsigned int) sl->q_buf[i]);
-    fprintf(stderr, " %02x", (unsigned int)sl->q_buf[i]);
+    // DLOG(" %02x", (uint32_t) sl->q_buf[i]);
+    fprintf(stderr, " %02x", (uint32_t)sl->q_buf[i]);
   }
   // DLOG("\n\n");
   fprintf(stderr, "\n");
 }
 
 // 283
-int stlink_mwrite_sram(stlink_t *sl, uint8_t *data, uint32_t length, stm32_addr_t addr) {
+int32_t stlink_mwrite_sram(stlink_t *sl, uint8_t *data, uint32_t length, stm32_addr_t addr) {
   // write the file in sram at addr
 
-  int error = -1;
+  int32_t error = -1;
   size_t off;
   size_t len;
 
@@ -688,10 +687,10 @@ on_error:
 }
 
 //284
-int stlink_fwrite_sram(stlink_t *sl, const char *path, stm32_addr_t addr) {
+int32_t stlink_fwrite_sram(stlink_t *sl, const char *path, stm32_addr_t addr) {
   // write the file in sram at addr
 
-  int error = -1;
+  int32_t error = -1;
   size_t off;
   size_t len;
   mapped_file_t mf = MAPPED_FILE_INITIALIZER;
@@ -763,12 +762,12 @@ on_error:
 }
 
 // 302
-int stlink_fread(stlink_t *sl, const char *path, bool is_ihex, stm32_addr_t addr, size_t size) {
+int32_t stlink_fread(stlink_t *sl, const char *path, bool is_ihex, stm32_addr_t addr, size_t size) {
   // read size bytes from addr to file
-  ILOG("read from address %#010x size %u\n", addr, (unsigned)size);
+  ILOG("read from address %#010x size %u\n", addr, (uint32_t)size);
 
-  int error;
-  int fd = open(path, O_RDWR | O_TRUNC | O_CREAT | O_BINARY, 00700);
+  int32_t error;
+  int32_t fd = open(path, O_RDWR | O_TRUNC | O_CREAT | O_BINARY, 00700);
 
   if (fd == -1) {
     fprintf(stderr, "open(%s) == -1\n", path);
@@ -797,9 +796,9 @@ int stlink_fread(stlink_t *sl, const char *path, bool is_ihex, stm32_addr_t addr
 }
 
 // 300
-int write_buffer_to_sram(stlink_t *sl, flash_loader_t *fl, const uint8_t *buf, size_t size) {
+int32_t write_buffer_to_sram(stlink_t *sl, flash_loader_t *fl, const uint8_t *buf, size_t size) {
   // write the buffer right after the loader
-  int ret = 0;
+  int32_t ret = 0;
   size_t chunk = size & ~0x3;
   size_t rem = size & 0x3;
 
@@ -858,15 +857,15 @@ uint32_t stlink_calculate_pagesize(stlink_t *sl, uint32_t flashaddr) {
 }
 
 // 279
-int stlink_parse_ihex(const char *path, uint8_t erased_pattern, uint8_t **mem,
+int32_t stlink_parse_ihex(const char *path, uint8_t erased_pattern, uint8_t **mem,
                       size_t *size, uint32_t *begin) {
-  int res = 0;
+  int32_t res = 0;
   *begin = UINT32_MAX;
   uint8_t *data = NULL;
   uint32_t end = 0;
   bool eof_found = false;
 
-  for (int scan = 0; (res == 0) && (scan < 2); ++scan) {
+  for (int32_t scan = 0; (res == 0) && (scan < 2); ++scan) {
     // parse file two times - first to find memory range, second - to fill it
     if (scan == 1) {
       if (!eof_found) {
@@ -885,7 +884,7 @@ int stlink_parse_ihex(const char *path, uint8_t erased_pattern, uint8_t **mem,
       data = calloc(*size, 1); // use calloc to get NULL if out of memory
 
       if (!data) {
-        ELOG("Cannot allocate %u bytes\n", (unsigned)(*size));
+        ELOG("Cannot allocate %u bytes\n", (uint32_t)(*size));
         res = -1;
         break;
       }
@@ -1029,7 +1028,7 @@ uint8_t stlink_get_erased_pattern(stlink_t *sl) {
 }
 
 // 322
-int stlink_target_connect(stlink_t *sl, enum connect_type connect) {
+int32_t stlink_target_connect(stlink_t *sl, enum connect_type connect) {
   if (connect == CONNECT_UNDER_RESET) {
     stlink_enter_swd_mode(sl);
 
@@ -1045,7 +1044,7 @@ int stlink_target_connect(stlink_t *sl, enum connect_type connect) {
     stlink_jtag_reset(sl, STLINK_DEBUG_APIV2_DRIVE_NRST_HIGH);
 
     // try to halt the core after reset
-    unsigned timeout = time_ms() + 10;
+    uint32_t timeout = time_ms() + 10;
     while (time_ms() < timeout) {
       sl->backend->force_debug(sl);
       usleep(100);
@@ -1128,7 +1127,7 @@ static void stop_wdg_in_debug(stlink_t *sl) {
   }
 }
 
-int stlink_jtag_reset(stlink_t *sl, int value) {
+int32_t stlink_jtag_reset(stlink_t *sl, int32_t value) {
   DLOG("*** stlink_jtag_reset %d ***\n", value);
   return (sl->backend->jtag_reset(sl, value));
 }
@@ -1207,7 +1206,7 @@ void stlink_run_at(stlink_t *sl, stm32_addr_t addr) {
 /* Limit the block size to compare to 0x1800 as anything larger will stall the
  * STLINK2 Maybe STLINK V1 needs smaller value!
  */
-int check_file(stlink_t *sl, mapped_file_t *mf, stm32_addr_t addr) {
+int32_t check_file(stlink_t *sl, mapped_file_t *mf, stm32_addr_t addr) {
   size_t off;
   size_t n_cmp = sl->flash_pgsz;
 
@@ -1249,7 +1248,7 @@ void md5_calculate(mapped_file_t *mf) {
   Md5Finalise(&md5Context, &md5Hash);
   printf("md5 checksum: ");
 
-  for (int i = 0; i < (int)sizeof(md5Hash); i++) {
+  for (int32_t i = 0; i < (int32_t)sizeof(md5Hash); i++) {
     printf("%x", md5Hash.bytes[i]);
   }
 
@@ -1269,17 +1268,17 @@ void stlink_checksum(mapped_file_t *mp) {
 }
 
 void stlink_fwrite_finalize(stlink_t *sl, stm32_addr_t addr) {
-  unsigned int val;
+  uint32_t val;
   // set PC to the reset routine
   stlink_read_debug32(sl, addr + 4, &val);
   stlink_write_reg(sl, val, 15);
   stlink_run(sl, RUN_NORMAL);
 }
 
-static int stlink_read(stlink_t *sl, stm32_addr_t addr, size_t size,
+static int32_t stlink_read(stlink_t *sl, stm32_addr_t addr, size_t size,
                        save_block_fn fn, void *fn_arg) {
 
-  int error = -1;
+  int32_t error = -1;
 
   if (size < 1) {
     size = sl->flash_size;
@@ -1333,7 +1332,7 @@ static bool stlink_fread_worker(void *arg, uint8_t *block, ssize_t len) {
 static uint8_t stlink_parse_hex(const char *hex) {
   uint8_t d[2];
 
-  for (int i = 0; i < 2; ++i) {
+  for (int32_t i = 0; i < 2; ++i) {
     char c = *(hex + i);
 
     if (c >= '0' && c <= '9') {
@@ -1406,7 +1405,7 @@ static bool stlink_fread_ihex_writeline(struct stlink_fread_ihex_worker_arg *the
 }
 
 static bool stlink_fread_ihex_init(struct stlink_fread_ihex_worker_arg *the_arg,
-                                   int fd, stm32_addr_t addr) {
+                                   int32_t fd, stm32_addr_t addr) {
   the_arg->file = fdopen(fd, "w");
   the_arg->addr = addr;
   the_arg->lba = 0;

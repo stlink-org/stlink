@@ -1,17 +1,18 @@
+#include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 
 #include <stlink.h>
-#include <string.h>
 
 static void usage(void) {
     puts("test-usb --reset");
     puts("test-usb --no-reset");
 }
 
-int main(int ac, char** av) {
+int32_t main(int32_t ac, char** av) {
     stlink_t* sl;
     struct stlink_reg regs;
-    int reset = 0;
+    int32_t reset = 0;
 
     if (ac == 2) {
         if (strcmp(av[1], "--reset") == 0)

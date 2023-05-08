@@ -6,8 +6,9 @@
  * Please add functionality as needed.
  */
 
-#include <stdlib.h>
+#include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #if defined(_MSC_VER)
 #pragma warning(push)
@@ -69,7 +70,7 @@ typedef unsigned __int32 uint32_t;
 typedef unsigned __int64 uint64_t;
 
 #ifndef STLINK_HAVE_UNISTD_H
-int usleep(unsigned int waitTime);
+int32_t usleep(uint32_t waitTime);
 #endif
 
 #endif // UNISTD_H

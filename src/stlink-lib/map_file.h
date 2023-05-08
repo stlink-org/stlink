@@ -7,6 +7,8 @@
 #ifndef MAP_FILE_H
 #define MAP_FILE_H
 
+#include <stdint.h>
+
 #ifndef O_BINARY
 #define O_BINARY 0
 #endif
@@ -26,7 +28,7 @@ typedef struct mapped_file {
 #define MAPPED_FILE_INITIALIZER                                                \
   { NULL, 0 }
 
-int map_file(mapped_file_t *, const char *);
+int32_t map_file(mapped_file_t *, const char *);
 void unmap_file(mapped_file_t *);
 
 #endif // MAP_FILE_H

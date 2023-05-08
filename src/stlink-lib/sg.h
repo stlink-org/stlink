@@ -6,8 +6,10 @@
 #ifndef SG_H
 #define SG_H
 
+#include <stdint.h>
+
 #include <stlink.h>
-#include <libusb_settings.h>
+#include "libusb_settings.h"
 
 /* Device access */
 #define RDWR        0
@@ -35,15 +37,15 @@
 struct stlink_libsg {
     libusb_context* libusb_ctx;
     libusb_device_handle *usb_handle;
-    unsigned ep_rep;
-    unsigned ep_req;
+    uint32_t ep_rep;
+    uint32_t ep_req;
 
-    int sg_fd;
-    int do_scsi_pt_err;
+    int32_t sg_fd;
+    int32_t do_scsi_pt_err;
 
     unsigned char cdb_cmd_blk[CDB_SL];
 
-    int q_data_dir; // Q_DATA_IN, Q_DATA_OUT
+    int32_t q_data_dir; // Q_DATA_IN, Q_DATA_OUT
     // the start of the query data in the device memory space
     uint32_t q_addr;
 
@@ -54,6 +56,6 @@ struct stlink_libsg {
     struct stlink_reg reg;
 };
 
-stlink_t* stlink_v1_open(const int verbose, int reset);
+stlink_t* stlink_v1_open(const int32_t verbose, int32_t reset);
 
 #endif // SG_H
