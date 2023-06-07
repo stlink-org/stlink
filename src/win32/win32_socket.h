@@ -59,11 +59,11 @@ struct pollfd {
 /* Winsock uses int32_t instead of the usual socklen_t */
 typedef int32_t socklen_t;
 
-int32_t win32_poll(struct pollfd *, uint32_t, int);
-SOCKET  win32_socket(int32_t, int32_t, int);
+int32_t win32_poll(struct pollfd *, uint32_t, int32_t);
+SOCKET  win32_socket(int32_t, int32_t, int32_t);
 int32_t win32_connect(SOCKET, struct sockaddr*, socklen_t);
 SOCKET  win32_accept(SOCKET, struct sockaddr*, socklen_t *);
-int32_t win32_shutdown(SOCKET, int);
+int32_t win32_shutdown(SOCKET, int32_t);
 int32_t win32_close_socket(SOCKET fd);
 
 #define strtok_r(x, y, z) win32_strtok_r(x, y, z)

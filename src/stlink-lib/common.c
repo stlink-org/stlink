@@ -41,8 +41,8 @@ struct stlink_fread_ihex_worker_arg {
 typedef bool (*save_block_fn)(void *arg, uint8_t *block, ssize_t len);
 
 static void stop_wdg_in_debug(stlink_t *);
-int32_t stlink_jtag_reset(stlink_t *, int);
-int32_t stlink_soft_reset(stlink_t *, int);
+int32_t stlink_jtag_reset(stlink_t *, int32_t);
+int32_t stlink_soft_reset(stlink_t *, int32_t);
 void _parse_version(stlink_t *, stlink_version_t *);
 static uint8_t stlink_parse_hex(const char *);
 static int32_t stlink_read(stlink_t *, stm32_addr_t, size_t, save_block_fn, void *);
@@ -253,8 +253,8 @@ int32_t stlink_load_device_params(stlink_t *sl) {
   flash_size = flash_size & 0xffff;
 
   if ((sl->chip_id == STM32_CHIPID_L1_MD ||
-        sl->chip_id == STM32_CHIPID_F1_VL_MD_LD ||
-        sl->chip_id == STM32_CHIPID_L1_MD_PLUS) &&
+       sl->chip_id == STM32_CHIPID_F1_VL_MD_LD ||
+       sl->chip_id == STM32_CHIPID_L1_MD_PLUS) &&
       (flash_size == 0)) {
     sl->flash_size = 128 * 1024;
   } else if (sl->chip_id == STM32_CHIPID_L1_CAT2) {
@@ -285,7 +285,8 @@ int32_t stlink_load_device_params(stlink_t *sl) {
     sl->sram_size = 0x1000;
   }
 
-  if (sl->chip_id == STM32_CHIPID_G4_CAT3) {
+  if (sl->chip_id == STM32_CHIPID_G4_CAT3 ||
+      sl->chip_id == STM32_CHIPID_G4_CAT4) {
     uint32_t flash_optr;
     stlink_read_debug32(sl, FLASH_Gx_OPTR, &flash_optr);
 

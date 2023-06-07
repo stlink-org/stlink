@@ -1012,6 +1012,7 @@ int32_t stlink_read_option_bytes32(stlink_t *sl, uint32_t *option_byte) {
   case STM32_CHIPID_G0_CAT2:
   case STM32_CHIPID_G4_CAT2:
   case STM32_CHIPID_G4_CAT3:
+  case STM32_CHIPID_G4_CAT4:
     return stlink_read_option_bytes_gx(sl, option_byte);
   default:
     return stlink_read_option_bytes_generic(sl, option_byte);

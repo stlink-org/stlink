@@ -1348,8 +1348,7 @@ int32_t stlink_fcheck_flash(stlink_t *sl, const char *path, stm32_addr_t addr) {
  * @param length how much
  * @return 0 for success, -ve for failure
  */
-int32_t stlink_verify_write_flash(stlink_t *sl, stm32_addr_t address, uint8_t *data,
-                              uint32_t length) {
+int32_t stlink_verify_write_flash(stlink_t *sl, stm32_addr_t address, uint8_t *data, uint32_t length) {
   size_t off;
   size_t cmp_size = (sl->flash_pgsz > 0x1800) ? 0x1800 : sl->flash_pgsz;
   ILOG("Starting verification of write complete\n");
