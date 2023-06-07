@@ -1,3 +1,12 @@
+/* == nightwalker-87: TODO: CONTENT AND USE OF THIS SOURCE FILE IS TO BE VERIFIED (07.06.2023) == */
+/* TODO: This file should be split up into new or existing modules. */
+
+/*
+ * File: common.c
+ *
+ *
+ */
+
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>

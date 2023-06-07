@@ -1,7 +1,7 @@
 /*
  * File: usb.h
  *
- * 
+ * USB commands & interaction with ST-LINK devices
  */
 
 #ifndef USB_H

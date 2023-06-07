@@ -1,7 +1,7 @@
 /*
  * File: usb.c
  *
- * 
+ * USB commands & interaction with ST-LINK devices
  */
 
 #include <limits.h>
