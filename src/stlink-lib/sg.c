@@ -74,6 +74,12 @@
  *         part to an existing options line for usb-storage).
  */
 
+/*
+ * File: sg.c
+ *
+ *
+ */
+
 #define __USE_GNU
 
 #include <assert.h>

@@ -5,6 +5,12 @@
  * This is free and unencumbered software released into the public domain - June 2013 - waterjuice.org
  */
 
+/*
+ * File: md5.c
+ *
+ * MD5 hash function
+ */
+
 #include <stdint.h>
 #include <memory.h>
 

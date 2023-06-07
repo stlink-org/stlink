@@ -1,3 +1,9 @@
+/*
+ * File: map_file.c
+ *
+ * File mapping
+ */
+
 #include <fcntl.h>
 #include <stdint.h>
 #include <unistd.h>

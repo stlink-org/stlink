@@ -1,3 +1,9 @@
+/*
+ * File: chipid.h
+ *
+ * Chip-ID parametres
+ */
+
 #ifndef CHIPID_H
 #define CHIPID_H
 

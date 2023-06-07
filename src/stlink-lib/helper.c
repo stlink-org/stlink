@@ -1,3 +1,9 @@
+/*
+ * File: helper.c
+ *
+ * General helper functions
+ */
+
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>

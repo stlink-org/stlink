@@ -1,3 +1,9 @@
+/*
+ * File: flash_loader.c
+ *
+ * Flash loaders
+ */
+
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>

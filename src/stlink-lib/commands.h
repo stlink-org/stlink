@@ -1,3 +1,9 @@
+/*
+ * File: commands.h
+ *
+ * stlink commands
+ */
+
 #ifndef COMMANDS_H
 #define COMMANDS_H
 

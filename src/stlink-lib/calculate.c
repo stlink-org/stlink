@@ -1,3 +1,9 @@
+/*
+ * File: calculate.c
+ *
+ * Calculation of sector numbers and pages
+ */
+
 #include <stdint.h>
 
 #include <stlink.h>

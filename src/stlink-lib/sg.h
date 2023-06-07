@@ -1,6 +1,7 @@
 /*
- * File:   sg.h
- * Author: karl
+ * File: sg.h
+ *
+ *
  */
 
 #ifndef SG_H

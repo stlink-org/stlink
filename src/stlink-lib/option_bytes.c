@@ -1,3 +1,9 @@
+/*
+ * File: option_bytes.c
+ *
+ * Read and write option bytes and option control registers
+ */
+
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>

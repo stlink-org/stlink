@@ -11,7 +11,7 @@
 #include <unistd.h>
 
 #include <logging.h>
-#include <reg.h>
+#include <register.h>
 #include <stlink.h>
 
 #define DEFAULT_LOGGING_LEVEL 50

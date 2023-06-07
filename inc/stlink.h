@@ -1,9 +1,7 @@
-
 /*
  * File: stlink.h
  *
- * This should contain all the common top level stlink interfaces,
- * regardless of how the backend does the work....
+ * All common top level stlink interfaces, regardless of how the backend does the work....
  */
 
 #ifndef STLINK_H
@@ -300,7 +298,7 @@ int32_t stlink_target_connect(stlink_t *sl, enum connect_type connect);
 
 #include <sg.h>
 #include <usb.h>
-#include <reg.h>
+#include <register.h>
 #include <commands.h>
 #include <chipid.h>
 #include <flash_loader.h>

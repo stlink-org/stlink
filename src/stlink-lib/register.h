@@ -1,5 +1,11 @@
-#ifndef REG_H
-#define REG_H
+/*
+ * File: register.h
+ *
+ * Common STM32 registers
+ */
+
+#ifndef REGISTER_H
+#define REGISTER_H
 
 #define STLINK_REG_CM3_CPUID                0xE000ED00
 

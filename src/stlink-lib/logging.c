@@ -1,8 +1,7 @@
 /*
  * UglyLogging
  *
- * Slow, yet another wheel reinvented, but enough to make the rest of our code
- * pretty enough.
+ * Slow, yet another wheel reinvented, but enough to make the rest of our code pretty enough.
  */
 
 #include <stdarg.h>

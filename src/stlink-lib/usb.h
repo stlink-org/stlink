@@ -1,6 +1,7 @@
 /*
- * File:   usb.h
- * Author: karl
+ * File: usb.h
+ *
+ * 
  */
 
 #ifndef USB_H

@@ -1,3 +1,9 @@
+/*
+ * File: common_flash.c
+ *
+ * Flash operations
+ */
+
 #include <stdint.h>
 #include <stdio.h>
 #include <unistd.h>

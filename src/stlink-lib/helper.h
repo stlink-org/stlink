@@ -1,3 +1,9 @@
+/*
+ * File: helper.h
+ *
+ * General helper functions
+ */
+
 #ifndef HELPER_H
 #define HELPER_H
 

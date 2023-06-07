@@ -180,7 +180,7 @@ set(STLINK_HEADERS
         src/stlink-lib/map_file.h
         src/stlink-lib/md5.h
         src/stlink-lib/option_bytes.h
-        src/stlink-lib/reg.h
+        src/stlink-lib/register.h
         src/stlink-lib/sg.h
         src/stlink-lib/usb.h
         )

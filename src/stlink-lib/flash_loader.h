@@ -1,7 +1,7 @@
 /*
  * File: flash_loader.h
  *
- * Flash loader
+ * Flash loaders
  */
  
 #ifndef FLASH_LOADER_H
@@ -14,10 +14,10 @@
 #include <stlink.h>
 
 int32_t stlink_flash_loader_init(stlink_t *sl, flash_loader_t* fl);
-static int32_t loader_v_dependent_assignment(stlink_t *sl,
-                                            const uint8_t **loader_code, size_t *loader_size,
-                                            const uint8_t *high_v_loader, size_t high_v_loader_size,
-                                            const uint8_t *low_v_loader, size_t low_v_loader_size);
+// static int32_t loader_v_dependent_assignment(stlink_t *sl,
+//                                             const uint8_t **loader_code, size_t *loader_size,
+//                                             const uint8_t *high_v_loader, size_t high_v_loader_size,
+//                                             const uint8_t *low_v_loader, size_t low_v_loader_size);
 int32_t stlink_flash_loader_write_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* size);
 int32_t stlink_flash_loader_run(stlink_t *sl, flash_loader_t* fl, stm32_addr_t target, const uint8_t* buf, size_t size);
 
@@ -25,8 +25,8 @@ int32_t stlink_flash_loader_run(stlink_t *sl, flash_loader_t* fl, stm32_addr_t t
 /* === Functions from old header file flashloader.h === */
 
 int32_t stm32l1_write_half_pages(stlink_t *sl, stm32_addr_t addr, uint8_t *base, uint32_t len, uint32_t pagesize);
-static void set_flash_cr_pg(stlink_t *sl, uint32_t bank);
-static void set_dma_state(stlink_t *sl, flash_loader_t *fl, int32_t bckpRstr);
+// static void set_flash_cr_pg(stlink_t *sl, uint32_t bank);
+// static void set_dma_state(stlink_t *sl, flash_loader_t *fl, int32_t bckpRstr);
 int32_t stlink_flashloader_start(stlink_t *sl, flash_loader_t *fl);
 int32_t stlink_flashloader_write(stlink_t *sl, flash_loader_t *fl, stm32_addr_t addr, uint8_t *base, uint32_t len);
 int32_t stlink_flashloader_stop(stlink_t *sl, flash_loader_t *fl);

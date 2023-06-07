@@ -1,3 +1,9 @@
+/*
+ * File: chipid.c
+ *
+ * Chip-ID parametres
+ */
+
 #include <ctype.h>
 #include <errno.h>
 #include <stdio.h>

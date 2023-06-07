@@ -1,3 +1,9 @@
+/*
+ * File: libusb_settings.h
+ *
+ * Settings for libusb library
+ */
+
 #ifndef LIBUSB_SETTINGS_H
 #define LIBUSB_SETTINGS_H
 
