@@ -78,7 +78,7 @@ We recommend to install `stlink-tools` from the package repository of the used d
 - Alpine Linux: [(Link)](https://pkgs.alpinelinux.org/packages?name=stlink)
 - Fedora: [(Link)](https://src.fedoraproject.org/rpms/stlink)
 - FreeBSD: Users can install from [freshports](https://www.freshports.org/devel/stlink)
-- MacOS: **Support for macOS will end with v1.7.1.** Please use v1.7.0 (current ***master*** branch) and the related documentation instead.
+- MacOS: **Support for macOS will end with v1.8.0.** Please use v1.7.0 (current ***master*** branch) and the related documentation instead.
 
 ## Installation from source (advanced users)
 
