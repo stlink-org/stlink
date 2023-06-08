@@ -13,18 +13,20 @@
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <helper.h>
-#include <sys/stat.h>
-#include <sys/types.h>
+// #include <sys/stat.h>  // TODO: Check use
+// #include <sys/types.h> // TODO: Check use
 
 #include <stlink.h>
-#include <stm32.h>
+
 #include "calculate.h"
+#include "chipid.h"
 #include "common_flash.h"
+#include "helper.h"
+#include "logging.h"
 #include "map_file.h"
 #include "md5.h"
-
-#include "common.h"
+#include "register.h"
+#include "usb.h"
 
 #ifndef O_BINARY
 #define O_BINARY 0
@@ -1211,78 +1213,6 @@ void stlink_run_at(stlink_t *sl, stm32_addr_t addr) {
   while (stlink_is_core_halted(sl)) {
     usleep(3000000);
   }
-}
-
-/* Limit the block size to compare to 0x1800 as anything larger will stall the
- * STLINK2 Maybe STLINK V1 needs smaller value!
- */
-int32_t check_file(stlink_t *sl, mapped_file_t *mf, stm32_addr_t addr) {
-  size_t off;
-  size_t n_cmp = sl->flash_pgsz;
-
-  if (n_cmp > 0x1800) {
-    n_cmp = 0x1800;
-  }
-
-  for (off = 0; off < mf->len; off += n_cmp) {
-    size_t aligned_size;
-
-    size_t cmp_size = n_cmp; // adjust last page size
-
-    if ((off + n_cmp) > mf->len) {
-      cmp_size = mf->len - off;
-    }
-
-    aligned_size = cmp_size;
-
-    if (aligned_size & (4 - 1)) {
-      aligned_size = (cmp_size + 4) & ~(4 - 1);
-    }
-
-    stlink_read_mem32(sl, addr + (uint32_t)off, (uint16_t)aligned_size);
-
-    if (memcmp(sl->q_buf, mf->base + off, cmp_size)) {
-      return (-1);
-    }
-  }
-
-  return (0);
-}
-
-void md5_calculate(mapped_file_t *mf) {
-  // calculate md5 checksum of given binary file
-  Md5Context md5Context;
-  MD5_HASH md5Hash;
-  Md5Initialise(&md5Context);
-  Md5Update(&md5Context, mf->base, (uint32_t)mf->len);
-  Md5Finalise(&md5Context, &md5Hash);
-  printf("md5 checksum: ");
-
-  for (int32_t i = 0; i < (int32_t)sizeof(md5Hash); i++) {
-    printf("%x", md5Hash.bytes[i]);
-  }
-
-  printf(", ");
-}
-
-void stlink_checksum(mapped_file_t *mp) {
-  /* checksum that backward compatible with official ST tools */
-  uint32_t sum = 0;
-  uint8_t *mp_byte = (uint8_t *)mp->base;
-
-  for (size_t i = 0; i < mp->len; ++i) {
-    sum += mp_byte[i];
-  }
-
-  printf("stlink checksum: 0x%08x\n", sum);
-}
-
-void stlink_fwrite_finalize(stlink_t *sl, stm32_addr_t addr) {
-  uint32_t val;
-  // set PC to the reset routine
-  stlink_read_debug32(sl, addr + 4, &val);
-  stlink_write_reg(sl, val, 15);
-  stlink_run(sl, RUN_NORMAL);
 }
 
 static int32_t stlink_read(stlink_t *sl, stm32_addr_t addr, size_t size,

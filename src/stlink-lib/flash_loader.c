@@ -11,9 +11,12 @@
 
 #include <stm32.h>
 #include <stlink.h>
-#include <helper.h>
 #include "flash_loader.h"
+
 #include "common_flash.h"
+#include "helper.h"
+#include "logging.h"
+#include "register.h"
 
 #define FLASH_REGS_BANK2_OFS      0x40
 #define FLASH_BANK2_START_ADDR    0x08080000
@@ -757,7 +760,9 @@ int32_t stlink_flashloader_write(stlink_t *sl, flash_loader_t *fl, stm32_addr_t 
         fflush(stdout);
       }
 
-      write_uint32((unsigned char *)&data, *(uint32_t *)(base + off));
+      // write_uint32((unsigned char *)&data, *(uint32_t *)(base + off));
+      data = 0;
+      memcpy(&data, base + off, (len - off) < 4 ? (len - off) : 4);
       stlink_write_debug32(sl, addr + (uint32_t)off, data);
       wait_flash_busy(sl); // wait for 'busy' bit in FLASH_SR to clear
     }

@@ -1,4 +1,7 @@
 /*
+ * File: logging.h
+ *
+ * UglyLogging: Slow, yet another wheel reinvented, but enough to make the rest of our code pretty enough.
  * Ugly, low performance, configurable level, logging "framework"
  */
 

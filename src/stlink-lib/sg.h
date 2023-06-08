@@ -1,5 +1,3 @@
-/* == nightwalker-87: TODO: CONTENT AND USE OF THIS HEADER FILE IS TO BE VERIFIED (07.06.2023) == */
-
 /*
  * File: sg.h
  *
@@ -12,6 +10,7 @@
 #include <stdint.h>
 
 #include <stlink.h>
+
 #include "libusb_settings.h"
 
 /* Device access */

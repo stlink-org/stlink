@@ -1,3 +1,5 @@
+/* == nightwalker-87: TODO: CONTENT AND USE OF THIS SOURCE FILE IS TO BE VERIFIED (07.06.2023) == */
+
 /*
  * File: helper.h
  *

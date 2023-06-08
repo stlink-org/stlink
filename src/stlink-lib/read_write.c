@@ -4,6 +4,8 @@
 
 #include <stlink.h>
 
+#include "logging.h"
+
 // Endianness
 // https://commandcenter.blogspot.com/2012/04/byte-order-fallacy.html
 // These functions encode and decode little endian uint16 and uint32 values.

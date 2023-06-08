@@ -9,9 +9,6 @@
 
 #include <stdint.h>
 
-#include <stm32.h>
-#include <stlink.h>
-
 /* Chipid parametres */
 struct stlink_chipid_params {
     char *dev_type;

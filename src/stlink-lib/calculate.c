@@ -8,6 +8,7 @@
 
 #include <stlink.h>
 #include "calculate.h"
+
 #include "common_flash.h"
 
 uint32_t calculate_F4_sectornum(uint32_t flashaddr) {

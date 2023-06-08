@@ -11,8 +11,8 @@
 #include <stddef.h>
 #include <stdbool.h>
 
-#include "stm32.h"
-#include "stm32flash.h"
+#include <stm32.h>
+#include <stm32flash.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -263,24 +263,13 @@ int32_t stlink_set_swdclk(stlink_t *sl, int32_t freq_khz);
 int32_t stlink_trace_enable(stlink_t* sl, uint32_t frequency);
 int32_t stlink_trace_disable(stlink_t* sl);
 int32_t stlink_trace_read(stlink_t* sl, uint8_t* buf, size_t size);
-int32_t stlink_erase_flash_mass(stlink_t* sl);
-int32_t stlink_erase_flash_section(stlink_t *sl, stm32_addr_t base_addr, size_t size, bool align_size);
-int32_t stlink_write_flash(stlink_t* sl, stm32_addr_t address, uint8_t* data, uint32_t length, uint8_t eraseonly);
 int32_t stlink_parse_ihex(const char* path, uint8_t erased_pattern, uint8_t * * mem, size_t * size, uint32_t * begin);
 uint8_t stlink_get_erased_pattern(stlink_t *sl);
-int32_t stlink_mwrite_flash(stlink_t *sl, uint8_t* data, uint32_t length, stm32_addr_t addr);
-int32_t stlink_fwrite_flash(stlink_t *sl, const char* path, stm32_addr_t addr);
 int32_t stlink_mwrite_sram(stlink_t *sl, uint8_t* data, uint32_t length, stm32_addr_t addr);
 int32_t stlink_fwrite_sram(stlink_t *sl, const char* path, stm32_addr_t addr);
-int32_t stlink_verify_write_flash(stlink_t *sl, stm32_addr_t address, uint8_t *data, uint32_t length);
-
 //int32_t stlink_chip_id(stlink_t *sl, uint32_t *chip_id);
 int32_t stlink_cpu_id(stlink_t *sl, cortex_m3_cpuid_t *cpuid);
-
-int32_t stlink_erase_flash_page(stlink_t* sl, stm32_addr_t flashaddr);
 uint32_t stlink_calculate_pagesize(stlink_t *sl, uint32_t flashaddr);
-int32_t stlink_check_address_range_validity(stlink_t *sl, stm32_addr_t addr, size_t size);
-int32_t stlink_check_address_alignment(stlink_t *sl, stm32_addr_t addr);
 uint16_t read_uint16(const unsigned char *c, const int32_t pt);
 //void stlink_core_stat(stlink_t *sl);
 void stlink_print_data(stlink_t *sl);
@@ -293,7 +282,6 @@ int32_t write_buffer_to_sram(stlink_t *sl, flash_loader_t* fl, const uint8_t* bu
 int32_t write_loader_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* size);
 int32_t stlink_fread(stlink_t* sl, const char* path, bool is_ihex, stm32_addr_t addr, size_t size);
 int32_t stlink_load_device_params(stlink_t *sl);
-
 int32_t stlink_target_connect(stlink_t *sl, enum connect_type connect);
 
 #include <sg.h>
@@ -301,8 +289,8 @@ int32_t stlink_target_connect(stlink_t *sl, enum connect_type connect);
 #include <register.h>
 #include <commands.h>
 #include <chipid.h>
-#include <flash_loader.h>
 #include <version.h>
+#include <flash_loader.h>
 #include <logging.h>
 
 #ifdef __cplusplus

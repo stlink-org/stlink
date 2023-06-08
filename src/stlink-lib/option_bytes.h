@@ -8,9 +8,6 @@
 #define OPTION_BYTES_H
 
 #include <stdint.h>
-#include <stdio.h>
-
-#include <stlink.h>
 
 int32_t stlink_read_option_bytes32(stlink_t *sl, uint32_t* option_byte);
 int32_t stlink_read_option_bytes_boot_add32(stlink_t *sl, uint32_t* option_byte);

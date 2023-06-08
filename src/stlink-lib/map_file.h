@@ -28,6 +28,7 @@ typedef struct mapped_file {
 #define MAPPED_FILE_INITIALIZER                                                \
   { NULL, 0 }
 
+int32_t check_file(stlink_t *, mapped_file_t *, stm32_addr_t);
 int32_t map_file(mapped_file_t *, const char *);
 void unmap_file(mapped_file_t *);
 

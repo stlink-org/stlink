@@ -9,11 +9,13 @@
 #include <string.h>
 
 #include <stlink.h>
-#include "common.h"
-#include "common_flash.h"
-#include "map_file.h"
 #include "option_bytes.h"
 
+#include "common_flash.h"
+#include "flash_loader.h"
+#include "logging.h"
+#include "map_file.h"
+#include "md5.h"
 
 /**
  * Read option control register F0

@@ -5,16 +5,19 @@
  */
 
 #include <stdint.h>
+
 #include <stdio.h>
-#include <unistd.h>
 #include <string.h>
+#include <unistd.h>
 
 #include <stlink.h>
+#include "common_flash.h"
+
 #include "calculate.h"
 #include "flash_loader.h"
-#include "common_flash.h"
+#include "logging.h"
 #include "map_file.h"
-#include "common.h"
+#include "md5.h"
 
 #define DEBUG_FLASH 0
 
@@ -742,6 +745,7 @@ void clear_flash_cr_pg(stlink_t *sl, uint32_t bank) {
   n = read_flash_cr(sl, bank) & ~(1 << bit);
   stlink_write_debug32(sl, cr_reg, n);
 }
+
 /* ------------------------------------------------------------------------ */
 
 static void wait_flash_busy_progress(stlink_t *sl) {
@@ -1170,7 +1174,7 @@ int32_t stlink_erase_flash_section(stlink_t *sl, stm32_addr_t base_addr, size_t 
       return (-1);
     }
 
-    fprintf(stdout, "-> Flash page at %#x erased (size: %#x)\n", addr, page_size);
+    fprintf(stdout, "-> Flash page at %#x erased (size: %#x)\r", addr, page_size);
     fflush(stdout);
 
     // check the next page is within the range to erase
@@ -1232,8 +1236,7 @@ int32_t stlink_erase_flash_mass(stlink_t *sl) {
   return (err);
 }
 
-int32_t stlink_mwrite_flash(stlink_t *sl, uint8_t *data, uint32_t length,
-                        stm32_addr_t addr) {
+int32_t stlink_mwrite_flash(stlink_t *sl, uint8_t *data, uint32_t length, stm32_addr_t addr) {
   /* Write the block in flash at addr */
   int32_t err;
   uint32_t num_empty, idx;
@@ -1416,12 +1419,10 @@ int32_t stlink_check_address_alignment(stlink_t *sl, stm32_addr_t addr) {
   return 0;
 }
 
-int32_t stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t *base,
-                       uint32_t len, uint8_t eraseonly) {
+int32_t stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t *base, uint32_t len, uint8_t eraseonly) {
   int32_t ret;
   flash_loader_t fl;
-  ILOG("Attempting to write %d (%#x) bytes to stm32 address: %u (%#x)\n", len,
-       len, addr, addr);
+  ILOG("Attempting to write %d (%#x) bytes to stm32 address: %u (%#x)\n", len, len, addr, addr);
   // check addr range is inside the flash
   stlink_calculate_pagesize(sl, addr);
 
@@ -1437,6 +1438,9 @@ int32_t stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t *base,
          "in related ST reference manual of your device.\n",
          (uint32_t)(sl->flash_pgsz));
     return (-1);
+  }
+  if ((len % 16 <= 8) & (sl->flash_type == STM32_FLASH_TYPE_L5_U5)) {
+    len += 8;
   }
 
   // make sure we've loaded the context with the chip details
@@ -1463,4 +1467,12 @@ int32_t stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t *base,
     return ret;
 
   return (stlink_verify_write_flash(sl, addr, base, len));
+}
+
+void stlink_fwrite_finalize(stlink_t *sl, stm32_addr_t addr) {
+  uint32_t val;
+  // set PC to the reset routine
+  stlink_read_debug32(sl, addr + 4, &val);
+  stlink_write_reg(sl, val, 15);
+  stlink_run(sl, RUN_NORMAL);
 }

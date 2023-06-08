@@ -1,5 +1,3 @@
-/* == nightwalker-87: TODO: CONTENT AND USE OF THIS SOURCE FILE IS TO BE VERIFIED (07.06.2023) == */
-
 /*
  * Copyright (c) 2010 "Capt'ns Missing Link" Authors. All rights reserved.
  * Use of this source code is governed by a BSD-style
@@ -84,16 +82,20 @@
 
 #define __USE_GNU
 
-#include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/types.h>
+#include <assert.h>
+// #include <sys/types.h>
 
-#include <stlink.h>
-#include "logging.h"
 #include "sg.h"
+
+#include "commands.h"
+#include "logging.h"
+#include "register.h"
+#include "usb.h"
+// #include <stlink.h>
 
 #define STLINK_OK    0x80
 #define STLINK_FALSE 0x81

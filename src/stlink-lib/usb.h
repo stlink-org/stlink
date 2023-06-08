@@ -7,10 +7,8 @@
 #ifndef USB_H
 #define USB_H
 
-#include <stdbool.h>
 #include <stdint.h>
 
-#include <stlink.h>
 #include "libusb_settings.h"
 #include "logging.h"
 

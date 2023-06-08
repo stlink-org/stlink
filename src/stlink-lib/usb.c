@@ -4,27 +4,30 @@
  * USB commands & interaction with ST-LINK devices
  */
 
-#include <limits.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
 #if !defined(_MSC_VER)
 #include <sys/time.h>
 #endif
-
-#include <sys/types.h>
-#include <errno.h>
-#include <unistd.h>
 
 #if defined(_WIN32)
 #include <win32_socket.h>
 #endif
 
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include <errno.h>
+#include <limits.h>
+#include <stdbool.h>
+#include <unistd.h>
+
 #include <stlink.h>
-#include "helper.h"
 #include "usb.h"
+
+#include "commands.h"
+#include "logging.h"
+#include "register.h"
 
 enum SCSI_Generic_Direction {SG_DXFER_TO_DEV = 0, SG_DXFER_FROM_DEV = 0x80};
 

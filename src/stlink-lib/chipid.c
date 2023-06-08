@@ -4,16 +4,19 @@
  * Chip-ID parametres
  */
 
-#include <ctype.h>
-#include <errno.h>
-#include <stdio.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "chipid.h"
-#include <stlink.h>
 #include <stm32.h>
+#include <stlink.h>
+#include "chipid.h"
+
+#include "logging.h"
+
+// #include <ctype.h> // TODO: Check use
+// #include <errno.h> // TODO: Check use
 
 static struct stlink_chipid_params *devicelist;
 
