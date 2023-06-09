@@ -1439,9 +1439,6 @@ int32_t stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t *base, uint3
          (uint32_t)(sl->flash_pgsz));
     return (-1);
   }
-  if ((len % 16 <= 8) & (sl->flash_type == STM32_FLASH_TYPE_L5_U5)) {
-    len += 8;
-  }
 
   // make sure we've loaded the context with the chip details
   stlink_core_id(sl);
