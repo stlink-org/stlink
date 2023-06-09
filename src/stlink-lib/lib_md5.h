@@ -10,9 +10,6 @@
 
 #pragma once
 
-#include <stdint.h>
-#include <stdio.h>
-
 /* TYPES */
 
 /* Md5Context

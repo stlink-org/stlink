@@ -6,6 +6,7 @@
  */
 
 #include <stdint.h>
+#include <stdio.h>
 #include <memory.h>
 
 #include "lib_md5.h"

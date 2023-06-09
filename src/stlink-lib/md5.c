@@ -5,6 +5,7 @@
  */
 
 #include <stdint.h>
+#include <stdio.h>
 
 #include <stlink.h>
 #include "md5.h"

@@ -129,4 +129,4 @@
 #define STLINK_REG_CM7_ICIALLU              0xE000EF50
 #define STLINK_REG_CM7_CCSIDR               0xE000ED80
 
-#endif // REG_H
+#endif // REGISTER_H

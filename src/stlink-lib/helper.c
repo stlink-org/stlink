@@ -1,15 +1,14 @@
-/* == nightwalker-87: TODO: CONTENT AND USE OF THIS SOURCE FILE IS TO BE VERIFIED (07.06.2023) == */
-
 /*
  * File: helper.c
  *
  * General helper functions
  */
+
 #ifdef STLINK_HAVE_SYS_TIME_H
 #include <sys/time.h>
 #else
 #include <sys_time.h>
-#endif
+#endif // STLINK_HAVE_SYS_TIME_H
 
 #include <stdint.h>
 #include <stddef.h>

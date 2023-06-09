@@ -7,17 +7,15 @@
 #ifndef MAP_FILE_H
 #define MAP_FILE_H
 
-#include <stdint.h>
-
 #ifndef O_BINARY
 #define O_BINARY 0
-#endif
+#endif // O_BINARY
 
 #ifdef STLINK_HAVE_SYS_MMAN_H
 #include <sys/mman.h>
 #else
 #include <mmap.h>
-#endif
+#endif // STLINK_HAVE_SYS_MMAN_H
 
 /* Memory mapped file */
 typedef struct mapped_file {

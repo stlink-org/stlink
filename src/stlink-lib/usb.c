@@ -6,11 +6,11 @@
 
 #if !defined(_MSC_VER)
 #include <sys/time.h>
-#endif
+#endif // _MSC_VER
 
 #if defined(_WIN32)
 #include <win32_socket.h>
-#endif
+#endif // _WIN32
 
 #include <stdint.h>
 #include <stdio.h>
@@ -28,8 +28,6 @@
 #include "commands.h"
 #include "logging.h"
 #include "register.h"
-
-enum SCSI_Generic_Direction {SG_DXFER_TO_DEV = 0, SG_DXFER_FROM_DEV = 0x80};
 
 static inline uint32_t le_to_h_u32(const uint8_t* buf) {
     return((uint32_t)((uint32_t)buf[0] | (uint32_t)buf[1] << 8 | (uint32_t)buf[2] << 16 | (uint32_t)buf[3] << 24));
@@ -92,9 +90,8 @@ void _stlink_usb_close(stlink_t* sl) {
     }
 }
 
-ssize_t send_recv(struct stlink_libusb* handle, int32_t terminate,
-                  unsigned char* txbuf, size_t txsize, unsigned char* rxbuf, 
-                  size_t rxsize, int32_t check_error, const char *cmd) {
+ssize_t send_recv(struct stlink_libusb* handle, int32_t terminate, unsigned char* txbuf, size_t txsize,
+                    unsigned char* rxbuf, size_t rxsize, int32_t check_error, const char *cmd) {
     // Note: txbuf and rxbuf can point to the same area
     int32_t res, t, retry = 0;
 
@@ -170,9 +167,8 @@ ssize_t send_recv(struct stlink_libusb* handle, int32_t terminate,
     }
 }
 
-static inline int32_t send_only(struct stlink_libusb* handle, int32_t terminate,
-                            unsigned char* txbuf, size_t txsize,
-                            const char *cmd) {
+static inline int32_t send_only(struct stlink_libusb* handle, int32_t terminate, unsigned char* txbuf,
+                                size_t txsize, const char *cmd) {
     return((int32_t)send_recv(handle, terminate, txbuf, txsize, NULL, 0, CMD_CHECK_NO, cmd));
 }
 
@@ -358,7 +354,6 @@ int32_t _stlink_usb_write_mem8(stlink_t *sl, uint32_t addr, uint16_t len) {
 
     return(0);
 }
-
 
 int32_t _stlink_usb_current_mode(stlink_t * sl) {
     struct stlink_libusb * const slu = sl->backend_data;
@@ -1113,6 +1108,14 @@ size_t stlink_serial(struct libusb_device_handle *handle, struct libusb_device_d
 	return strlen(serial);
 }
 
+/**
+ * Open a stlink
+ * @param verbose Verbosity loglevel
+ * @param connect Type of connect to target
+ * @param serial  Serial number to search for, when NULL the first stlink found is opened (binary format)
+ * @retval NULL   Error while opening the stlink
+ * @retval !NULL  Stlink found and ready to use
+ */
 stlink_t *stlink_open_usb(enum ugly_loglevel verbose, enum connect_type connect, char serial[STLINK_SERIAL_BUFFER_SIZE], int32_t freq) {
     stlink_t* sl = NULL;
     struct stlink_libusb* slu = NULL;
@@ -1208,7 +1211,7 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, enum connect_type connect,
             goto on_libusb_error;
         }
     }
-#endif
+#endif // NOT _WIN32
 
     if (libusb_get_configuration(slu->usb_handle, &config)) {
         // this may fail for a previous configured device

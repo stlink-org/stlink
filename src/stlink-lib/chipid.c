@@ -223,6 +223,7 @@ void init_chipids(char *dir_to_scan) {
     return;
   }
 }
+
 #endif // STLINK_HAVE_DIRENT_H
 
 #if defined(_WIN32) && !defined(STLINK_HAVE_DIRENT_H)

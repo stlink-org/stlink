@@ -7,8 +7,6 @@
 #ifndef COMMON_FLASH_H
 #define COMMON_FLASH_H
 
-#include <stdint.h>
-
 #define BANK_1 0
 #define BANK_2 1
 

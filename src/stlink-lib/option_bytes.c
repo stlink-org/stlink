@@ -426,8 +426,7 @@ int32_t stlink_read_option_bytes_boot_add_f7(stlink_t *sl, uint32_t *option_byte
  * @param option_byte
  * @return 0 on success, -ve on failure.
  */
-static int
-stlink_write_option_bytes_boot_add_f7(stlink_t *sl, uint32_t option_byte_boot_add) {
+static int32_t stlink_write_option_bytes_boot_add_f7(stlink_t *sl, uint32_t option_byte_boot_add) {
   ILOG("Asked to write option byte boot add %#010x.\n", option_byte_boot_add);
   return stlink_write_option_control_register1_f7(sl, option_byte_boot_add);
 }
