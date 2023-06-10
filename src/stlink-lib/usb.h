@@ -62,10 +62,10 @@ struct stlink_libusb {
 // static inline uint32_t le_to_h_u32(const uint8_t* buf);
 // static int32_t _stlink_match_speed_map(const uint32_t *map, uint32_t map_size, uint32_t khz);
 void _stlink_usb_close(stlink_t* sl);
-ssize_t send_recv(struct stlink_libusb* handle, int32_t terminate, unsigned char* txbuf, size_t txsize,
-                    unsigned char* rxbuf, size_t rxsize, int32_t check_error, const char *cmd);
+ssize_t send_recv(struct stlink_libusb* handle, int32_t terminate, unsigned char* txbuf, uint32_t txsize,
+                    unsigned char* rxbuf, uint32_t rxsize, int32_t check_error, const char *cmd);
 // static inline int32_t send_only(struct stlink_libusb* handle, int32_t terminate, unsigned char* txbuf,
-//                                  size_t txsize, const char *cmd);
+//                                  uint32_t txsize, const char *cmd);
 // static int32_t fill_command(stlink_t * sl, enum SCSI_Generic_Direction dir, uint32_t len);
 int32_t _stlink_usb_version(stlink_t *sl);
 int32_t _stlink_usb_target_voltage(stlink_t *sl);
@@ -96,14 +96,14 @@ int32_t _stlink_usb_write_unsupported_reg(stlink_t *sl, uint32_t val, int32_t r_
 int32_t _stlink_usb_write_reg(stlink_t *sl, uint32_t reg, int32_t idx);
 int32_t _stlink_usb_enable_trace(stlink_t* sl, uint32_t frequency);
 int32_t _stlink_usb_disable_trace(stlink_t* sl);
-int32_t _stlink_usb_read_trace(stlink_t* sl, uint8_t* buf, size_t size);
+int32_t _stlink_usb_read_trace(stlink_t* sl, uint8_t* buf, uint32_t size);
 
 // static stlink_backend_t _stlink_usb_backend = { };
 
 size_t stlink_serial(struct libusb_device_handle *handle, struct libusb_device_descriptor *desc, char *serial);
 stlink_t *stlink_open_usb(enum ugly_loglevel verbose, enum connect_type connect, char serial[STLINK_SERIAL_BUFFER_SIZE], int32_t freq);
-// static size_t stlink_probe_usb_devs(libusb_device **devs, stlink_t **sldevs[], enum connect_type connect, int32_t freq);
+// static uint32_t stlink_probe_usb_devs(libusb_device **devs, stlink_t **sldevs[], enum connect_type connect, int32_t freq);
 size_t stlink_probe_usb(stlink_t **stdevs[], enum connect_type connect, int32_t freq);
-void stlink_probe_usb_free(stlink_t **stdevs[], size_t size);
+void stlink_probe_usb_free(stlink_t **stdevs[], uint32_t size);
 
 #endif // USB_H

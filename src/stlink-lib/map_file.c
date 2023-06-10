@@ -28,17 +28,17 @@
  * STLINK2 Maybe STLINK V1 needs smaller value!
  */
 int32_t check_file(stlink_t *sl, mapped_file_t *mf, stm32_addr_t addr) {
-  size_t off;
-  size_t n_cmp = sl->flash_pgsz;
+  uint32_t off;
+  uint32_t n_cmp = sl->flash_pgsz;
 
   if (n_cmp > 0x1800) {
     n_cmp = 0x1800;
   }
 
   for (off = 0; off < mf->len; off += n_cmp) {
-    size_t aligned_size;
+    uint32_t aligned_size;
 
-    size_t cmp_size = n_cmp; // adjust last page size
+    uint32_t cmp_size = n_cmp; // adjust last page size
 
     if ((off + n_cmp) > mf->len) {
       cmp_size = mf->len - off;
@@ -50,7 +50,7 @@ int32_t check_file(stlink_t *sl, mapped_file_t *mf, stm32_addr_t addr) {
       aligned_size = (cmp_size + 4) & ~(4 - 1);
     }
 
-    stlink_read_mem32(sl, addr + (uint32_t)off, (uint16_t)aligned_size);
+    stlink_read_mem32(sl, addr + off, (uint16_t)aligned_size);
 
     if (memcmp(sl->q_buf, mf->base + off, cmp_size)) {
       return (-1);
@@ -80,7 +80,7 @@ int32_t map_file(mapped_file_t *mf, const char *path) {
     // on 32 bit systems, check if there is an overflow
     if (st.st_size > (off_t)MAX_FILE_SIZE  /*1 GB*/ ) {
       // limit file size to 1 GB
-      fprintf(stderr, "mmap() size_t overflow for file %s\n", path);
+      fprintf(stderr, "mmap() uint32_t overflow for file %s\n", path);
       goto on_error;
     }
   }

@@ -196,7 +196,7 @@ void process_chipfile(char *fname) {
 
 void init_chipids(char *dir_to_scan) {
   DIR *d;
-  size_t nl; // namelen
+  uint32_t nl; // namelen
   struct dirent *dir;
 
   if (!dir_to_scan) {

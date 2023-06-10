@@ -20,7 +20,7 @@
 /* Memory mapped file */
 typedef struct mapped_file {
   uint8_t *base;
-  size_t len;
+  uint32_t len;
 } mapped_file_t;
 
 #define MAPPED_FILE_INITIALIZER                                                \

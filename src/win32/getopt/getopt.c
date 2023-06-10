@@ -134,7 +134,7 @@ int32_t getopt_long(int32_t argc,
     const struct option* o = longopts;
     const struct option* match = NULL;
     int32_t num_matches = 0;
-    size_t argument_name_length = 0;
+    uint32_t argument_name_length = 0;
     const char* current_argument = NULL;
     int32_t retval = -1;
 

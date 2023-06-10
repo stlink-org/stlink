@@ -103,7 +103,7 @@
 #define STLINK_FALSE 0x81
 
 static void clear_cdb(struct stlink_libsg *sl) {
-    for (size_t i = 0; i < sizeof(sl->cdb_cmd_blk); i++) { sl->cdb_cmd_blk[i] = 0; }
+    for (uint32_t i = 0; i < sizeof(sl->cdb_cmd_blk); i++) { sl->cdb_cmd_blk[i] = 0; }
 
     // set default
     sl->cdb_cmd_blk[0] = STLINK_DEBUG_COMMAND;

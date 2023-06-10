@@ -17,13 +17,13 @@ struct flash_opts {
     uint8_t serial[STLINK_SERIAL_BUFFER_SIZE];
     const char* filename;
     stm32_addr_t addr;
-    size_t size;
+    uint32_t size;
     int32_t reset;
     int32_t log_level;
     enum flash_format format;
     enum flash_area area;
     uint32_t val;
-    size_t flash_size;  // --flash=n[k, M]
+    uint32_t flash_size;  // --flash=n[k, M]
     int32_t opt;            // enable empty tail data drop optimization
     int32_t freq;           // --freq=n[k, M] frequency of JTAG/SWD
     enum connect_type connect;

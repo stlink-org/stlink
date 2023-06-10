@@ -90,8 +90,8 @@ void _stlink_usb_close(stlink_t* sl) {
     }
 }
 
-ssize_t send_recv(struct stlink_libusb* handle, int32_t terminate, unsigned char* txbuf, size_t txsize,
-                    unsigned char* rxbuf, size_t rxsize, int32_t check_error, const char *cmd) {
+ssize_t send_recv(struct stlink_libusb* handle, int32_t terminate, unsigned char* txbuf, uint32_t txsize,
+                    unsigned char* rxbuf, uint32_t rxsize, int32_t check_error, const char *cmd) {
     // Note: txbuf and rxbuf can point to the same area
     int32_t res, t, retry = 0;
 
@@ -168,7 +168,7 @@ ssize_t send_recv(struct stlink_libusb* handle, int32_t terminate, unsigned char
 }
 
 static inline int32_t send_only(struct stlink_libusb* handle, int32_t terminate, unsigned char* txbuf,
-                                size_t txsize, const char *cmd) {
+                                uint32_t txsize, const char *cmd) {
     return((int32_t)send_recv(handle, terminate, txbuf, txsize, NULL, 0, CMD_CHECK_NO, cmd));
 }
 
@@ -1000,7 +1000,7 @@ int32_t _stlink_usb_disable_trace(stlink_t* sl) {
     return(size<0?-1:0);
 }
 
-int32_t _stlink_usb_read_trace(stlink_t* sl, uint8_t* buf, size_t size) {
+int32_t _stlink_usb_read_trace(stlink_t* sl, uint8_t* buf, uint32_t size) {
     struct stlink_libusb * const slu = sl->backend_data;
     unsigned char* const data = sl->q_buf;
     unsigned char* const cmd  = sl->c_buf;
@@ -1160,7 +1160,7 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, enum connect_type connect,
 
         if (ret) { continue; } // could not open device
 
-        size_t serial_len = stlink_serial(handle, &desc, sl->serial);
+        uint32_t serial_len = stlink_serial(handle, &desc, sl->serial);
 
         libusb_close(handle);
 
@@ -1300,12 +1300,12 @@ on_malloc_error:
     return(NULL);
 }
 
-static size_t stlink_probe_usb_devs(libusb_device **devs, stlink_t **sldevs[], enum connect_type connect, int32_t freq) {
+static uint32_t stlink_probe_usb_devs(libusb_device **devs, stlink_t **sldevs[], enum connect_type connect, int32_t freq) {
     stlink_t **_sldevs;
     libusb_device *dev;
     int32_t i = 0;
-    size_t slcnt = 0;
-    size_t slcur = 0;
+    uint32_t slcnt = 0;
+    uint32_t slcur = 0;
 
     /* Count STLINKs */
     while ((dev = devs[i++]) != NULL) {
@@ -1363,7 +1363,7 @@ static size_t stlink_probe_usb_devs(libusb_device **devs, stlink_t **sldevs[], e
             break;
         }
 
-        size_t serial_len = stlink_serial(handle, &desc, serial);
+        uint32_t serial_len = stlink_serial(handle, &desc, serial);
 
         libusb_close(handle);
 
@@ -1388,7 +1388,7 @@ size_t stlink_probe_usb(stlink_t **stdevs[], enum connect_type connect, int32_t 
     libusb_device **devs;
     stlink_t **sldevs;
 
-    size_t slcnt = 0;
+    uint32_t slcnt = 0;
     int32_t r;
     ssize_t cnt;
 
@@ -1410,10 +1410,10 @@ size_t stlink_probe_usb(stlink_t **stdevs[], enum connect_type connect, int32_t 
     return(slcnt);
 }
 
-void stlink_probe_usb_free(stlink_t ***stdevs, size_t size) {
+void stlink_probe_usb_free(stlink_t ***stdevs, uint32_t size) {
     if (stdevs == NULL || *stdevs == NULL || size == 0) { return; }
 
-    for (size_t n = 0; n < size; n++) { stlink_close((*stdevs)[n]); }
+    for (uint32_t n = 0; n < size; n++) { stlink_close((*stdevs)[n]); }
 
     free(*stdevs);
     *stdevs = NULL;

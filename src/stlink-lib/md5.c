@@ -34,7 +34,7 @@ void stlink_checksum(mapped_file_t *mp) {
   uint32_t sum = 0;
   uint8_t *mp_byte = (uint8_t *)mp->base;
 
-  for (size_t i = 0; i < mp->len; ++i) {
+  for (uint32_t i = 0; i < mp->len; ++i) {
     sum += mp_byte[i];
   }
 
