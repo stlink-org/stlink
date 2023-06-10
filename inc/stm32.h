@@ -60,7 +60,7 @@ enum stm32_flash_type {
     STM32_FLASH_TYPE_H7        =  7,
     STM32_FLASH_TYPE_L0_L1     =  8,
     STM32_FLASH_TYPE_L4        =  9,
-    STM32_FLASH_TYPE_L5_U5     = 10,
+    STM32_FLASH_TYPE_L5_U5_H5  = 10,
     STM32_FLASH_TYPE_WB_WL     = 11,
 };
 

@@ -115,8 +115,8 @@ void process_chipfile(char *fname) {
         ts->flash_type = STM32_FLASH_TYPE_L0_L1;
       } else if (strcmp(value, "L4") == 0) {
         ts->flash_type = STM32_FLASH_TYPE_L4;
-      } else if (strcmp(value, "L5_U5") == 0) {
-        ts->flash_type = STM32_FLASH_TYPE_L5_U5;
+      } else if (strcmp(value, "L5_U5_H5") == 0) {
+        ts->flash_type = STM32_FLASH_TYPE_L5_U5_H5;
       } else if (strcmp(value, "WB_WL") == 0) {
         ts->flash_type = STM32_FLASH_TYPE_WB_WL;
       } else {
