@@ -1,11 +1,19 @@
-#include <stdio.h>
+/*
+ * File: stinfo.c
+ *
+ * Tool st-info 
+ */
+
 #include <stdint.h>
-#include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
-#include <sys/types.h>
 
 #include <stlink.h>
+#include "info.h"
+
+#include <chipid.h>
 #include <helper.h>
+#include <usb.h>
 
 static void usage(void) {
     puts("st-info --version");

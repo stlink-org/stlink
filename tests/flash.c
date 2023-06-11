@@ -7,6 +7,7 @@
 
 #include <stlink.h>
 #include <flash.h>
+#include <flash_opts.h>
 
 #if defined(_MSC_VER)
 #include <malloc.h>

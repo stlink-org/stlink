@@ -27,13 +27,17 @@
 #endif
 
 #include <stlink.h>
+#include "gdb-server.h"
+#include "gdb-remote.h"
+#include "semihosting.h"
+
+#include <chipid.h>
+#include <common_flash.h>
+#include <flash_loader.h>
 #include <helper.h>
 #include <logging.h>
-#include <flash_loader.h>
-#include <common_flash.h>
-#include "gdb-remote.h"
-#include "gdb-server.h"
-#include "semihosting.h"
+#include <register.h>
+#include <usb.h>
 
 #define FLASH_BASE 0x08000000
 

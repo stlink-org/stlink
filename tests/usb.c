@@ -6,6 +6,9 @@
 
 #include <stlink.h>
 
+#include <register.h>
+#include <usb.h>
+
 static void usage(void) {
     puts("test-usb --reset");
     puts("test-usb --no-reset");

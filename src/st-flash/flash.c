@@ -1,23 +1,33 @@
-/* Simple wrapper around the stlink_flash_write function */
+/*
+ * File: flash.c
+ *
+ * Tool st-flash - Simple wrapper around the stlink_flash_write function
+ */
 
-#include <stdio.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include <fcntl.h>
 #include <signal.h>
-#include <sys/types.h>
+
+#if defined(_WIN32)
+#include <win32_socket.h>
+#else
 #include <unistd.h>
+#endif // _WIN32
 
 #include <stm32.h>
 #include <stlink.h>
+#include "flash.h"
+#include "flash_opts.h"
 
+#include <chipid.h>
 #include <common_flash.h>
 #include <map_file.h>
 #include <option_bytes.h>
-
-#include "flash.h"
+#include <usb.h>
 
 static stlink_t *connected_stlink = NULL;
 

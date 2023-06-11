@@ -21,7 +21,7 @@ struct stlink_chipid_params {
     uint32_t option_base;
     uint32_t option_size;
     uint32_t flags;
-  struct stlink_chipid_params * next;
+  struct stlink_chipid_params *next;
 };
 
 struct stlink_chipid_params *stlink_chipid_get_params(uint32_t chipid);

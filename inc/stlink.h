@@ -234,6 +234,8 @@ struct _stlink {
     uint32_t max_trace_freq;     // set by stlink_open_usb()
 };
 
+/* Functions defined in common.c */
+
 int32_t stlink_enter_swd_mode(stlink_t *sl);
 int32_t stlink_enter_jtag_mode(stlink_t *sl);
 int32_t stlink_exit_debug_mode(stlink_t *sl);
@@ -284,14 +286,7 @@ int32_t stlink_fread(stlink_t* sl, const char* path, bool is_ihex, stm32_addr_t 
 int32_t stlink_load_device_params(stlink_t *sl);
 int32_t stlink_target_connect(stlink_t *sl, enum connect_type connect);
 
-#include <sg.h>
-#include <usb.h>
-#include <register.h>
-#include <commands.h>
-#include <chipid.h>
 #include <version.h>
-#include <flash_loader.h>
-#include <logging.h>
 
 #ifdef __cplusplus
 }

@@ -5,8 +5,11 @@
 #include <gtk/gtk.h>
 
 #include <stlink.h>
-#include <common_flash.h>
 #include "gui.h"
+
+#include <chipid.h>
+#include <common_flash.h>
+#include <usb.h>
 
 #define MEM_READ_SIZE 1024
 

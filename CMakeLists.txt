@@ -154,6 +154,9 @@ include_directories(${PROJECT_BINARY_DIR}/inc) # contains version.h
 
 include_directories(src)
 include_directories(src/st-flash)
+include_directories(src/st-info)
+include_directories(src/st-trace)
+include_directories(src/st-util)
 include_directories(src/stlink-lib)
 
 ## Set installation directory for header files
