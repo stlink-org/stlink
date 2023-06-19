@@ -1,14 +1,23 @@
+/*
+ * File: flash_opts.c
+ *
+ * Flash Options
+ */
+
 #include <stdint.h>
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+
+#include <stm32.h>
+#include <stlink.h>
+#include "flash_opts.h"
+#include "flash.h"
 
 #include <helper.h>
 
-#include "flash.h"
-
 static bool starts_with(const char * str, const char * prefix) {
-    size_t n = strlen(prefix);
+    uint32_t n = strlen(prefix);
 
     if (strlen(str) < n) { return(false); }
 
@@ -61,7 +70,7 @@ static int32_t get_integer_from_char_array (const char *const str, uint32_t *rea
         fprintf (stderr, "*** Error: Integer greater than UINT32_MAX, cannot convert to int32_t\n");
         return(-1);
     } else {
-        *read_value = (uint32_t)value;
+        *read_value = value;
         return(0);
     }
 }
@@ -318,7 +327,7 @@ int32_t flash_get_opts(struct flash_opts* o, int32_t ac, char** av) {
             if (result != 0) {
                 return bad_arg ("val");
             } else {
-                o->val = (uint32_t) val;
+                o->val = val;
             }
         } else if (o->area == FLASH_OPTION_BYTES_BOOT_ADD) { // expect option bytes boot address
             if (ac != 1) { return invalid_args("option bytes boot_add write <value>"); }
@@ -329,7 +338,7 @@ int32_t flash_get_opts(struct flash_opts* o, int32_t ac, char** av) {
             if (result != 0) {
                 return(bad_arg ("val"));
             } else {
-                o->val = (uint32_t)val;
+                o->val = val;
             }
         } else if (o->area == FLASH_OPTCR) { // expect option control register value
             if (ac != 1) { return invalid_args("option control register write <value>"); }
@@ -340,7 +349,7 @@ int32_t flash_get_opts(struct flash_opts* o, int32_t ac, char** av) {
             if (result != 0) {
                 return bad_arg ("val");
             } else {
-                o->val = (uint32_t) val;
+                o->val = val;
             }
         } else if (o->area == FLASH_OPTCR1) { // expect option control register 1 value
             if (ac != 1) { return invalid_args("option control register 1 write <value>"); }
@@ -350,7 +359,7 @@ int32_t flash_get_opts(struct flash_opts* o, int32_t ac, char** av) {
             if (result != 0) {
                 return bad_arg ("val");
             } else {
-                o->val = (uint32_t) val;
+                o->val = val;
             }
         } else if (o->format == FLASH_FORMAT_BINARY) {    // expect filename and addr
             if (ac != 2) { return invalid_args("write <path> <addr>"); }

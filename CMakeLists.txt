@@ -74,7 +74,7 @@ include(${CMAKE_MODULE_PATH}/get_version.cmake) # Determine project version
 
 include(GNUInstallDirs) # Define GNU standard installation directories
 
-# Define install directory /usr/local/share
+# Define install directory for st-link shared files
 cmake_host_system_information(RESULT OS_NAME QUERY OS_NAME)
 message(STATUS "Checking for OS_NAME: ${OS_NAME}")
 
@@ -154,10 +154,17 @@ include_directories(${PROJECT_BINARY_DIR}/inc) # contains version.h
 
 include_directories(src)
 include_directories(src/st-flash)
+include_directories(src/st-info)
+include_directories(src/st-trace)
+include_directories(src/st-util)
 include_directories(src/stlink-lib)
 
 ## Set installation directory for header files
+if (WIN32)
+set(STLINK_INCLUDE_PATH ${CMAKE_INSTALL_INCLUDEDIR} CACHE PATH "Main include install directory")
+else ()
 set(STLINK_INCLUDE_PATH ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME} CACHE PATH "Main include install directory")
+endif ()
 
 ## Subordinate CMakeLists for version config & header installation
 add_subdirectory(inc)
@@ -172,10 +179,10 @@ set(STLINK_HEADERS
         src/stlink-lib/chipid.h
         src/stlink-lib/commands.h
         src/stlink-lib/common_flash.h
-        src/stlink-lib/common.h
         src/stlink-lib/flash_loader.h
         src/stlink-lib/helper.h
         src/stlink-lib/libusb_settings.h
+        src/stlink-lib/lib_md5.h
         src/stlink-lib/logging.h
         src/stlink-lib/map_file.h
         src/stlink-lib/md5.h
@@ -194,6 +201,7 @@ set(STLINK_SOURCE
         src/stlink-lib/helper.c
         src/stlink-lib/logging.c
         src/stlink-lib/map_file.c
+        src/stlink-lib/lib_md5.c
         src/stlink-lib/md5.c
         src/stlink-lib/option_bytes.c
         src/stlink-lib/read_write.c
@@ -270,6 +278,15 @@ install(TARGETS ${STLINK_LIB_SHARED}
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
         )
+
+# Copy libusb DLL-library to binary output folder
+if (WIN32)
+file(COPY ${LIBUSB_WIN_OUTPUT_FOLDER}/MinGW64/dll/libusb-1.0.dll
+     DESTINATION ${CMAKE_INSTALL_BINDIR})
+file(COPY ${LIBUSB_WIN_OUTPUT_FOLDER}/MinGW64/dll/libusb-1.0.dll
+     DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR})
+endif ()
+
 
 ###
 # Static library
@@ -365,7 +382,11 @@ endif ()
 ###
 
 # MCU configuration files
+if (WIN32)
+set(CMAKE_CHIPS_DIR ${CMAKE_INSTALL_PREFIX}/config/chips)
+else ()
 set(CMAKE_CHIPS_DIR ${CMAKE_INSTALL_SHAREDIR}/${PROJECT_NAME}/chips)
+endif ()
 add_definitions( -DSTLINK_CHIPS_DIR="${CMAKE_CHIPS_DIR}" )
 file(GLOB CHIP_FILES ${CMAKE_SOURCE_DIR}/config/chips/*.chip)
 install(FILES ${CHIP_FILES} DESTINATION ${CMAKE_CHIPS_DIR})

@@ -4,16 +4,19 @@
  * Chip-ID parametres
  */
 
-#include <ctype.h>
-#include <errno.h>
-#include <stdio.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "chipid.h"
-#include <stlink.h>
 #include <stm32.h>
+#include <stlink.h>
+#include "chipid.h"
+
+#include "logging.h"
+
+// #include <ctype.h> // TODO: Check use
+// #include <errno.h> // TODO: Check use
 
 static struct stlink_chipid_params *devicelist;
 
@@ -112,8 +115,8 @@ void process_chipfile(char *fname) {
         ts->flash_type = STM32_FLASH_TYPE_L0_L1;
       } else if (strcmp(value, "L4") == 0) {
         ts->flash_type = STM32_FLASH_TYPE_L4;
-      } else if (strcmp(value, "L5_U5") == 0) {
-        ts->flash_type = STM32_FLASH_TYPE_L5_U5;
+      } else if (strcmp(value, "L5_U5_H5") == 0) {
+        ts->flash_type = STM32_FLASH_TYPE_L5_U5_H5;
       } else if (strcmp(value, "WB_WL") == 0) {
         ts->flash_type = STM32_FLASH_TYPE_WB_WL;
       } else {
@@ -193,7 +196,7 @@ void process_chipfile(char *fname) {
 
 void init_chipids(char *dir_to_scan) {
   DIR *d;
-  size_t nl; // namelen
+  uint32_t nl; // namelen
   struct dirent *dir;
 
   if (!dir_to_scan) {
@@ -220,6 +223,7 @@ void init_chipids(char *dir_to_scan) {
     return;
   }
 }
+
 #endif // STLINK_HAVE_DIRENT_H
 
 #if defined(_WIN32) && !defined(STLINK_HAVE_DIRENT_H)

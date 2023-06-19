@@ -7,6 +7,7 @@
 
 #include <stlink.h>
 #include <flash.h>
+#include <flash_opts.h>
 
 #if defined(_MSC_VER)
 #include <malloc.h>
@@ -26,7 +27,7 @@ static bool cmp_strings(const char * s1, const char * s2) {
     }
 }
 
-static bool cmp_mem(const uint8_t * s1, const uint8_t * s2, size_t size) {
+static bool cmp_mem(const uint8_t * s1, const uint8_t * s2, uint32_t size) {
     if (s1 == NULL || s2 == NULL) {
         return (s1 == s2);
     } else {
@@ -231,7 +232,7 @@ static struct Test tests[] = {
 int32_t main() {
     bool allOk = true;
 
-    for (size_t i = 0; i < sizeof(tests) / sizeof(tests[0]); ++i)
+    for (uint32_t i = 0; i < sizeof(tests) / sizeof(tests[0]); ++i)
         if (!execute_test(&tests[i]))
             allOk = false;
 

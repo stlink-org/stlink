@@ -3,7 +3,7 @@
 dev_type STM32L5x2xx
 ref_manual_id 0438
 chip_id 0x472                // STM32_CHIPID_L5x2xx
-flash_type L5_U5
+flash_type L5_U5_H5
 flash_size_reg 0x0bfa05e0
 flash_pagesize 0x1000        // 4 KB
 sram_size 0x40000            // 256 KB

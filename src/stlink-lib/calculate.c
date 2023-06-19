@@ -8,6 +8,7 @@
 
 #include <stlink.h>
 #include "calculate.h"
+
 #include "common_flash.h"
 
 uint32_t calculate_F4_sectornum(uint32_t flashaddr) {
@@ -46,8 +47,7 @@ uint32_t calculate_F7_sectornum(uint32_t flashaddr) {
   }
 }
 
-uint32_t calculate_H7_sectornum(stlink_t *sl, uint32_t flashaddr,
-                                uint32_t bank) {
+uint32_t calculate_H7_sectornum(stlink_t *sl, uint32_t flashaddr, uint32_t bank) {
   flashaddr &=
       ~((bank == BANK_1)
             ? STM32_FLASH_BASE
@@ -67,7 +67,7 @@ uint32_t calculate_L4_page(stlink_t *sl, uint32_t flashaddr) {
       sl->chip_id == STM32_CHIPID_L4Rx) {
     // this chip use dual banked flash
     if (flashopt & (uint32_t)(1lu << FLASH_L4_OPTR_DUALBANK)) {
-      uint32_t banksize = (uint32_t)sl->flash_size / 2;
+      uint32_t banksize = sl->flash_size / 2;
 
       if (flashaddr >= banksize) {
         flashaddr -= banksize;
@@ -78,5 +78,5 @@ uint32_t calculate_L4_page(stlink_t *sl, uint32_t flashaddr) {
 
   // For 1MB chips without the dual-bank option set, the page address will
   // overflow into the BKER bit, which gives us the correct bank:page value.
-  return (bker | flashaddr / (uint32_t)sl->flash_pgsz);
+  return (bker | flashaddr / sl->flash_pgsz);
 }

@@ -33,7 +33,7 @@
         int32_t (*set_swdclk) (stlink_t * stl, int32_t freq_khz);
         int32_t (*trace_enable) (stlink_t * sl, uint32_t frequency);
         int32_t (*trace_disable) (stlink_t * sl);
-        int32_t (*trace_read) (stlink_t * sl, uint8_t* buf, size_t size);
+        int32_t (*trace_read) (stlink_t * sl, uint8_t* buf, uint32_t size);
     } stlink_backend_t;
 
 #endif // BACKEND_H

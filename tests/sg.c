@@ -7,6 +7,9 @@
 
 #include <stlink.h>
 
+#include <logging.h>
+#include <sg.h>
+
 #if defined(_MSC_VER)
 #define __attribute__(x)
 #endif

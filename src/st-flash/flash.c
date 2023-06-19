@@ -1,23 +1,33 @@
-/* Simple wrapper around the stlink_flash_write function */
+/*
+ * File: flash.c
+ *
+ * Tool st-flash - Simple wrapper around the stlink_flash_write function
+ */
 
-#include <stdio.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include <fcntl.h>
 #include <signal.h>
-#include <sys/types.h>
+
+#if defined(_WIN32)
+#include <win32_socket.h>
+#else
 #include <unistd.h>
+#endif // _WIN32
 
 #include <stm32.h>
 #include <stlink.h>
+#include "flash.h"
+#include "flash_opts.h"
 
+#include <chipid.h>
 #include <common_flash.h>
 #include <map_file.h>
 #include <option_bytes.h>
-
-#include "flash.h"
+#include <usb.h>
 
 static stlink_t *connected_stlink = NULL;
 
@@ -83,7 +93,7 @@ int32_t main(int32_t ac, char** av) {
 
     if ( o.flash_size != 0u && o.flash_size != sl->flash_size ) {
         sl->flash_size = o.flash_size;
-        printf("Forcing flash size: --flash=0x%08X\n", (uint32_t)sl->flash_size);
+        printf("Forcing flash size: --flash=0x%08X\n", sl->flash_size);
     }
 
     sl->verbose = o.log_level;
@@ -106,7 +116,7 @@ int32_t main(int32_t ac, char** av) {
     }
 
     if (o.cmd == FLASH_CMD_WRITE) {
-        size_t size = 0;
+        uint32_t size = 0;
 
         // write
         if (o.format == FLASH_FORMAT_IHEX) {
@@ -119,7 +129,7 @@ int32_t main(int32_t ac, char** av) {
         }
         if ((o.addr >= sl->flash_base) && (o.addr < sl->flash_base + sl->flash_size)) {
             if (o.format == FLASH_FORMAT_IHEX) {
-                err = stlink_mwrite_flash(sl, mem, (uint32_t)size, o.addr);
+                err = stlink_mwrite_flash(sl, mem, size, o.addr);
             } else {
                 err = stlink_fwrite_flash(sl, o.filename, o.addr);
             }
@@ -130,7 +140,7 @@ int32_t main(int32_t ac, char** av) {
             }
         } else if ((o.addr >= sl->sram_base) && (o.addr < sl->sram_base + sl->sram_size)) {
             if (o.format == FLASH_FORMAT_IHEX) {
-                err = stlink_mwrite_sram(sl, mem, (uint32_t)size, o.addr);
+                err = stlink_mwrite_sram(sl, mem, size, o.addr);
             } else {
                 err = stlink_fwrite_sram(sl, o.filename, o.addr);
             }
@@ -221,10 +231,10 @@ int32_t main(int32_t ac, char** av) {
                 goto on_error;
             }
         } else if (o.area == FLASH_OPTION_BYTES) {
-            size_t remaining_option_length = sl->option_size / 4;
+            uint32_t remaining_option_length = sl->option_size / 4;
             DLOG("@@@@ Read %u (%#x) option bytes from %#10x\n",
-                (uint32_t)remaining_option_length,
-                (uint32_t)remaining_option_length,
+                remaining_option_length,
+                remaining_option_length,
                 sl->option_base);
 
             uint32_t option_byte = 0;

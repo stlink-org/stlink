@@ -6,7 +6,7 @@
 
 #include "mmap.h"
 
-void *mmap (void *addr, size_t len, int32_t prot, int32_t flags, int32_t fd, int64_t offset) {
+void *mmap (void *addr, uint32_t len, int32_t prot, int32_t flags, int32_t fd, int64_t offset) {
     void *buf;
     ssize_t count;
 
@@ -32,7 +32,7 @@ void *mmap (void *addr, size_t len, int32_t prot, int32_t flags, int32_t fd, int
     (void)flags;
 }
 
-int32_t munmap (void *addr, size_t len) {
+int32_t munmap (void *addr, uint32_t len) {
     free (addr);
     return(0);
     (void)len;

@@ -7,19 +7,13 @@
 #ifndef FLASH_LOADER_H
 #define FLASH_LOADER_H
 
-#include <stdint.h>
-#include <stdio.h>
-#include <stddef.h>
-
-#include <stlink.h>
-
 int32_t stlink_flash_loader_init(stlink_t *sl, flash_loader_t* fl);
 // static int32_t loader_v_dependent_assignment(stlink_t *sl,
-//                                             const uint8_t **loader_code, size_t *loader_size,
-//                                             const uint8_t *high_v_loader, size_t high_v_loader_size,
-//                                             const uint8_t *low_v_loader, size_t low_v_loader_size);
-int32_t stlink_flash_loader_write_to_sram(stlink_t *sl, stm32_addr_t* addr, size_t* size);
-int32_t stlink_flash_loader_run(stlink_t *sl, flash_loader_t* fl, stm32_addr_t target, const uint8_t* buf, size_t size);
+//                                             const uint8_t **loader_code, uint32_t *loader_size,
+//                                             const uint8_t *high_v_loader, uint32_t high_v_loader_size,
+//                                             const uint8_t *low_v_loader, uint32_t low_v_loader_size);
+int32_t stlink_flash_loader_write_to_sram(stlink_t *sl, stm32_addr_t* addr, uint32_t* size);
+int32_t stlink_flash_loader_run(stlink_t *sl, flash_loader_t* fl, stm32_addr_t target, const uint8_t* buf, uint32_t size);
 
 
 /* === Functions from old header file flashloader.h === */

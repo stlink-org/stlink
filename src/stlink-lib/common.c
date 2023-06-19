@@ -13,18 +13,20 @@
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <helper.h>
-#include <sys/stat.h>
-#include <sys/types.h>
+// #include <sys/stat.h>  // TODO: Check use
+// #include <sys/types.h> // TODO: Check use
 
 #include <stlink.h>
-#include <stm32.h>
+
 #include "calculate.h"
+#include "chipid.h"
 #include "common_flash.h"
+#include "helper.h"
+#include "logging.h"
 #include "map_file.h"
 #include "md5.h"
-
-#include "common.h"
+#include "register.h"
+#include "usb.h"
 
 #ifndef O_BINARY
 #define O_BINARY 0
@@ -54,7 +56,7 @@ int32_t stlink_jtag_reset(stlink_t *, int32_t);
 int32_t stlink_soft_reset(stlink_t *, int32_t);
 void _parse_version(stlink_t *, stlink_version_t *);
 static uint8_t stlink_parse_hex(const char *);
-static int32_t stlink_read(stlink_t *, stm32_addr_t, size_t, save_block_fn, void *);
+static int32_t stlink_read(stlink_t *, stm32_addr_t, uint32_t, save_block_fn, void *);
 static bool stlink_fread_ihex_init(struct stlink_fread_ihex_worker_arg *, int32_t, stm32_addr_t);
 static bool stlink_fread_ihex_worker(void *, uint8_t *, ssize_t);
 static bool stlink_fread_ihex_finalize(struct stlink_fread_ihex_worker_arg *);
@@ -321,8 +323,8 @@ int32_t stlink_load_device_params(stlink_t *sl) {
   }
 
   ILOG("%s: %u KiB SRAM, %u KiB flash in at least %u %s pages.\n",
-      params->dev_type, (uint32_t)(sl->sram_size / 1024), (uint32_t)(sl->flash_size / 1024),
-      (sl->flash_pgsz < 1024) ? (uint32_t)(sl->flash_pgsz) : (uint32_t)(sl->flash_pgsz / 1024),
+      params->dev_type, (sl->sram_size / 1024), (sl->flash_size / 1024),
+      (sl->flash_pgsz < 1024) ? sl->flash_pgsz : (sl->flash_pgsz / 1024),
       (sl->flash_pgsz < 1024) ? "byte" : "KiB");
 
   return (0);
@@ -607,7 +609,7 @@ int32_t stlink_trace_disable(stlink_t *sl) {
 }
 
 // 276
-int32_t stlink_trace_read(stlink_t *sl, uint8_t *buf, size_t size) {
+int32_t stlink_trace_read(stlink_t *sl, uint8_t *buf, uint32_t size) {
   return (sl->backend->trace_read(sl, buf, size));
 }
 
@@ -643,8 +645,8 @@ int32_t stlink_mwrite_sram(stlink_t *sl, uint8_t *data, uint32_t length, stm32_a
   // write the file in sram at addr
 
   int32_t error = -1;
-  size_t off;
-  size_t len;
+  uint32_t off;
+  uint32_t len;
 
   // check addr range is inside the sram
   if (addr < sl->sram_base) {
@@ -669,7 +671,7 @@ int32_t stlink_mwrite_sram(stlink_t *sl, uint8_t *data, uint32_t length, stm32_a
 
   // do the copy by 1kB blocks
   for (off = 0; off < len; off += 1024) {
-    size_t size = 1024;
+    uint32_t size = 1024;
 
     if ((off + size) > len) {
       size = len - off;
@@ -681,12 +683,12 @@ int32_t stlink_mwrite_sram(stlink_t *sl, uint8_t *data, uint32_t length, stm32_a
       size += 2;
     } // round size if needed
 
-    stlink_write_mem32(sl, addr + (uint32_t)off, (uint16_t)size);
+    stlink_write_mem32(sl, addr + off, (uint16_t)size);
   }
 
   if (length > len) {
     memcpy(sl->q_buf, data + len, length - len);
-    stlink_write_mem8(sl, addr + (uint32_t)len, (uint16_t)(length - len));
+    stlink_write_mem8(sl, addr + len, (uint16_t)(length - len));
   }
 
   error = 0; // success
@@ -701,8 +703,8 @@ int32_t stlink_fwrite_sram(stlink_t *sl, const char *path, stm32_addr_t addr) {
   // write the file in sram at addr
 
   int32_t error = -1;
-  size_t off;
-  size_t len;
+  uint32_t off;
+  uint32_t len;
   mapped_file_t mf = MAPPED_FILE_INITIALIZER;
 
   if (map_file(&mf, path) == -1) {
@@ -737,7 +739,7 @@ int32_t stlink_fwrite_sram(stlink_t *sl, const char *path, stm32_addr_t addr) {
 
   // do the copy by 1kB blocks
   for (off = 0; off < len; off += 1024) {
-    size_t size = 1024;
+    uint32_t size = 1024;
 
     if ((off + size) > len) {
       size = len - off;
@@ -749,12 +751,12 @@ int32_t stlink_fwrite_sram(stlink_t *sl, const char *path, stm32_addr_t addr) {
       size += 2;
     } // round size if needed
 
-    stlink_write_mem32(sl, addr + (uint32_t)off, (uint16_t)size);
+    stlink_write_mem32(sl, addr + off, (uint16_t)size);
   }
 
   if (mf.len > len) {
     memcpy(sl->q_buf, mf.base + len, mf.len - len);
-    stlink_write_mem8(sl, addr + (uint32_t)len, (uint16_t)(mf.len - len));
+    stlink_write_mem8(sl, addr + len, (uint16_t)(mf.len - len));
   }
 
   // check the file has been written
@@ -772,9 +774,9 @@ on_error:
 }
 
 // 302
-int32_t stlink_fread(stlink_t *sl, const char *path, bool is_ihex, stm32_addr_t addr, size_t size) {
+int32_t stlink_fread(stlink_t *sl, const char *path, bool is_ihex, stm32_addr_t addr, uint32_t size) {
   // read size bytes from addr to file
-  ILOG("read from address %#010x size %u\n", addr, (uint32_t)size);
+  ILOG("read from address %#010x size %u\n", addr, size);
 
   int32_t error;
   int32_t fd = open(path, O_RDWR | O_TRUNC | O_CREAT | O_BINARY, 00700);
@@ -806,11 +808,11 @@ int32_t stlink_fread(stlink_t *sl, const char *path, bool is_ihex, stm32_addr_t 
 }
 
 // 300
-int32_t write_buffer_to_sram(stlink_t *sl, flash_loader_t *fl, const uint8_t *buf, size_t size) {
+int32_t write_buffer_to_sram(stlink_t *sl, flash_loader_t *fl, const uint8_t *buf, uint32_t size) {
   // write the buffer right after the loader
   int32_t ret = 0;
-  size_t chunk = size & ~0x3;
-  size_t rem = size & 0x3;
+  uint32_t chunk = size & ~0x3;
+  uint32_t rem = size & 0x3;
 
   if (chunk) {
     memcpy(sl->q_buf, buf, chunk);
@@ -819,7 +821,7 @@ int32_t write_buffer_to_sram(stlink_t *sl, flash_loader_t *fl, const uint8_t *bu
 
   if (rem && !ret) {
     memcpy(sl->q_buf, buf + chunk, rem);
-    ret = stlink_write_mem8(sl, (fl->buf_addr) + (uint32_t)chunk, (uint16_t)rem);
+    ret = stlink_write_mem8(sl, (fl->buf_addr) + chunk, (uint16_t)rem);
   }
 
   return (ret);
@@ -863,12 +865,12 @@ uint32_t stlink_calculate_pagesize(stlink_t *sl, uint32_t flashaddr) {
     }
   }
 
-  return ((uint32_t)sl->flash_pgsz);
+  return (sl->flash_pgsz);
 }
 
 // 279
 int32_t stlink_parse_ihex(const char *path, uint8_t erased_pattern, uint8_t **mem,
-                      size_t *size, uint32_t *begin) {
+                      uint32_t *size, uint32_t *begin) {
   int32_t res = 0;
   *begin = UINT32_MAX;
   uint8_t *data = NULL;
@@ -894,7 +896,7 @@ int32_t stlink_parse_ihex(const char *path, uint8_t erased_pattern, uint8_t **me
       data = calloc(*size, 1); // use calloc to get NULL if out of memory
 
       if (!data) {
-        ELOG("Cannot allocate %u bytes\n", (uint32_t)(*size));
+        ELOG("Cannot allocate %u bytes\n", (*size));
         res = -1;
         break;
       }
@@ -924,7 +926,7 @@ int32_t stlink_parse_ihex(const char *path, uint8_t erased_pattern, uint8_t **me
         break;
       }
 
-      size_t l = strlen(line);
+      uint32_t l = strlen(line);
 
       while (l > 0 && (line[l - 1] == '\n' || line[l - 1] == '\r')) {
         --l;
@@ -940,7 +942,7 @@ int32_t stlink_parse_ihex(const char *path, uint8_t erased_pattern, uint8_t **me
 
       uint8_t chksum = 0; // check sum
 
-      for (size_t i = 1; i < l; i += 2) {
+      for (uint32_t i = 1; i < l; i += 2) {
         chksum += stlink_parse_hex(line + i);
       }
 
@@ -1213,80 +1215,7 @@ void stlink_run_at(stlink_t *sl, stm32_addr_t addr) {
   }
 }
 
-/* Limit the block size to compare to 0x1800 as anything larger will stall the
- * STLINK2 Maybe STLINK V1 needs smaller value!
- */
-int32_t check_file(stlink_t *sl, mapped_file_t *mf, stm32_addr_t addr) {
-  size_t off;
-  size_t n_cmp = sl->flash_pgsz;
-
-  if (n_cmp > 0x1800) {
-    n_cmp = 0x1800;
-  }
-
-  for (off = 0; off < mf->len; off += n_cmp) {
-    size_t aligned_size;
-
-    size_t cmp_size = n_cmp; // adjust last page size
-
-    if ((off + n_cmp) > mf->len) {
-      cmp_size = mf->len - off;
-    }
-
-    aligned_size = cmp_size;
-
-    if (aligned_size & (4 - 1)) {
-      aligned_size = (cmp_size + 4) & ~(4 - 1);
-    }
-
-    stlink_read_mem32(sl, addr + (uint32_t)off, (uint16_t)aligned_size);
-
-    if (memcmp(sl->q_buf, mf->base + off, cmp_size)) {
-      return (-1);
-    }
-  }
-
-  return (0);
-}
-
-void md5_calculate(mapped_file_t *mf) {
-  // calculate md5 checksum of given binary file
-  Md5Context md5Context;
-  MD5_HASH md5Hash;
-  Md5Initialise(&md5Context);
-  Md5Update(&md5Context, mf->base, (uint32_t)mf->len);
-  Md5Finalise(&md5Context, &md5Hash);
-  printf("md5 checksum: ");
-
-  for (int32_t i = 0; i < (int32_t)sizeof(md5Hash); i++) {
-    printf("%x", md5Hash.bytes[i]);
-  }
-
-  printf(", ");
-}
-
-void stlink_checksum(mapped_file_t *mp) {
-  /* checksum that backward compatible with official ST tools */
-  uint32_t sum = 0;
-  uint8_t *mp_byte = (uint8_t *)mp->base;
-
-  for (size_t i = 0; i < mp->len; ++i) {
-    sum += mp_byte[i];
-  }
-
-  printf("stlink checksum: 0x%08x\n", sum);
-}
-
-void stlink_fwrite_finalize(stlink_t *sl, stm32_addr_t addr) {
-  uint32_t val;
-  // set PC to the reset routine
-  stlink_read_debug32(sl, addr + 4, &val);
-  stlink_write_reg(sl, val, 15);
-  stlink_run(sl, RUN_NORMAL);
-}
-
-static int32_t stlink_read(stlink_t *sl, stm32_addr_t addr, size_t size,
-                       save_block_fn fn, void *fn_arg) {
+static int32_t stlink_read(stlink_t *sl, stm32_addr_t addr, uint32_t size, save_block_fn fn, void *fn_arg) {
 
   int32_t error = -1;
 
@@ -1298,10 +1227,10 @@ static int32_t stlink_read(stlink_t *sl, stm32_addr_t addr, size_t size,
     size = sl->flash_size;
   }
 
-  size_t cmp_size = (sl->flash_pgsz > 0x1800) ? 0x1800 : sl->flash_pgsz;
+  uint32_t cmp_size = (sl->flash_pgsz > 0x1800) ? 0x1800 : sl->flash_pgsz;
 
-  for (size_t off = 0; off < size; off += cmp_size) {
-    size_t aligned_size;
+  for (uint32_t off = 0; off < size; off += cmp_size) {
+    uint32_t aligned_size;
 
     // adjust last page size
     if ((off + cmp_size) > size) {
@@ -1314,7 +1243,7 @@ static int32_t stlink_read(stlink_t *sl, stm32_addr_t addr, size_t size,
       aligned_size = (cmp_size + 4) & ~(4 - 1);
     }
 
-    stlink_read_mem32(sl, addr + (uint32_t)off, (uint16_t)aligned_size);
+    stlink_read_mem32(sl, addr + off, (uint16_t)aligned_size);
 
     if (!fn(fn_arg, sl->q_buf, aligned_size)) {
       goto on_error;

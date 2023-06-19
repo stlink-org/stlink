@@ -27,12 +27,17 @@
 #endif
 
 #include <stlink.h>
+#include "gdb-server.h"
+#include "gdb-remote.h"
+#include "semihosting.h"
+
+#include <chipid.h>
+#include <common_flash.h>
+#include <flash_loader.h>
 #include <helper.h>
 #include <logging.h>
-#include "flash_loader.h"
-#include "gdb-remote.h"
-#include "gdb-server.h"
-#include "semihosting.h"
+#include <register.h>
+#include <usb.h>
 
 #define FLASH_BASE 0x08000000
 
@@ -553,7 +558,7 @@ static const char* const memory_map_template_F4_DE =
 
 char* make_memory_map(stlink_t *sl) {
     // this will be freed in serve()
-    const size_t sz = 4096;
+    const uint32_t sz = 4096;
     char* map = malloc(sz);
     map[0] = '\0';
 
@@ -565,42 +570,42 @@ char* make_memory_map(stlink_t *sl) {
         strcpy(map, memory_map_template_F4_DE);
     } else if (sl->core_id == STM32_CORE_ID_M7F_SWD) {
         snprintf(map, sz, memory_map_template_F7,
-                 (uint32_t)sl->sram_size);
+                 sl->sram_size);
     } else if (sl->chip_id == STM32_CHIPID_H74xxx) {
         snprintf(map, sz, memory_map_template_H7,
-                 (uint32_t)sl->flash_size,
-                 (uint32_t)sl->flash_pgsz);
+                 sl->flash_size,
+                 sl->flash_pgsz);
     } else if (sl->chip_id == STM32_CHIPID_F4_HD) {
         strcpy(map, memory_map_template_F4_HD);
     } else if (sl->chip_id == STM32_CHIPID_F2) {
         snprintf(map, sz, memory_map_template_F2,
-                 (uint32_t)sl->flash_size,
-                 (uint32_t)sl->sram_size,
-                 (uint32_t)sl->flash_size - 0x20000,
-                 (uint32_t)sl->sys_base,
-                 (uint32_t)sl->sys_size);
+                 sl->flash_size,
+                 sl->sram_size,
+                 sl->flash_size - 0x20000,
+                 sl->sys_base,
+                 sl->sys_size);
     } else if ((sl->chip_id == STM32_CHIPID_L4) ||
                (sl->chip_id == STM32_CHIPID_L43x_L44x) ||
                (sl->chip_id == STM32_CHIPID_L45x_L46x)) {
         snprintf(map, sz, memory_map_template_L4,
-                 (uint32_t)sl->flash_size,
-                 (uint32_t)sl->flash_size);
+                 sl->flash_size,
+                 sl->flash_size);
     } else if (sl->chip_id == STM32_CHIPID_L496x_L4A6x) {
         snprintf(map, sz, memory_map_template_L496,
-                 (uint32_t)sl->flash_size,
-                 (uint32_t)sl->flash_size);
+                 sl->flash_size,
+                 sl->flash_size);
     } else if (sl->chip_id == STM32_CHIPID_H72x) {
         snprintf(map, sz, memory_map_template_H72x3x,
-                 (uint32_t)sl->flash_size,
-                 (uint32_t)sl->flash_pgsz);
+                 sl->flash_size,
+                 sl->flash_pgsz);
 	} else {
         snprintf(map, sz, memory_map_template,
-                 (uint32_t)sl->flash_size,
-                 (uint32_t)sl->sram_size,
-                 (uint32_t)sl->flash_size,
-                 (uint32_t)sl->flash_pgsz,
-                 (uint32_t)sl->sys_base,
-                 (uint32_t)sl->sys_size);
+                 sl->flash_size,
+                 sl->sram_size,
+                 sl->flash_size,
+                 sl->flash_pgsz,
+                 sl->sys_base,
+                 sl->sys_size);
     }
 
     return(map);
@@ -1073,8 +1078,8 @@ static void cache_sync(stlink_t *sl) {
     if (ccr & (STLINK_REG_CM7_CCR_IC | STLINK_REG_CM7_CCR_DC)) { cache_flush(sl, ccr); }
 }
 
-static size_t unhexify(const char *in, char *out, size_t out_count) {
-    size_t i;
+static uint32_t unhexify(const char *in, char *out, uint32_t out_count) {
+    uint32_t i;
     uint32_t c;
 
     for (i = 0; i < out_count; i++) {
@@ -1247,9 +1252,9 @@ int32_t serve(stlink_t *sl, st_state_t *st) {
                     params = separator + 1;
                 }
 
-                size_t hex_len = strlen(params);
-                size_t alloc_size = (hex_len / 2) + 1;
-                size_t cmd_len;
+                uint32_t hex_len = strlen(params);
+                uint32_t alloc_size = (hex_len / 2) + 1;
+                uint32_t cmd_len;
                 char *cmd = malloc(alloc_size);
 
                 if (cmd == NULL) {
@@ -1668,7 +1673,7 @@ int32_t serve(stlink_t *sl, st_state_t *st) {
             uint32_t adj_start = start % 4;
             uint32_t count_rnd = (count + adj_start + 4 - 1) / 4 * 4;
 
-            if (count_rnd > sl->flash_pgsz) { count_rnd = (uint32_t)sl->flash_pgsz; }
+            if (count_rnd > sl->flash_pgsz) { count_rnd = sl->flash_pgsz; }
 
             if (count_rnd > 0x1800) { count_rnd = 0x1800; }
 

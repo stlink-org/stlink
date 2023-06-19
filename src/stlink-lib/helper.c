@@ -4,17 +4,17 @@
  * General helper functions
  */
 
-#include <stddef.h>
-#include <stdint.h>
-#include <stdlib.h>
-
-#include "helper.h"
-
 #ifdef STLINK_HAVE_SYS_TIME_H
 #include <sys/time.h>
 #else
 #include <sys_time.h>
-#endif
+#endif // STLINK_HAVE_SYS_TIME_H
+
+#include <stdint.h>
+#include <stddef.h>
+#include <stdlib.h>
+
+#include "helper.h"
 
 uint32_t time_ms() {
     struct timeval tv;

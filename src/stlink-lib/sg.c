@@ -84,22 +84,26 @@
 
 #define __USE_GNU
 
-#include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/types.h>
+#include <assert.h>
+// #include <sys/types.h> // TODO: Check use
 
-#include <stlink.h>
-#include "logging.h"
 #include "sg.h"
+
+#include "commands.h"
+#include "logging.h"
+#include "register.h"
+#include "usb.h"
+// #include <stlink.h>    // TODO: Check use
 
 #define STLINK_OK    0x80
 #define STLINK_FALSE 0x81
 
 static void clear_cdb(struct stlink_libsg *sl) {
-    for (size_t i = 0; i < sizeof(sl->cdb_cmd_blk); i++) { sl->cdb_cmd_blk[i] = 0; }
+    for (uint32_t i = 0; i < sizeof(sl->cdb_cmd_blk); i++) { sl->cdb_cmd_blk[i] = 0; }
 
     // set default
     sl->cdb_cmd_blk[0] = STLINK_DEBUG_COMMAND;
@@ -148,6 +152,7 @@ static int32_t get_usb_mass_storage_status(libusb_device_handle *handle, uint8_t
     uint32_t rsig = read_uint32(csw, 0);
     uint32_t rtag = read_uint32(csw, 4);
     /* uint32_t residue = read_uint32(csw, 8); */
+
 #define USB_CSW_SIGNATURE 0x53425355  // 'U' 'S' 'B' 'S' (reversed)
 
     if (rsig != USB_CSW_SIGNATURE) {
@@ -185,9 +190,8 @@ static int32_t dump_CDB_command(uint8_t *cdb, uint8_t cdb_len) {
  * @param expected_rx_size
  * @return
  */
-int32_t send_usb_mass_storage_command(libusb_device_handle *handle, uint8_t endpoint_out,
-                                  uint8_t *cdb, uint8_t cdb_length,
-                                  uint8_t lun, uint8_t flags, uint32_t expected_rx_size) {
+int32_t send_usb_mass_storage_command(libusb_device_handle *handle, uint8_t endpoint_out, uint8_t *cdb, uint8_t cdb_length,
+                                        uint8_t lun, uint8_t flags, uint32_t expected_rx_size) {
     DLOG("Sending usb m-s cmd: cdblen:%d, rxsize=%d\n", cdb_length, expected_rx_size);
     dump_CDB_command(cdb, cdb_length);
 

@@ -1,15 +1,15 @@
 /*
- * UglyLogging
+ * File: logging.c
  *
- * Slow, yet another wheel reinvented, but enough to make the rest of our code pretty enough.
+ * UglyLogging: Slow, yet another wheel reinvented, but enough to make the rest of our code pretty enough.
  */
 
-#include <stdarg.h>
-#include <stddef.h>
+#define __STDC_WANT_LIB_EXT1__ 1
+
 #include <stdint.h>
 #include <stdio.h>
-#include <stdlib.h>
-#define __STDC_WANT_LIB_EXT1__ 1
+
+#include <stdarg.h>
 #include <time.h>
 
 #include "logging.h"

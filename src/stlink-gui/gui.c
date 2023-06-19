@@ -7,6 +7,10 @@
 #include <stlink.h>
 #include "gui.h"
 
+#include <chipid.h>
+#include <common_flash.h>
+#include <usb.h>
+
 #define MEM_READ_SIZE 1024
 
 #ifndef G_VALUE_INIT
@@ -261,7 +265,7 @@ static gpointer stlink_gui_populate_filemem_view(gpointer data) {
          */
 
         uint8_t* mem   = NULL;
-        size_t size    = 0;
+        uint32_t size    = 0;
         uint32_t begin = 0;
         int32_t res = stlink_parse_ihex(gui->filename, 0, &mem, &size, &begin);
 
