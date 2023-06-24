@@ -68,7 +68,7 @@ int32_t win32_poll(struct pollfd *fds, uint32_t nfds, int32_t timo) {
     printf("Exiting select rc=%d\n", rc);
 #endif
 
-    if (rc <= 0) { return(rc); }
+    if (rc <= 0) { return (rc); }
 
     if (rc > 0) {
         for ( i = 0; i < nfds; ++i) {
@@ -98,7 +98,7 @@ int32_t win32_poll(struct pollfd *fds, uint32_t nfds, int32_t timo) {
         }
     }
 
-    return(rc);
+    return (rc);
 }
 
 static void set_connect_errno(int32_t winsock_err) {
@@ -135,7 +135,7 @@ SOCKET win32_socket(int32_t domain, int32_t type, int32_t protocol) {
 
     if (fd == INVALID_SOCKET) { set_socket_errno(WSAGetLastError()); }
 
-    return(fd);
+    return (fd);
 }
 
 /* 
@@ -149,7 +149,7 @@ int32_t win32_connect(SOCKET fd, struct sockaddr *addr, socklen_t addr_len) {
 
     if (rc == SOCKET_ERROR) { set_connect_errno(WSAGetLastError()); }
 
-    return(rc);
+    return (rc);
 }
 
 /* A wrapper around the accept() function.
@@ -164,7 +164,7 @@ SOCKET win32_accept(SOCKET fd, struct sockaddr *addr, socklen_t *addr_len) {
         newfd = (SOCKET)-1;
     }
 
-    return(newfd);
+    return (newfd);
 }
 
 /* A wrapper around the shutdown() function.
@@ -177,7 +177,7 @@ int32_t win32_shutdown(SOCKET fd, int32_t mode) {
 
     if (rc == SOCKET_ERROR) { set_socket_errno(WSAGetLastError()); }
 
-    return(rc);
+    return (rc);
 }
 
 int32_t win32_close_socket(SOCKET fd) {
@@ -185,7 +185,7 @@ int32_t win32_close_socket(SOCKET fd) {
 
     if (rc == SOCKET_ERROR) { set_socket_errno(WSAGetLastError()); }
 
-    return(rc);
+    return (rc);
 }
 
 ssize_t win32_write_socket(SOCKET fd, void *buf, int32_t n) {
@@ -193,7 +193,7 @@ ssize_t win32_write_socket(SOCKET fd, void *buf, int32_t n) {
 
     if (rc == SOCKET_ERROR) { set_socket_errno(WSAGetLastError()); }
 
-    return(rc);
+    return (rc);
 }
 
 ssize_t win32_read_socket(SOCKET fd, void *buf, int32_t n) {
@@ -201,7 +201,7 @@ ssize_t win32_read_socket(SOCKET fd, void *buf, int32_t n) {
 
     if (rc == SOCKET_ERROR) { set_socket_errno(WSAGetLastError()); }
 
-    return(rc);
+    return (rc);
 }
 
 
@@ -244,7 +244,7 @@ cont:
                 }
 
                 *lasts = s;
-                return(tok);
+                return (tok);
             }
 
         } while (sc != 0);
@@ -260,7 +260,7 @@ char *win32_strsep (char **stringp, const char *delim) {
     char *tok;
 
     if ((s = *stringp) == NULL) {
-        return(NULL);
+        return (NULL);
     }
 
     for (tok = s; ;) {
@@ -276,7 +276,7 @@ char *win32_strsep (char **stringp, const char *delim) {
                 }
 
                 *stringp = s;
-                return(tok);
+                return (tok);
             }
 
         } while (sc != 0);
@@ -301,7 +301,7 @@ int32_t usleep(uint32_t waitTime) {
         WaitForSingleObject(timer, INFINITE);
         CloseHandle(timer);
 
-        return(0);
+        return (0);
     }
 
     LARGE_INTEGER perf_cnt, start, now;
@@ -313,7 +313,7 @@ int32_t usleep(uint32_t waitTime) {
         QueryPerformanceCounter((LARGE_INTEGER*)&now);
     } while ((now.QuadPart - start.QuadPart) / (float)perf_cnt.QuadPart * 1000 * 1000 < waitTime);
 
-    return(0);
+    return (0);
 }
 #endif
 

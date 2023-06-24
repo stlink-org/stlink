@@ -44,7 +44,7 @@ int32_t main(void) { // main() ripped out of old stlink-hw.c
 
     stlink_t *sl = stlink_v1_open(99, 1);
 
-    if (sl == NULL) return(0);
+    if (sl == NULL) return (0);
 
     // we are in mass mode, go to swd
     stlink_enter_swd_mode(sl);
@@ -212,5 +212,5 @@ int32_t main(void) { // main() ripped out of old stlink-hw.c
 
     // fflush(stderr);
     // fflush(stdout);
-    return(EXIT_SUCCESS);
+    return (EXIT_SUCCESS);
 }

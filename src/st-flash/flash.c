@@ -75,7 +75,7 @@ int32_t main(int32_t ac, char** av) {
     if (flash_get_opts(&o, ac - 1, av + 1) == -1) {
         printf("invalid command line\n");
         usage();
-        return(-1);
+        return (-1);
     }
 
     printf("st-flash %s\n", STLINK_VERSION);
@@ -83,7 +83,7 @@ int32_t main(int32_t ac, char** av) {
 
     sl = stlink_open_usb(o.log_level, o.connect, (char *)o.serial, o.freq);
 
-    if (sl == NULL) { return(-1); }
+    if (sl == NULL) { return (-1); }
 
     if (sl->flash_type == STM32_FLASH_TYPE_UNKNOWN) {
         printf("Failed to connect to target\n");
@@ -299,5 +299,5 @@ on_error:
     stlink_close(sl);
     free(mem);
 
-    return(err);
+    return (err);
 }

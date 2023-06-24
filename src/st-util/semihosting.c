@@ -16,13 +16,13 @@ static int32_t mem_read_u8(stlink_t *sl, uint32_t addr, uint8_t *data) {
     int32_t offset = addr % 4;
     int32_t len = 4;
 
-    if (sl == NULL || data == NULL) { return(-1); }
+    if (sl == NULL || data == NULL) { return (-1); }
 
     // read address and length must be aligned
-    if (stlink_read_mem32(sl, addr - offset, len) != 0) { return(-1); }
+    if (stlink_read_mem32(sl, addr - offset, len) != 0) { return (-1); }
 
     *data = sl->q_buf[offset];
-    return(0);
+    return (0);
 }
 
 #ifdef UNUSED
@@ -30,26 +30,26 @@ static int32_t mem_read_u16(stlink_t *sl, uint32_t addr, uint16_t *data) {
     int32_t offset = addr % 4;
     int32_t len = (offset > 2 ? 8 : 4);
 
-    if (sl == NULL || data == NULL) { return(-1); }
+    if (sl == NULL || data == NULL) { return (-1); }
 
     // read address and length must be aligned
-    if (stlink_read_mem32(sl, addr - offset, len) != 0) { return(-1); }
+    if (stlink_read_mem32(sl, addr - offset, len) != 0) { return (-1); }
 
     memcpy(data, &sl->q_buf[offset], sizeof(*data));
-    return(0);
+    return (0);
 }
 
 static int32_t mem_read_u32(stlink_t *sl, uint32_t addr, uint32_t *data) {
     int32_t offset = addr % 4;
     int32_t len = (offset > 0 ? 8 : 4);
 
-    if (sl == NULL || data == NULL) { return(-1); }
+    if (sl == NULL || data == NULL) { return (-1); }
 
     // read address and length must be aligned
-    if (stlink_read_mem32(sl, addr - offset, len) != 0) { return(-1); }
+    if (stlink_read_mem32(sl, addr - offset, len) != 0) { return (-1); }
 
     memcpy(data, &sl->q_buf[offset], sizeof(*data));
-    return(0);
+    return (0);
 }
 #endif
 
@@ -57,16 +57,16 @@ static int32_t mem_read(stlink_t *sl, uint32_t addr, void *data, uint16_t len) {
     int32_t offset = addr % 4;
     int32_t read_len = len + offset;
 
-    if (sl == NULL || data == NULL) { return(-1); }
+    if (sl == NULL || data == NULL) { return (-1); }
 
     // align read size
     if ((read_len % 4) != 0) { read_len += 4 - (read_len % 4); }
 
     // address and length must be aligned
-    if (stlink_read_mem32(sl, addr - offset, read_len) != 0) { return(-1); }
+    if (stlink_read_mem32(sl, addr - offset, read_len) != 0) { return (-1); }
 
     memcpy(data, &sl->q_buf[offset], len);
-    return(0);
+    return (0);
 }
 
 static int32_t mem_write(stlink_t *sl, uint32_t addr, void *data, uint16_t len) {
@@ -77,12 +77,12 @@ static int32_t mem_write(stlink_t *sl, uint32_t addr, void *data, uint16_t len) 
      * the requested bytes. (perhaps reading the whole area is faster??).
      * If 16 and 8 bit writes are available, then they could be used instead.
      * Just return when the length is zero avoiding unneeded work. */
-    if (len == 0) { return(0); }
+    if (len == 0) { return (0); }
 
     int32_t offset = addr % 4;
     int32_t write_len = len + offset;
 
-    if (sl == NULL || data == NULL) { return(-1); }
+    if (sl == NULL || data == NULL) { return (-1); }
 
     // align read size
     if ((write_len % 4) != 0) { write_len += 4 - (write_len % 4); }
@@ -90,9 +90,9 @@ static int32_t mem_write(stlink_t *sl, uint32_t addr, void *data, uint16_t len) 
     memcpy(&sl->q_buf[offset], data, len);
 
     // address and length must be aligned
-    if (stlink_write_mem32(sl, addr - offset, write_len) != 0) { return(-1); }
+    if (stlink_write_mem32(sl, addr - offset, write_len) != 0) { return (-1); }
 
-    return(0);
+    return (0);
 }
 
 /* For the SYS_WRITE0 call, we don't know the size of the null-terminated buffer
@@ -132,7 +132,7 @@ static int32_t saved_errno = 0;
 
 int32_t do_semihosting (stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret) {
 
-    if (sl == NULL || ret == NULL) { return(-1); }
+    if (sl == NULL || ret == NULL) { return (-1); }
 
     DLOG("Do semihosting R0=0x%08x R1=0x%08x\n", r0, r1);
 
@@ -148,7 +148,7 @@ int32_t do_semihosting (stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret) {
         if (mem_read(sl, r1, args, sizeof(args)) != 0) {
             DLOG("Semihosting SYS_OPEN error: cannot read args from target memory\n");
             *ret = -1;
-            return(-1);
+            return (-1);
         }
 
         name_address = args[0];
@@ -159,7 +159,7 @@ int32_t do_semihosting (stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret) {
             /* Invalid mode */
             DLOG("Semihosting SYS_OPEN error: invalid mode %d\n", mode);
             *ret = -1;
-            return(-1);
+            return (-1);
         }
 
         /* Add the trailing zero that is not counted in the length argument (see
@@ -170,7 +170,7 @@ int32_t do_semihosting (stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret) {
         if (name_len > MAX_BUFFER_SIZE) {
             DLOG("Semihosting SYS_OPEN error: name buffer size is too big %d\n", name_len);
             *ret = -1;
-            return(-1);
+            return (-1);
         }
 
         name = malloc(name_len);
@@ -178,14 +178,14 @@ int32_t do_semihosting (stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret) {
         if (name == NULL) {
             DLOG("Semihosting SYS_OPEN error: cannot allocate name buffer\n");
             *ret = -1;
-            return(-1);
+            return (-1);
         }
 
         if (mem_read(sl, name_address, name, name_len) != 0) {
             free(name);
             *ret = -1;
             DLOG("Semihosting SYS_OPEN error: cannot read name from target memory\n");
-            return(-1);
+            return (-1);
         }
 
         DLOG("Semihosting: open('%s', (SH open mode)%d, 0644)\n", name, mode);
@@ -206,7 +206,7 @@ int32_t do_semihosting (stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret) {
         if (mem_read(sl, r1, args, sizeof(args)) != 0) {
             DLOG("Semihosting SYS_CLOSE error: cannot read args from target memory\n");
             *ret = -1;
-            return(-1);
+            return (-1);
         }
 
         fd = (int32_t)args[0];
@@ -230,7 +230,7 @@ int32_t do_semihosting (stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret) {
         if (mem_read(sl, r1, args, sizeof(args)) != 0) {
             DLOG("Semihosting SYS_WRITE error: cannot read args from target memory\n");
             *ret = -1;
-            return(-1);
+            return (-1);
         }
 
         fd             = (int32_t)args[0];
@@ -241,7 +241,7 @@ int32_t do_semihosting (stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret) {
             DLOG("Semihosting SYS_WRITE error: buffer size is too big %d\n",
                  buffer_len);
             *ret = buffer_len;
-            return(-1);
+            return (-1);
         }
 
         buffer = malloc(buffer_len);
@@ -249,14 +249,14 @@ int32_t do_semihosting (stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret) {
         if (buffer == NULL) {
             DLOG("Semihosting SYS_WRITE error: cannot allocate buffer\n");
             *ret = buffer_len;
-            return(-1);
+            return (-1);
         }
 
         if (mem_read(sl, buffer_address, buffer, buffer_len) != 0) {
             DLOG("Semihosting SYS_WRITE error: cannot read buffer from target memory\n");
             free(buffer);
             *ret = buffer_len;
-            return(-1);
+            return (-1);
         }
 
         DLOG("Semihosting: write(%d, target_addr:0x%08x, %u)\n", fd, buffer_address, buffer_len);
@@ -286,7 +286,7 @@ int32_t do_semihosting (stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret) {
         if (mem_read(sl, r1, args, sizeof(args)) != 0) {
             DLOG("Semihosting SYS_READ error: cannot read args from target memory\n");
             *ret = -1;
-            return(-1);
+            return (-1);
         }
 
         fd             = (int32_t)args[0];
@@ -296,7 +296,7 @@ int32_t do_semihosting (stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret) {
         if (buffer_len > MAX_BUFFER_SIZE) {
             DLOG("Semihosting SYS_READ error: buffer size is too big %d\n", buffer_len);
             *ret = buffer_len;
-            return(-1);
+            return (-1);
         }
 
         buffer = malloc(buffer_len);
@@ -304,7 +304,7 @@ int32_t do_semihosting (stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret) {
         if (buffer == NULL) {
             DLOG("Semihosting SYS_READ error: cannot allocatebuffer\n");
             *ret = buffer_len;
-            return(-1);
+            return (-1);
         }
 
         DLOG("Semihosting: read(%d, target_addr:0x%08x, %u)\n", fd, buffer_address,
@@ -320,7 +320,7 @@ int32_t do_semihosting (stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret) {
                 DLOG("Semihosting SYS_READ error: cannot write buffer to target memory\n");
                 free(buffer);
                 *ret = buffer_len;
-                return(-1);
+                return (-1);
             } else {
                 *ret = buffer_len - (uint32_t)read_result;
             }
@@ -346,7 +346,7 @@ int32_t do_semihosting (stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret) {
         if (mem_read(sl, r1, args, sizeof(args)) != 0) {
             DLOG("Semihosting SYS_REMOVE error: cannot read args from target memory\n");
             *ret = -1;
-            return(-1);
+            return (-1);
         }
 
         name_address = args[0];
@@ -361,7 +361,7 @@ int32_t do_semihosting (stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret) {
             DLOG("Semihosting SYS_REMOVE error: name buffer size is too big %d\n",
                  name_len);
             *ret = -1;
-            return(-1);
+            return (-1);
         }
 
         name = malloc(name_len);
@@ -369,14 +369,14 @@ int32_t do_semihosting (stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret) {
         if (name == NULL) {
             DLOG("Semihosting SYS_REMOVE error: cannot allocate name buffer\n");
             *ret = -1;
-            return(-1);
+            return (-1);
         }
 
         if (mem_read(sl, name_address, name, name_len) != 0) {
             free(name);
             *ret = -1;
             DLOG("Semihosting SYS_REMOVE error: cannot read name from target memory\n");
-            return(-1);
+            return (-1);
         }
 
         DLOG("Semihosting: unlink('%s')\n", name);
@@ -395,7 +395,7 @@ int32_t do_semihosting (stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret) {
         if (mem_read(sl, r1, args, sizeof(args)) != 0) {
             DLOG("Semihosting SYS_SEEK error: cannot read args from target memory\n");
             *ret = -1;
-            return(-1);
+            return (-1);
         }
 
         fd = (int32_t)args[0];
@@ -435,11 +435,11 @@ int32_t do_semihosting (stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret) {
         while (true) {
             if (mem_read(sl, r1, buf, WRITE0_BUFFER_SIZE) != 0) {
                 DLOG("Semihosting WRITE0: cannot read target memory at 0x%08x\n", r1);
-                return(-1);
+                return (-1);
             }
 
             for (int32_t i = 0; i < WRITE0_BUFFER_SIZE; i++) {
-                if (buf[i] == 0) { return(0); }
+                if (buf[i] == 0) { return (0); }
 
                 fprintf(stderr, "%c", buf[i]);
             }
@@ -451,7 +451,7 @@ int32_t do_semihosting (stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret) {
     }
     default:
         fprintf(stderr, "semihosting: unsupported call %#x\n", r0);
-        return(-1);
+        return (-1);
     }
-    return(0);
+    return (0);
 }

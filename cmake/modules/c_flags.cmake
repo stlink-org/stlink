@@ -14,7 +14,7 @@ function(add_cflag_if_supported flag)
 
     if (C_SUPPORTS${flagclean})
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${flag}" PARENT_SCOPE)
-    endif ()
+    endif()
 endfunction()
 
 add_cflag_if_supported("-Wall")
@@ -38,14 +38,14 @@ add_cflag_if_supported("-Wimplicit-function-declaration")
 ##
 if (NOT CMAKE_SYSTEM_NAME STREQUAL "OpenBSD")
     add_cflag_if_supported("-Wredundant-decls")
-endif ()
+endif()
 
 if (NOT (WIN32 OR (EXISTS "/etc/debian_version" AND MINGW)))
     add_cflag_if_supported("-fPIC")
-endif ()
+endif()
 
 if (${CMAKE_BUILD_TYPE} MATCHES "Debug")
     add_cflag_if_supported("-ggdb")
 else ()
     add_cflag_if_supported("-Werror")
-endif ()
+endif()

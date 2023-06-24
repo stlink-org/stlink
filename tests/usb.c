@@ -29,7 +29,7 @@ int32_t main(int32_t ac, char** av) {
 
     if (reset == 0) {
         usage();
-        return(0);
+        return (0);
     }
 
     sl = stlink_open_usb(10, reset, NULL, 0);
@@ -125,5 +125,5 @@ int32_t main(int32_t ac, char** av) {
         stlink_close(sl);
     }
 
-    return(0);
+    return (0);
 }

@@ -28,7 +28,7 @@ if (GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
             )
         if (res EQUAL 1)
             set(PROJECT_VERSION "${PROJECT_VERSION}-dirty")
-        endif ()
+        endif()
 
         # Strip a leading v off of the version as proceeding code expects just the version numbering.
         string(REGEX REPLACE "^v" "" PROJECT_VERSION ${PROJECT_VERSION})
@@ -53,14 +53,14 @@ if (GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
                 # ...the version does not match with git-version string
                 if (NOT __version_str STREQUAL __version_file)
                     message(STATUS "Rewrite ${PROJECT_SOURCE_DIR}/.version with ${__version_str}!")
-                endif ()
+                endif()
 
             elseif (NOT EXISTS "${PROJECT_SOURCE_DIR}/.version")
 
                 # No local .version file found: Create a new one...
                 file(WRITE "${PROJECT_SOURCE_DIR}/.version" ${__version_str})
 
-            endif ()
+            endif()
 
             message(STATUS "stlink version: ${PROJECT_VERSION}")
             message(STATUS "Major ${PROJECT_VERSION_MAJOR} Minor ${PROJECT_VERSION_MINOR} Patch ${PROJECT_VERSION_PATCH}")
@@ -68,13 +68,13 @@ if (GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
         else (len EQUAL 3)
             message(STATUS "Failed to extract version parts from \"${PROJECT_VERSION}\"")
             set(ERROR_FLAG "1")
-        endif (len EQUAL 3)
+        endif(len EQUAL 3)
 
     else (GIT_DESCRIBE_RESULT EQUAL 0)
         message(WARNING "git describe failed: ${GIT_DESCRIBE_ERROR}")
         set(ERROR_FLAG "1")
     endif(GIT_DESCRIBE_RESULT EQUAL 0)
-endif ()
+endif()
 
 ##
 # Failure to read version via git
@@ -101,9 +101,9 @@ if (NOT GIT_FOUND OR NOT EXISTS "${PROJECT_SOURCE_DIR}/.git" OR ERROR_FLAG EQUAL
             set(__detect_version 1)
         else ()
             message(STATUS "Fail to extract version parts from \"${PROJECT_VERSION}\"")
-        endif ()
+        endif()
     else (EXISTS ${PROJECT_SOURCE_DIR}/.version)
         message(STATUS "File \"${PROJECT_SOURCE_DIR}/.version\" does not exist.")
         message(FATAL_ERROR "Unable to determine project version")
-    endif ()
-endif ()
+    endif()
+endif()

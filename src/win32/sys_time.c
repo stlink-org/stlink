@@ -12,7 +12,7 @@ int32_t gettimeofday(struct timeval *tv, struct timezone *tz) {
     ULARGE_INTEGER ulint;
     static int32_t tzflag = 0;
 
-    if(NULL != tv) {
+    if (NULL != tv) {
         GetSystemTimeAsFileTime(&ftime);
         ulint.LowPart = ftime.dwLowDateTime;
         ulint.HighPart = ftime.dwHighDateTime;
@@ -21,7 +21,7 @@ int32_t gettimeofday(struct timeval *tv, struct timezone *tz) {
         tv->tv_usec = (int32_t)(ulint.QuadPart % 10000000L);
     }
 
-    if(NULL != tz) {
+    if (NULL != tz) {
         if (!tzflag) {
             _tzset();
             tzflag++;

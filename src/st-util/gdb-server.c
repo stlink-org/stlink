@@ -214,7 +214,7 @@ int32_t parse_options(int32_t argc, char** argv, st_state_t *st) {
         printf("\n");
     }
 
-    return(0);
+    return (0);
 }
 
 int32_t main(int32_t argc, char** argv) {
@@ -233,11 +233,11 @@ int32_t main(int32_t argc, char** argv) {
     init_chipids (STLINK_CHIPS_DIR);
 
     sl = stlink_open_usb(state.logging_level, state.connect_mode, state.serialnumber, state.freq);
-    if (sl == NULL) { return(1); }
+    if (sl == NULL) { return (1); }
 
     if (sl->chip_id == STM32_CHIPID_UNKNOWN) {
         ELOG("Unsupported Target (Chip ID is %#010x, Core ID is %#010x).\n", sl->chip_id, sl->core_id);
-        return(1);
+        return (1);
     }
 
     sl->verbose = 0;
@@ -275,7 +275,7 @@ winsock_error:
     stlink_exit_debug_mode(sl);
     stlink_close(sl);
 
-    return(0);
+    return (0);
 }
 
 static const char* const target_description =
@@ -608,7 +608,7 @@ char* make_memory_map(stlink_t *sl) {
                  sl->sys_size);
     }
 
-    return(map);
+    return (map);
 }
 
 #define DATA_WATCH_NUM 4
@@ -676,12 +676,12 @@ static int32_t add_data_watchpoint(stlink_t *sl, enum watchfun wf, stm32_addr_t 
 
                 // just to make sure the matched bit is clear !
                 stlink_read_debug32(sl,  STLINK_REG_CM3_DWT_FUNn(i), &dummy);
-                return(0);
+                return (0);
             }
     }
 
     DLOG("failure: add watchpoints addr %x wf %u len %u\n", addr, wf, len);
-    return(-1);
+    return (-1);
 }
 
 static int32_t delete_data_watchpoint(stlink_t *sl, stm32_addr_t addr) {
@@ -694,13 +694,13 @@ static int32_t delete_data_watchpoint(stlink_t *sl, stm32_addr_t addr) {
             data_watches[i].fun = WATCHDISABLED;
             stlink_write_debug32(sl, STLINK_REG_CM3_DWT_FUNn(i), 0);
 
-            return(0);
+            return (0);
         }
     }
 
     DLOG("failure: delete watchpoint addr %x\n", addr);
 
-    return(-1);
+    return (-1);
 }
 
 static int32_t code_break_num;
@@ -746,9 +746,9 @@ static void init_code_breakpoints(stlink_t *sl) {
 
 static int32_t has_breakpoint(stm32_addr_t addr) {
     for (int32_t i = 0; i < code_break_num; i++)
-        if (code_breaks[i].addr == addr) { return(1); }
+        if (code_breaks[i].addr == addr) { return (1); }
 
-    return(0);
+    return (0);
 }
 
 static int32_t update_code_breakpoint(stlink_t *sl, stm32_addr_t addr, int32_t set) {
@@ -758,7 +758,7 @@ static int32_t update_code_breakpoint(stlink_t *sl, stm32_addr_t addr, int32_t s
 
     if (addr & 1) {
         ELOG("update_code_breakpoint: unaligned address %08x\n", addr);
-        return(-1);
+        return (-1);
     }
 
     if (code_break_rev == CODE_BREAK_REV_V1) {
@@ -778,9 +778,9 @@ static int32_t update_code_breakpoint(stlink_t *sl, stm32_addr_t addr, int32_t s
 
     if (id == -1) {
         if (set)
-            return(-1); // free slot not found
+            return (-1); // free slot not found
         else
-            return(0); // breakpoint is already removed
+            return (0); // breakpoint is already removed
     }
 
     struct code_hw_breakpoint* bp = &code_breaks[id];
@@ -802,7 +802,7 @@ static int32_t update_code_breakpoint(stlink_t *sl, stm32_addr_t addr, int32_t s
         stlink_write_debug32(sl, STLINK_REG_CM3_FP_COMPn(id), mask);
     }
 
-    return(0);
+    return (0);
 }
 
 
@@ -820,14 +820,14 @@ static int32_t flash_add_block(stm32_addr_t addr, uint32_t length, stlink_t *sl)
 
     if (addr < FLASH_BASE || addr + length > FLASH_BASE + sl->flash_size) {
         ELOG("flash_add_block: incorrect bounds\n");
-        return(-1);
+        return (-1);
     }
 
     stlink_calculate_pagesize(sl, addr);
 
     if (addr % FLASH_PAGE != 0 || length % FLASH_PAGE != 0) {
         ELOG("flash_add_block: unaligned block\n");
-        return(-1);
+        return (-1);
     }
 
     struct flash_block* new = malloc(sizeof(struct flash_block));
@@ -838,7 +838,7 @@ static int32_t flash_add_block(stm32_addr_t addr, uint32_t length, stlink_t *sl)
     memset(new->data, stlink_get_erased_pattern(sl), length);
 
     flash_root = new;
-    return(0);
+    return (0);
 }
 
 static int32_t flash_populate(stm32_addr_t addr, uint8_t* data, uint32_t length) {
@@ -871,7 +871,7 @@ static int32_t flash_populate(stm32_addr_t addr, uint8_t* data, uint32_t length)
 
     if (fit_blocks == 0) {
         ELOG("Unfit data block %08x -> %04x\n", addr, length);
-        return(-1);
+        return (-1);
     }
 
     if (fit_length != length) {
@@ -879,7 +879,7 @@ static int32_t flash_populate(stm32_addr_t addr, uint8_t* data, uint32_t length)
         WLOG("(this is not an error, just a GDB glitch)\n");
     }
 
-    return(0);
+    return (0);
 }
 
 static int32_t flash_go(stlink_t *sl, st_state_t *st) {
@@ -935,7 +935,7 @@ error:
     }
 
     flash_root = NULL;
-    return(error);
+    return (error);
 }
 
 struct cache_level_desc {
@@ -967,7 +967,7 @@ static uint32_t ceil_log2(uint32_t v) {
 
     for (res = 0; (1U << res) < v; res++);
 
-    return(res);
+    return (res);
 }
 
 static void read_cache_level_desc(stlink_t *sl, struct cache_level_desc *desc) {
@@ -1083,12 +1083,12 @@ static uint32_t unhexify(const char *in, char *out, uint32_t out_count) {
     uint32_t c;
 
     for (i = 0; i < out_count; i++) {
-        if (sscanf(in + (2 * i), "%02x", &c) != 1) { return(i); }
+        if (sscanf(in + (2 * i), "%02x", &c) != 1) { return (i); }
 
         out[i] = (char)c;
     }
 
-    return(i);
+    return (i);
 }
 
 int32_t serve(stlink_t *sl, st_state_t *st) {
@@ -1096,7 +1096,7 @@ int32_t serve(stlink_t *sl, st_state_t *st) {
 
     if (!IS_SOCK_VALID(sock)) {
         perror("socket");
-        return(1);
+        return (1);
     }
 
     uint32_t val = 1;
@@ -1111,13 +1111,13 @@ int32_t serve(stlink_t *sl, st_state_t *st) {
     if (bind(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
         perror("bind");
         close_socket(sock);
-        return(1);
+        return (1);
     }
 
     if (listen(sock, 5) < 0) {
         perror("listen");
         close_socket(sock);
-        return(1);
+        return (1);
     }
 
     ILOG("Listening at *:%d...\n", st->listen_port);
@@ -1128,7 +1128,7 @@ int32_t serve(stlink_t *sl, st_state_t *st) {
     if (!IS_SOCK_VALID(client)) {
         perror("accept");
         close_socket(sock);
-        return(1);
+        return (1);
     }
 
     close_socket(sock);
@@ -1169,7 +1169,7 @@ int32_t serve(stlink_t *sl, st_state_t *st) {
         if (status < 0) {
             ELOG("cannot recv: %d\n", status);
             close_socket(client);
-            return(1);
+            return (1);
         }
 
         DLOG("recv: %s\n", packet);
@@ -1447,7 +1447,7 @@ int32_t serve(stlink_t *sl, st_state_t *st) {
                 if (status < 0) {
                     ELOG("cannot check for int: %d\n", status);
                     close_socket(client);
-                    return(1);
+                    return (1);
                 }
 
                 if (status == 1) {
@@ -1884,7 +1884,7 @@ int32_t serve(stlink_t *sl, st_state_t *st) {
                 free(reply);
                 free(packet);
                 close_socket(client);
-                return(1);
+                return (1);
             }
 
             free(reply);
@@ -1892,12 +1892,12 @@ int32_t serve(stlink_t *sl, st_state_t *st) {
 
         if (critical_error) {
             close_socket(client);
-            return(1);
+            return (1);
         }
 
         free(packet);
     }
 
     close_socket(client);
-    return(0);
+    return (0);
 }
