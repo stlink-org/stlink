@@ -10,6 +10,7 @@
 #include "calculate.h"
 
 #include "common_flash.h"
+#include "read_write.h"
 
 uint32_t calculate_F4_sectornum(uint32_t flashaddr) {
   uint32_t offset = 0;

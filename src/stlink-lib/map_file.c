@@ -15,6 +15,8 @@
 #include <stlink.h>
 #include "map_file.h"
 
+#include "read_write.h"
+
 #ifndef O_BINARY
 #define O_BINARY 0
 #endif

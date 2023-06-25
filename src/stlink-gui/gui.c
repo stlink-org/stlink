@@ -9,6 +9,7 @@
 
 #include <chipid.h>
 #include <common_flash.h>
+#include <read_write.h>
 #include <usb.h>
 
 #define MEM_READ_SIZE 1024

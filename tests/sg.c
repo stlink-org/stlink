@@ -8,6 +8,7 @@
 #include <stlink.h>
 
 #include <logging.h>
+#include <read_write.h>
 #include <sg.h>
 
 #if defined(_MSC_VER)

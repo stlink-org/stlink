@@ -27,6 +27,7 @@
 
 #include "commands.h"
 #include "logging.h"
+#include "read_write.h"
 #include "register.h"
 
 static inline uint32_t le_to_h_u32(const uint8_t* buf) {

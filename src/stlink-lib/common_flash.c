@@ -18,6 +18,7 @@
 #include "logging.h"
 #include "map_file.h"
 #include "md5.h"
+#include "read_write.h"
 
 #define DEBUG_FLASH 0
 

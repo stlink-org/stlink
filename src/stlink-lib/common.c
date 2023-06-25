@@ -25,6 +25,7 @@
 #include "logging.h"
 #include "map_file.h"
 #include "md5.h"
+#include "read_write.h"
 #include "register.h"
 #include "usb.h"
 
@@ -808,20 +809,20 @@ int32_t stlink_fread(stlink_t *sl, const char *path, bool is_ihex, stm32_addr_t 
 }
 
 // 300
-int32_t write_buffer_to_sram(stlink_t *sl, flash_loader_t *fl, const uint8_t *buf, uint32_t size) {
+int32_t write_buffer_to_sram(stlink_t *sl, flash_loader_t *fl, const uint8_t *buf, uint16_t size) {
   // write the buffer right after the loader
   int32_t ret = 0;
-  uint32_t chunk = size & ~0x3;
-  uint32_t rem = size & 0x3;
+  uint16_t chunk = size & ~0x3;
+  uint16_t rem = size & 0x3;
 
   if (chunk) {
     memcpy(sl->q_buf, buf, chunk);
-    ret = stlink_write_mem32(sl, fl->buf_addr, (uint16_t)chunk);
+    ret = stlink_write_mem32(sl, fl->buf_addr, chunk);
   }
 
   if (rem && !ret) {
     memcpy(sl->q_buf, buf + chunk, rem);
-    ret = stlink_write_mem8(sl, (fl->buf_addr) + chunk, (uint16_t)rem);
+    ret = stlink_write_mem8(sl, (fl->buf_addr) + chunk, rem);
   }
 
   return (ret);
