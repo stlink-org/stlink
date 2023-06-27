@@ -287,10 +287,9 @@ int32_t main(int32_t ac, char** av) {
         }
     }
 
-    if (o.reset) {
-        stlink_reset(sl, RESET_AUTO);
-        stlink_run(sl, RUN_NORMAL);
-    }
+    if (o.reset) stlink_reset(sl, RESET_AUTO);
+
+    stlink_run(sl, RUN_NORMAL);
 
     err = 0; // success
 
