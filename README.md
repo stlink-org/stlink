@@ -74,7 +74,7 @@ We recommend to install `stlink-tools` from the package repository of the used d
 
 - Debian Linux: [(Link)](https://github.com/stlink-org/stlink/releases)
 - Ubuntu Linux: [(Link)](https://github.com/stlink-org/stlink/releases)
-- Arch Linux: [(Link)](https://www.archlinux.org/packages/community/x86_64/stlink)
+- Arch Linux: [(Link)](https://archlinux.org/packages/extra/x86_64/stlink/)
 - Alpine Linux: [(Link)](https://pkgs.alpinelinux.org/packages?name=stlink)
 - Fedora: [(Link)](https://src.fedoraproject.org/rpms/stlink)
 - FreeBSD: Users can install from [freshports](https://www.freshports.org/devel/stlink)
