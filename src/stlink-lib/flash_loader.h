@@ -18,7 +18,7 @@ int32_t stlink_flash_loader_run(stlink_t *sl, flash_loader_t* fl, stm32_addr_t t
 
 /* === Functions from old header file flashloader.h === */
 
-int32_t stm32l1_write_half_pages(stlink_t *sl, stm32_addr_t addr, uint8_t *base, uint32_t len, uint32_t pagesize);
+int32_t stm32l1_write_half_pages(stlink_t *sl, flash_loader_t *fl, stm32_addr_t addr, uint8_t *base, uint32_t len, uint32_t pagesize);
 // static void set_flash_cr_pg(stlink_t *sl, uint32_t bank);
 // static void set_dma_state(stlink_t *sl, flash_loader_t *fl, int32_t bckpRstr);
 int32_t stlink_flashloader_start(stlink_t *sl, flash_loader_t *fl);
