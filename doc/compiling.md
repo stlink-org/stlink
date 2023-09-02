@@ -202,4 +202,6 @@ Below are the preset default cmake options, which apply if none of these options
 - `-DCMAKE_INSTALL_SYSCONFDIR=/etc`
 - `-DCMAKE_INSTALL_PREFIX=/usr/local`
 
+Please refer to the related [cmake documentation](https://cmake.org/cmake/help/latest/variable/CMAKE_INSTALL_PREFIX.html) for details.
+
 Author: nightwalker-87
