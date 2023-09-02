@@ -69,12 +69,12 @@ static const uint8_t loader_code_stm32f0[] = {
     0x14, 0x00, 0x00, 0x00
 };
 
-// flashloaders/stm32lx.s
+// flashloaders/stm32lx.s -- compiled for armv6-m for compatibility with both
+// armv6-m cores (STM32L0) and armv7-m cores (STM32L1)
 static const uint8_t loader_code_stm32lx[] = {
     0x04, 0x68, 0x0c, 0x60,
-    0x00, 0xf1, 0x04, 0x00,
-    0x01, 0xf1, 0x04, 0x01,
-    0x04, 0x3a, 0xf7, 0xdc,
+    0x04, 0x30, 0x04, 0x31,
+    0x04, 0x3a, 0xf9, 0xdc,
     0x00, 0xbe, 0x00, 0x00
 };
 
@@ -429,12 +429,11 @@ int32_t stlink_flash_loader_run(stlink_t *sl, flash_loader_t* fl, stm32_addr_t t
 #define L1_WRITE_BLOCK_SIZE 0x80
 #define L0_WRITE_BLOCK_SIZE 0x40
 
-int32_t stm32l1_write_half_pages(stlink_t *sl, stm32_addr_t addr, uint8_t *base, uint32_t len, uint32_t pagesize) {
+int32_t stm32l1_write_half_pages(stlink_t *sl, flash_loader_t *fl, stm32_addr_t addr, uint8_t *base, uint32_t len, uint32_t pagesize) {
   uint32_t count, off;
   uint32_t num_half_pages = len / pagesize;
   uint32_t val;
   uint32_t flash_regs_base = get_stm32l0_flash_base(sl);
-  flash_loader_t fl;
   bool use_loader = true;
   int32_t ret = 0;
 
@@ -449,7 +448,7 @@ int32_t stm32l1_write_half_pages(stlink_t *sl, stm32_addr_t addr, uint8_t *base,
 
   for (count = 0; count < num_half_pages; count++) {
     if (use_loader) {
-      ret = stlink_flash_loader_run(sl, &fl, addr + count * pagesize, base + count * pagesize, pagesize);
+      ret = stlink_flash_loader_run(sl, fl, addr + count * pagesize, base + count * pagesize, pagesize);
       if (ret && count == 0) {
         /* It seems that stm32lx devices have a problem when it is blank */
         WLOG("Failed to use flash loader, fallback to soft write\n");
@@ -771,7 +770,7 @@ int32_t stlink_flashloader_write(stlink_t *sl, flash_loader_t *fl, stm32_addr_t 
     off = 0;
 
     if (len > pagesize) {
-      if (stm32l1_write_half_pages(sl, addr, base, len, pagesize)) {
+      if (stm32l1_write_half_pages(sl, fl, addr, base, len, pagesize)) {
         return (-1);
       } else {
         off = (size_t)(len / pagesize) * pagesize;

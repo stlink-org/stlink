@@ -17,8 +17,8 @@ loop:
     str r4, [r1]
 
     # increment address
-    add r0, r0, #4
-    add r1, r1, #4
+    adds r0, r0, #4
+    adds r1, r1, #4
 
     # loop if count > 0
     subs r2, r2, #4

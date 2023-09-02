@@ -78,9 +78,6 @@ include(GNUInstallDirs) # Define GNU standard installation directories
 cmake_host_system_information(RESULT OS_NAME QUERY OS_NAME)
 message(STATUS "Checking for OS_NAME: ${OS_NAME}")
 
-message(STATUS "set(CMAKE_INSTALL_SHAREDIR /usr/local/share)")
-set(CMAKE_INSTALL_SHAREDIR /usr/local/share/)
-
 
 ## Set C build flags
 if (NOT MSVC)
@@ -385,8 +382,8 @@ endif()
 if (WIN32)
 set(CMAKE_CHIPS_DIR ${CMAKE_INSTALL_PREFIX}/config/chips)
 else ()
-set(CMAKE_CHIPS_DIR ${CMAKE_INSTALL_SHAREDIR}/${PROJECT_NAME}/chips)
-endif()
+set(CMAKE_CHIPS_DIR ${CMAKE_INSTALL_FULL_DATADIR}/${PROJECT_NAME}/chips)
+endif ()
 add_definitions( -DSTLINK_CHIPS_DIR="${CMAKE_CHIPS_DIR}" )
 file(GLOB CHIP_FILES ${CMAKE_SOURCE_DIR}/config/chips/*.chip)
 install(FILES ${CHIP_FILES} DESTINATION ${CMAKE_CHIPS_DIR})

@@ -150,7 +150,7 @@ int32_t parse_options(int32_t argc, char** argv, st_state_t *st) {
     int32_t c;
     int32_t q;
 
-    while ((c = getopt_long(argc, argv, "hv::p:mn", long_options, &option_index)) != -1)
+    while ((c = getopt_long(argc, argv, "hv::p:mnu", long_options, &option_index)) != -1)
         switch (c) {
         case 0:
             break;
