@@ -1318,7 +1318,7 @@ int32_t serve(stlink_t *sl, st_state_t *st) {
                         reply = strdup("E00");
                     }
 
-                    ret = stlink_reset(sl, RESET_AUTO);
+                    ret = stlink_reset(sl, RESET_SOFT_AND_HALT);
                     if (ret) {
                         DLOG("Rcmd: reset failed with reset\n");
                         reply = strdup("E00");
@@ -1835,7 +1835,7 @@ int32_t serve(stlink_t *sl, st_state_t *st) {
 
         case 'R': {
             // reset the core.
-            ret = stlink_reset(sl, RESET_AUTO);
+            ret = stlink_reset(sl, RESET_SOFT_AND_HALT);
             if (ret) { DLOG("R packet : stlink_reset failed\n"); }
 
             init_code_breakpoints(sl);
