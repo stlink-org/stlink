@@ -125,7 +125,7 @@ or execute (Debian-based systems only): `apt-get install gcc build-essential cma
 4. Run `make install` to full install the package with complete system integration. This might require sudo permissions.
 5. Run `make debug` to create the _Debug_ target (_optional_)<br />
    The debug target is only necessary in order to modify the sources and to run under a debugger.
-6. Run `make package`to build a Debian Package. The generated packages can be found in the subdirectory `./build/dist`.
+6. Run `make package`to build a Debian Package. The generated packages can be found in the subdirectory `./build/Release/dist`.
 
 As an option you may also install to an individual user-defined folder e.g `$HOME` with `make install DESTDIR=$HOME`.
 
@@ -201,5 +201,7 @@ Below are the preset default cmake options, which apply if none of these options
 
 - `-DCMAKE_INSTALL_SYSCONFDIR=/etc`
 - `-DCMAKE_INSTALL_PREFIX=/usr/local`
+
+Please refer to the related [cmake documentation](https://cmake.org/cmake/help/latest/variable/CMAKE_INSTALL_PREFIX.html) for details.
 
 Author: nightwalker-87

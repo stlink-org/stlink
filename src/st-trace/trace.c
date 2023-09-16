@@ -14,6 +14,7 @@
 
 #include <chipid.h>
 #include <logging.h>
+#include <read_write.h>
 #include <register.h>
 #include <usb.h>
 

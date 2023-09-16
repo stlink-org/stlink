@@ -152,7 +152,7 @@ static void* TransformFunction(Md5Context* ctx, void const* data, uintmax_t size
     #undef GET
     #undef SET
 
-    return(ptr);
+    return (ptr);
 }
 
 /*  EXPORTED FUNCTIONS */

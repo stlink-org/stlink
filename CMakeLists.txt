@@ -88,7 +88,7 @@ else ()
     set(CMAKE_C_FLAGS_MINSIZEREL_INIT     "/MT /O1 /Ob1 /D NDEBUG")
     set(CMAKE_C_FLAGS_RELEASE_INIT        "/MT /O2 /Ob2 /D NDEBUG")
     set(CMAKE_C_FLAGS_RELWITHDEBINFO_INIT "/MT /Zi /O2 /Ob1 /D NDEBUG")
-endif ()
+endif()
 
 
 ###
@@ -108,10 +108,10 @@ if (_stack_chk_fail_exists)
         set(SSP_LIB -static ssp)
     else ()
         set(SSP_LIB ssp)
-    endif ()
+    endif()
 else ()
     set(SSP_LIB "")
-endif ()
+endif()
 
 CHECK_INCLUDE_FILE(sys/mman.h STLINK_HAVE_SYS_MMAN_H)
 if (STLINK_HAVE_SYS_MMAN_H)
@@ -126,17 +126,17 @@ endif()
 CHECK_INCLUDE_FILE(unistd.h STLINK_HAVE_UNISTD_H)
 if (STLINK_HAVE_UNISTD_H)
     add_definitions(-DSTLINK_HAVE_UNISTD_H)
-endif ()
+endif()
 
 CHECK_INCLUDE_FILE(dirent.h STLINK_HAVE_DIRENT_H)
 if (STLINK_HAVE_DIRENT_H)
     add_definitions(-DSTLINK_HAVE_DIRENT_H)
-endif ()
+endif()
 
 if (MSVC)
     # Use string.h rather than strings.h and disable annoying warnings
     add_definitions(-DHAVE_STRING_H -D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_WARNINGS /wd4710)
-endif ()
+endif()
 
 
 ###
@@ -161,7 +161,7 @@ if (WIN32)
 set(STLINK_INCLUDE_PATH ${CMAKE_INSTALL_INCLUDEDIR} CACHE PATH "Main include install directory")
 else ()
 set(STLINK_INCLUDE_PATH ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME} CACHE PATH "Main include install directory")
-endif ()
+endif()
 
 ## Subordinate CMakeLists for version config & header installation
 add_subdirectory(inc)
@@ -215,7 +215,7 @@ if (WIN32)
         # Add drop-in replacement for unistd.h to sources
         include_directories(src/win32/unistd)
         set(STLINK_HEADERS "${STLINK_HEADERS};src/win32/unistd/unistd.h")
-    endif ()
+    endif()
 
     if (NOT STLINK_HAVE_SYS_MMAN_H)
         include_directories(src/win32/mmap)
@@ -227,12 +227,12 @@ if (WIN32)
         set(STLINK_SOURCE "${STLINK_SOURCE};src/win32/sys_time.c")
         set(STLINK_HEADERS "${STLINK_HEADERS};src/win32/sys_time.h")
     endif()
-endif ()
+endif()
 
 ## Include test execution for test-targets for target Debug
 if (${CMAKE_BUILD_TYPE} MATCHES "Debug")
     include(CTest)
-endif ()
+endif()
 
 
 ###
@@ -268,7 +268,7 @@ if (WIN32) # ... with Windows libraries
     target_link_libraries(${STLINK_LIB_SHARED} ${LIBUSB_LIBRARY} ${SSP_LIB} wsock32 ws2_32)
 else ()
     target_link_libraries(${STLINK_LIB_SHARED} ${LIBUSB_LIBRARY} ${SSP_LIB})
-endif ()
+endif()
 
 install(TARGETS ${STLINK_LIB_SHARED}
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
@@ -282,7 +282,7 @@ file(COPY ${LIBUSB_WIN_OUTPUT_FOLDER}/MinGW64/dll/libusb-1.0.dll
      DESTINATION ${CMAKE_INSTALL_BINDIR})
 file(COPY ${LIBUSB_WIN_OUTPUT_FOLDER}/MinGW64/dll/libusb-1.0.dll
      DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR})
-endif ()
+endif()
 
 
 ###
@@ -314,7 +314,7 @@ if (WIN32) # ... with Windows libraries
     target_link_libraries(${STLINK_LIB_STATIC} ${LIBUSB_LIBRARY} ${SSP_LIB} wsock32 ws2_32)
 else ()
     target_link_libraries(${STLINK_LIB_STATIC} ${LIBUSB_LIBRARY} ${SSP_LIB})
-endif ()
+endif()
 
 install(TARGETS ${STLINK_LIB_STATIC} ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
@@ -333,7 +333,7 @@ if (MSVC)
     include_directories(src/win32/getopt)
     set(ST-UTIL_SOURCES "${ST-UTIL_SOURCES};src/win32/getopt/getopt.c")
     set(ST-TRACE_SOURCES "${ST-TRACE_SOURCES};src/win32/getopt/getopt.c")
-endif ()
+endif()
 
 add_executable(st-flash ${ST-FLASH_SOURCES})
 add_executable(st-info ${ST-INFO_SOURCES})
@@ -350,7 +350,7 @@ else ()
     target_link_libraries(st-info ${STLINK_LIB_SHARED} ${SSP_LIB})
     target_link_libraries(st-util ${STLINK_LIB_SHARED} ${SSP_LIB})
     target_link_libraries(st-trace ${STLINK_LIB_SHARED} ${SSP_LIB})
-endif ()
+endif()
 
 install(TARGETS st-flash DESTINATION ${CMAKE_INSTALL_BINDIR})
 install(TARGETS st-info DESTINATION ${CMAKE_INSTALL_BINDIR})
@@ -371,7 +371,7 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     set(STLINK_UDEV_RULES_DIR "/lib/udev/rules.d" CACHE PATH "udev rules directory")
     file(GLOB RULES_FILES ${CMAKE_SOURCE_DIR}/config/udev/rules.d/*.rules)
     install(FILES ${RULES_FILES} DESTINATION ${STLINK_UDEV_RULES_DIR})
-endif ()
+endif()
 
 
 ###
@@ -410,4 +410,4 @@ if (NOT TARGET uninstall)
         uninstall COMMAND ${CMAKE_COMMAND}
         -P ${CMAKE_CURRENT_BINARY_DIR}/cmake/cmake_uninstall.cmake
         )
-endif ()
+endif()

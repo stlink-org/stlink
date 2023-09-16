@@ -16,6 +16,7 @@
 #include "common_flash.h"
 #include "helper.h"
 #include "logging.h"
+#include "read_write.h"
 #include "register.h"
 
 #define FLASH_REGS_BANK2_OFS      0x40
@@ -177,7 +178,7 @@ int32_t stlink_flash_loader_init(stlink_t *sl, flash_loader_t *fl) {
     // allocate the loader in SRAM
     if (stlink_flash_loader_write_to_sram(sl, &fl->loader_addr, &size) == -1) {
         WLOG("Failed to write flash loader to sram!\n");
-        return(-1);
+        return (-1);
     }
 
     // allocate a one page buffer in SRAM right after loader
@@ -205,7 +206,7 @@ int32_t stlink_flash_loader_init(stlink_t *sl, flash_loader_t *fl) {
         stlink_write_debug32(sl, STLINK_REG_HFSR, hfsr);
     }
 
-    return(0);
+    return (0);
 }
 
 static int32_t loader_v_dependent_assignment(stlink_t *sl,
@@ -235,7 +236,7 @@ static int32_t loader_v_dependent_assignment(stlink_t *sl,
         }
     }
 
-    return(retval);
+    return (retval);
 }
 
 int32_t stlink_flash_loader_write_to_sram(stlink_t *sl, stm32_addr_t* addr, uint32_t* size) {
@@ -285,7 +286,7 @@ int32_t stlink_flash_loader_write_to_sram(stlink_t *sl, stm32_addr_t* addr, uint
                                                loader_code_stm32f4, sizeof(loader_code_stm32f4),
                                                loader_code_stm32f4_lv, sizeof(loader_code_stm32f4_lv));
 
-        if (retval == -1) { return(retval); }
+        if (retval == -1) { return (retval); }
     } else if (sl->core_id == STM32_CORE_ID_M7F_SWD ||
                sl->chip_id == STM32_CHIPID_F7 ||
                sl->chip_id == STM32_CHIPID_F76xxx ||
@@ -296,7 +297,7 @@ int32_t stlink_flash_loader_write_to_sram(stlink_t *sl, stm32_addr_t* addr, uint
                                                loader_code_stm32f7, sizeof(loader_code_stm32f7),
                                                loader_code_stm32f7_lv, sizeof(loader_code_stm32f7_lv));
 
-        if (retval == -1) { return(retval); }
+        if (retval == -1) { return (retval); }
     } else if (sl->chip_id == STM32_CHIPID_F0 ||
                sl->chip_id == STM32_CHIPID_F04 ||
                sl->chip_id == STM32_CHIPID_F0_CAN ||
@@ -315,18 +316,18 @@ int32_t stlink_flash_loader_write_to_sram(stlink_t *sl, stm32_addr_t* addr, uint
     } else {
         ELOG("unknown coreid, not sure what flash loader to use, aborting! coreid: %x, chipid: %x\n",
             sl->core_id, sl->chip_id);
-        return(-1);
+        return (-1);
     }
 
     memcpy(sl->q_buf, loader_code, loader_size);
     int32_t ret = stlink_write_mem32(sl, sl->sram_base, (uint16_t)loader_size);
 
-    if (ret) { return(ret); }
+    if (ret) { return (ret); }
 
     *addr = sl->sram_base;
     *size = loader_size;
 
-    return(0); // success
+    return (0); // success
 }
 
 int32_t stlink_flash_loader_run(stlink_t *sl, flash_loader_t* fl, stm32_addr_t target, const uint8_t* buf, uint32_t size) {
@@ -339,7 +340,7 @@ int32_t stlink_flash_loader_run(stlink_t *sl, flash_loader_t* fl, stm32_addr_t t
 
     if (write_buffer_to_sram(sl, fl, buf, size) == -1) {
         ELOG("write_buffer_to_sram() == -1\n");
-        return(-1);
+        return (-1);
     }
 
     if ((sl->flash_type == STM32_FLASH_TYPE_F1_XL) && (target >= FLASH_BANK2_START_ADDR)) {
@@ -404,7 +405,7 @@ int32_t stlink_flash_loader_run(stlink_t *sl, flash_loader_t* fl, stm32_addr_t t
       goto error;
   }
 
-  return(0);
+  return (0);
 
   error:
       dhcsr = dfsr = cfsr = hfsr = 0;
@@ -419,7 +420,7 @@ int32_t stlink_flash_loader_run(stlink_t *sl, flash_loader_t* fl, stm32_addr_t t
           WLOG("MCU state: DHCSR 0x%X DFSR 0x%X CFSR 0x%X HFSR 0x%X\n", dhcsr, dfsr, cfsr, hfsr);
       }
 
-  return(-1);
+  return (-1);
 }
 
 
@@ -867,8 +868,7 @@ int32_t stlink_flashloader_stop(stlink_t *sl, flash_loader_t *fl) {
       (sl->flash_type == STM32_FLASH_TYPE_WB_WL)) {
 
     clear_flash_cr_pg(sl, BANK_1);
-    if ((sl->flash_type == STM32_FLASH_TYPE_H7 &&
-        sl->chip_flags & CHIP_F_HAS_DUAL_BANK) ||
+    if ((sl->flash_type == STM32_FLASH_TYPE_H7 && sl->chip_flags & CHIP_F_HAS_DUAL_BANK) ||
         sl->flash_type == STM32_FLASH_TYPE_F1_XL) {
       clear_flash_cr_pg(sl, BANK_2);
     }
@@ -885,9 +885,8 @@ int32_t stlink_flashloader_stop(stlink_t *sl, flash_loader_t *fl) {
 
   // enable interrupt
   if (!stlink_read_debug32(sl, STLINK_REG_DHCSR, &dhcsr)) {
-    stlink_write_debug32(sl, STLINK_REG_DHCSR,
-                         STLINK_REG_DHCSR_DBGKEY | STLINK_REG_DHCSR_C_DEBUGEN |
-                             (dhcsr & (~STLINK_REG_DHCSR_C_MASKINTS)));
+    stlink_write_debug32(sl, STLINK_REG_DHCSR, STLINK_REG_DHCSR_DBGKEY | STLINK_REG_DHCSR_C_DEBUGEN |
+                                               (dhcsr & (~STLINK_REG_DHCSR_C_MASKINTS)));
   }
 
   // restore DMA state

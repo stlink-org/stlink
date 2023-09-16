@@ -18,6 +18,7 @@
 #include "logging.h"
 #include "map_file.h"
 #include "md5.h"
+#include "read_write.h"
 
 #define DEBUG_FLASH 0
 
@@ -307,6 +308,9 @@ int32_t check_flash_error(stlink_t *sl) {
   case STM32_FLASH_TYPE_G0:
   case STM32_FLASH_TYPE_G4:
     res = read_flash_sr(sl, BANK_1) & FLASH_Gx_SR_ERROR_MASK;
+    if (sl->chip_flags & CHIP_F_HAS_DUAL_BANK) {
+      res |= read_flash_sr(sl, BANK_2) & FLASH_Gx_SR_ERROR_MASK;
+    }
     WRPERR = (1 << FLASH_Gx_SR_WRPERR);
     PROGERR = (1 << FLASH_Gx_SR_PROGERR);
     PGAERR = (1 << FLASH_Gx_SR_PGAERR);
@@ -1013,10 +1017,8 @@ int32_t stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr) {
 
     if ((val & (1 << 0)) || (val & (1 << 1))) {
       // disable pecr protection
-      stlink_write_debug32(sl, flash_regs_base + FLASH_PEKEYR_OFF,
-                           FLASH_L0_PEKEY1);
-      stlink_write_debug32(sl, flash_regs_base + FLASH_PEKEYR_OFF,
-                           FLASH_L0_PEKEY2);
+      stlink_write_debug32(sl, flash_regs_base + FLASH_PEKEYR_OFF, FLASH_L0_PEKEY1);
+      stlink_write_debug32(sl, flash_regs_base + FLASH_PEKEYR_OFF, FLASH_L0_PEKEY2);
 
       // check pecr.pelock is cleared
       stlink_read_debug32(sl, flash_regs_base + FLASH_PECR_OFF, &val);
@@ -1118,8 +1120,7 @@ int32_t stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr) {
     clear_flash_cr_pg(sl, bank);         // clear the pg bit
     set_flash_cr_per(sl, bank);          // set the page erase bit
     write_flash_ar(sl, flashaddr, bank); // select the page to erase
-    set_flash_cr_strt(sl,
-                      bank); // start erase operation, reset by hw with busy bit
+    set_flash_cr_strt(sl, bank); // start erase operation, reset by hw with busy bit
     wait_flash_busy(sl);
     clear_flash_cr_per(sl, bank); // clear the page erase bit
     lock_flash(sl);
@@ -1180,7 +1181,7 @@ int32_t stlink_erase_flash_section(stlink_t *sl, stm32_addr_t base_addr, uint32_
 int32_t stlink_erase_flash_mass(stlink_t *sl) {
   int32_t err = 0;
 
-  // TODO: User MER bit to mass-erase WB series.
+  // TODO: Use MER bit to mass-erase WB series.
   if (sl->flash_type == STM32_FLASH_TYPE_L0_L1 ||
       sl->flash_type == STM32_FLASH_TYPE_WB_WL) {
 
@@ -1193,15 +1194,14 @@ int32_t stlink_erase_flash_mass(stlink_t *sl) {
 
     if (sl->flash_type == STM32_FLASH_TYPE_H7 && sl->chip_id != STM32_CHIPID_H7Ax) {
       // set parallelism
-      write_flash_cr_psiz(sl, 3 /*64it*/, BANK_1);
+      write_flash_cr_psiz(sl, 3 /*64bit*/, BANK_1);
       if (sl->chip_flags & CHIP_F_HAS_DUAL_BANK) {
         write_flash_cr_psiz(sl, 3 /*64bit*/, BANK_2);
       }
     }
 
     set_flash_cr_mer(sl, 1, BANK_1); // set the mass erase bit
-    set_flash_cr_strt(
-        sl, BANK_1); // start erase operation, reset by hw with busy bit
+    set_flash_cr_strt(sl, BANK_1); // start erase operation, reset by hw with busy bit
 
     if (sl->flash_type == STM32_FLASH_TYPE_F1_XL ||
         (sl->flash_type == STM32_FLASH_TYPE_H7 && sl->chip_flags & CHIP_F_HAS_DUAL_BANK)) {
@@ -1246,8 +1246,7 @@ int32_t stlink_mwrite_flash(stlink_t *sl, uint8_t *data, uint32_t length, stm32_
     num_empty -= (num_empty & 3); // Round down to words
 
     if (num_empty != 0) {
-      ILOG("Ignoring %d bytes of 0x%02x at end of file\n", num_empty,
-           erased_pattern);
+      ILOG("Ignoring %d bytes of 0x%02x at end of file\n", num_empty, erased_pattern);
     }
   } else {
     num_empty = 0;
@@ -1300,8 +1299,7 @@ int32_t stlink_fwrite_flash(stlink_t *sl, const char *path, stm32_addr_t addr) {
     num_empty -= (num_empty & 3); // round down to words
 
     if (num_empty != 0) {
-      ILOG("Ignoring %d bytes of 0x%02x at end of file\n", num_empty,
-           erased_pattern);
+      ILOG("Ignoring %d bytes of 0x%02x at end of file\n", num_empty, erased_pattern);
     }
   } else {
     num_empty = 0;

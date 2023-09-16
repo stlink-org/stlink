@@ -42,19 +42,19 @@ int32_t gdb_send_packet(int32_t fd, char* data) {
     while (1) {
         if (write(fd, packet, length) != length) {
             free(packet);
-            return(-2);
+            return (-2);
         }
 
         char ack;
 
         if (read(fd, &ack, 1) != 1) {
             free(packet);
-            return(-2);
+            return (-2);
         }
 
         if (ack == '+') {
             free(packet);
-            return(0);
+            return (0);
         }
     }
 }
@@ -69,7 +69,7 @@ int32_t gdb_recv_packet(int32_t fd, char** buffer) {
     uint32_t state;
 
     if (packet_buffer == NULL) {
-        return(-2);
+        return (-2);
     }
 
 start:
@@ -88,7 +88,7 @@ start:
     while (state != 4) {
         if (read(fd, &c, 1) != 1) {
             free(packet_buffer);
-            return(-2);
+            return (-2);
         }
 
         switch (state) {
@@ -117,7 +117,7 @@ start:
                         packet_buffer = p;
                     } else {
                         free(packet_buffer);
-                        return(-2);
+                        return (-2);
                     }
                 }
             }
@@ -143,7 +143,7 @@ start:
 
         if (write(fd, &nack, 1) != 1) {
             free(packet_buffer);
-            return(-2);
+            return (-2);
         }
 
         goto start;
@@ -152,14 +152,14 @@ start:
 
         if (write(fd, &ack, 1) != 1) {
             free(packet_buffer);
-            return(-2);
+            return (-2);
         }
     }
 
     packet_buffer[packet_idx] = 0;
     *buffer = packet_buffer;
 
-    return(packet_idx);
+    return (packet_idx);
 }
 
 /*
@@ -176,13 +176,13 @@ int32_t gdb_check_for_interrupt(int32_t fd) {
         char c;
 
         if (read(fd, &c, 1) != 1) {
-            return(-2);
+            return (-2);
         }
 
         if (c == '\x03') {
-            return(1); // ^C
+            return (1); // ^C
         }
     }
 
-    return(0);
+    return (0);
 }

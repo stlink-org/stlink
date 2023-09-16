@@ -37,6 +37,7 @@ Updates & changes:
 - [refactoring] General maintenance for code structure ([#903](https://github.com/stlink-org/stlink/pull/903), [#1090](https://github.com/stlink-org/stlink/pull/1090), [#1199](https://github.com/stlink-org/stlink/pull/1199), [#1212](https://github.com/stlink-org/stlink/pull/1212), [#1216](https://github.com/stlink-org/stlink/pull/1216), [#1228](https://github.com/stlink-org/stlink/pull/1228))
 - Added instructions for bug-reports and feature-requests to contribution guidelines ([#906](https://github.com/stlink-org/stlink/pull/906))
 - Added travis CI configuration for macOS 10.14 to maintain capability for 32-bit compilation (commit [#f5ada94](https://github.com/stlink-org/stlink/commit/f5ada9474cdb87ff37de0d4eb9e75622b5870646))
+- [refactoring] Clean code with unified variable type ([#909](https://github.com/stlink-org/stlink/pull/909), commit [#5e85fd0](https://github.com/stlink-org/stlink/commit/5e85fd063908f89499180c28fe5e9ba74868b272))
 - Updated description of chip id 0x0457 to L01x/L02x ([#1143](https://github.com/stlink-org/stlink/pull/1143), [#1144](https://github.com/stlink-org/stlink/pull/1144))
 - [doc] Human-readable flash_type in chip-id files ([#1155](https://github.com/stlink-org/stlink/pull/1155), commit [#1745bf5](https://github.com/stlink-org/stlink/commit/1745bf5193c4d3186d4f6fde59cc86e9bad6e61b))
 - Dropped execute bits from source code files ([#1167](https://github.com/stlink-org/stlink/pull/1167))
@@ -51,9 +52,13 @@ Updates & changes:
 - [doc] Linux Install from code Documentation improvement ([#1263](https://github.com/stlink-org/stlink/pull/1263), commit [#43498de](https://github.com/stlink-org/stlink/commit/43498dedf651260ef34197e512d35e3ad7142401))
 - End of support for macOS ([#1269](https://github.com/stlink-org/stlink/pull/1269), [#1296](https://github.com/stlink-org/stlink/pull/1296), commit [#61ff09e](https://github.com/stlink-org/stlink/commit/61ff09e5274d46a46ae58bc4ffe44fe90a887ea6))
 - [doc] Added device ID for GD32F303VET6 ([#1288](https://github.com/stlink-org/stlink/pull/1288))
+- [doc] Fixed broken links ([#1312](https://github.com/stlink-org/stlink/pull/1312))
+- [doc] Updated package source link for Arch Linux ([#1318](https://github.com/stlink-org/stlink/pull/1318))
+- CMake: Avoid hard-wired /usr/local/share ([#1325](https://github.com/stlink-org/stlink/pull/1325))
 
 Fixes:
 
+- Fixed some flashing issues on STM32L0 ([#681](https://github.com/stlink-org/stlink/pull/681), [#1203](https://github.com/stlink-org/stlink/pull/1203), [#1225](https://github.com/stlink-org/stlink/pull/1225), [#1253](https://github.com/stlink-org/stlink/pull/1253), [#1289](https://github.com/stlink-org/stlink/pull/1289), [#1330](https://github.com/stlink-org/stlink/pull/1330))
 - cmake: Install shared libraries in proper directories ([#1098](https://github.com/stlink-org/stlink/pull/1098), [#1138](https://github.com/stlink-org/stlink/pull/1138), [#1154](https://github.com/stlink-org/stlink/pull/1154))
 - cmake: Install shared libraries in proper directories ([#1142](https://github.com/stlink-org/stlink/pull/1142))
 - Fixed clearance of the H7 dual bank flag ([#1146](https://github.com/stlink-org/stlink/pull/1146), [#1147](https://github.com/stlink-org/stlink/pull/1147))
@@ -84,9 +89,11 @@ Fixes:
 - Fixed st-trace reconnect on Windows ([#1272](https://github.com/stlink-org/stlink/pull/1272), [#1292](https://github.com/stlink-org/stlink/pull/1292))
 - [compilation] Corrected path to stlink/chips subdirectory ([#1276](https://github.com/stlink-org/stlink/pull/1276), [#1279](https://github.com/stlink-org/stlink/pull/1279))
 - [compilation] Fixed GUI compilation failure on OpenBSD i386 ([#1284](https://github.com/stlink-org/stlink/pull/1284))
+- [STM32U5x5]: Last bytes are not written (flashed) when len(<binary>)%16 <= 8 ([#1303](https://github.com/stlink-org/stlink/pull/1303), [#1315](https://github.com/stlink-org/stlink/pull/1315))
 - Fixed unbounded write and check return values of sscanf ([#1306](https://github.com/stlink-org/stlink/pull/1306))
 - Added null check for return value of stlink_chipid_get_params() ([#1307](https://github.com/stlink-org/stlink/pull/1307))
 - Fixed warning in a few *.cmake files ([#1309](https://github.com/stlink-org/stlink/pull/1309))
+- Notification "unknown option -- u" in tool st-util ([#1326](https://github.com/stlink-org/stlink/pull/1326), [#1327](https://github.com/stlink-org/stlink/pull/1327))
 
 # v1.7.0
 
@@ -98,7 +105,7 @@ Features:
 
 - Extended set of cmd line arguments for st-info and st-util ([#332](https://github.com/stlink-org/stlink/pull/332), [#990](https://github.com/stlink-org/stlink/pull/990), [#1091](https://github.com/stlink-org/stlink/pull/1091), [#1114](https://github.com/stlink-org/stlink/pull/1114))
 - Extended support for STM32H7 & rework of software reset ([#532](https://github.com/stlink-org/stlink/pull/532), [#801](https://github.com/stlink-org/stlink/pull/801), [#868](https://github.com/stlink-org/stlink/pull/868), [#1008](https://github.com/stlink-org/stlink/pull/1008), [#1059](https://github.com/stlink-org/stlink/pull/1059), [#1063](https://github.com/stlink-org/stlink/pull/1063), [#1071](https://github.com/stlink-org/stlink/pull/1071))
-- Added support for STM32H742/743/753 ([#671](https://github.com/stlink-org/stlink/pull/671), [#793](https://github.com/stlink-org/stlink/pull/793), [#823](https://github.com/stlink-org/stlink/pull/823), [#998](https://github.com/stlink-org/stlink/pull/998), [#1052](https://github.com/stlink-org/stlink/pull/1052), [#1184](https://github.com/stlink-org/stlink/pull/1184))
+- Added support for STM32H742/743/753 ([#671](https://github.com/stlink-org/stlink/pull/671), [#793](https://github.com/stlink-org/stlink/pull/793), [#823](https://github.com/stlink-org/stlink/pull/823), [#998](https://github.com/stlink-org/stlink/pull/998), [#1052](https://github.com/stlink-org/stlink/pull/1052), [#1184](https://github.com/stlink-org/stlink/pull/1184), [#1324](https://github.com/stlink-org/stlink/pull/1324))
 - Official support for STLINK-V3 programmers (commit [#5e0a502](https://github.com/stlink-org/stlink/commit/5e0a502df812495bfa96fa9116a19f1306152b17), [#820](https://github.com/stlink-org/stlink/pull/820), [#1022](https://github.com/stlink-org/stlink/pull/1022), [#1025](https://github.com/stlink-org/stlink/pull/1025))
 - Added preliminary support for STM32L5x2 ([#904](https://github.com/stlink-org/stlink/pull/904), [#999](https://github.com/stlink-org/stlink/pull/999))
 - Option bytes on the STM32F767 ZIT6 Nucleo-144 ([#968](https://github.com/stlink-org/stlink/pull/968), [#997](https://github.com/stlink-org/stlink/pull/997))

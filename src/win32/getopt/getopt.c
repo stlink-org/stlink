@@ -118,11 +118,11 @@ int32_t getopt(int32_t argc, char* const argv[], const char* optstring) {
 
     if (optcursor == NULL || *++optcursor == '\0') { ++optind; }
 
-    return(optchar);
+    return (optchar);
 
 no_more_optchars:
     optcursor = NULL;
-    return(-1);
+    return (-1);
 }
 
 /* Implementation based on http://www.kernel.org/doc/man-pages/online/pages/man3/getopt.3.html */
@@ -141,10 +141,10 @@ int32_t getopt_long(int32_t argc,
     optarg = NULL;
     optopt = 0;
 
-    if (optind >= argc) { return(-1); }
+    if (optind >= argc) { return (-1); }
 
     if (strlen(argv[optind]) < 3 || strncmp(argv[optind], "--", 2) != 0) {
-        return(getopt(argc, argv, optstring));
+        return (getopt(argc, argv, optstring));
     }
 
     // it's an option; starts with -- and is longer than two chars
@@ -198,5 +198,5 @@ int32_t getopt_long(int32_t argc,
     }
 
     ++optind;
-    return(retval);
+    return (retval);
 }

@@ -19,7 +19,7 @@
 static bool starts_with(const char * str, const char * prefix) {
     uint32_t n = strlen(prefix);
 
-    if (strlen(str) < n) { return(false); }
+    if (strlen(str) < n) { return (false); }
 
     return (0 == strncmp(str, prefix, n));
 }
@@ -49,11 +49,11 @@ static int32_t get_long_integer_from_char_array (const char *const str, uint64_t
     } else if (tail[0] == '\0') {
         /* value not changed */
     } else {
-        return(-1);
+        return (-1);
     }
 
     *read_value = value;
-    return(0);
+    return (0);
 }
 
 // support positive integer from 0 to UINT32_MAX
@@ -65,24 +65,24 @@ static int32_t get_integer_from_char_array (const char *const str, uint32_t *rea
     int32_t result = get_long_integer_from_char_array (str, &value);
 
     if (result != 0) {
-        return(result);
+        return (result);
     } else if (value > UINT32_MAX) {
         fprintf (stderr, "*** Error: Integer greater than UINT32_MAX, cannot convert to int32_t\n");
-        return(-1);
+        return (-1);
     } else {
         *read_value = value;
-        return(0);
+        return (0);
     }
 }
 
 static int32_t invalid_args(const char *expected) {
     fprintf(stderr, "*** Error: Expected args for this command: %s\n", expected);
-    return(-1);
+    return (-1);
 }
 
 static int32_t bad_arg(const char *arg) {
     fprintf(stderr, "*** Error: Invalid value for %s\n", arg);
-    return(-1);
+    return (-1);
 }
 
 int32_t flash_get_opts(struct flash_opts* o, int32_t ac, char** av) {
@@ -111,7 +111,7 @@ int32_t flash_get_opts(struct flash_opts* o, int32_t ac, char** av) {
                 ac--;
                 av++;
 
-                if (ac < 1) { return(-1); }
+                if (ac < 1) { return (-1); }
 
                 serial = av[0];
             } else {
@@ -127,7 +127,7 @@ int32_t flash_get_opts(struct flash_opts* o, int32_t ac, char** av) {
                 ac--;
                 av++;
 
-                if (ac < 1) { return(-1); }
+                if (ac < 1) { return (-1); }
 
                 area = av[0];
             } else {
@@ -149,7 +149,7 @@ int32_t flash_get_opts(struct flash_opts* o, int32_t ac, char** av) {
             } else if (strcmp(area, "optcr1") == 0) {
                 o->area = FLASH_OPTCR1;
             } else {
-                return(-1);
+                return (-1);
             }
 
         } else if (strcmp(av[0], "--freq") == 0) {
@@ -157,17 +157,17 @@ int32_t flash_get_opts(struct flash_opts* o, int32_t ac, char** av) {
             av++;
 
             if (ac < 1) {
-                return(-1);
+                return (-1);
             }
 
             o->freq = arg_parse_freq(av[0]);
             if (o->freq < 0) {
-                return(-1);
+                return (-1);
             }
         } else if (starts_with(av[0], "--freq=")) {
             o->freq = arg_parse_freq(av[0] + strlen("--freq="));
             if (o->freq < 0) {
-                return(-1);
+                return (-1);
             }
         } else if (strcmp(av[0], "--format") == 0 || starts_with(av[0], "--format=")) {
             const char * format;
@@ -176,7 +176,7 @@ int32_t flash_get_opts(struct flash_opts* o, int32_t ac, char** av) {
                 ac--;
                 av++;
 
-                if (ac < 1) { return(-1); }
+                if (ac < 1) { return (-1); }
 
                 format = av[0];
             } else {
@@ -188,7 +188,7 @@ int32_t flash_get_opts(struct flash_opts* o, int32_t ac, char** av) {
             } else if (strcmp(format, "ihex") == 0) {
                 o->format = FLASH_FORMAT_IHEX;
             } else {
-                return(bad_arg("format"));
+                return (bad_arg("format"));
             }
         } else if ( starts_with(av[0], "--flash=")) {
             const char *arg = av[0] + strlen("--flash=");
@@ -197,7 +197,7 @@ int32_t flash_get_opts(struct flash_opts* o, int32_t ac, char** av) {
             result = get_integer_from_char_array(arg, &flash_size);
 
             if (result != 0) {
-                return(bad_arg ("--flash"));
+                return (bad_arg ("--flash"));
             } else {
                 o->flash_size = (size_t)flash_size;
             }
@@ -217,18 +217,18 @@ int32_t flash_get_opts(struct flash_opts* o, int32_t ac, char** av) {
     // command and (optional) device name
     while (ac >= 1) {
         if (strcmp(av[0], "erase") == 0) {
-            if (o->cmd != FLASH_CMD_NONE) { return(-1); }
+            if (o->cmd != FLASH_CMD_NONE) { return (-1); }
             o->cmd = FLASH_CMD_ERASE;
         } else if (strcmp(av[0], "read") == 0) {
-            if (o->cmd != FLASH_CMD_NONE) { return(-1); }
+            if (o->cmd != FLASH_CMD_NONE) { return (-1); }
 
             o->cmd = FLASH_CMD_READ;
         } else if (strcmp(av[0], "write") == 0) {
-            if (o->cmd != FLASH_CMD_NONE) { return(-1); }
+            if (o->cmd != FLASH_CMD_NONE) { return (-1); }
 
             o->cmd = FLASH_CMD_WRITE;
         } else if (strcmp(av[0], "reset") == 0) {
-            if (o->cmd != FLASH_CMD_NONE) { return(-1); }
+            if (o->cmd != FLASH_CMD_NONE) { return (-1); }
 
             o->cmd = CMD_RESET;
         } else {
@@ -241,10 +241,10 @@ int32_t flash_get_opts(struct flash_opts* o, int32_t ac, char** av) {
 
     switch (o->cmd) {
     case FLASH_CMD_NONE:     // no command found
-        return(-1);
+        return (-1);
 
     case FLASH_CMD_ERASE:    // no more arguments expected
-        if (ac != 0 && ac != 2) { return(-1); }
+        if (ac != 0 && ac != 2) { return (-1); }
         if (ac == 2) {
             uint32_t address;
             result = get_integer_from_char_array(av[0], &address);
@@ -336,7 +336,7 @@ int32_t flash_get_opts(struct flash_opts* o, int32_t ac, char** av) {
             result = get_integer_from_char_array(av[0], &val);
 
             if (result != 0) {
-                return(bad_arg ("val"));
+                return (bad_arg ("val"));
             } else {
                 o->val = val;
             }
@@ -369,16 +369,16 @@ int32_t flash_get_opts(struct flash_opts* o, int32_t ac, char** av) {
             result = get_integer_from_char_array(av[1], &addr);
 
             if (result != 0) {
-                return(bad_arg ("addr"));
+                return (bad_arg ("addr"));
             } else {
                 o->addr = (stm32_addr_t)addr;
             }
         } else if (o->format == FLASH_FORMAT_IHEX) { // expect filename
-            if (ac != 1) { return(invalid_args("write <path>")); }
+            if (ac != 1) { return (invalid_args("write <path>")); }
 
             o->filename = av[0];
         } else {
-            return(-1); // should have been caught during format parsing
+            return (-1); // should have been caught during format parsing
         }
 
         break;
@@ -386,5 +386,5 @@ int32_t flash_get_opts(struct flash_opts* o, int32_t ac, char** av) {
     default: break;
     }
 
-    return(0);
+    return (0);
 }

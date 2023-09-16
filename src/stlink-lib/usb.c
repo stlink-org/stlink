@@ -27,10 +27,11 @@
 
 #include "commands.h"
 #include "logging.h"
+#include "read_write.h"
 #include "register.h"
 
 static inline uint32_t le_to_h_u32(const uint8_t* buf) {
-    return((uint32_t)((uint32_t)buf[0] | (uint32_t)buf[1] << 8 | (uint32_t)buf[2] << 16 | (uint32_t)buf[3] << 24));
+    return ((uint32_t)((uint32_t)buf[0] | (uint32_t)buf[1] << 8 | (uint32_t)buf[2] << 16 | (uint32_t)buf[3] << 24));
 }
 
 static int32_t _stlink_match_speed_map(const uint32_t *map, uint32_t map_size, uint32_t khz) {
@@ -73,7 +74,7 @@ static int32_t _stlink_match_speed_map(const uint32_t *map, uint32_t map_size, u
         ILOG("Unable to match requested speed %d kHz, using %d kHz\n", khz, map[speed_index]);
     }
 
-    return(speed_index);
+    return (speed_index);
 }
 
 void _stlink_usb_close(stlink_t* sl) {
@@ -101,7 +102,7 @@ ssize_t send_recv(struct stlink_libusb* handle, int32_t terminate, unsigned char
 
         if (t) {
             ELOG("%s send request failed: %s\n", cmd, libusb_error_name(t));
-            return(-1);
+            return (-1);
         } else if ((size_t)res != txsize) {
             ELOG("%s send request wrote %u bytes, instead of %u\n", cmd, (uint32_t)res, (uint32_t)txsize);
         }
@@ -111,7 +112,7 @@ ssize_t send_recv(struct stlink_libusb* handle, int32_t terminate, unsigned char
 
             if (t) {
                 ELOG("%s read reply failed: %s\n", cmd, libusb_error_name(t));
-                return(-1);
+                return (-1);
             }
 
             /* Checking the command execution status stored in the first byte of the response */
@@ -139,7 +140,7 @@ ssize_t send_recv(struct stlink_libusb* handle, int32_t terminate, unsigned char
                 default: DLOG("%s error (0x%02X)\n", cmd, rxbuf[0]); break;
                 }
 
-                return(-1);
+                return (-1);
             }
 
             if (check_error == CMD_CHECK_REP_LEN && res != (int32_t)rxsize) {
@@ -155,20 +156,20 @@ ssize_t send_recv(struct stlink_libusb* handle, int32_t terminate, unsigned char
 
             if (t) {
                 ELOG("%s read storage failed: %s\n", cmd, libusb_error_name(t));
-                return(-1);
+                return (-1);
             }
 
             // The STLink doesn't seem to evaluate the sequence number.
             handle->sg_transfer_idx++;
         }
 
-        return(res);
+        return (res);
     }
 }
 
 static inline int32_t send_only(struct stlink_libusb* handle, int32_t terminate, unsigned char* txbuf,
                                 uint32_t txsize, const char *cmd) {
-    return((int32_t)send_recv(handle, terminate, txbuf, txsize, NULL, 0, CMD_CHECK_NO, cmd));
+    return ((int32_t)send_recv(handle, terminate, txbuf, txsize, NULL, 0, CMD_CHECK_NO, cmd));
 }
 
 
@@ -190,7 +191,7 @@ static int32_t fill_command(stlink_t * sl, enum SCSI_Generic_Direction dir, uint
         cmd[i++] = 0;   // logical unit
         cmd[i++] = 0xa; // command length
     }
-    return(i);
+    return (i);
 }
 
 int32_t _stlink_usb_version(stlink_t *sl) {
@@ -214,7 +215,7 @@ int32_t _stlink_usb_version(stlink_t *sl) {
 
     size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len, CMD_CHECK_REP_LEN, "GET_VERSION");
 
-    return(size < 0 ? -1 : 0);
+    return (size < 0 ? -1 : 0);
 }
 
 int32_t _stlink_usb_target_voltage(stlink_t *sl) {
@@ -232,14 +233,14 @@ int32_t _stlink_usb_target_voltage(stlink_t *sl) {
     size = send_recv(slu, 1, cmd, slu->cmd_len, rdata, rep_len, CMD_CHECK_REP_LEN, "GET_TARGET_VOLTAGE");
 
     if (size < 0) {
-        return(-1);
+        return (-1);
     }
 
     factor = (rdata[3] << 24) | (rdata[2] << 16) | (rdata[1] << 8) | (rdata[0] << 0);
     reading = (rdata[7] << 24) | (rdata[6] << 16) | (rdata[5] << 8) | (rdata[4] << 0);
     voltage = 2400 * reading / factor;
 
-    return(voltage);
+    return (voltage);
 }
 
 int32_t _stlink_usb_read_debug32(stlink_t *sl, uint32_t addr, uint32_t *data) {
@@ -256,12 +257,12 @@ int32_t _stlink_usb_read_debug32(stlink_t *sl, uint32_t addr, uint32_t *data) {
     size = send_recv(slu, 1, cmd, slu->cmd_len, rdata, rep_len, CMD_CHECK_RETRY, "READDEBUGREG");
 
     if (size < 0) {
-        return(-1);
+        return (-1);
     }
 
     *data = read_uint32(rdata, 4);
 
-    return(0);
+    return (0);
 }
 
 int32_t _stlink_usb_write_debug32(stlink_t *sl, uint32_t addr, uint32_t data) {
@@ -278,11 +279,11 @@ int32_t _stlink_usb_write_debug32(stlink_t *sl, uint32_t addr, uint32_t data) {
     write_uint32(&cmd[i + 4], data);
     size = send_recv(slu, 1, cmd, slu->cmd_len, rdata, rep_len, CMD_CHECK_RETRY, "WRITEDEBUGREG");
 
-    return(size < 0 ? -1 : 0);
+    return (size < 0 ? -1 : 0);
 }
 
 int32_t _stlink_usb_get_rw_status(stlink_t *sl) {
-    if (sl->version.jtag_api == STLINK_JTAG_API_V1) { return(0); }
+    if (sl->version.jtag_api == STLINK_JTAG_API_V1) { return (0); }
 
     unsigned char* const rdata = sl->q_buf;
     struct stlink_libusb * const slu = sl->backend_data;
@@ -301,7 +302,7 @@ int32_t _stlink_usb_get_rw_status(stlink_t *sl) {
         ret = send_recv(slu, 1, cmd, slu->cmd_len, rdata, 2, CMD_CHECK_STATUS, "GETLASTRWSTATUS");
     }
 
-    return(ret < 0 ? -1 : 0);
+    return (ret < 0 ? -1 : 0);
 }
 
 int32_t _stlink_usb_write_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
@@ -317,13 +318,13 @@ int32_t _stlink_usb_write_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
     write_uint16(&cmd[i + 4], len);
     ret = send_only(slu, 0, cmd, slu->cmd_len, "WRITEMEM_32BIT");
 
-    if (ret == -1) { return(ret); }
+    if (ret == -1) { return (ret); }
 
     ret = send_only(slu, 1, data, len, "WRITEMEM_32BIT");
 
-    if (ret == -1) { return(ret); }
+    if (ret == -1) { return (ret); }
 
-    return(_stlink_usb_get_rw_status(sl));
+    return (_stlink_usb_get_rw_status(sl));
 }
 
 int32_t _stlink_usb_write_mem8(stlink_t *sl, uint32_t addr, uint16_t len) {
@@ -345,13 +346,13 @@ int32_t _stlink_usb_write_mem8(stlink_t *sl, uint32_t addr, uint16_t len) {
     write_uint16(&cmd[i + 4], len);
     ret = send_only(slu, 0, cmd, slu->cmd_len, "WRITEMEM_8BIT");
 
-    if (ret == -1) { return(ret); }
+    if (ret == -1) { return (ret); }
 
     ret = send_only(slu, 1, data, len, "WRITEMEM_8BIT");
 
-    if (ret == -1) { return(ret); }
+    if (ret == -1) { return (ret); }
 
-    return(0);
+    return (0);
 }
 
 int32_t _stlink_usb_current_mode(stlink_t * sl) {
@@ -366,10 +367,10 @@ int32_t _stlink_usb_current_mode(stlink_t * sl) {
     size = send_recv(slu, 1, cmd,  slu->cmd_len, data, rep_len, CMD_CHECK_NO, "GET_CURRENT_MODE");
 
     if (size < 0) {
-        return(-1);
+        return (-1);
     }
 
-    return(sl->q_buf[0]);
+    return (sl->q_buf[0]);
 }
 
 int32_t _stlink_usb_core_id(stlink_t * sl) {
@@ -393,12 +394,12 @@ int32_t _stlink_usb_core_id(stlink_t * sl) {
     size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len, CMD_CHECK_STATUS, "READ_IDCODES");
 
     if (size < 0) {
-        return(-1);
+        return (-1);
     }
 
     sl->core_id = read_uint32(data, offset);
 
-    return(0);
+    return (0);
 }
 
 int32_t _stlink_usb_status_v2(stlink_t *sl) {
@@ -420,11 +421,11 @@ int32_t _stlink_usb_status_v2(stlink_t *sl) {
         }
     }
 
-    return(result);
+    return (result);
 }
 
 int32_t _stlink_usb_status(stlink_t * sl) {
-    if (sl->version.jtag_api != STLINK_JTAG_API_V1) { return(_stlink_usb_status_v2(sl)); }
+    if (sl->version.jtag_api != STLINK_JTAG_API_V1) { return (_stlink_usb_status_v2(sl)); }
 
     struct stlink_libusb * const slu = sl->backend_data;
     unsigned char* const data = sl->q_buf;
@@ -449,7 +450,7 @@ int32_t _stlink_usb_status(stlink_t * sl) {
         sl->core_stat = TARGET_UNKNOWN;
     }
 
-    return(size < 0 ? -1 : 0);
+    return (size < 0 ? -1 : 0);
 }
 
 int32_t _stlink_usb_force_debug(stlink_t *sl) {
@@ -459,7 +460,7 @@ int32_t _stlink_usb_force_debug(stlink_t *sl) {
 
     if (sl->version.jtag_api != STLINK_JTAG_API_V1) {
         res = _stlink_usb_write_debug32(sl, STLINK_REG_DHCSR, STLINK_REG_DHCSR_DBGKEY | STLINK_REG_DHCSR_C_HALT | STLINK_REG_DHCSR_C_DEBUGEN);
-        return(res);
+        return (res);
     }
 
     unsigned char* const data = sl->q_buf;
@@ -472,7 +473,7 @@ int32_t _stlink_usb_force_debug(stlink_t *sl) {
     cmd[i++] = STLINK_DEBUG_FORCEDEBUG;
     size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len, CMD_CHECK_RETRY, "FORCEDEBUG");
 
-    return(size < 0 ? -1 : 0);
+    return (size < 0 ? -1 : 0);
 }
 
 int32_t _stlink_usb_enter_swd_mode(stlink_t * sl) {
@@ -489,7 +490,7 @@ int32_t _stlink_usb_enter_swd_mode(stlink_t * sl) {
     cmd[i++] = STLINK_DEBUG_ENTER_SWD;
     size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len, CMD_CHECK_RETRY, "ENTER_SWD");
 
-    return(size < 0 ? -1 : 0);
+    return (size < 0 ? -1 : 0);
 }
 
 int32_t _stlink_usb_exit_dfu_mode(stlink_t* sl) {
@@ -502,7 +503,7 @@ int32_t _stlink_usb_exit_dfu_mode(stlink_t* sl) {
     cmd[i++] = STLINK_DFU_EXIT;
     size = send_only(slu, 1, cmd, slu->cmd_len, "DFU_EXIT");
 
-    return(size < 0 ? -1 : 0);
+    return (size < 0 ? -1 : 0);
 }
 
 
@@ -525,7 +526,7 @@ int32_t _stlink_usb_reset(stlink_t * sl) {
 
     size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len, CMD_CHECK_RETRY, "RESETSYS");
 
-    return(size < 0 ? -1 : 0);
+    return (size < 0 ? -1 : 0);
 }
 
 int32_t _stlink_usb_jtag_reset(stlink_t * sl, int32_t value) {
@@ -541,7 +542,7 @@ int32_t _stlink_usb_jtag_reset(stlink_t * sl, int32_t value) {
     cmd[i++] = value;
     size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len, CMD_CHECK_RETRY, "DRIVE_NRST");
 
-    return(size < 0 ? -1 : 0);
+    return (size < 0 ? -1 : 0);
 }
 
 
@@ -568,7 +569,7 @@ int32_t _stlink_usb_step(stlink_t* sl) {
     cmd[i++] = STLINK_DEBUG_STEPCORE;
     size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len, CMD_CHECK_RETRY, "STEPCORE");
 
-    return(size < 0 ? -1 : 0);
+    return (size < 0 ? -1 : 0);
 }
 
 /**
@@ -584,7 +585,7 @@ int32_t _stlink_usb_run(stlink_t* sl, enum run_type type) {
     if (sl->version.jtag_api != STLINK_JTAG_API_V1) {
         res = _stlink_usb_write_debug32(sl, STLINK_REG_DHCSR, STLINK_REG_DHCSR_DBGKEY | STLINK_REG_DHCSR_C_DEBUGEN |
                     ((type==RUN_FLASH_LOADER)?STLINK_REG_DHCSR_C_MASKINTS:0));
-        return(res);
+        return (res);
     }
 
 
@@ -598,7 +599,7 @@ int32_t _stlink_usb_run(stlink_t* sl, enum run_type type) {
     cmd[i++] = STLINK_DEBUG_RUNCORE;
     size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len, CMD_CHECK_RETRY, "RUNCORE");
 
-    return(size < 0 ? -1 : 0);
+    return (size < 0 ? -1 : 0);
 }
 
 int32_t _stlink_usb_set_swdclk(stlink_t* sl, int32_t clk_freq) {
@@ -641,7 +642,7 @@ int32_t _stlink_usb_set_swdclk(stlink_t* sl, int32_t clk_freq) {
         cmd[i++] = (clk_divisor >> 8) & 0xFF;
         size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len, CMD_CHECK_RETRY, "SWD_SET_FREQ");
 
-        return(size < 0 ? -1 : 0);
+        return (size < 0 ? -1 : 0);
     } else if (sl->version.stlink_v == 3) {
         int32_t speed_index;
         uint32_t map[STLINK_V3_MAX_FREQ_NB];
@@ -653,7 +654,7 @@ int32_t _stlink_usb_set_swdclk(stlink_t* sl, int32_t clk_freq) {
         size = send_recv(slu, 1, cmd, slu->cmd_len, data, 52, CMD_CHECK_STATUS, "GET_COM_FREQ");
 
         if (size < 0) {
-            return(-1);
+            return (-1);
         }
 
         int32_t speeds_size = data[8];
@@ -682,12 +683,12 @@ int32_t _stlink_usb_set_swdclk(stlink_t* sl, int32_t clk_freq) {
 
         size = send_recv(slu, 1, cmd, slu->cmd_len, data, 8, CMD_CHECK_STATUS, "SET_COM_FREQ");
 
-        return(size < 0 ? -1 : 0);
+        return (size < 0 ? -1 : 0);
     } else if (clk_freq) {
         WLOG("ST-Link firmware does not support frequency setup\n");
     }
 
-    return(-1);
+    return (-1);
 }
 
 int32_t _stlink_usb_exit_debug_mode(stlink_t *sl) {
@@ -701,7 +702,7 @@ int32_t _stlink_usb_exit_debug_mode(stlink_t *sl) {
 
     size = send_only(slu, 1, cmd, slu->cmd_len, "DEBUG_EXIT");
 
-    return(size < 0 ? -1 : 0);
+    return (size < 0 ? -1 : 0);
 }
 
 int32_t _stlink_usb_read_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
@@ -718,13 +719,13 @@ int32_t _stlink_usb_read_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
     size = send_recv(slu, 1, cmd, slu->cmd_len, data, len, CMD_CHECK_NO, "READMEM_32BIT");
 
     if (size < 0) {
-        return(-1);
+        return (-1);
     }
 
     sl->q_len = (int32_t)size;
     stlink_print_data(sl);
 
-    return(0);
+    return (0);
 }
 
 int32_t _stlink_usb_read_all_regs(stlink_t *sl, struct stlink_reg *regp) {
@@ -746,7 +747,7 @@ int32_t _stlink_usb_read_all_regs(stlink_t *sl, struct stlink_reg *regp) {
     size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len, CMD_CHECK_STATUS, "READALLREGS");
 
     if (size < 0) {
-        return(-1);
+        return (-1);
     }
 
     /* V1: regs data from offset 0 */
@@ -763,7 +764,7 @@ int32_t _stlink_usb_read_all_regs(stlink_t *sl, struct stlink_reg *regp) {
     regp->rw         = read_uint32(sl->q_buf, reg_offset + 76);
     regp->rw2        = read_uint32(sl->q_buf, reg_offset + 80);
 
-    if (sl->verbose < 2) { return(0); }
+    if (sl->verbose < 2) { return (0); }
 
     DLOG("xpsr       = 0x%08x\n", regp->xpsr);
     DLOG("main_sp    = 0x%08x\n", regp->main_sp);
@@ -771,7 +772,7 @@ int32_t _stlink_usb_read_all_regs(stlink_t *sl, struct stlink_reg *regp) {
     DLOG("rw         = 0x%08x\n", regp->rw);
     DLOG("rw2        = 0x%08x\n", regp->rw2);
 
-    return(0);
+    return (0);
 }
 
 int32_t _stlink_usb_read_reg(stlink_t *sl, int32_t r_idx, struct stlink_reg *regp) {
@@ -796,7 +797,7 @@ int32_t _stlink_usb_read_reg(stlink_t *sl, int32_t r_idx, struct stlink_reg *reg
     size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len, CMD_CHECK_RETRY, "READREG");
 
     if (size < 0) {
-        return(-1);
+        return (-1);
     }
 
     sl->q_len = (int32_t)size;
@@ -824,7 +825,7 @@ int32_t _stlink_usb_read_reg(stlink_t *sl, int32_t r_idx, struct stlink_reg *reg
         regp->r[r_idx] = r;
     }
 
-    return(0);
+    return (0);
 }
 
 /* See section C1.6 of the ARMv7-M Architecture Reference Manual */
@@ -838,11 +839,11 @@ int32_t _stlink_usb_read_unsupported_reg(stlink_t *sl, int32_t r_idx, struct stl
 
     ret = _stlink_usb_write_mem32(sl, STLINK_REG_DCRSR, 4);
 
-    if (ret == -1) { return(ret); }
+    if (ret == -1) { return (ret); }
 
     ret = _stlink_usb_read_mem32(sl, STLINK_REG_DCRDR, 4);
 
-    if (ret == -1) { return(ret); }
+    if (ret == -1) { return (ret); }
 
     r = read_uint32(sl->q_buf, 0);
     DLOG("r_idx (%2d) = 0x%08x\n", r_idx, r);
@@ -862,7 +863,7 @@ int32_t _stlink_usb_read_unsupported_reg(stlink_t *sl, int32_t r_idx, struct stl
         break;
     }
 
-    return(0);
+    return (0);
 }
 
 int32_t _stlink_usb_read_all_unsupported_regs(stlink_t *sl, struct stlink_reg *regp) {
@@ -870,19 +871,19 @@ int32_t _stlink_usb_read_all_unsupported_regs(stlink_t *sl, struct stlink_reg *r
 
     ret = _stlink_usb_read_unsupported_reg(sl, 0x14, regp);
 
-    if (ret == -1) { return(ret); }
+    if (ret == -1) { return (ret); }
 
     ret = _stlink_usb_read_unsupported_reg(sl, 0x21, regp);
 
-    if (ret == -1) { return(ret); }
+    if (ret == -1) { return (ret); }
 
     for (int32_t i = 0; i < 32; i++) {
         ret = _stlink_usb_read_unsupported_reg(sl, 0x40 + i, regp);
 
-        if (ret == -1) { return(ret); }
+        if (ret == -1) { return (ret); }
     }
 
-    return(0);
+    return (0);
 }
 
 /* See section C1.6 of the ARMv7-M Architecture Reference Manual */
@@ -893,7 +894,7 @@ int32_t _stlink_usb_write_unsupported_reg(stlink_t *sl, uint32_t val, int32_t r_
         /* These are held in the same register */
         ret = _stlink_usb_read_unsupported_reg(sl, 0x14, regp);
 
-        if (ret == -1) { return(ret); }
+        if (ret == -1) { return (ret); }
 
         val = (uint8_t)(val >> 24);
 
@@ -931,14 +932,14 @@ int32_t _stlink_usb_write_unsupported_reg(stlink_t *sl, uint32_t val, int32_t r_
 
     ret = _stlink_usb_write_mem32(sl, STLINK_REG_DCRDR, 4);
 
-    if (ret == -1) { return(ret); }
+    if (ret == -1) { return (ret); }
 
     sl->q_buf[0] = (unsigned char)r_idx;
     sl->q_buf[1] = 0;
     sl->q_buf[2] = 0x01;
     sl->q_buf[3] = 0;
 
-    return(_stlink_usb_write_mem32(sl, STLINK_REG_DCRSR, 4));
+    return (_stlink_usb_write_mem32(sl, STLINK_REG_DCRSR, 4));
 }
 
 int32_t _stlink_usb_write_reg(stlink_t *sl, uint32_t reg, int32_t idx) {
@@ -961,7 +962,7 @@ int32_t _stlink_usb_write_reg(stlink_t *sl, uint32_t reg, int32_t idx) {
     write_uint32(&cmd[i], reg);
     size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len, CMD_CHECK_RETRY, "WRITEREG");
 
-    return(size < 0 ? -1 : 0);
+    return (size < 0 ? -1 : 0);
 }
 
 int32_t _stlink_usb_enable_trace(stlink_t* sl, uint32_t frequency) {
@@ -979,7 +980,7 @@ int32_t _stlink_usb_enable_trace(stlink_t* sl, uint32_t frequency) {
 
     size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len, CMD_CHECK_STATUS, "START_TRACE_RX");
 
-    return(size < 0 ? -1 : 0);
+    return (size < 0 ? -1 : 0);
 }
 
 int32_t _stlink_usb_disable_trace(stlink_t* sl) {
@@ -995,7 +996,7 @@ int32_t _stlink_usb_disable_trace(stlink_t* sl) {
 
     size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len, CMD_CHECK_STATUS, "STOP_TRACE_RX");
 
-    return(size < 0 ? -1 : 0);
+    return (size < 0 ? -1 : 0);
 }
 
 int32_t _stlink_usb_read_trace(stlink_t* sl, uint8_t* buf, uint32_t size) {
@@ -1010,10 +1011,10 @@ int32_t _stlink_usb_read_trace(stlink_t* sl, uint8_t* buf, uint32_t size) {
     ssize_t send_size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len, CMD_CHECK_NO, "GET_TRACE_NB");
 
     if (send_size < 0) {
-        return(-1);
+        return (-1);
     } else if (send_size != 2) {
         ELOG("STLINK_DEBUG_APIV2_GET_TRACE_NB reply size %d\n", (int32_t)send_size);
-        return(-1);
+        return (-1);
     }
 
     uint16_t trace_count = read_uint16(sl->q_buf, 0);
@@ -1029,7 +1030,7 @@ int32_t _stlink_usb_read_trace(stlink_t* sl, uint8_t* buf, uint32_t size) {
 
         if (t || res != (int32_t)trace_count) {
             ELOG("read_trace read error %d\n", t);
-            return(-1);
+            return (-1);
         }
     }
 
@@ -1282,11 +1283,11 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, enum connect_type connect,
     _stlink_usb_set_swdclk(sl, freq);
 
     stlink_target_connect(sl, connect);
-    return(sl);
+    return (sl);
 
 on_libusb_error:
     stlink_close(sl);
-    return(NULL);
+    return (NULL);
 
 on_error:
     if (slu->libusb_ctx) { libusb_exit(slu->libusb_ctx); }
@@ -1295,7 +1296,7 @@ on_malloc_error:
     if (sl != NULL) { free(sl); }
     if (slu != NULL) { free(slu); }
 
-    return(NULL);
+    return (NULL);
 }
 
 static uint32_t stlink_probe_usb_devs(libusb_device **devs, stlink_t **sldevs[], enum connect_type connect, int32_t freq) {
@@ -1329,7 +1330,7 @@ static uint32_t stlink_probe_usb_devs(libusb_device **devs, stlink_t **sldevs[],
 
     if (!_sldevs) {
         *sldevs = NULL;
-        return(0);
+        return (0);
     }
 
     /* Open STLINKS and attach them to list */
@@ -1379,7 +1380,7 @@ static uint32_t stlink_probe_usb_devs(libusb_device **devs, stlink_t **sldevs[],
 
     *sldevs = _sldevs;
 
-    return(slcur);
+    return (slcur);
 }
 
 size_t stlink_probe_usb(stlink_t **stdevs[], enum connect_type connect, int32_t freq) {
@@ -1392,11 +1393,11 @@ size_t stlink_probe_usb(stlink_t **stdevs[], enum connect_type connect, int32_t 
 
     r = libusb_init(NULL);
 
-    if (r < 0) { return(0); }
+    if (r < 0) { return (0); }
 
     cnt = libusb_get_device_list(NULL, &devs);
 
-    if (cnt < 0) { return(0); }
+    if (cnt < 0) { return (0); }
 
     slcnt = stlink_probe_usb_devs(devs, &sldevs, connect, freq);
     libusb_free_device_list(devs, 1);
@@ -1405,7 +1406,7 @@ size_t stlink_probe_usb(stlink_t **stdevs[], enum connect_type connect, int32_t 
 
     *stdevs = sldevs;
 
-    return(slcnt);
+    return (slcnt);
 }
 
 void stlink_probe_usb_free(stlink_t ***stdevs, uint32_t size) {

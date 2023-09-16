@@ -101,7 +101,7 @@ elseif (EXISTS "/etc/debian_version" AND NOT EXISTS WIN32) # Package-build is av
 
 else ()
     # No package configuration on other platforms ...
-endif ()
+endif()
 
 
 ###

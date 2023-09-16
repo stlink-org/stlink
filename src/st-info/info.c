@@ -74,7 +74,7 @@ static int32_t print_data(int32_t ac, char **av) {
 
     if (strcmp(av[1], "--version") == 0) {
         printf("v%s\n", STLINK_VERSION);
-        return(0);
+        return (0);
     }
 
     init_chipids(STLINK_CHIPS_DIR);
@@ -99,18 +99,18 @@ static int32_t print_data(int32_t ac, char **av) {
 
         printf("Incorrect argument: %s\n\n", av[i]);
         usage();
-        return(-1);
+        return (-1);
     }
 
     // probe needs all devices unclaimed
     if (strcmp(av[1], "--probe") == 0) {
         stlink_probe(connect, freq);
-        return(0);
+        return (0);
     }
 
     // open first st-link device
     sl = stlink_open_usb(0, connect, NULL, freq);
-    if (sl == NULL) { return(-1); }
+    if (sl == NULL) { return (-1); }
 
     if (strcmp(av[1], "--serial") == 0) {
         printf("%s\n", sl->serial);
@@ -124,7 +124,7 @@ static int32_t print_data(int32_t ac, char **av) {
         printf("0x%.4x\n", sl->chip_id);
     } else if (strcmp(av[1], "--descr") == 0) {
         const struct stlink_chipid_params *params = stlink_chipid_get_params(sl->chip_id);
-        if (params == NULL) { return(-1); }
+        if (params == NULL) { return (-1); }
 
         printf("%s\n", params->dev_type);
     }
@@ -134,7 +134,7 @@ static int32_t print_data(int32_t ac, char **av) {
         stlink_close(sl);
     }
 
-    return(0);
+    return (0);
 }
 
 int32_t main(int32_t ac, char** av) {
@@ -142,10 +142,10 @@ int32_t main(int32_t ac, char** av) {
 
     if (ac < 2) {
         usage();
-        return(-1);
+        return (-1);
     }
 
     err = print_data(ac, av);
 
-    return(err);
+    return (err);
 }

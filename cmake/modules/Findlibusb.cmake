@@ -24,7 +24,7 @@ if (CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")                  # FreeBSD; libusb is 
     mark_as_advanced(LIBUSB_INCLUDE_DIR LIBUSB_LIBRARY)
     if (NOT LIBUSB_FOUND)
         message(FATAL_ERROR "Expected libusb library not found on your system! Verify your system integrity.")
-    endif ()
+    endif()
 
 elseif (CMAKE_SYSTEM_NAME STREQUAL "OpenBSD")              # OpenBSD; libusb-1.0 is available from ports
     FIND_PATH(
@@ -41,7 +41,7 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL "OpenBSD")              # OpenBSD; libusb-1.0
     mark_as_advanced(LIBUSB_INCLUDE_DIR LIBUSB_LIBRARY)
     if (NOT LIBUSB_FOUND)
         message(FATAL_ERROR "No libusb-1.0 library found on your system! Install libusb-1.0 from ports or packages.")
-    endif ()
+    endif()
 
 elseif (WIN32 OR (EXISTS "/etc/debian_version" AND MINGW)) # Windows or MinGW-toolchain on Debian
     # MinGW/MSYS/MSVC: 64-bit or 32-bit?
@@ -51,7 +51,7 @@ elseif (WIN32 OR (EXISTS "/etc/debian_version" AND MINGW)) # Windows or MinGW-to
     else ()
         message(STATUS "=== Building for Windows (i686) ===")
         set(ARCH 32)
-    endif ()
+    endif()
 
     if (WIN32 AND NOT EXISTS "/etc/debian_version") # Skip this for Debian...
         # Preparations for installing libusb library
@@ -63,7 +63,7 @@ elseif (WIN32 OR (EXISTS "/etc/debian_version" AND MINGW)) # Windows or MinGW-to
         elseif (EXISTS "/etc/debian_version" AND MINGW)   # ... only for cross-building on Debian
             set(LIBUSB_WIN_ARCHIVE_PATH ${CMAKE_SOURCE_DIR}/build-mingw-${ARCH}/${LIBUSB_WIN_ARCHIVE})
             set(LIBUSB_WIN_OUTPUT_FOLDER ${CMAKE_SOURCE_DIR}/build-mingw-${ARCH}/3rdparty/libusb-${LIBUSB_WIN_VERSION})
-        endif ()
+        endif()
 
         # Get libusb package
         if (EXISTS ${LIBUSB_WIN_ARCHIVE_PATH})  # ... should the package be already there (for whatever reason)
@@ -74,7 +74,7 @@ elseif (WIN32 OR (EXISTS "/etc/debian_version" AND MINGW)) # Windows or MinGW-to
                 https://sourceforge.net/projects/libusb/files/libusb-1.0/libusb-${LIBUSB_WIN_VERSION}/libusb-${LIBUSB_WIN_VERSION}.7z/download
                 ${LIBUSB_WIN_ARCHIVE_PATH} EXPECTED_MD5 aabe177bde869bfad34278335eaf8955
                 )
-        endif ()
+        endif()
 
         file(MAKE_DIRECTORY ${LIBUSB_WIN_OUTPUT_FOLDER})
 
@@ -110,9 +110,9 @@ elseif (WIN32 OR (EXISTS "/etc/debian_version" AND MINGW)) # Windows or MinGW-to
                 NO_DEFAULT_PATH
                 NO_CMAKE_FIND_ROOT_PATH
                 )
-        endif ()
+        endif()
         message(STATUS "Missing libusb library has been installed")
-    endif ()
+    endif()
     FIND_PACKAGE_HANDLE_STANDARD_ARGS(libusb DEFAULT_MSG LIBUSB_LIBRARY LIBUSB_INCLUDE_DIR)
     mark_as_advanced(LIBUSB_INCLUDE_DIR LIBUSB_LIBRARY)
 
@@ -132,5 +132,5 @@ else ()                                                                         
 
     if (NOT LIBUSB_FOUND)
         message(FATAL_ERROR "libusb library not found on your system! Install libusb 1.0.x from your package repository.")
-    endif ()
-endif ()
+    endif()
+endif()
