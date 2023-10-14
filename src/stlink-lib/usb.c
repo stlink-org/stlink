@@ -238,7 +238,13 @@ int32_t _stlink_usb_target_voltage(stlink_t *sl) {
 
     factor = (rdata[3] << 24) | (rdata[2] << 16) | (rdata[1] << 8) | (rdata[0] << 0);
     reading = (rdata[7] << 24) | (rdata[6] << 16) | (rdata[5] << 8) | (rdata[4] << 0);
-    voltage = 2400 * reading / factor;
+    DLOG("target voltage factor=%08x reading=%08x\n", factor, reading);
+    if (factor != 0 && reading != 0) {
+        voltage = 2400 * reading / factor;
+    } else {
+        DLOG("voltage reading failed at device side, bad STLink chip?\n");
+        voltage = 0;
+    }
 
     return (voltage);
 }
