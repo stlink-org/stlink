@@ -424,6 +424,9 @@ static void unlock_flash(stlink_t *sl) {
   uint32_t key_reg, key2_reg = 0;
   uint32_t flash_key1 = FLASH_KEY1;
   uint32_t flash_key2 = FLASH_KEY2;
+  uint32_t clk_reg = 0;
+  uint32_t hsion  = 0x00000001;
+  uint32_t hsirdy = 0x00000002;
   /* The unlock sequence consists of 2 write cycles where 2 key values are
    * written to the FLASH_KEYR register. An invalid sequence results in a
    * definitive lock of the FPEC block until next reset.
@@ -431,6 +434,7 @@ static void unlock_flash(stlink_t *sl) {
 
   if (sl->flash_type == STM32_FLASH_TYPE_F0_F1_F3) {
     key_reg = FLASH_KEYR;
+    clk_reg = STM32F1_RCC_CR;
   } else if (sl->flash_type == STM32_FLASH_TYPE_F1_XL) {
     key_reg = FLASH_KEYR;
     key2_reg = FLASH_KEYR2;
@@ -468,6 +472,22 @@ static void unlock_flash(stlink_t *sl) {
     return;
   }
 
+  /* First make sure that the HSI is running, the internal RC clock.
+   * This is a requisite for flash erase and write.
+   */
+  if (clk_reg) {
+    uint32_t oldcr;
+    stlink_read_debug32 (sl, clk_reg, &oldcr);
+    while (0 != ((hsion | hsirdy) & ~oldcr)) {
+      stlink_write_debug32 (sl, clk_reg, oldcr | hsion);
+      stlink_read_debug32 (sl, clk_reg, &oldcr);
+    }
+  } else {
+    WLOG("unsure about internal oscillator activity, flash write and erase may block\n");
+  }
+
+  /* Now unlock the flash itself.
+   */
   stlink_write_debug32(sl, key_reg, flash_key1);
   stlink_write_debug32(sl, key_reg, flash_key2);
 
