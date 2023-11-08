@@ -34,6 +34,7 @@ void dump_a_chip(struct stlink_chipid_params *dev) {
   DLOG("option_base 0x%x\n", dev->option_base);
   DLOG("option_size 0x%x\n", dev->option_size);
   DLOG("flags %d\n\n", dev->flags);
+  DLOG("otp_base %d\n\n", dev->otp_base);
 }
 
 struct stlink_chipid_params *stlink_chipid_get_params(uint32_t chip_id) {
@@ -57,7 +58,6 @@ void process_chipfile(char *fname) {
 
   // fprintf (stderr, "processing chip-id file %s.\n", fname);
   fp = fopen(fname, "r");
-
   if (!fp) {
     perror(fname);
     return;
@@ -180,8 +180,19 @@ void process_chipfile(char *fname) {
           fprintf(stderr, "Unknown flags word in %s: '%s'\n", fname, p);
         }
       }
-
       sscanf(value, "%x", &ts->flags);
+    } else if (strcmp(word, "otp_base") == 0) {
+      buf[strlen(buf) - 1] = 0; // chomp newline
+      sscanf(buf, "%*s %n", &nc);
+      if (sscanf(value, "%i", &ts->otp_base) < 1) {
+        fprintf(stderr, "Failed to parse option size\n");
+      }
+    } else if (strcmp(word, "otp_size") == 0) {
+      buf[strlen(buf) - 1] = 0; // chomp newline
+      sscanf(buf, "%*s %n", &nc);
+      if (sscanf(value, "%i", &ts->otp_size) < 1) {
+        fprintf(stderr, "Failed to parse option size\n");
+      }
     } else {
       fprintf(stderr, "Unknown keyword in %s: %s\n", fname, word);
     }
@@ -190,6 +201,7 @@ void process_chipfile(char *fname) {
   ts->next = devicelist;
   devicelist = ts;
 }
+
 
 #if defined(STLINK_HAVE_DIRENT_H)
 #include <dirent.h>

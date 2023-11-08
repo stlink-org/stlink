@@ -12,3 +12,5 @@ bootrom_size 0x7000          // 28 KB
 option_base 0x1fff7800       // STM32_L4_OPTION_BYTES_BASE
 option_size 0x4              // 4 B
 flags swo
+otp_base 0x1fff7000
+otp_size 0x400         // 1 KB
