@@ -86,6 +86,7 @@ static int32_t bad_arg(const char *arg) {
 }
 
 int32_t flash_get_opts(struct flash_opts* o, int32_t ac, char** av) {
+    
     // defaults
     memset(o, 0, sizeof(*o));
     o->log_level = STND_LOG_LEVEL;
@@ -269,13 +270,13 @@ int32_t flash_get_opts(struct flash_opts* o, int32_t ac, char** av) {
             if (ac != 3) { return invalid_args("read <path> <addr> <size>"); }
             
             o->filename = av[0];
-                uint32_t address;
-                result = get_integer_from_char_array(av[1], &address);
-                if (result != 0) {
-                    return bad_arg ("addr");
-                } else {
-                    o->addr = (stm32_addr_t) address;
-                }
+            uint32_t address;
+            result = get_integer_from_char_array(av[1], &address);
+            if (result != 0) {
+                return bad_arg ("addr");
+            } else {
+                o->addr = (stm32_addr_t) address;
+            }
 
             uint32_t size;
             result = get_integer_from_char_array(av[2], &size);

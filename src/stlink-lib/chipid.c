@@ -58,6 +58,7 @@ void process_chipfile(char *fname) {
 
   // fprintf (stderr, "processing chip-id file %s.\n", fname);
   fp = fopen(fname, "r");
+
   if (!fp) {
     perror(fname);
     return;
@@ -201,7 +202,6 @@ void process_chipfile(char *fname) {
   ts->next = devicelist;
   devicelist = ts;
 }
-
 
 #if defined(STLINK_HAVE_DIRENT_H)
 #include <dirent.h>

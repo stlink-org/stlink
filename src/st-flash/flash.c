@@ -184,7 +184,7 @@ int32_t main(int32_t ac, char** av) {
         } else if (o.area == FLASH_OTP) {
             if(sl->otp_base == 0) {
                 err = -1;
-                printf("OTP Write Not implimented\n");
+                printf("OTP Write NOT implemented\n");
                 goto on_error;
             }
             err = stlink_fwrite_flash(sl, o.filename,  o.addr);
@@ -300,7 +300,7 @@ int32_t main(int32_t ac, char** av) {
         } else if (o.area == FLASH_OTP) {
             if(sl->otp_base == 0) {
                 err = -1;
-                printf("OTP Read not implimented\n");
+                printf("OTP Read NOT implemented\n");
                 goto on_error;
             }
             err = stlink_fread(sl, o.filename, 0, sl->otp_base, sl->otp_size);
