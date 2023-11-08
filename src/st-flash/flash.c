@@ -62,6 +62,7 @@ static void usage(void) {
     puts("example read option control register1 byte:  ./st-flash --area=optcr1 read");
     puts("example write option control register1 byte:  ./st-flash --area=optcr1 write 0xXXXXXXXX");
     puts("example read OTP area:  ./st-flash --area=otp read [path]");
+    puts("example write OTP area: ./st-flash --area=otp write [path] 0xXXXXXXXX");
 }
 
 int32_t main(int32_t ac, char** av) {

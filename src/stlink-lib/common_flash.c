@@ -1320,7 +1320,6 @@ int32_t stlink_fwrite_flash(stlink_t *sl, const char *path, stm32_addr_t addr) {
                            (num_empty == mf.len) ? (uint32_t)mf.len : (uint32_t)mf.len - num_empty,
                            num_empty == mf.len);
   }
-
   stlink_fwrite_finalize(sl, addr);
   unmap_file(&mf);
   return (err);
@@ -1432,8 +1431,6 @@ int32_t stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t *base, uint3
   int32_t ret;
   flash_loader_t fl;
   ILOG("Attempting to write %d (%#x) bytes to stm32 address: %u (%#x)\n", len, len, addr, addr);
-  
-  (void)eraseonly;
   
   // check addr range is inside the flash
   stlink_calculate_pagesize(sl, addr);

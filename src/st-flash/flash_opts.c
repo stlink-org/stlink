@@ -86,7 +86,7 @@ static int32_t bad_arg(const char *arg) {
 }
 
 int32_t flash_get_opts(struct flash_opts* o, int32_t ac, char** av) {
-    
+
     // defaults
     memset(o, 0, sizeof(*o));
     o->log_level = STND_LOG_LEVEL;
