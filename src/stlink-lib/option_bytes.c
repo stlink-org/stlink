@@ -79,38 +79,10 @@ static int32_t stlink_write_option_control_register_c0(stlink_t *sl, uint32_t op
  * @return 0 on success, -ve on failure.
  */
 static int32_t stlink_write_option_bytes_c0(stlink_t *sl, stm32_addr_t addr, uint8_t *base, uint32_t len) {
-#if 0
-  uint32_t val;
-  int32_t ret = 0;
-  (void)len;
-  uint32_t data;
-
-  clear_flash_error(sl);
-
-  write_uint32((unsigned char *)&data, *(uint32_t *)(base));
-  WLOG("Writing option bytes %#10x to %#10x\n", data, addr);
-  stlink_write_debug32(sl, FLASH_C0_OPTR, data);
-
-  stlink_read_debug32(sl, FLASH_C0_CR, &val);
-  val |= (1 << FLASH_C0_CR_OPTSTRT);
-  stlink_write_debug32(sl, FLASH_C0_CR, val);
-
-  wait_flash_busy(sl);
-
-  ret = check_flash_error(sl);
-
-  // trigger the load of option bytes into option registers
-  stlink_read_debug32(sl, FLASH_C0_CR, &val);
-  val |= (1 << FLASH_C0_CR_OBL_LAUNCH);
-  stlink_write_debug32(sl, FLASH_C0_CR, val);
-
-  return (ret);
-#else
   (void)addr;
   (void)len;
 
   return stlink_write_option_control_register_c0(sl, *(uint32_t*)base);
-#endif
 }
 
 /**
