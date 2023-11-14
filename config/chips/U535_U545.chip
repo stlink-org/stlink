@@ -11,4 +11,4 @@ bootrom_base 0x0bf90000
 bootrom_size 0x8000          // 32 KB
 option_base 0x0
 option_size 0x0
-flags none
+flags swo dualbank
