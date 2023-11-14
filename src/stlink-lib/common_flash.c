@@ -1082,10 +1082,12 @@ int32_t stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr) {
       val &= ~(0x7F << 3);
       val |= ((flash_page & 0x7F) << 3) | (1 << FLASH_CR_PER);
       stlink_write_debug32(sl, FLASH_Gx_CR, val);
+    // STM32L5x2xx has two banks with 2k pages or single with 4k pages
+    // STM32H5xx, STM32U535, STM32U545, STM32U575 or STM32U585 have 2 banks with 8k pages
     } else if (sl->flash_type == STM32_FLASH_TYPE_L5_U5_H5) {
       uint32_t flash_page;
       stlink_read_debug32(sl, FLASH_L5_NSCR, &val);
-      if (sl->flash_pgsz == 0x800 && (flashaddr - STM32_FLASH_BASE) >= sl->flash_size/2) {
+      if ((sl->flash_pgsz == 0x800 || sl->flash_pgsz == 0x2000) && (flashaddr - STM32_FLASH_BASE) >= sl->flash_size/2) {
         flash_page = (flashaddr - STM32_FLASH_BASE - sl->flash_size/2) / sl->flash_pgsz;
         // set bank 2 for erasure
         val |= (1 << FLASH_L5_NSCR_NSBKER);
@@ -1094,9 +1096,11 @@ int32_t stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr) {
         // set bank 1 for erasure
         val &= ~(1 << FLASH_L5_NSCR_NSBKER);
       }
-      // sec 6.9.9
-      val &= ~(0x7F << 3);
-      val |= ((flash_page & 0x7F) << 3) | (1 << FLASH_CR_PER);
+      // sec 7.9.9 for U5, 6.9.9 for L5 (for L7 we have 7 bits instead 8 bits  for U5 but 
+      // the bit position for 8th bit reserved.
+      // Maybe the best solution is to handle each one separately.
+      val &= ~(0xFF << 3);
+      val |= ((flash_page & 0xFF) << 3) | (1 << FLASH_CR_PER);
       stlink_write_debug32(sl, FLASH_L5_NSCR, val);
     } else if (sl->flash_type == STM32_FLASH_TYPE_WB_WL) {
       uint32_t flash_page = ((flashaddr - STM32_FLASH_BASE) / sl->flash_pgsz);
