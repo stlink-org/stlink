@@ -1312,7 +1312,7 @@ int32_t stlink_fwrite_flash(stlink_t *sl, const char *path, stm32_addr_t addr) {
    */
 
   /* In case the address is within the OTP area we use a different flash method */
-  if(addr >= sl->otp_base && addr <= sl->otp_base + sl->otp_size) {
+  if(addr >= sl->otp_base && addr < sl->otp_base + sl->otp_size) {
     err = stlink_write_otp(sl, addr, mf.base,
                            (num_empty == mf.len) ? (uint32_t)mf.len : (uint32_t)mf.len - num_empty);
   } else {
@@ -1404,7 +1404,7 @@ int32_t stlink_check_address_range_validity_otp(stlink_t *sl, stm32_addr_t addr,
     ELOG("Invalid address, it should be within 0x%08x - 0x%08x\n", sl->otp_base, logvar);
     return (-1);
   }
-  if ((addr + size) > (sl->otp_base + sl->otp_size)) {
+  if ((addr + size) >= (sl->otp_base + sl->otp_size)) {
     logvar = sl->otp_base + sl->otp_size - addr;
     ELOG("The size exceeds the size of the OTP Area (0x%08x bytes available)\n", logvar);
     return (-1);
@@ -1431,7 +1431,7 @@ int32_t stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t *base, uint3
   int32_t ret;
   flash_loader_t fl;
   ILOG("Attempting to write %d (%#x) bytes to stm32 address: %u (%#x)\n", len, len, addr, addr);
-  
+
   // check addr range is inside the flash
   stlink_calculate_pagesize(sl, addr);
 
