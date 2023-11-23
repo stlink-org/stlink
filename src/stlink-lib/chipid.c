@@ -34,6 +34,8 @@ void dump_a_chip(struct stlink_chipid_params *dev) {
   DLOG("option_base 0x%x\n", dev->option_base);
   DLOG("option_size 0x%x\n", dev->option_size);
   DLOG("flags %d\n\n", dev->flags);
+  DLOG("otp_base %d\n\n", dev->otp_base);
+  DLOG("otp_size %d\n\n", dev->otp_size);
 }
 
 struct stlink_chipid_params *stlink_chipid_get_params(uint32_t chip_id) {
@@ -97,7 +99,9 @@ void process_chipfile(char *fname) {
       buf[strlen(buf) - 1] = 0; // chomp newline
       sscanf(buf, "%*s %n", &nc);
       // Match human readable flash_type with enum stm32_flash_type { }.
-      if (strcmp(value, "F0_F1_F3") == 0) {
+      if(strcmp(value, "C0") == 0) {
+        ts->flash_type = STM32_FLASH_TYPE_C0;
+      } else if (strcmp(value, "F0_F1_F3") == 0) {
         ts->flash_type = STM32_FLASH_TYPE_F0_F1_F3;
       } else if (strcmp(value, "F1_XL") == 0) {
         ts->flash_type = STM32_FLASH_TYPE_F1_XL;
@@ -182,6 +186,18 @@ void process_chipfile(char *fname) {
       }
 
       sscanf(value, "%x", &ts->flags);
+    } else if (strcmp(word, "otp_base") == 0) {
+      buf[strlen(buf) - 1] = 0; // chomp newline
+      sscanf(buf, "%*s %n", &nc);
+      if (sscanf(value, "%i", &ts->otp_base) < 1) {
+        fprintf(stderr, "Failed to parse option size\n");
+      }
+    } else if (strcmp(word, "otp_size") == 0) {
+      buf[strlen(buf) - 1] = 0; // chomp newline
+      sscanf(buf, "%*s %n", &nc);
+      if (sscanf(value, "%i", &ts->otp_size) < 1) {
+        fprintf(stderr, "Failed to parse option size\n");
+      }
     } else {
       fprintf(stderr, "Unknown keyword in %s: %s\n", fname, word);
     }

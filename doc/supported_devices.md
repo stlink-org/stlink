@@ -6,6 +6,7 @@ More commonly these are:
 | Product-Family | ARM Cortex Core | Product Line                                               |
 | -------------- | --------------- | ---------------------------------------------------------- |
 | STM32F0        | M0              |                                                            |
+| STM32C0        | M0+             |                                                            |
 | STM32G0        | M0+             |                                                            |
 | STM32L0        | M0+             |                                                            |
 | STM32F10**0**  | M3              | Value line                                                 |

@@ -491,12 +491,15 @@ static void set_flash_cr_pg(stlink_t *sl, uint32_t bank) {
 
   x = read_flash_cr(sl, bank);
 
-  if (sl->flash_type == STM32_FLASH_TYPE_F2_F4) {
+  if (sl->flash_type == STM32_FLASH_TYPE_C0) {
+    cr_reg = FLASH_C0_CR;
+    x |= (1 << FLASH_CR_PG);
+  } else if (sl->flash_type == STM32_FLASH_TYPE_F2_F4) {
     cr_reg = FLASH_F4_CR;
-    x |= 1 << FLASH_CR_PG;
+    x |= (1 << FLASH_CR_PG);
   } else if (sl->flash_type == STM32_FLASH_TYPE_F7) {
     cr_reg = FLASH_F7_CR;
-    x |= 1 << FLASH_CR_PG;
+    x |= (1 << FLASH_CR_PG);
   } else if (sl->flash_type == STM32_FLASH_TYPE_L4) {
     cr_reg = FLASH_L4_CR;
     x &= ~FLASH_L4_CR_OPBITS;
@@ -528,6 +531,10 @@ static void set_dma_state(stlink_t *sl, flash_loader_t *fl, int32_t bckpRstr) {
   rcc = rcc_dma_mask = value = 0;
 
   switch (sl->flash_type) {
+  case STM32_FLASH_TYPE_C0:
+    rcc = STM32C0_RCC_AHBENR;
+    rcc_dma_mask = STM32C0_RCC_DMAEN;
+    break;
   case STM32_FLASH_TYPE_F0_F1_F3:
   case STM32_FLASH_TYPE_F1_XL:
     rcc = STM32F1_RCC_AHBENR;
@@ -639,8 +646,9 @@ int32_t stlink_flashloader_start(stlink_t *sl, flash_loader_t *fl) {
   } else if (sl->flash_type == STM32_FLASH_TYPE_WB_WL ||
              sl->flash_type == STM32_FLASH_TYPE_G0 ||
              sl->flash_type == STM32_FLASH_TYPE_G4 ||
-             sl->flash_type == STM32_FLASH_TYPE_L5_U5_H5) {
-    ILOG("Starting Flash write for WB/G0/G4/L5/U5/H5\n");
+             sl->flash_type == STM32_FLASH_TYPE_L5_U5_H5 ||
+             sl->flash_type == STM32_FLASH_TYPE_C0) {
+    ILOG("Starting Flash write for WB/G0/G4/L5/U5/H5/C0\n");
 
     unlock_flash_if(sl);         // unlock flash if necessary
     set_flash_cr_pg(sl, BANK_1); // set PG 'allow programming' bit
@@ -720,6 +728,7 @@ int32_t stlink_flashloader_start(stlink_t *sl, flash_loader_t *fl) {
 
 int32_t stlink_flashloader_write(stlink_t *sl, flash_loader_t *fl, stm32_addr_t addr, uint8_t *base, uint32_t len) {
   uint32_t off;
+
   if ((sl->flash_type == STM32_FLASH_TYPE_F2_F4) ||
       (sl->flash_type == STM32_FLASH_TYPE_F7) ||
       (sl->flash_type == STM32_FLASH_TYPE_L4)) {
@@ -737,13 +746,14 @@ int32_t stlink_flashloader_write(stlink_t *sl, flash_loader_t *fl, stm32_addr_t 
   } else if (sl->flash_type == STM32_FLASH_TYPE_WB_WL ||
              sl->flash_type == STM32_FLASH_TYPE_G0 ||
              sl->flash_type == STM32_FLASH_TYPE_G4 ||
-             sl->flash_type == STM32_FLASH_TYPE_L5_U5_H5) {
+             sl->flash_type == STM32_FLASH_TYPE_L5_U5_H5 ||
+             sl->flash_type == STM32_FLASH_TYPE_C0) {
     DLOG("Starting %3u page write\n", len / sl->flash_pgsz);
     for (off = 0; off < len; off += sizeof(uint32_t)) {
       uint32_t data;
 
       if ((off % sl->flash_pgsz) > (sl->flash_pgsz - 5)) {
-        fprintf(stdout, "\r%3u/%3u pages written", (off / sl->flash_pgsz + 1), (len / sl->flash_pgsz));
+        fprintf(stdout, "\r%3u/%-3u pages written", (off / sl->flash_pgsz + 1), (len / sl->flash_pgsz));
         fflush(stdout);
       }
 
@@ -782,7 +792,7 @@ int32_t stlink_flashloader_write(stlink_t *sl, flash_loader_t *fl, stm32_addr_t 
       uint32_t data;
 
       if ((off % sl->flash_pgsz) > (sl->flash_pgsz - 5)) {
-        fprintf(stdout, "\r%3u/%3u pages written", (off / sl->flash_pgsz + 1), (len / sl->flash_pgsz));
+        fprintf(stdout, "\r%3u/%-3u pages written", (off / sl->flash_pgsz + 1), (len / sl->flash_pgsz));
         fflush(stdout);
       }
 
@@ -819,7 +829,7 @@ int32_t stlink_flashloader_write(stlink_t *sl, flash_loader_t *fl, stm32_addr_t 
       if (sl->verbose >= 1) {
         // show progress; writing procedure is slow and previous errors are
         // misleading
-        fprintf(stdout, "\r%3u/%3u pages written", ++write_block_count,
+        fprintf(stdout, "\r%3u/%-3u pages written", ++write_block_count,
                 (len + sl->flash_pgsz - 1) / sl->flash_pgsz);
         fflush(stdout);
       }
@@ -856,7 +866,8 @@ int32_t stlink_flashloader_write(stlink_t *sl, flash_loader_t *fl, stm32_addr_t 
 int32_t stlink_flashloader_stop(stlink_t *sl, flash_loader_t *fl) {
   uint32_t dhcsr;
 
-  if ((sl->flash_type == STM32_FLASH_TYPE_F0_F1_F3) ||
+  if ((sl->flash_type == STM32_FLASH_TYPE_C0) ||
+      (sl->flash_type == STM32_FLASH_TYPE_F0_F1_F3) ||
       (sl->flash_type == STM32_FLASH_TYPE_F1_XL) ||
       (sl->flash_type == STM32_FLASH_TYPE_F2_F4) ||
       (sl->flash_type == STM32_FLASH_TYPE_F7) ||

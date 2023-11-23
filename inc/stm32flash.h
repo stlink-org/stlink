@@ -58,6 +58,30 @@
 #define FLASH_OBR_OFF ((uint32_t)0x1c)
 #define FLASH_WRPR_OFF ((uint32_t)0x20)
 
+// == STM32C0 == (RM0490)
+// C0 Flash registers
+#define FLASH_C0_REGS_ADDR ((uint32_t)0x40022000)
+#define FLASH_C0_KEYR (FLASH_C0_REGS_ADDR + 0x08)
+#define FLASH_C0_OPT_KEYR (FLASH_C0_REGS_ADDR + 0x0C)
+#define FLASH_C0_SR (FLASH_C0_REGS_ADDR + 0x10)
+#define FLASH_C0_CR (FLASH_C0_REGS_ADDR + 0x14)
+#define FLASH_C0_OPTR (FLASH_C0_REGS_ADDR + 0x20)
+
+// C0 Flash control register
+#define FLASH_C0_CR_PNB 3
+#define FLASH_C0_CR_STRT 16
+#define FLASH_C0_CR_OPTSTRT 17
+#define FLASH_C0_CR_OBL_LAUNCH 27
+#define FLASH_C0_CR_OPTLOCK 30
+#define FLASH_C0_CR_LOCK 31
+
+// C0 Flash status register
+#define FLASH_C0_SR_ERROR_MASK 0xC3F8 // [15:14], [9:3]
+#define FLASH_C0_SR_PROGERR 3
+#define FLASH_C0_SR_WRPERR 4
+#define FLASH_C0_SR_PGAERR 5
+#define FLASH_C0_SR_BSY 16
+
 // == STM32F0 ==
 #define FLASH_F0_OPTKEY1 0x45670123
 #define FLASH_F0_OPTKEY2 0xcdef89ab

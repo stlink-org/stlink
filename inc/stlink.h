@@ -232,6 +232,9 @@ struct _stlink {
     uint32_t chip_flags;         // stlink_chipid_params.flags, set by stlink_load_device_params(), values: CHIP_F_xxx
 
     uint32_t max_trace_freq;     // set by stlink_open_usb()
+
+    uint32_t otp_base;
+    uint32_t otp_size;
 };
 
 /* Functions defined in common.c */

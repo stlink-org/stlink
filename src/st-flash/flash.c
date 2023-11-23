@@ -61,6 +61,8 @@ static void usage(void) {
     puts("example write option control register1 byte:  ./st-flash --area=optcr write 0xXXXXXXXX");
     puts("example read option control register1 byte:  ./st-flash --area=optcr1 read");
     puts("example write option control register1 byte:  ./st-flash --area=optcr1 write 0xXXXXXXXX");
+    puts("example read OTP area:  ./st-flash --area=otp read [path]");
+    puts("example write OTP area: ./st-flash --area=otp write [path] 0xXXXXXXXX");
 }
 
 int32_t main(int32_t ac, char** av) {
@@ -180,6 +182,18 @@ int32_t main(int32_t ac, char** av) {
             DLOG("@@@@ Write %d (%0#10x) to option bytes boot address\n", o.val, o.val);
 
             err = stlink_write_option_bytes_boot_add32(sl, o.val);
+        } else if (o.area == FLASH_OTP) {
+            if(sl->otp_base == 0) {
+                err = -1;
+                printf("OTP Write NOT implemented\n");
+                goto on_error;
+            }
+            err = stlink_fwrite_flash(sl, o.filename,  o.addr);
+        
+            if (err == -1) {
+                printf("stlink_fwrite_flash() == -1\n");
+                goto on_error;
+            }
         } else {
             err = -1;
             printf("Unknown memory region\n");
@@ -283,6 +297,17 @@ int32_t main(int32_t ac, char** av) {
                 goto on_error;
             } else {
                 printf("%08x\n",option_byte);
+            }
+        } else if (o.area == FLASH_OTP) {
+            if(sl->otp_base == 0) {
+                err = -1;
+                printf("OTP Read NOT implemented\n");
+                goto on_error;
+            }
+            err = stlink_fread(sl, o.filename, 0, sl->otp_base, sl->otp_size);
+            if (err == -1) {
+                printf("could not read OTP area (%d)\n", err);
+                goto on_error;
             }
         }
     }
