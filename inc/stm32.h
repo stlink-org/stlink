@@ -114,6 +114,7 @@ enum stm32_chipids {
     STM32_CHIPID_F76xxx           = 0x451,
     STM32_CHIPID_F72xxx           = 0x452, /* Nucleo F722ZE board */
     STM32_CHIPID_C031xx           = 0x453, /* RM0490 (revision 3), section 26.10.1 "DBG device ID code register (DBG_IDCODE)" */
+    STM32_CHIPID_U535_U545        = 0x455, /* RM0456, p.3604 */
     STM32_CHIPID_G0_CAT4          = 0x456, /* G051/G061 */
     STM32_CHIPID_L0_CAT1          = 0x457,
     STM32_CHIPID_F410             = 0x458,
@@ -129,9 +130,11 @@ enum stm32_chipids {
     STM32_CHIPID_L4Rx             = 0x470, /* RM0432, p.2247, found on the STM32L4R9I-DISCO board */
     STM32_CHIPID_L4PX             = 0x471, /* RM0432, p.2247 */
     STM32_CHIPID_L5x2xx           = 0x472, /* RM0438, p.2157 */
+    STM32_CHIPID_U5Fx_U5Gx        = 0x476, /* RM0456, p.3604 */
     STM32_CHIPID_G4_CAT4          = 0x479,
     STM32_CHIPID_H7Ax             = 0x480, /* RM0455, p.2863 */
-    STM32_CHIPID_U5x5             = 0x482, /* RM0456, p.2991 */
+    STM32_CHIPID_U59x_U5Ax        = 0x481, /* RM0456, p.3604 */
+    STM32_CHIPID_U575_U585        = 0x482, /* RM0456, p.3604 */
     STM32_CHIPID_H72x             = 0x483, /* RM0468, p.3199 */
     STM32_CHIPID_H5xx             = 0x484, /* RM0481, p.3085 */
     STM32_CHIPID_WB55             = 0x495,

@@ -1,0 +1,14 @@
+# Chip-ID file for STM32U5Fx / STM32U5Gx device
+#
+dev_type STM32U5Fx_U5Gx
+ref_manual_id 0456
+chip_id 0x476                // STM32U5Fx5/5Gx
+flash_type L5_U5_H5
+flash_size_reg 0x0bfa07a0
+flash_pagesize 0x2000        // 8 KB
+sram_size 0x2f4800           // 3026 KB
+bootrom_base 0x0bf90000
+bootrom_size 0x8000          // 32 KB
+option_base 0x0
+option_size 0x0
+flags swo dualbank
