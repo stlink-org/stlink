@@ -19,6 +19,73 @@
 #include "read_write.h"
 
 /**
+ * Read option control register C0
+ * @param sl
+ * @param option_byte
+ * @return 0 on success, -ve on failure.
+ */
+static int32_t stlink_read_option_control_register_c0(stlink_t *sl, uint32_t *option_byte) {
+  return stlink_read_debug32(sl, FLASH_C0_OPTR, option_byte);
+}
+
+/**
+ * Read option bytes C0
+ * @param sl
+ * @param option_byte
+ * @return 0 on success, -ve on failure.
+ */
+static int32_t stlink_read_option_bytes_c0(stlink_t *sl, uint32_t *option_byte) {
+  return stlink_read_option_control_register_c0(sl, option_byte);
+}
+
+/**
+ * Write option control register C0
+ * @param sl
+ * @param option_cr
+ * @return 0 on success, -ve on failure.
+ */
+static int32_t stlink_write_option_control_register_c0(stlink_t *sl, uint32_t option_cr) {
+  int32_t ret = 0;
+
+  clear_flash_error(sl);
+
+  if ((ret = stlink_write_debug32(sl, FLASH_C0_OPTR, option_cr)))
+    return ret;
+
+  wait_flash_busy(sl);
+
+  uint32_t cr_reg = (1 << FLASH_C0_CR_OPTSTRT);
+  if ((ret = stlink_write_debug32(sl, FLASH_C0_CR, cr_reg)))
+    return ret;
+
+  wait_flash_busy(sl);
+
+  if ((ret = check_flash_error(sl)))
+    return ret;
+
+  // trigger the load of option bytes into option registers
+  cr_reg = (1 << FLASH_C0_CR_OBL_LAUNCH);
+  stlink_write_debug32(sl, FLASH_C0_CR, cr_reg);
+
+  return ret;
+}
+
+/**
+ * Write option bytes C0
+ * @param sl
+ * @param addr of the memory mapped option bytes
+ * @param base option bytes
+ * @param len of option bytes
+ * @return 0 on success, -ve on failure.
+ */
+static int32_t stlink_write_option_bytes_c0(stlink_t *sl, stm32_addr_t addr, uint8_t *base, uint32_t len) {
+  (void)addr;
+  (void)len;
+
+  return stlink_write_option_control_register_c0(sl, *(uint32_t*)base);
+}
+
+/**
  * Read option control register F0
  * @param sl
  * @param option_byte
@@ -745,7 +812,6 @@ int32_t stlink_read_option_bytes_generic(stlink_t *sl, uint32_t *option_byte) {
   return stlink_read_debug32(sl, sl->option_base, option_byte);
 }
 
-
 /**
  * Write option bytes
  * @param sl
@@ -785,6 +851,9 @@ int32_t stlink_write_option_bytes(stlink_t *sl, stm32_addr_t addr, uint8_t *base
   }
 
   switch (sl->flash_type) {
+  case STM32_FLASH_TYPE_C0:
+    ret = stlink_write_option_bytes_c0(sl, addr, base, len);
+    break;
   case STM32_FLASH_TYPE_F0_F1_F3:
   case STM32_FLASH_TYPE_F1_XL:
     ret = stlink_write_option_bytes_f0(sl, addr, base, len);
@@ -870,6 +939,8 @@ int32_t stlink_read_option_control_register32(stlink_t *sl, uint32_t *option_byt
   }
 
   switch (sl->flash_type) {
+  case STM32_FLASH_TYPE_C0:
+    return stlink_read_option_control_register_c0(sl, option_byte);
   case STM32_FLASH_TYPE_F0_F1_F3:
   case STM32_FLASH_TYPE_F1_XL:
     return stlink_read_option_control_register_f0(sl, option_byte);
@@ -904,6 +975,9 @@ int32_t stlink_write_option_control_register32(stlink_t *sl, uint32_t option_cr)
   }
 
   switch (sl->flash_type) {
+  case STM32_FLASH_TYPE_C0:
+    ret = stlink_write_option_control_register_c0(sl, option_cr);
+    break;
   case STM32_FLASH_TYPE_F0_F1_F3:
   case STM32_FLASH_TYPE_F1_XL:
     ret = stlink_write_option_control_register_f0(sl, option_cr);
@@ -1009,6 +1083,9 @@ int32_t stlink_read_option_bytes32(stlink_t *sl, uint32_t *option_byte) {
   }
 
   switch (sl->chip_id) {
+  case STM32_CHIPID_C011xx:
+  case STM32_CHIPID_C031xx:
+    return stlink_read_option_bytes_c0(sl, option_byte);
   case STM32_CHIPID_F2:
     return stlink_read_option_bytes_f2(sl, option_byte);
   case STM32_CHIPID_F4:

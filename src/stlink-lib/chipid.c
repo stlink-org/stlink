@@ -99,7 +99,9 @@ void process_chipfile(char *fname) {
       buf[strlen(buf) - 1] = 0; // chomp newline
       sscanf(buf, "%*s %n", &nc);
       // Match human readable flash_type with enum stm32_flash_type { }.
-      if (strcmp(value, "F0_F1_F3") == 0) {
+      if(strcmp(value, "C0") == 0) {
+        ts->flash_type = STM32_FLASH_TYPE_C0;
+      } else if (strcmp(value, "F0_F1_F3") == 0) {
         ts->flash_type = STM32_FLASH_TYPE_F0_F1_F3;
       } else if (strcmp(value, "F1_XL") == 0) {
         ts->flash_type = STM32_FLASH_TYPE_F1_XL;
