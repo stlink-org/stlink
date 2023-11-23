@@ -288,8 +288,7 @@ int32_t flash_get_opts(struct flash_opts* o, int32_t ac, char** av) {
 
             break;
         } else if (o->area == FLASH_OTP) {
-            return bad_arg("TODO: otp not implemented yet");
-            if (ac > 1) { return invalid_args("otp read: [path]"); }
+            if (ac > 1 || ac ==0 ) { return invalid_args("otp read: [path]"); }
             if (ac > 0) { o->filename = av[0]; }
             break;
         } else if (o->area == FLASH_OPTION_BYTES) {

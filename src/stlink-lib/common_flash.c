@@ -1310,9 +1310,16 @@ int32_t stlink_fwrite_flash(stlink_t *sl, const char *path, stm32_addr_t addr) {
    * If the file is identified to be all-empty and four-bytes aligned,
    * still flash the whole file even if ignoring message is printed.
    */
-  err = stlink_write_flash(sl, addr, mf.base,
+
+  /* In case the address is within the OTP area we use a different flash method */
+  if(addr >= sl->otp_base && addr < sl->otp_base + sl->otp_size) {
+    err = stlink_write_otp(sl, addr, mf.base,
+                           (num_empty == mf.len) ? (uint32_t)mf.len : (uint32_t)mf.len - num_empty);
+  } else {
+    err = stlink_write_flash(sl, addr, mf.base,
                            (num_empty == mf.len) ? (uint32_t)mf.len : (uint32_t)mf.len - num_empty,
                            num_empty == mf.len);
+  }
   stlink_fwrite_finalize(sl, addr);
   unmap_file(&mf);
   return (err);
@@ -1389,6 +1396,22 @@ int32_t stlink_check_address_range_validity(stlink_t *sl, stm32_addr_t addr, uin
   return 0;
 }
 
+// Check if an address and size are within the flash (otp area)
+int32_t stlink_check_address_range_validity_otp(stlink_t *sl, stm32_addr_t addr, uint32_t size) {
+  uint32_t logvar;
+  if (addr < sl->otp_base || addr >= (sl->otp_base + sl->otp_size)) {
+    logvar = sl->otp_base + sl->otp_size - 1;
+    ELOG("Invalid address, it should be within 0x%08x - 0x%08x\n", sl->otp_base, logvar);
+    return (-1);
+  }
+  if ((addr + size) >= (sl->otp_base + sl->otp_size)) {
+    logvar = sl->otp_base + sl->otp_size - addr;
+    ELOG("The size exceeds the size of the OTP Area (0x%08x bytes available)\n", logvar);
+    return (-1);
+  }
+  return 0;
+}
+
 // Check if an address is aligned with the beginning of a page
 int32_t stlink_check_address_alignment(stlink_t *sl, stm32_addr_t addr) {
   stm32_addr_t page = sl->flash_base;
@@ -1408,6 +1431,7 @@ int32_t stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t *base, uint3
   int32_t ret;
   flash_loader_t fl;
   ILOG("Attempting to write %d (%#x) bytes to stm32 address: %u (%#x)\n", len, len, addr, addr);
+
   // check addr range is inside the flash
   stlink_calculate_pagesize(sl, addr);
 
@@ -1437,7 +1461,33 @@ int32_t stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t *base, uint3
   if (eraseonly) {
     return (0);
   }
+ 
+  ret = stlink_flashloader_start(sl, &fl);
+  if (ret)
+    return ret;
+  ret = stlink_flashloader_write(sl, &fl, addr, base, len);
+  if (ret)
+    return ret;
+  ret = stlink_flashloader_stop(sl, &fl);
+  if (ret)
+    return ret;
 
+  return (stlink_verify_write_flash(sl, addr, base, len));
+}
+
+int32_t stlink_write_otp(stlink_t *sl, stm32_addr_t addr, uint8_t *base, uint32_t len) {
+  int32_t ret;
+  flash_loader_t fl;
+  ILOG("Attempting to write %d (%#x) bytes to stm32 address: %u (%#x)\n", len, len, addr, addr);
+  
+  // Check the address and size validity
+  if (stlink_check_address_range_validity_otp(sl, addr, len) < 0) {
+    return (-1);
+  }
+
+  // make sure we've loaded the context with the chip details
+  stlink_core_id(sl);
+ 
   ret = stlink_flashloader_start(sl, &fl);
   if (ret)
     return ret;
