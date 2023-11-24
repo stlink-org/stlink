@@ -290,6 +290,8 @@ int32_t stlink_load_device_params(stlink_t *sl) {
   sl->option_base = params->option_base;
   sl->option_size = params->option_size;
   sl->chip_flags = params->flags;
+  sl->otp_base = params->otp_base;
+  sl->otp_size = params->otp_size;
 
   // medium and low devices have the same chipid. ram size depends on flash
   // size. STM32F100xx datasheet Doc ID 16455 Table 2

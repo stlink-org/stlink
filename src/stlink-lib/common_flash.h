@@ -44,8 +44,10 @@ int32_t stlink_fwrite_flash(stlink_t *sl, const char *path, stm32_addr_t addr);
 int32_t stlink_fcheck_flash(stlink_t *sl, const char *path, stm32_addr_t addr);
 int32_t stlink_verify_write_flash(stlink_t *sl, stm32_addr_t address, uint8_t *data, uint32_t length);
 int32_t stlink_check_address_range_validity(stlink_t *sl, stm32_addr_t addr, uint32_t size);
+int32_t stlink_check_address_range_validity_otp(stlink_t *sl, stm32_addr_t addr, uint32_t size);
 int32_t stlink_check_address_alignment(stlink_t *sl, stm32_addr_t addr);
 int32_t stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t *base, uint32_t len, uint8_t eraseonly);
+int32_t stlink_write_otp(stlink_t *sl, stm32_addr_t addr, uint8_t *base, uint32_t len);
 void stlink_fwrite_finalize(stlink_t *, stm32_addr_t);
 
 #endif // COMMON_FLASH_H

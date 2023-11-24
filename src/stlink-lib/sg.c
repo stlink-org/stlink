@@ -172,7 +172,7 @@ static int32_t dump_CDB_command(uint8_t *cdb, uint8_t cdb_len) {
     dbugp += sprintf(dbugp, "Sending CDB [");
 
     for (uint8_t i = 0; i < cdb_len; i++) {
-        dbugp += sprintf(dbugp, " %#02x", (uint32_t)cdb[i]);
+        dbugp += sprintf(dbugp, " 0x%02x", (uint32_t)cdb[i]);
     }
 
     sprintf(dbugp, "]\n");
