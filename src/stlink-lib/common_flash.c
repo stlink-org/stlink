@@ -101,6 +101,11 @@ void lock_flash(stlink_t *sl) {
     cr_lock_shift = FLASH_Gx_CR_LOCK;
   } else if (sl->flash_type == STM32_FLASH_TYPE_H7) {
     cr_reg = FLASH_H7_CR1;
+    if (sl->chip_flags & CHIP_F_HAS_DUAL_BANK) {
+      cr2_reg = FLASH_H7_CR2;
+    }
+    cr_lock_shift = FLASH_H7_CR_LOCK;
+    cr_mask = ~(1u << FLASH_H7_CR_SER);
   } else if (sl->flash_type == STM32_FLASH_TYPE_L0_L1) {
     cr_reg = get_stm32l0_flash_base(sl) + FLASH_PECR_OFF;
     cr_lock_shift = FLASH_L0_PELOCK;
@@ -113,11 +118,6 @@ void lock_flash(stlink_t *sl) {
   } else if (sl->flash_type == STM32_FLASH_TYPE_WB_WL) {
     cr_reg = FLASH_WB_CR;
     cr_lock_shift = FLASH_WB_CR_LOCK;
-    if (sl->chip_flags & CHIP_F_HAS_DUAL_BANK) {
-      cr2_reg = FLASH_H7_CR2;
-    }
-    cr_lock_shift = FLASH_H7_CR_LOCK;
-    cr_mask = ~(1u << FLASH_H7_CR_SER);
   } else {
     ELOG("unsupported flash method, abort\n");
     return;
@@ -1014,11 +1014,7 @@ int32_t stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr) {
     unlock_flash_if(sl);
 
     // select the page to erase
-    if ((sl->chip_id == STM32_CHIPID_L4) ||
-        (sl->chip_id == STM32_CHIPID_L43x_L44x) ||
-        (sl->chip_id == STM32_CHIPID_L45x_L46x) ||
-        (sl->chip_id == STM32_CHIPID_L496x_L4A6x) ||
-        (sl->chip_id == STM32_CHIPID_L4Rx)) {
+    if (sl->flash_type == STM32_FLASH_TYPE_L4) {
       // calculate the actual bank+page from the address
       uint32_t page = calculate_L4_page(sl, flashaddr);
 
@@ -1121,16 +1117,16 @@ int32_t stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr) {
     if (sl->flash_type == STM32_FLASH_TYPE_G0) {
       uint32_t flash_page = ((flashaddr - STM32_FLASH_BASE) / sl->flash_pgsz);
       stlink_read_debug32(sl, FLASH_Gx_CR, &val);
-      // sec 3.7.5 - PNB[5:0] is offset by 3. PER is 0x2.
-      val &= ~(0x3F << 3);
-      val |= ((flash_page & 0x3F) << 3) | (1 << FLASH_CR_PER);
+      // sec 3.7.5 - PNB[9:0] is offset by 3. PER is 0x2.
+      val &= ~(0x3FF << 3);
+      val |= ((flash_page & 0x3FF) << 3) | (1 << FLASH_CR_PER);
       stlink_write_debug32(sl, FLASH_Gx_CR, val);
     } else if (sl->flash_type == STM32_FLASH_TYPE_G4) {
       uint32_t flash_page = ((flashaddr - STM32_FLASH_BASE) / sl->flash_pgsz);
       stlink_read_debug32(sl, FLASH_Gx_CR, &val);
-      // sec 3.7.5 - PNB[6:0] is offset by 3. PER is 0x2.
-      val &= ~(0x7F << 3);
-      val |= ((flash_page & 0x7F) << 3) | (1 << FLASH_CR_PER);
+      // sec 3.7.5 - PNB[9:0] is offset by 3. PER is 0x2.
+      val &= ~(0x7FF << 3);
+      val |= ((flash_page & 0x7FF) << 3) | (1 << FLASH_CR_PER);
       stlink_write_debug32(sl, FLASH_Gx_CR, val);
     // STM32L5x2xx has two banks with 2k pages or single with 4k pages
     // STM32H5xx, STM32U535, STM32U545, STM32U575 or STM32U585 have 2 banks with 8k pages
