@@ -313,7 +313,7 @@ static gpointer stlink_gui_populate_filemem_view(gpointer data) {
 	  goto out_input;
 	}
 
-        gui->file_mem.size   = (gsize) file_info;
+        gui->file_mem.size   = file_size;
         gui->file_mem.memory = g_malloc(gui->file_mem.size);
 
         for (off = 0; off < (gint)gui->file_mem.size; off += MEM_READ_SIZE) {
