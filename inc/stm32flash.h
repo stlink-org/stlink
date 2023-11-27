@@ -142,6 +142,7 @@
 #define FLASH_F7_OPTCR_START 1
 #define FLASH_F7_OPTCR1_BOOT_ADD0 0
 #define FLASH_F7_OPTCR1_BOOT_ADD1 16
+#define FLASH_F7_OPTCR_DBANK (29)   /* FLASH_OPTCR Dual Bank Mode */
 
 // F7 Flash control register
 #define FLASH_F7_CR_STRT 16
@@ -152,12 +153,12 @@
 
 // F7 Flash status register
 #define FLASH_F7_SR_BSY 16
-#define FLASH_F7_SR_ERS_ERR 7 /* Erase Sequence Error */
-#define FLASH_F7_SR_PGP_ERR 6 /* Programming parallelism error */
-#define FLASH_F7_SR_PGA_ERR 5 /* Programming alignment error */
-#define FLASH_F7_SR_WRP_ERR 4 /* Write protection error */
-#define FLASH_F7_SR_OP_ERR 1  /* Operation error */
-#define FLASH_F7_SR_EOP 0     /* End of operation */
+#define FLASH_F7_SR_ERS_ERR 7       /* Erase Sequence Error */
+#define FLASH_F7_SR_PGP_ERR 6       /* Programming parallelism error */
+#define FLASH_F7_SR_PGA_ERR 5       /* Programming alignment error */
+#define FLASH_F7_SR_WRP_ERR 4       /* Write protection error */
+#define FLASH_F7_SR_OP_ERR 1        /* Operation error */
+#define FLASH_F7_SR_EOP 0           /* End of operation */
 #define FLASH_F7_SR_ERROR_MASK                               \
   ((1 << FLASH_F7_SR_ERS_ERR) | (1 << FLASH_F7_SR_PGP_ERR) | \
    (1 << FLASH_F7_SR_PGA_ERR) | (1 << FLASH_F7_SR_WRP_ERR) | \
@@ -196,8 +197,8 @@
 #define FLASH_Gx_SR_PROGERR (3)
 #define FLASH_Gx_SR_WRPERR (4)
 #define FLASH_Gx_SR_PGAERR (5)
-#define FLASH_Gx_SR_BSY (16) /* FLASH_SR Busy */
-#define FLASH_Gx_SR_EOP (0)  /* FLASH_EOP End of Operation */
+#define FLASH_Gx_SR_BSY (16)        /* FLASH_SR Busy */
+#define FLASH_Gx_SR_EOP (0)         /* FLASH_EOP End of Operation */
 
 // == STM32G0 == (RM0444 Table 1, sec. 3.7)
 // Mostly the same as G4 chips, but the notation
@@ -272,8 +273,8 @@
 #define FLASH_H7_SR_WRPERR 17
 #define FLASH_H7_SR_PGSERR 18
 #define FLASH_H7_SR_STRBERR 19
-#define FLASH_H7_SR_ERROR_MASK                                                 \
-  ((1 << FLASH_H7_SR_PGSERR) | (1 << FLASH_H7_SR_STRBERR) |                    \
+#define FLASH_H7_SR_ERROR_MASK                              \
+  ((1 << FLASH_H7_SR_PGSERR) | (1 << FLASH_H7_SR_STRBERR) | \
    (1 << FLASH_H7_SR_WRPERR))
 
 // == STM32L0/L1/L4/L5 ==
@@ -332,27 +333,27 @@
 #define FLASH_L4_OPTR (FLASH_REGS_ADDR + 0x20)
 
 // L4 Flash status register
-#define FLASH_L4_SR_ERROR_MASK 0x3f8 /* SR [9:3] */
+#define FLASH_L4_SR_ERROR_MASK 0x3f8 // SR [9:3]
 #define FLASH_L4_SR_PROGERR 3
 #define FLASH_L4_SR_WRPERR 4
 #define FLASH_L4_SR_PGAERR 5
 #define FLASH_L4_SR_BSY 16
 
 // L4 Flash control register
-#define FLASH_L4_CR_LOCK 31       /* Lock control register */
-#define FLASH_L4_CR_OPTLOCK 30    /* Lock option bytes */
-#define FLASH_L4_CR_PG 0          /* Program */
-#define FLASH_L4_CR_PER 1         /* Page erase */
-#define FLASH_L4_CR_MER1 2        /* Bank 1 erase */
-#define FLASH_L4_CR_MER2 15       /* Bank 2 erase */
-#define FLASH_L4_CR_STRT 16       /* Start command */
-#define FLASH_L4_CR_OPTSTRT 17    /* Start writing option bytes */
-#define FLASH_L4_CR_BKER 11       /* Bank select for page erase */
-#define FLASH_L4_CR_PNB 3         /* Page number (8 bits) */
-#define FLASH_L4_CR_OBL_LAUNCH 27 /* Option bytes reload */
+#define FLASH_L4_CR_LOCK 31         /* Lock control register */
+#define FLASH_L4_CR_OPTLOCK 30      /* Lock option bytes */
+#define FLASH_L4_CR_PG 0            /* Program */
+#define FLASH_L4_CR_PER 1           /* Page erase */
+#define FLASH_L4_CR_MER1 2          /* Bank 1 erase */
+#define FLASH_L4_CR_MER2 15         /* Bank 2 erase */
+#define FLASH_L4_CR_STRT 16         /* Start command */
+#define FLASH_L4_CR_OPTSTRT 17      /* Start writing option bytes */
+#define FLASH_L4_CR_BKER 11         /* Bank select for page erase */
+#define FLASH_L4_CR_PNB 3           /* Page number (8 bits) */
+#define FLASH_L4_CR_OBL_LAUNCH 27   /* Option bytes reload */
 // Bits requesting flash operations (useful when we want to clear them)
-#define FLASH_L4_CR_OPBITS                                                \
-  (uint32_t)((1lu << FLASH_L4_CR_PG) | (1lu << FLASH_L4_CR_PER) |    \
+#define FLASH_L4_CR_OPBITS                                        \
+  (uint32_t)((1lu << FLASH_L4_CR_PG) | (1lu << FLASH_L4_CR_PER) | \
              (1lu << FLASH_L4_CR_MER1) | (1lu << FLASH_L4_CR_MER1))
 // Page is fully specified by BKER and PNB
 #define FLASH_L4_CR_PAGEMASK (uint32_t)(0x1fflu << FLASH_L4_CR_PNB)
@@ -428,10 +429,10 @@
 #define FLASH_WB_CR_LOCK (31)       /* Lock */
 
 // WB Flash status register
-#define FLASH_WB_SR_ERROR_MASK (0x3f8) /* SR [9:3] */
-#define FLASH_WB_SR_PROGERR (3)        /* Programming alignment error */
-#define FLASH_WB_SR_WRPERR (4)         /* Write protection error */
-#define FLASH_WB_SR_PGAERR (5)         /* Programming error */
-#define FLASH_WB_SR_BSY (16)           /* Busy */
+#define FLASH_WB_SR_ERROR_MASK (0x3f8) // SR [9:3]
+#define FLASH_WB_SR_PROGERR (3)     /* Programming alignment error */
+#define FLASH_WB_SR_WRPERR (4)      /* Write protection error */
+#define FLASH_WB_SR_PGAERR (5)      /* Programming error */
+#define FLASH_WB_SR_BSY (16)        /* Busy */
 
 #endif // STM32FLASH_H

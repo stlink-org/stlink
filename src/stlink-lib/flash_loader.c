@@ -363,7 +363,7 @@ int32_t stlink_flash_loader_run(stlink_t *sl, flash_loader_t* fl, stm32_addr_t t
   /* Run loader */
   stlink_run(sl, RUN_FLASH_LOADER);
 
-/* 
+/*
  * This piece of code used to try to spin for .1 second by waiting doing 10000 rounds of 10 µs.
  * But because this usually runs on Unix-like OSes, the 10 µs get rounded up to the "tick"
  * (actually almost two ticks) of the system. 1 ms. Thus, the ten thousand attempts, when
@@ -393,7 +393,7 @@ int32_t stlink_flash_loader_run(stlink_t *sl, flash_loader_t* fl, stm32_addr_t t
   // check written byte count
   stlink_read_reg(sl, 2, &rr);
 
-  /* 
+  /*
   * The chunk size for loading is not rounded. The flash loader
   * subtracts the size of the written block (1-8 bytes) from
   * the remaining size each time. A negative value may mean that

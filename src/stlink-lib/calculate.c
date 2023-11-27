@@ -36,7 +36,7 @@ uint32_t calculate_F4_sectornum(uint32_t flashaddr) {
   }
 }
 
-uint32_t calculate_F7_sectornum(uint32_t flashaddr) {
+uint32_t calculate_F7_sectornum_old(uint32_t flashaddr) {
   flashaddr &= ~STM32_FLASH_BASE; // Page now holding the actual flash address
 
   if (flashaddr < 0x20000) {
@@ -49,10 +49,8 @@ uint32_t calculate_F7_sectornum(uint32_t flashaddr) {
 }
 
 uint32_t calculate_H7_sectornum(stlink_t *sl, uint32_t flashaddr, uint32_t bank) {
-  flashaddr &=
-      ~((bank == BANK_1)
-            ? STM32_FLASH_BASE
-            : STM32_H7_FLASH_BANK2_BASE); // sector holding the flash address
+  // sector holding the flash address
+  flashaddr &= ~((bank == BANK_1) ? STM32_FLASH_BASE : STM32_H7_FLASH_BANK2_BASE);
   return (flashaddr / sl->flash_pgsz);
 }
 

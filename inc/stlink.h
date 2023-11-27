@@ -199,23 +199,23 @@ struct _stlink {
     // transport layer verboseness: 0 for no debug info, 10 for lots
     int32_t verbose;
     int32_t opt;
-    uint32_t core_id;            // set by stlink_core_id(), result from STLINK_DEBUGREADCOREID
-    uint32_t chip_id;            // set by stlink_load_device_params(), used to identify flash and sram
-    enum target_state core_stat; // set by stlink_status()
+    uint32_t core_id;               // set by stlink_core_id(), result from STLINK_DEBUGREADCOREID
+    uint32_t chip_id;               // set by stlink_load_device_params(), used to identify flash and sram
+    enum target_state core_stat;    // set by stlink_status()
 
     char serial[STLINK_SERIAL_BUFFER_SIZE];
-    int32_t freq;                    // set by stlink_open_usb(), values: STLINK_SWDCLK_xxx_DIVISOR
+    int32_t freq;                   // set by stlink_open_usb(), values: STLINK_SWDCLK_xxx_DIVISOR
 
     enum stm32_flash_type flash_type;
     // stlink_chipid_params.flash_type, set by stlink_load_device_params(), values: STM32_FLASH_TYPE_xx
 
-    stm32_addr_t flash_base;     // STM32_FLASH_BASE, set by stlink_load_device_params()
-    uint32_t flash_size;           // calculated by stlink_load_device_params()
-    uint32_t flash_pgsz;           // stlink_chipid_params.flash_pagesize, set by stlink_load_device_params()
+    stm32_addr_t flash_base;        // STM32_FLASH_BASE, set by stlink_load_device_params()
+    uint32_t flash_size;            // calculated by stlink_load_device_params()
+    uint32_t flash_pgsz;            // stlink_chipid_params.flash_pagesize, set by stlink_load_device_params()
 
     /* sram settings */
-    stm32_addr_t sram_base;      // STM32_SRAM_BASE, set by stlink_load_device_params()
-    uint32_t sram_size;            // stlink_chipid_params.sram_size, set by stlink_load_device_params()
+    stm32_addr_t sram_base;         // STM32_SRAM_BASE, set by stlink_load_device_params()
+    uint32_t sram_size;             // stlink_chipid_params.sram_size, set by stlink_load_device_params()
 
     /* option settings */
     stm32_addr_t option_base;
@@ -224,14 +224,16 @@ struct _stlink {
     // bootloader
     // sys_base and sys_size are not used by the tools, but are only there to download the bootloader code
     // (see tests/sg.c)
-    stm32_addr_t sys_base;       // stlink_chipid_params.bootrom_base, set by stlink_load_device_params()
-    uint32_t sys_size;             // stlink_chipid_params.bootrom_size, set by stlink_load_device_params()
+    stm32_addr_t sys_base;          // stlink_chipid_params.bootrom_base, set by stlink_load_device_params()
+    uint32_t sys_size;              // stlink_chipid_params.bootrom_size, set by stlink_load_device_params()
 
     struct stlink_version_ version;
 
-    uint32_t chip_flags;         // stlink_chipid_params.flags, set by stlink_load_device_params(), values: CHIP_F_xxx
+    uint32_t chip_flags;            // stlink_chipid_params.flags, set by stlink_load_device_params(), values: CHIP_F_xxx
 
-    uint32_t max_trace_freq;     // set by stlink_open_usb()
+    uint32_t max_trace_freq;        // set by stlink_open_usb()
+
+    bool dual_bank;                 // set for F7xxx devices by reading optcr
 
     uint32_t otp_base;
     uint32_t otp_size;
