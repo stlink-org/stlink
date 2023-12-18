@@ -1,3 +1,16 @@
+stlink (1.7.0+ds-2) unstable; urgency=medium
+
+  [ Debian Janitor ]
+  * Remove constraints unnecessary since buster
+  * Set upstream metadata fields: Bug-Database, Bug-Submit, Repository-
+    Browse.
+  * Update standards version to 4.6.2, no changes needed.
+
+  [ Chris Hofstaedtler ]
+  * use udev.pc to place udev rules (Closes: #1058829)
+
+ -- Luca Boccassi <bluca@debian.org>  Mon, 18 Dec 2023 15:01:19 +0100
+
 stlink (1.7.0+ds-1) unstable; urgency=medium
 
   * Merge tag 'v1.7.0' into debian. (Closes: #984356)
