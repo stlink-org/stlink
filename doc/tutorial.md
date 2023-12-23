@@ -62,7 +62,7 @@ On my system I see the following:
 crw-rw-rw- 1 root root 189, 528 Jan 24 17:52 /dev/bus/usb/005/017
 ```
 
-which is world writable (this is from the `MODE:="0666"` below). I have several files in my `/etc/udev/rules.d` directory. In this particular case, the `49-stlinkv2-1.rules` file contains the following:
+which is world writable (this is from the `MODE:="0666"` below). I have several files in my `/lib/udev/rules.d` directory. In this particular case, the `49-stlinkv2-1.rules` file contains the following:
 
 ```
 # STM32 nucleo boards, with onboard STLINK/V2-1
@@ -81,7 +81,7 @@ SUBSYSTEMS=="usb", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="374b", \
 
 and the `idVendor` of `0483` and `idProduct` of `374b` matches the vendor id from the `lsusb` output.
 
-Make sure that you have all 3 files from [/config/udev/rules.d](https://github.com/stlink-org/stlink/tree/master/config/udev/rules.d) in your `/etc/udev/rules.d` directory. After copying new files or editing existing files in `/etc/udev/ruled.d` you should run the following:
+Make sure that you have all 3 files from [/config/udev/rules.d](https://github.com/stlink-org/stlink/tree/master/config/udev/rules.d) in your `/lib/udev/rules.d` directory. After copying new files or editing existing files in `/lib/udev/rules.d` you should run the following:
 
 ```
 sudo udevadm control --reload-rules
