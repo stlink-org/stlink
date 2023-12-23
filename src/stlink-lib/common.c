@@ -858,7 +858,7 @@ uint32_t stlink_calculate_pagesize(stlink_t *sl, uint32_t flashaddr) {
     }
   } else if (sl->chip_id == STM32_CHIPID_F7 ||
              sl->chip_id == STM32_CHIPID_F76xxx) {
-    uint32_t sector = calculate_F7_sectornum(sl, flashaddr);
+    uint32_t sector = calculate_F7_sectornum(flashaddr);
 
     if (sector < 4) {
       sl->flash_pgsz = 0x8000;
