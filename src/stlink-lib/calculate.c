@@ -36,7 +36,7 @@ uint32_t calculate_F4_sectornum(uint32_t flashaddr) {
   }
 }
 
-uint32_t calculate_F7_sectornum_old(uint32_t flashaddr) {
+uint32_t calculate_F7_sectornum(uint32_t flashaddr) {
   flashaddr &= ~STM32_FLASH_BASE; // Page now holding the actual flash address
 
   if (flashaddr < 0x20000) {

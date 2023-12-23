@@ -233,8 +233,6 @@ struct _stlink {
 
     uint32_t max_trace_freq;        // set by stlink_open_usb()
 
-    bool dual_bank;                 // set for F7xxx devices by reading optcr
-
     uint32_t otp_base;
     uint32_t otp_size;
 };

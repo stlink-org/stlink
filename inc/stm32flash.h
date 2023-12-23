@@ -142,7 +142,6 @@
 #define FLASH_F7_OPTCR_START 1
 #define FLASH_F7_OPTCR1_BOOT_ADD0 0
 #define FLASH_F7_OPTCR1_BOOT_ADD1 16
-#define FLASH_F7_OPTCR_DBANK (29)   /* FLASH_OPTCR Dual Bank Mode */
 
 // F7 Flash control register
 #define FLASH_F7_CR_STRT 16

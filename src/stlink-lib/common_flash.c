@@ -145,7 +145,7 @@ static inline int32_t write_flash_sr(stlink_t *sl, uint32_t bank, uint32_t val) 
   } else if (sl->flash_type == STM32_FLASH_TYPE_F2_F4) {
     sr_reg = FLASH_F4_SR;
   } else if (sl->flash_type == STM32_FLASH_TYPE_F7) {
-    sr_reg = (bank == BANK_1) ? FLASH_F7_SR1 : FLASH_F7_SR2;
+    sr_reg = FLASH_F7_SR;
   } else if (sl->flash_type == STM32_FLASH_TYPE_G0 ||
              sl->flash_type == STM32_FLASH_TYPE_G4) {
     sr_reg = FLASH_Gx_SR;
@@ -1025,7 +1025,7 @@ int32_t stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr) {
     } else if (sl->chip_id == STM32_CHIPID_F7 ||
                sl->chip_id == STM32_CHIPID_F76xxx) {
       // calculate the actual page from the address
-      uint32_t sector = calculate_F7_sectornum(sl, flashaddr);
+      uint32_t sector = calculate_F7_sectornum(flashaddr);
 
       fprintf(stderr, "EraseFlash - Sector:0x%x Size:0x%x ", sector,
               stlink_calculate_pagesize(sl, flashaddr));
