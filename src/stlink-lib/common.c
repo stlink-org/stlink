@@ -599,23 +599,6 @@ int32_t stlink_current_mode(stlink_t *sl) {
   return (STLINK_DEV_UNKNOWN_MODE);
 }
 
-// 274
-int32_t stlink_trace_enable(stlink_t *sl, uint32_t frequency) {
-  DLOG("*** stlink_trace_enable ***\n");
-  return (sl->backend->trace_enable(sl, frequency));
-}
-
-// 275
-int32_t stlink_trace_disable(stlink_t *sl) {
-  DLOG("*** stlink_trace_disable ***\n");
-  return (sl->backend->trace_disable(sl));
-}
-
-// 276
-int32_t stlink_trace_read(stlink_t *sl, uint8_t *buf, uint32_t size) {
-  return (sl->backend->trace_read(sl, buf, size));
-}
-
 // 294
 void stlink_print_data(stlink_t *sl) {
   if (sl->q_len <= 0 || sl->verbose < UDEBUG) {
