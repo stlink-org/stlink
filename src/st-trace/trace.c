@@ -425,7 +425,7 @@ static trace_state update_trace(st_trace_t *trace, uint8_t c) {
 }
 
 static bool read_trace(stlink_t *stlink, st_trace_t *trace) {
-  uint8_t buffer[STLINK_TRACE_BUF_LEN];
+  uint8_t buffer[max_trace_buf_len];
   int32_t length = stlink_trace_read(stlink, buffer, sizeof(buffer));
 
   if (length < 0) {

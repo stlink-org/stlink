@@ -66,7 +66,8 @@ enum target_state {
 
 #define STLINK_V3_MAX_FREQ_NB            10
 
-#define STLINK_TRACE_BUF_LEN               2048
+#define STLINK_V2_TRACE_BUF_LEN            2048
+#define STLINK_V3_TRACE_BUF_LEN            8192
 #define STLINK_V2_MAX_TRACE_FREQUENCY   2000000
 #define STLINK_V3_MAX_TRACE_FREQUENCY  24000000
 #define STLINK_DEFAULT_TRACE_FREQUENCY  2000000
@@ -273,7 +274,13 @@ int32_t stlink_fread(stlink_t* sl, const char* path, bool is_ihex, stm32_addr_t 
 int32_t stlink_load_device_params(stlink_t *sl);
 int32_t stlink_target_connect(stlink_t *sl, enum connect_type connect);
 
+#include <chipid.h>
+#include <commands.h>
+#include <flash_loader.h>
+#include <sg.h>
+#include <usb.h>
 #include <version.h>
+#include <logging.h>
 
 #ifdef __cplusplus
 }
