@@ -8,9 +8,15 @@
 #ifndef LOGGING_H
 #define LOGGING_H
 
+#include <stdint.h>
+#include "spdlog_wrapper.h"
+
 #ifdef  __cplusplus
 extern "C" {
 #endif // __cplusplus
+
+/* Optional: Enable interface for SPDLOG to replace UglyLogging */
+// #define SPDLOG_LOGGING
 
 enum ugly_loglevel {
     UDEBUG = 90,
@@ -43,6 +49,17 @@ int32_t ugly_libusb_log_level(enum ugly_loglevel v);
 #define WLOG(...) ugly_log(UWARN, UGLY_LOG_FILE, __VA_ARGS__)
 #define ELOG_HELPER(format, ...)   ugly_log(UERROR, UGLY_LOG_FILE, format, __VA_ARGS__)
 #define ELOG(...) ugly_log(UERROR, UGLY_LOG_FILE, __VA_ARGS__)
+
+#if defined(SPDLOG_LOGGING)
+#undef DLOG_HELPER
+#undef ILOG_HELPER
+#undef WLOG_HELPER
+#undef ELOG_HELPER
+#define DLOG(...) spdlogLog(UDEBUG, __VA_ARGS__)
+#define ILOG(...) spdlogLog(UINFO, __VA_ARGS__)
+#define WLOG(...) spdlogLog(UWARN, __VA_ARGS__)
+#define ELOG(...) spdlogLog(UERROR, __VA_ARGS__)
+#endif // SPDLOG_LOGGING
 
 #ifdef  __cplusplus
 }
