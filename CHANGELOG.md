@@ -95,6 +95,7 @@ Fixes:
 - [compilation] Corrected path to stlink/chips subdirectory ([#1276](https://github.com/stlink-org/stlink/pull/1276), [#1279](https://github.com/stlink-org/stlink/pull/1279))
 - [compilation] Fixed GUI compilation failure on OpenBSD i386 ([#1284](https://github.com/stlink-org/stlink/pull/1284))
 - [STM32U5x5]: Last bytes are not written (flashed) when len(<binary>)%16 <= 8 ([#1303](https://github.com/stlink-org/stlink/pull/1303), [#1315](https://github.com/stlink-org/stlink/pull/1315))
+- [STM32WLE]: Erase flash fails on second page ([#1305](https://github.com/stlink-org/stlink/pull/1305), commit [#7dcb130](https://github.com/stlink-org/stlink/commit/7dcb1302d8b91b2217c4ce50cb255aa8e78ab001))
 - Fixed unbounded write and check return values of sscanf ([#1306](https://github.com/stlink-org/stlink/pull/1306))
 - Added null check for return value of stlink_chipid_get_params() ([#1307](https://github.com/stlink-org/stlink/pull/1307))
 - Fixed warning in a few *.cmake files ([#1309](https://github.com/stlink-org/stlink/pull/1309))
