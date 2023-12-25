@@ -97,6 +97,20 @@ BOOL WINAPI CtrlHandler(DWORD fdwCtrlType) {
 }
 #endif
 
+int32_t stlink_trace_enable(stlink_t *sl, uint32_t frequency) {
+  DLOG("*** stlink_trace_enable ***\n");
+  return (sl->backend->trace_enable(sl, frequency));
+}
+
+int32_t stlink_trace_disable(stlink_t *sl) {
+  DLOG("*** stlink_trace_disable ***\n");
+  return (sl->backend->trace_disable(sl));
+}
+
+int32_t stlink_trace_read(stlink_t *sl, uint8_t *buf, uint32_t size) {
+  return (sl->backend->trace_read(sl, buf, size));
+}
+
 static void usage(void) {
   puts("st-trace - usage:");
   puts("  -h, --help            Print this help");
@@ -112,8 +126,7 @@ static void usage(void) {
   puts("  -f, --force           Ignore most initialization errors");
 }
 
-static bool parse_frequency(char* text, uint32_t* result)
-{
+static bool parse_frequency(char* text, uint32_t* result) {
   if (text == NULL) {
     ELOG("Invalid frequency.\n");
     return false;
@@ -193,12 +206,10 @@ bool parse_options(int32_t argc, char **argv, st_settings_t *settings) {
       ugly_init(settings->logging_level);
       break;
     case 'c':
-      if (!parse_frequency(optarg, &settings->core_frequency))
-        error = true;
+      if (!parse_frequency(optarg, &settings->core_frequency)) error = true;
       break;
     case 't':
-      if (!parse_frequency(optarg, &settings->trace_frequency))
-        error = true;
+      if (!parse_frequency(optarg, &settings->trace_frequency)) error = true;
       break;
     case 'n':
       settings->reset_board = false;
@@ -226,29 +237,24 @@ bool parse_options(int32_t argc, char **argv, st_settings_t *settings) {
     error = true;
   }
 
-  if (error && !settings->force)
-    return false;
+  if (error && !settings->force) return false;
 
   return true;
 }
 
 static stlink_t *stlink_connect(const st_settings_t *settings) {
-  return stlink_open_usb(settings->logging_level, false,
-                         settings->serial_number, 0);
+  return stlink_open_usb(settings->logging_level, false, settings->serial_number, 0);
 }
 
-static bool enable_trace(stlink_t *stlink, const st_settings_t *settings,
-                         uint32_t trace_frequency) {
+static bool enable_trace(stlink_t *stlink, const st_settings_t *settings, uint32_t trace_frequency) {
 
   if (stlink_force_debug(stlink)) {
     ELOG("Unable to debug device\n");
-    if (!settings->force)
-      return false;
+    if (!settings->force) return false;
   }
   if (settings->reset_board && stlink_reset(stlink, RESET_SOFT_AND_HALT)) {
     ELOG("Unable to reset device\n");
-    if (!settings->force)
-      return false;
+    if (!settings->force) return false;
   }
 
   stlink_write_debug32(stlink, STLINK_REG_DHCSR,
@@ -262,29 +268,24 @@ static bool enable_trace(stlink_t *stlink, const st_settings_t *settings,
   stlink_write_debug32(stlink, STLINK_REG_DWT_FUNCTION2, 0);
   stlink_write_debug32(stlink, STLINK_REG_DWT_FUNCTION3, 0);
   stlink_write_debug32(stlink, STLINK_REG_DWT_CTRL, 0);
-  stlink_write_debug32(
-      stlink, STLINK_REG_DBGMCU_CR,
+  stlink_write_debug32(stlink, STLINK_REG_DBGMCU_CR,
       STLINK_REG_DBGMCU_CR_DBG_SLEEP | STLINK_REG_DBGMCU_CR_DBG_STOP |
           STLINK_REG_DBGMCU_CR_DBG_STANDBY | STLINK_REG_DBGMCU_CR_TRACE_IOEN |
           STLINK_REG_DBGMCU_CR_TRACE_MODE_ASYNC);
 
   if (stlink_trace_enable(stlink, trace_frequency)) {
     ELOG("Unable to turn on tracing in stlink\n");
-    if (!settings->force)
-      return false;
+    if (!settings->force) return false;
   }
 
-  stlink_write_debug32(stlink, STLINK_REG_TPI_CSPSR,
-                       STLINK_REG_TPI_CSPSR_PORT_SIZE_1);
+  stlink_write_debug32(stlink, STLINK_REG_TPI_CSPSR, STLINK_REG_TPI_CSPSR_PORT_SIZE_1);
 
   if (settings->core_frequency) {
     uint32_t prescaler = settings->core_frequency / trace_frequency - 1;
     if (prescaler > STLINK_REG_TPI_ACPR_MAX) {
-      ELOG("Trace frequency prescaler %d out of range.  Try setting a faster "
-           "trace frequency.\n",
-           prescaler);
-      if (!settings->force)
-        return false;
+      ELOG("Trace frequency prescaler %d out of range. Try setting a faster "
+           "trace frequency.\n", prescaler);
+      if (!settings->force) return false;
     }
     stlink_write_debug32(stlink, STLINK_REG_TPI_ACPR,
                          prescaler); // Set TPIU_ACPR clock divisor
@@ -294,12 +295,11 @@ static bool enable_trace(stlink_t *stlink, const st_settings_t *settings,
   stlink_write_debug32(stlink, STLINK_REG_TPI_SPPR,
                        STLINK_REG_TPI_SPPR_SWO_NRZ);
   stlink_write_debug32(stlink, STLINK_REG_ITM_LAR, STLINK_REG_ITM_LAR_KEY);
-  stlink_write_debug32(stlink, STLINK_REG_ITM_TCC,
-                       0x00000400); // Set sync counter
+  stlink_write_debug32(stlink, STLINK_REG_ITM_TCC, 0x00000400); // Set sync counter
   stlink_write_debug32(stlink, STLINK_REG_ITM_TCR,
                        STLINK_REG_ITM_TCR_TRACE_BUS_ID_1 |
-                           STLINK_REG_ITM_TCR_TS_ENA |
-                           STLINK_REG_ITM_TCR_ITM_ENA);
+                          STLINK_REG_ITM_TCR_TS_ENA |
+                          STLINK_REG_ITM_TCR_ITM_ENA);
   stlink_write_debug32(stlink, STLINK_REG_ITM_TER,
                        STLINK_REG_ITM_TER_PORTS_ALL);
   stlink_write_debug32(stlink, STLINK_REG_ITM_TPR,
@@ -333,9 +333,7 @@ static bool enable_trace(stlink_t *stlink, const st_settings_t *settings,
 static trace_state update_trace_idle(st_trace_t *trace, uint8_t c) {
   // Handle a trace byte when we are in the idle state.
 
-  if (TRACE_OP_IS_TARGET_SOURCE(c)) {
-    return TRACE_STATE_TARGET_SOURCE;
-  }
+  if (TRACE_OP_IS_TARGET_SOURCE(c)) return TRACE_STATE_TARGET_SOURCE;
 
   if (TRACE_OP_IS_SOURCE(c)) {
     uint8_t size = TRACE_OP_GET_SOURCE_SIZE(c);
@@ -345,36 +343,28 @@ static trace_state update_trace_idle(st_trace_t *trace, uint8_t c) {
         WLOG("Unsupported source 0x%x size %d\n", addr, size);
       trace->unknown_sources |= (1 << addr);
     }
-    if (size == 1)
-      return TRACE_STATE_SKIP_1;
-    if (size == 2)
-      return TRACE_STATE_SKIP_2;
-    if (size == 3)
-      return TRACE_STATE_SKIP_4;
+    if (size == 1) return TRACE_STATE_SKIP_1;
+    if (size == 2) return TRACE_STATE_SKIP_2;
+    if (size == 3) return TRACE_STATE_SKIP_4;
   }
 
   if (TRACE_OP_IS_LOCAL_TIME(c) || TRACE_OP_IS_GLOBAL_TIME(c)) {
     trace->count_time_packets++;
-    return TRACE_OP_GET_CONTINUATION(c) ? TRACE_STATE_SKIP_FRAME
-                                        : TRACE_STATE_IDLE;
+    return TRACE_OP_GET_CONTINUATION(c) ? TRACE_STATE_SKIP_FRAME : TRACE_STATE_IDLE;
   }
 
   if (TRACE_OP_IS_EXTENSION(c)) {
-    return TRACE_OP_GET_CONTINUATION(c) ? TRACE_STATE_SKIP_FRAME
-                                        : TRACE_STATE_IDLE;
+    return TRACE_OP_GET_CONTINUATION(c) ? TRACE_STATE_SKIP_FRAME : TRACE_STATE_IDLE;
   }
 
-  if (TRACE_OP_IS_OVERFLOW(c)) {
-    trace->count_hw_overflow++;
-  }
+  if (TRACE_OP_IS_OVERFLOW(c)) trace->count_hw_overflow++;
 
   if (!(trace->unknown_opcodes[c / 8] & (1 << c % 8)))
     WLOG("Unknown opcode 0x%02x\n", c);
   trace->unknown_opcodes[c / 8] |= (1 << c % 8);
 
   trace->count_error++;
-  return TRACE_OP_GET_CONTINUATION(c) ? TRACE_STATE_SKIP_FRAME
-                                      : TRACE_STATE_IDLE;
+  return TRACE_OP_GET_CONTINUATION(c) ? TRACE_STATE_SKIP_FRAME : TRACE_STATE_IDLE;
 }
 
 static trace_state update_trace(st_trace_t *trace, uint8_t c) {
@@ -383,8 +373,7 @@ static trace_state update_trace(st_trace_t *trace, uint8_t c) {
   // Parse the input using a state machine.
 
   if (trace->state == TRACE_STATE_UNKNOWN) {
-    if (TRACE_OP_IS_TARGET_SOURCE(c) || TRACE_OP_IS_LOCAL_TIME(c) ||
-        TRACE_OP_IS_GLOBAL_TIME(c))
+    if (TRACE_OP_IS_TARGET_SOURCE(c) || TRACE_OP_IS_LOCAL_TIME(c) || TRACE_OP_IS_GLOBAL_TIME(c))
       trace->state = TRACE_STATE_IDLE;
   }
 
@@ -394,14 +383,12 @@ static trace_state update_trace(st_trace_t *trace, uint8_t c) {
 
   case TRACE_STATE_TARGET_SOURCE:
     putchar(c);
-    if (c == '\n')
-      fflush(stdout);
+    if (c == '\n') fflush(stdout);
     trace->count_target_data++;
     return TRACE_STATE_IDLE;
 
   case TRACE_STATE_SKIP_FRAME:
-    return TRACE_OP_GET_CONTINUATION(c) ? TRACE_STATE_SKIP_FRAME
-                                        : TRACE_STATE_IDLE;
+    return TRACE_OP_GET_CONTINUATION(c) ? TRACE_STATE_SKIP_FRAME : TRACE_STATE_IDLE;
 
   case TRACE_STATE_SKIP_4:
     return TRACE_STATE_SKIP_3;
@@ -425,7 +412,7 @@ static trace_state update_trace(st_trace_t *trace, uint8_t c) {
 }
 
 static bool read_trace(stlink_t *stlink, st_trace_t *trace) {
-  uint8_t buffer[STLINK_TRACE_BUF_LEN];
+  uint8_t* buffer = 0;
   int32_t length = stlink_trace_read(stlink, buffer, sizeof(buffer));
 
   if (length < 0) {
@@ -453,8 +440,7 @@ static bool read_trace(stlink_t *stlink, st_trace_t *trace) {
   return true;
 }
 
-static void check_for_configuration_error(stlink_t *stlink, st_trace_t *trace,
-                                          uint32_t trace_frequency) {
+static void check_for_configuration_error(stlink_t *stlink, st_trace_t *trace, uint32_t trace_frequency) {
   // Only check configuration one time after the first 10 seconds of running.
   time_t elapsed_time_s = time(NULL) - trace->start_time;
   if (trace->configuration_checked || elapsed_time_s < 10) {
@@ -469,8 +455,7 @@ static void check_for_configuration_error(stlink_t *stlink, st_trace_t *trace,
   bool error_bad_data = (trace->count_error > 1 || trace->unknown_sources > 0);
   bool error_dropped_data = (trace->count_sw_overflow > 0);
 
-  if (!error_no_data && !error_low_data && !error_bad_data &&
-      !error_dropped_data)
+  if (!error_no_data && !error_low_data && !error_bad_data && !error_dropped_data)
     return;
 
   WLOG("****\n");
@@ -487,8 +472,7 @@ static void check_for_configuration_error(stlink_t *stlink, st_trace_t *trace,
     stlink_read_debug32(stlink, STLINK_REG_TPI_ACPR, &prescaler);
     if (prescaler) {
       uint32_t system_clock_speed = (prescaler + 1) * trace_frequency;
-      WLOG("Verify the system clock is running at %d Hz.\n",
-           system_clock_speed);
+      WLOG("Verify the system clock is running at %d Hz.\n", system_clock_speed);
     }
     WLOG("Try specifying the system clock with the --clock=XX command line "
          "option.\n");
@@ -510,11 +494,8 @@ static void check_for_configuration_error(stlink_t *stlink, st_trace_t *trace,
   uint32_t offset = 0;
   for (uint32_t i = 0; i <= 0xFF; i++)
     if (trace->unknown_opcodes[i / 8] & (1 << i % 8)) {
-      uint32_t n =
-          snprintf(buffer + offset, sizeof(buffer) - offset, "%02x, ", i);
-      if (n >= sizeof(buffer) - offset) {
-        break;
-      }
+      uint32_t n = snprintf(buffer + offset, sizeof(buffer) - offset, "%02x, ", i);
+      if (n >= sizeof(buffer) - offset) break;
       offset += n;
     }
   WLOG("Unknown Opcodes: %s\n", buffer);
@@ -523,11 +504,8 @@ static void check_for_configuration_error(stlink_t *stlink, st_trace_t *trace,
   offset = 0;
   for (uint32_t i = 0; i < 32; i++)
     if (trace->unknown_sources & (1 << i)) {
-      uint32_t n =
-          snprintf(buffer + offset, sizeof(buffer) - offset, "%d, ", i);
-      if (n >= sizeof(buffer) - offset) {
-        break;
-      }
+      uint32_t n = snprintf(buffer + offset, sizeof(buffer) - offset, "%d, ", i);
+      if (n >= sizeof(buffer) - offset) break;
       offset += n;
     }
   WLOG("Unknown Sources: %s\n", buffer);
@@ -583,48 +561,38 @@ int32_t main(int32_t argc, char **argv) {
 
   if (stlink->chip_id == STM32_CHIPID_UNKNOWN) {
     ELOG("Your stlink is not connected to a device\n");
-    if (!settings.force)
-      return APP_RESULT_STLINK_MISSING_DEVICE;
+    if (!settings.force) return APP_RESULT_STLINK_MISSING_DEVICE;
   }
 
   if (!(stlink->version.flags & STLINK_F_HAS_TRACE)) {
     ELOG("Your stlink does not support tracing\n");
-    if (!settings.force)
-      return APP_RESULT_STLINK_UNSUPPORTED_LINK;
+    if (!settings.force) return APP_RESULT_STLINK_UNSUPPORTED_LINK;
   }
 
   if (!(stlink->chip_flags & CHIP_F_HAS_SWO_TRACING)) {
-    const struct stlink_chipid_params *params =
-        stlink_chipid_get_params(stlink->chip_id);
-    ELOG("We do not support SWO output for device '%s'\n",
-        params ? params->dev_type : "");
-    if (!settings.force)
-      return APP_RESULT_STLINK_UNSUPPORTED_DEVICE;
+    const struct stlink_chipid_params *params = stlink_chipid_get_params(stlink->chip_id);
+    ELOG("We do not support SWO output for device '%s'\n", params ? params->dev_type : "");
+    if (!settings.force) return APP_RESULT_STLINK_UNSUPPORTED_DEVICE;
   }
 
   uint32_t trace_frequency = settings.trace_frequency;
-  if (!trace_frequency)
-    trace_frequency = STLINK_DEFAULT_TRACE_FREQUENCY;
+  if (!trace_frequency) trace_frequency = STLINK_DEFAULT_TRACE_FREQUENCY;
   uint32_t max_trace_freq = stlink->max_trace_freq;
   uint32_t min_trace_freq = 0;
 
   if (settings.core_frequency != 0) {
-    if (max_trace_freq > settings.core_frequency / 5)
-    	max_trace_freq = settings.core_frequency / 5;
+    if (max_trace_freq > settings.core_frequency / 5) max_trace_freq = settings.core_frequency / 5;
     min_trace_freq = settings.core_frequency / (STLINK_REG_TPI_ACPR_MAX + 1);
   }
-  if (trace_frequency > max_trace_freq ||
-      trace_frequency < min_trace_freq) {
-    ELOG("Invalid trace frequency %d (min %d max %d)\n", trace_frequency,
-    		min_trace_freq, max_trace_freq);
-    if (!settings.force)
-      return APP_RESULT_UNSUPPORTED_TRACE_FREQUENCY;
+  if (trace_frequency > max_trace_freq || trace_frequency < min_trace_freq) {
+    ELOG("Invalid trace frequency %d (min %d max %d)\n", trace_frequency, min_trace_freq,
+        max_trace_freq);
+    if (!settings.force) return APP_RESULT_UNSUPPORTED_TRACE_FREQUENCY;
   }
 
   if (!enable_trace(stlink, &settings, trace_frequency)) {
     ELOG("Unable to enable trace mode\n");
-    if (!settings.force)
-      return APP_RESULT_STLINK_STATE_ERROR;
+    if (!settings.force) return APP_RESULT_STLINK_STATE_ERROR;
   }
 
   ILOG("Reading Trace\n");
@@ -634,8 +602,7 @@ int32_t main(int32_t argc, char **argv) {
 
   if (stlink_run(stlink, RUN_NORMAL)) {
     ELOG("Unable to run device\n");
-    if (!settings.force)
-      return APP_RESULT_STLINK_STATE_ERROR;
+    if (!settings.force) return APP_RESULT_STLINK_STATE_ERROR;
   }
 
   while (!g_abort_trace && read_trace(stlink, &trace)) {

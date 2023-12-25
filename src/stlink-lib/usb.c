@@ -977,11 +977,18 @@ int32_t _stlink_usb_enable_trace(stlink_t* sl, uint32_t frequency) {
     unsigned char* const cmd  = sl->c_buf;
     ssize_t size;
     uint32_t rep_len = 2;
+    uint32_t max_trace_buf_len = 0;
+    
+    if(sl->version.stlink_v == 2) {
+        max_trace_buf_len = STLINK_V2_TRACE_BUF_LEN;
+    } else if (sl->version.stlink_v == 3) {
+        max_trace_buf_len = STLINK_V3_TRACE_BUF_LEN;
+    };
 
     int32_t i = fill_command(sl, SG_DXFER_TO_DEV, rep_len);
     cmd[i++] = STLINK_DEBUG_COMMAND;
     cmd[i++] = STLINK_DEBUG_APIV2_START_TRACE_RX;
-    write_uint16(&cmd[i + 0], 2 * STLINK_TRACE_BUF_LEN);
+    write_uint16(&cmd[i + 0], 2 * max_trace_buf_len);
     write_uint32(&cmd[i + 2], frequency);
 
     size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len, CMD_CHECK_STATUS, "START_TRACE_RX");

@@ -165,7 +165,7 @@ Within the sourcefolder of the project, these rules are located in the subdirect
 Afterwards it may be necessary to reload the udev rules:
 
 ```sh
-$ sudo cp -a config/udev/rules.d/* /etc/udev/rules.d/
+$ sudo cp -a config/udev/rules.d/* /lib/udev/rules.d/
 $ sudo udevadm control --reload-rules
 $ sudo udevadm trigger
 ```

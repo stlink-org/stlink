@@ -2,7 +2,7 @@
 # Build GUI
 ###
 
-if (NOT WIN32 AND NOT CMAKE_CROSSCOMPILING)
+if (NOT WIN32)
     find_package(PkgConfig)
     pkg_check_modules(GTK3 gtk+-3.0)
 

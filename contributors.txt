@@ -4,7 +4,7 @@ Alexey Cherevatenko
 Alexey Panarin
 Anatoli Klassen [dev26th]
 Andrea Mucignat
-Andrew Andrianov [necromant]
+Andrew Andrianov [nekromant]
 Andrey Yurovsky
 Andy Isaacson
 Andreas Sandberg [andysan]
@@ -52,10 +52,10 @@ Greg Meiste [meisteg]
 Grzegorz Szymaszek [gszy]
 Guillaume Revaillot [grevaillot]
 Gwenhael Goavec-Merou [trabucayre]
-Hakkavélin <hakkavelin@braudrist.lan>
+[Hakkavélin]
 Halt Hammerzeit
+Hsu Pu [hsupu]
 [hydroconstructor]
-htk <htk@vdr.fritz.box>
 Ian Griffiths
 Jack Peel
 Jakub Tyszkowski
@@ -68,6 +68,7 @@ Jens Hoffmann
 Jerome Lambourg
 Jim Paris
 Jiří Netolický
+Jerry Jacobs [xor-gate]
 Jerry Nosky [jnosky]
 Jochen Wilhelmy [Jochen0x90h]
 John Hall [simplerobot]
@@ -90,7 +91,6 @@ Michael Pratt [prattmic]
 Michael Sparmann
 Mike Szczys
 Magnus Lundin [mlu]
-mux <freelancer.c@gmail.com>
 Ned Konz
 Nic McDonald
 Nicolas Schodet
@@ -98,7 +98,7 @@ Oleksiy Slyshyk [slyshykO]
 Olivier Croquette
 Olivier Gay
 Onno Kortmann
-orangeudav <orangeudav@gmail.com>
+[orangeudav]
 Pavel Kirienko
 Pekka Nikander
 Pete Nelson
@@ -107,6 +107,7 @@ Peter Zotov
 Petteri Aimonen
 Piotr Haber
 [RafaelLeeImg]
+[rcubee]
 Rene Hopf [rene-dev]
 Robin Kreis
 Roger Wolff [rewolff]
@@ -117,11 +118,11 @@ Sean Simmons
 Sergey Alirzaev
 Simon Derr [sderr]
 Simon Wright
-[simplerobot]
 Stany Marcel
 Stefan Misik
 Sven Wegener
-Tarek Bochkati [tarek-bochkati] (STMicroelectronics)
+Tarek Bochkati [tarek-bochkati]
+[texane]
 Timothy Lee [timothytylee]
 Tuomo Kaikkonen
 Theodore A. Roth
@@ -136,6 +137,7 @@ Vasiliy Glazov [Vascom]
 Vegard Storheil Eriksen
 Viacheslav Dobromyslov
 Victor Mayoral Vilches
+[whitequark]
 William Ransohoff [WRansohoff]
 Wojciech A. Koszek
 Woodrow Douglass

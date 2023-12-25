@@ -387,9 +387,7 @@ int32_t check_flash_error(stlink_t *sl) {
       res &= ~PGAERR;
     }
 
-    if (res) {
-      ELOG("Flash programming error: %#010x\n", res);
-    }
+    if (res) ELOG("Flash programming error: %#010x\n", res);
     return (-1);
   }
 
