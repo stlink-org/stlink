@@ -748,6 +748,11 @@ int32_t stlink_flashloader_write(stlink_t *sl, flash_loader_t *fl, stm32_addr_t 
              sl->flash_type == STM32_FLASH_TYPE_G4 ||
              sl->flash_type == STM32_FLASH_TYPE_L5_U5_H5 ||
              sl->flash_type == STM32_FLASH_TYPE_C0) {
+  
+    if (sl->flash_type == STM32_FLASH_TYPE_L5_U5_H5 && (len % 16)) {
+        WLOG("Data size is aligned to 16 byte");
+        len += 16 - len%16;
+    }
     DLOG("Starting %3u page write\n", len / sl->flash_pgsz);
     for (off = 0; off < len; off += sizeof(uint32_t)) {
       uint32_t data;
