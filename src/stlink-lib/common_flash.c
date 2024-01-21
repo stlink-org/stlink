@@ -1140,7 +1140,7 @@ int32_t stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr) {
         // set bank 1 for erasure
         val &= ~(1 << FLASH_L5_NSCR_NSBKER);
       }
-      // sec 7.9.9 for U5, 6.9.9 for L5 (for L7 we have 7 bits instead 8 bits  for U5 but 
+      // sec 7.9.9 for U5, 6.9.9 for L5 (for L7 we have 7 bits instead of 8 bits for U5 but 
       // the bit position for 8th bit reserved.
       // Maybe the best solution is to handle each one separately.
       val &= ~(0xFF << 3);
