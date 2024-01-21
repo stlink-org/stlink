@@ -43,7 +43,7 @@ The stlink-gui offers the following features:
 
 Within the GUI main window tooltips explain the available user elements.
 
-## Solutions to common problems
+## HowTos & solutions to common problems
 
 ### a) Verify if udev rules are set correctly (by Dave Hylands)
 
@@ -163,6 +163,17 @@ However the external bus can be *RAM* or *ROM* depending on design.
 
 The STM32H735-DK has external FLASH at address 0x90000000. As a result, because the entire external memory range is `ram` as it could be either,
 software breakpoints (Z0) get sent when a breakpoint is created and they never get tripped as the memory area is read only.
+
+### f) UART-Access via a virtual COM port
+
+Access to the Universal Asynchronous Receiver Transmitter (UART) via a virtual COM port is not related to the stlink toolset itself. It is an independent feature that should natively be available on UNIX-based operating systems. Windows operating systems require the installation of a virtual COM device driver. The appropriate device driver is downloaded and installed automatically via Windows Update in the background as soon as the device is plugged-in for the first time. A connected ST-LINK programmer with UART functionality is detected as a CDC (ACM) USB device. After each reset the device will be reloaded and will pop up as `/dev/ttyACM0` or `/dev/ttyACM1` depending on the specific design.
+
+UART connections to the interface are typically initiated with a serial terminal. For UNIX operating systems we recommend to use either [minicom](https://en.wikipedia.org/wiki/Minicom) (terminal-based) or [cutecom](https://cutecom.sourceforge.net/) (GUI-based). Windows users should have a look at [Teraterm](https://github.com/TeraTermProject/teraterm). 
+
+Most common and established settings for the interface are 115200 or 9600 baud together with the `8-N-1` configuration, standing for (8) data bits, no parity bit (N) and (1) stop bit. Please refer to relevant literature on the UART interface for more detailed technical information and limitations.
+
+Note: On some debian-based UNIX-based systems the `modemmanager` package is installed by default. In has been reported that this tool unfortunately may delay the release of the serial port to applications which is handled by the operating system in the background. Subseqently the CDC/ACM device is also delayed after each reset. This typically includes not only the connection itself, but also some programming operations (at least those using the mass storage emulation). However one can not predict the behaviour exactly - in some cases the boards may be essentially useless or even working fairly well.
+Proper determined functionality can be achieved by uninstalling the `modemmanager` package or by setting an appropriate `udev` device rule.
 
 ---
 
