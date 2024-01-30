@@ -16,34 +16,13 @@ On Windows users should ensure that the following software is installed:
 1. Install `git` from <https://git-scm.com/download/win>
 2. Install `cmake` from <https://cmake.org/download><br />
    Ensure that you add cmake to the $PATH system variable when following the instructions by the setup assistant.
-3. Install
-
-   - _EITHER_: Download **MinGW-w64** from <hhttp://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win64/Personal%20Builds/mingw-builds/8.1.0/threads-win32/sjlj/x86_64-8.1.0-release-win32-sjlj-rt_v6-rev0.7z>. Extract content to `C:\mingw-w64\` and add `C:\mingw-w64\bin\` to PATH-Variable.<br />
-   - _OR_: **MSVC toolchain** from Visual Studio Build Tools 2019
+3. Install MinGW-w64<br />
+   Download **MinGW-w64** from <https://github.com/niXman/mingw-builds-binaries/releases/download/13.2.0-rt_v11-rev1/x86_64-13.2.0-release-win32-seh-msvcrt-rt_v11-rev1.7z>. Extract content to `C:\mingw-w64\` and add `C:\mingw-w64\bin\` to PATH-Variable.<br />
 
 4. Create a new destination folder at a place of your choice
 5. Open the command-line (cmd.exe) and execute `cd C:\$Path-to-your-destination-folder$\`
 6. Fetch the project sourcefiles by running `git clone https://github.com/stlink-org/stlink.git`from the command-line (cmd.exe)<br />
    or download and extract the stlink zip-sourcefolder from the Release page on GitHub.
-
-#### MSVC toolchain - minimal installation
-
-Visual Studio IDE is not necessary, only Windows SDK & build tools are required (~3,3GB).
-
-1. Open <https://visualstudio.microsoft.com/downloads/>
-2. Navigate through menus as follows (might change overtime)
-
-   `All downloads > Tools for Visual Studio 2019 > Build Tools for Visual Studio 2019 > Download`
-
-3. Start downloaded executable. After Visual Studio Installer bootstraps and main window pops up, open `Individual Components` tab, and pick
-
-- latest build tools (eg. `MSVC v142 - VS 2019 C++ x64/x86 build tools (v14.25)`)
-- latest Windows SDK (eg. `Windows 10 SDK (10.0.18362.0)`)
-
-4. After installation finishes, you can press `Launch` button in Visual Studio Installer's main menu.
-   - Thus you can open `Developer Command Prompt for VS 2019`. It is `cmd.exe` instance with adjusted PATHs including eg. `msbuild`.
-   - Alternatively, you can use `Developer Powershell for VS 2019` which is the same thing for `powershell.exe`. Both are available from Start menu.
-   - Another option is to add `msbuild` to PATH manually. Its location should be `C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin`. Then, it should be available from any `powershell.exe` or `cmd.exe` session.
 
 ### Building
 
@@ -57,19 +36,6 @@ NOTE:<br />
 Per default the build script (currently) uses `C:\mingw-w64\x86_64-8.1.0-release-win32-sjlj-rt_v6-rev0\mingw64\bin`.<br />
 When installing different toolchains make sure to update the path in the `mingw64-build.bat`.<br />
 This can be achieved by opening the .bat file with a common text editor.
-
-#### MSVC toolchain
-
-1. In a command prompt, change the directory to the folder where the stlink files were cloned (or unzipped) to.
-2. Make sure the build folder exists (`mkdir build` if not).
-3. From the build folder, run cmake (`cd build; cmake ..`).
-
-This will create a solution file `stlink.sln` in the build folder.
-Now, you can build whole `stlink` suite using following command:
-
-```
-msbuild /m /p:Configuration=Release stlink.sln
-```
 
 Options:
 

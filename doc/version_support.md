@@ -34,7 +34,6 @@ Other Linux-/Unix-based Operating Systems:
 | Ubuntu 20.04 LTS (Focal) | 1.0.23                         | 3.**16.3** | 3.24.**18** | May 2025               |
 |                          |                                |            |             |                        |
 | FreeBSD 13.x             | 1.0.**16-18** (API 0x01000102) | 3.22.1     | 3.24.31     |                        |
-| FreeBSD 12.x             | 1.0.**16-18** (API 0x01000102) | 3.22.1     | 3.24.31     | Dec 2023               |
 |                          |                                |            |             |                        |
 | NetBSD 9.x               | 1.0.24                         | 3.21.2     | 3.24.30     |                        |
 | NetBSD 8.x               | 1.0.24                         | 3.**19.7** | 3.24.27     |                        |
@@ -60,6 +59,7 @@ Systems with highlighted versions remain compatible with this toolset.
 
 | Operating System                         | libusb                         | cmake      | End of<br />OS-Support |
 | ---------------------------------------- | ------------------------------ | ---------- | ---------------------- |
+| FreeBSD 12.x                             | 1.0.**16-18** (API 0x01000102) | 3.**22.1** | Dec 2023               |
 | Alpine 3.15                              | 1.0.**24**                     | 3.**21.3** | Nov 2023               |
 | Fedora 35 [x64]                          | 1.0.**24**                     | 3.**21.3** | Dec 2022               |
 | Alpine 3.14                              | 1.0.**24**                     | 3.**20.3** | May 2023               |

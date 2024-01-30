@@ -2,7 +2,7 @@
 
 mkdir build-mingw
 cd build-mingw
-set PATH=C:\Program Files (x86)\CMake\bin;C:\Program Files\CMake\bin;C:\mingw-w64\x86_64-8.1.0-win32-sjlj-rt_v6-rev0\mingw64\bin;%PATH%
+set PATH=C:\Program Files\CMake\bin;C:\mingw-w64\x86_64-13.2.0-release-win32-seh-msvcrt-rt_v11-rev1\mingw64\bin;%PATH%
 cmake -G "MinGW Makefiles" ..
 mingw32-make
 mingw32-make install
