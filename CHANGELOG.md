@@ -2,14 +2,14 @@
 
 # v1.8.0
 
-Release date: 2024-xx-xx
+Release date: 2024-02-01
 
 This release drops support for macOS and some older operating systems. Check project README for details.
 Removed Travis CI integration as it is no longer functional.
 
 Updated system requirements:
-- `cmake` >= 3.10.2
-- `libusb` >= 1.0.21
+- `cmake` >= 3.13.0
+- `libusb` >= 1.0.22
 - `libgtk-dev` >= 3.22.30
 
 Features:
@@ -59,7 +59,7 @@ Updates & changes:
 - [doc] Fixed broken links ([#1312](https://github.com/stlink-org/stlink/pull/1312))
 - [doc] Updated package source link for Arch Linux ([#1318](https://github.com/stlink-org/stlink/pull/1318))
 - CMake: Avoid hard-wired /usr/local/share ([#1325](https://github.com/stlink-org/stlink/pull/1325))
-
+- [doc] Provide access to the UART via virtual com port ([#1334](https://github.com/stlink-org/stlink/pull/1334), commit [#32e8dcc](https://github.com/stlink-org/stlink/commit/32e8dcc8b5dbed7b6412e7838ea1b2c41f0247fd))
 
 Fixes:
 
@@ -104,6 +104,7 @@ Fixes:
 - Notification "unknown option -- u" in tool st-util ([#1326](https://github.com/stlink-org/stlink/pull/1326), [#1327](https://github.com/stlink-org/stlink/pull/1327))
 - Do not crash when the STLink chip returns a voltage factor of zero ([#1343](https://github.com/stlink-org/stlink/pull/1343))
 - stlink-gui: failed to allocate 139988352155568 bytes ([#1356](https://github.com/stlink-org/stlink/pull/1356))
+- [STM32U575RGT6]: Verification failed at offset 43008 ([#1362](https://github.com/stlink-org/stlink/pull/1362), commit [#0145bae](https://github.com/stlink-org/stlink/commit/0145baeb2e3bac31bf9d3cbd0dab38d70618d46b))
 
 # v1.7.0
 

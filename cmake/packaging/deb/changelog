@@ -1,3 +1,9 @@
+stlink (1.8.0) unstable; urgency=medium
+
+  * Release v1.8.0
+
+ -- Nightwalker-87 <stlink-org>  Thu, 01 Feb 2024 00:00:00 +0100
+
 stlink (1.7.0) unstable; urgency=medium
 
   * Release v1.7.0
