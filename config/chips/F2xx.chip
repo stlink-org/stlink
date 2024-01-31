@@ -1,0 +1,14 @@
+# Chip-ID file for STM32F2xx device
+#
+dev_type STM32F2xx
+ref_manual_id 0033
+chip_id 0x411                // STM32_CHIPID_F2
+flash_type F2_F4
+flash_size_reg 0x1fff7a22
+flash_pagesize 0x20000       // 128 KB
+sram_size 0x20000            // 128 KB
+bootrom_base 0x1fff0000
+bootrom_size 0x7800          // 30 KB
+option_base 0x1fffc000       // STM32_F2_OPTION_BYTES_BASE
+option_size 0x4              // 4 B
+flags swo

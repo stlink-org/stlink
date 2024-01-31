@@ -1,0 +1,14 @@
+# Chip-ID file for STM32F3xx device (F302xBxC, F303xB/C, F358)
+#
+dev_type STM32F302_F303_358
+ref_manual_id 0365           // also RM0316
+chip_id 0x422                // STM32_CHIPID_F3
+flash_type F0_F1_F3
+flash_size_reg 0x1ffff7cc
+flash_pagesize 0x800         // 2 KB
+sram_size 0xa000             // 40 KB
+bootrom_base 0x1ffff000
+bootrom_size 0x800           // 2 KB
+option_base 0x1ffff800       // STM32_F0_OPTION_BYTES_BASE
+option_size 0x10             // 16 B
+flags swo

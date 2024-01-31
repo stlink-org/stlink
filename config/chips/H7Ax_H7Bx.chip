@@ -1,0 +1,14 @@
+# Chip-ID file for STM32H7Ax / STM32H7Bx device
+#
+dev_type STM32H7Ax_H7Bx
+ref_manual_id 0455
+chip_id 0x480                // STM32_CHIPID_H7Ax
+flash_type H7
+flash_size_reg 0x08fff80c
+flash_pagesize 0x2000        // 8 KB
+sram_size 0x20000            // 128 KB "DTCM"
+bootrom_base 0x1ff00000
+bootrom_size 0x20000         // 128 KB
+option_base 0x5200201c       // STM32_H7_OPTION_BYTES_BASE
+option_size 0x2c             // 44 B
+flags swo dualbank

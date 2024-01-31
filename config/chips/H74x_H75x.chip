@@ -1,0 +1,14 @@
+# Chip-ID file for STM32H74x / STM32H75x device
+#
+dev_type STM32H74x_H75x
+ref_manual_id 0433
+chip_id 0x450                // STM32_CHIPID_H74xxx
+flash_type H7
+flash_size_reg 0x1ff1e880
+flash_pagesize 0x20000       // 128 KB
+sram_size 0x20000            // 128 KB "DTCM"
+bootrom_base 0x1ff00000
+bootrom_size 0x20000         // 128 KB
+option_base 0x5200201c       // STM32_H7_OPTION_BYTES_BASE
+option_size 0x2c             // 44 B /* FLASH_OPTSR_CUR to FLASH_BOOT_PRGR */
+flags swo dualbank

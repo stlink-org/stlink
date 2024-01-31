@@ -1,0 +1,14 @@
+# Chip-ID file for STM32L47x / STM32L48x device
+#
+dev_type STM32L47x_L48x
+ref_manual_id 0351
+chip_id 0x415                // STM32_CHIPID_L4
+flash_type L4
+flash_size_reg 0x1fff75e0
+flash_pagesize 0x800         // 2 KB
+sram_size 0x18000            // 96 KB
+bootrom_base 0x1fff0000
+bootrom_size 0x7000          // 28 KB
+option_base 0x1fff7800       // STM32_L4_OPTION_BYTES_BASE
+option_size 0x4              // 4 B
+flags swo

@@ -1,18 +1,19 @@
 #include <stddef.h>
+#include <stdint.h>
 #include <string.h>
 
 #include "getopt.h"
 
 #if !defined(_MSC_VER)
-const int no_argument = 0;
-const int required_argument = 1;
-const int optional_argument = 2;
+const int32_t no_argument = 0;
+const int32_t required_argument = 1;
+const int32_t optional_argument = 2;
 #endif
 
 char* optarg;
-int optopt;
-int optind = 1; // The variable optind [...] shall be initialized to 1 by the system
-int opterr;
+int32_t optopt;
+int32_t optind = 1; // The variable optind [...] shall be initialized to 1 by the system
+int32_t opterr;
 
 static char* optcursor = NULL;
 
@@ -24,8 +25,8 @@ static char* optcursor = NULL;
  * [2] http://www.kernel.org/doc/man-pages/online/pages/man3/getopt.3.html
  * [3] http://www.freebsd.org/cgi/man.cgi?query=getopt&sektion=3&manpath=FreeBSD+9.0-RELEASE
  */
-int getopt(int argc, char* const argv[], const char* optstring) {
-    int optchar = -1;
+int32_t getopt(int32_t argc, char* const argv[], const char* optstring) {
+    int32_t optchar = -1;
     const char* optdecl = NULL;
 
     optarg = NULL;
@@ -117,33 +118,33 @@ int getopt(int argc, char* const argv[], const char* optstring) {
 
     if (optcursor == NULL || *++optcursor == '\0') { ++optind; }
 
-    return(optchar);
+    return (optchar);
 
 no_more_optchars:
     optcursor = NULL;
-    return(-1);
+    return (-1);
 }
 
 /* Implementation based on http://www.kernel.org/doc/man-pages/online/pages/man3/getopt.3.html */
-int getopt_long(int argc,
+int32_t getopt_long(int32_t argc,
                 char* const argv[],
                 const char* optstring,
                 const struct option* longopts,
                 int* longindex) {
     const struct option* o = longopts;
     const struct option* match = NULL;
-    int num_matches = 0;
-    size_t argument_name_length = 0;
+    int32_t num_matches = 0;
+    uint32_t argument_name_length = 0;
     const char* current_argument = NULL;
-    int retval = -1;
+    int32_t retval = -1;
 
     optarg = NULL;
     optopt = 0;
 
-    if (optind >= argc) { return(-1); }
+    if (optind >= argc) { return (-1); }
 
     if (strlen(argv[optind]) < 3 || strncmp(argv[optind], "--", 2) != 0) {
-        return(getopt(argc, argv, optstring));
+        return (getopt(argc, argv, optstring));
     }
 
     // it's an option; starts with -- and is longer than two chars
@@ -179,7 +180,7 @@ int getopt_long(int argc,
 
             if (match->has_arg == required_argument) {
                 /* Only scan the next argv for required arguments. Behavior is not
-                   specified, but has been observed with Ubuntu and macOS. */
+                   specified, but has been observed with Ubuntu. */
                 if (optarg == NULL && ++optind < argc) { optarg = argv[optind]; }
 
                 if (optarg == NULL) { retval = ':'; }
@@ -197,5 +198,5 @@ int getopt_long(int argc,
     }
 
     ++optind;
-    return(retval);
+    return (retval);
 }

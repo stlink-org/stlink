@@ -1,13 +1,14 @@
-#ifndef _UNISTD_H
-#define _UNISTD_H    1
+#ifndef UNISTD_H
+#define UNISTD_H
 
 /*
  * This file intended to serve as a drop-in replacement for unistd.h on Windows
  * Please add functionality as needed.
  */
 
-#include <stdlib.h>
+#include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #if defined(_MSC_VER)
 #pragma warning(push)
@@ -51,6 +52,9 @@
  */
 
 #define ssize_t int
+#ifndef SSIZE_MAX
+#define SSIZE_MAX ((sizeof(ssize_t) == 4) ? 2147483647 : 9223372036854775807)
+#endif
 
 #define STDIN_FILENO  0
 #define STDOUT_FILENO 1
@@ -66,7 +70,7 @@ typedef unsigned __int32 uint32_t;
 typedef unsigned __int64 uint64_t;
 
 #ifndef STLINK_HAVE_UNISTD_H
-int usleep(unsigned int waitTime);
+int32_t usleep(uint32_t waitTime);
 #endif
 
-#endif // _UNISTD_H
+#endif // UNISTD_H

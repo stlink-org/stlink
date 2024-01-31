@@ -4,9 +4,11 @@ Alexey Cherevatenko
 Alexey Panarin
 Anatoli Klassen [dev26th]
 Andrea Mucignat
-Andrew Andrianov [necromant]
+Andrew Andrianov [nekromant]
 Andrey Yurovsky
 Andy Isaacson
+Andreas Sandberg [andysan]
+Antoine Faure [antoinefaure]
 Anton [Ant-ON]
 Áron Radics
 A. Sheaff
@@ -24,6 +26,7 @@ Chris Samuelson
 Christian Deussen [nullsub]
 Christophe Levantis
 Craig Lilley
+Crest [Crest]
 Dan Dev
 Dan Hepler
 Daniel Campoverde [alx741]
@@ -40,16 +43,19 @@ Fabien Chouteau [Fabien-Chouteau]
 Florian Hars
 Friedrich Beckmann
 Gabriel Górski [Glaeqen]
-Geoffrey Brown
+Geoffrey Brown [geoffreymbrown]
 George Talusan [gtalusan]
 Georg von Zengen
 Giuseppe Barba
 Greg Alexander [galexander1]
 Greg Meiste [meisteg]
+Grzegorz Szymaszek [gszy]
 Guillaume Revaillot [grevaillot]
-Hakkavélin <hakkavelin@braudrist.lan>
+Gwenhael Goavec-Merou [trabucayre]
+[Hakkavélin]
 Halt Hammerzeit
-htk <htk@vdr.fritz.box>
+Hsu Pu [hsupu]
+[hydroconstructor]
 Ian Griffiths
 Jack Peel
 Jakub Tyszkowski
@@ -62,6 +68,7 @@ Jens Hoffmann
 Jerome Lambourg
 Jim Paris
 Jiří Netolický
+Jerry Jacobs [xor-gate]
 Jerry Nosky [jnosky]
 Jochen Wilhelmy [Jochen0x90h]
 John Hall [simplerobot]
@@ -84,7 +91,6 @@ Michael Pratt [prattmic]
 Michael Sparmann
 Mike Szczys
 Magnus Lundin [mlu]
-mux <freelancer.c@gmail.com>
 Ned Konz
 Nic McDonald
 Nicolas Schodet
@@ -92,7 +98,7 @@ Oleksiy Slyshyk [slyshykO]
 Olivier Croquette
 Olivier Gay
 Onno Kortmann
-orangeudav <orangeudav@gmail.com>
+[orangeudav]
 Pavel Kirienko
 Pekka Nikander
 Pete Nelson
@@ -100,6 +106,8 @@ Peter Torelli [petertorelli]
 Peter Zotov
 Petteri Aimonen
 Piotr Haber
+[RafaelLeeImg]
+[rcubee]
 Rene Hopf [rene-dev]
 Robin Kreis
 Roger Wolff [rewolff]
@@ -113,7 +121,8 @@ Simon Wright
 Stany Marcel
 Stefan Misik
 Sven Wegener
-Tarek Bochkati [tarek-bochkati] (STMicroelectronics)
+Tarek Bochkati [tarek-bochkati]
+[texane]
 Timothy Lee [timothytylee]
 Tuomo Kaikkonen
 Theodore A. Roth
@@ -128,6 +137,7 @@ Vasiliy Glazov [Vascom]
 Vegard Storheil Eriksen
 Viacheslav Dobromyslov
 Victor Mayoral Vilches
+[whitequark]
 William Ransohoff [WRansohoff]
 Wojciech A. Koszek
 Woodrow Douglass

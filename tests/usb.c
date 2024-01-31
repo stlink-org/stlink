@@ -1,17 +1,24 @@
+/* == nightwalker-87: TODO: CONTENT AND USE OF THIS SOURCE FILE IS TO BE VERIFIED (07.06.2023) == */
+
+#include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 
 #include <stlink.h>
-#include <string.h>
+
+#include <read_write.h>
+#include <register.h>
+#include <usb.h>
 
 static void usage(void) {
     puts("test-usb --reset");
     puts("test-usb --no-reset");
 }
 
-int main(int ac, char** av) {
+int32_t main(int32_t ac, char** av) {
     stlink_t* sl;
     struct stlink_reg regs;
-    int reset = 0;
+    int32_t reset = 0;
 
     if (ac == 2) {
         if (strcmp(av[1], "--reset") == 0)
@@ -23,7 +30,7 @@ int main(int ac, char** av) {
 
     if (reset == 0) {
         usage();
-        return(0);
+        return (0);
     }
 
     sl = stlink_open_usb(10, reset, NULL, 0);
@@ -119,5 +126,5 @@ int main(int ac, char** av) {
         stlink_close(sl);
     }
 
-    return(0);
+    return (0);
 }

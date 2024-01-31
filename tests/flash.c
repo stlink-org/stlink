@@ -1,9 +1,13 @@
+/* == nightwalker-87: TODO: CONTENT AND USE OF THIS SOURCE FILE IS TO BE VERIFIED (07.06.2023) == */
+
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include <stlink.h>
 #include <flash.h>
+#include <flash_opts.h>
 
 #if defined(_MSC_VER)
 #include <malloc.h>
@@ -11,7 +15,7 @@
 
 struct Test {
     const char * cmd_line;
-    int res;
+    int32_t res;
     struct flash_opts opts;
 };
 
@@ -23,7 +27,7 @@ static bool cmp_strings(const char * s1, const char * s2) {
     }
 }
 
-static bool cmp_mem(const uint8_t * s1, const uint8_t * s2, size_t size) {
+static bool cmp_mem(const uint8_t * s1, const uint8_t * s2, uint32_t size) {
     if (s1 == NULL || s2 == NULL) {
         return (s1 == s2);
     } else {
@@ -32,7 +36,7 @@ static bool cmp_mem(const uint8_t * s1, const uint8_t * s2, size_t size) {
 }
 
 static bool execute_test(const struct Test * test) {
-    int ac = 0;
+    int32_t ac = 0;
     char* av[32];
 
     /* parse (tokenize) the test command line */
@@ -45,7 +49,7 @@ static bool execute_test(const struct Test * test) {
     strcpy(cmd_line, test->cmd_line);
 
     for (char * tok = strtok(cmd_line, " "); tok; tok = strtok(NULL, " ")) {
-        if ((size_t)ac >= sizeof(av) / sizeof(av[0])) return(false);
+        if ((size_t)ac >= sizeof(av) / sizeof(av[0])) return (false);
 
         av[ac] = tok;
         ++ac;
@@ -53,7 +57,7 @@ static bool execute_test(const struct Test * test) {
 
     /* Call */
     struct flash_opts opts;
-    int res = flash_get_opts(&opts, ac, av);
+    int32_t res = flash_get_opts(&opts, ac, av);
 
     /* Compare results */
     bool ret = (res == test->res);
@@ -71,7 +75,7 @@ static bool execute_test(const struct Test * test) {
     }
 
     printf("[%s] (%d) %s\n", ret ? "OK" : "ERROR", res, test->cmd_line);
-    return(ret);
+    return (ret);
 }
 
 static struct Test tests[] = {
@@ -109,7 +113,7 @@ static struct Test tests[] = {
         .freq = 5,
         .format = FLASH_FORMAT_BINARY }
     },
-    { "--debug --freq 15K --reset write test.bin 0x80000000", 0,
+    { "--debug --freq 15k --reset write test.bin 0x80000000", 0,
       { .cmd = FLASH_CMD_WRITE,
         .serial = { 0 },
         .filename = "test.bin",
@@ -225,10 +229,10 @@ static struct Test tests[] = {
     },
 };
 
-int main() {
+int32_t main() {
     bool allOk = true;
 
-    for (size_t i = 0; i < sizeof(tests) / sizeof(tests[0]); ++i)
+    for (uint32_t i = 0; i < sizeof(tests) / sizeof(tests[0]); ++i)
         if (!execute_test(&tests[i]))
             allOk = false;
 

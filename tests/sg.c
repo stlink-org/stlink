@@ -1,8 +1,15 @@
+/* == nightwalker-87: TODO: CONTENT AND USE OF THIS SOURCE FILE IS TO BE VERIFIED (07.06.2023) == */
+
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include <stlink.h>
+
+#include <logging.h>
+#include <read_write.h>
+#include <sg.h>
 
 #if defined(_MSC_VER)
 #define __attribute__(x)
@@ -24,7 +31,7 @@ static void __attribute__((unused)) mark_buf(stlink_t *sl) {
 }
 
 
-int main(void) { // main() ripped out of old stlink-hw.c
+int32_t main(void) { // main() ripped out of old stlink-hw.c
     /* Avoid unused parameter warning */
     // set scpi lib debug level: 0 for no debug info, 10 for lots
     fputs(
@@ -38,7 +45,7 @@ int main(void) { // main() ripped out of old stlink-hw.c
 
     stlink_t *sl = stlink_v1_open(99, 1);
 
-    if (sl == NULL) return(0);
+    if (sl == NULL) return (0);
 
     // we are in mass mode, go to swd
     stlink_enter_swd_mode(sl);
@@ -81,7 +88,7 @@ int main(void) { // main() ripped out of old stlink-hw.c
 
     memset(sl->q_buf, 0, sizeof(sl->q_buf));
 
-    for (int i = 0; i < 100; i++) {
+    for (int32_t i = 0; i < 100; i++) {
         write_uint32(sl->q_buf, LED_BLUE | LED_GREEN);
         stlink_write_mem32(sl, GPIOC_ODR, 4);
         // stlink_read_mem32(sl, 0x4001100c, 4);
@@ -184,7 +191,7 @@ int main(void) { // main() ripped out of old stlink-hw.c
 #if 0 /* check file contents */
     fputs("\n+++++++ check flash memory\n\n", stderr);
     {
-        const int res = stlink_fcheck_flash(sl, "/tmp/foobar", 0x08000000);
+        const int32_t res = stlink_fcheck_flash(sl, "/tmp/foobar", 0x08000000);
         printf("_____ stlink_fcheck_flash() == %d\n", res);
     }
 #endif
@@ -206,5 +213,5 @@ int main(void) { // main() ripped out of old stlink-hw.c
 
     // fflush(stderr);
     // fflush(stdout);
-    return(EXIT_SUCCESS);
+    return (EXIT_SUCCESS);
 }

@@ -7,7 +7,12 @@ SUBSYSTEMS=="usb", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="3752", \
 SUBSYSTEMS=="usb", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="3753", \
     MODE:="0666", \
     SYMLINK+="stlinkv3_%n"
-    
+
+# STLink V3SET MINIE
+SUBSYSTEMS=="usb", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="3754", \
+    MODE:="0666", \
+    SYMLINK+="stlinkv3_%n"
+
 # STLink V3SET 
 SUBSYSTEMS=="usb", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="374d", \
     MODE:="0666", \

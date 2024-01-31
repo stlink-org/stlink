@@ -1,0 +1,14 @@
+# Chip-ID file for STM32F74x / STM32F75x device
+#
+dev_type STM32F74x_F75x
+ref_manual_id 0385
+chip_id 0x449                // STM32_CHIPID_F7
+flash_type F7
+flash_size_reg 0x1ff0f442
+flash_pagesize 0x800         // 2 KB
+sram_size 0x50000            // 320 KB
+bootrom_base 0x100000
+bootrom_size 0xedc0          // 59.4375 KB
+option_base 0x1fff0000       // STM32_F7_OPTION_BYTES_BASE
+option_size 0x20             // 32 B
+flags swo

@@ -16,27 +16,20 @@ if (NOT WIN32)
 
         # Install desktop application entry
         install(FILES stlink-gui.desktop
-                DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/applications)
+                DESTINATION ${CMAKE_INSTALL_FULL_DATADIR}/applications)
 
         # Install icons
         install(FILES icons/stlink-gui.svg
-                DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/scalable/apps)
+                DESTINATION ${CMAKE_INSTALL_FULL_DATADIR}/icons/hicolor/scalable/apps)
 
         set(GUI_SOURCES gui.c gui.h)
 
-        ## stlink-gui-local
-        add_executable(stlink-gui-local ${GUI_SOURCES})
-        file(COPY stlink-gui.ui DESTINATION ${CMAKE_BINARY_DIR}/bin)
-        set_target_properties(stlink-gui-local PROPERTIES
-                COMPILE_DEFINITIONS STLINK_UI_DIR="${CMAKE_BINARY_DIR}/bin")
-        target_link_libraries(stlink-gui-local ${STLINK_LIB_SHARED} ${SSP_LIB} ${GTK3_LDFLAGS})
-
         ## stlink-gui
         add_executable(stlink-gui ${GUI_SOURCES})
-        install(FILES stlink-gui.ui DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/${PROJECT_NAME})
+        install(FILES stlink-gui.ui DESTINATION ${CMAKE_INSTALL_FULL_DATADIR}/${PROJECT_NAME})
         set_target_properties(stlink-gui PROPERTIES
-                COMPILE_DEFINITIONS STLINK_UI_DIR="${CMAKE_INSTALL_FULL_DATAROOTDIR}/${PROJECT_NAME}")
+                COMPILE_DEFINITIONS STLINK_UI_DIR="${CMAKE_INSTALL_FULL_DATADIR}/${PROJECT_NAME}")
         target_link_libraries(stlink-gui ${STLINK_LIB_SHARED} ${SSP_LIB} ${GTK3_LDFLAGS})
-        install(TARGETS stlink-gui DESTINATION ${CMAKE_INSTALL_BINDIR})
-    endif ()
-endif ()
+        install(TARGETS stlink-gui DESTINATION ${CMAKE_BINDIR})
+    endif()
+endif()

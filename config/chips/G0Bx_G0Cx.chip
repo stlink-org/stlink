@@ -1,0 +1,14 @@
+# Chip-ID file for STM32G0Bx / STM32G0Cx device
+#
+dev_type STM32G0Bx_G0Cx
+ref_manual_id 0444           // also RM454
+chip_id 0x467                // STM32_CHIPID_G0_CAT3
+flash_type G0
+flash_size_reg 0x1fff75e0
+flash_pagesize 0x800         // 2 KB
+sram_size 0x24000            // 144 KB
+bootrom_base 0x1fff0000
+bootrom_size 0x7000          // 28 KB
+option_base 0x1fff7800       // STM32_G0_OPTION_BYTES_BASE
+option_size 0x80             // 128 B
+flags dualbank

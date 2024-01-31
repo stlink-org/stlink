@@ -1,5 +1,7 @@
-#ifndef INCLUDED_GETOPT_PORT_H
-#define INCLUDED_GETOPT_PORT_H
+#ifndef GETOPT_H
+#define GETOPT_H
+
+#include <stdint.h>
 
 #if defined(__cplusplus)
 extern "C" {
@@ -11,24 +13,24 @@ extern "C" {
 #define required_argument  1
 #define optional_argument  2
 #else
-extern const int no_argument;
-extern const int required_argument;
-extern const int optional_argument;
+extern const int32_t no_argument;
+extern const int32_t required_argument;
+extern const int32_t optional_argument;
 #endif
 
 extern char* optarg;
-extern int optind, opterr, optopt;
+extern int32_t optind, opterr, optopt;
 
 struct option {
     const char* name;
-    int has_arg;
+    int32_t has_arg;
     int* flag;
-    int val;
+    int32_t val;
 };
 
-int getopt(int argc, char* const argv[], const char* optstring);
+int32_t getopt(int32_t argc, char* const argv[], const char* optstring);
 
-int getopt_long(int argc,
+int32_t getopt_long(int32_t argc,
                 char* const argv[],
                 const char* optstring,
                 const struct option* longopts,
@@ -38,4 +40,4 @@ int getopt_long(int argc,
 }
 #endif
 
-#endif // INCLUDED_GETOPT_PORT_H
+#endif // GETOPT_H

@@ -1,0 +1,14 @@
+# Chip-ID file for STM32L1xx (Cat.1) device (L100C6 / L100R8 / L100RB)
+#
+dev_type STM32L1xx_Cat_1
+ref_manual_id 0038
+chip_id 0x416                // STM32_CHIPID_L1_MD
+flash_type L0_L1
+flash_size_reg 0x1ff8004c
+flash_pagesize 0x100         // 128 B
+sram_size 0x4000             // 16 KB
+bootrom_base 0x1ff00000
+bootrom_size 0x1000          // 4 KB
+option_base 0x0
+option_size 0x0
+flags swo

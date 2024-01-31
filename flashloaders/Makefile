@@ -1,5 +1,5 @@
-# The flash loader code cannot be compiled by the system gcc. This 
-# makefile use arm-none-eabi-gcc for this purpose
+# The flash loader code cannot be compiled by the system gcc.
+# This makefile uses arm-none-eabi-gcc for this purpose.
 
 CROSS_COMPILE ?= arm-none-eabi-
 
@@ -29,6 +29,11 @@ stm32f0.o: stm32f0.s
 # separate rule for STM32F1/F3
 stm32vl.o: stm32f0.s
 	$(CC) stm32f0.s $(CFLAGS_ARMV7_M) -o stm32vl.o
+
+# separate rule for STM32Lx.
+# Built for ARMv6-M target to be compatible with both Cortex M0 and Cortex M3.
+stm32lx.o: stm32lx.s
+	$(CC) stm32lx.s $(CFLAGS_ARMV6_M) -o stm32lx.o
 
 # generic rule for all other ARMv7-M
 %.o: %.s

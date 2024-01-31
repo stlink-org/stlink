@@ -1,0 +1,14 @@
+# Chip-ID file for STM32F1xx XL density device
+#
+dev_type STM32F1xx_XLD
+ref_manual_id 0008
+chip_id 0x430                // STM32_CHIPID_F1_XLD
+flash_type F1_XL
+flash_size_reg 0x1ffff7e0
+flash_pagesize 0x800         // 2 KB
+sram_size 0x18000            // 96 KB
+bootrom_base 0x1fffe000
+bootrom_size 0x1800          // 6 KB
+option_base 0x1ffff800       // STM32_F0_OPTION_BYTES_BASE
+option_size 0x10             // 16 B
+flags swo

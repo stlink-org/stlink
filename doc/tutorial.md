@@ -2,22 +2,32 @@
 
 ## Available tools and options
 
-| Option                | Tool                               | Description                                                                                                                                                                                                                                                                                                                                                                                                              | Available<br />since |
-| --------------------- | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------- |
-| --flash=n[k][m]       | st-flash                           | One can specify `--flash=128k` for example, to override the default value of 64k for the STM32F103C8T6<br />to assume 128k of flash being present. This option accepts decimal (128k), octal 0200k, or hex 0x80k values.<br />Leaving the multiplier out is equally valid, e.g.: `--flash=0x20000`. The size may be followed by an optional<br />"k" or "m" to multiply the given value by 1k (1024) or 1M respectively. | v1.4.0               |
-| --freq=n[k][m]        | st-info<br />st-flash<br />st-util | The frequency of the SWD/JTAG interface can be specified, to override the default 1800 kHz configuration.<br />This option solely accepts decimal values (5K or 1.8M) with the unit `Hz` being left out. Valid frequencies are:<br />`5K, 15K, 25K, 50K, 100K, 125K, 240K, 480K, 950K, 1200K, 1800K, 4000K(4M)`.                                                                                                         | v1.6.1               |
-| --opt                 | st-flash                           | Optimisation can be enabled in order to skip flashing empty (0x00 or 0xff) bytes at the end of binary file.<br />This may cause some garbage data left after a flash operation. This option was enabled by default in earlier releases.                                                                                                                                                                                  | v1.6.1               |
-| --reset               | st-flash                           | Trigger a reset after flashing. The default uses the hardware reset through `NRST` pin.<br />A software reset (via `AIRCR`; since v1.5.1) is used, if the hardware reset failed (`NRST` pin not connected).                                                                                                                                                                                                              | v1.0.0               |
-| --connect-under-reset | st-info<br />st-flash<br />st-util | Connect under reset. Option makes it possible to connect to the device before code execution. This is useful<br />when the target contains code that lets the device go to sleep, disables debug pins or other special code.                                                                                                                                                                                             | v1.6.1               |
-| --hot-plug            | st-info<br />st-flash<br />st-util | Connect to the target without reset.                                                                                                                                                                                                                                                                                                                                                                                     | v1.6.2               |
-| --probe               | st-info                            | Display hardware information about the connected programmer and target MCU.                                                                                                                                                                                                                                                                                                                                              | v1.2.0               |
-| --version             | st-info<br />st-flash<br />st-util | Print version information.                                                                                                                                                                                                                                                                                                                                                                                               | v1.3.0               |
-| --help                | st-flash<br />st-util              | Print list of available commands.                                                                                                                                                                                                                                                                                                                                                                                        |                      |
+| Option                | Tool                               | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | Available<br />since |
+| --------------------- | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------- |
+| --flash=n[k, M]       | st-flash                           | One can specify `--flash=128k` for example, to override the default value of 64k for the STM32F103C8T6 to assume 128k of flash being present. This option accepts decimal (128k), octal 0200k, or hex 0x80k values.<br />Leaving the multiplier out is equally valid, e.g.: `--flash=0x20000`. The size may be followed by an optional "k" or "M" to multiply the given value by 1k (1024) or 1M (1024 x 1024) respectively.<br />One can read arbitary addresses of memory out to a binary file with: `st-flash read out.bin 0x8000000 4096`. In this example `4096 bytes` are read and subsequently written to `out.bin`.<br />Binary files (here: `in.bin`) are written into flash memory with: `st-flash write in.bin 0x8000000` | v1.4.0               |
+| --format              | st-flash                           | Specify file image format to read or write.<br />Valid formats are `binary` and `ihex`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | v1.3.0               |
+| --freq=n[k, M]        | st-info<br />st-flash<br />st-util | The frequency of the SWD/JTAG interface can be specified, to override the default 1800 kHz configuration.<br />This option solely accepts decimal values with the unit `Hz` being left out. Valid frequencies are:<br />`5k, 15k, 25k, 50k, 100k, 125k, 240k, 480k, 950k, 1200k (1.2M), 1800k (1.8M), 4000k (4M)`.                                                                                                                                                                                                                                                                                                                                                                                                                   | v1.6.1               |
+| --opt                 | st-flash                           | Optimisation can be enabled in order to skip flashing empty (0x00 or 0xff) bytes at the end of binary file.<br />This may cause some garbage data left after a flash operation. This option was enabled by default in earlier releases.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | v1.6.1               |
+| --reset               | st-flash                           | Trigger a reset after flashing. The default uses the hardware reset through `NRST` pin.<br />A software reset (via `AIRCR`; since v1.5.1) is used, if the hardware reset failed (`NRST` pin not connected).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | v1.0.0               |
+| --connect-under-reset | st-info<br />st-flash<br />st-util | Connect under reset. Option makes it possible to connect to the device before code execution. This is useful when the target contains code that lets the device go to sleep, disables debug pins or other special code.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | v1.6.1               |
+| --hot-plug            | st-info<br />st-flash<br />st-util | Connect to the target without reset.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 | v1.6.2               |
+| --probe               | st-info                            | Display hardware information about the connected programmer and target MCU.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | v1.2.0               |
+| --version             | st-info<br />st-flash<br />st-util | Print version information.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           | v1.3.0               |
+| --help                | st-flash<br />st-util              | Print list of available commands.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |                      |
+
+### Reading & Writing Option Bytes
+
+Example to read and write option bytes:
+
+```
+./st-flash --debug read option_bytes_dump.bin 0x1FFF7800 4
+./st-flash --debug write option_bytes_dump.bin 0x1FFF7800
+```
 
 ### st-flash: Checksum for binary files
 
 When flashing a file, a checksum is calculated for the binary file, both in md5 and the sum algorithm.
-The latter is also used by the official ST-Link utility tool from STMicroelectronics as described in the document: [`UM0892 - User manual - STM32 ST-LINK utility software description`](https://www.st.com/resource/en/user_manual/cd00262073-stm32-stlink-utility-software-description-stmicroelectronics.pdf).
+The latter is also used by the official ST-LINK utility tool from STMicroelectronics as described in the document: [`UM0892 - User manual STM32 ST-LINK utility software description`](https://www.st.com/resource/en/user_manual/cd00262073-stm32-stlink-utility-software-description-stmicroelectronics.pdf).
 
 ### stlink-gui
 
@@ -33,7 +43,7 @@ The stlink-gui offers the following features:
 
 Within the GUI main window tooltips explain the available user elements.
 
-## Solutions to common problems
+## HowTos & solutions to common problems
 
 ### a) Verify if udev rules are set correctly (by Dave Hylands)
 
@@ -52,12 +62,12 @@ On my system I see the following:
 crw-rw-rw- 1 root root 189, 528 Jan 24 17:52 /dev/bus/usb/005/017
 ```
 
-which is world writable (this is from the `MODE:="0666"` below). I have several files in my `/etc/udev/rules.d` directory. In this particular case, the `49-stlinkv2-1.rules` file contains the following:
+which is world writable (this is from the `MODE:="0666"` below). I have several files in my `/lib/udev/rules.d` directory. In this particular case, the `49-stlinkv2-1.rules` file contains the following:
 
 ```
-# stm32 nucleo boards, with onboard st/linkv2-1
+# STM32 nucleo boards, with onboard STLINK/V2-1
 # ie, STM32F0, STM32F4.
-# STM32VL has st/linkv1, which is quite different
+# STM32VL has STLINK/V1, which is quite different
 
 SUBSYSTEMS=="usb", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="374b", \
     MODE:="0666", \
@@ -71,7 +81,7 @@ SUBSYSTEMS=="usb", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="374b", \
 
 and the `idVendor` of `0483` and `idProduct` of `374b` matches the vendor id from the `lsusb` output.
 
-Make sure that you have all 3 files from here: https://github.com/stlink-org/stlink/tree/master/etc/udev/rules.d in your `/etc/udev/rules.d` directory. After copying new files or editing excisting files in `/etc/udev/ruled.d` you should run the following:
+Make sure that you have all 3 files from [/config/udev/rules.d](https://github.com/stlink-org/stlink/tree/master/config/udev/rules.d) in your `/lib/udev/rules.d` directory. After copying new files or editing existing files in `/lib/udev/rules.d` you should run the following:
 
 ```
 sudo udevadm control --reload-rules
@@ -94,7 +104,8 @@ In this known example one finds the counterfeited "STM32F103C8T6" MCUs to identi
 In the following you find some hints on how to identify your chip and track down fraud:
 
 - [How to Detect STM32 Fakes](https://www.cnx-software.com/2020/03/22/how-to-detect-stm32-fakes/)
-- [Confirmation by STMicroelectronics](https://www.mikrocontroller.net/attachment/442839/couterfeit_STM.png) (Marking: 991KA 93 MYS 807)
+- [Confirmation by STMicroelectronics](https://www.mikrocontroller.net/attachment/442839/couterfeit_STM.PNG) (Marking: 991KA 93 MYS 807)
+- [STM32 Clones: The Good, The Bad And The Ugly](https://hackaday.com/2020/10/22/stm32-clones-the-good-the-bad-and-the-ugly/)
 
 However it appears that not all counterfeited parts cause problems during operation, but some are known to not even being able to execute a basic "blinky" example binary. Further there can be problems that may not even show up or affect you directly, but somewhen later in time (or maybe never).
 This demonstrates there is no guarantee for a proper working chip with equal functionality compared to the original.
@@ -115,10 +126,6 @@ There are different variants of this message that refer to different issues:
 - `unknown chip id! 0` --> Target chip (board) is unknown.
   1. Microcontroller is in stop/standby mode.
   2. The signals `DIO` and `CLK` are reversed on the SWD-Interface.
-- `unknown chip id! 0x1a` --> _currently unknown_
-- `unknown chip id! 0x001f` --> _currently unknown_
-- `unknown chip id! 0x3e8` --> _currently unknown_
-- `unknown chip id! 0xa05f0000` --> _currently unknown_
 - `unknown chip id! 0x3748` --> A target chip (board) cannot be detected.
   1. No target is connected --> In this case `st-info --probe` displays `chip id 0x0748` with STLINK/V2 and `chip id 0x03e8` with STLINK-V3.
   2. The chip is connected but has gone into an undefined state of operation where the SWD pins are unresponsive. --> Try to use `--connect-under-reset` while pressing the reset button on the target board.
@@ -148,6 +155,25 @@ As soon as the device is in DFU mode, the `JTAG_TMS/SWD_SWDIO` pin is left in th
 Here flashing of the device is now possible with and without the `--reset` option.
 
 The debug command `(gdb) monitor jtag_reset` sends a _hard reset_ signal via the `NRST` pin to reset the device and allows for flashing it (again).
+
+### e) Note on setting hardware breakpoints for external bus (Example: STM32H735-DK)
+
+GDB is setting breakpoints based on the XML memory map designation of `rom` or `ram`, which is hardcoded in st-util for a given processor.
+However the external bus can be *RAM* or *ROM* depending on design.
+
+The STM32H735-DK has external FLASH at address 0x90000000. As a result, because the entire external memory range is `ram` as it could be either,
+software breakpoints (Z0) get sent when a breakpoint is created and they never get tripped as the memory area is read only.
+
+### f) UART-Access via a virtual COM port
+
+Access to the Universal Asynchronous Receiver Transmitter (UART) via a virtual COM port is not related to the stlink toolset itself. It is an independent feature that should natively be available on UNIX-based operating systems. Windows operating systems require the installation of a virtual COM device driver. The appropriate device driver is downloaded and installed automatically via Windows Update in the background as soon as the device is plugged-in for the first time. A connected ST-LINK programmer with UART functionality is detected as a CDC (ACM) USB device. After each reset the device will be reloaded and will pop up as `/dev/ttyACM0` or `/dev/ttyACM1` depending on the specific design.
+
+UART connections to the interface are typically initiated with a serial terminal. For UNIX operating systems we recommend to use either [minicom](https://en.wikipedia.org/wiki/Minicom) (terminal-based) or [cutecom](https://cutecom.sourceforge.net/) (GUI-based). Windows users should have a look at [Teraterm](https://github.com/TeraTermProject/teraterm). 
+
+Most common and established settings for the interface are 115200 or 9600 baud together with the `8-N-1` configuration, standing for (8) data bits, no parity bit (N) and (1) stop bit. Please refer to relevant literature on the UART interface for more detailed technical information and limitations.
+
+Note: On some debian-based UNIX-based systems the `modemmanager` package is installed by default. In has been reported that this tool unfortunately may delay the release of the serial port to applications which is handled by the operating system in the background. Subseqently the CDC/ACM device is also delayed after each reset. This typically includes not only the connection itself, but also some programming operations (at least those using the mass storage emulation). However one can not predict the behaviour exactly - in some cases the boards may be essentially useless or even working fairly well.
+Proper determined functionality can be achieved by uninstalling the `modemmanager` package or by setting an appropriate `udev` device rule.
 
 ---
 
@@ -214,38 +240,6 @@ Your program should now be running, and, if you used one of the blinking
 examples from libopencm3, the LEDs on the board should be blinking for
 you.
 
-## Building and flashing a program
-
-If you want to simply flash binary files to arbitrary sections of
-memory, or read arbitary addresses of memory out to a binary file, use
-the st-flash tool, as shown below:
-
-```
-# stlink command to read 4096 from flash into out.bin
-$> ./st-flash read out.bin 0x8000000 4096
-
-# stlinkv command to write the file in.bin into flash
-$> ./st-flash write in.bin 0x8000000
-```
-
-It is also possible to write a hexfile which is more convinient:
-
-```
-$> ./st-flash --format ihex write myapp.hex
-```
-
-####
-
-Of course, you can use this instead of the gdb server, if you prefer.
-Just remember to use the “.bin” image, rather than the .elf file.
-
-```
-# write blink.bin into FLASH
-$> [sudo] ./st-flash write fancy_blink.bin 0x08000000
-```
-
-Upon reset, the board LEDs should be blinking.
-
 ## Using the gdb server
 
 To run the gdb server:
@@ -269,8 +263,7 @@ There are a few options:
 			Do not reset board on connection.
 ```
 
-The STLink device to use can be specified using the --serial parameter, or via
-the environment variable STLINK_DEVICE on the format <USB_BUS>:<USB_ADDR>.
+The STLink device to use can be specified using the --serial parameter.
 
 Then, in your project directory, someting like this...
 (remember, you need to run an _ARM_ gdb, not an x86 gdb)
@@ -348,26 +341,3 @@ If you would link your executable to `0x08000000` and then do
 ```
 
 then it would be written to the memory.
-
-## Writing Option Bytes
-
-Example to read and write option bytes (currently writing only supported for STM32G0 and STM32L0)
-
-```
-./st-flash --debug --reset --format binary --flash=128k read option_bytes_dump.bin 0x1FFF7800 4
-./st-flash --debug --reset --format binary --flash=128k write option_bytes_dump.bin 0x1FFF7800
-```
-
-# FAQ
-
-Q: My breakpoints do not work at all or only work once.
-
-A: Optimizations can cause severe instruction reordering. For example, if you are doing something like `REG = 0x100;' in a loop, the code may be split into two parts: loading 0x100 into some intermediate register and moving that value to REG. When you set up a breakpoint, GDB will hook to the first instruction, which may be called only once if there are enough unused registers. In my experience, -O3 causes that frequently.
-
-Q: At some point I use GDB command `next', and it hangs.
-
-A: Sometimes when you will try to use GDB `next` command to skip a loop, it will use a rather inefficient single-stepping way of doing that. Set up a breakpoint manually in that case and do `continue`.
-
-Q: Load command does not work in GDB.
-
-A: Some people report XML/EXPAT is not enabled by default when compiling GDB. Memory map parsing thus fail. Use --enable-expat.

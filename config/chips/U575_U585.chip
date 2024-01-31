@@ -1,0 +1,14 @@
+# Chip-ID file for STM32U575 / STM32U585 device
+#
+dev_type STM32U575_U585
+ref_manual_id 0456
+chip_id 0x482                // STM32U575/585
+flash_type L5_U5_H5
+flash_size_reg 0x0bfa07a0
+flash_pagesize 0x2000        // 8 KB
+sram_size 0xc4800            // 786 KB
+bootrom_base 0x0bf90000
+bootrom_size 0x10000         // 64 KB
+option_base 0x0
+option_size 0x0
+flags swo dualbank

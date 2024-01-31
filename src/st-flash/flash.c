@@ -1,19 +1,37 @@
-/* Simple wrapper around the stlink_flash_write function */
+/*
+ * File: flash.c
+ *
+ * Tool st-flash - Simple wrapper around the stlink_flash_write function
+ */
 
-// TODO - this should be done as just a simple flag to the st-util command line...
-
-#include <signal.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/types.h>
 
+#include <fcntl.h>
+#include <signal.h>
+
+#if defined(_WIN32)
+#include <win32_socket.h>
+#else
+#include <unistd.h>
+#endif // _WIN32
+
+#include <stm32.h>
 #include <stlink.h>
 #include "flash.h"
+#include "flash_opts.h"
+
+#include <chipid.h>
+#include <common_flash.h>
+#include <map_file.h>
+#include <option_bytes.h>
+#include <usb.h>
 
 static stlink_t *connected_stlink = NULL;
 
-static void cleanup(int signum) {
+static void cleanup(int32_t signum) {
     (void)signum;
 
     if (connected_stlink) { // switch back to mass storage mode before closing
@@ -26,9 +44,9 @@ static void cleanup(int signum) {
 }
 
 static void usage(void) {
-    puts("command line:   ./st-flash [--debug] [--reset] [--connect-under-reset] [--hot-plug] [--opt] [--serial <serial>] [--format <format>] [--flash=<fsize>] [--freq=<KHz>] [--area=<area>] {read|write} [path] [addr] [size]");
-    puts("command line:   ./st-flash [--debug] [--connect-under-reset] [--hot-plug] [--freq=<KHz>] [--serial <serial>] erase");
-    puts("command line:   ./st-flash [--debug] [--freq=<KHz>] [--serial <serial>] reset");
+    puts("command line:   ./st-flash [--debug] [--reset] [--connect-under-reset] [--hot-plug] [--opt] [--serial <serial>] [--format <format>] [--flash=<fsize>] [--freq=<kHz>] [--area=<area>] {read|write} [path] [addr] [size]");
+    puts("command line:   ./st-flash [--debug] [--connect-under-reset] [--hot-plug] [--freq=<kHz>] [--serial <serial>] erase [addr] [size]");
+    puts("command line:   ./st-flash [--debug] [--freq=<kHz>] [--serial <serial>] reset");
     puts("   <addr>, <serial> and <size>: Use hex format.");
     puts("   <fsize>: Use decimal, octal or hex (prefix 0xXXX) format, optionally followed by k=KB, or m=MB (eg. --flash=128k)");
     puts("   <format>: Can be 'binary' (default) or 'ihex', although <addr> must be specified for binary format only.");
@@ -43,12 +61,14 @@ static void usage(void) {
     puts("example write option control register1 byte:  ./st-flash --area=optcr write 0xXXXXXXXX");
     puts("example read option control register1 byte:  ./st-flash --area=optcr1 read");
     puts("example write option control register1 byte:  ./st-flash --area=optcr1 write 0xXXXXXXXX");
+    puts("example read OTP area:  ./st-flash --area=otp read [path]");
+    puts("example write OTP area: ./st-flash --area=otp write [path] 0xXXXXXXXX");
 }
 
-int main(int ac, char** av) {
+int32_t main(int32_t ac, char** av) {
     stlink_t* sl = NULL;
     struct flash_opts o;
-    int err = -1;
+    int32_t err = -1;
     uint8_t * mem = NULL;
 
     o.size = 0;
@@ -57,23 +77,25 @@ int main(int ac, char** av) {
     if (flash_get_opts(&o, ac - 1, av + 1) == -1) {
         printf("invalid command line\n");
         usage();
-        return(-1);
+        return (-1);
     }
 
     printf("st-flash %s\n", STLINK_VERSION);
+    init_chipids (STLINK_CHIPS_DIR);
 
     sl = stlink_open_usb(o.log_level, o.connect, (char *)o.serial, o.freq);
 
-    if (sl == NULL) { return(-1); }
+    if (sl == NULL) { return (-1); }
 
-    if (sl->flash_type == STLINK_FLASH_TYPE_UNKNOWN) {
+    if (sl->flash_type == STM32_FLASH_TYPE_UNKNOWN) {
         printf("Failed to connect to target\n");
-        return(-1);
+        fprintf(stderr, "Failed to parse flash type or unrecognized flash type\n");
+        goto on_error;
     }
 
     if ( o.flash_size != 0u && o.flash_size != sl->flash_size ) {
         sl->flash_size = o.flash_size;
-        printf("Forcing flash size: --flash=0x%08X\n", (unsigned int)sl->flash_size);
+        printf("Forcing flash size: --flash=0x%08X\n", sl->flash_size);
     }
 
     sl->verbose = o.log_level;
@@ -83,20 +105,6 @@ int main(int ac, char** av) {
     signal(SIGINT, &cleanup);
     signal(SIGTERM, &cleanup);
     signal(SIGSEGV, &cleanup);
-
-    if (stlink_current_mode(sl) == STLINK_DEV_DFU_MODE) {
-        if (stlink_exit_dfu_mode(sl)) {
-            printf("Failed to exit DFU mode\n");
-            goto on_error;
-        }
-    }
-
-    if (stlink_current_mode(sl) != STLINK_DEV_DEBUG_MODE) {
-        if (stlink_enter_swd_mode(sl)) {
-            printf("Failed to enter SWD mode\n");
-            goto on_error;
-        }
-    }
 
     // core must be halted to use RAM based flashloaders
     if (stlink_force_debug(sl)) {
@@ -109,8 +117,10 @@ int main(int ac, char** av) {
         goto on_error;
     }
 
-    if (o.cmd == FLASH_CMD_WRITE) {                                             // write
-        size_t size = 0;
+    if (o.cmd == FLASH_CMD_WRITE) {
+        uint32_t size = 0;
+
+        // write
         if (o.format == FLASH_FORMAT_IHEX) {
             err = stlink_parse_ihex(o.filename, stlink_get_erased_pattern(sl), &mem, &size, &o.addr);
 
@@ -119,10 +129,9 @@ int main(int ac, char** av) {
                 goto on_error;
             }
         }
-        if ((o.addr >= sl->flash_base) &&
-            (o.addr < sl->flash_base + sl->flash_size)) {
+        if ((o.addr >= sl->flash_base) && (o.addr < sl->flash_base + sl->flash_size)) {
             if (o.format == FLASH_FORMAT_IHEX) {
-                err = stlink_mwrite_flash(sl, mem, (uint32_t)size, o.addr);
+                err = stlink_mwrite_flash(sl, mem, size, o.addr);
             } else {
                 err = stlink_fwrite_flash(sl, o.filename, o.addr);
             }
@@ -131,10 +140,9 @@ int main(int ac, char** av) {
                 printf("stlink_fwrite_flash() == -1\n");
                 goto on_error;
             }
-        } else if ((o.addr >= sl->sram_base) &&
-                   (o.addr < sl->sram_base + sl->sram_size)) {
+        } else if ((o.addr >= sl->sram_base) && (o.addr < sl->sram_base + sl->sram_size)) {
             if (o.format == FLASH_FORMAT_IHEX) {
-                err = stlink_mwrite_sram(sl, mem, (uint32_t)size, o.addr);
+                err = stlink_mwrite_sram(sl, mem, size, o.addr);
             } else {
                 err = stlink_fwrite_sram(sl, o.filename, o.addr);
             }
@@ -143,8 +151,7 @@ int main(int ac, char** av) {
                 printf("stlink_fwrite_sram() == -1\n");
                 goto on_error;
             }
-        } else if ((o.addr >= sl->option_base) &&
-                   (o.addr < sl->option_base + sl->option_size)) {
+        } else if ((o.addr >= sl->option_base) && (o.addr < sl->option_base + sl->option_size)) {
             err = stlink_fwrite_option_bytes(sl, o.filename, o.addr);
 
             if (err == -1) {
@@ -165,34 +172,65 @@ int main(int ac, char** av) {
             }
         } else if (o.area == FLASH_OPTCR) {
             DLOG("@@@@ Write %d (%0#10x) to option control register\n", o.val, o.val);
-          
+
             err = stlink_write_option_control_register32(sl, o.val);
         } else if (o.area == FLASH_OPTCR1) {
             DLOG("@@@@ Write %d (%0#10x) to option control register 1\n", o.val, o.val);
-            
+
             err = stlink_write_option_control_register1_32(sl, o.val);
         } else if (o.area == FLASH_OPTION_BYTES_BOOT_ADD) {
             DLOG("@@@@ Write %d (%0#10x) to option bytes boot address\n", o.val, o.val);
-          
+
             err = stlink_write_option_bytes_boot_add32(sl, o.val);
+        } else if (o.area == FLASH_OTP) {
+            if(sl->otp_base == 0) {
+                err = -1;
+                printf("OTP Write NOT implemented\n");
+                goto on_error;
+            }
+            err = stlink_fwrite_flash(sl, o.filename,  o.addr);
+        
+            if (err == -1) {
+                printf("stlink_fwrite_flash() == -1\n");
+                goto on_error;
+            }
         } else {
             err = -1;
             printf("Unknown memory region\n");
             goto on_error;
         }
+    
     } else if (o.cmd == FLASH_CMD_ERASE) {
-        err = stlink_erase_flash_mass(sl);
 
+        // erase
+        if (o.size > 0 && o.addr > 0) {
+          err = stlink_erase_flash_section(sl, o.addr, o.size, false);
+        } else {
+          err = stlink_erase_flash_mass(sl);
+        }
         if (err == -1) {
             printf("stlink_erase_flash_mass() == -1\n");
             goto on_error;
         }
-    } else if (o.cmd == CMD_RESET) {
+        printf("Mass erase completed successfully.\n");
+
+        // reset after erase
         if (stlink_reset(sl, RESET_AUTO)) {
             printf("Failed to reset device\n");
             goto on_error;
         }
-    } else {                                                                    // read
+    
+    } else if (o.cmd == CMD_RESET) {
+
+        // reset
+        if (stlink_reset(sl, RESET_AUTO)) {
+            printf("Failed to reset device\n");
+            goto on_error;
+        }
+    
+    } else {
+
+        // read
         if ((o.area == FLASH_MAIN_MEMORY) || (o.area == FLASH_SYSTEM_MEMORY)) {
             if ((o.size == 0) && (o.addr >= sl->flash_base) && (o.addr < sl->flash_base + sl->flash_size)) {
                 o.size = sl->flash_size;
@@ -207,23 +245,31 @@ int main(int ac, char** av) {
                 goto on_error;
             }
         } else if (o.area == FLASH_OPTION_BYTES) {
-            uint8_t remaining_option_length = sl->option_size / 4;
-            DLOG("@@@@ Read %d (%#x) option bytes from %#10x\n", remaining_option_length, remaining_option_length, sl->option_base);
-            
-            if (NULL != o.filename) {
-                if (0 == o.size) {
-                    o.size = sl->option_size;
-                }
-                err = stlink_fread(sl, o.filename, o.format == FLASH_FORMAT_IHEX, sl->option_base, o.size);
-            } else {
-                uint32_t option_byte = 0;
-                err = stlink_read_option_bytes32(sl, &option_byte);
-                if (err == -1) {
-                    printf("could not read option bytes (%d)\n", err);
+            uint32_t remaining_option_length = sl->option_size / 4;
+            DLOG("@@@@ Read %u (%#x) option bytes from %#10x\n",
+                remaining_option_length,
+                remaining_option_length,
+                sl->option_base);
+
+            uint32_t option_byte = 0;
+            err = stlink_read_option_bytes32(sl, &option_byte);
+            if (err == -1) {
+                printf("could not read option bytes (%d)\n", err);
+                goto on_error;
+            } else if (NULL != o.filename) {
+                int32_t fd = open(o.filename, O_RDWR | O_TRUNC | O_CREAT | O_BINARY, 00700);
+                if (fd == -1) {
+                    fprintf(stderr, "open(%s) == -1\n", o.filename);
                     goto on_error;
-                } else {
-                    printf("%08x\n", option_byte);
                 }
+                err = (uint32_t)write(fd, &option_byte, 4);
+                if (err == -1) {
+                    printf("could not write buffer to file (%d)\n", err);
+                    goto on_error;
+                }
+                close(fd);
+            } else {
+                printf("%08x\n", option_byte);
             }
         } else if (o.area == FLASH_OPTION_BYTES_BOOT_ADD) {
             uint32_t option_byte = 0;
@@ -252,12 +298,23 @@ int main(int ac, char** av) {
             } else {
                 printf("%08x\n",option_byte);
             }
+        } else if (o.area == FLASH_OTP) {
+            if(sl->otp_base == 0) {
+                err = -1;
+                printf("OTP Read NOT implemented\n");
+                goto on_error;
+            }
+            err = stlink_fread(sl, o.filename, 0, sl->otp_base, sl->otp_size);
+            if (err == -1) {
+                printf("could not read OTP area (%d)\n", err);
+                goto on_error;
+            }
         }
     }
 
-    if (o.reset) {
-        stlink_reset(sl, RESET_AUTO);
-    }
+    if (o.reset) stlink_reset(sl, RESET_AUTO);
+
+    stlink_run(sl, RUN_NORMAL);
 
     err = 0; // success
 
@@ -266,5 +323,5 @@ on_error:
     stlink_close(sl);
     free(mem);
 
-    return(err);
+    return (err);
 }

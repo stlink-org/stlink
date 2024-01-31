@@ -1,0 +1,14 @@
+# Chip-ID file for STM32F412 device
+#
+dev_type STM32F412
+ref_manual_id 0402
+chip_id 0x441                // STM32_CHIPID_F412
+flash_type F2_F4
+flash_size_reg 0x1fff7a22
+flash_pagesize 0x4000        // 16 KB
+sram_size 0x40000            // 256 KB
+bootrom_base 0x1fff0000
+bootrom_size 0x7800          // 30 KB
+option_base 0x0
+option_size 0x0
+flags swo
