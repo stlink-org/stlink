@@ -30,10 +30,13 @@ More commonly these are:
 | STM32F4        | M4F             |                                                            |
 | STM32G4        | M4F             |                                                            |
 | STM32L4        | M4F             |                                                            |
-| STM32F7        | M4F             |                                                            |
-| STM32H7        | M4F             |                                                            |
+| STM32F7        | M7F             |                                                            |
+| STM32H7        | M7F             |                                                            |
 | STM32WB        | M4F             |                                                            |
 | STM32WL        | M4              |                                                            |
+| STM32L5        | M33             |                                                            |
+| STM32H5        | M33             |                                                            |
+| STM32U5        | M33             |                                                            |
 
 
 # Chinese Clone-Chips [may work, but without support!]

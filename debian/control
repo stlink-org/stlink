@@ -1,0 +1,48 @@
+Source: stlink
+Priority: optional
+Maintainer: Luca Boccassi <bluca@debian.org>
+Build-Depends: debhelper-compat (= 13), cmake (>= 3.4.2), libusb-1.0-0-dev, libgtk-3-dev
+Standards-Version: 4.5.1
+Rules-Requires-Root: no
+Section: electronics
+Homepage: https://github.com/stlink-org/stlink
+Vcs-Git: https://github.com/bluca/stlink.git -b debian
+Vcs-Browser: https://github.com/bluca/stlink
+
+Package: stlink-lib-dev
+Section: libdevel
+Architecture: linux-any
+Multi-Arch: same
+Depends: stlink-lib (= ${binary:Version}), ${misc:Depends}
+Replaces: libstlink-dev (<< 1.7.0+ds-1)
+Breaks: libstlink-dev (<< 1.7.0+ds-1)
+Description: Open source version of the STMicroelectronics STLINK Tools
+ .
+ This package contains development files for stlink.
+
+Package: stlink-lib
+Section: libs
+Architecture: linux-any
+Multi-Arch: same
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Replaces: libstlink1 (<< 1.7.0+ds-1)
+Breaks: libstlink1 (<< 1.7.0+ds-1)
+Description: Open source version of the STMicroelectronics STLINK Tools
+ .
+ This package contains the shared library for stlink.
+
+Package: stlink-tools
+Architecture: linux-any
+Depends: stlink-lib (= ${binary:Version}), ${shlibs:Depends}, ${misc:Depends}
+Description: Open source version of the STMicroelectronics STLINK Tools
+ .
+ This package contains commandline utilities for stlink, as well as modprobe
+ and udev rules.
+
+Package: stlink-gui
+Architecture: linux-any
+Depends: stlink-lib (= ${binary:Version}), stlink-tools (= ${binary:Version}),
+ ${shlibs:Depends}, ${misc:Depends}
+Description: Open source version of the STMicroelectronics STLINK Tools
+ .
+ This package contains a GUI tool for stlink.

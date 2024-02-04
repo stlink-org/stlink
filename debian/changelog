@@ -1,0 +1,203 @@
+stlink (1.7.0+ds-1) unstable; urgency=medium
+
+  * Merge tag 'v1.7.0' into debian. (Closes: #984356)
+  * Bump Standards-Version to 4.5.1, no changes.
+  * Bump debhelper-compat to 13, no changes.
+  * Update install files, paths have been fixed upstream.
+  * Update symbols file for 1.7.0.
+
+ -- Luca Boccassi <bluca@debian.org>  Sun, 15 Aug 2021 14:23:25 +0100
+
+stlink (1.6.1+ds-3) unstable; urgency=medium
+
+  * Add cross.patch to fix cross-compilation. Thanks Helmut! (Closes:
+    #973339)
+
+ -- Luca Boccassi <bluca@debian.org>  Thu, 29 Oct 2020 18:06:39 +0000
+
+stlink (1.6.1+ds-2) unstable; urgency=medium
+
+  * Update d/copyright to remove GPL-2+ stanza about flashloaders
+  * Update upstream URLs for new Github org
+  * Patch CMake's hard-coded define of XML gui file location (Closes:
+    #963219)
+
+ -- Luca Boccassi <bluca@debian.org>  Sun, 21 Jun 2020 13:41:37 +0100
+
+stlink (1.6.1+ds-1) unstable; urgency=medium
+
+  * Merge tag 'v1.6.1' into debian
+  * Update Files-Excluded in d/copyright for new layout
+  * Fix d/watch intermediary file name
+  * Drop cross.patch, merged upstream in v1.6.1
+  * Bump Build-Depends to cmake >= 3.4.2
+  * Add new symbols from upstream version 1.6.1
+  * Adjust install files, some files moved
+  * Remove unused variable from d/rules
+  * Generate pkgconfig file from d/rules, upstream doesn't do it
+  * Switch to debhelper-compat 12
+
+ -- Luca Boccassi <bluca@debian.org>  Sat, 06 Jun 2020 14:44:54 +0100
+
+stlink (1.6.0+ds-1) unstable; urgency=medium
+
+  * Merge tag 'v1.6.0' into debian
+  * Bump Standards-Version to 4.5.0, no changes.
+  * Update libstlink1 symbols file for 1.6.0.
+
+ -- Luca Boccassi <bluca@debian.org>  Tue, 25 Feb 2020 22:08:33 +0000
+
+stlink (1.5.1+ds-2) unstable; urgency=medium
+
+  * Mark library packages as Multi-Arch: same.
+  * Apply cross.patch to fix cross-compiling the GUI. Thanks Helmut for
+    the patch! (Closes: #941320)
+  * Vcs-Git: add -b debian
+  * Set Rules-Requires-Root: no
+  * Bump Standards-Version to 4.4.0
+
+ -- Luca Boccassi <bluca@debian.org>  Sun, 29 Sep 2019 12:50:58 +0100
+
+stlink (1.5.1+ds-1) unstable; urgency=medium
+
+  * Merge tag 'v1.5.1' into debian. See upstream changelog for info:
+    https://github.com/texane/stlink/releases/tag/v1.5.1
+  * Mark packages as linux-any, other systems not supported.
+
+ -- Luca Boccassi <bluca@debian.org>  Fri, 28 Sep 2018 10:26:39 +0100
+
+stlink (1.5.0+ds-1) unstable; urgency=medium
+
+  * Upload to unstable. (Closes: #869421)
+
+ -- Luca Boccassi <bluca@debian.org>  Fri, 16 Mar 2018 16:56:17 +0000
+
+stlink (1.5.0) unstable; urgency=medium
+
+  [ Jerry Jacobs ]
+  * README.md: Update version badge to v1.4.0
+
+  [ Viallard Anthony ]
+  * Add support of STM32L496xx/4A6xx devices (#615)
+
+  [ rdlim ]
+  * Fix verification of flash error for STM32L496x device (#617) (#618)
+
+  [ dflogeras ]
+  * Add note about availability in Gentoo package manager (#622)
+
+  [ yaofei zheng ]
+  * update debian package version (#630)
+
+  [ Lyle Cheatham ]
+  * Minor formatting fix in FAQ section of README.md (#631)
+
+  [ Vasiliy Glazov ]
+  * README.md: Added information about Fedora and RedHat/CentOS packages.
+    (#635)
+  * Added LIB_INSTALL_DIR to correct libs install on 64-bit systems (#636)
+
+  [ Gwenhael Goavec-Merou ]
+  * fix write for microcontroler with RAM size less or equal to 32K (#637)
+
+  [ Mateusz Krawiec ]
+  * Fix memory map for stm32l496xx boards. (#639)
+
+  [ Rüdiger Fortanier ]
+  * Add unknown chip output (#641)
+
+  [ Slyshyk Oleksiy ]
+  * fix __FILE__ base name extraction,  #628 (#648)
+
+  [ texane ]
+  * STM32F72xx73xx support, from bob.feretich@rafresearch.com
+
+  [ Kirill Kolyshkin ]
+  * debian/triggers: add (to run ldconfig) (#664)
+
+  [ Slyshyk Oleksiy ]
+  * Try to fix #666 issue (#667)
+  * Try to fix 666 issue (#668)
+
+  [ Jerry Jacobs ]
+  * Update ChangeLog.md
+  * Update README.md
+
+  [ texane ]
+  * STM32F042K6 Nucleo-32 Board reported to work, by frank@bauernoeppel.de
+
+  [ Anatol Pomozov ]
+  * Update .version file to match release number (#670)
+
+ -- Anatol Pomozov <anatol.pomozov@gmail.com>  Mon, 19 Feb 2018 11:00:29 -0800
+
+libstlink (1.4.0) unstable; urgency=low
+
+  * Major changes and added features
+    - Add support for STM32L452 target (#608)
+    - Initial support to compile with Microsoft Visual Studio 2017 (#602)
+    - Added support for flashing second bank on STM32F10x_XL (#592)
+    - Add support for STM32L011 target (#572)
+    - Allow building of debian package with CPack (@xor-gate)
+  * Updates and fixes
+    - Fix compilation with GCC 7 (#590)
+    - Skip GTK detection if we're cross-compiling (#588)
+    - Fix possible memory leak (#570)
+    - Fix building with mingw64 (#569, #610)
+    - Update libusb to 1.0.21 for Windows (#562)
+    - Fixing low-voltage flashing on STM32F7 parts. (#567)
+    - Update libusb to 1.0.21 for Windows (#562)
+
+ -- Andrew 'Necromant' Andrianov <andrew@ncrmnt.org>  Sat, 01 Jul 2017 00:00:00 +0000
+
+libstlink (1.3.1) unstable; urgency=low
+
+  * Major changes and added features:
+    - Add preliminary support for STM32L011 to see it after probe (chipid 0x457) (@xor-gate)
+    - Strip full paths to source files in log (commit #2c0ab7f)
+    - Add support for STM32F413 target (#549)
+    - Add support for Semihosting SYS_READC (#546)
+  * Updates and fixes:
+    - Update documentation markdown files
+    - Compilation fixes (#552)
+    - Fix compilation when path includes spaces (#561)
+
+ -- Andrew 'Necromant' Andrianov <andrew@ncrmnt.org>  Sat, 25 Feb 2017 00:00:00 +0000
+
+libstlink (1.3.0) unstable; urgency=low
+
+  * Major changes and added features:
+    - Deprecation of autotools (autoconf, automake) (@xor-gate)
+    - Removal of undocumented st-term utility, which is now replaced by st-util ARM semihosting feature (#3fd0f09)
+    - Add support for native debian packaging (#444, #485)
+    - Add intel hex file reading for st-flash (#459)
+    - Add --reset command to st-flash (#505)
+    - Support serial numbers argument for st-util and st-flash for multi-programmer setups (#541)
+    - Add kill ('k') command to gdb-server for st-util (#9804416)
+    - Add manpages (generated with pandoc from Markdown) (#464)
+    - Rewrite commandline parsing for st-flash (#459)
+    - Add support for ARM semihosting to st-util (#454, #455)
+  * Chip support added for:
+    - STM32L432 (#501)
+    - STM32F412 (#538)
+    - STM32F410 (#9c635e4)
+    - Add memory map for STM32F401XE (#460)
+    - L0x Category 5 devices (#406)
+    - Add L0 Category 2 device (chip id: 0x425) (#72b8e5e)
+  * Updates and fixes:
+    - Fixed STM32F030 erase error (#442)
+    - Fixed Cygwin build (#68b0f3b)
+    - Reset flash mass erase (MER) bit after mass erase for safety (#489)
+    - Fix memory map for STM32F4 (@zulusw)
+    - Fix STM32L-problem with flash loader (issue #390) (Tom de Boer)
+    - st-util don't read target voltage on startup as it crashes STM32F100 (probably stlink/v1) (Greg Alexander)
+    - Do a JTAG reset prior to reading CPU information when processor is in deep sleep (@andyg24)
+    - Redesign of st-flash commandline options parsing (pull-request #459) (@dev26th)
+
+ -- Andrew 'Necromant' Andrianov <andrew@ncrmnt.org>  Sat, 28 Jan 2017 00:00:00 +0000
+
+libstlink (1.2.1) unstable; urgency=low
+
+  * Initial Debian-Packaged Release.
+
+ -- Andrew 'Necromant' Andrianov <andrew@ncrmnt.org>  Sat, 09 Jul 2016 23:16:07 +0300
