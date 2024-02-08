@@ -1,0 +1,14 @@
+# Chip-ID file for STM32H5xx device
+#
+dev_type STM32H5xx
+ref_manual_id 0481
+chip_id 0x484                // STM32_CHIPID_H5xx
+flash_type L5_U5_H5
+flash_size_reg 0x08fff80c
+flash_pagesize 0x2000        // 8 KB
+sram_size 0xa0000            // 640 KB
+bootrom_base 0x0bf80000
+bootrom_size 0x8000          // 32 KB
+option_base 0x0
+option_size 0x0
+flags dualbank

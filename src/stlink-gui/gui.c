@@ -7,6 +7,11 @@
 #include <stlink.h>
 #include "gui.h"
 
+#include <chipid.h>
+#include <common_flash.h>
+#include <read_write.h>
+#include <usb.h>
+
 #define MEM_READ_SIZE 1024
 
 #ifndef G_VALUE_INIT
@@ -59,7 +64,7 @@ static gboolean set_info_error_message_idle(STlinkGUI *gui) {
         gui->error_message = NULL;
     }
 
-    return(FALSE);
+    return (FALSE);
 }
 
 static void stlink_gui_set_info_error_message(STlinkGUI *gui, const gchar *message) {
@@ -152,15 +157,15 @@ static guint32 hexstr_to_guint32(const gchar *str, GError **err) {
 
     if ((errno == ERANGE && val == UINT_MAX) || (errno != 0 && val == 0)) {
         g_set_error(err, g_quark_from_string("hextou32"), 1, "Invalid hexstring");
-        return(UINT32_MAX);
+        return (UINT32_MAX);
     }
 
     if (end_ptr == str) {
         g_set_error(err, g_quark_from_string("hextou32"), 2, "Invalid hexstring");
-        return(UINT32_MAX);
+        return (UINT32_MAX);
     }
 
-    return(val);
+    return (val);
 }
 
 static void stlink_gui_update_mem_view(STlinkGUI *gui, struct mem_t *mem, GtkTreeView *view) {
@@ -178,7 +183,7 @@ static void stlink_gui_update_mem_view(STlinkGUI *gui, struct mem_t *mem, GtkTre
 
 static gboolean stlink_gui_update_devmem_view(STlinkGUI *gui) {
     stlink_gui_update_mem_view(gui, &gui->flash_mem, gui->devmem_treeview);
-    return(FALSE);
+    return (FALSE);
 }
 
 static gpointer stlink_gui_populate_devmem_view(gpointer data) {
@@ -216,7 +221,7 @@ static gpointer stlink_gui_populate_devmem_view(gpointer data) {
             stlink_gui_set_info_error_message(gui, "Failed to read memory");
             g_free(gui->flash_mem.memory);
             gui->flash_mem.memory = NULL;
-            return(NULL);
+            return (NULL);
         }
 
         memcpy(gui->flash_mem.memory + off, gui->sl->q_buf, n_read);
@@ -224,7 +229,7 @@ static gpointer stlink_gui_populate_devmem_view(gpointer data) {
     }
 
     g_idle_add((GSourceFunc)stlink_gui_update_devmem_view, gui);
-    return(NULL);
+    return (NULL);
 }
 
 static gboolean stlink_gui_update_filemem_view(STlinkGUI *gui) {
@@ -236,7 +241,7 @@ static gboolean stlink_gui_update_filemem_view(STlinkGUI *gui) {
     g_free(basename);
 
     stlink_gui_update_mem_view(gui, &gui->file_mem, gui->filemem_treeview);
-    return(FALSE);
+    return (FALSE);
 }
 
 static gpointer stlink_gui_populate_filemem_view(gpointer data) {
@@ -261,9 +266,9 @@ static gpointer stlink_gui_populate_filemem_view(gpointer data) {
          */
 
         uint8_t* mem   = NULL;
-        size_t size    = 0;
+        uint32_t size    = 0;
         uint32_t begin = 0;
-        int res = stlink_parse_ihex(gui->filename, 0, &mem, &size, &begin);
+        int32_t res = stlink_parse_ihex(gui->filename, 0, &mem, &size, &begin);
 
         if (res == 0) {
             if (gui->file_mem.memory) {
@@ -301,7 +306,14 @@ static gpointer stlink_gui_populate_filemem_view(gpointer data) {
 
         if (gui->file_mem.memory) { g_free(gui->file_mem.memory); }
 
-        gui->file_mem.size   = g_file_info_get_size(file_info);
+	goffset file_size = g_file_info_get_size(file_info);
+
+	if ((0 > file_size) && ((goffset)G_MAXSIZE <= file_size)) {
+	  stlink_gui_set_info_error_message(gui, "File too large.");
+	  goto out_input;
+	}
+
+        gui->file_mem.size   = file_size;
         gui->file_mem.memory = g_malloc(gui->file_mem.size);
 
         for (off = 0; off < (gint)gui->file_mem.size; off += MEM_READ_SIZE) {
@@ -327,7 +339,7 @@ out:       g_object_unref(file);
     }
 
     g_idle_add((GSourceFunc)stlink_gui_update_filemem_view, gui);
-    return(NULL);
+    return (NULL);
 }
 
 static void mem_jmp(GtkTreeView *view,
@@ -427,13 +439,13 @@ static gchar *dev_format_chip_id(guint32 chip_id) {
 
     params = stlink_chipid_get_params(chip_id);
 
-    if (!params) { return(g_strdup_printf("0x%x", chip_id)); }
+    if (!params) { return (g_strdup_printf("0x%x", chip_id)); }
 
-    return(g_strdup(params->description));
+    return (g_strdup(params->dev_type));
 }
 
 static gchar *dev_format_mem_size(gsize flash_size) {
-    return(g_strdup_printf("%u kB", (unsigned int)(flash_size / 1024)));
+    return (g_strdup_printf("%u kB", (uint32_t)(flash_size / 1024)));
 }
 
 
@@ -495,22 +507,11 @@ static void connect_button_cb(GtkWidget *widget, gpointer data) {
 
     if (gui->sl != NULL) { return; }
 
-    gui->sl = stlink_v1_open(0, 1); // try version 1 then version 2
-
-    if (gui->sl == NULL) { gui->sl = stlink_open_usb(0, 1, NULL, 0); }
+    gui->sl = stlink_open_usb(0, 1, NULL, 0);
 
     if (gui->sl == NULL) {
         stlink_gui_set_info_error_message(gui, "Failed to connect to STLink.");
         return;
-    }
-
-    // code below taken from flash/main.c, refactoring might be in order
-    if (stlink_current_mode(gui->sl) == STLINK_DEV_DFU_MODE) {
-        stlink_exit_dfu_mode(gui->sl);
-    }
-
-    if (stlink_current_mode(gui->sl) != STLINK_DEV_DEBUG_MODE) {
-        stlink_enter_swd_mode(gui->sl);
     }
 
     stlink_gui_set_connected(gui);
@@ -585,7 +586,7 @@ static gboolean stlink_gui_write_flash_update(STlinkGUI *gui) {
     stlink_gui_set_sensitivity(gui, TRUE);
     gui->progress.activity_mode = FALSE;
     gtk_widget_hide(GTK_WIDGET(gui->progress.bar));
-    return(FALSE);
+    return (FALSE);
 }
 
 static gpointer stlink_gui_write_flash(gpointer data) {
@@ -601,7 +602,7 @@ static gpointer stlink_gui_write_flash(gpointer data) {
     }
 
     g_idle_add((GSourceFunc)stlink_gui_write_flash_update, gui);
-    return(NULL);
+    return (NULL);
 }
 
 static void flash_button_cb(GtkWidget *widget, gpointer data) {
@@ -644,17 +645,17 @@ static void flash_button_cb(GtkWidget *widget, gpointer data) {
     }
 }
 
-int export_to_file(const char*filename, const struct mem_t flash_mem) {
+int32_t export_to_file(const char*filename, const struct mem_t flash_mem) {
     printf("%s\n", filename);
     FILE * f = fopen(filename, "w");
 
-    if (f == NULL) { return(-1); }
+    if (f == NULL) { return (-1); }
 
     for (gsize i = 0; i < flash_mem.size; i++)
-        if (fputc(flash_mem.memory[i], f) == EOF) { return(-1); }
+        if (fputc(flash_mem.memory[i], f) == EOF) { return (-1); }
 
     fclose(f);
-    return(0);
+    return (0);
 }
 
 static void export_button_cb(GtkWidget *widget, gpointer data) {
@@ -697,7 +698,7 @@ static gboolean progress_pulse_timeout(STlinkGUI *gui) {
         gtk_progress_bar_set_fraction(gui->progress.bar, gui->progress.fraction);
     }
 
-    return(TRUE);
+    return (TRUE);
 }
 
 static void notebook_switch_page_cb(GtkNotebook *notebook,
@@ -889,15 +890,17 @@ static void stlink_gui_build_ui(STlinkGUI *gui) {
     stlink_gui_set_disconnected(gui);
 }
 
-int main(int argc, char **argv) {
+int32_t main(int32_t argc, char **argv) {
     STlinkGUI *gui;
 
     gtk_init(&argc, &argv);
+
+    init_chipids (STLINK_CHIPS_DIR);
 
     gui = g_object_new(STLINK_TYPE_GUI, NULL);
     stlink_gui_build_ui(gui);
     stlink_gui_init_dnd(gui);
 
     gtk_main();
-    return(0);
+    return (0);
 }

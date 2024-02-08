@@ -5,7 +5,7 @@
 set(TESTEXEC usb sg)
 
 set(TEST_DEPENDENCY ${STLINK_LIB_SHARED})
-if (WIN32 OR APPLE)
+if (WIN32)
     set(TEST_DEPENDENCY ${STLINK_LIB_STATIC})
 endif()
 

@@ -1,0 +1,14 @@
+# Chip-ID file for STM32F1xx high density device
+#
+dev_type F1xx_HD
+ref_manual_id 0008
+chip_id 0x414                // STM32_CHIPID_F1_HD
+flash_type F0_F1_F3
+flash_size_reg 0x1ffff7e0
+flash_pagesize 0x800         // 2 KB
+sram_size 0x10000            // 64 KB
+bootrom_base 0x1ffff000
+bootrom_size 0x800           // 2 KB
+option_base 0x1ffff800       // STM32_F0_OPTION_BYTES_BASE
+option_size 0x10             // 16 B
+flags swo

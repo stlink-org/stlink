@@ -1,0 +1,14 @@
+# Chip-ID file for unknown device
+#
+dev_type unknown
+ref_manual_id 0000
+chip_id 0x0                  // STM32_CHIPID_UNKNOWN
+flash_type UNKNOWN
+flash_size_reg 0x0
+flash_pagesize 0x0
+sram_size 0x0
+bootrom_base 0x0
+bootrom_size 0x0
+option_base 0x0
+option_size 0x0
+flags none

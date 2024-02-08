@@ -20,8 +20,7 @@ You can use this instead of st-util(1) if you prefer, but remember to use the
 
 Use hexadecimal format for the *ADDR* and *SIZE*.
 
-The STLink device to use can be specified using the --serial parameter, or via 
-the environment variable STLINK_DEVICE on the format <USB_BUS>:<USB_ADDR>.
+The STLink device to use can be specified using the --serial parameter.
 
 # COMMANDS
 
@@ -52,7 +51,7 @@ reset
 :   Enable ignore ending empty bytes optimization
 
 \--serial *iSerial*
-:   TODO
+:   Serial number of ST-LINK device to use
 
 \--flash=fsize
 :   Where fsize is the size in decimal, octal, or hex followed by an optional multiplier 

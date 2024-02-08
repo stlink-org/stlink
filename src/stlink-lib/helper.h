@@ -1,8 +1,13 @@
-#ifndef SYS_HELPER_H
-#define SYS_HELPER_H
+/*
+ * File: helper.h
+ *
+ * General helper functions
+ */
 
-unsigned time_ms();
+#ifndef HELPER_H
+#define HELPER_H
 
-int arg_parse_freq(const char *str);
+uint32_t time_ms();
+int32_t arg_parse_freq(const char *str);
 
-#endif /* SYS_HELPER_H */
+#endif // HELPER_H

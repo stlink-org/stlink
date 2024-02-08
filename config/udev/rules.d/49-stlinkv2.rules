@@ -1,4 +1,4 @@
-# stm32 discovery boards, with onboard st/linkv2
+# STM32 discovery boards, with onboard st/linkv2
 # ie, STM32L, STM32F4.
 # STM32VL has st/linkv1, which is quite different
 

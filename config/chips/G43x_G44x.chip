@@ -1,0 +1,14 @@
+# Chip-ID file for STM32G43x / STM32G44x device
+#
+dev_type STM32G43x_G44x
+ref_manual_id 0440
+chip_id 0x468                // STM32_CHIPID_G4_CAT2
+flash_type G4
+flash_size_reg 0x1fff75e0
+flash_pagesize 0x800         // 2 KB
+sram_size 0x8000             // 32 KB
+bootrom_base 0x1fff0000
+bootrom_size 0x7000          // 28 KB
+option_base 0x1ffff800       // STM32_G4_OPTION_BYTES_BASE
+option_size 0x4              // 4 B
+flags swo

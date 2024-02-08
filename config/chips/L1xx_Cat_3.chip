@@ -1,0 +1,14 @@
+# Chip-ID file for STM32L1xx (Cat.3) device (L100RC / L15xxC)
+#
+dev_type STM32L1xx_Cat_3
+ref_manual_id 0038
+chip_id 0x427                // STM32_CHIPID_L1_MD_PLUS
+flash_type L0_L1
+flash_size_reg 0x1ff800cc
+flash_pagesize 0x100         // 128 B
+sram_size 0x8000             // 32 KB
+bootrom_base 0x1ff00000
+bootrom_size 0x1000          // 4 KB
+option_base 0x0
+option_size 0x0
+flags swo
