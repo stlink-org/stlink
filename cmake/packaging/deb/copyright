@@ -2,7 +2,6 @@ Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: stlink
 Upstream-Contact: Nightwalker-87 <stlink-org>
 Source: https://github.com/stlink-org/stlink
-Files-Excluded: stlinkv1_macos_driver
 
 Files: *
 Copyright: 2011-2020 stlink-org

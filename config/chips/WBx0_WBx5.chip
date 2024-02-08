@@ -1,0 +1,14 @@
+# Chip-ID file for STM32WBx0 / STM32WBx5 device
+#
+dev_type STM32WBx0_WBx5
+ref_manual_id 0434           // also RM0471
+chip_id 0x495                // STM32_CHIPID_WB55
+flash_type WB_WL
+flash_size_reg 0x1fff75e0
+flash_pagesize 0x1000        // 4 KB
+sram_size 0x40000            // 256 KB
+bootrom_base 0x1fff0000
+bootrom_size 0x7000          // 28 KB
+option_base 0x1fff8000
+option_size 0x80             // 128 B
+flags swo

@@ -1,0 +1,14 @@
+# Chip-ID file for STM32L0xxx (Cat.2) device (L010x6 / L031x / L041x)
+#
+dev_type STM32L0xxx_Cat_2
+ref_manual_id 0451           // also RM0377
+chip_id 0x425                // STM32_CHIPID_L0_CAT2
+flash_type L0_L1
+flash_size_reg 0x1ff8007c
+flash_pagesize 0x80          // 128 B
+sram_size 0x2000             // 8 KB
+bootrom_base 0x1ff00000
+bootrom_size 0x1000          // 4 KB
+option_base 0x1ff80000       // STM32_L0_OPTION_BYTES_BASE
+option_size 0x20             // 32 B
+flags none

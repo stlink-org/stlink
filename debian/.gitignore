@@ -1,0 +1,10 @@
+.debhelper
+*.log
+*.substvars
+debhelper-build-stamp
+files
+libstlink-dev
+libstlink
+stlink-gui
+stlink-tools
+tmp

@@ -15,9 +15,6 @@ st-info - Provides information about connected STLink and STM32 devices
 Provides information about connected STLink programmers and STM32 devices:
 Serial code, flash, page size, sram, chipid, description.
 
-The STLink device to probe can be specified via the environment variable
-STLINK_DEVICE on the format <USB_BUS>:<USB_ADDR>.
-
 # OPTIONS
 
 \--version

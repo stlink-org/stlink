@@ -1,0 +1,14 @@
+# Chip-ID file for STM32C031xx device
+#
+dev_type STM32C031xx
+ref_manual_id 0490
+chip_id 0x453                // STM32_CHIPID_C031xx
+flash_type C0
+flash_size_reg 0x1fff75a0
+flash_pagesize 0x800         // 2 KB
+sram_size 0x3000             // 12 KB
+bootrom_base 0x1fff0000
+bootrom_size 0x1800          // 6 KB
+option_base 0x1fff7800       // STM32_C0_OPTION_BYTES_BASE
+option_size 0x80             // 128 B
+flags none

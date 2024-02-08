@@ -1,0 +1,14 @@
+# Chip-ID file for STM32L1xx (Cat.4) device (L15xxD / L162xD)
+#
+dev_type STM32L1xx_Cat_4
+ref_manual_id 0038
+chip_id 0x436                // STM32_CHIPID_L1_MD_PLUS_HD
+flash_type L0_L1
+flash_size_reg 0x1ff800cc
+flash_pagesize 0x100         // 128 B
+sram_size 0xc000             // 48 KB
+bootrom_base 0x1ff00000
+bootrom_size 0x1000          // 4 KB
+option_base 0x1ff80000       // STM32_L1_OPTION_BYTES_BASE
+option_size 0x8              // 8 B
+flags swo

@@ -8,6 +8,7 @@
 #include <signal.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <sys/types.h>
 
@@ -26,11 +27,19 @@
 #endif
 
 #include <stlink.h>
+#include "gdb-server.h"
+#include "gdb-remote.h"
+#include "memory-map.h"
+#include "semihosting.h"
+
+#include <chipid.h>
+#include <common_flash.h>
+#include <flash_loader.h>
 #include <helper.h>
 #include <logging.h>
-#include "gdb-remote.h"
-#include "gdb-server.h"
-#include "semihosting.h"
+#include <read_write.h>
+#include <register.h>
+#include <usb.h>
 
 #define FLASH_BASE 0x08000000
 
@@ -56,18 +65,18 @@ static const char hex[] = "0123456789abcdef";
 
 typedef struct _st_state_t {
     // things from command line, bleh
-    int logging_level;
-    int listen_port;
-    int persistent;
+    int32_t logging_level;
+    int32_t listen_port;
+    int32_t persistent;
     enum connect_type connect_mode;
-    int freq;
+    int32_t freq;
     char serialnumber[STLINK_SERIAL_BUFFER_SIZE];
     bool semihosting;
     const char* current_memory_map;
 } st_state_t;
 
 
-int serve(stlink_t *sl, st_state_t *st);
+int32_t serve(stlink_t *sl, st_state_t *st);
 char* make_memory_map(stlink_t *sl);
 static void init_cache(stlink_t *sl);
 
@@ -80,7 +89,7 @@ static void _cleanup() {
     }
 }
 
-static void cleanup(int signum) {
+static void cleanup(int32_t signum) {
     printf("Receive signal %i. Exiting...\n", signum);
     _cleanup();
     exit(1);
@@ -89,13 +98,13 @@ static void cleanup(int signum) {
 
 #if defined(_WIN32)
 BOOL WINAPI CtrlHandler(DWORD fdwCtrlType) {
-    printf("Receive signal %i. Exiting...\r\n", (int)fdwCtrlType);
+    printf("Receive signal %i. Exiting...\r\n", (int32_t)fdwCtrlType);
     _cleanup();
     return FALSE;
 }
 #endif
 
-int parse_options(int argc, char** argv, st_state_t *st) {
+int32_t parse_options(int32_t argc, char** argv, st_state_t *st) {
     static struct option long_options[] = {
         {"help", no_argument, NULL, 'h'},
         {"verbose", optional_argument, NULL, 'v'},
@@ -113,7 +122,7 @@ int parse_options(int argc, char** argv, st_state_t *st) {
     const char * help_str = "%s - usage:\n\n"
                             "  -h, --help\t\tPrint this help\n"
                             "  -V, --version\t\tPrint the version\n"
-                            "  -vXX, --verbose=XX\tSpecify a specific verbosity level (0..99)\n"
+                            "  -vXX, --verbose=XX\tSpecify a specific verbosity level (0...99)\n"
                             "  -v, --verbose\t\tSpecify generally verbose logging\n"
                             "  -p 4242, --listen_port=1234\n"
                             "\t\t\tSet the gdb server listen port. "
@@ -124,8 +133,8 @@ int parse_options(int argc, char** argv, st_state_t *st) {
                             "  -n, --no-reset, --hot-plug\n"
                             "\t\t\tDo not reset board on connection.\n"
                             "  -u, --connect-under-reset\n"
-                            "\t\t\tConnect to the board before executing any instructions.\n"                            
-                            "  -F 1800K, --freq=1M\n"
+                            "\t\t\tConnect to the board before executing any instructions.\n"
+                            "  -F 1800k, --freq=1M\n"
                             "\t\t\tSet the frequency of the SWD/JTAG interface.\n"
                             "  --semihosting\n"
                             "\t\t\tEnable semihosting support.\n"
@@ -138,11 +147,11 @@ int parse_options(int argc, char** argv, st_state_t *st) {
     ;
 
 
-    int option_index = 0;
-    int c;
-    int q;
+    int32_t option_index = 0;
+    int32_t c;
+    int32_t q;
 
-    while ((c = getopt_long(argc, argv, "hv::p:mn", long_options, &option_index)) != -1)
+    while ((c = getopt_long(argc, argv, "hv::p:mnu", long_options, &option_index)) != -1)
         switch (c) {
         case 0:
             break;
@@ -159,15 +168,17 @@ int parse_options(int argc, char** argv, st_state_t *st) {
 
             break;
         case 'p':
-            sscanf(optarg, "%i", &q);
-            if (q < 0) {
+            if (sscanf(optarg, "%i", &q) != 1) {
+                fprintf(stderr, "Invalid port %s\n", optarg);
+                exit(EXIT_FAILURE);
+            } else if (q < 0) {
                 fprintf(stderr, "Can't use a negative port to listen on: %d\n", q);
                 exit(EXIT_FAILURE);
             }
 
             st->listen_port = q;
             break;
-            
+
         case 'm':
             st->persistent = true;
             break;
@@ -205,10 +216,10 @@ int parse_options(int argc, char** argv, st_state_t *st) {
         printf("\n");
     }
 
-    return(0);
+    return (0);
 }
 
-int main(int argc, char** argv) {
+int32_t main(int32_t argc, char** argv) {
     stlink_t *sl = NULL;
     st_state_t state;
     memset(&state, 0, sizeof(state));
@@ -219,14 +230,16 @@ int main(int argc, char** argv) {
     state.connect_mode = CONNECT_NORMAL; // by default, reset board
     parse_options(argc, argv, &state);
 
-    printf("st-util\n");
+    printf("st-util %s\n", STLINK_VERSION);
+
+    init_chipids (STLINK_CHIPS_DIR);
 
     sl = stlink_open_usb(state.logging_level, state.connect_mode, state.serialnumber, state.freq);
-    if (sl == NULL) { return(1); }
+    if (sl == NULL) { return (1); }
 
-    if (sl->chip_id == STLINK_CHIPID_UNKNOWN) {
+    if (sl->chip_id == STM32_CHIPID_UNKNOWN) {
         ELOG("Unsupported Target (Chip ID is %#010x, Core ID is %#010x).\n", sl->chip_id, sl->core_id);
-        return(1);
+        return (1);
     }
 
     sl->verbose = 0;
@@ -264,7 +277,7 @@ winsock_error:
     stlink_exit_debug_mode(sl);
     stlink_close(sl);
 
-    return(0);
+    return (0);
 }
 
 static const char* const target_description =
@@ -332,248 +345,59 @@ static const char* const target_description =
     "   </feature>"
     "</target>";
 
-static const char* const memory_map_template_F4 =
-    "<?xml version=\"1.0\"?>"
-    "<!DOCTYPE memory-map PUBLIC \"+//IDN gnu.org//DTD GDB Memory Map V1.0//EN\""
-    "     \"http://sourceware.org/gdb/gdb-memory-map.dtd\">"
-    "<memory-map>"
-    "  <memory type=\"rom\" start=\"0x00000000\" length=\"0x100000\"/>"     // code = sram, bootrom or flash; flash is bigger
-    "  <memory type=\"ram\" start=\"0x10000000\" length=\"0x10000\"/>"      // ccm ram
-    "  <memory type=\"ram\" start=\"0x20000000\" length=\"0x20000\"/>"      // sram
-    "  <memory type=\"flash\" start=\"0x08000000\" length=\"0x10000\">"     // Sectors 0..3
-    "    <property name=\"blocksize\">0x4000</property>"                    // 16kB
-    "  </memory>"
-    "  <memory type=\"flash\" start=\"0x08010000\" length=\"0x10000\">"     // Sector 4
-    "    <property name=\"blocksize\">0x10000</property>"                   // 64kB
-    "  </memory>"
-    "  <memory type=\"flash\" start=\"0x08020000\" length=\"0xE0000\">"     // Sectors 5..11
-    "    <property name=\"blocksize\">0x20000</property>"                   // 128kB
-    "  </memory>"
-    "  <memory type=\"ram\" start=\"0x40000000\" length=\"0x1fffffff\"/>"   // peripheral regs
-    "  <memory type=\"ram\" start=\"0x60000000\" length=\"0x7fffffff\"/>"   // AHB3 Peripherals
-    "  <memory type=\"ram\" start=\"0xe0000000\" length=\"0x1fffffff\"/>"   // cortex regs
-    "  <memory type=\"rom\" start=\"0x1fff0000\" length=\"0x7800\"/>"       // bootrom
-    "  <memory type=\"rom\" start=\"0x1fffc000\" length=\"0x10\"/>"         // option byte area
-    "</memory-map>";
-
-static const char* const memory_map_template_F4_HD =
-    "<?xml version=\"1.0\"?>"
-    "<!DOCTYPE memory-map PUBLIC \"+//IDN gnu.org//DTD GDB Memory Map V1.0//EN\""
-    "     \"http://sourceware.org/gdb/gdb-memory-map.dtd\">"
-    "<memory-map>"
-    "  <memory type=\"rom\" start=\"0x00000000\" length=\"0x100000\"/>"     // code = sram, bootrom or flash; flash is bigger
-    "  <memory type=\"ram\" start=\"0x10000000\" length=\"0x10000\"/>"      // ccm ram
-    "  <memory type=\"ram\" start=\"0x20000000\" length=\"0x40000\"/>"      // sram
-    "  <memory type=\"ram\" start=\"0x60000000\" length=\"0x10000000\"/>"   // fmc bank 1 (nor/psram/sram)
-    "  <memory type=\"ram\" start=\"0x70000000\" length=\"0x20000000\"/>"   // fmc bank 2 & 3 (nand flash)
-    "  <memory type=\"ram\" start=\"0x90000000\" length=\"0x10000000\"/>"   // fmc bank 4 (pc card)
-    "  <memory type=\"ram\" start=\"0xC0000000\" length=\"0x20000000\"/>"   // fmc sdram bank 1 & 2
-    "  <memory type=\"flash\" start=\"0x08000000\" length=\"0x10000\">"     // Sectors 0..3
-    "    <property name=\"blocksize\">0x4000</property>"                    // 16kB
-    "  </memory>"
-    "  <memory type=\"flash\" start=\"0x08010000\" length=\"0x10000\">"     // Sector 4
-    "    <property name=\"blocksize\">0x10000</property>"                   // 64kB
-    "  </memory>"
-    "  <memory type=\"flash\" start=\"0x08020000\" length=\"0xE0000\">"     // Sectors 5..11
-    "    <property name=\"blocksize\">0x20000</property>"                   // 128kB
-    "  </memory>"
-    "  <memory type=\"ram\" start=\"0x40000000\" length=\"0x1fffffff\"/>"   // peripheral regs
-    "  <memory type=\"ram\" start=\"0xe0000000\" length=\"0x1fffffff\"/>"   // cortex regs
-    "  <memory type=\"rom\" start=\"0x1fff0000\" length=\"0x7800\"/>"       // bootrom
-    "  <memory type=\"rom\" start=\"0x1fffc000\" length=\"0x10\"/>"         // option byte area
-    "</memory-map>";
-
-static const char* const memory_map_template_F2 =
-    "<?xml version=\"1.0\"?>"
-    "<!DOCTYPE memory-map PUBLIC \"+//IDN gnu.org//DTD GDB Memory Map V1.0//EN\""
-    "     \"http://sourceware.org/gdb/gdb-memory-map.dtd\">"
-    "<memory-map>"
-    "  <memory type=\"rom\" start=\"0x00000000\" length=\"0x%x\"/>"         // code = sram, bootrom or flash; flash is bigger
-    "  <memory type=\"ram\" start=\"0x20000000\" length=\"0x%x\"/>"         // sram
-    "  <memory type=\"flash\" start=\"0x08000000\" length=\"0x10000\">"     // Sectors 0..3
-    "    <property name=\"blocksize\">0x4000</property>"                    // 16kB
-    "  </memory>"
-    "  <memory type=\"flash\" start=\"0x08010000\" length=\"0x10000\">"     // Sector 4
-    "    <property name=\"blocksize\">0x10000</property>"                   // 64kB
-    "  </memory>"
-    "  <memory type=\"flash\" start=\"0x08020000\" length=\"0x%x\">"        // Sectors 5..
-    "    <property name=\"blocksize\">0x20000</property>"                   // 128kB
-    "  </memory>"
-    "  <memory type=\"ram\" start=\"0x40000000\" length=\"0x1fffffff\"/>"   // peripheral regs
-    "  <memory type=\"ram\" start=\"0xe0000000\" length=\"0x1fffffff\"/>"   // cortex regs
-    "  <memory type=\"rom\" start=\"0x%08x\" length=\"0x%x\"/>"             // bootrom
-    "  <memory type=\"rom\" start=\"0x1fffc000\" length=\"0x10\"/>"         // option byte area
-    "</memory-map>";
-
-static const char* const memory_map_template_L4 =
-    "<?xml version=\"1.0\"?>"
-    "<!DOCTYPE memory-map PUBLIC \"+//IDN gnu.org//DTD GDB Memory Map V1.0//EN\""
-    "     \"http://sourceware.org/gdb/gdb-memory-map.dtd\">"
-    "<memory-map>"
-    "  <memory type=\"rom\" start=\"0x00000000\" length=\"0x%x\"/>"         // code = sram, bootrom or flash; flash is bigger
-    "  <memory type=\"ram\" start=\"0x10000000\" length=\"0x8000\"/>"       // SRAM2 (32kB)
-    "  <memory type=\"ram\" start=\"0x20000000\" length=\"0x18000\"/>"      // SRAM1 (96kB)
-    "  <memory type=\"flash\" start=\"0x08000000\" length=\"0x%x\">"
-    "    <property name=\"blocksize\">0x800</property>"
-    "  </memory>"
-    "  <memory type=\"ram\" start=\"0x40000000\" length=\"0x1fffffff\"/>"   // peripheral regs
-    "  <memory type=\"ram\" start=\"0x60000000\" length=\"0x7fffffff\"/>"   // AHB3 Peripherals
-    "  <memory type=\"ram\" start=\"0xe0000000\" length=\"0x1fffffff\"/>"   // cortex regs
-    "  <memory type=\"rom\" start=\"0x1fff0000\" length=\"0x7000\"/>"       // bootrom
-    "  <memory type=\"rom\" start=\"0x1fff7800\" length=\"0x10\"/>"         // option byte area
-    "  <memory type=\"rom\" start=\"0x1ffff800\" length=\"0x10\"/>"         // option byte area
-    "</memory-map>";
-
-static const char* const memory_map_template_L496 =
-    "<?xml version=\"1.0\"?>"
-    "<!DOCTYPE memory-map PUBLIC \"+//IDN gnu.org//DTD GDB Memory Map V1.0//EN\""
-    "     \"http://sourceware.org/gdb/gdb-memory-map.dtd\">"
-    "<memory-map>"
-    "  <memory type=\"rom\" start=\"0x00000000\" length=\"0x%x\"/>"         // code = sram, bootrom or flash; flash is bigger
-    "  <memory type=\"ram\" start=\"0x10000000\" length=\"0x10000\"/>"      // SRAM2 (64kB)
-    "  <memory type=\"ram\" start=\"0x20000000\" length=\"0x50000\"/>"      // SRAM1 + aliased SRAM2 (256 + 64 = 320kB)
-    "  <memory type=\"flash\" start=\"0x08000000\" length=\"0x%x\">"
-    "    <property name=\"blocksize\">0x800</property>"
-    "  </memory>"
-    "  <memory type=\"ram\" start=\"0x40000000\" length=\"0x1fffffff\"/>"   // peripheral regs
-    "  <memory type=\"ram\" start=\"0x60000000\" length=\"0x7fffffff\"/>"   // AHB3 Peripherals
-    "  <memory type=\"ram\" start=\"0xe0000000\" length=\"0x1fffffff\"/>"   // cortex regs
-    "  <memory type=\"rom\" start=\"0x1fff0000\" length=\"0x7000\"/>"       // bootrom
-    "  <memory type=\"rom\" start=\"0x1fff7800\" length=\"0x10\"/>"         // option byte area
-    "  <memory type=\"rom\" start=\"0x1ffff800\" length=\"0x10\"/>"         // option byte area
-    "</memory-map>";
-
-static const char* const memory_map_template =
-    "<?xml version=\"1.0\"?>"
-    "<!DOCTYPE memory-map PUBLIC \"+//IDN gnu.org//DTD GDB Memory Map V1.0//EN\""
-    "     \"http://sourceware.org/gdb/gdb-memory-map.dtd\">"
-    "<memory-map>"
-    "  <memory type=\"rom\" start=\"0x00000000\" length=\"0x%x\"/>"         // code = sram, bootrom or flash; flash is bigger
-    "  <memory type=\"ram\" start=\"0x20000000\" length=\"0x%x\"/>"         // sram 8kB
-    "  <memory type=\"flash\" start=\"0x08000000\" length=\"0x%x\">"
-    "    <property name=\"blocksize\">0x%x</property>"
-    "  </memory>"
-    "  <memory type=\"ram\" start=\"0x40000000\" length=\"0x1fffffff\"/>"   // peripheral regs
-    "  <memory type=\"ram\" start=\"0xe0000000\" length=\"0x1fffffff\"/>"   // cortex regs
-    "  <memory type=\"rom\" start=\"0x%08x\" length=\"0x%x\"/>"             // bootrom
-    "  <memory type=\"rom\" start=\"0x1ffff800\" length=\"0x10\"/>"         // option byte area
-    "</memory-map>";
-
-static const char* const memory_map_template_F7 =
-    "<?xml version=\"1.0\"?>"
-    "<!DOCTYPE memory-map PUBLIC \"+//IDN gnu.org//DTD GDB Memory Map V1.0//EN\""
-    "     \"http://sourceware.org/gdb/gdb-memory-map.dtd\">"
-    "<memory-map>"
-    "  <memory type=\"ram\" start=\"0x00000000\" length=\"0x4000\"/>"       // ITCM ram 16kB
-    "  <memory type=\"rom\" start=\"0x00200000\" length=\"0x100000\"/>"     // ITCM flash
-    "  <memory type=\"ram\" start=\"0x20000000\" length=\"0x%x\"/>"         // sram
-    "  <memory type=\"flash\" start=\"0x08000000\" length=\"0x20000\">"     // Sectors 0..3
-    "    <property name=\"blocksize\">0x8000</property>"                    // 32kB
-    "  </memory>"
-    "  <memory type=\"flash\" start=\"0x08020000\" length=\"0x20000\">"     // Sector 4
-    "    <property name=\"blocksize\">0x20000</property>"                   // 128kB
-    "  </memory>"
-    "  <memory type=\"flash\" start=\"0x08040000\" length=\"0xC0000\">"     // Sectors 5..7
-    "    <property name=\"blocksize\">0x40000</property>"                   // 128kB
-    "  </memory>"
-    "  <memory type=\"ram\" start=\"0x40000000\" length=\"0x1fffffff\"/>"   // peripheral regs
-    "  <memory type=\"ram\" start=\"0x60000000\" length=\"0x7fffffff\"/>"   // AHB3 Peripherals
-    "  <memory type=\"ram\" start=\"0xe0000000\" length=\"0x1fffffff\"/>"   // cortex regs
-    "  <memory type=\"rom\" start=\"0x00100000\" length=\"0xEDC0\"/>"       // bootrom
-    "  <memory type=\"rom\" start=\"0x1fff0000\" length=\"0x20\"/>"         // option byte area
-    "</memory-map>";
-
-static const char* const memory_map_template_H7 =
-    "<?xml version=\"1.0\"?>"
-    "<!DOCTYPE memory-map PUBLIC \"+//IDN gnu.org//DTD GDB Memory Map V1.0//EN\""
-    "     \"http://sourceware.org/gdb/gdb-memory-map.dtd\">"
-    "<memory-map>"
-    "  <memory type=\"rom\" start=\"0x00000000\" length=\"0x10000\"/>"         // ITCMRAM 64kB
-    "  <memory type=\"ram\" start=\"0x20000000\" length=\"0x20000\"/>"         // DTCMRAM 128kB
-    "  <memory type=\"ram\" start=\"0x24000000\" length=\"0x80000\"/>"         // RAM D1 512kB
-    "  <memory type=\"ram\" start=\"0x30000000\" length=\"0x48000\"/>"         // RAM D2 288kB
-    "  <memory type=\"ram\" start=\"0x38000000\" length=\"0x10000\"/>"         // RAM D3 64kB
-    "  <memory type=\"flash\" start=\"0x08000000\" length=\"0x%x\">"
-    "    <property name=\"blocksize\">0x%x</property>"
-    "  </memory>"
-    "  <memory type=\"ram\" start=\"0x40000000\" length=\"0x1fffffff\"/>"   // peripheral regs
-    "  <memory type=\"ram\" start=\"0xe0000000\" length=\"0x1fffffff\"/>"   // cortex regs
-    "  <memory type=\"rom\" start=\"0x1ff00000\" length=\"0x20000\"/>"      // bootrom
-    "</memory-map>";
-
-
-static const char* const memory_map_template_F4_DE =
-    "<?xml version=\"1.0\"?>"
-    "<!DOCTYPE memory-map PUBLIC \"+//IDN gnu.org//DTD GDB Memory Map V1.0//EN\""
-    "     \"http://sourceware.org/gdb/gdb-memory-map.dtd\">"
-    "<memory-map>"
-    "  <memory type=\"rom\" start=\"0x00000000\" length=\"0x80000\"/>"      // code = sram, bootrom or flash; flash is bigger
-    "  <memory type=\"ram\" start=\"0x20000000\" length=\"0x18000\"/>"      // sram
-    "  <memory type=\"flash\" start=\"0x08000000\" length=\"0x10000\">"     // Sectors 0..3
-    "    <property name=\"blocksize\">0x4000</property>"                    // 16kB
-    "  </memory>"
-    "  <memory type=\"flash\" start=\"0x08010000\" length=\"0x10000\">"     // Sector 4
-    "    <property name=\"blocksize\">0x10000</property>"                   // 64kB
-    "  </memory>"
-    "  <memory type=\"flash\" start=\"0x08020000\" length=\"0x60000\">"     // Sectors 5..7
-    "    <property name=\"blocksize\">0x20000</property>"                   // 128kB
-    "  </memory>"
-    "  <memory type=\"ram\" start=\"0x40000000\" length=\"0x1fffffff\"/>"   // peripheral regs
-    "  <memory type=\"ram\" start=\"0xe0000000\" length=\"0x1fffffff\"/>"   // cortex regs
-    "  <memory type=\"rom\" start=\"0x1fff0000\" length=\"0x7800\"/>"       // bootrom
-    "  <memory type=\"rom\" start=\"0x1fff7800\" length=\"0x210\"/>"        // otp
-    "  <memory type=\"rom\" start=\"0x1fffc000\" length=\"0x10\"/>"         // option byte area
-    "</memory-map>";
-
 char* make_memory_map(stlink_t *sl) {
     // this will be freed in serve()
-    const size_t sz = 4096;
+    const uint32_t sz = 4096;
     char* map = malloc(sz);
     map[0] = '\0';
 
-    if (sl->chip_id == STLINK_CHIPID_STM32_F4 ||
-        sl->chip_id == STLINK_CHIPID_STM32_F446 ||
-        sl->chip_id == STLINK_CHIPID_STM32_F411RE) {
+    if (sl->chip_id == STM32_CHIPID_F4 ||
+        sl->chip_id == STM32_CHIPID_F446 ||
+        sl->chip_id == STM32_CHIPID_F411xx) {
             strcpy(map, memory_map_template_F4);
-    } else if (sl->chip_id == STLINK_CHIPID_STM32_F4_DE) {
+    } else if (sl->chip_id == STM32_CHIPID_F4_DE) {
         strcpy(map, memory_map_template_F4_DE);
-    } else if (sl->core_id == STM32F7_CORE_ID) {
+    } else if (sl->core_id == STM32_CORE_ID_M7F_SWD) {
         snprintf(map, sz, memory_map_template_F7,
-                 (unsigned int)sl->sram_size);
-    } else if (sl->chip_id == STLINK_CHIPID_STM32_H74XXX) {
+                 sl->sram_size);
+    } else if (sl->chip_id == STM32_CHIPID_H74xxx) {
         snprintf(map, sz, memory_map_template_H7,
-                 (unsigned int)sl->flash_size,
-                 (unsigned int)sl->flash_pgsz);
-    } else if (sl->chip_id == STLINK_CHIPID_STM32_F4_HD) {
+                 sl->flash_size,
+                 sl->flash_pgsz);
+    } else if (sl->chip_id == STM32_CHIPID_F4_HD) {
         strcpy(map, memory_map_template_F4_HD);
-    } else if (sl->chip_id == STLINK_CHIPID_STM32_F2) {
+    } else if (sl->chip_id == STM32_CHIPID_F2) {
         snprintf(map, sz, memory_map_template_F2,
-                 (unsigned int)sl->flash_size,
-                 (unsigned int)sl->sram_size,
-                 (unsigned int)sl->flash_size - 0x20000,
-                 (unsigned int)sl->sys_base,
-                 (unsigned int)sl->sys_size);
-    } else if ((sl->chip_id == STLINK_CHIPID_STM32_L4) ||
-               (sl->chip_id == STLINK_CHIPID_STM32_L43X) ||
-               (sl->chip_id == STLINK_CHIPID_STM32_L46X)) {
+                 sl->flash_size,
+                 sl->sram_size,
+                 sl->flash_size - 0x20000,
+                 sl->sys_base,
+                 sl->sys_size);
+    } else if ((sl->chip_id == STM32_CHIPID_L4) ||
+               (sl->chip_id == STM32_CHIPID_L43x_L44x) ||
+               (sl->chip_id == STM32_CHIPID_L45x_L46x)) {
         snprintf(map, sz, memory_map_template_L4,
-                 (unsigned int)sl->flash_size,
-                 (unsigned int)sl->flash_size);
-    } else if (sl->chip_id == STLINK_CHIPID_STM32_L496X) {
+                 sl->flash_size,
+                 sl->flash_size);
+    } else if (sl->chip_id == STM32_CHIPID_L496x_L4A6x) {
         snprintf(map, sz, memory_map_template_L496,
-                 (unsigned int)sl->flash_size,
-                 (unsigned int)sl->flash_size);
-    } else {
+                 sl->flash_size,
+                 sl->flash_size);
+    } else if (sl->chip_id == STM32_CHIPID_H72x) {
+        snprintf(map, sz, memory_map_template_H72x3x,
+                 sl->flash_size,
+                 sl->flash_pgsz);
+	} else {
         snprintf(map, sz, memory_map_template,
-                 (unsigned int)sl->flash_size,
-                 (unsigned int)sl->sram_size,
-                 (unsigned int)sl->flash_size,
-                 (unsigned int)sl->flash_pgsz,
-                 (unsigned int)sl->sys_base,
-                 (unsigned int)sl->sys_size);
+                 sl->flash_size,
+                 sl->sram_size,
+                 sl->flash_size,
+                 sl->flash_pgsz,
+                 sl->sys_base,
+                 sl->sys_size);
     }
 
-    return(map);
+    return (map);
 }
 
 #define DATA_WATCH_NUM 4
@@ -598,14 +422,14 @@ static void init_data_watchpoints(stlink_t *sl) {
     stlink_write_debug32(sl, STLINK_REG_CM3_DEMCR, data);
 
     // make sure all watchpoints are cleared
-    for (int i = 0; i < DATA_WATCH_NUM; i++) {
+    for (int32_t i = 0; i < DATA_WATCH_NUM; i++) {
         data_watches[i].fun = WATCHDISABLED;
         stlink_write_debug32(sl, STLINK_REG_CM3_DWT_FUNn(i), 0);
     }
 }
 
-static int add_data_watchpoint(stlink_t *sl, enum watchfun wf, stm32_addr_t addr, unsigned int len) {
-    int i = 0;
+static int32_t add_data_watchpoint(stlink_t *sl, enum watchfun wf, stm32_addr_t addr, uint32_t len) {
+    int32_t i = 0;
     uint32_t mask, dummy;
 
     // computer mask
@@ -641,16 +465,16 @@ static int add_data_watchpoint(stlink_t *sl, enum watchfun wf, stm32_addr_t addr
 
                 // just to make sure the matched bit is clear !
                 stlink_read_debug32(sl,  STLINK_REG_CM3_DWT_FUNn(i), &dummy);
-                return(0);
+                return (0);
             }
     }
 
     DLOG("failure: add watchpoints addr %x wf %u len %u\n", addr, wf, len);
-    return(-1);
+    return (-1);
 }
 
-static int delete_data_watchpoint(stlink_t *sl, stm32_addr_t addr) {
-    int i;
+static int32_t delete_data_watchpoint(stlink_t *sl, stm32_addr_t addr) {
+    int32_t i;
 
     for (i = 0; i < DATA_WATCH_NUM; i++) {
         if ((data_watches[i].addr == addr) && (data_watches[i].fun != WATCHDISABLED)) {
@@ -659,18 +483,18 @@ static int delete_data_watchpoint(stlink_t *sl, stm32_addr_t addr) {
             data_watches[i].fun = WATCHDISABLED;
             stlink_write_debug32(sl, STLINK_REG_CM3_DWT_FUNn(i), 0);
 
-            return(0);
+            return (0);
         }
     }
 
     DLOG("failure: delete watchpoint addr %x\n", addr);
 
-    return(-1);
+    return (-1);
 }
 
-static int code_break_num;
-static int code_lit_num;
-static int code_break_rev;
+static int32_t code_break_num;
+static int32_t code_lit_num;
+static int32_t code_break_rev;
 #define CODE_BREAK_NUM_MAX 15
 #define CODE_BREAK_LOW     0x01
 #define CODE_BREAK_HIGH    0x02
@@ -680,13 +504,13 @@ static int code_break_rev;
 
 struct code_hw_breakpoint {
     stm32_addr_t addr;
-    int type;
+    int32_t type;
 };
 
 static struct code_hw_breakpoint code_breaks[CODE_BREAK_NUM_MAX];
 
 static void init_code_breakpoints(stlink_t *sl) {
-    unsigned int val;
+    uint32_t val;
     memset(sl->q_buf, 0, 4);
     stlink_write_debug32(sl, STLINK_REG_CM3_FP_CTRL, 0x03 /* KEY | ENABLE */);
     stlink_read_debug32(sl, STLINK_REG_CM3_FP_CTRL, &val);
@@ -702,28 +526,28 @@ static void init_code_breakpoints(stlink_t *sl) {
         // IHI0029D, p. 48, Lock Access Register
         stlink_write_debug32(sl, STLINK_REG_CM7_FP_LAR, STLINK_REG_CM7_FP_LAR_KEY);
     }
-    
-    for (int i = 0; i < code_break_num; i++) {
+
+    for (int32_t i = 0; i < code_break_num; i++) {
         code_breaks[i].type = 0;
         stlink_write_debug32(sl, STLINK_REG_CM3_FP_COMPn(i), 0);
     }
 }
 
-static int has_breakpoint(stm32_addr_t addr) {
-    for (int i = 0; i < code_break_num; i++)
-        if (code_breaks[i].addr == addr) { return(1); }
+static int32_t has_breakpoint(stm32_addr_t addr) {
+    for (int32_t i = 0; i < code_break_num; i++)
+        if (code_breaks[i].addr == addr) { return (1); }
 
-    return(0);
+    return (0);
 }
 
-static int update_code_breakpoint(stlink_t *sl, stm32_addr_t addr, int set) {
+static int32_t update_code_breakpoint(stlink_t *sl, stm32_addr_t addr, int32_t set) {
     uint32_t mask;
-    int type;
+    int32_t type;
     stm32_addr_t fpb_addr;
 
     if (addr & 1) {
         ELOG("update_code_breakpoint: unaligned address %08x\n", addr);
-        return(-1);
+        return (-1);
     }
 
     if (code_break_rev == CODE_BREAK_REV_V1) {
@@ -733,9 +557,9 @@ static int update_code_breakpoint(stlink_t *sl, stm32_addr_t addr, int set) {
         type = CODE_BREAK_REMAP;
         fpb_addr = addr;
     }
-    
-    int id = -1;
-    for (int i = 0; i < code_break_num; i++)
+
+    int32_t id = -1;
+    for (int32_t i = 0; i < code_break_num; i++)
         if (fpb_addr == code_breaks[i].addr || (set && code_breaks[i].type == 0)) {
             id = i;
             break;
@@ -743,9 +567,9 @@ static int update_code_breakpoint(stlink_t *sl, stm32_addr_t addr, int set) {
 
     if (id == -1) {
         if (set)
-            return(-1); // free slot not found
+            return (-1); // free slot not found
         else
-            return(0); // breakpoint is already removed
+            return (0); // breakpoint is already removed
     }
 
     struct code_hw_breakpoint* bp = &code_breaks[id];
@@ -754,7 +578,7 @@ static int update_code_breakpoint(stlink_t *sl, stm32_addr_t addr, int set) {
         bp->type |= type;
     else
         bp->type &= ~type;
-    
+
     // DDI0403E, p. 759, FP_COMPn register description
     mask = ((bp->type&0x03) << 30) | bp->addr | 1;
 
@@ -767,13 +591,13 @@ static int update_code_breakpoint(stlink_t *sl, stm32_addr_t addr, int set) {
         stlink_write_debug32(sl, STLINK_REG_CM3_FP_COMPn(id), mask);
     }
 
-    return(0);
+    return (0);
 }
 
 
 struct flash_block {
     stm32_addr_t addr;
-    unsigned length;
+    uint32_t length;
     uint8_t*     data;
 
     struct flash_block* next;
@@ -781,18 +605,18 @@ struct flash_block {
 
 static struct flash_block* flash_root;
 
-static int flash_add_block(stm32_addr_t addr, unsigned length, stlink_t *sl) {
+static int32_t flash_add_block(stm32_addr_t addr, uint32_t length, stlink_t *sl) {
 
     if (addr < FLASH_BASE || addr + length > FLASH_BASE + sl->flash_size) {
         ELOG("flash_add_block: incorrect bounds\n");
-        return(-1);
+        return (-1);
     }
 
     stlink_calculate_pagesize(sl, addr);
 
     if (addr % FLASH_PAGE != 0 || length % FLASH_PAGE != 0) {
         ELOG("flash_add_block: unaligned block\n");
-        return(-1);
+        return (-1);
     }
 
     struct flash_block* new = malloc(sizeof(struct flash_block));
@@ -803,11 +627,11 @@ static int flash_add_block(stm32_addr_t addr, unsigned length, stlink_t *sl) {
     memset(new->data, stlink_get_erased_pattern(sl), length);
 
     flash_root = new;
-    return(0);
+    return (0);
 }
 
-static int flash_populate(stm32_addr_t addr, uint8_t* data, unsigned length) {
-    unsigned int fit_blocks = 0, fit_length = 0;
+static int32_t flash_populate(stm32_addr_t addr, uint8_t* data, uint32_t length) {
+    uint32_t fit_blocks = 0, fit_length = 0;
 
     for (struct flash_block* fb = flash_root; fb; fb = fb->next) {
         /*
@@ -819,13 +643,13 @@ static int flash_populate(stm32_addr_t addr, uint8_t* data, unsigned length) {
          *  a < Y && b > x
          */
 
-        unsigned X = fb->addr, Y = fb->addr + fb->length;
-        unsigned a = addr, b = addr + length;
+        uint32_t X = fb->addr, Y = fb->addr + fb->length;
+        uint32_t a = addr, b = addr + length;
 
         if (a < Y && b > X) {
             // from start of the block
-            unsigned start = (a > X ? a : X) - X;
-            unsigned end   = (b > Y ? Y : b) - X;
+            uint32_t start = (a > X ? a : X) - X;
+            uint32_t end   = (b > Y ? Y : b) - X;
 
             memcpy(fb->data + start, data, end - start);
 
@@ -836,7 +660,7 @@ static int flash_populate(stm32_addr_t addr, uint8_t* data, unsigned length) {
 
     if (fit_blocks == 0) {
         ELOG("Unfit data block %08x -> %04x\n", addr, length);
-        return(-1);
+        return (-1);
     }
 
     if (fit_length != length) {
@@ -844,12 +668,12 @@ static int flash_populate(stm32_addr_t addr, uint8_t* data, unsigned length) {
         WLOG("(this is not an error, just a GDB glitch)\n");
     }
 
-    return(0);
+    return (0);
 }
 
-static int flash_go(stlink_t *sl, st_state_t *st) {
-    int error = -1;
-    int ret;
+static int32_t flash_go(stlink_t *sl, st_state_t *st) {
+    int32_t error = -1;
+    int32_t ret;
     flash_loader_t fl;
 
     stlink_target_connect(sl, st->connect_mode);
@@ -875,13 +699,13 @@ static int flash_go(stlink_t *sl, st_state_t *st) {
         ILOG("flash_do: block %08x -> %04x\n", fb->addr, fb->length);
 
         for (stm32_addr_t page = fb->addr; page < fb->addr + fb->length; page += (uint32_t)FLASH_PAGE) {
-            unsigned length = fb->length - (page - fb->addr);
+            uint32_t length = fb->length - (page - fb->addr);
 
             // update FLASH_PAGE
             stlink_calculate_pagesize(sl, page);
 
             ILOG("flash_do: page %08x\n", page);
-            unsigned len = (length > FLASH_PAGE) ? (unsigned int)FLASH_PAGE : length;
+            uint32_t len = (length > FLASH_PAGE) ? (uint32_t)FLASH_PAGE : length;
             ret = stlink_flashloader_write(sl, &fl, page, fb->data + (page - fb->addr), len);
             if (ret) { goto error; }
         }
@@ -900,25 +724,25 @@ error:
     }
 
     flash_root = NULL;
-    return(error);
+    return (error);
 }
 
 struct cache_level_desc {
-    unsigned int nsets;
-    unsigned int nways;
-    unsigned int log2_nways;
-    unsigned int width;
+    uint32_t nsets;
+    uint32_t nways;
+    uint32_t log2_nways;
+    uint32_t width;
 };
 
 struct cache_desc_t {
-    unsigned used;
-    
+    uint32_t used;
+
     // minimal line size in bytes
-    unsigned int dminline;
-    unsigned int iminline;
+    uint32_t dminline;
+    uint32_t iminline;
 
     // last level of unification (uniprocessor)
-    unsigned int louu;
+    uint32_t louu;
 
     struct cache_level_desc icache[7];
     struct cache_level_desc dcache[7];
@@ -927,17 +751,17 @@ struct cache_desc_t {
 static struct cache_desc_t cache_desc;
 
 // return the smallest R so that V <= (1 << R); not performance critical
-static unsigned ceil_log2(unsigned v) {
-    unsigned res;
+static uint32_t ceil_log2(uint32_t v) {
+    uint32_t res;
 
     for (res = 0; (1U << res) < v; res++);
 
-    return(res);
+    return (res);
 }
 
 static void read_cache_level_desc(stlink_t *sl, struct cache_level_desc *desc) {
-    unsigned int ccsidr;
-    unsigned int log2_nsets;
+    uint32_t ccsidr;
+    uint32_t log2_nsets;
 
     stlink_read_debug32(sl, STLINK_REG_CM7_CCSIDR, &ccsidr);
     desc->nsets = ((ccsidr >> 13) & 0x3fff) + 1;
@@ -950,10 +774,10 @@ static void read_cache_level_desc(stlink_t *sl, struct cache_level_desc *desc) {
 }
 
 static void init_cache (stlink_t *sl) {
-    unsigned int clidr;
-    unsigned int ccr;
-    unsigned int ctr;
-    int i;
+    uint32_t clidr;
+    uint32_t ccr;
+    uint32_t ctr;
+    int32_t i;
 
     // Check have cache
     stlink_read_debug32(sl, STLINK_REG_CM7_CTR, &ctr);
@@ -964,7 +788,7 @@ static void init_cache (stlink_t *sl) {
         cache_desc.used = 1;
     cache_desc.dminline = 4 << ((ctr >> 16) & 0x0f);
     cache_desc.iminline = 4 << (ctr & 0x0f);
-    
+
     stlink_read_debug32(sl, STLINK_REG_CM7_CLIDR, &clidr);
     cache_desc.louu = (clidr >> 27) & 7;
 
@@ -977,7 +801,7 @@ static void init_cache (stlink_t *sl) {
          cache_desc.dminline, cache_desc.iminline);
 
     for (i = 0; i < 7; i++) {
-        unsigned int ct = (clidr >> (3 * i)) & 0x07;
+        uint32_t ct = (clidr >> (3 * i)) & 0x07;
         cache_desc.dcache[i].width = 0;
         cache_desc.icache[i].width = 0;
 
@@ -995,19 +819,19 @@ static void init_cache (stlink_t *sl) {
     }
 }
 
-static void cache_flush(stlink_t *sl, unsigned ccr) {
-    int level;
+static void cache_flush(stlink_t *sl, uint32_t ccr) {
+    int32_t level;
 
     if (ccr & STLINK_REG_CM7_CCR_DC) {
         for (level = cache_desc.louu - 1; level >= 0; level--) {
             struct cache_level_desc *desc = &cache_desc.dcache[level];
-            unsigned addr;
-            unsigned max_addr = 1 << desc->width;
-            unsigned way_sh = 32 - desc->log2_nways;
+            uint32_t addr;
+            uint32_t max_addr = 1 << desc->width;
+            uint32_t way_sh = 32 - desc->log2_nways;
 
             // D-cache clean by set-ways.
             for (addr = (level << 1); addr < max_addr; addr += cache_desc.dminline) {
-                unsigned int way;
+                uint32_t way;
 
                 for (way = 0; way < desc->nways; way++) {
                     stlink_write_debug32(sl, STLINK_REG_CM7_DCCSW, addr | (way << way_sh));
@@ -1022,9 +846,9 @@ static void cache_flush(stlink_t *sl, unsigned ccr) {
     }
 }
 
-static int cache_modified;
+static int32_t cache_modified;
 
-static void cache_change(stm32_addr_t start, unsigned count) {
+static void cache_change(stm32_addr_t start, uint32_t count) {
     if (count == 0) { return; }
 
     (void)start;
@@ -1032,7 +856,7 @@ static void cache_change(stm32_addr_t start, unsigned count) {
 }
 
 static void cache_sync(stlink_t *sl) {
-    unsigned ccr;
+    uint32_t ccr;
 
     if (!cache_desc.used) { return; }
 
@@ -1043,28 +867,28 @@ static void cache_sync(stlink_t *sl) {
     if (ccr & (STLINK_REG_CM7_CCR_IC | STLINK_REG_CM7_CCR_DC)) { cache_flush(sl, ccr); }
 }
 
-static size_t unhexify(const char *in, char *out, size_t out_count) {
-    size_t i;
-    unsigned int c;
+static uint32_t unhexify(const char *in, char *out, uint32_t out_count) {
+    uint32_t i;
+    uint32_t c;
 
     for (i = 0; i < out_count; i++) {
-        if (sscanf(in + (2 * i), "%02x", &c) != 1) { return(i); }
+        if (sscanf(in + (2 * i), "%02x", &c) != 1) { return (i); }
 
         out[i] = (char)c;
     }
 
-    return(i);
+    return (i);
 }
 
-int serve(stlink_t *sl, st_state_t *st) {
+int32_t serve(stlink_t *sl, st_state_t *st) {
     SOCKET sock = socket(AF_INET, SOCK_STREAM, 0);
 
     if (!IS_SOCK_VALID(sock)) {
         perror("socket");
-        return(1);
+        return (1);
     }
 
-    unsigned int val = 1;
+    uint32_t val = 1;
     setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (char *)&val, sizeof(val));
 
     struct sockaddr_in serv_addr;
@@ -1076,13 +900,13 @@ int serve(stlink_t *sl, st_state_t *st) {
     if (bind(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
         perror("bind");
         close_socket(sock);
-        return(1);
+        return (1);
     }
 
     if (listen(sock, 5) < 0) {
         perror("listen");
         close_socket(sock);
-        return(1);
+        return (1);
     }
 
     ILOG("Listening at *:%d...\n", st->listen_port);
@@ -1093,7 +917,7 @@ int serve(stlink_t *sl, st_state_t *st) {
     if (!IS_SOCK_VALID(client)) {
         perror("accept");
         close_socket(sock);
-        return(1);
+        return (1);
     }
 
     close_socket(sock);
@@ -1120,21 +944,21 @@ int serve(stlink_t *sl, st_state_t *st) {
      * To allow resetting the chip from GDB it is required to emulate attaching
      * and detaching to target.
      */
-    unsigned int attached = 1;
+    uint32_t attached = 1;
     // if a critical error is detected, break from the loop
-    int critical_error = 0;
-    int ret;
+    int32_t critical_error = 0;
+    int32_t ret;
 
     while (1) {
         ret = 0;
         char* packet;
 
-        int status = gdb_recv_packet(client, &packet);
+        int32_t status = gdb_recv_packet(client, &packet);
 
         if (status < 0) {
             ELOG("cannot recv: %d\n", status);
             close_socket(client);
-            return(1);
+            return (1);
         }
 
         DLOG("recv: %s\n", packet);
@@ -1157,7 +981,7 @@ int serve(stlink_t *sl, st_state_t *st) {
                 params = separator + 1;
             }
 
-            unsigned queryNameLength = (unsigned int)(separator - &packet[1]);
+            uint32_t queryNameLength = (uint32_t)(separator - &packet[1]);
             char* queryName = calloc(queryNameLength + 1, 1);
             strncpy(queryName, &packet[1], queryNameLength);
 
@@ -1176,8 +1000,8 @@ int serve(stlink_t *sl, st_state_t *st) {
                 __s_addr = strsep(&tok, ",");
                 s_length = tok;
 
-                unsigned addr = (unsigned int)strtoul(__s_addr, NULL, 16),
-                         length = (unsigned int)strtoul(s_length, NULL, 16);
+                uint32_t addr = (uint32_t)strtoul(__s_addr, NULL, 16),
+                         length = (uint32_t)strtoul(s_length, NULL, 16);
 
                 DLOG("Xfer: type:%s;op:%s;annex:%s;addr:%d;length:%d\n",
                      type, op, annex, addr, length);
@@ -1194,7 +1018,7 @@ int serve(stlink_t *sl, st_state_t *st) {
                 }
 
                 if (data) {
-                    unsigned data_length = (unsigned int)strlen(data);
+                    uint32_t data_length = (uint32_t)strlen(data);
 
                     if (addr + length > data_length) { length = data_length - addr; }
 
@@ -1217,9 +1041,9 @@ int serve(stlink_t *sl, st_state_t *st) {
                     params = separator + 1;
                 }
 
-                size_t hex_len = strlen(params);
-                size_t alloc_size = (hex_len / 2) + 1;
-                size_t cmd_len;
+                uint32_t hex_len = strlen(params);
+                uint32_t alloc_size = (hex_len / 2) + 1;
+                uint32_t cmd_len;
                 char *cmd = malloc(alloc_size);
 
                 if (cmd == NULL) {
@@ -1282,7 +1106,7 @@ int serve(stlink_t *sl, st_state_t *st) {
                         reply = strdup("E00");
                     }
 
-                    ret = stlink_reset(sl, RESET_AUTO);
+                    ret = stlink_reset(sl, RESET_SOFT_AND_HALT);
                     if (ret) {
                         DLOG("Rcmd: reset failed with reset\n");
                         reply = strdup("E00");
@@ -1337,8 +1161,8 @@ int serve(stlink_t *sl, st_state_t *st) {
                 __s_addr   = strsep(&tok, ",");
                 s_length = tok;
 
-                unsigned addr = (unsigned int)strtoul(__s_addr, NULL, 16),
-                         length = (unsigned int)strtoul(s_length, NULL, 16);
+                uint32_t addr = (uint32_t)strtoul(__s_addr, NULL, 16),
+                         length = (uint32_t)strtoul(s_length, NULL, 16);
 
                 DLOG("FlashErase: addr:%08x,len:%04x\n",
                      addr, length);
@@ -1355,15 +1179,15 @@ int serve(stlink_t *sl, st_state_t *st) {
                 __s_addr = strsep(&tok, ":");
                 data   = tok;
 
-                unsigned addr = (unsigned int)strtoul(__s_addr, NULL, 16);
-                unsigned data_length = status - (unsigned int)(data - packet);
+                uint32_t addr = (uint32_t)strtoul(__s_addr, NULL, 16);
+                uint32_t data_length = status - (uint32_t)(data - packet);
 
                 // Length of decoded data cannot be more than encoded, as escapes are removed.
                 // Additional byte is reserved for alignment fix.
                 uint8_t *decoded = calloc(data_length + 1, 1);
-                unsigned dec_index = 0;
+                uint32_t dec_index = 0;
 
-                for (unsigned int i = 0; i < data_length; i++) {
+                for (uint32_t i = 0; i < data_length; i++) {
                     if (data[i] == 0x7d) {
                         i++;
                         decoded[dec_index++] = data[i] ^ 0x20;
@@ -1412,7 +1236,7 @@ int serve(stlink_t *sl, st_state_t *st) {
                 if (status < 0) {
                     ELOG("cannot check for int: %d\n", status);
                     close_socket(client);
-                    return(1);
+                    return (1);
                 }
 
                 if (status == 1) {
@@ -1428,7 +1252,7 @@ int serve(stlink_t *sl, st_state_t *st) {
                     struct stlink_reg reg;
                     stm32_addr_t pc;
                     stm32_addr_t addr;
-                    int offset = 0;
+                    int32_t offset = 0;
                     uint16_t insn;
 
                     if (!st->semihosting) { break; }
@@ -1518,15 +1342,15 @@ int serve(stlink_t *sl, st_state_t *st) {
 
             reply = calloc(8 * 16 + 1, 1);
 
-            for (int i = 0; i < 16; i++) {
+            for (int32_t i = 0; i < 16; i++) {
                 sprintf(&reply[i * 8], "%08x", (uint32_t)htonl(regp.r[i]));
             }
 
             break;
 
         case 'p': {
-            unsigned id = (unsigned int)strtoul(&packet[1], NULL, 16);
-            unsigned myreg = 0xDEADDEAD;
+            uint32_t id = (uint32_t)strtoul(&packet[1], NULL, 16);
+            uint32_t myreg = 0xDEADDEAD;
 
             if (id < 16) {
                 ret = stlink_read_reg(sl, id, &regp);
@@ -1578,8 +1402,8 @@ int serve(stlink_t *sl, st_state_t *st) {
             char* s_reg = &packet[1];
             char* s_value = strstr(&packet[1], "=") + 1;
 
-            unsigned reg   = (unsigned int)strtoul(s_reg,   NULL, 16);
-            unsigned value = (unsigned int)strtoul(s_value, NULL, 16);
+            uint32_t reg   = (uint32_t)strtoul(s_reg,   NULL, 16);
+            uint32_t value = (uint32_t)strtoul(s_value, NULL, 16);
 
 
             if (reg < 16) {
@@ -1616,7 +1440,7 @@ int serve(stlink_t *sl, st_state_t *st) {
 
         case 'G':
 
-            for (int i = 0; i < 16; i++) {
+            for (int32_t i = 0; i < 16; i++) {
                 char str[9] = {0};
                 strncpy(str, &packet[1 + i * 8], 8);
                 uint32_t reg = (uint32_t)strtoul(str, NULL, 16);
@@ -1633,12 +1457,12 @@ int serve(stlink_t *sl, st_state_t *st) {
             char* s_count = strstr(&packet[1], ",") + 1;
 
             stm32_addr_t start = (stm32_addr_t)strtoul(s_start, NULL, 16);
-            unsigned count = (unsigned int)strtoul(s_count, NULL, 16);
+            uint32_t count = (uint32_t)strtoul(s_count, NULL, 16);
 
-            unsigned adj_start = start % 4;
-            unsigned count_rnd = (count + adj_start + 4 - 1) / 4 * 4;
+            uint32_t adj_start = start % 4;
+            uint32_t count_rnd = (count + adj_start + 4 - 1) / 4 * 4;
 
-            if (count_rnd > sl->flash_pgsz) { count_rnd = (unsigned int)sl->flash_pgsz; }
+            if (count_rnd > sl->flash_pgsz) { count_rnd = sl->flash_pgsz; }
 
             if (count_rnd > 0x1800) { count_rnd = 0x1800; }
 
@@ -1650,7 +1474,7 @@ int serve(stlink_t *sl, st_state_t *st) {
 
             reply = calloc(count * 2 + 1, 1);
 
-            for (unsigned int i = 0; i < count; i++) {
+            for (uint32_t i = 0; i < count; i++) {
                 reply[i * 2 + 0] = hex[sl->q_buf[i + adj_start] >> 4];
                 reply[i * 2 + 1] = hex[sl->q_buf[i + adj_start] & 0xf];
             }
@@ -1664,17 +1488,17 @@ int serve(stlink_t *sl, st_state_t *st) {
             char* hexdata = strstr(packet, ":") + 1;
 
             stm32_addr_t start = (stm32_addr_t)strtoul(s_start, NULL, 16);
-            unsigned count = (unsigned int)strtoul(s_count, NULL, 16);
-            int err = 0;
+            uint32_t count = (uint32_t)strtoul(s_count, NULL, 16);
+            int32_t err = 0;
 
             if (start % 4) {
-                unsigned align_count = 4 - start % 4;
+                uint32_t align_count = 4 - start % 4;
 
                 if (align_count > count) { align_count = count; }
 
-                for (unsigned int i = 0; i < align_count; i++) {
+                for (uint32_t i = 0; i < align_count; i++) {
                     char hextmp[3] = { hexdata[i * 2], hexdata[i * 2 + 1], 0 };
-                    uint8_t byte = strtoul(hextmp, NULL, 16);
+                    uint8_t byte = (uint8_t)strtoul(hextmp, NULL, 16);
                     sl->q_buf[i] = byte;
                 }
 
@@ -1686,11 +1510,11 @@ int serve(stlink_t *sl, st_state_t *st) {
             }
 
             if (count - count % 4) {
-                unsigned aligned_count = count - count % 4;
+                uint32_t aligned_count = count - count % 4;
 
-                for (unsigned int i = 0; i < aligned_count; i++) {
+                for (uint32_t i = 0; i < aligned_count; i++) {
                     char hextmp[3] = { hexdata[i * 2], hexdata[i * 2 + 1], 0 };
-                    uint8_t byte = strtoul(hextmp, NULL, 16);
+                    uint8_t byte = (uint8_t)strtoul(hextmp, NULL, 16);
                     sl->q_buf[i] = byte;
                 }
 
@@ -1702,9 +1526,9 @@ int serve(stlink_t *sl, st_state_t *st) {
             }
 
             if (count) {
-                for (unsigned int i = 0; i < count; i++) {
+                for (uint32_t i = 0; i < count; i++) {
                     char hextmp[3] = { hexdata[i * 2], hexdata[i * 2 + 1], 0 };
-                    uint8_t byte = strtoul(hextmp, NULL, 16);
+                    uint8_t byte = (uint8_t)strtoul(hextmp, NULL, 16);
                     sl->q_buf[i] = byte;
                 }
 
@@ -1799,7 +1623,7 @@ int serve(stlink_t *sl, st_state_t *st) {
 
         case 'R': {
             // reset the core.
-            ret = stlink_reset(sl, RESET_AUTO);
+            ret = stlink_reset(sl, RESET_SOFT_AND_HALT);
             if (ret) { DLOG("R packet : stlink_reset failed\n"); }
 
             init_code_breakpoints(sl);
@@ -1821,7 +1645,7 @@ int serve(stlink_t *sl, st_state_t *st) {
             stlink_close(sl);
 
             sl = stlink_open_usb(st->logging_level, st->connect_mode, st->serialnumber, st->freq);
-            if (sl == NULL || sl->chip_id == STLINK_CHIPID_UNKNOWN) { cleanup(0); }
+            if (sl == NULL || sl->chip_id == STM32_CHIPID_UNKNOWN) { cleanup(0); }
 
             connected_stlink = sl;
 
@@ -1842,14 +1666,14 @@ int serve(stlink_t *sl, st_state_t *st) {
         if (reply) {
             DLOG("send: %s\n", reply);
 
-            int result = gdb_send_packet(client, reply);
+            int32_t result = gdb_send_packet(client, reply);
 
             if (result != 0) {
                 ELOG("cannot send: %d\n", result);
                 free(reply);
                 free(packet);
                 close_socket(client);
-                return(1);
+                return (1);
             }
 
             free(reply);
@@ -1857,12 +1681,12 @@ int serve(stlink_t *sl, st_state_t *st) {
 
         if (critical_error) {
             close_socket(client);
-            return(1);
+            return (1);
         }
 
         free(packet);
     }
 
     close_socket(client);
-    return(0);
+    return (0);
 }

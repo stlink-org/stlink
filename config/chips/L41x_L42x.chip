@@ -1,0 +1,14 @@
+# Chip-ID file for STM32L41x / STM32L42x device
+#
+dev_type STM32L41x_L42x
+ref_manual_id 0394
+chip_id 0x464                // STM32_CHIPID_L41x_L42x
+flash_type L4
+flash_size_reg 0x1fff75e0
+flash_pagesize 0x800         // 2 KB
+sram_size 0xa000             // 40 KB
+bootrom_base 0x1fff0000
+bootrom_size 0x7000          // 28 KB
+option_base 0x0
+option_size 0x0
+flags swo

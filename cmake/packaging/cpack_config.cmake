@@ -15,17 +15,12 @@ set(CPACK_SET_DESTDIR "ON")
 file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/dist)
 set(CPACK_OUTPUT_FILE_PREFIX "${CMAKE_BINARY_DIR}/dist")
 
-if (APPLE)                                                                      # macOS
-    set(CPACK_GENERATOR "ZIP")
-    set(CPACK_PACKAGE_FILE_NAME "${PROJECT_NAME}-${PROJECT_VERSION}-macosx-amd64")
-    set(CPACK_INSTALL_PREFIX "")
-
-elseif (WIN32 AND (NOT EXISTS "/etc/debian_version"))                           # Windows
+if (WIN32 AND (NOT EXISTS "/etc/debian_version"))                           # Windows
     set(CPACK_GENERATOR "ZIP")
     set(CPACK_PACKAGE_FILE_NAME "${PROJECT_NAME}-${PROJECT_VERSION}-win32")
     set(CPACK_INSTALL_PREFIX "")
 
-elseif (WIN32)                                                                  # Windows cross-build on Debian/Ubuntu
+elseif (WIN32)                                                              # Windows cross-build on Debian/Ubuntu
     set(CPACK_GENERATOR "ZIP")
     set(CPACK_PACKAGE_FILE_NAME "${PROJECT_NAME}-${PROJECT_VERSION}-${TOOLCHAIN_PREFIX}")
     set(CPACK_INSTALL_PREFIX "")
@@ -53,7 +48,7 @@ elseif (EXISTS "/etc/debian_version" AND NOT EXISTS WIN32) # Package-build is av
     set(CPACK_DEBIAN_PACKAGE_RELEASE "1")
 
     # CPACK_DEBIAN_PACKAGE_ARCHITECTURE  --> Default: Output of dpkg --print-architecture
-    set(CPACK_DEBIAN_PACKAGE_DEPENDS "pkg-config, build-essential, debhelper (>=9), cmake (>= 3.4.2), libusb-1.0-0-dev (>= 1.0.20)")
+    set(CPACK_DEBIAN_PACKAGE_DEPENDS "pkg-config, build-essential, debhelper (>=9), cmake (>= 3.13.0), libusb-1.0-0-dev (>= 1.0.22)")
     set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Nightwalker-87 <stlink-org>")
     # CPACK_DEBIAN_PACKAGE_DESCRIPTION   --> Default: CPACK_DEBIAN_PACKAGE_DESCRIPTION (as it is set)
     # CPACK_DEBIAN_PACKAGE_SECTION       --> Default: “devel”
@@ -106,7 +101,7 @@ elseif (EXISTS "/etc/debian_version" AND NOT EXISTS WIN32) # Package-build is av
 
 else ()
     # No package configuration on other platforms ...
-endif ()
+endif()
 
 
 ###

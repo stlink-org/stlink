@@ -17,8 +17,7 @@ Run the main binary of the local package (src/main.rs).
 If a port number is not specified using the **--listen_port** option, the
 default **4242** port will be used.
 
-The STLink device to use can be specified using the --serial parameter, or via 
-the environment variable STLINK_DEVICE on the format <USB_BUS>:<USB_ADDR>.
+The STLink device to use can be specified using the --serial parameter.
 
 # OPTIONS
 
