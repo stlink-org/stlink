@@ -1,3 +1,4 @@
 /usr/bin/st-*
 ${env:deb_udevdir}/rules.d/*.rules
 etc/modprobe.d/*.conf
+usr/share/stlink/chips
