@@ -98,6 +98,8 @@ int32_t flash_get_opts(struct flash_opts* o, int32_t ac, char** av) {
         if (strcmp(av[0], "--version") == 0) {
             printf("v%s\n", STLINK_VERSION);
             exit(EXIT_SUCCESS);
+        } else if (strcmp(av[0], "--help") == 0 || strcmp(av[0], "-h") == 0) {
+            return 1;
         } else if (strcmp(av[0], "--debug") == 0) {
             o->log_level = DEBUG_LOG_LEVEL;
         } else if (strcmp(av[0], "--opt") == 0) {
