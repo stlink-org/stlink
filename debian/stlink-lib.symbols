@@ -1,4 +1,4 @@
-stlink-lib.so.1 stlink-lib #MINVER#
+libstlink.so.1 libstlink1 #MINVER#
  Md5Calculate@Base 1.6.1
  Md5Finalise@Base 1.6.1
  Md5Initialise@Base 1.6.1
@@ -62,13 +62,32 @@ stlink-lib.so.1 stlink-lib #MINVER#
  calculate_F7_sectornum@Base 1.5.0
  calculate_H7_sectornum@Base 1.7.0
  calculate_L4_page@Base 1.5.0
+ check_file@Base 1.8.0
+ check_flash_error@Base 1.8.0
+ clear_flash_cr_pg@Base 1.8.0
+ clear_flash_error@Base 1.8.0
+ dump_a_chip@Base 1.8.0
+ get_stm32l0_flash_base@Base 1.8.0
+ init_chipids@Base 1.8.0
 #MISSING: 1.7.0# is_bigendian@Base 1.5.0
+ is_flash_busy@Base 1.8.0
+ lock_flash@Base 1.8.0
+ lock_flash_option@Base 1.8.0
+ map_file@Base 1.8.0
+ md5_calculate@Base 1.8.0
+ process_chipfile@Base 1.8.0
+ read_flash_cr@Base 1.8.0
+ read_flash_sr@Base 1.8.0
  read_uint16@Base 1.5.0
  read_uint32@Base 1.5.0
  send_recv@Base 1.5.0
  send_usb_data_only@Base 1.5.0
  send_usb_mass_storage_command@Base 1.5.0
  stlink_calculate_pagesize@Base 1.5.0
+ stlink_check_address_alignment@Base 1.8.0
+ stlink_check_address_range_validity@Base 1.8.0
+ stlink_check_address_range_validity_otp@Base 1.8.0
+ stlink_checksum@Base 1.8.0
  stlink_chip_id@Base 1.5.0
  stlink_chipid_get_params@Base 1.5.0
  stlink_close@Base 1.5.0
@@ -80,6 +99,7 @@ stlink-lib.so.1 stlink-lib #MINVER#
  stlink_enter_swd_mode@Base 1.5.0
  stlink_erase_flash_mass@Base 1.5.0
  stlink_erase_flash_page@Base 1.5.0
+ stlink_erase_flash_section@Base 1.8.0
  stlink_exit_debug_mode@Base 1.5.0
  stlink_exit_dfu_mode@Base 1.5.0
  stlink_fcheck_flash@Base 1.5.0
@@ -91,6 +111,7 @@ stlink-lib.so.1 stlink-lib #MINVER#
  stlink_flashloader_write@Base 1.7.0
  stlink_force_debug@Base 1.5.0
  stlink_fread@Base 1.5.0
+ stlink_fwrite_finalize@Base 1.8.0
  stlink_fwrite_flash@Base 1.5.0
  stlink_fwrite_option_bytes@Base 1.6.0
 #MISSING: 1.6.1# stlink_fwrite_option_bytes_32bit@Base 1.6.0
@@ -112,20 +133,24 @@ stlink-lib.so.1 stlink-lib #MINVER#
  stlink_read_debug32@Base 1.5.0
  stlink_read_mem32@Base 1.5.0
  stlink_read_option_bytes32@Base 1.6.1
- stlink_read_option_bytes_Gx@Base 1.6.1
+#MISSING: 1.8.0# stlink_read_option_bytes_Gx@Base 1.6.1
  stlink_read_option_bytes_boot_add32@Base 1.7.0
  stlink_read_option_bytes_boot_add_f7@Base 1.7.0
  stlink_read_option_bytes_f2@Base 1.6.0
  stlink_read_option_bytes_f4@Base 1.6.0
  stlink_read_option_bytes_f7@Base 1.7.0
  stlink_read_option_bytes_generic@Base 1.6.1
+ stlink_read_option_bytes_gx@Base 1.8.0
  stlink_read_option_control_register1_32@Base 1.7.0
  stlink_read_option_control_register1_f7@Base 1.7.0
  stlink_read_option_control_register32@Base 1.7.0
- stlink_read_option_control_register_Gx@Base 1.7.0
+#MISSING: 1.8.0# stlink_read_option_control_register_Gx@Base 1.7.0
+ stlink_read_option_control_register_f0@Base 1.8.0
  stlink_read_option_control_register_f2@Base 1.7.0
  stlink_read_option_control_register_f4@Base 1.7.0
  stlink_read_option_control_register_f7@Base 1.7.0
+ stlink_read_option_control_register_gx@Base 1.8.0
+ stlink_read_option_control_register_wb@Base 1.8.0
  stlink_read_reg@Base 1.5.0
  stlink_read_unsupported_reg@Base 1.5.0
  stlink_reset@Base 1.5.0
@@ -140,9 +165,9 @@ stlink-lib.so.1 stlink-lib #MINVER#
  stlink_step@Base 1.5.0
  stlink_target_connect@Base 1.7.0
  stlink_target_voltage@Base 1.5.0
- stlink_trace_disable@Base 1.7.0
- stlink_trace_enable@Base 1.7.0
- stlink_trace_read@Base 1.7.0
+#MISSING: 1.8.0# stlink_trace_disable@Base 1.7.0
+#MISSING: 1.8.0# stlink_trace_enable@Base 1.7.0
+#MISSING: 1.8.0# stlink_trace_read@Base 1.7.0
  stlink_v1_open@Base 1.5.0
  stlink_v1_open_inner@Base 1.5.0
  stlink_verify_write_flash@Base 1.5.0
@@ -157,6 +182,7 @@ stlink-lib.so.1 stlink-lib #MINVER#
  stlink_write_option_bytes_boot_add32@Base 1.7.0
  stlink_write_option_control_register1_32@Base 1.7.0
  stlink_write_option_control_register32@Base 1.7.0
+ stlink_write_otp@Base 1.8.0
  stlink_write_reg@Base 1.5.0
  stlink_write_unsupported_reg@Base 1.5.0
  stm32l1_write_half_pages@Base 1.5.0
@@ -164,6 +190,11 @@ stlink-lib.so.1 stlink-lib #MINVER#
  ugly_init@Base 1.5.0
  ugly_libusb_log_level@Base 1.6.1
  ugly_log@Base 1.5.0
+ unlock_flash_if@Base 1.8.0
+ unlock_flash_option_if@Base 1.8.0
+ unmap_file@Base 1.8.0
+ wait_flash_busy@Base 1.8.0
  write_buffer_to_sram@Base 1.5.0
+ write_flash_cr_psiz@Base 1.8.0
  write_uint16@Base 1.5.0
  write_uint32@Base 1.5.0
