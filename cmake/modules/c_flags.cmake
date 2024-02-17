@@ -28,7 +28,9 @@ add_cflag_if_supported("-Wformat")
 add_cflag_if_supported("-Wformat-security")
 add_cflag_if_supported("-Wmaybe-uninitialized")
 add_cflag_if_supported("-Wmissing-variable-declarations")
-add_cflag_if_supported("-Wshorten-64-to-32")
+if(NOT CMAKE_C_COMPILER_ID MATCHES "Clang")
+    add_cflag_if_supported("-Wshorten-64-to-32")
+endif()
 add_cflag_if_supported("-Wimplicit-function-declaration")
 
 ##
