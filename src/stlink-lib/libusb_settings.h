@@ -40,6 +40,8 @@
     #define MINIMAL_API_VERSION 0x01000102 // v1.0.16
 #elif defined (__OpenBSD__)
     #define MINIMAL_API_VERSION 0x01000106 // v1.0.22
+#elif defined (__APPLE__)
+    #define MINIMAL_API_VERSION 0x01000106 // v1.0.22
 #elif defined (__linux__)
     #define MINIMAL_API_VERSION 0x01000106 // v1.0.22
 #elif defined (_WIN32)
