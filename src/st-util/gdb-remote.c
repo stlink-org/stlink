@@ -12,7 +12,7 @@
 #include <win32_socket.h>
 #else
 #include <unistd.h>
-#include <sys/poll.h>
+#include <poll.h>
 #endif
 
 #include "gdb-remote.h"
