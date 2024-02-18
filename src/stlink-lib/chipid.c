@@ -65,7 +65,7 @@ void process_chipfile(char *fname) {
     return;
   }
 
-  ts = calloc(sizeof(struct stlink_chipid_params), 1);
+  ts = calloc(1, sizeof(struct stlink_chipid_params));
 
   while (fgets(buf, sizeof(buf), fp) != NULL) {
 

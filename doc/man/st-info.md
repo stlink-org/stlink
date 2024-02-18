@@ -1,6 +1,6 @@
-% st-flash(1) Open Source STMicroelectronics Stlink Tools  | stlink
+% st-flash(1) Open source version of the STMicroelectronics STLINK Tools | stlink
 %
-% Oct 2020
+% Feb 2023
 
 # NAME
 st-info - Provides information about connected STLink and STM32 devices

@@ -1223,7 +1223,7 @@ int32_t stlink_erase_flash_section(stlink_t *sl, stm32_addr_t base_addr, uint32_
       return (-1);
     }
 
-    fprintf(stdout, "-> Flash page at %#x erased (size: %#x)\r", addr, page_size);
+    fprintf(stdout, "-> Flash page at %#x erased (size: %#x)\n", addr, page_size);
     fflush(stdout);
 
     // check the next page is within the range to erase
