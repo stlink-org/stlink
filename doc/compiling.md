@@ -45,12 +45,7 @@ Options:
 Directory `<project_root>\build\Release` contains final executables.
 (`st-util.exe` is located in `<project_root>\build\src\gdbserver\Release`).
 
-**NOTE 1:**
-
-Executables link against libusb.dll library. It has to be placed in the same directory as binaries or in PATH.
-It can be copied from: `<project_root>\build\3rdparty\libusb-{version}\MS{arch}\dll\libusb-1.0.dll`.
-
-**NOTE 2:**
+**NOTE:**
 
 [ST-LINK drivers](https://www.st.com/en/development-tools/stsw-link009.html) are required for `stlink` to work.
 

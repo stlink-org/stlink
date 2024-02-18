@@ -1,6 +1,7 @@
 build
 build-mingw-32
 build-mingw-64
+3rdparty
 
 .project
 .cmake/
