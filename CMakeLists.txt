@@ -3,7 +3,7 @@
 ###
 
 cmake_minimum_required(VERSION 3.10.2)
-cmake_policy(SET CMP0153 NEW)
+cmake_policy(SET CMP0042 NEW)
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
