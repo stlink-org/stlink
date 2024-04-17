@@ -285,6 +285,7 @@ static const char* const target_description =
     "<!DOCTYPE target SYSTEM \"gdb-target.dtd\">"
     "<target version=\"1.0\">"
     "   <architecture>arm</architecture>"
+    "   <osabi>none</osabi>"
     "   <feature name=\"org.gnu.gdb.arm.m-profile\">"
     "       <reg name=\"r0\" bitsize=\"32\"/>"
     "       <reg name=\"r1\" bitsize=\"32\"/>"
