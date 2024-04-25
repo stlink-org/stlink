@@ -1256,7 +1256,8 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, enum connect_type connect,
         desc.idProduct == STLINK_USB_PID_STLINK_V3E_PID ||
         desc.idProduct == STLINK_USB_PID_STLINK_V3S_PID ||
         desc.idProduct == STLINK_USB_PID_STLINK_V3_2VCP_PID ||
-        desc.idProduct == STLINK_USB_PID_STLINK_V3_NO_MSD_PID) {
+        desc.idProduct == STLINK_USB_PID_STLINK_V3_NO_MSD_PID ||
+        desc.idProduct == STLINK_USB_PID_STLINK_V3P) {
         slu->ep_req = 1 /* ep req */ | LIBUSB_ENDPOINT_OUT;
         slu->ep_trace = 2 | LIBUSB_ENDPOINT_IN;
     } else {
