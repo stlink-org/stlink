@@ -23,6 +23,7 @@
 #define STLINK_USB_PID_STLINK_V3S_PID       0x374f
 #define STLINK_USB_PID_STLINK_V3_2VCP_PID   0x3753
 #define STLINK_USB_PID_STLINK_V3_NO_MSD_PID 0x3754
+#define STLINK_USB_PID_STLINK_V3P           0x3757
 
 #define STLINK_V1_USB_PID(pid) ((pid) == STLINK_USB_PID_STLINK)
 
@@ -36,7 +37,8 @@
                                 (pid) == STLINK_USB_PID_STLINK_V3E_PID || \
                                 (pid) == STLINK_USB_PID_STLINK_V3S_PID || \
                                 (pid) == STLINK_USB_PID_STLINK_V3_2VCP_PID || \
-                                (pid) == STLINK_USB_PID_STLINK_V3_NO_MSD_PID)
+                                (pid) == STLINK_USB_PID_STLINK_V3_NO_MSD_PID || \
+                                (pid) == STLINK_USB_PID_STLINK_V3P)
 
 #define STLINK_SUPPORTED_USB_PID(pid) (STLINK_V1_USB_PID(pid) || \
                                        STLINK_V2_USB_PID(pid) || \
