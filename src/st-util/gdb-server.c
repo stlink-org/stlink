@@ -354,7 +354,8 @@ char* make_memory_map(stlink_t *sl) {
     if (sl->chip_id == STM32_CHIPID_F4 ||
         sl->chip_id == STM32_CHIPID_F446 ||
         sl->chip_id == STM32_CHIPID_F411xx) {
-            strcpy(map, memory_map_template_F4);
+        snprintf(map, sz, memory_map_template_F4,
+                 sl->sram_size);
     } else if (sl->chip_id == STM32_CHIPID_F4_DE) {
         strcpy(map, memory_map_template_F4_DE);
     } else if (sl->core_id == STM32_CORE_ID_M7F_SWD) {
