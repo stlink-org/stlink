@@ -1172,7 +1172,7 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, enum connect_type connect,
 
         if (ret) { continue; } // could not open device
 
-        uint32_t serial_len = stlink_serial(handle, &desc, sl->serial);
+        uint32_t serial_len = (uint32_t)stlink_serial(handle, &desc, sl->serial);
 
         libusb_close(handle);
 
@@ -1375,7 +1375,7 @@ static uint32_t stlink_probe_usb_devs(libusb_device **devs, stlink_t **sldevs[],
             break;
         }
 
-        uint32_t serial_len = stlink_serial(handle, &desc, serial);
+        uint32_t serial_len = (uint32_t)stlink_serial(handle, &desc, serial);
 
         libusb_close(handle);
 

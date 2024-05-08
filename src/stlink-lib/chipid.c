@@ -224,7 +224,7 @@ void init_chipids(char *dir_to_scan) {
 
   if (d) {
     while ((dir = readdir(d)) != NULL) {
-      nl = strlen(dir->d_name);
+      nl = (uint32_t)strlen(dir->d_name);
 
       if (strcmp(dir->d_name + nl - 5, ".chip") == 0) {
         char buf[1024];
