@@ -92,7 +92,13 @@ static void _cleanup() {
 static void cleanup(int32_t signum) {
     printf("Receive signal %i. Exiting...\n", signum);
     _cleanup();
-    exit(1);
+    // if asked to gracefully terminate
+    if(signum == SIGTERM){
+        // return 0
+        exit(0);
+    }else{
+        exit(1);
+    }
     (void)signum;
 }
 
