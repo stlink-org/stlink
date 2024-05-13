@@ -99,7 +99,6 @@ static void cleanup(int32_t signum) {
     }else{
         exit(1);
     }
-    (void)signum;
 }
 
 #if defined(_WIN32)
