@@ -100,6 +100,7 @@ int32_t main(int32_t ac, char** av) {
 
     sl->verbose = o.log_level;
     sl->opt = o.opt;
+    const enum erase_type_t erase_type = o.mass_erase ? MASS_ERASE : SECTION_ERASE;
 
     connected_stlink = sl;
     signal(SIGINT, &cleanup);
@@ -120,6 +121,14 @@ int32_t main(int32_t ac, char** av) {
     if (o.cmd == FLASH_CMD_WRITE) {
         uint32_t size = 0;
 
+        if (erase_type == MASS_ERASE) {
+            err = stlink_erase_flash_mass(sl);
+            if (err == -1) {
+                printf("stlink_erase_flash_mass() == -1\n");
+                goto on_error;
+            }
+        }
+
         // write
         if (o.format == FLASH_FORMAT_IHEX) {
             err = stlink_parse_ihex(o.filename, stlink_get_erased_pattern(sl), &mem, &size, &o.addr);
@@ -131,9 +140,9 @@ int32_t main(int32_t ac, char** av) {
         }
         if ((o.addr >= sl->flash_base) && (o.addr < sl->flash_base + sl->flash_size)) {
             if (o.format == FLASH_FORMAT_IHEX) {
-                err = stlink_mwrite_flash(sl, mem, size, o.addr);
+                err = stlink_mwrite_flash(sl, mem, size, o.addr, erase_type);
             } else {
-                err = stlink_fwrite_flash(sl, o.filename, o.addr);
+                err = stlink_fwrite_flash(sl, o.filename, o.addr, erase_type);
             }
 
             if (err == -1) {
@@ -188,7 +197,7 @@ int32_t main(int32_t ac, char** av) {
                 printf("OTP Write NOT implemented\n");
                 goto on_error;
             }
-            err = stlink_fwrite_flash(sl, o.filename,  o.addr);
+            err = stlink_fwrite_flash(sl, o.filename,  o.addr, NO_ERASE);
         
             if (err == -1) {
                 printf("stlink_fwrite_flash() == -1\n");
@@ -203,16 +212,21 @@ int32_t main(int32_t ac, char** av) {
     } else if (o.cmd == FLASH_CMD_ERASE) {
 
         // erase
-        if (o.size > 0 && o.addr > 0) {
-          err = stlink_erase_flash_section(sl, o.addr, o.size, false);
+        if ((erase_type == MASS_ERASE) || (o.size == 0 || o.addr == 0)) {
+            err = stlink_erase_flash_mass(sl);
+            if (err == -1) {
+                printf("stlink_erase_flash_mass() == -1\n");
+                goto on_error;
+            }
+            printf("Mass erase completed successfully.\n");
         } else {
-          err = stlink_erase_flash_mass(sl);
+            err = stlink_erase_flash_section(sl, o.addr, o.size, false);
+            if (err == -1) {
+                printf("stlink_erase_flash_section() == -1\n");
+                goto on_error;
+            }
+            printf("Section erase completed successfully.\n");
         }
-        if (err == -1) {
-            printf("stlink_erase_flash_mass() == -1\n");
-            goto on_error;
-        }
-        printf("Mass erase completed successfully.\n");
 
         // reset after erase
         if (stlink_reset(sl, RESET_AUTO)) {

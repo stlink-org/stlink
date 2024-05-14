@@ -102,6 +102,8 @@ int32_t flash_get_opts(struct flash_opts* o, int32_t ac, char** av) {
             o->log_level = DEBUG_LOG_LEVEL;
         } else if (strcmp(av[0], "--opt") == 0) {
             o->opt = ENABLE_OPT;
+        } else if (strcmp(av[0], "--mass-erase") == 0) {
+            o->mass_erase = ENABLE_OPT;
         } else if (strcmp(av[0], "--reset") == 0) {
             o->reset = 1;
         } else if (strcmp(av[0], "--serial") == 0 || starts_with(av[0], "--serial=")) {

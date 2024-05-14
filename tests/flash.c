@@ -91,7 +91,7 @@ static struct Test tests[] = {
         .freq = 0,
         .format = FLASH_FORMAT_BINARY }
     },
-    { "--debug --reset write test.bin 0x80000000", 0,
+    { "--debug --mass-erase --reset write test.bin 0x80000000", 0,
       { .cmd = FLASH_CMD_WRITE,
         .serial = { 0 },
         .filename = "test.bin",
@@ -99,6 +99,7 @@ static struct Test tests[] = {
         .size = 0,
         .reset = 1,
         .log_level = DEBUG_LOG_LEVEL,
+        .mass_erase = 1,
         .freq = 0,
         .format = FLASH_FORMAT_BINARY }
     },
@@ -187,6 +188,19 @@ static struct Test tests[] = {
         .size = 0,
         .reset = 0,
         .log_level = STND_LOG_LEVEL,
+        .mass_erase = 1,
+        .freq = 0,
+        .format = FLASH_FORMAT_BINARY }
+    },
+    { "--mass-erase erase", 0,
+      { .cmd = FLASH_CMD_ERASE,
+        .serial = { 0 },
+        .filename = NULL,
+        .addr = 0,
+        .size = 0,
+        .reset = 0,
+        .log_level = STND_LOG_LEVEL,
+        .mass_erase = 1,
         .freq = 0,
         .format = FLASH_FORMAT_BINARY }
     },
