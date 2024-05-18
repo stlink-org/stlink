@@ -271,10 +271,7 @@ static gpointer stlink_gui_populate_filemem_view(gpointer data) {
         int32_t res = stlink_parse_ihex(gui->filename, 0, &mem, &size, &begin);
 
         if (res == 0) {
-            if (gui->file_mem.memory) {
-                g_free(gui->file_mem.memory);
-            }
-
+            if (gui->file_mem.memory) { g_free(gui->file_mem.memory); }
             gui->file_mem.size   = size;
             gui->file_mem.memory = g_malloc(size);
             gui->file_mem.base   = begin;
