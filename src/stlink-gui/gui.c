@@ -271,10 +271,7 @@ static gpointer stlink_gui_populate_filemem_view(gpointer data) {
         int32_t res = stlink_parse_ihex(gui->filename, 0, &mem, &size, &begin);
 
         if (res == 0) {
-            if (gui->file_mem.memory) {
-                g_free(gui->file_mem.memory);
-            }
-
+            if (gui->file_mem.memory) { g_free(gui->file_mem.memory); }
             gui->file_mem.size   = size;
             gui->file_mem.memory = g_malloc(size);
             gui->file_mem.base   = begin;
@@ -445,7 +442,7 @@ static gchar *dev_format_chip_id(guint32 chip_id) {
 }
 
 static gchar *dev_format_mem_size(gsize flash_size) {
-    return (g_strdup_printf("%u kB", (uint32_t)(flash_size / 1024)));
+    return (g_strdup_printf("%u kB", (uint32_t) (flash_size / 1024)));
 }
 
 
@@ -597,7 +594,7 @@ static gpointer stlink_gui_write_flash(gpointer data) {
     g_return_val_if_fail((gui->filename != NULL), NULL);
 
     if (stlink_mwrite_flash(gui->sl, gui->file_mem.memory,
-                            (uint32_t)gui->file_mem.size, gui->sl->flash_base,
+                            (uint32_t) gui->file_mem.size, gui->sl->flash_base,
                             SECTION_ERASE) < 0) {
         stlink_gui_set_info_error_message(gui, "Failed to write to flash");
     }

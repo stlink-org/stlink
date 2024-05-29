@@ -48,19 +48,19 @@
 #define FLASH_CR_OPTWRE 9
 #define FLASH_CR_OBL_LAUNCH 13
 
-#define FLASH_ACR_OFF ((uint32_t)0x00)
-#define FLASH_PECR_OFF ((uint32_t)0x04)
-#define FLASH_PDKEYR_OFF ((uint32_t)0x08)
-#define FLASH_PEKEYR_OFF ((uint32_t)0x0c)
-#define FLASH_PRGKEYR_OFF ((uint32_t)0x10)
-#define FLASH_OPTKEYR_OFF ((uint32_t)0x14)
-#define FLASH_SR_OFF ((uint32_t)0x18)
-#define FLASH_OBR_OFF ((uint32_t)0x1c)
-#define FLASH_WRPR_OFF ((uint32_t)0x20)
+#define FLASH_ACR_OFF     ((uint32_t) 0x00)
+#define FLASH_PECR_OFF    ((uint32_t) 0x04)
+#define FLASH_PDKEYR_OFF  ((uint32_t) 0x08)
+#define FLASH_PEKEYR_OFF  ((uint32_t) 0x0c)
+#define FLASH_PRGKEYR_OFF ((uint32_t) 0x10)
+#define FLASH_OPTKEYR_OFF ((uint32_t) 0x14)
+#define FLASH_SR_OFF      ((uint32_t) 0x18)
+#define FLASH_OBR_OFF     ((uint32_t) 0x1c)
+#define FLASH_WRPR_OFF    ((uint32_t) 0x20)
 
 // == STM32C0 == (RM0490)
 // C0 Flash registers
-#define FLASH_C0_REGS_ADDR ((uint32_t)0x40022000)
+#define FLASH_C0_REGS_ADDR ((uint32_t) 0x40022000)
 #define FLASH_C0_KEYR (FLASH_C0_REGS_ADDR + 0x08)
 #define FLASH_C0_OPT_KEYR (FLASH_C0_REGS_ADDR + 0x0C)
 #define FLASH_C0_SR (FLASH_C0_REGS_ADDR + 0x10)
@@ -87,7 +87,7 @@
 #define FLASH_F0_OPTKEY2 0xcdef89ab
 
 // == STM32F2 ==
-#define FLASH_F2_REGS_ADDR ((uint32_t)0x40023c00)
+#define FLASH_F2_REGS_ADDR ((uint32_t) 0x40023c00)
 #define FLASH_F2_KEYR (FLASH_F2_REGS_ADDR + 0x04)
 #define FLASH_F2_OPT_KEYR (FLASH_F2_REGS_ADDR + 0x08)
 #define FLASH_F2_SR (FLASH_F2_REGS_ADDR + 0x0c)
@@ -107,7 +107,7 @@
 
 // == STM32F4 ==
 // F4 Flash registers
-#define FLASH_F4_REGS_ADDR ((uint32_t)0x40023c00)
+#define FLASH_F4_REGS_ADDR ((uint32_t) 0x40023c00)
 #define FLASH_F4_KEYR (FLASH_F4_REGS_ADDR + 0x04)
 #define FLASH_F4_OPT_KEYR (FLASH_F4_REGS_ADDR + 0x08)
 #define FLASH_F4_SR (FLASH_F4_REGS_ADDR + 0x0c)
@@ -131,7 +131,7 @@
 
 // == STM32F7 ==
 // F7 Flash registers
-#define FLASH_F7_REGS_ADDR ((uint32_t)0x40023c00)
+#define FLASH_F7_REGS_ADDR ((uint32_t) 0x40023c00)
 #define FLASH_F7_KEYR (FLASH_F7_REGS_ADDR + 0x04)
 #define FLASH_F7_OPT_KEYR (FLASH_F7_REGS_ADDR + 0x08)
 #define FLASH_F7_SR (FLASH_F7_REGS_ADDR + 0x0c)
@@ -165,7 +165,7 @@
 
 // == STM32G0/G4 ==
 // G0/G4 Flash registers (RM0440, p.146)
-#define FLASH_Gx_REGS_ADDR ((uint32_t)0x40022000)
+#define FLASH_Gx_REGS_ADDR ((uint32_t) 0x40022000)
 #define FLASH_Gx_ACR (FLASH_Gx_REGS_ADDR + 0x00)
 #define FLASH_Gx_KEYR (FLASH_Gx_REGS_ADDR + 0x08)
 #define FLASH_Gx_OPTKEYR (FLASH_Gx_REGS_ADDR + 0x0c)
@@ -232,7 +232,7 @@
 
 // == STM32H7 ==
 // H7 Flash registers
-#define FLASH_H7_REGS_ADDR ((uint32_t)0x52002000)
+#define FLASH_H7_REGS_ADDR ((uint32_t) 0x52002000)
 #define FLASH_H7_KEYR1 (FLASH_H7_REGS_ADDR + 0x04)
 #define FLASH_H7_KEYR2 (FLASH_H7_REGS_ADDR + 0x104)
 #define FLASH_H7_OPT_KEYR (FLASH_H7_REGS_ADDR + 0x08)
@@ -278,7 +278,7 @@
 
 // == STM32L0/L1/L4/L5 ==
 // Lx Flash registers
-#define FLASH_Lx_REGS_ADDR ((uint32_t)0x40023c00)
+#define FLASH_Lx_REGS_ADDR ((uint32_t) 0x40023c00)
 #define FLASH_Lx_ACR (FLASH_Lx_REGS_ADDR + 0x00)
 #define FLASH_Lx_PECR (FLASH_Lx_REGS_ADDR + 0x04)
 #define FLASH_Lx_PDKEYR (FLASH_Lx_REGS_ADDR + 0x08)
@@ -300,7 +300,7 @@
 #define FLASH_L0_OPTKEY1 0xFBEAD9C8
 #define FLASH_L0_OPTKEY2 0x24252627
 
-#define FLASH_L0_REGS_ADDR ((uint32_t)0x40022000)
+#define FLASH_L0_REGS_ADDR ((uint32_t) 0x40022000)
 
 #define FLASH_L0_PELOCK (0)
 #define FLASH_L0_OPTLOCK (2)
@@ -352,16 +352,16 @@
 #define FLASH_L4_CR_OBL_LAUNCH 27   /* Option bytes reload */
 // Bits requesting flash operations (useful when we want to clear them)
 #define FLASH_L4_CR_OPBITS                                        \
-  (uint32_t)((1lu << FLASH_L4_CR_PG) | (1lu << FLASH_L4_CR_PER) | \
+  (uint32_t) ((1lu << FLASH_L4_CR_PG) | (1lu << FLASH_L4_CR_PER) | \
              (1lu << FLASH_L4_CR_MER1) | (1lu << FLASH_L4_CR_MER1))
 // Page is fully specified by BKER and PNB
-#define FLASH_L4_CR_PAGEMASK (uint32_t)(0x1fflu << FLASH_L4_CR_PNB)
+#define FLASH_L4_CR_PAGEMASK (uint32_t) (0x1fflu << FLASH_L4_CR_PNB)
 
 #define FLASH_L4_OPTR_DUALBANK 21
 
 // == STM32L5 == (RM0438, p.241)
 // L5 Flash registers
-#define FLASH_L5_REGS_ADDR ((uint32_t)0x40022000)
+#define FLASH_L5_REGS_ADDR ((uint32_t) 0x40022000)
 #define FLASH_L5_ACR (FLASH_L5_REGS_ADDR + 0x00)
 #define FLASH_L5_NSKEYR (FLASH_L5_REGS_ADDR + 0x08)
 #define FLASH_L5_OPTKEYR (FLASH_L5_REGS_ADDR + 0x10)
@@ -399,7 +399,7 @@
 
 // == STM32WB == (RM0434)
 // WB Flash registers
-#define FLASH_WB_REGS_ADDR ((uint32_t)0x58004000)
+#define FLASH_WB_REGS_ADDR ((uint32_t) 0x58004000)
 #define FLASH_WB_ACR (FLASH_WB_REGS_ADDR + 0x00)
 #define FLASH_WB_KEYR (FLASH_WB_REGS_ADDR + 0x08)
 #define FLASH_WB_OPT_KEYR (FLASH_WB_REGS_ADDR + 0x0c)

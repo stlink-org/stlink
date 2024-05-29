@@ -65,7 +65,7 @@ void process_chipfile(char *fname) {
     return;
   }
 
-  ts = calloc(sizeof(struct stlink_chipid_params), 1);
+  ts = calloc(1, sizeof(struct stlink_chipid_params));
 
   while (fgets(buf, sizeof(buf), fp) != NULL) {
 
@@ -224,7 +224,7 @@ void init_chipids(char *dir_to_scan) {
 
   if (d) {
     while ((dir = readdir(d)) != NULL) {
-      nl = strlen(dir->d_name);
+      nl = (uint32_t) strlen(dir->d_name);
 
       if (strcmp(dir->d_name + nl - 5, ".chip") == 0) {
         char buf[1024];

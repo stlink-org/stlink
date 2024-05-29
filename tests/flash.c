@@ -49,7 +49,7 @@ static bool execute_test(const struct Test * test) {
     strcpy(cmd_line, test->cmd_line);
 
     for (char * tok = strtok(cmd_line, " "); tok; tok = strtok(NULL, " ")) {
-        if ((size_t)ac >= sizeof(av) / sizeof(av[0])) return (false);
+        if ((size_t) ac >= sizeof(av) / sizeof(av[0])) return (false);
 
         av[ac] = tok;
         ++ac;

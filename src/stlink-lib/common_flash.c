@@ -885,7 +885,7 @@ static inline void write_flash_cr_bker_pnb(stlink_t *sl, uint32_t n) {
   x &= ~(1 << FLASH_L4_CR_MER1);
   x &= ~(1 << FLASH_L4_CR_MER2);
   x |= (n << FLASH_L4_CR_PNB);
-  x |= (uint32_t)(1lu << FLASH_L4_CR_PER);
+  x |= (uint32_t) (1lu << FLASH_L4_CR_PER);
 #if DEBUG_FLASH
   fprintf(stdout, "BKER:PNB:0x%x 0x%x\n", x, n);
 #endif
@@ -1223,7 +1223,7 @@ int32_t stlink_erase_flash_section(stlink_t *sl, stm32_addr_t base_addr, uint32_
       return (-1);
     }
 
-    fprintf(stdout, "-> Flash page at %#x erased (size: %#x)\r", addr, page_size);
+    fprintf(stdout, "-> Flash page at %#x erased (size: %#x)\n", addr, page_size);
     fflush(stdout);
 
     // check the next page is within the range to erase
@@ -1347,7 +1347,7 @@ int32_t stlink_fwrite_flash(stlink_t *sl, const char *path, stm32_addr_t addr,
   stlink_checksum(&mf);
 
   if (sl->opt) {
-    idx = (uint32_t)mf.len;
+    idx = (uint32_t) mf.len;
 
     for (num_empty = 0; num_empty != mf.len; ++num_empty) {
       if (mf.base[--idx] != erased_pattern) {
@@ -1373,10 +1373,10 @@ int32_t stlink_fwrite_flash(stlink_t *sl, const char *path, stm32_addr_t addr,
   /* In case the address is within the OTP area we use a different flash method */
   if(addr >= sl->otp_base && addr < sl->otp_base + sl->otp_size) {
     err = stlink_write_otp(sl, addr, mf.base,
-                           (num_empty == mf.len) ? (uint32_t)mf.len : (uint32_t)mf.len - num_empty);
+                           (num_empty == mf.len) ? (uint32_t) mf.len : (uint32_t) mf.len - num_empty);
   } else {
     err = stlink_write_flash(sl, addr, mf.base,
-                           (num_empty == mf.len) ? (uint32_t)mf.len : (uint32_t)mf.len - num_empty,
+                           (num_empty == mf.len) ? (uint32_t) mf.len : (uint32_t)mf.len - num_empty,
                            num_empty == mf.len, erase_type);
   }
   stlink_fwrite_finalize(sl, addr);
@@ -1427,7 +1427,7 @@ int32_t stlink_verify_write_flash(stlink_t *sl, stm32_addr_t address, uint8_t *d
       aligned_size = (cmp_size + 4) & ~(4 - 1);
     }
 
-    stlink_read_mem32(sl, address + off, (uint16_t)aligned_size);
+    stlink_read_mem32(sl, address + off, (uint16_t) aligned_size);
 
     if (memcmp(sl->q_buf, data + off, cmp_size)) {
       ELOG("Verification of flash failed at offset: %u\n", off);

@@ -92,13 +92,18 @@ static void _cleanup() {
 static void cleanup(int32_t signum) {
     printf("Receive signal %i. Exiting...\n", signum);
     _cleanup();
-    exit(1);
-    (void)signum;
+    // if asked to gracefully terminate
+    if(signum == SIGTERM){
+        // return 0
+        exit(0);
+    }else{
+        exit(1);
+    }
 }
 
 #if defined(_WIN32)
 BOOL WINAPI CtrlHandler(DWORD fdwCtrlType) {
-    printf("Receive signal %i. Exiting...\r\n", (int32_t)fdwCtrlType);
+    printf("Receive signal %i. Exiting...\r\n", (int32_t) fdwCtrlType);
     _cleanup();
     return FALSE;
 }
@@ -285,6 +290,7 @@ static const char* const target_description =
     "<!DOCTYPE target SYSTEM \"gdb-target.dtd\">"
     "<target version=\"1.0\">"
     "   <architecture>arm</architecture>"
+    "   <osabi>none</osabi>"
     "   <feature name=\"org.gnu.gdb.arm.m-profile\">"
     "       <reg name=\"r0\" bitsize=\"32\"/>"
     "       <reg name=\"r1\" bitsize=\"32\"/>"
@@ -354,7 +360,8 @@ char* make_memory_map(stlink_t *sl) {
     if (sl->chip_id == STM32_CHIPID_F4 ||
         sl->chip_id == STM32_CHIPID_F446 ||
         sl->chip_id == STM32_CHIPID_F411xx) {
-            strcpy(map, memory_map_template_F4);
+        snprintf(map, sz, memory_map_template_F4,
+                 sl->sram_size);
     } else if (sl->chip_id == STM32_CHIPID_F4_DE) {
         strcpy(map, memory_map_template_F4_DE);
     } else if (sl->core_id == STM32_CORE_ID_M7F_SWD) {
@@ -682,7 +689,7 @@ static int32_t flash_go(stlink_t *sl, st_state_t *st) {
     for (struct flash_block* fb = flash_root; fb; fb = fb->next) {
         ILOG("flash_erase: block %08x -> %04x\n", fb->addr, fb->length);
 
-        for (stm32_addr_t page = fb->addr; page < fb->addr + fb->length; page += (uint32_t)FLASH_PAGE) {
+        for (stm32_addr_t page = fb->addr; page < fb->addr + fb->length; page += (uint32_t) FLASH_PAGE) {
             // update FLASH_PAGE
             stlink_calculate_pagesize(sl, page);
 
@@ -698,14 +705,14 @@ static int32_t flash_go(stlink_t *sl, st_state_t *st) {
     for (struct flash_block* fb = flash_root; fb; fb = fb->next) {
         ILOG("flash_do: block %08x -> %04x\n", fb->addr, fb->length);
 
-        for (stm32_addr_t page = fb->addr; page < fb->addr + fb->length; page += (uint32_t)FLASH_PAGE) {
+        for (stm32_addr_t page = fb->addr; page < fb->addr + fb->length; page += (uint32_t) FLASH_PAGE) {
             uint32_t length = fb->length - (page - fb->addr);
 
             // update FLASH_PAGE
             stlink_calculate_pagesize(sl, page);
 
             ILOG("flash_do: page %08x\n", page);
-            uint32_t len = (length > FLASH_PAGE) ? (uint32_t)FLASH_PAGE : length;
+            uint32_t len = (length > FLASH_PAGE) ? (uint32_t) FLASH_PAGE : length;
             ret = stlink_flashloader_write(sl, &fl, page, fb->data + (page - fb->addr), len);
             if (ret) { goto error; }
         }
@@ -981,7 +988,7 @@ int32_t serve(stlink_t *sl, st_state_t *st) {
                 params = separator + 1;
             }
 
-            uint32_t queryNameLength = (uint32_t)(separator - &packet[1]);
+            uint32_t queryNameLength = (uint32_t) (separator - &packet[1]);
             char* queryName = calloc(queryNameLength + 1, 1);
             strncpy(queryName, &packet[1], queryNameLength);
 
@@ -1000,8 +1007,8 @@ int32_t serve(stlink_t *sl, st_state_t *st) {
                 __s_addr = strsep(&tok, ",");
                 s_length = tok;
 
-                uint32_t addr = (uint32_t)strtoul(__s_addr, NULL, 16),
-                         length = (uint32_t)strtoul(s_length, NULL, 16);
+                uint32_t addr = (uint32_t) strtoul(__s_addr, NULL, 16),
+                         length = (uint32_t) strtoul(s_length, NULL, 16);
 
                 DLOG("Xfer: type:%s;op:%s;annex:%s;addr:%d;length:%d\n",
                      type, op, annex, addr, length);
@@ -1018,7 +1025,7 @@ int32_t serve(stlink_t *sl, st_state_t *st) {
                 }
 
                 if (data) {
-                    uint32_t data_length = (uint32_t)strlen(data);
+                    uint32_t data_length = (uint32_t) strlen(data);
 
                     if (addr + length > data_length) { length = data_length - addr; }
 
@@ -1041,7 +1048,7 @@ int32_t serve(stlink_t *sl, st_state_t *st) {
                     params = separator + 1;
                 }
 
-                uint32_t hex_len = strlen(params);
+                uint32_t hex_len = (uint32_t) strlen(params);
                 uint32_t alloc_size = (hex_len / 2) + 1;
                 uint32_t cmd_len;
                 char *cmd = malloc(alloc_size);
@@ -1161,8 +1168,8 @@ int32_t serve(stlink_t *sl, st_state_t *st) {
                 __s_addr   = strsep(&tok, ",");
                 s_length = tok;
 
-                uint32_t addr = (uint32_t)strtoul(__s_addr, NULL, 16),
-                         length = (uint32_t)strtoul(s_length, NULL, 16);
+                uint32_t addr = (uint32_t) strtoul(__s_addr, NULL, 16),
+                         length = (uint32_t) strtoul(s_length, NULL, 16);
 
                 DLOG("FlashErase: addr:%08x,len:%04x\n",
                      addr, length);
@@ -1179,8 +1186,8 @@ int32_t serve(stlink_t *sl, st_state_t *st) {
                 __s_addr = strsep(&tok, ":");
                 data   = tok;
 
-                uint32_t addr = (uint32_t)strtoul(__s_addr, NULL, 16);
-                uint32_t data_length = status - (uint32_t)(data - packet);
+                uint32_t addr = (uint32_t) strtoul(__s_addr, NULL, 16);
+                uint32_t data_length = status - (uint32_t) (data - packet);
 
                 // Length of decoded data cannot be more than encoded, as escapes are removed.
                 // Additional byte is reserved for alignment fix.
@@ -1343,13 +1350,13 @@ int32_t serve(stlink_t *sl, st_state_t *st) {
             reply = calloc(8 * 16 + 1, 1);
 
             for (int32_t i = 0; i < 16; i++) {
-                sprintf(&reply[i * 8], "%08x", (uint32_t)htonl(regp.r[i]));
+                sprintf(&reply[i * 8], "%08x", (uint32_t) htonl(regp.r[i]));
             }
 
             break;
 
         case 'p': {
-            uint32_t id = (uint32_t)strtoul(&packet[1], NULL, 16);
+            uint32_t id = (uint32_t) strtoul(&packet[1], NULL, 16);
             uint32_t myreg = 0xDEADDEAD;
 
             if (id < 16) {
@@ -1402,8 +1409,8 @@ int32_t serve(stlink_t *sl, st_state_t *st) {
             char* s_reg = &packet[1];
             char* s_value = strstr(&packet[1], "=") + 1;
 
-            uint32_t reg   = (uint32_t)strtoul(s_reg,   NULL, 16);
-            uint32_t value = (uint32_t)strtoul(s_value, NULL, 16);
+            uint32_t reg   = (uint32_t) strtoul(s_reg,   NULL, 16);
+            uint32_t value = (uint32_t) strtoul(s_value, NULL, 16);
 
 
             if (reg < 16) {
@@ -1443,7 +1450,7 @@ int32_t serve(stlink_t *sl, st_state_t *st) {
             for (int32_t i = 0; i < 16; i++) {
                 char str[9] = {0};
                 strncpy(str, &packet[1 + i * 8], 8);
-                uint32_t reg = (uint32_t)strtoul(str, NULL, 16);
+                uint32_t reg = (uint32_t) strtoul(str, NULL, 16);
                 ret = stlink_write_reg(sl, ntohl(reg), i);
 
                 if (ret) { DLOG("G packet: stlink_write_reg failed"); }
@@ -1456,8 +1463,8 @@ int32_t serve(stlink_t *sl, st_state_t *st) {
             char* s_start = &packet[1];
             char* s_count = strstr(&packet[1], ",") + 1;
 
-            stm32_addr_t start = (stm32_addr_t)strtoul(s_start, NULL, 16);
-            uint32_t count = (uint32_t)strtoul(s_count, NULL, 16);
+            stm32_addr_t start = (stm32_addr_t) strtoul(s_start, NULL, 16);
+            uint32_t count = (uint32_t) strtoul(s_count, NULL, 16);
 
             uint32_t adj_start = start % 4;
             uint32_t count_rnd = (count + adj_start + 4 - 1) / 4 * 4;
@@ -1487,8 +1494,8 @@ int32_t serve(stlink_t *sl, st_state_t *st) {
             char* s_count = strstr(&packet[1], ",") + 1;
             char* hexdata = strstr(packet, ":") + 1;
 
-            stm32_addr_t start = (stm32_addr_t)strtoul(s_start, NULL, 16);
-            uint32_t count = (uint32_t)strtoul(s_count, NULL, 16);
+            stm32_addr_t start = (stm32_addr_t) strtoul(s_start, NULL, 16);
+            uint32_t count = (uint32_t) strtoul(s_count, NULL, 16);
             int32_t err = 0;
 
             if (start % 4) {
@@ -1498,7 +1505,7 @@ int32_t serve(stlink_t *sl, st_state_t *st) {
 
                 for (uint32_t i = 0; i < align_count; i++) {
                     char hextmp[3] = { hexdata[i * 2], hexdata[i * 2 + 1], 0 };
-                    uint8_t byte = (uint8_t)strtoul(hextmp, NULL, 16);
+                    uint8_t byte = (uint8_t) strtoul(hextmp, NULL, 16);
                     sl->q_buf[i] = byte;
                 }
 
@@ -1514,7 +1521,7 @@ int32_t serve(stlink_t *sl, st_state_t *st) {
 
                 for (uint32_t i = 0; i < aligned_count; i++) {
                     char hextmp[3] = { hexdata[i * 2], hexdata[i * 2 + 1], 0 };
-                    uint8_t byte = (uint8_t)strtoul(hextmp, NULL, 16);
+                    uint8_t byte = (uint8_t) strtoul(hextmp, NULL, 16);
                     sl->q_buf[i] = byte;
                 }
 
@@ -1528,7 +1535,7 @@ int32_t serve(stlink_t *sl, st_state_t *st) {
             if (count) {
                 for (uint32_t i = 0; i < count; i++) {
                     char hextmp[3] = { hexdata[i * 2], hexdata[i * 2 + 1], 0 };
-                    uint8_t byte = (uint8_t)strtoul(hextmp, NULL, 16);
+                    uint8_t byte = (uint8_t) strtoul(hextmp, NULL, 16);
                     sl->q_buf[i] = byte;
                 }
 
@@ -1542,8 +1549,8 @@ int32_t serve(stlink_t *sl, st_state_t *st) {
 
         case 'Z': {
             char *endptr;
-            stm32_addr_t addr = (stm32_addr_t)strtoul(&packet[3], &endptr, 16);
-            stm32_addr_t len  = (stm32_addr_t)strtoul(&endptr[1], NULL, 16);
+            stm32_addr_t addr = (stm32_addr_t) strtoul(&packet[3], &endptr, 16);
+            stm32_addr_t len  = (stm32_addr_t) strtoul(&endptr[1], NULL, 16);
 
             switch (packet[1]) {
             case '1':
@@ -1585,7 +1592,7 @@ int32_t serve(stlink_t *sl, st_state_t *st) {
         }
         case 'z': {
             char *endptr;
-            stm32_addr_t addr = (stm32_addr_t)strtoul(&packet[3], &endptr, 16);
+            stm32_addr_t addr = (stm32_addr_t) strtoul(&packet[3], &endptr, 16);
             // stm32_addr_t len  = strtoul(&endptr[1], NULL, 16);
 
             switch (packet[1]) {

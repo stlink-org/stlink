@@ -17,8 +17,8 @@ int32_t gettimeofday(struct timeval *tv, struct timezone *tz) {
         ulint.LowPart = ftime.dwLowDateTime;
         ulint.HighPart = ftime.dwHighDateTime;
 
-        tv->tv_sec = (int32_t)(ulint.QuadPart / 10000000L);
-        tv->tv_usec = (int32_t)(ulint.QuadPart % 10000000L);
+        tv->tv_sec = (int32_t) (ulint.QuadPart / 10000000L);
+        tv->tv_usec = (int32_t) (ulint.QuadPart % 10000000L);
     }
 
     if (NULL != tz) {

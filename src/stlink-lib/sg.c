@@ -172,7 +172,7 @@ static int32_t dump_CDB_command(uint8_t *cdb, uint8_t cdb_len) {
     dbugp += sprintf(dbugp, "Sending CDB [");
 
     for (uint8_t i = 0; i < cdb_len; i++) {
-        dbugp += sprintf(dbugp, " 0x%02x", (uint32_t)cdb[i]);
+        dbugp += sprintf(dbugp, " 0x%02x", (uint32_t) cdb[i]);
     }
 
     sprintf(dbugp, "]\n");
@@ -288,7 +288,7 @@ static void get_sense(libusb_device_handle *handle, uint8_t endpoint_in, uint8_t
     }
 
     if (transferred != sizeof(sense)) {
-        WLOG("received unexpected amount of sense: %d != %u\n", transferred, (uint32_t)sizeof(sense));
+        WLOG("received unexpected amount of sense: %d != %u\n", transferred, (uint32_t) sizeof(sense));
     }
 
     uint32_t received_tag;

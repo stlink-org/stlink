@@ -23,7 +23,7 @@ void *mmap (void *addr, uint32_t len, int32_t prot, int32_t flags, int32_t fd, i
 
     count = read(fd, buf, len);
 
-    if (count != (ssize_t)len) {
+    if (count != (ssize_t) len) {
         free (buf);
         return (MAP_FAILED);
     }

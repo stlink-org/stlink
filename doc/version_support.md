@@ -12,7 +12,7 @@ Up on compiling c-make will **automatically** download and install the latest co
 
 ### Linux-/Unix-based:
 
-Maintained versions of:
+Actively maintained versions of:
 - Debian
 - Ubuntu
 - Fedora
@@ -27,10 +27,6 @@ Other Linux-/Unix-based Operating Systems:
 
 | Operating System         | libusb                         | cmake      | libgtk-dev  | End of<br />OS-Support |
 | ------------------------ | ------------------------------ | ---------- | ----------- | ---------------------- |
-| Debian Sid               | 1.0.24                         | 3.22.1     | 3.24.31     |                        |
-| Debian 11 (Bullseye)     | 1.0.24                         | 3.**18.4** | 3.24.24     |                        |
-| Debian 10 (Buster)       | 1.0.**22**                     | 3.**13.4** | 3.24.**5**  | Jun 2024               |
-|                          |                                |            |             |                        |
 | Ubuntu 20.04 LTS (Focal) | 1.0.23                         | 3.**16.3** | 3.24.**18** | May 2025               |
 |                          |                                |            |             |                        |
 | FreeBSD 13.x             | 1.0.**16-18** (API 0x01000102) | 3.22.1     | 3.24.31     |                        |
@@ -41,7 +37,6 @@ Other Linux-/Unix-based Operating Systems:
 | CentOS 9 Stream [x64]    | 1.0.24 (`libusbx`)             | 3.20.3     | 3.24.30     |                        |
 | CentOS 8 Stream [x64]    | 1.0.23 (`libusbx`)             | 3.20.2     | 3.**22.30** | May 2024               |
 |                          |                                |            |             |                        |
-| ALT Linux Sisyphus       | 1.0.24                         | 3.22.1     | 3.24.31     |                        |
 | ALT Linux P10            | 1.0.24                         | 3.20.5     | 3.24.31     |                        |
 | ALT Linux P9             | 1.0.**22**                     | 3.**16.3** | 3.24.29     |                        |
 |                          |                                |            |             |                        |
@@ -59,6 +54,7 @@ Systems with highlighted versions remain compatible with this toolset.
 
 | Operating System                         | libusb                         | cmake      | End of<br />OS-Support |
 | ---------------------------------------- | ------------------------------ | ---------- | ---------------------- |
+| Debian 11 (Bullseye)                     | 1.0.**24**                     | 3.**18.4** | Jun 2024 (v1.7.0)      |
 | FreeBSD 12.x                             | 1.0.**16-18** (API 0x01000102) | 3.**22.1** | Dec 2023               |
 | Alpine 3.15                              | 1.0.**24**                     | 3.**21.3** | Nov 2023               |
 | Fedora 35 [x64]                          | 1.0.**24**                     | 3.**21.3** | Dec 2022               |
@@ -84,6 +80,7 @@ Systems with highlighted versions remain compatible with this toolset.
 | Fedora 30                                | 1.0.**22**(`libusbx`)          | 3.**14.2** | May 2020               |
 | Ubuntu 19.10 (Eoan)                      | 1.0.**23**                     | 3.**13.4** | Jul 2020               |
 | Alpine 3.9                               | 1.0.**22**                     | 3.**13.0** | Jan 2021               |
+| Debian 10 (Buster)                       | 1.0.**22**                     | 3.**13.4** | Jun 2024 (v1.7.0)      |
 | Ubuntu 18.04 LTS (Bionic)                | 1.0.21                         | 3.10.2     | Apr 2023               |
 | openSUSE Leap 15.1 [x64]                 | 1.0.21                         | 3.10.2     | Jan 2021               |
 | Debian 9 (Stretch)                       | 1.0.21                         | 3.7.2      | Jun 2022               |
@@ -92,5 +89,3 @@ Systems with highlighted versions remain compatible with this toolset.
 | CentOS / Rocky Linux / AlmaLinux 7 [x64] | 1.0.21 (`libusbx`)             | 2.8.12.2   | Jun 2024               |
 
 _All other operating systems which are not listed are unsupported._
-
-Author: nightwalker-87

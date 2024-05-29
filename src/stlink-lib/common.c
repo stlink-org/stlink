@@ -620,7 +620,7 @@ void stlink_print_data(stlink_t *sl) {
       */
     }
     // DLOG(" %02x", (uint32_t) sl->q_buf[i]);
-    fprintf(stderr, " %02x", (uint32_t)sl->q_buf[i]);
+    fprintf(stderr, " %02x", (uint32_t) sl->q_buf[i]);
   }
   // DLOG("\n\n");
   fprintf(stderr, "\n");
@@ -669,12 +669,12 @@ int32_t stlink_mwrite_sram(stlink_t *sl, uint8_t *data, uint32_t length, stm32_a
       size += 2;
     } // round size if needed
 
-    stlink_write_mem32(sl, addr + off, (uint16_t)size);
+    stlink_write_mem32(sl, addr + off, (uint16_t) size);
   }
 
   if (length > len) {
     memcpy(sl->q_buf, data + len, length - len);
-    stlink_write_mem8(sl, addr + len, (uint16_t)(length - len));
+    stlink_write_mem8(sl, addr + len, (uint16_t) (length - len));
   }
 
   error = 0; // success
@@ -737,12 +737,12 @@ int32_t stlink_fwrite_sram(stlink_t *sl, const char *path, stm32_addr_t addr) {
       size += 2;
     } // round size if needed
 
-    stlink_write_mem32(sl, addr + off, (uint16_t)size);
+    stlink_write_mem32(sl, addr + off, (uint16_t) size);
   }
 
   if (mf.len > len) {
     memcpy(sl->q_buf, mf.base + len, mf.len - len);
-    stlink_write_mem8(sl, addr + len, (uint16_t)(mf.len - len));
+    stlink_write_mem8(sl, addr + len, (uint16_t) (mf.len - len));
   }
 
   // check the file has been written
@@ -913,7 +913,7 @@ int32_t stlink_parse_ihex(const char *path, uint8_t erased_pattern, uint8_t **me
         break;
       }
 
-      uint32_t l = strlen(line);
+      uint32_t l = (uint32_t) strlen(line);
 
       while (l > 0 && (line[l - 1] == '\n' || line[l - 1] == '\r')) {
         --l;
@@ -941,14 +941,14 @@ int32_t stlink_parse_ihex(const char *path, uint8_t erased_pattern, uint8_t **me
 
       uint8_t reclen = stlink_parse_hex(line + 1);
 
-      if (((uint32_t)reclen + 5) * 2 + 1 != l) {
+      if (((uint32_t) reclen + 5) * 2 + 1 != l) {
         ELOG("Wrong file format - record length mismatch\n");
         res = -1;
         break;
       }
 
-      uint16_t offset = ((uint16_t)stlink_parse_hex(line + 3) << 8) |
-                        ((uint16_t)stlink_parse_hex(line + 5));
+      uint16_t offset = ((uint16_t) stlink_parse_hex(line + 3) << 8) |
+                        ((uint16_t) stlink_parse_hex(line + 5));
       uint8_t rectype = stlink_parse_hex(line + 7);
 
       switch (rectype) {
@@ -986,8 +986,8 @@ int32_t stlink_parse_ihex(const char *path, uint8_t erased_pattern, uint8_t **me
         break;
       case 4: /* Extended Linear Address */
         if (reclen == 2) {
-          lba = ((uint32_t)stlink_parse_hex(line + 9) << 24) |
-                ((uint32_t)stlink_parse_hex(line + 11) << 16);
+          lba = ((uint32_t) stlink_parse_hex(line + 9) << 24) |
+                ((uint32_t) stlink_parse_hex(line + 11) << 16);
         } else {
           ELOG("Wrong file format - wrong LBA length\n");
           res = -1;
@@ -1181,8 +1181,8 @@ void _parse_version(stlink_t *sl, stlink_version_t *slv) {
     slv->stlink_v = sl->q_buf[0];
     slv->swim_v = sl->q_buf[1];
     slv->jtag_v = sl->q_buf[2];
-    slv->st_vid = (uint32_t)((sl->q_buf[9] << 8) | sl->q_buf[8]);
-    slv->stlink_pid = (uint32_t)((sl->q_buf[11] << 8) | sl->q_buf[10]);
+    slv->st_vid = (uint32_t) ((sl->q_buf[9] << 8) | sl->q_buf[8]);
+    slv->stlink_pid = (uint32_t) ((sl->q_buf[11] << 8) | sl->q_buf[10]);
     slv->jtag_api = STLINK_JTAG_API_V3;
     /* preferred API to get last R/W status */
     sl->version.flags |= STLINK_F_HAS_GETLASTRWSTATUS2;
@@ -1230,7 +1230,7 @@ static int32_t stlink_read(stlink_t *sl, stm32_addr_t addr, uint32_t size, save_
       aligned_size = (cmp_size + 4) & ~(4 - 1);
     }
 
-    stlink_read_mem32(sl, addr + off, (uint16_t)aligned_size);
+    stlink_read_mem32(sl, addr + off, (uint16_t) aligned_size);
 
     if (!fn(fn_arg, sl->q_buf, aligned_size)) {
       goto on_error;
@@ -1277,11 +1277,11 @@ static uint8_t stlink_parse_hex(const char *hex) {
 
 static bool stlink_fread_ihex_newsegment(struct stlink_fread_ihex_worker_arg *the_arg) {
   uint32_t addr = the_arg->addr;
-  uint8_t sum = 2 + 4 + (uint8_t)((addr & 0xFF000000) >> 24) +
-                (uint8_t)((addr & 0x00FF0000) >> 16);
+  uint8_t sum = 2 + 4 + (uint8_t) ((addr & 0xFF000000) >> 24) +
+                (uint8_t) ((addr & 0x00FF0000) >> 16);
 
   if (17 != fprintf(the_arg->file, ":02000004%04X%02X\r\n",
-                    (addr & 0xFFFF0000) >> 16, (uint8_t)(0x100 - sum))) {
+                    (addr & 0xFFFF0000) >> 16, (uint8_t) (0x100 - sum))) {
     return (false);
   }
 
@@ -1304,8 +1304,8 @@ static bool stlink_fread_ihex_writeline(struct stlink_fread_ihex_worker_arg *the
     }
   }
 
-  uint8_t sum = count + (uint8_t)((addr & 0x0000FF00) >> 8) +
-                (uint8_t)(addr & 0x000000FF);
+  uint8_t sum = count + (uint8_t) ((addr & 0x0000FF00) >> 8) +
+                (uint8_t) (addr & 0x000000FF);
 
   if (9 != fprintf(the_arg->file, ":%02X%04X00", count, (addr & 0x0000FFFF))) {
     return (false);
@@ -1320,7 +1320,7 @@ static bool stlink_fread_ihex_writeline(struct stlink_fread_ihex_worker_arg *the
     }
   }
 
-  if (4 != fprintf(the_arg->file, "%02X\r\n", (uint8_t)(0x100 - sum))) {
+  if (4 != fprintf(the_arg->file, "%02X\r\n", (uint8_t) (0x100 - sum))) {
     return (false);
   }
 

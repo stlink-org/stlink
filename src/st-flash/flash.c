@@ -44,25 +44,39 @@ static void cleanup(int32_t signum) {
 }
 
 static void usage(void) {
-    puts("command line:   ./st-flash [--debug] [--reset] [--connect-under-reset] [--hot-plug] [--opt] [--serial <serial>] [--format <format>] [--flash=<fsize>] [--freq=<kHz>] [--area=<area>] {read|write} [path] [addr] [size]");
-    puts("command line:   ./st-flash [--debug] [--connect-under-reset] [--hot-plug] [--freq=<kHz>] [--serial <serial>] erase [addr] [size]");
-    puts("command line:   ./st-flash [--debug] [--freq=<kHz>] [--serial <serial>] reset");
-    puts("   <addr>, <serial> and <size>: Use hex format.");
-    puts("   <fsize>: Use decimal, octal or hex (prefix 0xXXX) format, optionally followed by k=KB, or m=MB (eg. --flash=128k)");
-    puts("   <format>: Can be 'binary' (default) or 'ihex', although <addr> must be specified for binary format only.");
-    puts("   <area>: Can be 'main' (default), 'system', 'otp', 'optcr', 'optcr1', 'option' or 'option_boot_add'");
-    puts("print tool version info:   ./st-flash [--version]");
-    puts("example read option byte: ./st-flash --area=option read [path] [size]");
-    puts("example write option byte: ./st-flash --area=option write 0xXXXXXXXX");
-    puts("On selected targets:");
-    puts("example read boot_add option byte:  ./st-flash --area=option_boot_add read");
-    puts("example write boot_add option byte: ./st-flash --area=option_boot_add write 0xXXXXXXXX");
-    puts("example read option control register byte:  ./st-flash --area=optcr read");
-    puts("example write option control register1 byte:  ./st-flash --area=optcr write 0xXXXXXXXX");
-    puts("example read option control register1 byte:  ./st-flash --area=optcr1 read");
-    puts("example write option control register1 byte:  ./st-flash --area=optcr1 write 0xXXXXXXXX");
-    puts("example read OTP area:  ./st-flash --area=otp read [path]");
-    puts("example write OTP area: ./st-flash --area=otp write [path] 0xXXXXXXXX");
+    puts("usage: st-flash [options] read [file] [addr] [size]");
+    puts("       st-flash [options] write <file> [addr] [size]");
+    puts("       st-flash [options] write <value>");
+    puts("       st-flash [options] erase <addr> <size>");
+    puts("       st-flash [options] reset");
+    puts("");
+    puts("options:");
+    puts("  --freq <kHz>           Frequency of JTAG/SWD, default 1800kHz.");
+    puts("  --serial <serial>      STLink device to use.");
+    puts("  --connect-under-reset  Pull reset low while connecting.");
+    puts("  --hot-plug             Connect without reset.");
+    puts("  --reset                Reset after writing.");
+    puts("  --format {binary|ihex} Format of file to read or write. When writing");
+    puts("                         with ihex specifying addr is not needed.");
+    puts("  --flash <size>         Specify size of flash, e.g. 128k, 1M.");
+    puts("  --area <area>          Area to access, one of: main(default), system,");
+    puts("                         otp, option, option_boot_add, optcr, optcr1.");
+    puts("  --opt                  Skip writing empty bytes at the tail end.");
+    puts("  --debug                Output extra debug information.");
+    puts("  --version              Print version information.");
+    puts("  --help                 Show this help.");
+    puts("");
+    puts("examples:");
+    puts("  st-flash --area=option read [file] [size]");
+    puts("  st-flash --area=option write 0xXXXXXXXX");
+    puts("  st-flash --area=option_boot_add read");
+    puts("  st-flash --area=option_boot_add write 0xXXXXXXXX");
+    puts("  st-flash --area=optcr read");
+    puts("  st-flash --area=optcr write 0xXXXXXXXX");
+    puts("  st-flash --area=optcr1 read");
+    puts("  st-flash --area=optcr1 write 0xXXXXXXXX");
+    puts("  st-flash --area=otp read <file>");
+    puts("  st-flash --area=otp write <file> 0xXXXXXXXX");
 }
 
 int32_t main(int32_t ac, char** av) {
@@ -70,14 +84,19 @@ int32_t main(int32_t ac, char** av) {
     struct flash_opts o;
     int32_t err = -1;
     uint8_t * mem = NULL;
+    int32_t getopt_ret;
 
     o.size = 0;
     o.connect = CONNECT_NORMAL;
 
-    if (flash_get_opts(&o, ac - 1, av + 1) == -1) {
+    getopt_ret = flash_get_opts(&o, ac - 1, av + 1);
+    if (getopt_ret  == -1) {
         printf("invalid command line\n");
         usage();
         return (-1);
+    } else if (getopt_ret == 1) {
+        usage();
+        return 0;
     }
 
     printf("st-flash %s\n", STLINK_VERSION);
@@ -276,7 +295,7 @@ int32_t main(int32_t ac, char** av) {
                     fprintf(stderr, "open(%s) == -1\n", o.filename);
                     goto on_error;
                 }
-                err = (uint32_t)write(fd, &option_byte, 4);
+                err = (uint32_t) write(fd, &option_byte, 4);
                 if (err == -1) {
                     printf("could not write buffer to file (%d)\n", err);
                     goto on_error;

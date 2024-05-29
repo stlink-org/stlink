@@ -18,17 +18,17 @@
 // These functions encode and decode little endian uint16 and uint32 values.
 
 uint16_t read_uint16(const unsigned char *c, const int32_t pt) {
-  return ((uint16_t)c[pt]) | ((uint16_t)c[pt + 1] << 8);
+  return ((uint16_t) c[pt]) | ((uint16_t) c[pt + 1] << 8);
 }
 
 void write_uint16(unsigned char *buf, uint16_t ui) {
-  buf[0] = (uint8_t)ui;
-  buf[1] = (uint8_t)(ui >> 8);
+  buf[0] = (uint8_t) ui;
+  buf[1] = (uint8_t) (ui >> 8);
 }
 
 uint32_t read_uint32(const unsigned char *c, const int32_t pt) {
-  return ((uint32_t)c[pt]) | ((uint32_t)c[pt + 1] << 8) |
-         ((uint32_t)c[pt + 2] << 16) | ((uint32_t)c[pt + 3] << 24);
+  return ((uint32_t) c[pt]) | ((uint32_t) c[pt + 1] << 8) |
+         ((uint32_t) c[pt + 2] << 16) | ((uint32_t) c[pt + 3] << 24);
 }
 
 void write_uint32(unsigned char *buf, uint32_t ui) {

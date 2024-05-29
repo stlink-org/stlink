@@ -12,7 +12,7 @@
 #include <win32_socket.h>
 #else
 #include <unistd.h>
-#include <sys/poll.h>
+#include <poll.h>
 #endif
 
 #include "gdb-remote.h"
@@ -20,7 +20,7 @@
 static const char hex[] = "0123456789abcdef";
 
 int32_t gdb_send_packet(int32_t fd, char* data) {
-    uint32_t data_length = (uint32_t)strlen(data);
+    uint32_t data_length = (uint32_t) strlen(data);
     int32_t length = data_length + 4;
     char* packet = malloc(length); // '$' data (hex) '#' cksum (hex)
 
