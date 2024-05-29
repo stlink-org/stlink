@@ -713,9 +713,9 @@ int32_t stlink_flashloader_start(stlink_t *sl, flash_loader_t *fl) {
     }
     if (sl->chip_id != STM32_CHIPID_H7Ax) {
       // set parallelism
-      write_flash_cr_psiz(sl, 3 /* 64bit */, BANK_1);
+      write_flash_cr_psiz(sl, 3 /* 64 bit */, BANK_1);
       if (sl->chip_flags & CHIP_F_HAS_DUAL_BANK) {
-        write_flash_cr_psiz(sl, 3 /* 64bit */, BANK_2);
+        write_flash_cr_psiz(sl, 3 /* 64 bit */, BANK_2);
       }
     }
   } else {

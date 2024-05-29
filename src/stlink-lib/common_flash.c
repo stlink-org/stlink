@@ -1250,9 +1250,9 @@ int32_t stlink_erase_flash_mass(stlink_t *sl) {
 
     if (sl->flash_type == STM32_FLASH_TYPE_H7 && sl->chip_id != STM32_CHIPID_H7Ax) {
       // set parallelism
-      write_flash_cr_psiz(sl, 3 /*64bit*/, BANK_1);
+      write_flash_cr_psiz(sl, 3 /* 64 bit */, BANK_1);
       if (sl->chip_flags & CHIP_F_HAS_DUAL_BANK) {
-        write_flash_cr_psiz(sl, 3 /*64bit*/, BANK_2);
+        write_flash_cr_psiz(sl, 3 /* 64 bit */, BANK_2);
       }
     }
 
