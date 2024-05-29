@@ -19,12 +19,12 @@
 uint32_t time_ms() {
     struct timeval tv;
     gettimeofday(&tv, NULL);
-    return (uint32_t)(tv.tv_sec * 1000 + tv.tv_usec / 1000);
+    return (uint32_t) (tv.tv_sec * 1000 + tv.tv_usec / 1000);
 }
 
 int32_t arg_parse_freq(const char *str) {
     char *tail;
-    int32_t value = (int32_t)strtol(str, &tail, 10);
+    int32_t value = (int32_t) strtol(str, &tail, 10);
 
     if (tail[0] == 'M' && tail[1] == '\0') {
         value = value*1000;

@@ -281,7 +281,7 @@ int32_t main(int32_t ac, char** av) {
                     fprintf(stderr, "open(%s) == -1\n", o.filename);
                     goto on_error;
                 }
-                err = (uint32_t)write(fd, &option_byte, 4);
+                err = (uint32_t) write(fd, &option_byte, 4);
                 if (err == -1) {
                     printf("could not write buffer to file (%d)\n", err);
                     goto on_error;

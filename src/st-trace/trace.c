@@ -158,7 +158,7 @@ static bool parse_frequency(char* text, uint32_t* result) {
     return false;
   }
 
-  *result = (uint32_t)value;
+  *result = (uint32_t) value;
   return true;
 }
 

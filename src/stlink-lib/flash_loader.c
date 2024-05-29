@@ -320,7 +320,7 @@ int32_t stlink_flash_loader_write_to_sram(stlink_t *sl, stm32_addr_t* addr, uint
     }
 
     memcpy(sl->q_buf, loader_code, loader_size);
-    int32_t ret = stlink_write_mem32(sl, sl->sram_base, (uint16_t)loader_size);
+    int32_t ret = stlink_write_mem32(sl, sl->sram_base, (uint16_t) loader_size);
 
     if (ret) { return (ret); }
 
@@ -400,7 +400,7 @@ int32_t stlink_flash_loader_run(stlink_t *sl, flash_loader_t* fl, stm32_addr_t t
   * several bytes garbage have been written due to the unaligned
   * firmware size.
   */
-  if ((int32_t)rr.r[2] > 0 || (int32_t)rr.r[2] < -7) {
+  if ((int32_t) rr.r[2] > 0 || (int32_t) rr.r[2] < -7) {
       ELOG("Flash loader write error\n");
       goto error;
   }
@@ -460,7 +460,7 @@ int32_t stm32l1_write_half_pages(stlink_t *sl, flash_loader_t *fl, stm32_addr_t 
       for (off = 0; off < pagesize && !ret; off += 64) {
         uint32_t chunk = (pagesize - off > 64) ? 64 : pagesize - off;
         memcpy(sl->q_buf, base + count * pagesize + off, chunk);
-        ret = stlink_write_mem32(sl, addr + count * pagesize + off, (uint16_t)chunk);
+        ret = stlink_write_mem32(sl, addr + count * pagesize + off, (uint16_t) chunk);
       }
     }
 
@@ -788,7 +788,7 @@ int32_t stlink_flashloader_write(stlink_t *sl, flash_loader_t *fl, stm32_addr_t 
       if (stm32l1_write_half_pages(sl, fl, addr, base, len, pagesize)) {
         return (-1);
       } else {
-        off = (uint32_t)(len / pagesize) * pagesize;
+        off = (uint32_t) (len / pagesize) * pagesize;
       }
     }
 

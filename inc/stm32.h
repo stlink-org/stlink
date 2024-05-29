@@ -142,37 +142,37 @@ enum stm32_chipids {
 };
 
 /* Constant STM32 option bytes base memory address */
-#define STM32_C0_OPTION_BYTES_BASE ((uint32_t)0x1fff7800)
+#define STM32_C0_OPTION_BYTES_BASE ((uint32_t) 0x1fff7800)
 
-#define STM32_F4_OPTION_BYTES_BASE ((uint32_t)0x40023c14)
+#define STM32_F4_OPTION_BYTES_BASE ((uint32_t) 0x40023c14)
 
-#define STM32_H7_OPTION_BYTES_BASE ((uint32_t)0x5200201c)
+#define STM32_H7_OPTION_BYTES_BASE ((uint32_t) 0x5200201c)
 
-#define STM32_L0_OPTION_BYTES_BASE ((uint32_t)0x1ff80000)
-#define STM32_L1_OPTION_BYTES_BASE ((uint32_t)0x1ff80000)
+#define STM32_L0_OPTION_BYTES_BASE ((uint32_t) 0x1ff80000)
+#define STM32_L1_OPTION_BYTES_BASE ((uint32_t) 0x1ff80000)
 
-#define STM32_F7_OPTION_BYTES_BASE ((uint32_t)0x1fff0000)
+#define STM32_F7_OPTION_BYTES_BASE ((uint32_t) 0x1fff0000)
 
-#define STM32_G0_OPTION_BYTES_BASE ((uint32_t)0x1fff7800)
-#define STM32_L4_OPTION_BYTES_BASE ((uint32_t)0x1fff7800)
+#define STM32_G0_OPTION_BYTES_BASE ((uint32_t) 0x1fff7800)
+#define STM32_L4_OPTION_BYTES_BASE ((uint32_t) 0x1fff7800)
 
-#define STM32_F2_OPTION_BYTES_BASE ((uint32_t)0x1fffc000)
+#define STM32_F2_OPTION_BYTES_BASE ((uint32_t) 0x1fffc000)
 
-#define STM32_F0_OPTION_BYTES_BASE ((uint32_t)0x1ffff800)
-#define STM32_F1_OPTION_BYTES_BASE ((uint32_t)0x1ffff800)
-#define STM32_F3_OPTION_BYTES_BASE ((uint32_t)0x1ffff800)
-#define STM32_G4_OPTION_BYTES_BASE ((uint32_t)0x1ffff800)
+#define STM32_F0_OPTION_BYTES_BASE ((uint32_t) 0x1ffff800)
+#define STM32_F1_OPTION_BYTES_BASE ((uint32_t) 0x1ffff800)
+#define STM32_F3_OPTION_BYTES_BASE ((uint32_t) 0x1ffff800)
+#define STM32_G4_OPTION_BYTES_BASE ((uint32_t) 0x1ffff800)
 
 /* ============ */
 /* Old defines from common.c are below */
 /* ============ */
 
 /* Constant STM32 memory address */
-#define STM32_SRAM_BASE              ((uint32_t)0x20000000)
-#define STM32_FLASH_BASE             ((uint32_t)0x08000000)
+#define STM32_SRAM_BASE              ((uint32_t) 0x20000000)
+#define STM32_FLASH_BASE             ((uint32_t) 0x08000000)
 
-#define STM32_F1_FLASH_BANK2_BASE    ((uint32_t)0x08080000)
-#define STM32_H7_FLASH_BANK2_BASE    ((uint32_t)0x08100000)
+#define STM32_F1_FLASH_BANK2_BASE    ((uint32_t) 0x08080000)
+#define STM32_H7_FLASH_BANK2_BASE    ((uint32_t) 0x08100000)
 
 #define STM32F0_DBGMCU_CR 0xE0042004
 #define STM32F0_DBGMCU_CR_IWDG_STOP 8
