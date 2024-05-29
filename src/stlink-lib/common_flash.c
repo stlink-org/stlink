@@ -1281,7 +1281,9 @@ int32_t stlink_erase_flash_mass(stlink_t *sl) {
   return (err);
 }
 
-int32_t stlink_mwrite_flash(stlink_t *sl, uint8_t *data, uint32_t length, stm32_addr_t addr) {
+int32_t stlink_mwrite_flash(stlink_t *sl, uint8_t *data, uint32_t length,
+                            stm32_addr_t addr,
+                            const enum erase_type_t erase_type) {
   /* Write the block in flash at addr */
   int32_t err;
   uint32_t num_empty, idx;
@@ -1315,7 +1317,7 @@ int32_t stlink_mwrite_flash(stlink_t *sl, uint8_t *data, uint32_t length, stm32_
    */
   err = stlink_write_flash(sl, addr, data,
                           (num_empty == length) ? length : length - num_empty,
-                          num_empty == length);
+                          num_empty == length, erase_type);
   stlink_fwrite_finalize(sl, addr);
   return (err);
 }
@@ -1327,7 +1329,8 @@ int32_t stlink_mwrite_flash(stlink_t *sl, uint8_t *data, uint32_t length, stm32_
  * @param addr where to start writing
  * @return 0 on success, -ve on failure.
  */
-int32_t stlink_fwrite_flash(stlink_t *sl, const char *path, stm32_addr_t addr) {
+int32_t stlink_fwrite_flash(stlink_t *sl, const char *path, stm32_addr_t addr,
+                            const enum erase_type_t erase_type) {
   /* Write the file in flash at addr */
   int32_t err;
   uint32_t num_empty, idx;
@@ -1373,8 +1376,8 @@ int32_t stlink_fwrite_flash(stlink_t *sl, const char *path, stm32_addr_t addr) {
                            (num_empty == mf.len) ? (uint32_t) mf.len : (uint32_t) mf.len - num_empty);
   } else {
     err = stlink_write_flash(sl, addr, mf.base,
-                           (num_empty == mf.len) ? (uint32_t) mf.len : (uint32_t) mf.len - num_empty,
-                           num_empty == mf.len);
+                           (num_empty == mf.len) ? (uint32_t) mf.len : (uint32_t)mf.len - num_empty,
+                           num_empty == mf.len, erase_type);
   }
   stlink_fwrite_finalize(sl, addr);
   unmap_file(&mf);
@@ -1483,7 +1486,9 @@ int32_t stlink_check_address_alignment(stlink_t *sl, stm32_addr_t addr) {
   return 0;
 }
 
-int32_t stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t *base, uint32_t len, uint8_t eraseonly) {
+int32_t stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t *base,
+                           uint32_t len, uint8_t eraseonly,
+                           const enum erase_type_t erase_type) {
   int32_t ret;
   flash_loader_t fl;
   ILOG("Attempting to write %d (%#x) bytes to stm32 address: %u (%#x)\n", len, len, addr, addr);
@@ -1509,7 +1514,8 @@ int32_t stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t *base, uint3
   stlink_core_id(sl);
 
   // Erase this section of the flash
-  if (stlink_erase_flash_section(sl, addr, len, true) < 0) {
+  if ((erase_type == SECTION_ERASE) &&
+      stlink_erase_flash_section(sl, addr, len, true) < 0) {
     ELOG("Failed to erase the flash prior to writing\n");
     return (-1);
   }
