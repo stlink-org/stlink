@@ -299,8 +299,7 @@ int32_t stlink_load_device_params(stlink_t *sl) {
     sl->sram_size = 0x1000;
   }
 
-  if (sl->chip_id == STM32_CHIPID_G4_CAT3 ||
-      sl->chip_id == STM32_CHIPID_G4_CAT4) {
+  if (sl->chip_id == STM32_CHIPID_G4_CAT3) {
     uint32_t flash_optr;
     stlink_read_debug32(sl, FLASH_Gx_OPTR, &flash_optr);
 
