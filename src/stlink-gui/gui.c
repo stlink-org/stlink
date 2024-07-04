@@ -552,6 +552,16 @@ static void stlink_gui_open_file(STlinkGUI *gui) {
                                          "_Open", GTK_RESPONSE_ACCEPT,
                                          NULL);
 
+    /* Start file chooser from last used directory */
+    if (gui->filename != NULL){
+        gchar *last_dir = g_path_get_dirname(gui->filename);
+        if (last_dir){
+            gtk_file_chooser_set_current_folder(
+                GTK_FILE_CHOOSER(dialog), last_dir);
+            g_free(last_dir);
+        }
+    }
+
     if (gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT) {
         gui->filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
 
