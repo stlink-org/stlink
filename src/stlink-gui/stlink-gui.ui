@@ -176,6 +176,20 @@
               </packing>
             </child>
             <child>
+              <object class="GtkToolButton" id="reset_button">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="tooltip_text" translatable="yes">Reset</property>
+                <property name="label" translatable="yes">Reset</property>
+                <property name="use_underline">True</property>
+                <property name="stock_id">gtk-refresh</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+            <child>
               <object class="GtkToolButton" id="export_button">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>

@@ -87,6 +87,8 @@ static void stlink_gui_set_sensitivity(STlinkGUI *gui, gboolean sensitivity) {
         gtk_widget_set_sensitive(GTK_WIDGET(gui->flash_button), sensitivity);
     }
 
+    gtk_widget_set_sensitive(GTK_WIDGET(gui->reset_button), sensitivity && (gui->sl != NULL));
+
     gtk_widget_set_sensitive(GTK_WIDGET(gui->export_button), sensitivity && (gui->sl != NULL));
 }
 
@@ -522,6 +524,7 @@ static void stlink_gui_set_disconnected(STlinkGUI *gui) {
     gtk_widget_set_sensitive(GTK_WIDGET(gui->export_button), FALSE);
     gtk_widget_set_sensitive(GTK_WIDGET(gui->disconnect_button), FALSE);
     gtk_widget_set_sensitive(GTK_WIDGET(gui->connect_button), TRUE);
+    gtk_widget_set_sensitive(GTK_WIDGET(gui->reset_button), FALSE);
 }
 
 static void disconnect_button_cb(GtkWidget *widget, gpointer data) {
@@ -651,6 +654,20 @@ static void flash_button_cb(GtkWidget *widget, gpointer data) {
             }
         }
     }
+}
+
+
+static void reset_button_cb(GtkWidget *widget, gpointer data) {
+    STlinkGUI *gui;
+    (void)widget;
+
+    gui = STLINK_GUI(data);
+    g_return_if_fail(gui->sl != NULL);
+
+    stlink_exit_debug_mode(gui->sl);
+    stlink_reset(gui->sl, RESET_AUTO);
+    stlink_enter_swd_mode(gui->sl);
+
 }
 
 int32_t export_to_file(const char*filename, const struct mem_t flash_mem) {
@@ -826,6 +843,9 @@ static void stlink_gui_build_ui(STlinkGUI *gui) {
 
     gui->flash_button = GTK_TOOL_BUTTON(gtk_builder_get_object(builder, "flash_button"));
     g_signal_connect(G_OBJECT(gui->flash_button), "clicked", G_CALLBACK(flash_button_cb), gui);
+
+    gui->reset_button = GTK_TOOL_BUTTON(gtk_builder_get_object(builder, "reset_button"));
+    g_signal_connect(G_OBJECT(gui->reset_button), "clicked", G_CALLBACK(reset_button_cb), gui);
 
     gui->export_button = GTK_TOOL_BUTTON(gtk_builder_get_object(builder, "export_button"));
     g_signal_connect(G_OBJECT(gui->export_button), "clicked", G_CALLBACK(export_button_cb), gui);
