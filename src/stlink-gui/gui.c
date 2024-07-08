@@ -50,6 +50,17 @@ static void stlink_gui_init(STlinkGUI *self) {
     self->file_mem.base   = 0;
 }
 
+static void help(void)
+{
+    puts("usage: stlink-gui [options] file\n");
+    puts("options:");
+    puts("  --version/-v           Print version information.");
+    puts("  --help/-h              Show this help.");
+    puts("");
+    puts("examples:");
+    puts("  stlink-gui path/to/file");
+}
+
 static gboolean set_info_error_message_idle(STlinkGUI *gui) {
     if (gui->error_message != NULL) {
         gchar *markup;
@@ -584,6 +595,17 @@ static void stlink_gui_open_file(STlinkGUI *gui) {
     gtk_widget_destroy(dialog);
 }
 
+static gboolean open_file_from_args(STlinkGUI *gui) {
+    if (gui->filename != NULL) {
+        stlink_gui_set_sensitivity(gui, FALSE);
+        gtk_notebook_set_current_page(gui->notebook, PAGE_FILEMEM);
+        gtk_widget_show(GTK_WIDGET(gui->progress.bar));
+        gtk_progress_bar_set_text(gui->progress.bar, "Reading file");
+        g_thread_new("file", (GThreadFunc)stlink_gui_populate_filemem_view, gui);
+    }
+    return (FALSE);
+}
+
 static void open_button_cb(GtkWidget *widget, gpointer data) {
     STlinkGUI *gui;
     (void)widget;
@@ -928,6 +950,26 @@ int32_t main(int32_t argc, char **argv) {
     gui = g_object_new(STLINK_TYPE_GUI, NULL);
     stlink_gui_build_ui(gui);
     stlink_gui_init_dnd(gui);
+
+    /* Parse remaining cli arguments */
+    argc--;
+    argv++;
+    while (argc > 0){
+        if (strcmp(argv[0], "--version") == 0 || strcmp(argv[0], "-v") == 0) {
+            printf("v%s\n", STLINK_VERSION);
+            exit(EXIT_SUCCESS);
+        } else if (strcmp(argv[0], "--help") == 0 || strcmp(argv[0], "-h") == 0) {
+            help();
+            return 1;
+        }
+        if (argc == 1 && g_file_test(*argv, G_FILE_TEST_IS_REGULAR)){
+            /* Open hex file at app startup */
+            gui->filename = g_strdup(*argv);    
+            g_idle_add((GSourceFunc)open_file_from_args, gui);
+        }
+        argc--;
+        argv++;
+    }
 
     gtk_main();
     return (0);
