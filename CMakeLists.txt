@@ -187,7 +187,8 @@ if (APPLE)     # ... with Apple macOS libraries
     find_library(ObjC objc)
     find_library(CoreFoundation CoreFoundation)
     find_library(IOKit IOKit)
-    target_link_libraries(${STLINK_LIB_SHARED} ${LIBUSB_LIBRARY} ${SSP_LIB} ${ObjC} ${CoreFoundation} ${IOKit})
+    find_library(SECURITY_FRAMEWORK Security)
+    target_link_libraries(${STLINK_LIB_SHARED} ${LIBUSB_LIBRARY} ${SSP_LIB} ${ObjC} ${CoreFoundation} ${IOKit} ${SECURITY_FRAMEWORK})
 elseif (WIN32) # ... with Windows libraries
     target_link_libraries(${STLINK_LIB_SHARED} ${LIBUSB_LIBRARY} ${SSP_LIB} wsock32 ws2_32)
 else ()
@@ -226,7 +227,8 @@ if (APPLE)     # ... with Apple macOS libraries
     find_library(ObjC objc)
     find_library(CoreFoundation CoreFoundation)
     find_library(IOKit IOKit)
-    target_link_libraries(${STLINK_LIB_STATIC} ${LIBUSB_LIBRARY} ${SSP_LIB} ${ObjC} ${CoreFoundation} ${IOKit})
+    find_library(SECURITY_FRAMEWORK Security)
+    target_link_libraries(${STLINK_LIB_STATIC} ${LIBUSB_LIBRARY} ${SSP_LIB} ${ObjC} ${CoreFoundation} ${IOKit} ${SECURITY_FRAMEWORK})
 elseif (WIN32) # ... with Windows libraries
     target_link_libraries(${STLINK_LIB_STATIC} ${LIBUSB_LIBRARY} ${SSP_LIB} wsock32 ws2_32)
 else ()
