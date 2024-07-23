@@ -9,6 +9,6 @@ flash_pagesize 0x20000       // 128 KB
 sram_size 0x20000            // 128 KB "DTCM"
 bootrom_base 0x1ff00000
 bootrom_size 0x20000         // 128 KB
-option_base 0x5200201c       // STM32_H7_OPTION_BYTES_BASE
+option_base 0x52002020       // STM32_H7_OPTION_BYTES_BASE
 option_size 0x2c             // 44 B
 flags swo dualbank
