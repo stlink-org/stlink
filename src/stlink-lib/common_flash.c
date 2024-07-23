@@ -685,8 +685,6 @@ static int32_t unlock_flash_option(stlink_t *sl) {
     break;
   case STM32_FLASH_TYPE_H7:
     optkey_reg = FLASH_H7_OPT_KEYR;
-    if (sl->chip_flags & CHIP_F_HAS_DUAL_BANK)
-      optkey2_reg = FLASH_H7_OPT_KEYR2;
     break;
   case STM32_FLASH_TYPE_L0_L1:
     optkey_reg = get_stm32l0_flash_base(sl) + FLASH_OPTKEYR_OFF;
