@@ -146,7 +146,7 @@ enum stm32_chipids {
 
 #define STM32_F4_OPTION_BYTES_BASE ((uint32_t) 0x40023c14)
 
-#define STM32_H7_OPTION_BYTES_BASE ((uint32_t) 0x5200201c)
+#define STM32_H7_OPTION_BYTES_BASE ((uint32_t) 0x52002020)
 
 #define STM32_L0_OPTION_BYTES_BASE ((uint32_t) 0x1ff80000)
 #define STM32_L1_OPTION_BYTES_BASE ((uint32_t) 0x1ff80000)
