@@ -1122,6 +1122,10 @@ int32_t stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr) {
       stlink_read_debug32(sl, FLASH_Gx_CR, &val);
       // sec 3.7.5 - PNB[9:0] is offset by 3. PER is 0x2.
       val &= ~(0x7FF << 3);
+      // sec 3.3.8 - Error PGSERR
+      // * In the page erase sequence: PG, FSTPG and MER1 are not cleared when PER is set
+      val &= ~(1 << FLASH_Gx_CR_MER1 | 1 << FLASH_Gx_CR_MER2);
+      val &= ~(1 << FLASH_Gx_CR_PG);
       // Products of the Gx series with more than 128K of flash use 2 banks.
       // In this case we need to specify which bank to erase (sec 3.7.5 - BKER)
       if (sl->flash_size > (128 * 1024) &&
