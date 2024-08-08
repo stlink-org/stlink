@@ -181,6 +181,7 @@
 #define FLASH_Gx_CR_PNB (3)         /* Page number */
 #define FLASH_G0_CR_PNG_LEN (5)     /* STM32G0: 5 page number bits */
 #define FLASH_G4_CR_PNG_LEN (7)     /* STM32G4: 7 page number bits */
+#define FLASH_Gx_CR_BKER (13)       /* Bank selection for erase operation */
 #define FLASH_Gx_CR_MER2 (15)       /* Mass erase (2nd bank)*/
 #define FLASH_Gx_CR_STRT (16)       /* Start */
 #define FLASH_Gx_CR_OPTSTRT (17)    /* Start of modification of option bytes */

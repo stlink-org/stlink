@@ -1122,6 +1122,14 @@ int32_t stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr) {
       stlink_read_debug32(sl, FLASH_Gx_CR, &val);
       // sec 3.7.5 - PNB[9:0] is offset by 3. PER is 0x2.
       val &= ~(0x7FF << 3);
+      // Products of the Gx series with more than 128K of flash use 2 banks.
+      // In this case we need to specify which bank to erase (sec 3.7.5 - BKER)
+      if (sl->flash_size > (128 * 1024) &&
+          ((flashaddr - STM32_FLASH_BASE) >= sl->flash_size / 2)) {
+        val |= (1 << FLASH_Gx_CR_BKER); // erase bank 2
+      } else {
+        val &= ~(1 << FLASH_Gx_CR_BKER); // erase bank 1
+      }
       val |= ((flash_page & 0x7FF) << 3) | (1 << FLASH_CR_PER);
       stlink_write_debug32(sl, FLASH_Gx_CR, val);
     // STM32L5x2xx has two banks with 2k pages or single with 4k pages
