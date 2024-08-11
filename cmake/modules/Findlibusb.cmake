@@ -12,15 +12,15 @@ include(FindPackageHandleStandardArgs)
 
 if (CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")                       # FreeBSD; libusb is integrated into the system
     # libusb header file
-    FIND_PATH(
-        LIBUSB_INCLUDE_DIR NAMES libusb.h
+    FIND_PATH(LIBUSB_INCLUDE_DIR
+        NAMES libusb.h
         HINTS /usr/include
         )
 
     # libusb library
     set(LIBUSB_NAME usb)
-    find_library(
-        LIBUSB_LIBRARY NAMES ${LIBUSB_NAME}
+    find_library(LIBUSB_LIBRARY
+        NAMES ${LIBUSB_NAME}
         HINTS /usr /usr/local /opt
         )
 
@@ -32,16 +32,16 @@ if (CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")                       # FreeBSD; libus
 
 elseif (CMAKE_SYSTEM_NAME STREQUAL "OpenBSD")                   # OpenBSD; libusb is available from ports
     # libusb header file
-    FIND_PATH(
-        LIBUSB_INCLUDE_DIR NAMES libusb.h
+    FIND_PATH(LIBUSB_INCLUDE_DIR
+        NAMES libusb.h
         HINTS /usr/local/include
         PATH_SUFFIXES libusb-1.0
         )
     
     # libusb library
     set(LIBUSB_NAME usb-1.0)
-    find_library(
-        LIBUSB_LIBRARY NAMES ${LIBUSB_NAME}
+    find_library(LIBUSB_LIBRARY
+        NAMES ${LIBUSB_NAME}
         HINTS /usr/local
         )
 
@@ -87,8 +87,8 @@ elseif (WIN32 OR (MINGW AND EXISTS "/etc/debian_version"))      # Windows OR cro
             )
 
         # libusb header file
-        FIND_PATH(
-            LIBUSB_INCLUDE_DIR NAMES libusb.h
+        FIND_PATH(LIBUSB_INCLUDE_DIR
+            NAMES libusb.h
             HINTS ${LIBUSB_WIN_OUTPUT_FOLDER}/include
             PATH_SUFFIXES libusb-1.0
             NO_DEFAULT_PATH
@@ -97,19 +97,19 @@ elseif (WIN32 OR (MINGW AND EXISTS "/etc/debian_version"))      # Windows OR cro
 
         if (MINGW OR MSYS)
             # libusb library (static)
-            set(LIBUSB_NAME usb-1.0)
-            find_library(
-                LIBUSB_LIBRARY NAMES ${LIBUSB_NAME}
+            set(LIBUSB_NAME libusb-1.0)
+            find_library(LIBUSB_LIBRARY
+                NAMES ${LIBUSB_NAME}
                 HINTS ${LIBUSB_WIN_OUTPUT_FOLDER}/MinGW${ARCH}/static
                 NO_DEFAULT_PATH
                 NO_CMAKE_FIND_ROOT_PATH
                 )
         else (MSVC)
             # libusb library
-            set(LIBUSB_NAME libusb-1.0.lib)
-            find_library(
-                LIBUSB_LIBRARY NAMES ${LIBUSB_NAME}
-                HINTS ${LIBUSB_WIN_OUTPUT_FOLDER}/MS${ARCH}/dll
+            set(LIBUSB_NAME libusb-1.0)
+            find_library(LIBUSB_LIBRARY
+                NAMES ${LIBUSB_NAME}
+                HINTS ${LIBUSB_WIN_OUTPUT_FOLDER}/MinGW${ARCH}/dll
                 NO_DEFAULT_PATH
                 NO_CMAKE_FIND_ROOT_PATH
                 )
@@ -122,16 +122,16 @@ elseif (WIN32 OR (MINGW AND EXISTS "/etc/debian_version"))      # Windows OR cro
 
 else ()                                                         # all other OS (unix-based)
     # libusb header file
-    FIND_PATH(
-        LIBUSB_INCLUDE_DIR NAMES libusb.h
+    FIND_PATH(LIBUSB_INCLUDE_DIR
+        NAMES libusb.h
         HINTS /usr/include
         PATH_SUFFIXES libusb-1.0
         )
     
     # libusb library
     set(LIBUSB_NAME usb-1.0)
-    find_library(
-        LIBUSB_LIBRARY NAMES ${LIBUSB_NAME}
+    find_library(LIBUSB_LIBRARY
+        NAMES ${LIBUSB_NAME}
         HINTS /usr /usr/local
         )
 

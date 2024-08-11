@@ -879,7 +879,7 @@ int32_t stlink_parse_ihex(const char *path, uint8_t erased_pattern, uint8_t **me
       }
 
       *size = (end - *begin) + 1;
-      data = calloc(*size, 1); // use calloc to get NULL if out of memory
+      data = calloc(1, *size); // use calloc to get NULL if out of memory
 
       if (!data) {
         ELOG("Cannot allocate %u bytes\n", (*size));

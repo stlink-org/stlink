@@ -1,5 +1,41 @@
 # stlink Changelog
 
+# v1.8.1
+
+Release date: 2024-09-01
+
+This release drops support for some older operating systems. Check project README for details.
+
+Updated system requirements:
+- `cmake` >= 3.13.0
+- `libusb` >= 1.0.22
+- `libgtk-dev` >= 3.22.30
+
+Features:
+- Added support for STLINK-V3PWR ([#1388](https://github.com/stlink-org/stlink/pull/1388), [#1389](https://github.com/stlink-org/stlink/pull/1389))
+- Dynamic SRAM size for F4 memory map ([#1390](https://github.com/stlink-org/stlink/pull/1390))
+- Modifications to allow building of toolset in OpenBSD ([#1392](https://github.com/stlink-org/stlink/pull/1392))
+- --mass-erase for st-flash write commands ([#1397](https://github.com/stlink-org/stlink/pull/1397))
+- Support for setting option bytes to STM32L41x_L42x (according to RM0394) ([#1405](https://github.com/stlink-org/stlink/pull/1405), [#1412](https://github.com/stlink-org/stlink/pull/1412), [#1413](https://github.com/stlink-org/stlink/pull/1413))
+- Improvements for stlink-gui ([#1411](https://github.com/stlink-org/stlink/pull/1411))
+- [STM32U575/585]: Added support for OTP bytes ([#1419](https://github.com/stlink-org/stlink/pull/1419))
+- [STM32Gx]: Added erase support for multi-bank products ([#1420](https://github.com/stlink-org/stlink/pull/1420))
+
+Updates & changes:
+- Debian 11 x64 doesn't work with v1.8.0 because of incompatible glibc ([#1376](https://github.com/stlink-org/stlink/pull/1376), commit [#ece34ef](https://github.com/stlink-org/stlink/commit/ece34efbce579ca7d367c58f903ffa6dc7bd96e6))
+- [STM32L4R5ZI]: gdb-multiarch uses wrong osabi ([#1386](https://github.com/stlink-org/stlink/pull/1386), [#1387](https://github.com/stlink-org/stlink/pull/1387), [#1394](https://github.com/stlink-org/stlink/pull/1394))
+- [doc] STM32H573 reports chipid 0x000 ([#1398](https://github.com/stlink-org/stlink/pull/1398), commit [#3655871](https://github.com/stlink-org/stlink/commit/3655871f8dd97294bbee191c1c7341c8a129af2f))
+
+Fixes:
+
+- Cmake minimal version mismatch ([#1374](https://github.com/stlink-org/stlink/pull/1374), [#1375](https://github.com/stlink-org/stlink/pull/1375), commit [#1ee7f6b](https://github.com/stlink-org/stlink/commit/1ee7f6b6c05e305112bb070ae571ebbe26c55946))
+- Added a graceful way to terminate st-util ([#1395](https://github.com/stlink-org/stlink/pull/1395), [#1396](https://github.com/stlink-org/stlink/pull/1396))
+- [st-trace] Bug in function static bool read_trace( ) ([#1400](https://github.com/stlink-org/stlink/pull/1400), commit [#32ce4bf](https://github.com/stlink-org/stlink/commit/32ce4bf88a816fb6a9841a33e6c5f6b593a9b927))
+- Fixed STM32H7 FLASH_OPTCR unlock sequence ([#1401](https://github.com/stlink-org/stlink/pull/1401), [#1416](https://github.com/stlink-org/stlink/pull/1416))
+- Restored support for STM32G4 Cat4 device STM32G491 ([#1403](https://github.com/stlink-org/stlink/pull/1403), [#1414](https://github.com/stlink-org/stlink/pull/1414))
+- Fixed STM32H7 option byte programming ([#1417](https://github.com/stlink-org/stlink/pull/1417))
+- Latest release stlink-1.8.0-win32 doesn't run ([#1364](https://github.com/stlink-org/stlink/pull/1364), [#1410](https://github.com/stlink-org/stlink/pull/1410) commit [_commit-ID TBD_])
+
 # v1.8.0
 
 Release date: 2024-02-01

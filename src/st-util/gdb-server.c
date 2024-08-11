@@ -989,7 +989,7 @@ int32_t serve(stlink_t *sl, st_state_t *st) {
             }
 
             uint32_t queryNameLength = (uint32_t) (separator - &packet[1]);
-            char* queryName = calloc(queryNameLength + 1, 1);
+            char* queryName = calloc(1, queryNameLength + 1);
             strncpy(queryName, &packet[1], queryNameLength);
 
             DLOG("query: %s;%s\n", queryName, params);
@@ -1032,7 +1032,7 @@ int32_t serve(stlink_t *sl, st_state_t *st) {
                     if (length == 0) {
                         reply = strdup("l");
                     } else {
-                        reply = calloc(length + 2, 1);
+                        reply = calloc(1, length + 2);
                         reply[0] = 'm';
                         strncpy(&reply[1], data, length);
                     }
@@ -1191,7 +1191,7 @@ int32_t serve(stlink_t *sl, st_state_t *st) {
 
                 // Length of decoded data cannot be more than encoded, as escapes are removed.
                 // Additional byte is reserved for alignment fix.
-                uint8_t *decoded = calloc(data_length + 1, 1);
+                uint8_t *decoded = calloc(1, data_length + 1);
                 uint32_t dec_index = 0;
 
                 for (uint32_t i = 0; i < data_length; i++) {
@@ -1347,7 +1347,7 @@ int32_t serve(stlink_t *sl, st_state_t *st) {
 
             if (ret) { DLOG("g packet: read_all_regs failed\n"); }
 
-            reply = calloc(8 * 16 + 1, 1);
+            reply = calloc(1, 8 * 16 + 1);
 
             for (int32_t i = 0; i < 16; i++) {
                 sprintf(&reply[i * 8], "%08x", (uint32_t) htonl(regp.r[i]));
@@ -1398,7 +1398,7 @@ int32_t serve(stlink_t *sl, st_state_t *st) {
 
             if (reply == NULL) {
                 // if reply is set to "E00", skip
-                reply = calloc(8 + 1, 1);
+                reply = calloc(1, 8 + 1);
                 sprintf(reply, "%08x", myreg);
             }
 
@@ -1479,7 +1479,7 @@ int32_t serve(stlink_t *sl, st_state_t *st) {
 
             // read failed somehow, don't return stale buffer
 
-            reply = calloc(count * 2 + 1, 1);
+            reply = calloc(1, count * 2 + 1);
 
             for (uint32_t i = 0; i < count; i++) {
                 reply[i * 2 + 0] = hex[sl->q_buf[i + adj_start] >> 4];

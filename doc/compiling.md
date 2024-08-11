@@ -1,5 +1,6 @@
 # Compiling from sources
 
+
 ## Microsoft Windows (10, 11)
 
 ### Common Requirements
@@ -7,47 +8,36 @@
 On Windows users should ensure that the following software is installed:
 
 - `git` (_optional, but recommended_)
+- `7zip`
 - `cmake`
-- `7-zip`
-- `MinGW-w64`
+- `MSYS2`
 
 ### Installation
 
 1. Install `git` from <https://git-scm.com/download/win>
-2. Install `cmake` from <https://cmake.org/download><br />
+2. Install `cmake` from <https://cmake.org/download/#latest> --> Binary distributions --> Windows x64 Installer<br />
    Ensure that you add cmake to the $PATH system variable when following the instructions by the setup assistant.
-3. Install MinGW-w64<br />
-   Download **MinGW-w64** from <https://github.com/niXman/mingw-builds-binaries/releases/download/13.2.0-rt_v11-rev1/x86_64-13.2.0-release-win32-seh-msvcrt-rt_v11-rev1.7z>. Extract content to `C:\mingw-w64\` and add `C:\mingw-w64\bin\` to PATH-Variable.<br />
-
-4. Create a new destination folder at a place of your choice
-5. Open the command-line (cmd.exe) and execute `cd C:\$Path-to-your-destination-folder$\`
-6. Fetch the project sourcefiles by running `git clone https://github.com/stlink-org/stlink.git`from the command-line (cmd.exe)<br />
-   or download and extract the stlink zip-sourcefolder from the Release page on GitHub.
+3. Install `MSYS2` from <https://www.msys2.org/><br />
+   Follow the installation instructions on the website.
+4. Install `mingw-w64` via the MSYS2 UCRT64 Shell: `pacman -S mingw-w64-x86_64-make`
+5. Fetch the project sourcefiles by running `git clone https://github.com/stlink-org/stlink.git`from the command-line (cmd.exe)<br />
+   or download and extract (`7zip`) the stlink zip-sourcefolder from the Release page on GitHub.
 
 ### Building
 
-#### MinGW-w64
-
-1. Open command-line with administrator privileges
-2. Move to the `stlink` directory
+1. Open the command-line (cmd.exe) with administrator privileges
+2. Move to the `stlink` directory with `cd C:\$Path-to-your-stlink-folder$\`
 3. Execute `mingw64-build.bat`
 
-NOTE:<br />
-Per default the build script (currently) uses `C:\mingw-w64\x86_64-8.1.0-release-win32-sjlj-rt_v6-rev0\mingw64\bin`.<br />
-When installing different toolchains make sure to update the path in the `mingw64-build.bat`.<br />
-This can be achieved by opening the .bat file with a common text editor.
-
-Options:
-
-- `/m` - compilation runs in parallel utilizing multiple cores
-- `/p:Configuration=Release` - generates _Release_, optimized build.
-
-Directory `<project_root>\build\Release` contains final executables.
-(`st-util.exe` is located in `<project_root>\build\src\gdbserver\Release`).
+Depending on the flavour of compilation the final executables will be placed in the following directories:
+- Local compilation: `<project_root>\build-mingw\bin`
+- Local installation: `C:\Program Files (x86)\stlink\bin`
+- Package Generation (portable): `C:\Users\swift\Desktop\stlink\build-mingw\dist`
 
 **NOTE:**
 
-[ST-LINK drivers](https://www.st.com/en/development-tools/stsw-link009.html) are required for `stlink` to work.
+[ST-LINK drivers](https://www.st.com/en/development-tools/stsw-link009.html) are required for programmers to work with `stlink`.
+
 
 ## Linux
 
