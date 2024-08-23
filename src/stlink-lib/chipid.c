@@ -250,13 +250,34 @@ void init_chipids(char *dir_to_scan) {
   HANDLE hFind = INVALID_HANDLE_VALUE;
   WIN32_FIND_DATAA ffd;
   char filepath[MAX_PATH] = {0};
+  DWORD filepathlen;
+  int numslash;
   StringCchCopyA(filepath, STLINK_ARRAY_SIZE(filepath), dir_to_scan);
 
-  if (FAILED(
-          StringCchCatA(filepath, STLINK_ARRAY_SIZE(filepath), "\\*.chip"))) {
-    ELOG("Path to chips's dir too long.\n");
+  filepathlen = GetModuleFileNameA(NULL, filepath, STLINK_ARRAY_SIZE(filepath));
+  if (filepathlen == 0) {
+    ELOG("GetModuleFileNameA failed: %u\n", (unsigned)GetLastError());
     return;
   }
+
+  // Chop off exe and bin directory to get installation directory
+  // 'C:\path-to-stlink\bin\st-util.exe' -> 'C:\path-to-stlink'
+  numslash = 2;
+  while (filepathlen > 0 && numslash > 0) {
+    if (filepath[filepathlen - 1] == '\\') {
+        numslash--;
+    }
+    filepathlen--;
+  }
+  if (filepathlen <= 0) {
+    ELOG("GetModuleFileNameA returned an invalid path: %s\n", filepath);
+    return;
+  }
+
+  filepath[filepathlen] = '\0';
+  StringCchCatA(filepath, STLINK_ARRAY_SIZE(filepath), "\\");
+  StringCchCatA(filepath, STLINK_ARRAY_SIZE(filepath), dir_to_scan);
+  StringCchCatA(filepath, STLINK_ARRAY_SIZE(filepath), "\\*.chip");
 
   hFind = FindFirstFileA(filepath, &ffd);
 
@@ -266,8 +287,9 @@ void init_chipids(char *dir_to_scan) {
   }
 
   do {
-    memset(filepath, 0, STLINK_ARRAY_SIZE(filepath));
-    StringCchCopyA(filepath, STLINK_ARRAY_SIZE(filepath), dir_to_scan);
+    filepath[filepathlen] = '\0';
+    StringCchCatA(filepath, STLINK_ARRAY_SIZE(filepath), "\\");
+    StringCchCatA(filepath, STLINK_ARRAY_SIZE(filepath), dir_to_scan);
     StringCchCatA(filepath, STLINK_ARRAY_SIZE(filepath), "\\");
     StringCchCatA(filepath, STLINK_ARRAY_SIZE(filepath), ffd.cFileName);
     process_chipfile(filepath);

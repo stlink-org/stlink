@@ -128,9 +128,11 @@ if (STLINK_HAVE_UNISTD_H)
     add_definitions(-DSTLINK_HAVE_UNISTD_H)
 endif()
 
-CHECK_INCLUDE_FILE(dirent.h STLINK_HAVE_DIRENT_H)
-if (STLINK_HAVE_DIRENT_H)
-    add_definitions(-DSTLINK_HAVE_DIRENT_H)
+if (NOT WIN32) # Use GetModuleFileNameA and FindFirstFileA on Windows
+    CHECK_INCLUDE_FILE(dirent.h STLINK_HAVE_DIRENT_H)
+    if (STLINK_HAVE_DIRENT_H)
+        add_definitions(-DSTLINK_HAVE_DIRENT_H)
+    endif()
 endif()
 
 if (MSVC)
@@ -380,7 +382,7 @@ endif()
 
 # MCU configuration files
 if (WIN32)
-set(CMAKE_CHIPS_DIR ${CMAKE_INSTALL_PREFIX}/config/chips)
+set(CMAKE_CHIPS_DIR ./config/chips)
 else ()
 set(CMAKE_CHIPS_DIR ${CMAKE_INSTALL_FULL_DATADIR}/${PROJECT_NAME}/chips)
 endif ()
