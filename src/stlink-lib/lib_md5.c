@@ -46,10 +46,10 @@ static void* TransformFunction(Md5Context* ctx, void const* data, uintmax_t size
     uint32_t saved_d;
 
     #define GET(n) (ctx->block[(n)])
-    #define SET(n) (ctx->block[(n)] = ((uint32_t)ptr[(n) * 4 + 0] << 0) |  \
-                                      ((uint32_t)ptr[(n) * 4 + 1] << 8) | \
-                                      ((uint32_t)ptr[(n) * 4 + 2] << 16) | \
-                                      ((uint32_t)ptr[(n) * 4 + 3] << 24))
+    #define SET(n) (ctx->block[(n)] = ((uint32_t) ptr[(n) * 4 + 0] << 0) |  \
+                                      ((uint32_t) ptr[(n) * 4 + 1] << 8) | \
+                                      ((uint32_t) ptr[(n) * 4 + 2] << 16) | \
+                                      ((uint32_t) ptr[(n) * 4 + 3] << 24))
 
     ptr = (uint8_t*)data;
 
@@ -188,7 +188,7 @@ void Md5Update(Md5Context* Context /* [in out] */, void const* Buffer /* [in] */
         Context->hi++;
     }
 
-    Context->hi += (uint32_t)(BufferSize >> 29);
+    Context->hi += (uint32_t) (BufferSize >> 29);
 
     used = saved_lo & 0x3f;
 
@@ -207,7 +207,7 @@ void Md5Update(Md5Context* Context /* [in out] */, void const* Buffer /* [in] */
     }
 
     if ( BufferSize >= 64 ) {
-        Buffer = TransformFunction( Context, Buffer, BufferSize & ~(uint32_t)0x3f );
+        Buffer = TransformFunction( Context, Buffer, BufferSize & ~(uint32_t) 0x3f );
         BufferSize &= 0x3f;
     }
 
@@ -239,33 +239,33 @@ void Md5Finalise(Md5Context* Context /* [in out] */, MD5_HASH* Digest /* [in] */
     memset( &Context->buffer[used], 0, free - 8 );
 
     Context->lo <<= 3;
-    Context->buffer[56] = (uint8_t)(Context->lo);
-    Context->buffer[57] = (uint8_t)(Context->lo >> 8);
-    Context->buffer[58] = (uint8_t)(Context->lo >> 16);
-    Context->buffer[59] = (uint8_t)(Context->lo >> 24);
-    Context->buffer[60] = (uint8_t)(Context->hi);
-    Context->buffer[61] = (uint8_t)(Context->hi >> 8);
-    Context->buffer[62] = (uint8_t)(Context->hi >> 16);
-    Context->buffer[63] = (uint8_t)(Context->hi >> 24);
+    Context->buffer[56] = (uint8_t) (Context->lo);
+    Context->buffer[57] = (uint8_t) (Context->lo >> 8);
+    Context->buffer[58] = (uint8_t) (Context->lo >> 16);
+    Context->buffer[59] = (uint8_t) (Context->lo >> 24);
+    Context->buffer[60] = (uint8_t) (Context->hi);
+    Context->buffer[61] = (uint8_t) (Context->hi >> 8);
+    Context->buffer[62] = (uint8_t) (Context->hi >> 16);
+    Context->buffer[63] = (uint8_t) (Context->hi >> 24);
 
     TransformFunction( Context, Context->buffer, 64 );
 
-    Digest->bytes[0]  = (uint8_t)(Context->a);
-    Digest->bytes[1]  = (uint8_t)(Context->a >> 8);
-    Digest->bytes[2]  = (uint8_t)(Context->a >> 16);
-    Digest->bytes[3]  = (uint8_t)(Context->a >> 24);
-    Digest->bytes[4]  = (uint8_t)(Context->b);
-    Digest->bytes[5]  = (uint8_t)(Context->b >> 8);
-    Digest->bytes[6]  = (uint8_t)(Context->b >> 16);
-    Digest->bytes[7]  = (uint8_t)(Context->b >> 24);
-    Digest->bytes[8]  = (uint8_t)(Context->c);
-    Digest->bytes[9]  = (uint8_t)(Context->c >> 8);
-    Digest->bytes[10] = (uint8_t)(Context->c >> 16);
-    Digest->bytes[11] = (uint8_t)(Context->c >> 24);
-    Digest->bytes[12] = (uint8_t)(Context->d);
-    Digest->bytes[13] = (uint8_t)(Context->d >> 8);
-    Digest->bytes[14] = (uint8_t)(Context->d >> 16);
-    Digest->bytes[15] = (uint8_t)(Context->d >> 24);
+    Digest->bytes[0]  = (uint8_t) (Context->a);
+    Digest->bytes[1]  = (uint8_t) (Context->a >> 8);
+    Digest->bytes[2]  = (uint8_t) (Context->a >> 16);
+    Digest->bytes[3]  = (uint8_t) (Context->a >> 24);
+    Digest->bytes[4]  = (uint8_t) (Context->b);
+    Digest->bytes[5]  = (uint8_t) (Context->b >> 8);
+    Digest->bytes[6]  = (uint8_t) (Context->b >> 16);
+    Digest->bytes[7]  = (uint8_t) (Context->b >> 24);
+    Digest->bytes[8]  = (uint8_t) (Context->c);
+    Digest->bytes[9]  = (uint8_t) (Context->c >> 8);
+    Digest->bytes[10] = (uint8_t) (Context->c >> 16);
+    Digest->bytes[11] = (uint8_t) (Context->c >> 24);
+    Digest->bytes[12] = (uint8_t) (Context->d);
+    Digest->bytes[13] = (uint8_t) (Context->d >> 8);
+    Digest->bytes[14] = (uint8_t) (Context->d >> 16);
+    Digest->bytes[15] = (uint8_t) (Context->d >> 24);
 }
 
 /* Md5Calculate

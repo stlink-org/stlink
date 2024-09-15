@@ -10,41 +10,49 @@
 
 include(FindPackageHandleStandardArgs)
 
-if (CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")                  # FreeBSD; libusb is integrated into the system
-    FIND_PATH(
-        LIBUSB_INCLUDE_DIR NAMES libusb.h
+if (CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")                       # FreeBSD; libusb is integrated into the system
+    # libusb header file
+    FIND_PATH(LIBUSB_INCLUDE_DIR
+        NAMES libusb.h
         HINTS /usr/include
         )
+
+    # libusb library
     set(LIBUSB_NAME usb)
-    find_library(
-        LIBUSB_LIBRARY NAMES ${LIBUSB_NAME}
+    find_library(LIBUSB_LIBRARY
+        NAMES ${LIBUSB_NAME}
         HINTS /usr /usr/local /opt
         )
+
     FIND_PACKAGE_HANDLE_STANDARD_ARGS(libusb DEFAULT_MSG LIBUSB_LIBRARY LIBUSB_INCLUDE_DIR)
     mark_as_advanced(LIBUSB_INCLUDE_DIR LIBUSB_LIBRARY)
     if (NOT LIBUSB_FOUND)
         message(FATAL_ERROR "Expected libusb library not found on your system! Verify your system integrity.")
     endif()
 
-elseif (CMAKE_SYSTEM_NAME STREQUAL "OpenBSD")              # OpenBSD; libusb-1.0 is available from ports
-    FIND_PATH(
-        LIBUSB_INCLUDE_DIR NAMES libusb.h
+elseif (CMAKE_SYSTEM_NAME STREQUAL "OpenBSD")                   # OpenBSD; libusb is available from ports
+    # libusb header file
+    FIND_PATH(LIBUSB_INCLUDE_DIR
+        NAMES libusb.h
         HINTS /usr/local/include
         PATH_SUFFIXES libusb-1.0
         )
+    
+    # libusb library
     set(LIBUSB_NAME usb-1.0)
-    find_library(
-        LIBUSB_LIBRARY NAMES ${LIBUSB_NAME}
+    find_library(LIBUSB_LIBRARY
+        NAMES ${LIBUSB_NAME}
         HINTS /usr/local
         )
+
     FIND_PACKAGE_HANDLE_STANDARD_ARGS(libusb DEFAULT_MSG LIBUSB_LIBRARY LIBUSB_INCLUDE_DIR)
     mark_as_advanced(LIBUSB_INCLUDE_DIR LIBUSB_LIBRARY)
     if (NOT LIBUSB_FOUND)
         message(FATAL_ERROR "No libusb-1.0 library found on your system! Install libusb-1.0 from ports or packages.")
     endif()
 
-elseif (WIN32 OR (EXISTS "/etc/debian_version" AND MINGW)) # Windows or MinGW-toolchain on Debian
-    # MinGW/MSYS/MSVC: 64-bit or 32-bit?
+elseif (WIN32 OR (MINGW AND EXISTS "/etc/debian_version"))      # Windows OR cross-build with MinGW-toolchain on Debian
+    # MinGW: 64-bit or 32-bit?
     if (CMAKE_SIZEOF_VOID_P EQUAL 8)
         message(STATUS "=== Building for Windows (x86-64) ===")
         set(ARCH 64)
@@ -53,26 +61,20 @@ elseif (WIN32 OR (EXISTS "/etc/debian_version" AND MINGW)) # Windows or MinGW-to
         set(ARCH 32)
     endif()
 
-    if (WIN32 AND NOT EXISTS "/etc/debian_version") # Skip this for Debian...
+    if (NOT LIBUSB_FOUND)
         # Preparations for installing libusb library
-        set(LIBUSB_WIN_VERSION 1.0.25)                  # set libusb version
-        set(LIBUSB_WIN_ARCHIVE libusb-${LIBUSB_WIN_VERSION}.7z)
-        if (WIN32 AND NOT EXISTS "/etc/debian_version") # ... on native Windows systems
-            set(LIBUSB_WIN_ARCHIVE_PATH ${CMAKE_BINARY_DIR}/${LIBUSB_WIN_ARCHIVE})
-            set(LIBUSB_WIN_OUTPUT_FOLDER ${CMAKE_BINARY_DIR}/3rdparty/libusb-${LIBUSB_WIN_VERSION})
-        elseif (EXISTS "/etc/debian_version" AND MINGW)   # ... only for cross-building on Debian
-            set(LIBUSB_WIN_ARCHIVE_PATH ${CMAKE_SOURCE_DIR}/build-mingw-${ARCH}/${LIBUSB_WIN_ARCHIVE})
-            set(LIBUSB_WIN_OUTPUT_FOLDER ${CMAKE_SOURCE_DIR}/build-mingw-${ARCH}/3rdparty/libusb-${LIBUSB_WIN_VERSION})
-        endif()
+        set(LIBUSB_WIN_VERSION 1.0.27) # set libusb version
+        set(LIBUSB_WIN_ARCHIVE_PATH ${CMAKE_SOURCE_DIR}/3rdparty/libusb-${LIBUSB_WIN_VERSION}.7z)
+        set(LIBUSB_WIN_OUTPUT_FOLDER ${CMAKE_SOURCE_DIR}/3rdparty/libusb-${LIBUSB_WIN_VERSION})
 
         # Get libusb package
-        if (EXISTS ${LIBUSB_WIN_ARCHIVE_PATH})  # ... should the package be already there (for whatever reason)
+        if (EXISTS ${LIBUSB_WIN_ARCHIVE_PATH})  # ... should the package be already there
             message(STATUS "libusb archive already in build folder")
         else ()                                 # ... download the package
             message(STATUS "downloading libusb ${LIBUSB_WIN_VERSION}")
             file(DOWNLOAD
                 https://sourceforge.net/projects/libusb/files/libusb-1.0/libusb-${LIBUSB_WIN_VERSION}/libusb-${LIBUSB_WIN_VERSION}.7z/download
-                ${LIBUSB_WIN_ARCHIVE_PATH} EXPECTED_MD5 aabe177bde869bfad34278335eaf8955
+                ${LIBUSB_WIN_ARCHIVE_PATH} EXPECTED_MD5 c72153fc5a32f3b942427b0671897a1a
                 )
         endif()
 
@@ -84,9 +86,9 @@ elseif (WIN32 OR (EXISTS "/etc/debian_version" AND MINGW)) # Windows or MinGW-to
             WORKING_DIRECTORY ${LIBUSB_WIN_OUTPUT_FOLDER}
             )
 
-        # Find path to libusb library
-        FIND_PATH(
-            LIBUSB_INCLUDE_DIR NAMES libusb.h
+        # libusb header file
+        FIND_PATH(LIBUSB_INCLUDE_DIR
+            NAMES libusb.h
             HINTS ${LIBUSB_WIN_OUTPUT_FOLDER}/include
             PATH_SUFFIXES libusb-1.0
             NO_DEFAULT_PATH
@@ -94,40 +96,46 @@ elseif (WIN32 OR (EXISTS "/etc/debian_version" AND MINGW)) # Windows or MinGW-to
             )
 
         if (MINGW OR MSYS)
-            set(LIBUSB_NAME usb-1.0)
-            find_library(
-                LIBUSB_LIBRARY NAMES ${LIBUSB_NAME}
+            # libusb library (static)
+            set(LIBUSB_NAME libusb-1.0)
+            find_library(LIBUSB_LIBRARY
+                NAMES ${LIBUSB_NAME}
                 HINTS ${LIBUSB_WIN_OUTPUT_FOLDER}/MinGW${ARCH}/static
                 NO_DEFAULT_PATH
                 NO_CMAKE_FIND_ROOT_PATH
                 )
-
-        elseif (MSVC)
-            set(LIBUSB_NAME libusb-1.0.lib)
-            find_library(
-                LIBUSB_LIBRARY NAMES ${LIBUSB_NAME}
-                HINTS ${LIBUSB_WIN_OUTPUT_FOLDER}/MS${ARCH}/dll
+        else (MSVC)
+            # libusb library
+            set(LIBUSB_NAME libusb-1.0)
+            find_library(LIBUSB_LIBRARY
+                NAMES ${LIBUSB_NAME}
+                HINTS ${LIBUSB_WIN_OUTPUT_FOLDER}/MinGW${ARCH}/dll
                 NO_DEFAULT_PATH
                 NO_CMAKE_FIND_ROOT_PATH
                 )
         endif()
-        message(STATUS "Missing libusb library has been installed")
     endif()
-    FIND_PACKAGE_HANDLE_STANDARD_ARGS(libusb DEFAULT_MSG LIBUSB_LIBRARY LIBUSB_INCLUDE_DIR)
-    mark_as_advanced(LIBUSB_INCLUDE_DIR LIBUSB_LIBRARY)
 
-else ()                                                                         # all other OS (unix-based)
-    FIND_PATH(
-        LIBUSB_INCLUDE_DIR NAMES libusb.h
-        HINTS /usr /usr/local /opt
+    FIND_PACKAGE_HANDLE_STANDARD_ARGS(libusb DEFAULT_MSG LIBUSB_INCLUDE_DIR LIBUSB_LIBRARY)
+    mark_as_advanced(LIBUSB_INCLUDE_DIR LIBUSB_LIBRARY)
+    message(STATUS "Missing libusb library has been installed")
+
+else ()                                                         # all other OS (unix-based)
+    # libusb header file
+    FIND_PATH(LIBUSB_INCLUDE_DIR
+        NAMES libusb.h
+        HINTS /usr/include
         PATH_SUFFIXES libusb-1.0
         )
+    
+    # libusb library
     set(LIBUSB_NAME usb-1.0)
-    find_library(
-        LIBUSB_LIBRARY NAMES ${LIBUSB_NAME}
-        HINTS /usr /usr/local /opt
+    find_library(LIBUSB_LIBRARY
+        NAMES ${LIBUSB_NAME}
+        HINTS /usr /usr/local
         )
-    FIND_PACKAGE_HANDLE_STANDARD_ARGS(libusb DEFAULT_MSG LIBUSB_LIBRARY LIBUSB_INCLUDE_DIR)
+
+    FIND_PACKAGE_HANDLE_STANDARD_ARGS(libusb DEFAULT_MSG LIBUSB_INCLUDE_DIR LIBUSB_LIBRARY)
     mark_as_advanced(LIBUSB_INCLUDE_DIR LIBUSB_LIBRARY)
 
     if (NOT LIBUSB_FOUND)

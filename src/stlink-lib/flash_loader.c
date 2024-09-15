@@ -320,7 +320,7 @@ int32_t stlink_flash_loader_write_to_sram(stlink_t *sl, stm32_addr_t* addr, uint
     }
 
     memcpy(sl->q_buf, loader_code, loader_size);
-    int32_t ret = stlink_write_mem32(sl, sl->sram_base, (uint16_t)loader_size);
+    int32_t ret = stlink_write_mem32(sl, sl->sram_base, (uint16_t) loader_size);
 
     if (ret) { return (ret); }
 
@@ -400,7 +400,7 @@ int32_t stlink_flash_loader_run(stlink_t *sl, flash_loader_t* fl, stm32_addr_t t
   * several bytes garbage have been written due to the unaligned
   * firmware size.
   */
-  if ((int32_t)rr.r[2] > 0 || (int32_t)rr.r[2] < -7) {
+  if ((int32_t) rr.r[2] > 0 || (int32_t) rr.r[2] < -7) {
       ELOG("Flash loader write error\n");
       goto error;
   }
@@ -460,7 +460,7 @@ int32_t stm32l1_write_half_pages(stlink_t *sl, flash_loader_t *fl, stm32_addr_t 
       for (off = 0; off < pagesize && !ret; off += 64) {
         uint32_t chunk = (pagesize - off > 64) ? 64 : pagesize - off;
         memcpy(sl->q_buf, base + count * pagesize + off, chunk);
-        ret = stlink_write_mem32(sl, addr + count * pagesize + off, (uint16_t)chunk);
+        ret = stlink_write_mem32(sl, addr + count * pagesize + off, (uint16_t) chunk);
       }
     }
 
@@ -471,7 +471,7 @@ int32_t stm32l1_write_half_pages(stlink_t *sl, flash_loader_t *fl, stm32_addr_t 
 
     if (sl->verbose >= 1) {
       // show progress; writing procedure is slow and previous errors are misleading
-      fprintf(stdout, "\r%3u/%3u halfpages written", count + 1, num_half_pages);
+      fprintf(stdout, "%3u/%3u halfpages written\n", count + 1, num_half_pages);
       fflush(stdout);
     }
 
@@ -614,7 +614,7 @@ int32_t stlink_flashloader_start(stlink_t *sl, flash_loader_t *fl) {
 
     int32_t voltage;
     if (sl->version.stlink_v == 1) {
-      WLOG("STLINK V1 cannot read voltage, use default voltage 3.2V\n");
+      WLOG("STLINK V1 cannot read voltage, use default voltage 3.2 V\n");
       voltage = 3200;
     } else {
       voltage = stlink_target_voltage(sl);
@@ -713,9 +713,9 @@ int32_t stlink_flashloader_start(stlink_t *sl, flash_loader_t *fl) {
     }
     if (sl->chip_id != STM32_CHIPID_H7Ax) {
       // set parallelism
-      write_flash_cr_psiz(sl, 3 /* 64bit */, BANK_1);
+      write_flash_cr_psiz(sl, 3 /* 64 bit */, BANK_1);
       if (sl->chip_flags & CHIP_F_HAS_DUAL_BANK) {
-        write_flash_cr_psiz(sl, 3 /* 64bit */, BANK_2);
+        write_flash_cr_psiz(sl, 3 /* 64 bit */, BANK_2);
       }
     }
   } else {
@@ -750,15 +750,15 @@ int32_t stlink_flashloader_write(stlink_t *sl, flash_loader_t *fl, stm32_addr_t 
              sl->flash_type == STM32_FLASH_TYPE_C0) {
   
     if (sl->flash_type == STM32_FLASH_TYPE_L5_U5_H5 && (len % 16)) {
-        WLOG("Data size is aligned to 16 byte");
-        len += 16 - len%16;
+        WLOG("Aligning data size to 16 bytes\n");
+        len += 16 - len % 16;
     }
     DLOG("Starting %3u page write\n", len / sl->flash_pgsz);
     for (off = 0; off < len; off += sizeof(uint32_t)) {
       uint32_t data;
 
       if ((off % sl->flash_pgsz) > (sl->flash_pgsz - 5)) {
-        fprintf(stdout, "\r%3u/%-3u pages written", (off / sl->flash_pgsz + 1), (len / sl->flash_pgsz));
+        fprintf(stdout, "%3u/%-3u pages written\n", (off / sl->flash_pgsz + 1), (len / sl->flash_pgsz));
         fflush(stdout);
       }
 
@@ -780,7 +780,7 @@ int32_t stlink_flashloader_write(stlink_t *sl, flash_loader_t *fl, stm32_addr_t 
     uint32_t flash_regs_base = get_stm32l0_flash_base(sl);
     uint32_t pagesize = (flash_regs_base == FLASH_L0_REGS_ADDR)? L0_WRITE_BLOCK_SIZE : L1_WRITE_BLOCK_SIZE;
 
-    DLOG("Starting %3u page write\r\n", len / sl->flash_pgsz);
+    DLOG("Starting %3u page write\n", len / sl->flash_pgsz);
 
     off = 0;
 
@@ -788,7 +788,7 @@ int32_t stlink_flashloader_write(stlink_t *sl, flash_loader_t *fl, stm32_addr_t 
       if (stm32l1_write_half_pages(sl, fl, addr, base, len, pagesize)) {
         return (-1);
       } else {
-        off = (size_t)(len / pagesize) * pagesize;
+        off = (uint32_t) (len / pagesize) * pagesize;
       }
     }
 
@@ -797,7 +797,7 @@ int32_t stlink_flashloader_write(stlink_t *sl, flash_loader_t *fl, stm32_addr_t 
       uint32_t data;
 
       if ((off % sl->flash_pgsz) > (sl->flash_pgsz - 5)) {
-        fprintf(stdout, "\r%3u/%-3u pages written", (off / sl->flash_pgsz + 1), (len / sl->flash_pgsz));
+        fprintf(stdout, "%3u/%-3u pages written\n", (off / sl->flash_pgsz + 1), (len / sl->flash_pgsz));
         fflush(stdout);
       }
 
@@ -834,7 +834,7 @@ int32_t stlink_flashloader_write(stlink_t *sl, flash_loader_t *fl, stm32_addr_t 
       if (sl->verbose >= 1) {
         // show progress; writing procedure is slow and previous errors are
         // misleading
-        fprintf(stdout, "\r%3u/%-3u pages written", ++write_block_count,
+        fprintf(stdout, "%3u/%-3u pages written\n", ++write_block_count,
                 (len + sl->flash_pgsz - 1) / sl->flash_pgsz);
         fflush(stdout);
       }
@@ -854,7 +854,7 @@ int32_t stlink_flashloader_write(stlink_t *sl, flash_loader_t *fl, stm32_addr_t 
 
       if (sl->verbose >= 1) {
         // show progress
-        fprintf(stdout, "\r%u/%u bytes written", off, len);
+        fprintf(stdout, "%u/%u bytes written\n", off, len);
         fflush(stdout);
       }
     }
@@ -902,7 +902,7 @@ int32_t stlink_flashloader_stop(stlink_t *sl, flash_loader_t *fl) {
   // enable interrupt
   if (!stlink_read_debug32(sl, STLINK_REG_DHCSR, &dhcsr)) {
     stlink_write_debug32(sl, STLINK_REG_DHCSR, STLINK_REG_DHCSR_DBGKEY | STLINK_REG_DHCSR_C_DEBUGEN |
-                                               (dhcsr & (~STLINK_REG_DHCSR_C_MASKINTS)));
+                         (dhcsr & (~STLINK_REG_DHCSR_C_MASKINTS)));
   }
 
   // restore DMA state

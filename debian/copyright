@@ -2,9 +2,6 @@ Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: stlink
 Upstream-Contact: Nightwalker-87 <15526941+Nightwalker-87@users.noreply.github.com>
 Source: https://github.com/stlink-org/stlink
-Comment: Upstream tarball has been repackaged to remove binary OSX kernel
-         drivers that are of unknown license and of no use to Debian.
-Files-Excluded: stlinkv1_macos_driver
 
 Files: *
 Copyright: 2011-2021 The stlink project maintainers

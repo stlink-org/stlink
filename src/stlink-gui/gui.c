@@ -50,6 +50,17 @@ static void stlink_gui_init(STlinkGUI *self) {
     self->file_mem.base   = 0;
 }
 
+static void help(void)
+{
+    puts("usage: stlink-gui [options] file\n");
+    puts("options:");
+    puts("  --version/-v           Print version information.");
+    puts("  --help/-h              Show this help.");
+    puts("");
+    puts("examples:");
+    puts("  stlink-gui path/to/file");
+}
+
 static gboolean set_info_error_message_idle(STlinkGUI *gui) {
     if (gui->error_message != NULL) {
         gchar *markup;
@@ -86,6 +97,8 @@ static void stlink_gui_set_sensitivity(STlinkGUI *gui, gboolean sensitivity) {
     if (sensitivity && gui->sl && gui->filename) {
         gtk_widget_set_sensitive(GTK_WIDGET(gui->flash_button), sensitivity);
     }
+
+    gtk_widget_set_sensitive(GTK_WIDGET(gui->reset_button), sensitivity && (gui->sl != NULL));
 
     gtk_widget_set_sensitive(GTK_WIDGET(gui->export_button), sensitivity && (gui->sl != NULL));
 }
@@ -271,10 +284,7 @@ static gpointer stlink_gui_populate_filemem_view(gpointer data) {
         int32_t res = stlink_parse_ihex(gui->filename, 0, &mem, &size, &begin);
 
         if (res == 0) {
-            if (gui->file_mem.memory) {
-                g_free(gui->file_mem.memory);
-            }
-
+            if (gui->file_mem.memory) { g_free(gui->file_mem.memory); }
             gui->file_mem.size   = size;
             gui->file_mem.memory = g_malloc(size);
             gui->file_mem.base   = begin;
@@ -445,7 +455,7 @@ static gchar *dev_format_chip_id(guint32 chip_id) {
 }
 
 static gchar *dev_format_mem_size(gsize flash_size) {
-    return (g_strdup_printf("%u kB", (uint32_t)(flash_size / 1024)));
+    return (g_strdup_printf("%u kB", (uint32_t) (flash_size / 1024)));
 }
 
 
@@ -525,6 +535,7 @@ static void stlink_gui_set_disconnected(STlinkGUI *gui) {
     gtk_widget_set_sensitive(GTK_WIDGET(gui->export_button), FALSE);
     gtk_widget_set_sensitive(GTK_WIDGET(gui->disconnect_button), FALSE);
     gtk_widget_set_sensitive(GTK_WIDGET(gui->connect_button), TRUE);
+    gtk_widget_set_sensitive(GTK_WIDGET(gui->reset_button), FALSE);
 }
 
 static void disconnect_button_cb(GtkWidget *widget, gpointer data) {
@@ -555,6 +566,16 @@ static void stlink_gui_open_file(STlinkGUI *gui) {
                                          "_Open", GTK_RESPONSE_ACCEPT,
                                          NULL);
 
+    /* Start file chooser from last used directory */
+    if (gui->filename != NULL){
+        gchar *last_dir = g_path_get_dirname(gui->filename);
+        if (last_dir){
+            gtk_file_chooser_set_current_folder(
+                GTK_FILE_CHOOSER(dialog), last_dir);
+            g_free(last_dir);
+        }
+    }
+
     if (gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT) {
         gui->filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
 
@@ -572,6 +593,17 @@ static void stlink_gui_open_file(STlinkGUI *gui) {
     }
 
     gtk_widget_destroy(dialog);
+}
+
+static gboolean open_file_from_args(STlinkGUI *gui) {
+    if (gui->filename != NULL) {
+        stlink_gui_set_sensitivity(gui, FALSE);
+        gtk_notebook_set_current_page(gui->notebook, PAGE_FILEMEM);
+        gtk_widget_show(GTK_WIDGET(gui->progress.bar));
+        gtk_progress_bar_set_text(gui->progress.bar, "Reading file");
+        g_thread_new("file", (GThreadFunc)stlink_gui_populate_filemem_view, gui);
+    }
+    return (FALSE);
 }
 
 static void open_button_cb(GtkWidget *widget, gpointer data) {
@@ -596,8 +628,9 @@ static gpointer stlink_gui_write_flash(gpointer data) {
     g_return_val_if_fail((gui->sl != NULL), NULL);
     g_return_val_if_fail((gui->filename != NULL), NULL);
 
-    if (stlink_mwrite_flash(
-            gui->sl, gui->file_mem.memory, (uint32_t)gui->file_mem.size, gui->sl->flash_base) < 0) {
+    if (stlink_mwrite_flash(gui->sl, gui->file_mem.memory,
+                            (uint32_t) gui->file_mem.size, gui->sl->flash_base,
+                            SECTION_ERASE) < 0) {
         stlink_gui_set_info_error_message(gui, "Failed to write to flash");
     }
 
@@ -643,6 +676,20 @@ static void flash_button_cb(GtkWidget *widget, gpointer data) {
             }
         }
     }
+}
+
+
+static void reset_button_cb(GtkWidget *widget, gpointer data) {
+    STlinkGUI *gui;
+    (void)widget;
+
+    gui = STLINK_GUI(data);
+    g_return_if_fail(gui->sl != NULL);
+
+    stlink_exit_debug_mode(gui->sl);
+    stlink_reset(gui->sl, RESET_AUTO);
+    stlink_enter_swd_mode(gui->sl);
+
 }
 
 int32_t export_to_file(const char*filename, const struct mem_t flash_mem) {
@@ -819,6 +866,9 @@ static void stlink_gui_build_ui(STlinkGUI *gui) {
     gui->flash_button = GTK_TOOL_BUTTON(gtk_builder_get_object(builder, "flash_button"));
     g_signal_connect(G_OBJECT(gui->flash_button), "clicked", G_CALLBACK(flash_button_cb), gui);
 
+    gui->reset_button = GTK_TOOL_BUTTON(gtk_builder_get_object(builder, "reset_button"));
+    g_signal_connect(G_OBJECT(gui->reset_button), "clicked", G_CALLBACK(reset_button_cb), gui);
+
     gui->export_button = GTK_TOOL_BUTTON(gtk_builder_get_object(builder, "export_button"));
     g_signal_connect(G_OBJECT(gui->export_button), "clicked", G_CALLBACK(export_button_cb), gui);
 
@@ -900,6 +950,26 @@ int32_t main(int32_t argc, char **argv) {
     gui = g_object_new(STLINK_TYPE_GUI, NULL);
     stlink_gui_build_ui(gui);
     stlink_gui_init_dnd(gui);
+
+    /* Parse remaining cli arguments */
+    argc--;
+    argv++;
+    while (argc > 0){
+        if (strcmp(argv[0], "--version") == 0 || strcmp(argv[0], "-v") == 0) {
+            printf("v%s\n", STLINK_VERSION);
+            exit(EXIT_SUCCESS);
+        } else if (strcmp(argv[0], "--help") == 0 || strcmp(argv[0], "-h") == 0) {
+            help();
+            return 1;
+        }
+        if (argc == 1 && g_file_test(*argv, G_FILE_TEST_IS_REGULAR)){
+            /* Open hex file at app startup */
+            gui->filename = g_strdup(*argv);    
+            g_idle_add((GSourceFunc)open_file_from_args, gui);
+        }
+        argc--;
+        argv++;
+    }
 
     gtk_main();
     return (0);

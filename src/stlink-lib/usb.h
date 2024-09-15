@@ -23,6 +23,7 @@
 #define STLINK_USB_PID_STLINK_V3S_PID       0x374f
 #define STLINK_USB_PID_STLINK_V3_2VCP_PID   0x3753
 #define STLINK_USB_PID_STLINK_V3_NO_MSD_PID 0x3754
+#define STLINK_USB_PID_STLINK_V3P           0x3757
 
 #define STLINK_V1_USB_PID(pid) ((pid) == STLINK_USB_PID_STLINK)
 
@@ -36,7 +37,8 @@
                                 (pid) == STLINK_USB_PID_STLINK_V3E_PID || \
                                 (pid) == STLINK_USB_PID_STLINK_V3S_PID || \
                                 (pid) == STLINK_USB_PID_STLINK_V3_2VCP_PID || \
-                                (pid) == STLINK_USB_PID_STLINK_V3_NO_MSD_PID)
+                                (pid) == STLINK_USB_PID_STLINK_V3_NO_MSD_PID || \
+                                (pid) == STLINK_USB_PID_STLINK_V3P)
 
 #define STLINK_SUPPORTED_USB_PID(pid) (STLINK_V1_USB_PID(pid) || \
                                        STLINK_V2_USB_PID(pid) || \
@@ -100,10 +102,10 @@ int32_t _stlink_usb_read_trace(stlink_t* sl, uint8_t* buf, uint32_t size);
 
 // static stlink_backend_t _stlink_usb_backend = { };
 
-size_t stlink_serial(struct libusb_device_handle *handle, struct libusb_device_descriptor *desc, char *serial);
+uint32_t stlink_serial(struct libusb_device_handle *handle, struct libusb_device_descriptor *desc, char *serial);
 stlink_t *stlink_open_usb(enum ugly_loglevel verbose, enum connect_type connect, char serial[STLINK_SERIAL_BUFFER_SIZE], int32_t freq);
 // static uint32_t stlink_probe_usb_devs(libusb_device **devs, stlink_t **sldevs[], enum connect_type connect, int32_t freq);
-size_t stlink_probe_usb(stlink_t **stdevs[], enum connect_type connect, int32_t freq);
+uint32_t stlink_probe_usb(stlink_t **stdevs[], enum connect_type connect, int32_t freq);
 void stlink_probe_usb_free(stlink_t **stdevs[], uint32_t size);
 
 #endif // USB_H

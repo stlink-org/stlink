@@ -65,6 +65,7 @@ struct _STlinkGUI {
     GtkToolButton  *flash_button;
     GtkToolButton  *export_button;
     GtkToolButton  *open_button;
+    GtkToolButton  *reset_button;
 
     /* flash dialog */
     GtkDialog  *flash_dialog;
