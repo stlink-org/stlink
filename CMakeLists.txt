@@ -348,7 +348,7 @@ install(TARGETS st-trace DESTINATION ${CMAKE_INSTALL_BINDIR})
 # Device configuration (Linux only)
 ###
 
-if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND NOT PREVENT_HARDCODED_INSTALL)
     ## Install modprobe.d conf files to /etc/modprobe.d/ (explicitly hardcoded)
     set(STLINK_MODPROBED_DIR "/etc/modprobe.d" CACHE PATH "modprobe.d directory")
     install(FILES ${CMAKE_SOURCE_DIR}/config/modprobe.d/stlink_v1.conf DESTINATION ${STLINK_MODPROBED_DIR})
