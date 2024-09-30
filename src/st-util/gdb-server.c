@@ -118,7 +118,7 @@ int32_t parse_options(int32_t argc, char** argv, st_state_t *st) {
         {"no-reset", optional_argument, NULL, 'n'},
         {"hot-plug", optional_argument, NULL, 'n'},
         {"connect-under-reset", optional_argument, NULL, 'u'},
-        {"freq", optional_argument, NULL, 'F'},
+        {"freq", required_argument, NULL, 'F'},
         {"version", no_argument, NULL, 'V'},
         {"semihosting", no_argument, NULL, SEMIHOSTING_OPTION},
         {"serial", required_argument, NULL, SERIAL_OPTION},
@@ -152,11 +152,11 @@ int32_t parse_options(int32_t argc, char** argv, st_state_t *st) {
     ;
 
 
-    int32_t option_index = 0;
+    int option_index = 0;
     int32_t c;
     int32_t q;
 
-    while ((c = getopt_long(argc, argv, "hv::p:mnu", long_options, &option_index)) != -1)
+    while ((c = getopt_long(argc, argv, "hv::p:mnuF:V", long_options, &option_index)) != -1)
         switch (c) {
         case 0:
             break;
