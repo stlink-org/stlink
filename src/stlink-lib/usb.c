@@ -1117,7 +1117,7 @@ uint32_t stlink_serial(struct libusb_device_handle *handle, struct libusb_device
 		return 0;
 	}
 
-	return strlen(serial);
+	return (uint32_t)strlen(serial);
 }
 
 /**
