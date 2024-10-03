@@ -8,14 +8,21 @@ foreach (file ${files})
     message(STATUS "Uninstalling $ENV{DESTDIR}${file}")
     if (IS_SYMLINK "$ENV{DESTDIR}${file}" OR EXISTS "$ENV{DESTDIR}${file}")
         execute_process(
-            COMMAND "@CMAKE_COMMAND@" -E remove \"$ENV{DESTDIR}${file}\"
-            OUTPUT_VARIABLE rm_out
+            # remove deprecated: use rm instead,
+            # because it does not check the file path, even return an error.
+            COMMAND "@CMAKE_COMMAND@" -E rm "$ENV{DESTDIR}${file}"
             RESULT_VARIABLE rm_retval
+            ERROR_VARIABLE  rm_err
         )
         if (NOT "${rm_retval}" STREQUAL 0)
-            message(FATAL_ERROR "Problem when removing $ENV{DESTDIR}${file}")
+            message(FATAL_ERROR "Problem when removing $ENV{DESTDIR}${file}\n${rm_err}")
+        # Detect whether the file has been removed.
+        elseif (IS_SYMLINK "$ENV{DESTDIR}${file}" OR EXISTS "$ENV{DESTDIR}${file}")
+            message(FATAL_ERROR "File has not been removed.\n${rm_err}")
+        else ()
+            message(STATUS "File has been removed.")
         endif ()
-    else (IS_SYMLINK "$ENV{DESTDIR}${file}" OR EXISTS "$ENV{DESTDIR}${file}")
+    else ()
         message(STATUS "File $ENV{DESTDIR}${file} does not exist.")
     endif ()
 endforeach ()
