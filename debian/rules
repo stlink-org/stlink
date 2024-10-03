@@ -17,8 +17,8 @@ export deb_udevdir = $(shell pkg-config --variable=udevdir udev | sed s,^/,,)
 
 override_dh_auto_configure:
 	dh_auto_configure -- \
-    -DSTLINK_UDEV_RULES_DIR='/lib/udev/rules.d'
-    -DSTLINK_UDEV_RULES_DIR=/$(deb_udevdir)/rules.d
+	-DSTLINK_UDEV_RULES_DIR='/lib/udev/rules.d'
+	-DSTLINK_UDEV_RULES_DIR=/$(deb_udevdir)/rules.d
 
 override_dh_auto_install:
 	dh_auto_install

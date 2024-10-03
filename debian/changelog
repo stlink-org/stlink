@@ -1,3 +1,9 @@
+stlink (1.8.0-1~bpo12+1) bookworm-backports; urgency=medium
+
+  * Rebuild for bookworm-backports.
+
+ -- Luca Boccassi <bluca@debian.org>  Mon, 27 May 2024 23:04:19 +0100
+
 stlink (1.8.0-1) unstable; urgency=medium
 
   * Switch to gbp workflow, binary OSX blobs no longer included upstream
@@ -7,6 +13,19 @@ stlink (1.8.0-1) unstable; urgency=medium
   * Update symbols files for 1.8.0
 
  -- Luca Boccassi <bluca@debian.org>  Thu, 08 Feb 2024 19:28:19 +0000
+
+stlink (1.7.0+ds-2) unstable; urgency=medium
+
+  [ Debian Janitor ]
+  * Remove constraints unnecessary since buster
+  * Set upstream metadata fields: Bug-Database, Bug-Submit, Repository-
+    Browse.
+  * Update standards version to 4.6.2, no changes needed.
+
+  [ Chris Hofstaedtler ]
+  * use udev.pc to place udev rules (Closes: #1058829)
+
+ -- Luca Boccassi <bluca@debian.org>  Mon, 18 Dec 2023 15:01:19 +0100
 
 stlink (1.7.0+ds-1) unstable; urgency=medium
 

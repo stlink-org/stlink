@@ -32,8 +32,7 @@ Architecture: linux-any
 Depends: libstlink1 (= ${binary:Version}), ${shlibs:Depends}, ${misc:Depends}
 Description: Open source version of the STMicroelectronics STLINK Tools
  .
- This package contains commandline utilities for stlink, and modprobe
- and udev rules.
+ This package contains commandline utilities for stlink, modprobe and udev rules.
 
 Package: stlink-gui
 Architecture: linux-any
