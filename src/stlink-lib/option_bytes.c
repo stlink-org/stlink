@@ -108,7 +108,7 @@ static int32_t stlink_write_option_bytes_f0(stlink_t *sl, stm32_addr_t addr, uin
   int32_t ret = 0;
 
   if (len < 12 || addr != STM32_F0_OPTION_BYTES_BASE) {
-	WLOG("Only full write of option bytes area is supported\n");
+    WLOG("Only full write of option bytes area is supported\n");
     return -1;
   }
 

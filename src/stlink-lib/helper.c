@@ -23,18 +23,18 @@ uint32_t time_ms() {
 }
 
 int32_t arg_parse_freq(const char *str) {
-	int32_t value = -1;
-	if (str != NULL) {
-    		char* tail = NULL;
-		value	= strtol(str, &tail, 10);
-		if (tail != NULL) {
-			if (tail[0] == 'M' && tail[1] == '\0') {
-				value	= value*1000;
-			}
-			else if (tail[0] != '\0' && !(tail[0] == 'k' && tail[1] == '\0')) {
-				value	= -1;	/* error */
-			}
-		}
-	}
-	return value;		/* frequency in kHz */
+    int32_t value = -1;
+    if (str != NULL) {
+            char* tail = NULL;
+        value = strtol(str, &tail, 10);
+        if (tail != NULL) {
+            if (tail[0] == 'M' && tail[1] == '\0') {
+                value = value*1000;
+            }
+            else if (tail[0] != '\0' && !(tail[0] == 'k' && tail[1] == '\0')) {
+                value = -1;    // error
+            }
+        }
+    }
+    return value;              // frequency in kHz
 }

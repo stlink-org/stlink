@@ -1085,39 +1085,39 @@ static stlink_backend_t _stlink_usb_backend = {
 
 /* return the length of serial or (0) in case of errors */
 uint32_t stlink_serial(struct libusb_device_handle *handle, struct libusb_device_descriptor *desc, char *serial) {
-	unsigned char desc_serial[(STLINK_SERIAL_LENGTH) * 2];
+    unsigned char desc_serial[(STLINK_SERIAL_LENGTH) * 2];
 
-	/* truncate the string in the serial buffer */
-	serial[0] = '\0';
+    /* truncate the string in the serial buffer */
+    serial[0] = '\0';
 
-	/* get the LANGID from String Descriptor Zero */
-	int32_t ret = libusb_get_string_descriptor(handle, 0, 0, desc_serial, sizeof(desc_serial));
-	if (ret < 4) return 0;
+    /* get the LANGID from String Descriptor Zero */
+    int32_t ret = libusb_get_string_descriptor(handle, 0, 0, desc_serial, sizeof(desc_serial));
+    if (ret < 4) return 0;
 
-	uint32_t langid = desc_serial[2] | (desc_serial[3] << 8);
+    uint32_t langid = desc_serial[2] | (desc_serial[3] << 8);
 
-	/* get the serial */
-	ret = libusb_get_string_descriptor(handle, desc->iSerialNumber, langid, desc_serial,
-		sizeof(desc_serial));
-	if (ret < 0) return 0; // could not read serial
+    /* get the serial */
+    ret = libusb_get_string_descriptor(handle, desc->iSerialNumber, langid, desc_serial,
+        sizeof(desc_serial));
+    if (ret < 0) return 0; // could not read serial
 
-	unsigned char len = desc_serial[0];
+    unsigned char len = desc_serial[0];
 
-	if (len == ((STLINK_SERIAL_LENGTH + 1) * 2)) { /* len == 50 */
-		/* good ST-Link adapter */
-		ret = libusb_get_string_descriptor_ascii(
-			handle, desc->iSerialNumber, (unsigned char *)serial, STLINK_SERIAL_BUFFER_SIZE);
-		if (ret < 0) return 0;
-	} else if (len == ((STLINK_SERIAL_LENGTH / 2 + 1) * 2)) { /* len == 26 */
-		/* fix-up the buggy serial */
-		for (uint32_t i = 0; i < STLINK_SERIAL_LENGTH; i += 2)
-			sprintf(serial + i, "%02X", desc_serial[i + 2]);
-		serial[STLINK_SERIAL_LENGTH] = '\0';
-	} else {
-		return 0;
-	}
+    if (len == ((STLINK_SERIAL_LENGTH + 1) * 2)) { /* len == 50 */
+        /* good ST-Link adapter */
+        ret = libusb_get_string_descriptor_ascii(
+            handle, desc->iSerialNumber, (unsigned char *)serial, STLINK_SERIAL_BUFFER_SIZE);
+        if (ret < 0) return 0;
+    } else if (len == ((STLINK_SERIAL_LENGTH / 2 + 1) * 2)) { /* len == 26 */
+        /* fix-up the buggy serial */
+        for (uint32_t i = 0; i < STLINK_SERIAL_LENGTH; i += 2)
+            sprintf(serial + i, "%02X", desc_serial[i + 2]);
+        serial[STLINK_SERIAL_LENGTH] = '\0';
+    } else {
+        return 0;
+    }
 
-	return (uint32_t)strlen(serial);
+    return (uint32_t)strlen(serial);
 }
 
 /**

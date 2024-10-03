@@ -316,12 +316,12 @@ static gpointer stlink_gui_populate_filemem_view(gpointer data) {
 
         if (gui->file_mem.memory) { g_free(gui->file_mem.memory); }
 
-	goffset file_size = g_file_info_get_size(file_info);
+        goffset file_size = g_file_info_get_size(file_info);
 
-	if ((0 > file_size) && ((goffset)G_MAXSIZE <= file_size)) {
-	  stlink_gui_set_info_error_message(gui, "File too large.");
-	  goto out_input;
-	}
+        if ((0 > file_size) && ((goffset)G_MAXSIZE <= file_size)) {
+            stlink_gui_set_info_error_message(gui, "File too large.");
+            goto out_input;
+        }
 
         gui->file_mem.size   = file_size;
         gui->file_mem.memory = g_malloc(gui->file_mem.size);
@@ -344,8 +344,8 @@ static gpointer stlink_gui_populate_filemem_view(gpointer data) {
             gui->progress.fraction = (gdouble)(off + n_read) / gui->file_mem.size;
         }
 
-out_input: g_object_unref(input_stream);
-out:       g_object_unref(file);
+        out_input: g_object_unref(input_stream);
+        out:       g_object_unref(file);
     }
 
     g_idle_add((GSourceFunc)stlink_gui_update_filemem_view, gui);

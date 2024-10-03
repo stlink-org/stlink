@@ -7,9 +7,10 @@ Release date: 2024-09-01
 This release drops support for some older operating systems. Check project README for details.
 
 Updated system requirements:
-- `cmake` >= 3.13.0
-- `libusb` >= 1.0.22
-- `libgtk-dev` >= 3.22.30
+- C-Standard: C17 (ISO/IEC 9899:2018)
+- `cmake` >= 3.16.3
+- `libusb` >= 1.0.23
+- `libgtk-dev` >= 3.24.18
 
 Features:
 - Added support for STLINK-V3PWR ([#1388](https://github.com/stlink-org/stlink/pull/1388), [#1389](https://github.com/stlink-org/stlink/pull/1389))
@@ -34,7 +35,11 @@ Fixes:
 - Fixed STM32H7 FLASH_OPTCR unlock sequence ([#1401](https://github.com/stlink-org/stlink/pull/1401), [#1416](https://github.com/stlink-org/stlink/pull/1416))
 - Restored support for STM32G4 Cat4 device STM32G491 ([#1403](https://github.com/stlink-org/stlink/pull/1403), [#1414](https://github.com/stlink-org/stlink/pull/1414))
 - Fixed STM32H7 option byte programming ([#1417](https://github.com/stlink-org/stlink/pull/1417))
-- Latest release stlink-1.8.0-win32 doesn't run ([#1364](https://github.com/stlink-org/stlink/pull/1364), [#1410](https://github.com/stlink-org/stlink/pull/1410) commit [_commit-ID TBD_])
+- Latest release stlink-1.8.0-win32 doesn't run ([#1364](https://github.com/stlink-org/stlink/pull/1364), [#1410](https://github.com/stlink-org/stlink/pull/1410), commit [#e493109](https://github.com/stlink-org/stlink/commit/e4931097f887d8a048d1d188388b82ced918cf08))
+- Make path to .chip files relative to installation directory on Windows ([#1421](https://github.com/stlink-org/stlink/pull/1421))
+- Replaced deprecated cmd to fix package uninstall ([#1426](https://github.com/stlink-org/stlink/pull/1426))
+- Fixed compilation error -Wshorten-64-to-32 in stlink-lib/usb.c ([#1427](https://github.com/stlink-org/stlink/pull/1427))
+- st-util cannot parse -V and -F options and --freq option results in a segmentation fault ([#1428](https://github.com/stlink-org/stlink/pull/1428), [#1429](https://github.com/stlink-org/stlink/pull/1429))
 
 # v1.8.0
 
@@ -44,6 +49,7 @@ This release drops support for macOS and some older operating systems. Check pro
 Removed Travis CI integration as it is no longer functional.
 
 Updated system requirements:
+- C-Standard: C11 (ISO/IEC 9899:2011)
 - `cmake` >= 3.13.0
 - `libusb` >= 1.0.22
 - `libgtk-dev` >= 3.22.30

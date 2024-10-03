@@ -251,16 +251,12 @@ There are a few options:
 
 ./st-util - usage:
 
-  -h, --help		Print this help
-  -vXX, --verbose=XX	Specify a specific verbosity level (0..99)
-  -v, --verbose		Specify generally verbose logging
-  -p 4242, --listen_port=1234
-			Set the gdb server listen port. (default port: 4242)
-  -m, --multi
-			Set gdb server to extended mode.
-			st-util will continue listening for connections after disconnect.
-  -n, --no-reset, --hot-plug
-			Do not reset board on connection.
+  -h, --help                     Print this help
+  -vXX, --verbose=XX             Specify a specific verbosity level (0..99)
+  -v, --verbose                  Specify general verbose logging
+  -p 4242, --listen_port=1234    Set the listen port for the gdb server (default: 4242)-
+  -m, --multi                    Set gdb server to extended mode. st-util will continue listening for connections after disconnect.
+  -n, --no-reset, --hot-plug     Do not reset board on connection.
 ```
 
 The STLink device to use can be specified using the --serial parameter.

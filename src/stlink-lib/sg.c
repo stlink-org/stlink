@@ -28,10 +28,10 @@
  * SB Device Class Definition for Mass Storage Devices:
  * www.usb.org/developers/devclass_docs/usbmassbulk_10.pdf
  *
- * dt		- Data Transfer (IN/OUT)
- * CBW      - Command Block Wrapper
- * CSW		- Command Status Wrapper
- * RFU		- Reserved for Future Use
+ * dt         - Data Transfer (IN/OUT)
+ * CBW        - Command Block Wrapper
+ * CSW        - Command Status Wrapper
+ * RFU        - Reserved for Future Use
  *
  * Originally, this driver used scsi pass through commands, which required the
  * usb-storage module to be loaded, providing the /dev/sgX links.  The USB mass

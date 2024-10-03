@@ -394,7 +394,7 @@ char* make_memory_map(stlink_t *sl) {
         snprintf(map, sz, memory_map_template_H72x3x,
                  sl->flash_size,
                  sl->flash_pgsz);
-	} else {
+    } else {
         snprintf(map, sz, memory_map_template,
                  sl->flash_size,
                  sl->sram_size,
