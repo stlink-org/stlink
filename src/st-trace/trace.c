@@ -158,7 +158,7 @@ static bool parse_frequency(char* text, uint32_t* result) {
     return false;
   }
 
-  *result = (uint32_t)value;
+  *result = (uint32_t) value;
   return true;
 }
 
@@ -412,7 +412,7 @@ static trace_state update_trace(st_trace_t *trace, uint8_t c) {
 }
 
 static bool read_trace(stlink_t *stlink, st_trace_t *trace) {
-  uint8_t* buffer = 0;
+  uint8_t buffer[STLINK_V3_TRACE_BUF_LEN];
   int32_t length = stlink_trace_read(stlink, buffer, sizeof(buffer));
 
   if (length < 0) {

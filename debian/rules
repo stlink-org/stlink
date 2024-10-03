@@ -10,12 +10,15 @@ include /usr/share/dpkg/default.mk
 # see FEATURE AREAS in dpkg-buildflags(1)
 export DEB_BUILD_MAINT_OPTIONS = hardening=+all
 
+export deb_udevdir = $(shell pkg-config --variable=udevdir udev | sed s,^/,,)
+
 %:
 	dh $@ --buildsystem cmake
 
 override_dh_auto_configure:
 	dh_auto_configure -- \
     -DSTLINK_UDEV_RULES_DIR='/lib/udev/rules.d'
+    -DSTLINK_UDEV_RULES_DIR=/$(deb_udevdir)/rules.d
 
 override_dh_auto_install:
 	dh_auto_install

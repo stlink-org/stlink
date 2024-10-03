@@ -31,7 +31,7 @@
 #include "register.h"
 
 static inline uint32_t le_to_h_u32(const uint8_t* buf) {
-    return ((uint32_t)((uint32_t)buf[0] | (uint32_t)buf[1] << 8 | (uint32_t)buf[2] << 16 | (uint32_t)buf[3] << 24));
+    return ((uint32_t) ((uint32_t) buf[0] | (uint32_t) buf[1] << 8 | (uint32_t) buf[2] << 16 | (uint32_t) buf[3] << 24));
 }
 
 static int32_t _stlink_match_speed_map(const uint32_t *map, uint32_t map_size, uint32_t khz) {
@@ -98,17 +98,17 @@ ssize_t send_recv(struct stlink_libusb* handle, int32_t terminate, unsigned char
 
     while (1) {
         res = 0;
-        t = libusb_bulk_transfer(handle->usb_handle, handle->ep_req, txbuf, (int32_t)txsize, &res, 3000);
+        t = libusb_bulk_transfer(handle->usb_handle, handle->ep_req, txbuf, (int32_t) txsize, &res, 3000);
 
         if (t) {
             ELOG("%s send request failed: %s\n", cmd, libusb_error_name(t));
             return (-1);
-        } else if ((size_t)res != txsize) {
-            ELOG("%s send request wrote %u bytes, instead of %u\n", cmd, (uint32_t)res, (uint32_t)txsize);
+        } else if ((size_t) res != txsize) {
+            ELOG("%s send request wrote %u bytes, instead of %u\n", cmd, (uint32_t) res, (uint32_t) txsize);
         }
 
         if (rxsize != 0) {
-            t = libusb_bulk_transfer(handle->usb_handle, handle->ep_rep, rxbuf, (int32_t)rxsize, &res, 3000);
+            t = libusb_bulk_transfer(handle->usb_handle, handle->ep_rep, rxbuf, (int32_t) rxsize, &res, 3000);
 
             if (t) {
                 ELOG("%s read reply failed: %s\n", cmd, libusb_error_name(t));
@@ -143,7 +143,7 @@ ssize_t send_recv(struct stlink_libusb* handle, int32_t terminate, unsigned char
                 return (-1);
             }
 
-            if (check_error == CMD_CHECK_REP_LEN && res != (int32_t)rxsize) {
+            if (check_error == CMD_CHECK_REP_LEN && res != (int32_t) rxsize) {
                 ELOG("%s wrong reply length\n", cmd);
                 res = -1;
             }
@@ -169,7 +169,7 @@ ssize_t send_recv(struct stlink_libusb* handle, int32_t terminate, unsigned char
 
 static inline int32_t send_only(struct stlink_libusb* handle, int32_t terminate, unsigned char* txbuf,
                                 uint32_t txsize, const char *cmd) {
-    return ((int32_t)send_recv(handle, terminate, txbuf, txsize, NULL, 0, CMD_CHECK_NO, cmd));
+    return ((int32_t) send_recv(handle, terminate, txbuf, txsize, NULL, 0, CMD_CHECK_NO, cmd));
 }
 
 
@@ -682,10 +682,10 @@ int32_t _stlink_usb_set_swdclk(stlink_t* sl, int32_t clk_freq) {
         cmd[i++] = STLINK_DEBUG_APIV3_SET_COM_FREQ;
         cmd[i++] = 0; // SWD mode
         cmd[i++] = 0;
-        cmd[i++] = (uint8_t)((map[speed_index] >> 0) & 0xFF);
-        cmd[i++] = (uint8_t)((map[speed_index] >> 8) & 0xFF);
-        cmd[i++] = (uint8_t)((map[speed_index] >> 16) & 0xFF);
-        cmd[i++] = (uint8_t)((map[speed_index] >> 24) & 0xFF);
+        cmd[i++] = (uint8_t) ((map[speed_index] >> 0) & 0xFF);
+        cmd[i++] = (uint8_t) ((map[speed_index] >> 8) & 0xFF);
+        cmd[i++] = (uint8_t) ((map[speed_index] >> 16) & 0xFF);
+        cmd[i++] = (uint8_t) ((map[speed_index] >> 24) & 0xFF);
 
         size = send_recv(slu, 1, cmd, slu->cmd_len, data, 8, CMD_CHECK_STATUS, "SET_COM_FREQ");
 
@@ -728,7 +728,7 @@ int32_t _stlink_usb_read_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
         return (-1);
     }
 
-    sl->q_len = (int32_t)size;
+    sl->q_len = (int32_t) size;
     stlink_print_data(sl);
 
     return (0);
@@ -759,7 +759,7 @@ int32_t _stlink_usb_read_all_regs(stlink_t *sl, struct stlink_reg *regp) {
     /* V1: regs data from offset 0 */
     /* V2: status at offset 0, regs data from offset 4 */
     int32_t reg_offset = sl->version.jtag_api == STLINK_JTAG_API_V1 ? 0 : 4;
-    sl->q_len = (int32_t)size;
+    sl->q_len = (int32_t) size;
     stlink_print_data(sl);
 
     for (i = 0; i < 16; i++) regp->r[i] = read_uint32(sl->q_buf, reg_offset + i * 4);
@@ -799,14 +799,14 @@ int32_t _stlink_usb_read_reg(stlink_t *sl, int32_t r_idx, struct stlink_reg *reg
         cmd[i++] = STLINK_DEBUG_APIV2_READREG;
     }
 
-    cmd[i++] = (uint8_t)r_idx;
+    cmd[i++] = (uint8_t) r_idx;
     size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len, CMD_CHECK_RETRY, "READREG");
 
     if (size < 0) {
         return (-1);
     }
 
-    sl->q_len = (int32_t)size;
+    sl->q_len = (int32_t) size;
     stlink_print_data(sl);
     r = read_uint32(sl->q_buf, reg_offset);
     DLOG("r_idx (%2d) = 0x%08x\n", r_idx, r);
@@ -856,10 +856,10 @@ int32_t _stlink_usb_read_unsupported_reg(stlink_t *sl, int32_t r_idx, struct stl
 
     switch (r_idx) {
     case 0x14:
-        regp->primask = (uint8_t)(r & 0xFF);
-        regp->basepri = (uint8_t)((r >> 8) & 0xFF);
-        regp->faultmask = (uint8_t)((r >> 16) & 0xFF);
-        regp->control = (uint8_t)((r >> 24) & 0xFF);
+        regp->primask = (uint8_t) (r & 0xFF);
+        regp->basepri = (uint8_t) ((r >> 8) & 0xFF);
+        regp->faultmask = (uint8_t) ((r >> 16) & 0xFF);
+        regp->control = (uint8_t) ((r >> 24) & 0xFF);
         break;
     case 0x21:
         regp->fpscr = r;
@@ -902,32 +902,32 @@ int32_t _stlink_usb_write_unsupported_reg(stlink_t *sl, uint32_t val, int32_t r_
 
         if (ret == -1) { return (ret); }
 
-        val = (uint8_t)(val >> 24);
+        val = (uint8_t) (val >> 24);
 
         switch (r_idx) {
         case 0x1C: /* control */
-            val = (((uint32_t)val) << 24) |
-                  (((uint32_t)regp->faultmask) << 16) |
-                  (((uint32_t)regp->basepri) << 8) |
-                  ((uint32_t)regp->primask);
+            val = (((uint32_t) val) << 24) |
+                  (((uint32_t) regp->faultmask) << 16) |
+                  (((uint32_t) regp->basepri) << 8) |
+                  ((uint32_t) regp->primask);
             break;
         case 0x1D: /* faultmask */
-            val = (((uint32_t)regp->control) << 24) |
-                  (((uint32_t)val) << 16) |
-                  (((uint32_t)regp->basepri) << 8) |
-                  ((uint32_t)regp->primask);
+            val = (((uint32_t) regp->control) << 24) |
+                  (((uint32_t) val) << 16) |
+                  (((uint32_t) regp->basepri) << 8) |
+                  ((uint32_t) regp->primask);
             break;
         case 0x1E: /* basepri */
-            val = (((uint32_t)regp->control) << 24) |
-                  (((uint32_t)regp->faultmask) << 16) |
-                  (((uint32_t)val) << 8) |
-                  ((uint32_t)regp->primask);
+            val = (((uint32_t) regp->control) << 24) |
+                  (((uint32_t) regp->faultmask) << 16) |
+                  (((uint32_t) val) << 8) |
+                  ((uint32_t) regp->primask);
             break;
         case 0x1F: /* primask */
-            val = (((uint32_t)regp->control) << 24) |
-                  (((uint32_t)regp->faultmask) << 16) |
-                  (((uint32_t)regp->basepri) << 8) |
-                  ((uint32_t)val);
+            val = (((uint32_t) regp->control) << 24) |
+                  (((uint32_t) regp->faultmask) << 16) |
+                  (((uint32_t) regp->basepri) << 8) |
+                  ((uint32_t) val);
             break;
         }
 
@@ -1026,7 +1026,7 @@ int32_t _stlink_usb_read_trace(stlink_t* sl, uint8_t* buf, uint32_t size) {
     if (send_size < 0) {
         return (-1);
     } else if (send_size != 2) {
-        ELOG("STLINK_DEBUG_APIV2_GET_TRACE_NB reply size %d\n", (int32_t)send_size);
+        ELOG("STLINK_DEBUG_APIV2_GET_TRACE_NB reply size %d\n", (int32_t) send_size);
         return (-1);
     }
 
@@ -1041,7 +1041,7 @@ int32_t _stlink_usb_read_trace(stlink_t* sl, uint8_t* buf, uint32_t size) {
         int32_t res = 0;
         int32_t t = libusb_bulk_transfer(slu->usb_handle, slu->ep_trace, buf, trace_count, &res, 3000);
 
-        if (t || res != (int32_t)trace_count) {
+        if (t || res != (int32_t) trace_count) {
             ELOG("read_trace read error %d\n", t);
             return (-1);
         }
@@ -1084,40 +1084,40 @@ static stlink_backend_t _stlink_usb_backend = {
 };
 
 /* return the length of serial or (0) in case of errors */
-size_t stlink_serial(struct libusb_device_handle *handle, struct libusb_device_descriptor *desc, char *serial) {
-	unsigned char desc_serial[(STLINK_SERIAL_LENGTH) * 2];
+uint32_t stlink_serial(struct libusb_device_handle *handle, struct libusb_device_descriptor *desc, char *serial) {
+    unsigned char desc_serial[(STLINK_SERIAL_LENGTH) * 2];
 
-	/* truncate the string in the serial buffer */
-	serial[0] = '\0';
+    /* truncate the string in the serial buffer */
+    serial[0] = '\0';
 
-	/* get the LANGID from String Descriptor Zero */
-	int32_t ret = libusb_get_string_descriptor(handle, 0, 0, desc_serial, sizeof(desc_serial));
-	if (ret < 4) return 0;
+    /* get the LANGID from String Descriptor Zero */
+    int32_t ret = libusb_get_string_descriptor(handle, 0, 0, desc_serial, sizeof(desc_serial));
+    if (ret < 4) return 0;
 
-	uint32_t langid = desc_serial[2] | (desc_serial[3] << 8);
+    uint32_t langid = desc_serial[2] | (desc_serial[3] << 8);
 
-	/* get the serial */
-	ret = libusb_get_string_descriptor(handle, desc->iSerialNumber, langid, desc_serial,
-		sizeof(desc_serial));
-	if (ret < 0) return 0; // could not read serial
+    /* get the serial */
+    ret = libusb_get_string_descriptor(handle, desc->iSerialNumber, langid, desc_serial,
+        sizeof(desc_serial));
+    if (ret < 0) return 0; // could not read serial
 
-	unsigned char len = desc_serial[0];
+    unsigned char len = desc_serial[0];
 
-	if (len == ((STLINK_SERIAL_LENGTH + 1) * 2)) { /* len == 50 */
-		/* good ST-Link adapter */
-		ret = libusb_get_string_descriptor_ascii(
-			handle, desc->iSerialNumber, (unsigned char *)serial, STLINK_SERIAL_BUFFER_SIZE);
-		if (ret < 0) return 0;
-	} else if (len == ((STLINK_SERIAL_LENGTH / 2 + 1) * 2)) { /* len == 26 */
-		/* fix-up the buggy serial */
-		for (uint32_t i = 0; i < STLINK_SERIAL_LENGTH; i += 2)
-			sprintf(serial + i, "%02X", desc_serial[i + 2]);
-		serial[STLINK_SERIAL_LENGTH] = '\0';
-	} else {
-		return 0;
-	}
+    if (len == ((STLINK_SERIAL_LENGTH + 1) * 2)) { /* len == 50 */
+        /* good ST-Link adapter */
+        ret = libusb_get_string_descriptor_ascii(
+            handle, desc->iSerialNumber, (unsigned char *)serial, STLINK_SERIAL_BUFFER_SIZE);
+        if (ret < 0) return 0;
+    } else if (len == ((STLINK_SERIAL_LENGTH / 2 + 1) * 2)) { /* len == 26 */
+        /* fix-up the buggy serial */
+        for (uint32_t i = 0; i < STLINK_SERIAL_LENGTH; i += 2)
+            sprintf(serial + i, "%02X", desc_serial[i + 2]);
+        serial[STLINK_SERIAL_LENGTH] = '\0';
+    } else {
+        return 0;
+    }
 
-	return strlen(serial);
+    return (uint32_t)strlen(serial);
 }
 
 /**
@@ -1256,7 +1256,8 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, enum connect_type connect,
         desc.idProduct == STLINK_USB_PID_STLINK_V3E_PID ||
         desc.idProduct == STLINK_USB_PID_STLINK_V3S_PID ||
         desc.idProduct == STLINK_USB_PID_STLINK_V3_2VCP_PID ||
-        desc.idProduct == STLINK_USB_PID_STLINK_V3_NO_MSD_PID) {
+        desc.idProduct == STLINK_USB_PID_STLINK_V3_NO_MSD_PID ||
+        desc.idProduct == STLINK_USB_PID_STLINK_V3P) {
         slu->ep_req = 1 /* ep req */ | LIBUSB_ENDPOINT_OUT;
         slu->ep_trace = 2 | LIBUSB_ENDPOINT_IN;
     } else {
@@ -1396,7 +1397,7 @@ static uint32_t stlink_probe_usb_devs(libusb_device **devs, stlink_t **sldevs[],
     return (slcur);
 }
 
-size_t stlink_probe_usb(stlink_t **stdevs[], enum connect_type connect, int32_t freq) {
+uint32_t stlink_probe_usb(stlink_t **stdevs[], enum connect_type connect, int32_t freq) {
     libusb_device **devs;
     stlink_t **sldevs;
 

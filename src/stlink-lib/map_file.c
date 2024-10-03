@@ -52,7 +52,7 @@ int32_t check_file(stlink_t *sl, mapped_file_t *mf, stm32_addr_t addr) {
       aligned_size = (cmp_size + 4) & ~(4 - 1);
     }
 
-    stlink_read_mem32(sl, addr + off, (uint16_t)aligned_size);
+    stlink_read_mem32(sl, addr + off, (uint16_t) aligned_size);
 
     if (memcmp(sl->q_buf, mf->base + off, cmp_size)) {
       return (-1);
@@ -80,7 +80,7 @@ int32_t map_file(mapped_file_t *mf, const char *path) {
 
   if (sizeof(st.st_size) != sizeof(size_t)) {
     // on 32 bit systems, check if there is an overflow
-    if (st.st_size > (off_t)MAX_FILE_SIZE  /*1 GB*/ ) {
+    if (st.st_size > (off_t) MAX_FILE_SIZE  /*1 GB*/ ) {
       // limit file size to 1 GB
       fprintf(stderr, "mmap() uint32_t overflow for file %s\n", path);
       goto on_error;
@@ -88,14 +88,14 @@ int32_t map_file(mapped_file_t *mf, const char *path) {
   }
 
   mf->base =
-      (uint8_t *)mmap(NULL, (size_t)(st.st_size), PROT_READ, MAP_SHARED, fd, 0);
+      (uint8_t *)mmap(NULL, (size_t) (st.st_size), PROT_READ, MAP_SHARED, fd, 0);
 
   if (mf->base == MAP_FAILED) {
     fprintf(stderr, "mmap() == MAP_FAILED for file %s\n", path);
     goto on_error;
   }
 
-  mf->len = (size_t)st.st_size;
+  mf->len = (uint32_t) st.st_size;
   error = 0; // success
 
 on_error:

@@ -7,7 +7,7 @@
 #ifndef FLASH_OPTS_H
 #define FLASH_OPTS_H
 
-#define FLASH_OPTS_INITIALIZER {0, { 0 }, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+#define FLASH_OPTS_INITIALIZER {0, { 0 }, NULL, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 
 enum flash_cmd {FLASH_CMD_NONE = 0, FLASH_CMD_WRITE = 1, FLASH_CMD_READ = 2, FLASH_CMD_ERASE = 3, CMD_RESET = 4};
 enum flash_format {FLASH_FORMAT_BINARY = 0, FLASH_FORMAT_IHEX = 1};
@@ -26,6 +26,7 @@ struct flash_opts {
     uint32_t val;
     uint32_t flash_size;  // --flash=n[k, M]
     int32_t opt;          // enable empty tail data drop optimization
+    int32_t mass_erase;   // Use mass-erase when programming flash instead of sector-erase
     int32_t freq;         // --freq=n[k, M] frequency of JTAG/SWD
     enum connect_type connect;
 };

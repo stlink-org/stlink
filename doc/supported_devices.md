@@ -34,9 +34,9 @@ More commonly these are:
 | STM32H7        | M7F             |                                                            |
 | STM32WB        | M4F             |                                                            |
 | STM32WL        | M4              |                                                            |
-| STM32L5        | M33             |                                                            |
-| STM32H5        | M33             |                                                            |
-| STM32U5        | M33             |                                                            |
+| STM32L5        | M33             | *preliminary, limited and partial support only!*           |
+| STM32H5        | M33             | *preliminary, limited and partial support only!*           |
+| STM32U5        | M33             | *preliminary, limited and partial support only!*           |
 
 
 # Chinese Clone-Chips [may work, but without support!]

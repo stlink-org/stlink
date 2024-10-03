@@ -33,7 +33,8 @@
               <object class="GtkButton" id="flash_dialog_ok_button">
                 <property name="label">gtk-ok</property>
                 <property name="visible">True</property>
-                <property name="can_focus">False</property>
+                <property name="can_focus">True</property>
+                <property name="has_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="use_stock">True</property>
               </object>
@@ -168,6 +169,20 @@
                 <property name="label" translatable="yes">Flash</property>
                 <property name="use_underline">True</property>
                 <property name="stock_id">gtk-media-record</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="homogeneous">True</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkToolButton" id="reset_button">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="tooltip_text" translatable="yes">Reset</property>
+                <property name="label" translatable="yes">Reset</property>
+                <property name="use_underline">True</property>
+                <property name="stock_id">gtk-refresh</property>
               </object>
               <packing>
                 <property name="expand">False</property>

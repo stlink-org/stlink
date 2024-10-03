@@ -108,7 +108,7 @@ static int32_t stlink_write_option_bytes_f0(stlink_t *sl, stm32_addr_t addr, uin
   int32_t ret = 0;
 
   if (len < 12 || addr != STM32_F0_OPTION_BYTES_BASE) {
-	WLOG("Only full write of option bytes area is supported\n");
+    WLOG("Only full write of option bytes area is supported\n");
     return -1;
   }
 
@@ -211,7 +211,7 @@ static int32_t stlink_write_option_control_register_f0(stlink_t *sl, uint32_t op
   user_options = (option_cr >> option_offset >> 2) & 0xFFFF;
   user_data = (option_cr >> user_data_offset) & 0xFFFF;
 
-#define VAL_WITH_COMPLEMENT(v) (uint16_t)(((v)&0xFF) | (((~(v))<<8)&0xFF00))
+#define VAL_WITH_COMPLEMENT(v) (uint16_t) (((v)&0xFF) | (((~(v))<<8)&0xFF00))
 
   opt_val[0] = (option_cr & (1 << 1/*OPT_READOUT*/)) ? 0xFFFF : rdp;
   opt_val[1] = VAL_WITH_COMPLEMENT(user_options);
@@ -330,7 +330,7 @@ int32_t stlink_read_option_bytes_f7(stlink_t *sl, uint32_t *option_byte) {
 
   return stlink_read_debug32(
       sl,
-      sl->option_base + (uint32_t)(sl->option_size / 4 - 1) * sizeof(uint32_t),
+      sl->option_base + (uint32_t) (sl->option_size / 4 - 1) * sizeof(uint32_t),
       option_byte);
 }
 
@@ -919,7 +919,7 @@ int32_t stlink_fwrite_option_bytes(stlink_t *sl, const char *path, stm32_addr_t 
   md5_calculate(&mf);
   stlink_checksum(&mf);
 
-  err = stlink_write_option_bytes(sl, addr, mf.base, (uint32_t)mf.len);
+  err = stlink_write_option_bytes(sl, addr, mf.base, (uint32_t) mf.len);
   stlink_fwrite_finalize(sl, addr);
   unmap_file(&mf);
 
