@@ -259,6 +259,8 @@ int32_t main(int32_t ac, char** av) {
         if (stlink_reset(sl, RESET_AUTO)) {
             printf("Failed to reset device\n");
             goto on_error;
+        } else {
+            stlink_run(sl, RUN_NORMAL);
         }
     
     } else {
