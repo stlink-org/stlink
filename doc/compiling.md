@@ -29,6 +29,8 @@ On Windows users should ensure that the following software is installed:
 2. Move to the `stlink` directory with `cd C:\$Path-to-your-stlink-folder$\`
 3. Execute `mingw64-build.bat`
 
+You can provide make options to the call to the bat file. For example, use `-j8` to build in parallel with 8 jobs: `mingw64-build.bat -j8`
+
 Depending on the flavour of compilation the final executables will be placed in the following directories:
 - Local compilation: `<project_root>\build-mingw\bin`
 - Local installation: `C:\Program Files (x86)\stlink\bin`
