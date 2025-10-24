@@ -31,6 +31,9 @@
 #include "read_write.h"
 #include "usb.h"
 
+#include <unistd.h>
+#include <pthread.h>
+
 static inline uint32_t le_to_h_u32(const uint8_t* buf) {
     return ((uint32_t) ((uint32_t) buf[0] | (uint32_t) buf[1] << 8 | (uint32_t) buf[2] << 16 | (uint32_t) buf[3] << 24));
 }
@@ -1103,6 +1106,21 @@ static stlink_backend_t _stlink_usb_backend = {
     _stlink_usb_read_trace
 };
 
+/* Argument structure for threaded probing */
+struct stlink_probe_arg {
+    char serial[STLINK_SERIAL_BUFFER_SIZE];
+    enum connect_type connect;
+    int32_t freq;
+    stlink_t *res;
+};
+
+/* Worker invoked by each thread to open a device by serial */
+static void *stlink_probe_worker(void *varg) {
+    struct stlink_probe_arg *arg = (struct stlink_probe_arg *)varg;
+    arg->res = stlink_open_usb(0, arg->connect, arg->serial, arg->freq);
+    return NULL;
+}
+
 /* return the length of serial or (0) in case of errors */
 uint32_t stlink_serial(struct libusb_device_handle *handle, struct libusb_device_descriptor *desc, char *serial) {
     unsigned char desc_serial[(STLINK_SERIAL_LENGTH) * 2];
@@ -1367,8 +1385,20 @@ static uint32_t stlink_probe_usb_devs(libusb_device **devs, stlink_t **sldevs[],
         return (0);
     }
 
-    /* Open STLINKS and attach them to list */
+    /* Collect serials for all devices to probe */
+    struct stlink_probe_arg *args = calloc(slcnt, sizeof(*args));
+    pthread_t *threads = calloc(slcnt, sizeof(*threads));
+
+    if(!args || !threads) {
+        free(_sldevs);
+        free(args);
+        free(threads);
+        *sldevs = NULL;
+        return 0;
+    }
+
     i = 0;
+    uint32_t job_idx = 0;
 
     while ((dev = devs[i++]) != NULL) {
         struct libusb_device_descriptor desc;
@@ -1379,6 +1409,7 @@ static uint32_t stlink_probe_usb_devs(libusb_device **devs, stlink_t **sldevs[],
             break;
         }
 
+        if(desc.idVendor != STLINK_USB_VID_ST) { continue; }
         if(!STLINK_SUPPORTED_USB_PID(desc.idProduct)) { continue; }
 
         struct libusb_device_handle* handle;
@@ -1393,7 +1424,7 @@ static uint32_t stlink_probe_usb_devs(libusb_device **devs, stlink_t **sldevs[],
                 ELOG("Failed to open USB device %#06x:%#06x, libusb error: %d)\n", desc.idVendor, desc.idProduct, ret);
             }
 
-            break;
+            continue;
         }
 
         uint32_t serial_len = stlink_serial(handle, &desc, serial);
@@ -1402,16 +1433,37 @@ static uint32_t stlink_probe_usb_devs(libusb_device **devs, stlink_t **sldevs[],
 
         if(serial_len != STLINK_SERIAL_LENGTH) { continue; }
 
-        stlink_t *sl = stlink_open_usb(0, connect, serial, freq);
+        /* prepare thread args */
+        strncpy(args[job_idx].serial, serial, STLINK_SERIAL_BUFFER_SIZE - 1);
+        args[job_idx].connect = connect;
+        args[job_idx].freq = freq;
+        args[job_idx].res = NULL;
 
-        if(!sl) {
-            ELOG("Failed to open USB device %#06x:%#06x\n", desc.idVendor, desc.idProduct);
+        /* spawn worker thread */
+        int rc = pthread_create(&threads[job_idx], NULL, stlink_probe_worker, &args[job_idx]);
+        if(rc != 0) {
+            ELOG("Failed to create probe thread: %s\n", strerror(rc));
+            args[job_idx].res = NULL;
+            /* do not increment job_idx in this case, but continue scanning */
             continue;
         }
 
-        _sldevs[slcur++] = sl;
+        job_idx++;
     }
 
+    /* Join threads and collect successful opens */
+    for(uint32_t n = 0; n < job_idx; n++) {
+        pthread_join(threads[n], NULL);
+        if(args[n].res) {
+            _sldevs[slcur++] = args[n].res;
+        } else {
+            ELOG("Failed to open device %s\n", args[n].serial);
+        }
+    }
+
+    free(args);
+    free(threads);
+    
     *sldevs = _sldevs;
 
     return (slcur);
