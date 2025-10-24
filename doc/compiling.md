@@ -1,52 +1,13 @@
 # Compiling from sources
 
-
-## Microsoft Windows - MINGW (10, 11)
-
-### Common Requirements
-
-On Windows users should ensure that the following software is installed:
-
-- `git` (_optional, but recommended_)
-- `7zip`
-- `MSYS2`
-
-### Installation
-
-1. Install `MSYS2` from <https://www.msys2.org/><br />
-   Follow the installation instructions on the website.
-2. Install `mingw-w64` via the MSYS2 UCRT64 Shell: `pacman -S mingw-w64-x86_64-cmake mingw-w64-x86_64-make mingw-w64-x86_64-gcc git`
-3. Fetch the project sourcefiles by running `git clone https://github.com/stlink-org/stlink.git`from the command-line (cmd.exe)<br />
-   or download and extract (`7zip`) the stlink zip-sourcefolder from the Release page on GitHub.
-
-### Building
-
-1. Open the command-line (cmd.exe) with administrator privileges
-2. Move to the `stlink` directory and execute `C:\$Path-to-your-stlink-folder$\mingw64-build.bat`
-
-Depending on the flavour of compilation the final executables will be placed in the following directories:
-- Local compilation: `<project_root>\build-mingw\bin`
-- Local installation: `C:\Program Files (x86)\stlink\bin`
-- Package Generation (portable): `C:\Users\swift\Desktop\stlink\build-mingw\dist`
-
-#### Removal:
-
-Remove `C:\Program Files (x86)\stlink\` and `C:\$Path-to-your-stlink-folder$`.
-
-
-**NOTE:**
-
-[ST-LINK drivers](https://www.st.com/en/development-tools/stsw-link009.html) are required for programmers to work with `stlink`.
-
-
-## Microsoft Windows - MSVC (10, 11)
+## Microsoft Windows - MSVC (11)
 
 ### Common Requirements
 
 On Windows users should ensure that the following software is installed:
 
 - `git` (Required for building LibUSB if missing)
-- `7zip`
+- `7zip` (_optional_)
 - `cmake`
 - `MSVC` Compiler (Tested with Visual Studio 2022 and Build Tools for Visual Studio 2022)
 
@@ -97,7 +58,7 @@ Install the following packages from your package repository:
 - `libgtk-3-dev` (_optional_, needed for `stlink-gui`)
 - `pandoc` (_optional_, needed for generating manpages from markdown)
 
-or execute (Debian-based systems only): `apt-get install gcc build-essential cmake rpm libusb-1.0-0 libusb-1.0-0-dev libgtk-3-dev pandoc`
+or execute (Debian-based systems only): `apt-get install gcc build-essential cmake rpm libusb-1.0-0 libusb-1.0-0-dev libgtk-4-dev pandoc`
 
 (Replace gcc with the intended C-compiler if necessary or leave out any optional package not needed.)
 

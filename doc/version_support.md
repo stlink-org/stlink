@@ -2,10 +2,9 @@
 
 ### Microsoft Windows
 
-On Windows users should ensure that cmake **3.18.3** or any later version is installed.<br />
+On Windows users should ensure that cmake **3.19** or any later version is installed.<br />
 Up on compiling c-make will **automatically** download and install the latest compatible version of `libusb`.
 
-- Windows 10
 - Windows 11
 
 ### Linux-/Unix-based:
@@ -49,12 +48,8 @@ Systems with highlighted versions remain compatible with this toolset until furt
 | NetBSD 8.x                               | 1.0.**24**                 | 3.**19.7** | May 2024               |
 | OpenMandriva Lx 4.2                      | 1.0.**24**                 | 3.**19.3** | Mar 2023               |
 | Mageia 8                                 | 1.0.**24**                 | 3.**19.2** | Aug 2022               |
-| Debian 11 (Bullseye)                     | 1.0.**24**                 | 3.**18.4** | Jun 2024               |
-| Alpine 3.13                              | 1.0.**24**                 | 3.**18.4** | Nov 2022               |
-| Ubuntu 21.04 (Hirsute)                   | 1.0.**24**                 | 3.**18.4** | Jan 2022               |
 | Adélie 1.0                               | 1.0.23                     | 3.**23.5** |                        |
 | CentOS / Rocky Linux / AlmaLinux 8 [x64] | 1.0.23 (`libusbx`)         | 3.**20.3** | Dec 2021               |
 | CentOS 8 Stream [x64]                    | 1.0.23 (`libusbx`)         | 3.**20.2** | May 2024               |
-| Fedora 33 [x64]                          | 1.0.23 (`libusbx`)         | 3.**18.3** | Nov 2021               |
 
 _All other operating systems which are not listed are unsupported._

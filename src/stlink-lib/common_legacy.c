@@ -745,7 +745,7 @@ int32_t stlink_parse_ihex(const char *path, uint8_t erased_pattern, uint8_t **me
         break;
       }
 
-      uint32_t l = (uint32_t) strlen(line);
+      uint64_t l = strlen(line);
 
       while (l > 0 && (line[l - 1] == '\n' || line[l - 1] == '\r')) {
         --l;
