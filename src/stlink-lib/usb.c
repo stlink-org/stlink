@@ -1434,7 +1434,7 @@ static uint32_t stlink_probe_usb_devs(libusb_device **devs, stlink_t **sldevs[],
         if(serial_len != STLINK_SERIAL_LENGTH) { continue; }
 
         /* prepare thread args */
-        strncpy(args[job_idx].serial, serial, STLINK_SERIAL_BUFFER_SIZE - 1);
+        snprintf(args[job_idx].serial, STLINK_SERIAL_BUFFER_SIZE, "%s", serial);
         args[job_idx].connect = connect;
         args[job_idx].freq = freq;
         args[job_idx].res = NULL;
