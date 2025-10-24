@@ -27,6 +27,9 @@
 #include <stlink_cmd.h>
 #include <stm32_register.h>
 
+#include <unistd.h>
+#include <pthread.h>
+
 #include "logging.h"
 #include "read_write.h"
 #include "usb.h"
