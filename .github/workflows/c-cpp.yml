@@ -188,37 +188,6 @@ jobs:
             cxx: g++-12
             packages: gcc-12-multilib g++-12-multilib
 
-          - name: Ubuntu22.04_x32 clang11
-            os: ubuntu-22.04
-            cc: clang-11
-            cxx: clang++-11
-            packages: gcc-11-multilib g++-11-multilib clang-11
-
-          - name: Ubuntu22.04_x32 clang12
-            os: ubuntu-22.04
-            cc: clang-12
-            cxx: clang++-12
-            packages: gcc-12-multilib g++-12-multilib clang-12
-
-          - name: Ubuntu22.04_x32 clang13
-            os: ubuntu-22.04
-            cc: clang-13
-            cxx: clang++-13
-            packages: gcc-12-multilib g++-12-multilib clang-13
-
-          - name: Ubuntu22.04_x32 clang14
-            os: ubuntu-22.04
-            cc: clang-14
-            cxx: clang++-14
-            packages: gcc-12-multilib g++-12-multilib clang-14
-
-          - name: Ubuntu22.04_x32 clang15
-            os: ubuntu-22.04
-            cc: clang-15
-            cxx: clang++-15
-            packages: gcc-12-multilib g++-12-multilib clang-15
-
-
           - name: Ubuntu24.04_x32 gcc10
             os: ubuntu-24.04
             cc: gcc-10
@@ -242,36 +211,6 @@ jobs:
             cc: gcc-13
             cxx: g++-13
             packages: gcc-12-multilib g++-13-multilib
-
-          - name: Ubuntu24.04_x32 clang14
-            os: ubuntu-24.04
-            cc: clang-14
-            cxx: clang++-14
-            packages: gcc-13-multilib g++-13-multilib clang-14
-
-          - name: Ubuntu24.04_x32 clang15
-            os: ubuntu-24.04
-            cc: clang-15
-            cxx: clang++-15
-            packages: gcc-13-multilib g++-13-multilib clang-15
-
-          - name: Ubuntu24.04_x32 clang16
-            os: ubuntu-24.04
-            cc: clang-16
-            cxx: clang++-16
-            packages: gcc-13-multilib g++-13-multilib clang-16
-
-          - name: Ubuntu24.04_x32 clang17
-            os: ubuntu-24.04
-            cc: clang-17
-            cxx: clang++-17
-            packages: gcc-13-multilib g++-13-multilib clang-17
-
-          - name: Ubuntu24.04_x32 clang18
-            os: ubuntu-24.04
-            cc: clang-18
-            cxx: clang++-18
-            packages: gcc-13-multilib g++-13-multilib clang-18
 
     name: ${{ matrix.config.name }}
     runs-on: ${{ matrix.config.os }}
@@ -362,6 +301,7 @@ jobs:
       - name: sudo make uninstall
         working-directory: ./build/release
         run: cmake --build . --target uninstall
+
 # Linux MinGW cross compliation
 
 # job_linux_22_04_cross:

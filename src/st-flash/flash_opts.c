@@ -17,7 +17,7 @@
 #include <helper.h>
 
 static bool starts_with(const char * str, const char * prefix) {
-    uint32_t n = (uint32_t) strlen(prefix);
+    uint64_t n = strlen(prefix);
 
     if(strlen(str) < n) { return (false); }
 
@@ -203,7 +203,7 @@ int32_t flash_get_opts(struct flash_opts* o, int32_t ac, char** av) {
             if(result != 0) {
                 return (bad_arg ("--flash"));
             } else {
-                o->flash_size = (uint32_t) flash_size;
+                o->flash_size = flash_size;
             }
         } else if(strcmp(av[0], "--connect-under-reset") == 0) {
             o->connect = CONNECT_UNDER_RESET;
@@ -263,7 +263,7 @@ int32_t flash_get_opts(struct flash_opts* o, int32_t ac, char** av) {
             if(result != 0) {
                 return bad_arg ("size");
             } else {
-                o->size = (uint32_t) size;
+                o->size = size;
             }
         }
 
@@ -287,7 +287,7 @@ int32_t flash_get_opts(struct flash_opts* o, int32_t ac, char** av) {
             if(result != 0) {
                 return bad_arg ("size");
             } else {
-                o->size = (uint32_t) size;
+                o->size = size;
             }
 
             break;
@@ -304,7 +304,7 @@ int32_t flash_get_opts(struct flash_opts* o, int32_t ac, char** av) {
                 if(result != 0) {
                     return bad_arg("option bytes read: invalid size");
                 } else {
-                    o->size = (uint32_t) size;
+                    o->size = size;
                 }
             }
             break;

@@ -9,6 +9,6 @@ flash_pagesize 0x2000        // 8 KB
 sram_size 0x274800           // 2514 KB
 bootrom_base 0x0bf90000
 bootrom_size 0x8000          // 32 KB
-option_base 0x0
-option_size 0x0
+option_base 0x40022040
+option_size 0x04
 flags swo dualbank

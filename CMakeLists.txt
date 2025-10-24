@@ -2,8 +2,7 @@
 # General cmake settings
 ###
 
-cmake_minimum_required(VERSION 3.18.3)
-cmake_policy(SET CMP0042 NEW)
+cmake_minimum_required(VERSION 3.19)
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
