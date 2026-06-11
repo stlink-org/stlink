@@ -1022,7 +1022,9 @@ uint32_t stlink_calculate_pagesize(stlink_t *sl, uint32_t flashaddr) {
       (sl->chip_id == STM32_CHIPID_F446) ||
       (sl->chip_id == STM32_CHIPID_F4_DSI) ||
       (sl->chip_id == STM32_CHIPID_F72xxx) ||
-      (sl->chip_id == STM32_CHIPID_F412)) {
+      (sl->chip_id == STM32_CHIPID_F412) ||
+      (sl->chip_id == STM32_CHIPID_F410) ||
+      (sl->chip_id == STM32_CHIPID_F413)) {
     uint32_t sector = calculate_F4_sectornum(flashaddr);
 
     if(sector >= 12) {
