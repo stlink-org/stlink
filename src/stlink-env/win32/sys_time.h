@@ -4,8 +4,6 @@
  *
  */
 
-// TODO: CONTENT AND USE OF THIS SOURCE FILE IS TO BE VERIFIED
-
 #ifndef SYS_TIME_H
 #define SYS_TIME_H
 

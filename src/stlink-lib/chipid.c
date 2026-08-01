@@ -209,7 +209,10 @@ void process_chipfile(char *fname) {
   devicelist = ts;
 }
 
-#if defined(STLINK_HAVE_DIRENT_H)
+
+/* == Unix (POSIX) systems == */
+
+#ifdef STLINK_HAVE_DIRENT_H
 #include <dirent.h>
 
 void init_chipids(char *dir_to_scan) {
@@ -244,7 +247,10 @@ void init_chipids(char *dir_to_scan) {
 
 #endif // STLINK_HAVE_DIRENT_H
 
-#if defined(_WIN32) && !defined(STLINK_HAVE_DIRENT_H)
+
+/* == Windows systems == */
+
+#ifdef STLINK_HAVE_WINDOWS_H
 #include <fileapi.h>
 #include <strsafe.h>
 
@@ -286,4 +292,4 @@ void init_chipids(char *dir_to_scan) {
   FindClose(hFind);
 }
 
-#endif // defined(_WIN32) && !defined(STLINK_HAVE_DIRENT_H)
+#endif // STLINK_HAVE_WINDOWS_H
