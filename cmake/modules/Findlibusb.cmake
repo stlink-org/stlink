@@ -104,66 +104,6 @@ elseif(MINGW AND EXISTS "/etc/debian_version")
         endif()
     endif()
 
-    # Architecture: 64-bit or 32-bit?
-    if (CMAKE_SIZEOF_VOID_P EQUAL 8)
-        message(STATUS "=== Building for Windows (x86-64) ===")
-        set(ARCH 64)
-    else ()
-        message(STATUS "=== Building for Windowsm (i686) ===")
-        set(ARCH 32)
-    endif ()
-
-    # Download and build libusb via FetchContent
-    if(NOT LIBUSB_FOUND)
-        message(STATUS "libusb-1.0 not found locally. Downloading and building from source via FetchContent...")
-
-        FetchContent_Declare(
-            libusb
-            GIT_REPOSITORY "https://github.com/libusb/libusb.git"
-            GIT_TAG "v1.0.30"
-        )
-        FetchContent_MakeAvailable(libusb)
-
-        # Run bootstrap.sh (if available)
-        if(EXISTS "${libusb_SOURCE_DIR}/bootstrap.sh")
-            execute_process(
-                COMMAND ./bootstrap.sh
-                WORKING_DIRECTORY ${libusb_SOURCE_DIR}
-                RESULT_VARIABLE BOOTSTRAP_RESULT
-            )
-        endif()
-
-        # Configuration for MinGW
-        execute_process(
-            COMMAND test -f configure || ./bootstrap
-            COMMAND ./configure --host=i686-w64-mingw${ARCH} --prefix=${libusb_BINARY_DIR}/install 
-                                --enable-static --disable-shared --disable-udev
-            WORKING_DIRECTORY ${libusb_SOURCE_DIR}
-            RESULT_VARIABLE CONFIGURE_RESULT
-        )
-
-        # Build and install library
-        execute_process(
-            COMMAND make
-            COMMAND make install
-            WORKING_DIRECTORY ${libusb_SOURCE_DIR}
-            RESULT_VARIABLE MAKE_RESULT
-        )
-
-        # Get include dir and library path from the target
-        set(LIBUSB_INCLUDE_DIR "${libusb_SOURCE_DIR}/libusb")
-        set(LIBUSB_LIBRARY "${libusb_SOURCE_DIR}/../libusb-build/install/lib/libusb-1.0.a")
-
-        # Create a CMake target
-        if(NOT TARGET libusb::libusb)
-            add_library(libusb::libusb UNKNOWN IMPORTED GLOBAL)
-            set_target_properties(libusb::libusb PROPERTIES
-                INTERFACE_INCLUDE_DIRECTORIES "${LIBUSB_INCLUDE_DIR}"
-                IMPORTED_LOCATION "${LIBUSB_LIBRARY}"
-            )
-        endif()
-    endif()
-
 # All other Unix-based systems (Linux, macOS, etc.)
 else()
     # Use pkg-config to find libusb (if available)

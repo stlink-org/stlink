@@ -258,20 +258,12 @@ void init_chipids(char *dir_to_scan) {
   HANDLE hFind = INVALID_HANDLE_VALUE;
   WIN32_FIND_DATAA ffd;
   char filepath[MAX_PATH] = {0};
-  int32_t filepathlen = 0;
 
-  StringCchCopyA(filepath, STLINK_ARRAY_SIZE(filepath), dir_to_scan);
-
-  if(FAILED(
-          StringCchCatA(filepath, STLINK_ARRAY_SIZE(filepath), "\\*.chip"))) {
+  if(FAILED(StringCchCopyA(filepath, STLINK_ARRAY_SIZE(filepath), dir_to_scan)) ||
+      FAILED(StringCchCatA(filepath, STLINK_ARRAY_SIZE(filepath), "\\*.chip"))) {
     ELOG("Path to chips's dir too long.\n");
     return;
   }
-
-  filepath[filepathlen] = '\0';
-  StringCchCatA(filepath, STLINK_ARRAY_SIZE(filepath), "\\");
-  StringCchCatA(filepath, STLINK_ARRAY_SIZE(filepath), dir_to_scan);
-  StringCchCatA(filepath, STLINK_ARRAY_SIZE(filepath), "\\*.chip");
 
   hFind = FindFirstFileA(filepath, &ffd);
 
@@ -281,9 +273,7 @@ void init_chipids(char *dir_to_scan) {
   }
 
   do {
-    filepath[filepathlen] = '\0';
-    StringCchCatA(filepath, STLINK_ARRAY_SIZE(filepath), "\\");
-    StringCchCatA(filepath, STLINK_ARRAY_SIZE(filepath), dir_to_scan);
+    StringCchCopyA(filepath, STLINK_ARRAY_SIZE(filepath), dir_to_scan);
     StringCchCatA(filepath, STLINK_ARRAY_SIZE(filepath), "\\");
     StringCchCatA(filepath, STLINK_ARRAY_SIZE(filepath), ffd.cFileName);
     process_chipfile(filepath);

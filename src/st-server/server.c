@@ -114,7 +114,7 @@ int32_t main(int32_t argc, char **argv) {
         {"freq",    required_argument, NULL, 'f'},
         {"verbose", optional_argument, NULL, 'v'},
         {"help",    no_argument,       NULL, 'h'},
-        {0, 0, 0, 0},
+        {NULL, 0, NULL, 0}
     };
 
     int32_t c, option_index = 0;

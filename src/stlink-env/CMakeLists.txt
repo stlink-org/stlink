@@ -16,13 +16,16 @@ if (WIN32)
     message(STATUS "Configuring for Windows (Windows 10+)")
 
     # Compiler definitions for Windows
-    list(APPEND STLINK_DEFINITIONS 
+    list(APPEND STLINK_DEFINITIONS
         -D_WIN32_WINNT=0x0A00   # Minimum system requirement: Windows 10
         -D_WIN32=1              # Define _WIN32 for platform specific code
+        -DWIN32_LEAN_AND_MEAN   # Keep windows.h from pulling in winsock.h v1, which conflicts with
+                                # winsock2.h regardless of include order (libusb.h drags in windows.h
+                                # ahead of remote.h/win32_socket.h in some TUs)
     )
 
     # Include directories containing windows-specific header files
-    include_directories(src/stlink-env/win32)
+    list(APPEND STLINK_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/win32)
 
     link_libraries(ws2_32)      # Link Windows-Socket library
 
@@ -120,3 +123,4 @@ set(STLINK_SOURCES ${STLINK_SOURCES} PARENT_SCOPE)
 set(STLINK_HEADERS ${STLINK_HEADERS} PARENT_SCOPE)
 set(STLINK_DEFINITIONS ${STLINK_DEFINITIONS} PARENT_SCOPE)
 set(STLINK_COMPILE_OPTIONS ${STLINK_COMPILE_OPTIONS} PARENT_SCOPE)
+set(STLINK_INCLUDE_DIRS ${STLINK_INCLUDE_DIRS} PARENT_SCOPE)

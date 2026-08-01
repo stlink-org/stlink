@@ -117,6 +117,7 @@ set(STLINK_SOURCES)
 # for system-specific definitions, external libraries, source and header files
 add_subdirectory(src/stlink-env)
 include_directories(src/stlink-env)
+include_directories(${STLINK_INCLUDE_DIRS})
 add_definitions(${STLINK_DEFINITIONS})
 add_compile_options(${STLINK_COMPILE_OPTIONS})
 
