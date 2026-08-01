@@ -71,24 +71,41 @@ elseif(MINGW AND EXISTS "/etc/debian_version")
                 WORKING_DIRECTORY ${libusb_SOURCE_DIR}
                 RESULT_VARIABLE BOOTSTRAP_RESULT
             )
+            if(NOT BOOTSTRAP_RESULT EQUAL 0)
+                message(FATAL_ERROR "libusb bootstrap.sh failed with code ${BOOTSTRAP_RESULT}")
+            endif()
         endif()
 
-        # Configuration for MinGW
+        # Configure
         execute_process(
-            COMMAND test -f configure || ./bootstrap
-            COMMAND ./configure --host=i686-w64-mingw${ARCH} --prefix=${libusb_BINARY_DIR}/install 
+            COMMAND ./configure --host=i686-w64-mingw${ARCH} --prefix=${libusb_BINARY_DIR}/install
                                 --enable-static --disable-shared --disable-udev
             WORKING_DIRECTORY ${libusb_SOURCE_DIR}
             RESULT_VARIABLE CONFIGURE_RESULT
         )
+        if(NOT CONFIGURE_RESULT EQUAL 0)
+            message(FATAL_ERROR "libusb configure failed with code ${CONFIGURE_RESULT}")
+        endif()
 
-        # Build and install library
+        # Build library
         execute_process(
             COMMAND make
-            COMMAND make install
             WORKING_DIRECTORY ${libusb_SOURCE_DIR}
             RESULT_VARIABLE MAKE_RESULT
         )
+        if(NOT MAKE_RESULT EQUAL 0)
+            message(FATAL_ERROR "libusb make failed with code ${MAKE_RESULT}")
+        endif()
+
+        # Install library
+        execute_process(
+            COMMAND make install
+            WORKING_DIRECTORY ${libusb_SOURCE_DIR}
+            RESULT_VARIABLE INSTALL_RESULT
+        )
+        if(NOT INSTALL_RESULT EQUAL 0)
+            message(FATAL_ERROR "libusb make install failed with code ${INSTALL_RESULT}")
+        endif()
 
         # Get include dir and library path from the target
         set(LIBUSB_INCLUDE_DIR "${libusb_SOURCE_DIR}/libusb")
