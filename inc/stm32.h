@@ -72,6 +72,7 @@ enum stm32_flash_type {
     STM32_FLASH_TYPE_WB_WL     = 12,
     STM32_FLASH_TYPE_WB0       = 13,
     STM32_FLASH_TYPE_H5        = 14,
+    STM32_FLASH_TYPE_C5        = 15,
 };
 
 /* STM32 chip-ids */
@@ -125,6 +126,8 @@ enum stm32_chipids {
     STM32_CHIPID_F7               = 0x449, /* Nucleo F746ZG board */
     STM32_CHIPID_C051xx           = 0x44C, /* RM0490 (Rev. 5), section 30.10.1 "DBG device ID code register (DBG_IDCODE)" */
     STM32_CHIPID_C091xx_C92xx     = 0x44D, /* RM0490 (Rev. 5), section 30.10.1 "DBG device ID code register (DBG_IDCODE)" */
+    STM32_CHIPID_C55x_C56x        = 0x44E, /* RM0522, DBGMCU_IDCODE DEV_ID */
+    STM32_CHIPID_C53x_C54x        = 0x44F, /* RM0522, DBGMCU_IDCODE DEV_ID */
     STM32_CHIPID_H74xxx           = 0x450, /* RM0433, p.3189 */
     STM32_CHIPID_F76xxx           = 0x451,
     STM32_CHIPID_F72xxx           = 0x452, /* Nucleo F722ZE board */
@@ -134,6 +137,7 @@ enum stm32_chipids {
     STM32_CHIPID_L0_CAT1          = 0x457,
     STM32_CHIPID_F410             = 0x458,
     STM32_CHIPID_U031xx           = 0x459,    
+    STM32_CHIPID_C59x_C5Ax        = 0x45A, /* RM0522, DBGMCU_IDCODE DEV_ID */
     STM32_CHIPID_G0_CAT2          = 0x460, /* G07x/G08x */
     STM32_CHIPID_L496x_L4A6x      = 0x461,
     STM32_CHIPID_L45x_L46x        = 0x462,
@@ -252,6 +256,13 @@ enum stm32_chipids {
 #define STM32WB0_RCC_AHB_DMAEN      ((uint32_t) 0x00000001)
 #define STM32WB0_RCC_APB0ENR        ((uint32_t) 0x48400054)
 #define STM32WB0_RCC_APB0_WDGEN     ((uint32_t) 0x00004000)
+
+// == STM32C5 == (RM0522)
+// C5 RCC register map: RCC_BASE = AHB3PERIPH_BASE(0x44020000) + 0x0C00,
+// AHB1ENR is at RCC_BASE + 0x088.
+// DMA clocks: LPDMA1EN@0 | LPDMA2EN@1.
+#define STM32C5_RCC_AHB1ENR 0x44020C88 // RM0522, RCC AHB1 peripheral clock enable register
+#define STM32C5_RCC_DMAEN 0x00000003   // LPDMA2EN | LPDMA1EN
 
 #define STM32L5_PWR_CR1             ((uint32_t) 0x40007000) // RM0438, p.93,324
 #define STM32L5_PWR_CR1_VOS                     9

@@ -576,6 +576,9 @@ static void set_flash_cr_pg(stlink_t *sl, uint32_t bank) {
   } else if(sl->flash_type == STM32_FLASH_TYPE_WB_WL) {
     cr_reg = STM32_FLASH_WB_CR;
     x |= (1 << FLASH_CR_PG);
+  } else if(sl->flash_type == STM32_FLASH_TYPE_C5) {
+    cr_reg = STM32_FLASH_C5_CR;
+    x |= (1 << STM32_FLASH_C5_CR_PG);
   } else if(sl->flash_type == STM32_FLASH_TYPE_H7) {
     cr_reg = (bank == BANK_1) ? STM32_FLASH_H7_CR1 : STM32_FLASH_H7_CR2;
     x |= (1 << STM32_FLASH_H7_CR_PG);
@@ -640,6 +643,10 @@ static void set_dma_state(stlink_t *sl, flash_loader_t *fl, int32_t bckpRstr) {
   case STM32_FLASH_TYPE_WB0:
     rcc = STM32WB0_RCC_AHBENR;
     rcc_dma_mask = STM32WB0_RCC_AHB_DMAEN;
+    break;
+  case STM32_FLASH_TYPE_C5:
+    rcc = STM32C5_RCC_AHB1ENR;
+    rcc_dma_mask = STM32C5_RCC_DMAEN;
     break;
   default:
     return;
@@ -725,8 +732,9 @@ int32_t stlink_flashloader_start(stlink_t *sl, flash_loader_t *fl) {
              sl->flash_type == STM32_FLASH_TYPE_G0 ||
              sl->flash_type == STM32_FLASH_TYPE_G4 ||
              sl->flash_type == STM32_FLASH_TYPE_L5_U5 ||
+             sl->flash_type == STM32_FLASH_TYPE_C5 ||
              sl->flash_type == STM32_FLASH_TYPE_C0) {
-    ILOG("Starting Flash write for WB/G0/G4/L5/U5/C0\n");
+    ILOG("Starting Flash write for WB/G0/G4/L5/U5/C0/C5\n");
 
     unlock_flash_if(sl);         // unlock flash if necessary
     set_flash_cr_pg(sl, BANK_1); // set PG 'allow programming' bit
@@ -833,6 +841,44 @@ int32_t stlink_flashloader_write(stlink_t *sl, flash_loader_t *fl, stm32_addr_t 
 
       off += size;
     }
+  } else if(sl->flash_type == STM32_FLASH_TYPE_C5) {
+    // C5 programs flash in 16-byte (128-bit) rows: four 32-bit words are
+    // latched, then the controller commits one row per BSY cycle (RM0522;
+    // matches the DFP mem_loader_program). Writing a single word leaves the
+    // row incomplete and the controller stalls, so write whole rows via one
+    // MEM-AP transfer and wait for BSY only once per row.
+    const uint32_t row = 16;
+
+    const uint32_t padded_len = (len + row - 1) & ~(row - 1);
+    if(len != padded_len) WLOG("Aligning data size to 16 bytes\n");
+
+    DLOG("Starting %3u row write\n", padded_len / row);
+
+    for(off = 0; off < padded_len; off += row) {
+      uint32_t bytes_to_copy = len - off < row ? len - off : row;
+      memcpy(sl->q_buf, base + off, bytes_to_copy);
+      memset(sl->q_buf + bytes_to_copy, 0xFF, row - bytes_to_copy);
+
+      if((off % sl->flash_pgsz) > (sl->flash_pgsz - row - 1)) {
+        fprintf(stdout, "%3u/%-3u pages written\n", (off / sl->flash_pgsz + 1),
+                (padded_len / sl->flash_pgsz));
+        fflush(stdout);
+      }
+
+      if(stlink_write_mem32(sl, addr + off, (uint16_t)row)) {
+        ELOG("stlink_write_mem32(%#x) failed! == -1\n", (addr + off));
+        check_flash_error(sl);
+        return (-1);
+      }
+
+      wait_flash_busy(sl);
+
+      if(check_flash_error(sl)) {
+        return (-1);
+      }
+    }
+
+    fprintf(stdout, "\n");
   } else if(sl->flash_type == STM32_FLASH_TYPE_WB_WL ||
              sl->flash_type == STM32_FLASH_TYPE_G0 ||
              sl->flash_type == STM32_FLASH_TYPE_G4 ||
@@ -999,7 +1045,8 @@ int32_t stlink_flashloader_stop(stlink_t *sl, flash_loader_t *fl) {
       (sl->flash_type == STM32_FLASH_TYPE_L4) ||
       (sl->flash_type == STM32_FLASH_TYPE_L5_U5) ||
       (sl->flash_type == STM32_FLASH_TYPE_H5) ||
-      (sl->flash_type == STM32_FLASH_TYPE_WB_WL)) {
+      (sl->flash_type == STM32_FLASH_TYPE_WB_WL) ||
+      (sl->flash_type == STM32_FLASH_TYPE_C5)) {
 
     clear_flash_cr_pg(sl, BANK_1);
     if((sl->flash_type == STM32_FLASH_TYPE_H7 && sl->chip_flags & CHIP_F_HAS_DUAL_BANK) ||
