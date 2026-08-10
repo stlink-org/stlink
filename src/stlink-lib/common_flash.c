@@ -66,6 +66,8 @@ uint32_t read_flash_cr(stlink_t *sl, uint32_t bank) {
     reg = STM32_FLASH_H5_NSCR;
   } else if(sl->flash_type == STM32_FLASH_TYPE_WB_WL) {
     reg = STM32_FLASH_WB_CR;
+  } else if(sl->flash_type == STM32_FLASH_TYPE_C5) {
+    reg = STM32_FLASH_C5_CR;
   } else {
     reg = (bank == BANK_1) ? FLASH_CR : FLASH_CR2;
   }
@@ -124,6 +126,9 @@ void lock_flash(stlink_t *sl) {
   } else if(sl->flash_type == STM32_FLASH_TYPE_WB_WL) {
     cr_reg = STM32_FLASH_WB_CR;
     cr_lock_shift = STM32_FLASH_WB_CR_LOCK;
+  } else if(sl->flash_type == STM32_FLASH_TYPE_C5) {
+    cr_reg = STM32_FLASH_C5_CR;
+    cr_lock_shift = STM32_FLASH_C5_CR_LOCK;
   } else {
     ELOG("unsupported flash method, abort\n");
     return;
@@ -169,6 +174,8 @@ static inline int32_t write_flash_sr(stlink_t *sl, uint32_t bank, uint32_t val) 
     sr_reg = STM32_FLASH_WB_SR;
   } else if(sl->flash_type == STM32_FLASH_TYPE_WB0) {
     sr_reg = STM32_FLASH_WB0_IRQRAW;
+  } else if(sl->flash_type == STM32_FLASH_TYPE_C5) {
+    sr_reg = STM32_FLASH_C5_CCR;
   } else {
     ELOG("method 'write_flash_sr' is unsupported\n");
     return (-1);
@@ -224,6 +231,9 @@ void clear_flash_error(stlink_t *sl) {
   case STM32_FLASH_TYPE_WB0:
     write_flash_sr(sl, BANK_1, STM32_FLASH_WB0_IRQ_ERR_MASK);
     break;
+  case STM32_FLASH_TYPE_C5:
+    write_flash_sr(sl, BANK_1, STM32_FLASH_C5_SR_ERROR_MASK);
+    break;
   default:
     break;
   }
@@ -258,6 +268,8 @@ uint32_t read_flash_sr(stlink_t *sl, uint32_t bank) {
     sr_reg = STM32_FLASH_WB_SR;
   } else if(sl->flash_type == STM32_FLASH_TYPE_WB0) {
     sr_reg = STM32_FLASH_WB0_IRQRAW;
+  } else if(sl->flash_type == STM32_FLASH_TYPE_C5) {
+    sr_reg = STM32_FLASH_C5_SR;
   } else {
     ELOG("method 'read_flash_sr' is unsupported\n");
     return (-1);
@@ -294,6 +306,12 @@ uint32_t is_flash_busy(stlink_t *sl) {
     sr_busy_shift = STM32_FLASH_H5_NSSR_BSY;
   } else if(sl->flash_type == STM32_FLASH_TYPE_WB_WL) {
     sr_busy_shift = STM32_FLASH_WB_SR_BSY;
+  } else if(sl->flash_type == STM32_FLASH_TYPE_C5) {
+    // a new C5 program/erase operation may only start when the controller and
+    // both internal buffers are idle (RM0522 single-write sequence).
+    return read_flash_sr(sl, BANK_1) &
+           ((1u << STM32_FLASH_C5_SR_BSY) | (1u << STM32_FLASH_C5_SR_WBNE) |
+            (1u << STM32_FLASH_C5_SR_DBNE));
   } else if(sl->flash_type == STM32_FLASH_TYPE_WB0) {
     res = read_flash_sr(sl, BANK_1);
     uint32_t has_errors = res & STM32_FLASH_WB0_IRQ_ERR_MASK;
@@ -404,6 +422,10 @@ int32_t check_flash_error(stlink_t *sl) {
     PROGERR = (1 << STM32_FLASH_WB_SR_PROGERR);
     PGAERR = (1 << STM32_FLASH_WB_SR_PGAERR);
     break;
+  case STM32_FLASH_TYPE_C5:
+    res = read_flash_sr(sl, BANK_1) & STM32_FLASH_C5_SR_ERROR_MASK;
+    WRPERR = (1 << STM32_FLASH_C5_SR_WRPERR);
+    break;
   case STM32_FLASH_TYPE_WB0:
     res = read_flash_sr(sl, BANK_1) & STM32_FLASH_WB0_IRQ_ERR_MASK;
     if (res) {
@@ -480,6 +502,9 @@ static inline uint32_t is_flash_locked(stlink_t *sl) {
   } else if(sl->flash_type == STM32_FLASH_TYPE_WB_WL) {
     cr_reg = STM32_FLASH_WB_CR;
     cr_lock_shift = STM32_FLASH_WB_CR_LOCK;
+  } else if(sl->flash_type == STM32_FLASH_TYPE_C5) {
+    cr_reg = STM32_FLASH_C5_CR;
+    cr_lock_shift = STM32_FLASH_C5_CR_LOCK;
   } else if(sl->flash_type == STM32_FLASH_TYPE_WB0) {
     return 0;
   } else {
@@ -538,6 +563,8 @@ static void unlock_flash(stlink_t *sl) {
     key_reg = STM32_FLASH_H5_NSKEYR;
   } else if(sl->flash_type == STM32_FLASH_TYPE_WB_WL) {
     key_reg = STM32_FLASH_WB_KEYR;
+  } else if(sl->flash_type == STM32_FLASH_TYPE_C5) {
+    key_reg = STM32_FLASH_C5_KEYR;
   } else {
     ELOG("unsupported flash method, abort\n");
     return;
@@ -831,6 +858,9 @@ void clear_flash_cr_pg(stlink_t *sl, uint32_t bank) {
     bit = STM32_FLASH_H5_NSCR_PG;
   } else if(sl->flash_type == STM32_FLASH_TYPE_WB_WL) {
     cr_reg = STM32_FLASH_WB_CR;
+  } else if(sl->flash_type == STM32_FLASH_TYPE_C5) {
+    cr_reg = STM32_FLASH_C5_CR;
+    bit = STM32_FLASH_C5_CR_PG;
   } else {
     cr_reg = FLASH_CR;
   }
@@ -890,6 +920,7 @@ static inline void write_flash_cr_snb(stlink_t *sl, uint32_t n, uint32_t bank) {
 
 static void set_flash_cr_per(stlink_t *sl, uint32_t bank) {
   uint32_t cr_reg, val;
+  uint32_t per_shift = FLASH_CR_PER;
 
   if(sl->flash_type == STM32_FLASH_TYPE_C0) {
     cr_reg = STM32_FLASH_C0_CR;
@@ -900,17 +931,21 @@ static void set_flash_cr_per(stlink_t *sl, uint32_t bank) {
     cr_reg = STM32_FLASH_L5_NSCR;
   } else if(sl->flash_type == STM32_FLASH_TYPE_WB_WL) {
     cr_reg = STM32_FLASH_WB_CR;
+  } else if(sl->flash_type == STM32_FLASH_TYPE_C5) {
+    cr_reg = STM32_FLASH_C5_CR;
+    per_shift = STM32_FLASH_C5_CR_PER;
   } else {
     cr_reg = (bank == BANK_1) ? FLASH_CR : FLASH_CR2;
   }
 
   stlink_read_debug32(sl, cr_reg, &val);
-  val |= (1 << FLASH_CR_PER);
+  val |= (1 << per_shift);
   stlink_write_debug32(sl, cr_reg, val);
 }
 
 static void clear_flash_cr_per(stlink_t *sl, uint32_t bank) {
   uint32_t cr_reg;
+  uint32_t per_shift = FLASH_CR_PER;
 
   if(sl->flash_type == STM32_FLASH_TYPE_C0) {
     cr_reg = STM32_FLASH_C0_CR;
@@ -921,11 +956,14 @@ static void clear_flash_cr_per(stlink_t *sl, uint32_t bank) {
     cr_reg = STM32_FLASH_L5_NSCR;
   } else if(sl->flash_type == STM32_FLASH_TYPE_WB_WL) {
     cr_reg = STM32_FLASH_WB_CR;
+  } else if(sl->flash_type == STM32_FLASH_TYPE_C5) {
+    cr_reg = STM32_FLASH_C5_CR;
+    per_shift = STM32_FLASH_C5_CR_PER;
   } else {
     cr_reg = (bank == BANK_1) ? FLASH_CR : FLASH_CR2;
   }
 
-  const uint32_t n = read_flash_cr(sl, bank) & ~(1 << FLASH_CR_PER);
+  const uint32_t n = read_flash_cr(sl, bank) & ~(1 << per_shift);
   stlink_write_debug32(sl, cr_reg, n);
 }
 
@@ -976,6 +1014,9 @@ static void set_flash_cr_strt(stlink_t *sl, uint32_t bank) {
   } else if(sl->flash_type == STM32_FLASH_TYPE_WB_WL) {
     cr_reg = STM32_FLASH_WB_CR;
     cr_strt = (1 << STM32_FLASH_WB_CR_STRT);
+  } else if(sl->flash_type == STM32_FLASH_TYPE_C5) {
+    cr_reg = STM32_FLASH_C5_CR;
+    cr_strt = (1 << STM32_FLASH_C5_CR_STRT);
   } else {
     cr_reg = (bank == BANK_1) ? FLASH_CR : FLASH_CR2;
     cr_strt = (1 << FLASH_CR_STRT);
@@ -1029,6 +1070,10 @@ static void set_flash_cr_mer(stlink_t *sl, bool v, uint32_t bank) {
     cr_reg = STM32_FLASH_WB_CR;
     cr_mer = (1 << FLASH_CR_MER);
     cr_pg = (1 << FLASH_CR_PG);
+  } else if(sl->flash_type == STM32_FLASH_TYPE_C5) {
+    cr_reg = STM32_FLASH_C5_CR;
+    cr_mer = (1 << STM32_FLASH_C5_CR_MER);
+    cr_pg = (1 << STM32_FLASH_C5_CR_PG);
   } else {
     cr_reg = (bank == BANK_1) ? FLASH_CR : FLASH_CR2;
     cr_mer = (1 << FLASH_CR_MER);
@@ -1188,6 +1233,7 @@ int32_t stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr) {
              sl->flash_type == STM32_FLASH_TYPE_G4 ||
              sl->flash_type == STM32_FLASH_TYPE_L5_U5 ||
              sl->flash_type == STM32_FLASH_TYPE_WB_WL ||
+             sl->flash_type == STM32_FLASH_TYPE_C5 ||
              sl->flash_type == STM32_FLASH_TYPE_C0) {
     uint32_t val;
     unlock_flash_if(sl);
@@ -1276,6 +1322,41 @@ int32_t stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr) {
       val |= ((flash_page & 0xF) << STM32_FLASH_C0_CR_PNB);
 
       stlink_write_debug32(sl, STM32_FLASH_C0_CR, val);
+
+    // STM32C5
+    } else if(sl->flash_type == STM32_FLASH_TYPE_C5) {
+      // RM0522: page erase via CR.PER@2 + CR.PNB@6, bank via CR.BKSEL@31.
+      // In dual-bank mode, bank 2 base = flash_base + flash_size/2. Half-size
+      // devices can instead use one bank, with PNB spanning the whole flash.
+      uint32_t flash_page, optsr = 0;
+      stlink_read_debug32(sl, STM32_FLASH_C5_CR, &val);
+      stlink_read_debug32(sl, STM32_FLASH_C5_OPTSR_CUR, &optsr);
+
+      bool upper_half = (flashaddr - STM32_FLASH_BASE) >= sl->flash_size / 2;
+      bool single_bank = (optsr >> STM32_FLASH_C5_OPTSR_CUR_SINGLE_BANK) & 1u;
+      bool swap_bank = (optsr >> STM32_FLASH_C5_OPTSR_CUR_SWAP_BANK) & 1u;
+
+      if(single_bank) {
+        flash_page = (flashaddr - STM32_FLASH_BASE) / sl->flash_pgsz;
+        val &= ~(1u << STM32_FLASH_C5_CR_BKSEL);
+      } else {
+        flash_page = (flashaddr - STM32_FLASH_BASE -
+                      (upper_half ? sl->flash_size / 2 : 0)) /
+                     sl->flash_pgsz;
+        if(upper_half != swap_bank) {
+          val |= (1u << STM32_FLASH_C5_CR_BKSEL);
+        } else {
+          val &= ~(1u << STM32_FLASH_C5_CR_BKSEL);
+        }
+      }
+
+      val &= ~(0x7F << STM32_FLASH_C5_CR_PNB);
+      val &= ~(1u << STM32_FLASH_C5_CR_PG);
+      val &= ~(1u << STM32_FLASH_C5_CR_BER);
+      val &= ~(1u << STM32_FLASH_C5_CR_MER);
+      val |= ((flash_page & 0x7F) << STM32_FLASH_C5_CR_PNB);
+      val |= (1u << STM32_FLASH_C5_CR_PER);
+      stlink_write_debug32(sl, STM32_FLASH_C5_CR, val);
     }
 
     set_flash_cr_strt(sl, BANK_1);  // set the 'start operation' bit
@@ -1675,7 +1756,7 @@ int32_t stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t *base,
   // Check the address and size validity
   if(stlink_check_address_range_validity(sl, addr, len) < 0) {
     return (-1);
-  } else if(len & 1) {
+  } else if((len & 1) && sl->flash_type != STM32_FLASH_TYPE_C5) {
     WLOG("unaligned len 0x%x -- padding with zero\n", len);
     len += 1;
   } else if(stlink_check_address_alignment(sl, addr) < 0) {

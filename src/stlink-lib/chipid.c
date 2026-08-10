@@ -125,6 +125,8 @@ void process_chipfile(char *fname) {
         ts->flash_type = STM32_FLASH_TYPE_WB0;
       } else if(strcmp(value, "H5") == 0) {
         ts->flash_type = STM32_FLASH_TYPE_H5;
+      } else if(strcmp(value, "C5") == 0) {
+        ts->flash_type = STM32_FLASH_TYPE_C5;
       } else {
         ts->flash_type = STM32_FLASH_TYPE_UNKNOWN;
       }

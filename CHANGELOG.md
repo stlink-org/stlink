@@ -16,6 +16,7 @@ Features:
 
 - Show all info during full erase ([#1363](https://github.com/stlink-org/stlink/pull/1363), commit [#6a6718b](https://github.com/stlink-org/stlink/commit/6a6718b3342b6c5e282a4e33325b9f97908a0692))
 - Support for STM32H5 series (erase, read and write) ([#1384](https://github.com/stlink-org/stlink/pull/13824), [#1407](https://github.com/stlink-org/stlink/pull/1407), [#1492](https://github.com/stlink-org/stlink/pull/1492))
+- Support for STM32C5 series (erase, read and write)
 - Added support for STLINK-V3PWR ([#1388](https://github.com/stlink-org/stlink/pull/1388), [#1389](https://github.com/stlink-org/stlink/pull/1389))
 - Dynamic SRAM size for F4 memory map ([#1390](https://github.com/stlink-org/stlink/pull/1390))
 - Modifications to allow building of toolset in OpenBSD ([#1392](https://github.com/stlink-org/stlink/pull/1392))
