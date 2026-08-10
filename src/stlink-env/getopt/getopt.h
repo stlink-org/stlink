@@ -4,27 +4,24 @@
  *
  */
 
-// TODO: CONTENT AND USE OF THIS SOURCE FILE IS TO BE VERIFIED
-
 #ifndef GETOPT_H
 #define GETOPT_H
 
+#include <stddef.h>
 #include <stdint.h>
+#include <string.h>
+
 
 #if defined(__cplusplus)
 extern "C" {
 #endif
 
-#if defined(_MSC_VER)
-// These may be used to initialize structures and it fails with MSVC
+/* Defines to initialize static/global struct option arrays */
+// These must be compile-time constants rather than extern variables.
 #define no_argument 0
-#define required_argument  1
-#define optional_argument  2
-#else
-extern const int32_t no_argument;
-extern const int32_t required_argument;
-extern const int32_t optional_argument;
-#endif
+#define required_argument 1
+#define optional_argument 2
+
 
 extern char* optarg;
 extern int32_t optind, opterr, optopt;

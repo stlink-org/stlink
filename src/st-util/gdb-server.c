@@ -90,20 +90,21 @@ BOOL WINAPI CtrlHandler(DWORD fdwCtrlType) {
 
 int32_t parse_options(int32_t argc, char** argv, st_state_t *st) {
     static struct option long_options[] = {
-        {"help", no_argument, NULL, 'h'},
-        {"verbose", optional_argument, NULL, 'v'},
-        {"listen_port", required_argument, NULL, 'p'},
-        {"multi", optional_argument, NULL, 'm'},
-        {"no-reset", optional_argument, NULL, 'n'},
-        {"hot-plug", optional_argument, NULL, 'n'},
+        {"help",                no_argument,       NULL, 'h'},
+        {"verbose",             optional_argument, NULL, 'v'},
+        {"listen_port",         required_argument, NULL, 'p'},
+        {"multi",               optional_argument, NULL, 'm'},
+        {"no-reset",            optional_argument, NULL, 'n'},
+        {"hot-plug",            optional_argument, NULL, 'n'},
         {"connect-under-reset", optional_argument, NULL, 'u'},
-        {"freq", required_argument, NULL, 'F'},
-        {"version", no_argument, NULL, 'V'},
-        {"semihosting", no_argument, NULL, SEMIHOSTING_OPTION},
-        {"serial", required_argument, NULL, SERIAL_OPTION},
-        {"remote", required_argument, NULL, REMOTE_OPTION},
-        {0, 0, 0, 0},
+        {"freq",                required_argument, NULL, 'F'},
+        {"version",             no_argument,       NULL, 'V'},
+        {"semihosting",         no_argument,       NULL, SEMIHOSTING_OPTION},
+        {"serial",              required_argument, NULL, SERIAL_OPTION},
+        {"remote",              required_argument, NULL, REMOTE_OPTION},
+        {NULL, 0, NULL, 0}
     };
+
     const char * help_str = "%s - usage:\n\n"
                             "  -h, --help\t\tPrint this help\n"
                             "  -V, --version\t\tPrint the version\n"

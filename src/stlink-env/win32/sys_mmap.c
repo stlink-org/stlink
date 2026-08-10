@@ -1,12 +1,10 @@
 /*
- * File: mmap.c
+ * File: sys_mmap.c
  *
  *
  */
 
-// TODO: CONTENT AND USE OF THIS SOURCE FILE IS TO BE VERIFIED
-
-#include "mmap.h"
+#include "sys_mmap.h"
 
 
 void *mmap(void *addr, uint32_t len, int32_t prot, int32_t flags, int32_t fd, int64_t offset) {

@@ -23,6 +23,7 @@
 #ifndef REMOTE_H
 #define REMOTE_H
 
+
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -30,7 +31,7 @@
 #include <errno.h>
 
 #if defined(_WIN32)
-#include <windows.h>
+#include <win32_socket.h>
 #else
 #include <unistd.h>
 #include <fcntl.h>
@@ -44,6 +45,10 @@
 
 #include <stlink.h>
 #include <stlink_backend.h>
+
+#include "remote.h"
+#include "read_write.h"
+#include "logging.h"
 
 
 #define STLINK_REMOTE_DEFAULT_PORT 4500
