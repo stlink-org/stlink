@@ -333,9 +333,7 @@ uint32_t is_flash_busy(stlink_t *sl) {
 }
 
 void wait_flash_busy(stlink_t *sl) {
-  // TODO: add some delays here
-  while (is_flash_busy(sl))
-    ;
+  while (is_flash_busy(sl)) { };
 }
 
 int32_t check_flash_error(stlink_t *sl) {
@@ -1242,47 +1240,42 @@ int32_t stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr) {
     // set the page to erase
 
     // STM32G0
-    if(sl->flash_type == STM32_FLASH_TYPE_G0) {
-      uint32_t flash_page = ((flashaddr - STM32_FLASH_BASE) / sl->flash_pgsz);
-      stlink_read_debug32(sl, STM32_FLASH_Gx_CR, &val);
-      // sec 3.7.5 - PNB[9:0] is offset by 3. PER is 0x2.
-      val &= ~(0x3FF << 3);
-      val |= ((flash_page & 0x3FF) << 3) | (1 << FLASH_CR_PER);
-      stlink_write_debug32(sl, STM32_FLASH_Gx_CR, val);
-
-    // wait 100 ms to ensure flash controller is ready (no parallel R/W for STM32G0)
-    #ifdef _WIN32
-        Sleep(100);
-    #else
-        usleep(100000);
-    #endif
-
     // STM32G4
-    } else if(sl->flash_type == STM32_FLASH_TYPE_G4) {
+    if(sl->flash_type == STM32_FLASH_TYPE_G0 || sl->flash_type == STM32_FLASH_TYPE_G4) {
+      bool is_g4 = (sl->flash_type == STM32_FLASH_TYPE_G4);
+      uint32_t pnb_mask = (1u << STM32_FLASH_Gx_CR_PNG_LEN) - 1;
+      uint32_t bker_bit = is_g4 ? STM32_FLASH_G4_CR_BKER : STM32_FLASH_G0_CR_BKER;
       uint32_t flash_page = ((flashaddr - STM32_FLASH_BASE) / sl->flash_pgsz);
+
       stlink_read_debug32(sl, STM32_FLASH_Gx_CR, &val);
-      // sec 3.7.5 - PNB[9:0] is offset by 3. PER is 0x2.
-      val &= ~(0x7FF << 3);
-      // sec 3.3.8 - Error PGSERR
-      // * In the page erase sequence: PG, FSTPG and MER1 are not cleared when PER is set
-      val &= ~(1 << STM32_FLASH_Gx_CR_MER1 | 1 << STM32_FLASH_Gx_CR_MER2);
+
+      // Sec 3.7.5 - PNB is offset by bit 3, width depends on family.
+      val &= ~(pnb_mask << 3);
+
+      // Sec 3.3.8 - PGSERR errata: PG, FSTPG and MER1 are not cleared by
+      // hardware when PER is set (RM0444/RM0440, applies to both G0 and G4).
+      val &= ~(1 << STM32_FLASH_Gx_CR_MER1);
+      val &= ~(1 << STM32_FLASH_Gx_CR_MER2);
+      val &= ~(1 << STM32_FLASH_Gx_CR_FSTPG);
       val &= ~(1 << STM32_FLASH_Gx_CR_PG);
-      // Products of the Gx series with more than 128K of flash use 2 banks.
+
+      // Bank selection only relevant for dual-bank devices (> 128k flash, e.g. G0B1/G0C1 or G4 Cat.3/Cat.4).
       // In this case we need to specify which bank to erase (sec 3.7.5 - BKER)
-      if(sl->flash_size > (128 * 1024) &&
+      if((sl->chip_flags & CHIP_F_HAS_DUAL_BANK) &&
           ((flashaddr - STM32_FLASH_BASE) >= sl->flash_size / 2)) {
-        val |= (1 << STM32_FLASH_G4_CR_BKER); // erase bank 2
+        val |= (1 << bker_bit);
       } else {
-        val &= ~(1 << STM32_FLASH_G4_CR_BKER); // erase bank 1
+        val &= ~(1 << bker_bit);
       }
-      val |= ((flash_page & 0x7FF) << 3) | (1 << FLASH_CR_PER);
+
+      val |= ((flash_page & pnb_mask) << 3) | (1 << FLASH_CR_PER);
       stlink_write_debug32(sl, STM32_FLASH_Gx_CR, val);
 
     // STM32L5
     // STM32U5
     } else if(sl->flash_type == STM32_FLASH_TYPE_L5_U5) {
-    // STM32L5x2xx has two banks with 2k pages or single with 4k pages
-    // STM32U535, STM32U545, STM32U575 or STM32U585 have 2 banks with 8k pages
+      // STM32L5x2xx has two banks with 2k pages or single with 4k pages
+      // STM32U535, STM32U545, STM32U575 or STM32U585 have 2 banks with 8k pages
       uint32_t flash_page;
       stlink_read_debug32(sl, STM32_FLASH_L5_NSCR, &val);
       if((sl->flash_pgsz == 0x800 || sl->flash_pgsz == 0x2000) && (flashaddr - STM32_FLASH_BASE) >= sl->flash_size/2) {
