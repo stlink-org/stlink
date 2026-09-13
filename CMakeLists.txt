@@ -90,6 +90,7 @@ cmake_host_system_information(RESULT OS_NAME QUERY OS_NAME)
 message(STATUS "Checking for OS_NAME: ${OS_NAME}")
 
 # Threading support
+# pthreads on Unix, winpthread on WIN32, MSVC & MINGW
 if (MSVC)
     # FindThreads accepts native Win32 threads, but usb.c uses the pthread API.
     find_package(PThreads4W REQUIRED)
