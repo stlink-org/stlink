@@ -4,37 +4,81 @@
 
 ### Common Requirements
 
-On Windows users should ensure that the following software is installed:
+Install the following tools:
 
-- `git` (Required for building LibUSB if missing)
-- `cmake`
-- `MSVC` Compiler (Tested with Visual Studio 2022 and Build Tools for Visual Studio 2022)
+- `git`, available on `PATH`.
+- [CMake](https://cmake.org/download/), available on `PATH`: 4.2 or newer for the [Visual Studio 2026 generator](https://cmake.org/cmake/help/latest/generator/Visual%20Studio%2018%202026.html), or 3.21 or newer for the [Visual Studio 2022 generator](https://cmake.org/cmake/help/latest/generator/Visual%20Studio%2017%202022.html).
+- Visual Studio 2026 (VS 18) or Visual Studio 2022 (VS 17), including their Build Tools editions, with the **Desktop development with C++** workload, MSVC x64/x86 tools and a Windows SDK.
+- [vcpkg](https://learn.microsoft.com/en-us/vcpkg/get_started/get-started-vs), to install the dependencies listed in the project's `vcpkg.json`.
 
 ### Installation
 
-1. Install `Build Tools for Visual Studio` from <https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2022>
-2. Install `cmake` from <https://cmake.org/download/#latest> --> Binary distributions --> Windows x64 Installer<br />
-   Ensure that you add cmake to the $PATH system variable when following the instructions by the setup assistant.
-   Follow the installation instructions on the website.
-3. Fetch the project source files by running `git clone https://github.com/stlink-org/stlink.git` from the command-line (`cmd.exe`/`powershell.exe`)<br />
-   or download and extract (`7zip`) the latest stlink `.zip` release from the Release page on GitHub.
+The following commands use PowerShell. Use directories you can write to; building does not require an administrator terminal.
+
+If vcpkg is not installed, clone and bootstrap it:
+
+```powershell
+$env:VCPKG_ROOT = "$env:USERPROFILE\vcpkg"
+git clone https://github.com/microsoft/vcpkg.git "$env:VCPKG_ROOT"
+& "$env:VCPKG_ROOT\bootstrap-vcpkg.bat"
+```
+
+If you already have vcpkg, set `VCPKG_ROOT` to that installation instead, for example:
+
+```powershell
+$env:VCPKG_ROOT = "D:\vcpkg"
+```
+
+Set `VCPKG_ROOT` in each new terminal session, or save it as a user environment variable.
+
+Fetch the project source files and enter the repository root:
+
+```powershell
+git clone https://github.com/stlink-org/stlink.git
+cd stlink
+```
 
 ### Building
 
-1. Open the command-line (`cmd.exe`/`powershell.exe`) with administrator privileges
-2. Move to the `stlink` directory with `cd C:\$Path-to-your-stlink-folder$\`
-3. Create a new `build` subdirectory and move into it with `cd .\build`.
-4. Configure the project, using the following command: `cmake -G "Visual Studio 17 2022" .. -DCMAKE_BUILD_TYPE="Release"`
-5. Build the project, using the following command: `cmake --build . --target ALL_BUILD`
-6. Install the project, using the following command: `cmake --build . --target INSTALL`
-7. Add the `bin` folder of the installation path (`C:\Program Files (x86)\stlink\bin`) to the `PATH` environment variables:
-   1. Run `SystemPropertiesAdvanced.exe`
-   2. press on `Environment Variables` button
-   3. On `System Variables` list, find and select `Path` variable
-   4. Press `Edit..` button bellow the list
-   5. On the new Window, press `New` button
-   6. On the new row, type the `bin` path of your installation (`C:\Program Files (x86)\stlink\bin`)
-   7. Press `OK` button to all three windows to save your changes
+From the repository root, run:
+
+```powershell
+.\gen_binaries_msvc.bat
+```
+
+The script uses `vswhere`, supplied by the Visual Studio Installer, to detect VS 18 with the C++ tools installed. It prefers VS 18; if none is found, it tries VS 17. It configures x64 and builds Release.
+Each version uses a separate build directory so that switching versions does not conflict with a cached CMake generator:
+
+| Visual Studio | Build directory |
+| --- | --- |
+| VS 18 (2026) | `build/msvc-vcpkg-vs18` |
+| VS 17 (2022) | `build/msvc-vcpkg-vs17` |
+
+During configuration, vcpkg installs `libusb` and `pthreads` from `vcpkg.json` into the selected build directory's `vcpkg_installed` subdirectory.
+CMake selects PThreads4W for MSVC and links the matching Release or Debug dependency libraries. The Windows compatibility headers supply the required POSIX types.
+
+The equivalent manual commands for VS 18 are below. For VS 17, replace the generator with `Visual Studio 17 2022` and use `build/msvc-vcpkg-vs17` in the commands below.
+
+```powershell
+cmake -S . -B build/msvc-vcpkg-vs18 -G "Visual Studio 18 2026" -A x64 "-DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"
+cmake --build build/msvc-vcpkg-vs18 --config Release
+```
+
+Visual Studio uses `--config` to select the build configuration. To build Debug using the same configured tree:
+
+```powershell
+cmake --build build/msvc-vcpkg-vs18 --config Debug
+```
+
+The executables are in the selected build directory's `bin/Release` or `bin/Debug` subdirectory.
+With vcpkg's default settings, the required dependency DLLs are copied beside them during the build.
+For example, check the Release build with:
+
+```powershell
+.\build\msvc-vcpkg-vs18\bin\Release\st-info.exe --version
+```
+
+If an existing build directory was configured with a different generator, architecture or toolchain, use a new build directory for the manual commands.
 
 **NOTE:**
 

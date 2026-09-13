@@ -15,6 +15,7 @@
 
 #else
 
+#include <winsock2.h> // struct timeval, including with WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
 struct timezone {

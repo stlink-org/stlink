@@ -90,19 +90,22 @@ cmake_host_system_information(RESULT OS_NAME QUERY OS_NAME)
 message(STATUS "Checking for OS_NAME: ${OS_NAME}")
 
 # Threading support
-find_package(Threads REQUIRED)
-set(THREADS_PREFER_PTHREAD_FLAG ON) # pthreads on Unix, winpthread on WIN32, MSVC & MINGW
+# pthreads on Unix, winpthread on WIN32, MSVC & MINGW
+if (MSVC)
+    # FindThreads accepts native Win32 threads, but usb.c uses the pthread API.
+    find_package(PThreads4W REQUIRED)
+    set(STLINK_THREAD_LIBRARY PThreads4W::PThreads4W)
+else ()
+    set(THREADS_PREFER_PTHREAD_FLAG ON)
+    find_package(Threads REQUIRED)
+    set(STLINK_THREAD_LIBRARY Threads::Threads)
+endif()
 
 # Set C build flags
 if (NOT MSVC)
     include(${CMAKE_MODULE_PATH}/c_flags.cmake)
-else ()
-    message(STATUS "MSVC C Flags override to /MT")
-    set(CMAKE_C_FLAGS_DEBUG_INIT          "/D_DEBUG /MTd /Zi /Ob0 /Od /RTC1")
-    set(CMAKE_C_FLAGS_MINSIZEREL_INIT     "/MT /O1 /Ob1 /D NDEBUG")
-    set(CMAKE_C_FLAGS_RELEASE_INIT        "/MT /O2 /Ob2 /D NDEBUG")
-    set(CMAKE_C_FLAGS_RELWITHDEBINFO_INIT "/MT /Zi /O2 /Ob1 /D NDEBUG")
 endif()
+# MSVC runtime selection is left to CMAKE_MSVC_RUNTIME_LIBRARY/the toolchain.
 
 
 ###
@@ -187,7 +190,7 @@ set_target_properties(${STLINK_LIB_SHARED} PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS
 if (WIN32)
     target_link_libraries(${STLINK_LIB_SHARED} 
         libusb::libusb
-        Threads::Threads
+        ${STLINK_THREAD_LIBRARY}
         ${SSP_LIB}
         wsock32
         ws2_32
@@ -195,7 +198,7 @@ if (WIN32)
 else ()
     target_link_libraries(${STLINK_LIB_SHARED}
         libusb::libusb
-        Threads::Threads
+        ${STLINK_THREAD_LIBRARY}
         ${SSP_LIB}
     )
 endif()
@@ -249,7 +252,7 @@ set_target_properties(${STLINK_LIB_STATIC} PROPERTIES
 if (WIN32)
     target_link_libraries(${STLINK_LIB_STATIC}
         libusb::libusb
-        Threads::Threads
+        ${STLINK_THREAD_LIBRARY}
         ${SSP_LIB}
         wsock32
         ws2_32
@@ -257,7 +260,7 @@ if (WIN32)
 else ()
     target_link_libraries(${STLINK_LIB_STATIC}
         libusb::libusb
-        Threads::Threads
+        ${STLINK_THREAD_LIBRARY}
         ${SSP_LIB}
     )
 endif()

@@ -12,8 +12,31 @@ include(FindPackageHandleStandardArgs)
 set(LIBUSB_FOUND FALSE)  # Default: libusb not found
 
 # --- Platform-specific configurations ---
+# vcpkg installs Release and Debug libraries with the same name in separate directories.
+# A single find_library() can select the Debug library for every VS configuration.
+if(WIN32 AND VCPKG_TARGET_TRIPLET)
+    set(_LIBUSB_VCPKG_PREFIX "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}")
+    find_path(LIBUSB_INCLUDE_DIR
+        NAMES libusb.h
+        PATHS "${_LIBUSB_VCPKG_PREFIX}/include"
+        PATH_SUFFIXES libusb-1.0
+        NO_DEFAULT_PATH
+    )
+    find_library(LIBUSB_LIBRARY_RELEASE
+        NAMES usb-1.0 libusb-1.0
+        PATHS "${_LIBUSB_VCPKG_PREFIX}/lib"
+        NO_DEFAULT_PATH
+    )
+    find_library(LIBUSB_LIBRARY_DEBUG
+        NAMES usb-1.0 libusb-1.0
+        PATHS "${_LIBUSB_VCPKG_PREFIX}/debug/lib"
+        NO_DEFAULT_PATH
+    )
+    include(SelectLibraryConfigurations)
+    select_library_configurations(LIBUSB)
+
 # FreeBSD: libusb is part of the base system
-if(CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
+elseif(CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
     find_path(LIBUSB_INCLUDE_DIR NAMES libusb.h HINTS /usr/include)
     find_library(LIBUSB_LIBRARY NAMES usb HINTS /usr /usr/local /opt)
 
@@ -24,9 +47,6 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "OpenBSD")
 
 # Windows (native MSVC or MinGW without cross-compiling)
 elseif(MSVC OR (WIN32 AND NOT EXISTS "/etc/debian_version"))
-    # Fix for missing ssize_t on Windows (required by libusb)
-    add_compile_definitions(_SSIZE_T_DEFINED ssize_t=int64_t)
-
     # Try to locate an existing Windows installation of libusb
     find_path(LIBUSB_INCLUDE_DIR
         NAMES libusb.h
@@ -41,9 +61,6 @@ elseif(MSVC OR (WIN32 AND NOT EXISTS "/etc/debian_version"))
 
 # Windows-Build with MinGW via cross-compiling on Debian-Linux
 elseif(MINGW AND EXISTS "/etc/debian_version")
-    # Fix for ssize_t on Windows
-    add_compile_definitions(_SSIZE_T_DEFINED ssize_t=int64_t)
-
     # Architecture: 64-bit or 32-bit?
     if (CMAKE_SIZEOF_VOID_P EQUAL 8)
         message(STATUS "=== Building for Windows (x86-64) ===")
@@ -157,8 +174,19 @@ if(LIBUSB_INCLUDE_DIR AND LIBUSB_LIBRARY)
         # - IMPORTED_LOCATION: Path to the compiled library (e.g., libusb-1.0.a/.so/.lib)
         set_target_properties(libusb::libusb PROPERTIES
             INTERFACE_INCLUDE_DIRECTORIES "${LIBUSB_INCLUDE_DIR}"
-            IMPORTED_LOCATION "${LIBUSB_LIBRARY}"
         )
+        if(LIBUSB_LIBRARY_RELEASE OR LIBUSB_LIBRARY_DEBUG)
+            foreach(_LIBUSB_CONFIG RELEASE DEBUG)
+                if(LIBUSB_LIBRARY_${_LIBUSB_CONFIG})
+                    set_property(TARGET libusb::libusb APPEND PROPERTY
+                        IMPORTED_CONFIGURATIONS ${_LIBUSB_CONFIG})
+                    set_target_properties(libusb::libusb PROPERTIES
+                        IMPORTED_LOCATION_${_LIBUSB_CONFIG} "${LIBUSB_LIBRARY_${_LIBUSB_CONFIG}}")
+                endif()
+            endforeach()
+        else()
+            set_target_properties(libusb::libusb PROPERTIES IMPORTED_LOCATION "${LIBUSB_LIBRARY}")
+        endif()
     endif()
 endif()
 
