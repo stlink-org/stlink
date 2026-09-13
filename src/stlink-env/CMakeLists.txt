@@ -51,7 +51,6 @@ endif()
 ### libusb
 
 find_package(libusb REQUIRED)
-list(APPEND STLINK_DEFINITIONS ${LIBUSB_DEFINITIONS}) # define ssize_t: only affects WIN32, MSVC & MINGW
 
 
 ### Stack Smashing Protection Library (SSP)
