@@ -31,7 +31,7 @@
 #include <errno.h>
 
 #if defined(_WIN32)
-#include <win32_socket.h>
+#include <windows.h>
 #else
 #include <unistd.h>
 #include <fcntl.h>
@@ -46,7 +46,6 @@
 #include <stlink.h>
 #include <stlink_backend.h>
 
-#include "remote.h"
 #include "read_write.h"
 #include "logging.h"
 
