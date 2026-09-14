@@ -4,8 +4,6 @@
  *
  */
 
-// TODO: CONTENT AND USE OF THIS SOURCE FILE IS TO BE VERIFIED
-
 #if defined(_WIN32)
 
 #include <stdint.h>

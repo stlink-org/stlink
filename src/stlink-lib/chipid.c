@@ -211,7 +211,10 @@ void process_chipfile(char *fname) {
   devicelist = ts;
 }
 
-#if defined(STLINK_HAVE_DIRENT_H)
+
+/* == Unix (POSIX) systems == */
+
+#ifdef STLINK_HAVE_DIRENT_H
 #include <dirent.h>
 
 void init_chipids(char *dir_to_scan) {
@@ -246,7 +249,10 @@ void init_chipids(char *dir_to_scan) {
 
 #endif // STLINK_HAVE_DIRENT_H
 
-#if defined(_WIN32) && !defined(STLINK_HAVE_DIRENT_H)
+
+/* == Windows systems == */
+
+#ifdef STLINK_HAVE_WINDOWS_H
 #include <fileapi.h>
 #include <strsafe.h>
 
@@ -254,20 +260,12 @@ void init_chipids(char *dir_to_scan) {
   HANDLE hFind = INVALID_HANDLE_VALUE;
   WIN32_FIND_DATAA ffd;
   char filepath[MAX_PATH] = {0};
-  int32_t filepathlen = 0;
 
-  StringCchCopyA(filepath, STLINK_ARRAY_SIZE(filepath), dir_to_scan);
-
-  if(FAILED(
-          StringCchCatA(filepath, STLINK_ARRAY_SIZE(filepath), "\\*.chip"))) {
+  if(FAILED(StringCchCopyA(filepath, STLINK_ARRAY_SIZE(filepath), dir_to_scan)) ||
+      FAILED(StringCchCatA(filepath, STLINK_ARRAY_SIZE(filepath), "\\*.chip"))) {
     ELOG("Path to chips's dir too long.\n");
     return;
   }
-
-  filepath[filepathlen] = '\0';
-  StringCchCatA(filepath, STLINK_ARRAY_SIZE(filepath), "\\");
-  StringCchCatA(filepath, STLINK_ARRAY_SIZE(filepath), dir_to_scan);
-  StringCchCatA(filepath, STLINK_ARRAY_SIZE(filepath), "\\*.chip");
 
   hFind = FindFirstFileA(filepath, &ffd);
 
@@ -277,9 +275,7 @@ void init_chipids(char *dir_to_scan) {
   }
 
   do {
-    filepath[filepathlen] = '\0';
-    StringCchCatA(filepath, STLINK_ARRAY_SIZE(filepath), "\\");
-    StringCchCatA(filepath, STLINK_ARRAY_SIZE(filepath), dir_to_scan);
+    StringCchCopyA(filepath, STLINK_ARRAY_SIZE(filepath), dir_to_scan);
     StringCchCatA(filepath, STLINK_ARRAY_SIZE(filepath), "\\");
     StringCchCatA(filepath, STLINK_ARRAY_SIZE(filepath), ffd.cFileName);
     process_chipfile(filepath);
@@ -288,4 +284,4 @@ void init_chipids(char *dir_to_scan) {
   FindClose(hFind);
 }
 
-#endif // defined(_WIN32) && !defined(STLINK_HAVE_DIRENT_H)
+#endif // STLINK_HAVE_WINDOWS_H
