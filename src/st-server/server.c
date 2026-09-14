@@ -25,8 +25,8 @@
 #include <string.h>
 
 #if defined(_WIN32)
-#include <windows.h>
 #include <win32_socket.h>
+#include <windows.h>
 #else
 #include <arpa/inet.h>
 #include <netinet/in.h>

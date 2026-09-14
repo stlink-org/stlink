@@ -49,10 +49,10 @@ From the repository root, run:
 The script uses `vswhere`, supplied by the Visual Studio Installer, to detect VS 18 with the C++ tools installed. It prefers VS 18; if none is found, it tries VS 17. It configures x64 and builds Release.
 Each version uses a separate build directory so that switching versions does not conflict with a cached CMake generator:
 
-| Visual Studio | Build directory |
-| --- | --- |
-| VS 18 (2026) | `build/msvc-vcpkg-vs18` |
-| VS 17 (2022) | `build/msvc-vcpkg-vs17` |
+| Visual Studio | Build directory         |
+| ---           | ---                     |
+| VS 18 (2026)  | `build/msvc-vcpkg-vs18` |
+| VS 17 (2022)  | `build/msvc-vcpkg-vs17` |
 
 During configuration, vcpkg installs `libusb` and `pthreads` from `vcpkg.json` into the selected build directory's `vcpkg_installed` subdirectory.
 CMake selects PThreads4W for MSVC and links the matching Release or Debug dependency libraries. The Windows compatibility headers supply the required POSIX types.

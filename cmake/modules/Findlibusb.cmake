@@ -45,8 +45,18 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "OpenBSD")
     find_path(LIBUSB_INCLUDE_DIR NAMES libusb.h HINTS /usr/local/include PATH_SUFFIXES libusb-1.0)
     find_library(LIBUSB_LIBRARY NAMES usb-1.0 HINTS /usr/local)
 
-# Windows (native MSVC or MinGW without cross-compiling)
-elseif(MSVC OR (WIN32 AND NOT EXISTS "/etc/debian_version"))
+# MSVC without the mandatory vcpkg toolchain: unsupported per project policy.
+# Fail early with a clear pointer instead of falling through to a stray
+# system libusb install, which can predate 1.0.30 and reintroduce the
+# winsock.h/winsock2.h conflict this project no longer supports.
+elseif(MSVC)
+    message(FATAL_ERROR
+        "libusb-1.0 was not found via vcpkg (VCPKG_TARGET_TRIPLET is unset).\n"
+        "MSVC builds require the vcpkg toolchain file - see doc/compiling.md."
+    )
+
+# Windows (native MinGW build on Windows itself, not cross-compiling)
+elseif(WIN32 AND NOT EXISTS "/etc/debian_version")
     # Try to locate an existing Windows installation of libusb
     find_path(LIBUSB_INCLUDE_DIR
         NAMES libusb.h
@@ -61,14 +71,7 @@ elseif(MSVC OR (WIN32 AND NOT EXISTS "/etc/debian_version"))
 
 # Windows-Build with MinGW via cross-compiling on Debian-Linux
 elseif(MINGW AND EXISTS "/etc/debian_version")
-    # Architecture: 64-bit or 32-bit?
-    if (CMAKE_SIZEOF_VOID_P EQUAL 8)
-        message(STATUS "=== Building for Windows (x86-64) ===")
-        set(ARCH 64)
-    else ()
-        message(STATUS "=== Building for Windows (i686) ===")
-        set(ARCH 32)
-    endif ()
+    message(STATUS "=== Building for Windows (${TOOLCHAIN_PREFIX}) ===")
 
     # Download and build libusb via FetchContent
     if(NOT LIBUSB_FOUND)
@@ -95,7 +98,7 @@ elseif(MINGW AND EXISTS "/etc/debian_version")
 
         # Configure
         execute_process(
-            COMMAND ./configure --host=i686-w64-mingw${ARCH} --prefix=${libusb_BINARY_DIR}/install
+            COMMAND ./configure --host=${TOOLCHAIN_PREFIX} --prefix=${libusb_BINARY_DIR}/install
                                 --enable-static --disable-shared --disable-udev
             WORKING_DIRECTORY ${libusb_SOURCE_DIR}
             RESULT_VARIABLE CONFIGURE_RESULT

@@ -162,6 +162,14 @@ list(APPEND STLINK_SOURCES ${STLINK_LIB_SOURCES})
 # Install library header files
 install(FILES ${STLINK_HEADERS} DESTINATION ${STLINK_INCLUDE_PATH})
 
+if (MSVC)
+    # libusb_settings.h and unistd.h (both installed above) include these,
+    # so downstream consumers of stlink-static.lib need them too - v1.8.0
+    # shipped them, the vcpkg switch stopped bundling them (issue #2).
+    install(FILES "${LIBUSB_INCLUDE_DIR}/libusb.h" DESTINATION "${STLINK_INCLUDE_PATH}/libusb-1.0")
+    install(FILES src/stlink-env/getopt/getopt.h DESTINATION ${STLINK_INCLUDE_PATH})
+endif()
+
 
 ###
 # Shared library
@@ -326,11 +334,23 @@ target_link_libraries(st-flash PRIVATE ${STLINK_LIB_TO_LINK})
 target_link_libraries(st-util PRIVATE ${STLINK_LIB_TO_LINK})
 
 # Install tools
-install(TARGETS st-info DESTINATION ${CMAKE_INSTALL_BINDIR})
-install(TARGETS st-trace DESTINATION ${CMAKE_INSTALL_BINDIR})
-install(TARGETS st-server DESTINATION ${CMAKE_INSTALL_BINDIR})
-install(TARGETS st-flash DESTINATION ${CMAKE_INSTALL_BINDIR})
-install(TARGETS st-util DESTINATION ${CMAKE_INSTALL_BINDIR})
+install(TARGETS st-info   RUNTIME_DEPENDENCY_SET stlink_deps DESTINATION ${CMAKE_INSTALL_BINDIR})
+install(TARGETS st-trace  RUNTIME_DEPENDENCY_SET stlink_deps DESTINATION ${CMAKE_INSTALL_BINDIR})
+install(TARGETS st-server RUNTIME_DEPENDENCY_SET stlink_deps DESTINATION ${CMAKE_INSTALL_BINDIR})
+install(TARGETS st-flash  RUNTIME_DEPENDENCY_SET stlink_deps DESTINATION ${CMAKE_INSTALL_BINDIR})
+install(TARGETS st-util   RUNTIME_DEPENDENCY_SET stlink_deps DESTINATION ${CMAKE_INSTALL_BINDIR})
+
+if (MSVC)
+    # vcpkg links libusb/pthreads as DLLs on Windows; without this, an
+    # installed exe imports libusb-1.0.dll/pthreadVC3.dll that were never
+    # installed and fails to start (see PR discussion, issue #2).
+    install(RUNTIME_DEPENDENCY_SET stlink_deps
+        PRE_EXCLUDE_REGEXES "api-ms-" "ext-ms-"
+        POST_EXCLUDE_REGEXES ".*[Ss][Yy][Ss][Tt][Ee][Mm]32.*"
+        DESTINATION ${CMAKE_INSTALL_BINDIR}
+    )
+endif()
+
 
 ###
 # Device configuration (Linux only)
