@@ -2,7 +2,7 @@
 # General cmake settings
 ###
 
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.21)
 
 # Enable modern install destination normalization (fixes CMP0177 warning)
 cmake_policy(SET CMP0063 NEW)
@@ -18,56 +18,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS ON)
-
-###
-#
-# Default cmake directories:
-#
-# | Target Type             | GNUInstallDirs Variable        | Built-In Default      |
-# | ---                     | ---                            | ---                   |
-# | RUNTIME                 | ${CMAKE_INSTALL_BINDIR}        | bin                   |
-# | LIBRARY                 | ${CMAKE_INSTALL_LIBDIR}        | lib                   |
-# | ARCHIVE                 | ${CMAKE_INSTALL_LIBDIR}        | lib                   |
-# | PRIVATE_HEADER          | ${CMAKE_INSTALL_INCLUDEDIR}    | include               |
-# | PUBLIC_HEADER           | ${CMAKE_INSTALL_INCLUDEDIR}    | include               |
-# | FILE_SET (type HEADERS) | ${CMAKE_INSTALL_INCLUDEDIR}    | include               |
-#
-# | TYPE Argument           | GNUInstallDirs Variable        | Built-In Default      |
-# | ---                     | ---                            | ---                   |
-# | BIN                     | ${CMAKE_INSTALL_BINDIR}        | bin                   |
-# | SBIN                    | ${CMAKE_INSTALL_SBINDIR}       | sbin                  |
-# | LIB                     | ${CMAKE_INSTALL_LIBDIR}        | lib                   |
-# | INCLUDE                 | ${CMAKE_INSTALL_INCLUDEDIR}    | include               |
-# | SYSCONF                 | ${CMAKE_INSTALL_SYSCONFDIR}    | etc                   |
-# | SHAREDSTATE             | ${CMAKE_INSTALL_SHARESTATEDIR} | com                   |
-# | LOCALSTATE              | ${CMAKE_INSTALL_LOCALSTATEDIR} | var                   |
-# | RUNSTATE                | ${CMAKE_INSTALL_RUNSTATEDIR}   | <LOCALSTATE dir>/run  |
-# | DATA                    | ${CMAKE_INSTALL_DATADIR}       | <DATAROOT dir>        |
-# | INFO                    | ${CMAKE_INSTALL_INFODIR}       | <DATAROOT dir>/info   |
-# | LOCALE                  | ${CMAKE_INSTALL_LOCALEDIR}     | <DATAROOT dir>/locale |
-# | MAN                     | ${CMAKE_INSTALL_MANDIR}        | <DATAROOT dir>/man    |
-# | DOC                     | ${CMAKE_INSTALL_DOCDIR}        | <DATAROOT dir>/doc    |
-#
-# ${CMAKE_BINARY_DIR}
-# This is the full path to the top level of the current CMake build tree.
-# For an in-source build, this would be the same as CMAKE_SOURCE_DIR.
-#
-# ${CMAKE_SOURCE_DIR}
-# This is the full path to the top level of the current CMake source tree.
-# For an in-source build, this would be the same as CMAKE_BINARY_DIR.
-#
-# ${CMAKE_CURRENT_BINARY_DIR}
-# The path to the binary directory currently being processed.
-# This is the full path to the build directory that is currently being processed by cmake.
-# Each directory added by add_subdirectory() will create a binary directory in the build tree,
-# and as it is being processed this variable will be set.
-# For in-source builds this is the current source directory being processed.
-#
-# ${CMAKE_CURRENT_SOURCE_DIR}
-# The path to the source directory currently being processed.
-# This is the full path to the source directory that is currently being processed by cmake.
-#
-###
 
 
 ###
@@ -90,11 +40,15 @@ cmake_host_system_information(RESULT OS_NAME QUERY OS_NAME)
 message(STATUS "Checking for OS_NAME: ${OS_NAME}")
 
 # Threading support
-# pthreads on Unix, winpthread on WIN32, MSVC & MINGW
-if (MSVC)
-    # FindThreads accepts native Win32 threads, but usb.c uses the pthread API.
-    find_package(PThreads4W REQUIRED)
-    set(STLINK_THREAD_LIBRARY PThreads4W::PThreads4W)
+# pthreads on Unix; on Windows the Win32 API is used directly, so that neither
+# PThreads4W (MSVC) nor winpthread (MinGW) has to be found, linked or shipped.
+if (WIN32)
+    # Nothing to link here: _beginthreadex comes from the CRT, and
+    # WaitForSingleObject and CloseHandle from kernel32, both of which MSVC and
+    # MinGW link by default. Deliberately no find_package(Threads): with
+    # THREADS_PREFER_PTHREAD_FLAG it would pick winpthread on MinGW and add
+    # -pthread, restoring the libwinpthread-1.dll dependency.
+    set(STLINK_THREAD_LIBRARY "")
 else ()
     set(THREADS_PREFER_PTHREAD_FLAG ON)
     find_package(Threads REQUIRED)
@@ -151,6 +105,7 @@ configure_file("${PROJECT_SOURCE_DIR}/inc/version.h.in"
 # Define source- and headerfiles for stlink library
 file(GLOB STLINK_LIB_HEADERS
     "${CMAKE_SOURCE_DIR}/inc/*.h"
+    "${CMAKE_SOURCE_DIR}/src/stlink-env/*.h"
     "${CMAKE_SOURCE_DIR}/src/stlink-lib/*.h"
     "${CMAKE_BINARY_DIR}/inc/version.h")
 list(APPEND STLINK_HEADERS ${STLINK_LIB_HEADERS})
@@ -334,21 +289,36 @@ target_link_libraries(st-flash PRIVATE ${STLINK_LIB_TO_LINK})
 target_link_libraries(st-util PRIVATE ${STLINK_LIB_TO_LINK})
 
 # Install tools
-install(TARGETS st-info   RUNTIME_DEPENDENCY_SET stlink_deps DESTINATION ${CMAKE_INSTALL_BINDIR})
-install(TARGETS st-trace  RUNTIME_DEPENDENCY_SET stlink_deps DESTINATION ${CMAKE_INSTALL_BINDIR})
-install(TARGETS st-server RUNTIME_DEPENDENCY_SET stlink_deps DESTINATION ${CMAKE_INSTALL_BINDIR})
-install(TARGETS st-flash  RUNTIME_DEPENDENCY_SET stlink_deps DESTINATION ${CMAKE_INSTALL_BINDIR})
-install(TARGETS st-util   RUNTIME_DEPENDENCY_SET stlink_deps DESTINATION ${CMAKE_INSTALL_BINDIR})
+install(TARGETS st-info       RUNTIME_DEPENDENCY_SET stlink_deps DESTINATION ${CMAKE_INSTALL_BINDIR})
+install(TARGETS st-trace      RUNTIME_DEPENDENCY_SET stlink_deps DESTINATION ${CMAKE_INSTALL_BINDIR})
+install(TARGETS st-server     RUNTIME_DEPENDENCY_SET stlink_deps DESTINATION ${CMAKE_INSTALL_BINDIR})
+install(TARGETS st-flash      RUNTIME_DEPENDENCY_SET stlink_deps DESTINATION ${CMAKE_INSTALL_BINDIR})
+install(TARGETS st-util       RUNTIME_DEPENDENCY_SET stlink_deps DESTINATION ${CMAKE_INSTALL_BINDIR})
+install(TARGETS stlink-shared RUNTIME_DEPENDENCY_SET stlink_deps DESTINATION ${CMAKE_INSTALL_BINDIR})
+
 
 if (MSVC)
-    # vcpkg links libusb/pthreads as DLLs on Windows; without this, an
-    # installed exe imports libusb-1.0.dll/pthreadVC3.dll that were never
-    # installed and fails to start (see PR discussion, issue #2).
+    # vcpkg links libusb as a DLL on Windows; without this, an installed exe imports libusb-1.0.dll
+    # that was never installed and fails to start.
+    #
+    # Resolution does not rely solely on VCPKG_APPLOCAL_DEPS having already copied the DLL next
+    # to the exe at build time (that in turn relies on applocal.ps1 finding dumpbin/objdump
+    # on PATH, which is not guaranteed outside a VS developer shell, e.g. plain Ninja builds);
+    # the vcpkg triplet's own bin directory is searched directly as a second source.
+    # Anything still unresolved is reported instead of aborting the install.
+
     install(RUNTIME_DEPENDENCY_SET stlink_deps
         PRE_EXCLUDE_REGEXES "api-ms-" "ext-ms-"
         POST_EXCLUDE_REGEXES ".*[Ss][Yy][Ss][Tt][Ee][Mm]32.*"
+        DIRECTORIES "${_VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}$<$<CONFIG:Debug>:/debug>/bin"
+        UNRESOLVED_DEPENDENCIES_VAR stlink_unresolved_deps
         DESTINATION ${CMAKE_INSTALL_BINDIR}
     )
+    install(CODE "
+        if(stlink_unresolved_deps)
+            message(WARNING \"cmake --install: unresolved runtime dependencies, not installed: \${stlink_unresolved_deps}\")
+        endif()
+    ")
 endif()
 
 

@@ -48,6 +48,20 @@ endif()
 
 # ====================================================================================================
 
+### pthreads
+# One header, one implementation per platform, selected here rather than with
+# preprocessor branches inside a single file.
+
+list(APPEND STLINK_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/pthreads)
+list(APPEND STLINK_HEADERS src/stlink-env/pthreads/stlink_threads.h)
+
+if (WIN32)
+    list(APPEND STLINK_SOURCES src/stlink-env/pthreads/stlink_threads_win32.c)
+else ()
+    list(APPEND STLINK_SOURCES src/stlink-env/pthreads/stlink_threads_posix.c)
+endif()
+
+
 ### libusb
 
 find_package(libusb REQUIRED)
@@ -112,7 +126,6 @@ else () # WIN32
     CHECK_INCLUDE_FILE(windows.h STLINK_HAVE_WINDOWS_H)
     message(STATUS "Windows platform detected. Using Windows API for init_chipids.")
     list(APPEND STLINK_DEFINITIONS -DSTLINK_HAVE_WINDOWS_H)
-    # use GetModuleFileNameA and FindFirstFileA
 endif()
 
 # ====================================================================================================
@@ -123,3 +136,4 @@ set(STLINK_HEADERS ${STLINK_HEADERS} PARENT_SCOPE)
 set(STLINK_DEFINITIONS ${STLINK_DEFINITIONS} PARENT_SCOPE)
 set(STLINK_COMPILE_OPTIONS ${STLINK_COMPILE_OPTIONS} PARENT_SCOPE)
 set(STLINK_INCLUDE_DIRS ${STLINK_INCLUDE_DIRS} PARENT_SCOPE)
+set(SSP_LIB ${SSP_LIB} PARENT_SCOPE)
