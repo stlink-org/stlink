@@ -62,6 +62,20 @@ else ()
 endif()
 
 
+### filesystem lookups
+# Same arrangement as above: the executable's own location and walking a
+# directory have no portable spelling.
+
+list(APPEND STLINK_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/fs)
+list(APPEND STLINK_HEADERS src/stlink-env/fs/stlink_fs.h)
+
+if (WIN32)
+    list(APPEND STLINK_SOURCES src/stlink-env/fs/stlink_fs_win32.c)
+else ()
+    list(APPEND STLINK_SOURCES src/stlink-env/fs/stlink_fs_posix.c)
+endif()
+
+
 ### libusb
 
 find_package(libusb REQUIRED)

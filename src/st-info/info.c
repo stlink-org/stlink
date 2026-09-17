@@ -128,7 +128,7 @@ static int32_t print_data(int32_t ac, char **av) {
         return (0);
     }
 
-    init_chipids(STLINK_CHIPS_DIR);
+    init_chipids(NULL);
 
     // probe needs all devices unclaimed (local only; a remote serves one device)
     if(strcmp(cmd, "--probe") == 0 && remote == NULL) {
