@@ -87,7 +87,7 @@ int32_t main(int32_t ac, char** av) {
     }
 
     printf("st-flash %s\n", STLINK_VERSION);
-    init_chipids (STLINK_CHIPS_DIR);
+    init_chipids(STLINK_CHIPS_DIR);
 
     if(o.remote) {
         sl = stlink_open_remote_str(o.log_level, o.remote, o.connect, o.freq);

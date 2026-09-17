@@ -1,18 +1,18 @@
 /*
- * File: mmap.h
+ * File: sys_mmap.h
  *
  *
  */
 
-// TODO: CONTENT AND USE OF THIS SOURCE FILE IS TO BE VERIFIED
-
-#ifndef MMAP_H
-#define MMAP_H
+#ifndef SYS_MMAP_H
+#define SYS_MMAP_H
 
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include <unistd.h>
+
 #include <sys/types.h>
 
 #ifdef STLINK_HAVE_SYS_MMAN_H
@@ -32,4 +32,4 @@ int32_t munmap(void *addr, uint32_t len);
 
 #endif // STLINK_HAVE_SYS_MMAN_H
 
-#endif // MMAP_H
+#endif // SYS_MMAP_H

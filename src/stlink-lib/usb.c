@@ -13,6 +13,8 @@
 
 #include "usb.h"
 
+#include <stlink_threads.h>
+
 #include "logging.h"
 #include "read_write.h"
 
@@ -1138,10 +1140,9 @@ struct stlink_probe_arg {
 };
 
 /* Worker invoked by each thread to open a device by serial */
-static void *stlink_probe_worker(void *varg) {
+static void stlink_probe_worker(void *varg) {
     struct stlink_probe_arg *arg = (struct stlink_probe_arg *)varg;
     arg->res = stlink_open_usb(0, arg->connect, arg->serial, arg->freq);
-    return NULL;
 }
 
 /* return the length of serial or (0) in case of errors */
@@ -1410,7 +1411,7 @@ static uint32_t stlink_probe_usb_devs(libusb_device **devs, stlink_t **sldevs[],
 
     /* Collect serials for all devices to probe */
     struct stlink_probe_arg *args = calloc(slcnt, sizeof(*args));
-    pthread_t *threads = calloc(slcnt, sizeof(*threads));
+    stlink_thread_t *threads = calloc(slcnt, sizeof(*threads));
 
     if(!args || !threads) {
         free(_sldevs);
@@ -1463,9 +1464,9 @@ static uint32_t stlink_probe_usb_devs(libusb_device **devs, stlink_t **sldevs[],
         args[job_idx].res = NULL;
 
         /* spawn worker thread */
-        int rc = pthread_create(&threads[job_idx], NULL, stlink_probe_worker, &args[job_idx]);
+        int32_t rc = stlink_thread_create(&threads[job_idx], stlink_probe_worker, &args[job_idx]);
         if(rc != 0) {
-            ELOG("Failed to create probe thread: %s\n", strerror(rc));
+            ELOG("Failed to create probe thread (error %d)\n", rc);
             args[job_idx].res = NULL;
             /* do not increment job_idx in this case, but continue scanning */
             continue;
@@ -1476,7 +1477,7 @@ static uint32_t stlink_probe_usb_devs(libusb_device **devs, stlink_t **sldevs[],
 
     /* Join threads and collect successful opens */
     for(uint32_t n = 0; n < job_idx; n++) {
-        pthread_join(threads[n], NULL);
+        stlink_thread_join(threads[n]);
         if(args[n].res) {
             _sldevs[slcur++] = args[n].res;
         } else {

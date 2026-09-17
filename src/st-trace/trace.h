@@ -15,14 +15,16 @@
 #define TRACE_H
 
 #include <ctype.h>
-#include <getopt.h>
 #include <signal.h>
 #include <stdbool.h>
-#include <stdint.h>
 #include <stdio.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
 #include <time.h>
+
+#include <getopt.h>
 #include <unistd.h>
 
 #include <stlink.h>

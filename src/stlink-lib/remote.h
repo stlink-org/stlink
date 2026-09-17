@@ -23,6 +23,7 @@
 #ifndef REMOTE_H
 #define REMOTE_H
 
+
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -44,6 +45,9 @@
 
 #include <stlink.h>
 #include <stlink_backend.h>
+
+#include "read_write.h"
+#include "logging.h"
 
 
 #define STLINK_REMOTE_DEFAULT_PORT 4500
