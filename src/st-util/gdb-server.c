@@ -223,7 +223,7 @@ int32_t main(int32_t argc, char** argv) {
 
     printf("st-util %s\n", STLINK_VERSION);
 
-    init_chipids (STLINK_CHIPS_DIR);
+    init_chipids(NULL);
 
     if(state.remote) {
         sl = stlink_open_remote_str(state.logging_level, state.remote, state.connect_mode, state.freq);
