@@ -968,8 +968,8 @@ static void clear_flash_cr_per(stlink_t *sl, uint32_t bank) {
 }
 
 static inline void write_flash_cr_bker_pnb(stlink_t *sl, uint32_t n) {
-  stlink_write_debug32(sl, STM32_FLASH_L4_SR,
-                       0xFFFFFFFF & ~(1 << STM32_FLASH_L4_SR_BSY));
+  // Clear EOP and all error flags.
+  stlink_write_debug32(sl, STM32_FLASH_L4_SR, STM32_FLASH_L4_SR_CLEAR_MASK);
   uint32_t x = read_flash_cr(sl, BANK_1);
   x &= ~STM32_FLASH_L4_CR_OPBITS;
   x &= ~STM32_FLASH_L4_CR_PAGEMASK;

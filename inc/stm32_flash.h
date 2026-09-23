@@ -351,6 +351,10 @@
 #define STM32_FLASH_L4_SR_WRPERR 4
 #define STM32_FLASH_L4_SR_PGAERR 5
 #define STM32_FLASH_L4_SR_BSY 16
+#define STM32_FLASH_L4_SR_PEMPTY 17       /* Program empty (L41x-L46x, L4P/Q, L4R/S only) */
+// EOP, OPERR, PROGERR..FASTERR, RDERR, OPTVERR: all "write 1 to clear" flags.
+// Must never include PEMPTY: writing 1 to it toggles the bit (RM0394/RM0432).
+#define STM32_FLASH_L4_SR_CLEAR_MASK 0xc3fb
 
 // L4 Flash control register
 #define STM32_FLASH_L4_CR_LOCK 31         /* Lock control register */

@@ -1031,8 +1031,45 @@ int32_t stlink_flashloader_write(stlink_t *sl, flash_loader_t *fl, stm32_addr_t 
   return check_flash_error(sl);
 }
 
+/*
+ * STM32L4 devices with FLASH_SR.PEMPTY boot from system memory instead of main
+ * flash while PEMPTY is set. The flag is only re-evaluated on power-on reset or
+ * option byte loading, so after programming a previously empty device it stays
+ * set and a plain system reset starts the bootloader. Clear it (by toggling,
+ * RM0394/RM0432) once the first flash word is programmed. This also recovers
+ * devices left in that state by older stlink versions.
+ */
+static void stlink_l4_sync_pempty(stlink_t *sl) {
+  uint32_t sr, first_word;
+
+  switch(sl->chip_id) {
+  case STM32_CHIPID_L41x_L42x:
+  case STM32_CHIPID_L43x_L44x:
+  case STM32_CHIPID_L45x_L46x:
+  case STM32_CHIPID_L4PX:
+  case STM32_CHIPID_L4Rx:
+    break;
+  default:
+    return; // L47x/L48x, L49x/L4Ax: no PEMPTY flag (bit 17 reserved)
+  }
+
+  if(stlink_read_debug32(sl, STM32_FLASH_L4_SR, &sr) ||
+     stlink_read_debug32(sl, STM32_FLASH_BASE, &first_word)) {
+    return;
+  }
+
+  if((sr & (1u << STM32_FLASH_L4_SR_PEMPTY)) && first_word != 0xffffffff) {
+    DLOG("Clearing FLASH_SR.PEMPTY so the device boots from main flash\n");
+    stlink_write_debug32(sl, STM32_FLASH_L4_SR, (1u << STM32_FLASH_L4_SR_PEMPTY));
+  }
+}
+
 int32_t stlink_flashloader_stop(stlink_t *sl, flash_loader_t *fl) {
   uint32_t dhcsr;
+
+  if(sl->flash_type == STM32_FLASH_TYPE_L4) {
+    stlink_l4_sync_pempty(sl);
+  }
 
   if((sl->flash_type == STM32_FLASH_TYPE_C0) ||
       (sl->flash_type == STM32_FLASH_TYPE_F0_F1_F3) ||
