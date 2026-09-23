@@ -4,8 +4,6 @@
  *
  */
 
-// TODO: CONTENT AND USE OF THIS SOURCE FILE IS TO BE VERIFIED
-
 #ifndef SYS_TIME_H
 #define SYS_TIME_H
 
@@ -17,6 +15,7 @@
 
 #else
 
+#include <winsock2.h> // struct timeval, including with WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
 struct timezone {

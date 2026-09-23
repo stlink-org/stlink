@@ -13,6 +13,8 @@
 
 #include "chipid.h"
 
+#include <stlink_fs.h>
+
 #include "logging.h"
 
 
@@ -211,81 +213,47 @@ void process_chipfile(char *fname) {
   devicelist = ts;
 }
 
-#if defined(STLINK_HAVE_DIRENT_H)
-#include <dirent.h>
+
+/* Where to look beside the executable, in order. */
+static const char *const chips_rel_dirs[] = {
+  "../share/stlink/config/chips",
+  "chips",
+};
 
 void init_chipids(char *dir_to_scan) {
-  DIR *d;
-  uint64_t nl; // namelen
-  struct dirent *dir;
-
-  if(!dir_to_scan) {
-    dir_to_scan = "./";
-  }
+  char exe[1024];
+  const char *from_env;
 
   devicelist = NULL;
-  d = opendir(dir_to_scan);
 
-  if(d) {
-    while ((dir = readdir(d)) != NULL) {
-      nl = (uint32_t) strlen(dir->d_name);
+  /* The caller named a directory, very likely to test it. Falling back to the
+   * usual places would hide their mistake, so nothing else is tried. */
+  if((dir_to_scan != NULL) && (*dir_to_scan != '\0')) {
+    if(!search_for_chips(dir_to_scan)) { ELOG("No chip description file in %s\n", dir_to_scan); }
 
-      if(strcmp(dir->d_name + nl - 5, ".chip") == 0) {
-        char buf[1024];
-        sprintf(buf, "%s/%s", dir_to_scan, dir->d_name);
-        process_chipfile(buf);
-      }
+    return;
+  }
+
+#ifdef STLINK_CHIPS_SRC_DIR
+  /* A debug build is for working on the code, not for installing, so it reads
+   * the checkout. The macro is only defined for that configuration. */
+  if(search_for_chips(STLINK_CHIPS_SRC_DIR)) { return; }
+#endif
+
+  from_env = getenv("STLINK_CHIPS_DIR");
+
+  if((from_env != NULL) && (*from_env != '\0') && search_for_chips(from_env)) { return; }
+
+  if(stlink_exe_dir(exe, sizeof(exe))) {
+    for(size_t i = 0; i < STLINK_ARRAY_SIZE(chips_rel_dirs); i++) {
+      char path[1024];
+
+      if(snprintf(path, sizeof(path), "%s/%s", exe, chips_rel_dirs[i]) >= (int)sizeof(path)) { continue; }
+
+      if(search_for_chips(path)) { return; }
     }
-
-    closedir(d);
-  } else {
-    perror(dir_to_scan);
-    return;
   }
+
+  ELOG("Can't find any chip description file. Set STLINK_CHIPS_DIR, or run "
+       "with -v to see every path that was tried.\n");
 }
-
-#endif // STLINK_HAVE_DIRENT_H
-
-#if defined(_WIN32) && !defined(STLINK_HAVE_DIRENT_H)
-#include <fileapi.h>
-#include <strsafe.h>
-
-void init_chipids(char *dir_to_scan) {
-  HANDLE hFind = INVALID_HANDLE_VALUE;
-  WIN32_FIND_DATAA ffd;
-  char filepath[MAX_PATH] = {0};
-  int32_t filepathlen = 0;
-
-  StringCchCopyA(filepath, STLINK_ARRAY_SIZE(filepath), dir_to_scan);
-
-  if(FAILED(
-          StringCchCatA(filepath, STLINK_ARRAY_SIZE(filepath), "\\*.chip"))) {
-    ELOG("Path to chips's dir too long.\n");
-    return;
-  }
-
-  filepath[filepathlen] = '\0';
-  StringCchCatA(filepath, STLINK_ARRAY_SIZE(filepath), "\\");
-  StringCchCatA(filepath, STLINK_ARRAY_SIZE(filepath), dir_to_scan);
-  StringCchCatA(filepath, STLINK_ARRAY_SIZE(filepath), "\\*.chip");
-
-  hFind = FindFirstFileA(filepath, &ffd);
-
-  if(INVALID_HANDLE_VALUE == hFind) {
-    ELOG("Can't find any chip description file in %s.\n", filepath);
-    return;
-  }
-
-  do {
-    filepath[filepathlen] = '\0';
-    StringCchCatA(filepath, STLINK_ARRAY_SIZE(filepath), "\\");
-    StringCchCatA(filepath, STLINK_ARRAY_SIZE(filepath), dir_to_scan);
-    StringCchCatA(filepath, STLINK_ARRAY_SIZE(filepath), "\\");
-    StringCchCatA(filepath, STLINK_ARRAY_SIZE(filepath), ffd.cFileName);
-    process_chipfile(filepath);
-  } while (FindNextFileA(hFind, &ffd) != 0);
-
-  FindClose(hFind);
-}
-
-#endif // defined(_WIN32) && !defined(STLINK_HAVE_DIRENT_H)

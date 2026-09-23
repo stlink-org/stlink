@@ -4,8 +4,6 @@
  *
  */
 
-// TODO: CONTENT AND USE OF THIS SOURCE FILE IS TO BE VERIFIED
-
 #ifndef UNISTD_H
 #define UNISTD_H
 
@@ -17,6 +15,12 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+#if defined(_MSC_VER) && !defined(_SSIZE_T_DEFINED)
+#include <basetsd.h>
+typedef SSIZE_T ssize_t;
+#define _SSIZE_T_DEFINED
+#endif
 
 #if defined(_MSC_VER)
 #pragma warning(push)

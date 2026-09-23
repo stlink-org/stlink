@@ -96,19 +96,19 @@ static bool parse_frequency(char* text, uint32_t* result) {
 }
 
 bool parse_options(int32_t argc, char **argv, st_settings_t *settings) {
-
   static struct option long_options[] = {
-      {"help", no_argument, NULL, 'h'},
-      {"version", no_argument, NULL, 'V'},
-      {"verbose", optional_argument, NULL, 'v'},
-      {"clock", required_argument, NULL, 'c'},
-      {"trace", required_argument, NULL, 't'},
-      {"no-reset", no_argument, NULL, 'n'},
-      {"serial", required_argument, NULL, 's'},
-      {"force", no_argument, NULL, 'f'},
-      {"remote", required_argument, NULL, REMOTE_OPTION},
-      {0, 0, 0, 0},
+      {"help",     no_argument,       NULL, 'h'},
+      {"version",  no_argument,       NULL, 'V'},
+      {"verbose",  optional_argument, NULL, 'v'},
+      {"clock",    required_argument, NULL, 'c'},
+      {"trace",    required_argument, NULL, 't'},
+      {"no-reset", no_argument,       NULL, 'n'},
+      {"serial",   required_argument, NULL, 's'},
+      {"force",    no_argument,       NULL, 'f'},
+      {"remote",   required_argument, NULL, REMOTE_OPTION},
+      {NULL, 0, NULL, 0}
   };
+
   int32_t option_index = 0;
   int32_t c;
   bool error = false;
@@ -470,7 +470,7 @@ int32_t main(int32_t argc, char **argv) {
     usage();
     return APP_RESULT_INVALID_PARAMS;
   }
-  init_chipids (STLINK_CHIPS_DIR);
+  init_chipids(NULL);
 
   DLOG("show_help = %s\n", settings.show_help ? "true" : "false");
   DLOG("show_version = %s\n", settings.show_version ? "true" : "false");

@@ -4,19 +4,8 @@
  *
  */
 
-// TODO: CONTENT AND USE OF THIS SOURCE FILE IS TO BE VERIFIED
-
-#include <stddef.h>
-#include <stdint.h>
-#include <string.h>
-
 #include "getopt.h"
 
-#if !defined(_MSC_VER)
-const int32_t no_argument = 0;
-const int32_t required_argument = 1;
-const int32_t optional_argument = 2;
-#endif
 
 char* optarg;
 int32_t optopt;
