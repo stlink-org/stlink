@@ -192,7 +192,9 @@
 #define STM32_FLASH_Gx_CR_PER (1)         /* Page erase */
 #define STM32_FLASH_Gx_CR_MER1 (2)        /* Mass erase */
 #define STM32_FLASH_Gx_CR_PNB (3)         /* Page number */
-#define STM32_FLASH_Gx_CR_PNG_LEN (7)     /* 7 page number bits */
+#define STM32_FLASH_G0_CR_PNB_LEN (10)    /* STM32G0: PNB[9:0] (RM0444) */
+#define STM32_FLASH_G4_CR_PNB_LEN (7)     /* STM32G4 Cat.2/Cat.3: PNB[6:0] (RM0440) */
+#define STM32_FLASH_G4_CAT4_CR_PNB_LEN (8) /* STM32G4 Cat.4: PNB[7:0] (RM0440) */
 #define STM32_FLASH_G0_CR_BKER (13)       /* Bank selection for erase operation on G0*/
 #define STM32_FLASH_G4_CR_BKER (11)       /* Bank selection for erase operation on G4*/
 #define STM32_FLASH_Gx_CR_MER2 (15)       /* Mass erase (2nd bank)*/
@@ -210,7 +212,9 @@
 #define STM32_FLASH_Gx_SR_PROGERR (3)
 #define STM32_FLASH_Gx_SR_WRPERR (4)
 #define STM32_FLASH_Gx_SR_PGAERR (5)
-#define STM32_FLASH_Gx_SR_BSY (16)        /* FLASH_SR Busy */
+#define STM32_FLASH_Gx_SR_BSY (16)        /* FLASH_SR Busy (BSY1 on G0) */
+#define STM32_FLASH_G0_SR_BSY2 (17)       /* STM32G0: Bank 2 busy (dual-bank devices only) */
+#define STM32_FLASH_G0_SR_CFGBSY (18)     /* STM32G0: Program/erase configuration busy */
 #define STM32_FLASH_Gx_SR_EOP (0)         /* FLASH_EOP End of Operation */
 
 // == STM32G0 == (RM0444 Table 1, sec. 3.7)
@@ -224,6 +228,8 @@
 #define STM32_FLASH_G0_PCROP1BSR (STM32_FLASH_G0_REGS_ADDR + 0x34)
 #define STM32_FLASH_G0_PCROP1BER (STM32_FLASH_G0_REGS_ADDR + 0x38)
 #define STM32_FLASH_G0_SECR (STM32_FLASH_G0_REGS_ADDR + 0x80)
+
+#define STM32_FLASH_G0_OPTR_DUAL_BANK (21) /* FLASH_OPTR Dual-Bank Mode (256 KB G0B1/G0C1 only) */
 
 // == STM32G4 == (RM0440 Table 17, sec. 3.7.19)
 
