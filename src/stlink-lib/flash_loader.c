@@ -12,8 +12,8 @@
   */
 
 #include "flash_loader.h"
-#include "common_flash.h"
 
+#include "common_flash.h"
 #include "helper.h"
 #include "logging.h"
 #include "read_write.h"
@@ -572,6 +572,10 @@ static void set_flash_cr_pg(stlink_t *sl, uint32_t bank) {
   } else if(sl->flash_type == STM32_FLASH_TYPE_G0 ||
              sl->flash_type == STM32_FLASH_TYPE_G4) {
     cr_reg = STM32_FLASH_Gx_CR;
+    // RM0444/RM0440 sec. 3.3.8: PGSERR is raised if PER, MER1/MER2 or FSTPG
+    // are still set while programming (e.g. left over from a previous erase).
+    x &= ~((1u << STM32_FLASH_Gx_CR_PER) | (1u << STM32_FLASH_Gx_CR_MER1) |
+           (1u << STM32_FLASH_Gx_CR_MER2) | (1u << STM32_FLASH_Gx_CR_FSTPG));
     x |= (1 << FLASH_CR_PG);
   } else if(sl->flash_type == STM32_FLASH_TYPE_WB_WL) {
     cr_reg = STM32_FLASH_WB_CR;
@@ -734,7 +738,7 @@ int32_t stlink_flashloader_start(stlink_t *sl, flash_loader_t *fl) {
              sl->flash_type == STM32_FLASH_TYPE_L5_U5 ||
              sl->flash_type == STM32_FLASH_TYPE_C5 ||
              sl->flash_type == STM32_FLASH_TYPE_C0) {
-    ILOG("Starting Flash write for WB/G0/G4/L5/U5/C0/C5\n");
+    ILOG("Starting Flash write for WB/WL/G0/G4/L5/U5/C0/C5\n");
 
     unlock_flash_if(sl);         // unlock flash if necessary
     set_flash_cr_pg(sl, BANK_1); // set PG 'allow programming' bit
@@ -903,12 +907,17 @@ int32_t stlink_flashloader_write(stlink_t *sl, flash_loader_t *fl, stm32_addr_t 
       data = 0;
       memcpy(&data, base + off, (len - off) < 4 ? (len - off) : 4);
       stlink_write_debug32(sl, addr + off, data);
-      wait_flash_busy(sl); // wait for 'busy' bit in FLASH_SR to clear
+
+      // STM32G0: programming starts only once both words of a double-word are
+      // written; CFGBSY stays set in between, so only wait after the 2nd word.
+      if(sl->flash_type != STM32_FLASH_TYPE_G0 || ((addr + off) & 0x04)) {
+        wait_flash_busy(sl); // wait for 'busy' bit in FLASH_SR to clear
+      }
     }
     fprintf(stdout, "\n");
 
-    // flash writes happen as 2 words at a time
-    if((off / sizeof(uint32_t)) % 2 != 0) {
+    // flash writes happen as 2 words at a time: complete a pending double-word
+    if((addr + off) & 0x04) {
       stlink_write_debug32(sl, addr + off, 0); // write a single word of zeros
       wait_flash_busy(sl); // wait for 'busy' bit in FLASH_SR to clear
     }
