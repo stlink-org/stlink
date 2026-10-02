@@ -229,6 +229,7 @@
 #define STM32_FLASH_G0_PCROP1BER (STM32_FLASH_G0_REGS_ADDR + 0x38)
 #define STM32_FLASH_G0_SECR (STM32_FLASH_G0_REGS_ADDR + 0x80)
 
+#define STM32_FLASH_G0_OPTR_NSWAP_BANK (20) /* FLASH_OPTR Bank swap, active low: 0 = banks swapped (G0B1/G0C1 only) */
 #define STM32_FLASH_G0_OPTR_DUAL_BANK (21) /* FLASH_OPTR Dual-Bank Mode (256 KB G0B1/G0C1 only) */
 
 // == STM32G4 == (RM0440 Table 17, sec. 3.7.19)

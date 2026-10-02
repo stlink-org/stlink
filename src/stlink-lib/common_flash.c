@@ -58,6 +58,22 @@ static bool stlink_gx_dual_bank(stlink_t *sl) {
   return false;
 }
 
+/*
+ * STM32G0B1/G0C1 (RM0444): return true if the two flash banks are swapped in
+ * the memory map, i.e. physical bank 2 is mapped at the start of the flash and
+ * physical bank 1 behind it. FLASH_OPTR.nSWAP_BANK is active low, so the banks
+ * are swapped when the bit reads 0 (the opposite polarity of SWAP_BANK on H5).
+ * Only meaningful in dual-bank mode, callers must check stlink_gx_dual_bank().
+ */
+static bool stlink_g0_bank_swapped(stlink_t *sl) {
+  uint32_t optr;
+
+  if(stlink_read_debug32(sl, STM32_FLASH_Gx_OPTR, &optr)) {
+    return false; // keep the default (unswapped) mapping if OPTR is unreadable
+  }
+  return !((optr >> STM32_FLASH_G0_OPTR_NSWAP_BANK) & 1u);
+}
+
 uint32_t get_stm32l0_flash_base(stlink_t *sl) {
   switch (sl->chip_id) {
   case STM32_CHIPID_L0_CAT1:
@@ -1305,14 +1321,26 @@ int32_t stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr) {
       uint32_t bker_bit = is_g0 ? STM32_FLASH_G0_CR_BKER : STM32_FLASH_G4_CR_BKER;
       uint32_t offset = flashaddr - STM32_FLASH_BASE;
       bool dual_bank = stlink_gx_dual_bank(sl);
-      bool bank2 = dual_bank && (offset >= sl->flash_size / 2);
+      bool upper_half = dual_bank && (offset >= sl->flash_size / 2);
 
-      // In dual-bank mode PNB is the page number *inside* the selected bank
+      // The page number follows the logical memory mapping, whereas BKER
+      // selects the *physical* bank. On G0B1/G0C1 the banks are swapped in the
+      // memory map when FLASH_OPTR.nSWAP_BANK is cleared, so the upper half of
+      // the address range then belongs to physical bank 1 (and vice versa).
+      // Same rule as for H5/C5 below; see also ST community thread
+      // "STM32G0 erasing bank2" and apache/nuttx#20081.
+      bool swap_bank = dual_bank && is_g0 && stlink_g0_bank_swapped(sl);
+      bool bank2 = (upper_half != swap_bank);
+
+      // In dual-bank mode PNB is the page number *inside* the bank
       // (RM0444/RM0440 sec. 3.7.5, see also HAL FLASH_PageErase()).
-      if(bank2) {
+      if(upper_half) {
         offset -= sl->flash_size / 2;
       }
       uint32_t flash_page = offset / sl->flash_pgsz;
+
+      DLOG("Page erase at %#x: physical bank %u, page %u%s\n", flashaddr,
+           bank2 ? 2u : 1u, flash_page, swap_bank ? " (banks swapped)" : "");
 
       stlink_read_debug32(sl, STM32_FLASH_Gx_CR, &val);
 
