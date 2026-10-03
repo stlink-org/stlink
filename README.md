@@ -3,7 +3,7 @@
 [![BSD licensed](https://img.shields.io/badge/license-BSD-blue.svg)](https://raw.githubusercontent.com/hyperium/hyper/master/LICENSE)
 [![GitHub release](https://img.shields.io/github/release/stlink-org/stlink.svg)](https://github.com/stlink-org/stlink/releases/latest)
 [![Downloads](https://img.shields.io/github/downloads/stlink-org/stlink/total)](https://github.com/stlink-org/stlink/releases/latest)
-![GitHub commits](https://img.shields.io/github/commits-since/stlink-org/stlink/v1.8.0/develop)
+![GitHub commits](https://img.shields.io/github/commits-since/stlink-org/stlink/v1.9.0/develop)
 ![GitHub activity](https://img.shields.io/github/commit-activity/m/stlink-org/stlink)
 ![GitHub contributors](https://img.shields.io/github/contributors/stlink-org/stlink)
 [![CodeQL](https://github.com/stlink-org/stlink/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/stlink-org/stlink/actions/workflows/codeql-analysis.yml)
