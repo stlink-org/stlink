@@ -66,6 +66,21 @@ static void usage(void) {
     puts("  st-flash --area=otp write <file> 0xXXXXXXXX");
 }
 
+/*
+ * TrustZone (STM32L5/U5): an address in the secure flash alias (0x0c000000) selects
+ * the secure flash registers and secure transfers for the flash operation.
+ */
+static int32_t enable_secure_flash_if(stlink_t *sl, const struct flash_opts *o, stm32_addr_t addr) {
+    if(!stlink_is_secure_flash_addr(sl, addr)) { return (0); }
+
+    if(o->remote) {
+        printf("Access to the secure flash alias is not supported via st-server\n");
+        return (-1);
+    }
+
+    return (stlink_flash_secure_enable(sl));
+}
+
 int32_t main(int32_t ac, char** av) {
     stlink_t* sl = NULL;
     struct flash_opts o;
@@ -148,6 +163,12 @@ int32_t main(int32_t ac, char** av) {
                 goto on_error;
             }
         }
+
+        if(enable_secure_flash_if(sl, &o, o.addr)) {
+            err = -1;
+            goto on_error;
+        }
+
         if((o.addr >= sl->flash_base) && (o.addr < sl->flash_base + sl->flash_size)) {
             if(o.format == FLASH_FORMAT_IHEX) {
                 err = stlink_mwrite_flash(sl, mem, size, o.addr, erase_type);
@@ -230,6 +251,11 @@ int32_t main(int32_t ac, char** av) {
             }
             printf("Mass erase completed successfully.\n");
         } else {
+            if(enable_secure_flash_if(sl, &o, o.addr)) {
+                err = -1;
+                goto on_error;
+            }
+
             err = stlink_erase_flash_section(sl, o.addr, o.size, false);
             if(err == -1) {
                 printf("stlink_erase_flash_section() == -1\n");
@@ -258,6 +284,11 @@ int32_t main(int32_t ac, char** av) {
 
         // read
         if((o.area == FLASH_MAIN_MEMORY) || (o.area == FLASH_SYSTEM_MEMORY)) {
+            if(enable_secure_flash_if(sl, &o, o.addr)) {
+                err = -1;
+                goto on_error;
+            }
+
             if((o.size == 0) && (o.addr >= sl->flash_base) && (o.addr < sl->flash_base + sl->flash_size)) {
                 o.size = sl->flash_size;
             }

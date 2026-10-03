@@ -95,6 +95,80 @@ uint32_t get_stm32l0_flash_base(stlink_t *sl) {
   }
 }
 
+/*
+ * STM32L5/U5: flash control, status and key register of the active security domain.
+ * With TrustZone enabled, secure pages are erased and programmed through the secure
+ * registers (SECCR, SECSR, SECKEYR), see stlink_flash_secure_enable().
+ */
+uint32_t get_stm32l5_flash_cr(stlink_t *sl) {
+  return (sl->flash_secure ? STM32_FLASH_L5_SECCR : STM32_FLASH_L5_NSCR);
+}
+
+uint32_t get_stm32l5_flash_sr(stlink_t *sl) {
+  return (sl->flash_secure ? STM32_FLASH_L5_SECSR : STM32_FLASH_L5_NSSR);
+}
+
+static uint32_t get_stm32l5_flash_sr_error_mask(stlink_t *sl) {
+  return (sl->flash_secure ? STM32_FLASH_L5_SECSR_ERROR_MASK : STM32_FLASH_L5_NSSR_ERROR_MASK);
+}
+
+static uint32_t get_stm32l5_flash_keyr(stlink_t *sl) {
+  return (sl->flash_secure ? STM32_FLASH_L5_SECKEYR : STM32_FLASH_L5_NSKEYR);
+}
+
+bool stlink_is_secure_flash_addr(stlink_t *sl, stm32_addr_t addr) {
+  return (sl->flash_type == STM32_FLASH_TYPE_L5_U5 &&
+          addr >= STM32_FLASH_SECURE_BASE && addr < STM32_FLASH_SECURE_BASE + sl->flash_size);
+}
+
+/*
+ * STM32L5/U5 with TrustZone enabled (FLASH_OPTR.TZEN = 1): secure flash pages can
+ * only be erased and programmed through the secure flash alias (0x0c000000) and the
+ * secure flash registers, using secure transfers on the MEM-AP. The secure area itself
+ * is defined by the option bytes (SECWM) and is not changed here.
+ *
+ * Switches the flash base address to the secure alias for all subsequent flash
+ * operations. Requires an ST-LINK firmware which accepts the CSW in memory commands.
+ */
+int32_t stlink_flash_secure_enable(stlink_t *sl) {
+  uint32_t optr;
+
+  if(sl->flash_type != STM32_FLASH_TYPE_L5_U5) {
+    ELOG("The secure flash alias is only supported for STM32L5/U5 devices\n");
+    return (-1);
+  }
+
+  if(!(sl->version.flags & STLINK_F_HAS_CSW)) {
+    ELOG("Secure memory access requires ST-LINK firmware V2J32 / V3J2 or newer, "
+         "please update the ST-LINK firmware\n");
+    return (-1);
+  }
+
+  if(stlink_read_debug32(sl, STM32_FLASH_L5_OPTR, &optr)) {
+    ELOG("Failed to read FLASH_OPTR\n");
+    return (-1);
+  }
+
+  if(!(optr & (1u << STM32_FLASH_L5_OPTR_TZEN))) {
+    ELOG("TrustZone is disabled (FLASH_OPTR.TZEN = 0), the flash has no secure alias. "
+         "Use the non-secure address range starting at %#010x instead\n", STM32_FLASH_BASE);
+    return (-1);
+  }
+
+  if((optr & STM32_FLASH_L5_OPTR_RDP_MASK) != STM32_FLASH_L5_OPTR_RDP_LEVEL_0) {
+    ELOG("Secure flash access requires RDP level 0 (FLASH_OPTR.RDP = %#04x)\n",
+         optr & STM32_FLASH_L5_OPTR_RDP_MASK);
+    return (-1);
+  }
+
+  sl->secure_csw = STLINK_CSW_SECURE;
+  sl->flash_secure = true;
+  sl->flash_base = STM32_FLASH_SECURE_BASE;
+
+  ILOG("TrustZone enabled: using the secure flash alias at %#010x\n", sl->flash_base);
+  return (0);
+}
+
 uint32_t read_flash_cr(stlink_t *sl, uint32_t bank) {
   uint32_t reg, res;
 
@@ -112,7 +186,7 @@ uint32_t read_flash_cr(stlink_t *sl, uint32_t bank) {
   } else if(sl->flash_type == STM32_FLASH_TYPE_L4) {
     reg = STM32_FLASH_L4_CR;
   } else if(sl->flash_type == STM32_FLASH_TYPE_L5_U5) {
-    reg = STM32_FLASH_L5_NSCR;
+    reg = get_stm32l5_flash_cr(sl);
   } else if(sl->flash_type == STM32_FLASH_TYPE_H5) {
     reg = STM32_FLASH_H5_NSCR;
   } else if(sl->flash_type == STM32_FLASH_TYPE_WB_WL) {
@@ -169,7 +243,7 @@ void lock_flash(stlink_t *sl) {
     cr_reg = STM32_FLASH_L4_CR;
     cr_lock_shift = STM32_FLASH_L4_CR_LOCK;
   } else if(sl->flash_type == STM32_FLASH_TYPE_L5_U5) {
-    cr_reg = STM32_FLASH_L5_NSCR;
+    cr_reg = get_stm32l5_flash_cr(sl);
     cr_lock_shift = STM32_FLASH_L5_NSCR_NSLOCK;
   } else if(sl->flash_type == STM32_FLASH_TYPE_H5) {
     cr_reg = STM32_FLASH_H5_NSCR;
@@ -227,7 +301,7 @@ static inline int32_t write_flash_sr(stlink_t *sl, uint32_t bank, uint32_t val) 
   } else if(sl->flash_type == STM32_FLASH_TYPE_L4) {
     sr_reg = STM32_FLASH_L4_SR;
   } else if(sl->flash_type == STM32_FLASH_TYPE_L5_U5) {
-    sr_reg = STM32_FLASH_L5_NSSR;
+    sr_reg = get_stm32l5_flash_sr(sl);
   } else if(sl->flash_type == STM32_FLASH_TYPE_H5) {
     // FLASH_NSSR is read-only, flags are cleared through FLASH_NSCCR
     sr_reg = STM32_FLASH_H5_NSCCR;
@@ -286,7 +360,7 @@ void clear_flash_error(stlink_t *sl) {
     write_flash_sr(sl, BANK_1, STM32_FLASH_L4_SR_ERROR_MASK);
     break;
   case STM32_FLASH_TYPE_L5_U5:
-    write_flash_sr(sl, BANK_1, STM32_FLASH_L5_NSSR_ERROR_MASK);
+    write_flash_sr(sl, BANK_1, get_stm32l5_flash_sr_error_mask(sl));
     break;
   case STM32_FLASH_TYPE_H5:
     // H5 has a dedicated clear-control register; writing 1 clears the flag.
@@ -328,7 +402,7 @@ uint32_t read_flash_sr(stlink_t *sl, uint32_t bank) {
   } else if(sl->flash_type == STM32_FLASH_TYPE_L4) {
     sr_reg = STM32_FLASH_L4_SR;
   } else if(sl->flash_type == STM32_FLASH_TYPE_L5_U5) {
-    sr_reg = STM32_FLASH_L5_NSSR;
+    sr_reg = get_stm32l5_flash_sr(sl);
   } else if(sl->flash_type == STM32_FLASH_TYPE_H5) {
     sr_reg = STM32_FLASH_H5_NSSR;
   } else if(sl->flash_type == STM32_FLASH_TYPE_WB_WL) {
@@ -485,7 +559,7 @@ int32_t check_flash_error(stlink_t *sl) {
     PGAERR = (1 << STM32_FLASH_L4_SR_PGAERR);
     break;
   case STM32_FLASH_TYPE_L5_U5:
-    res = read_flash_sr(sl, BANK_1) & STM32_FLASH_L5_NSSR_ERROR_MASK;
+    res = read_flash_sr(sl, BANK_1) & get_stm32l5_flash_sr_error_mask(sl);
     WRPERR = (1 << STM32_FLASH_L5_NSSR_NSWRPERR);
     PROGERR = (1 << STM32_FLASH_L5_NSSR_NSPROGERR);
     PGAERR = (1 << STM32_FLASH_L5_NSSR_NSPGAERR);
@@ -574,7 +648,7 @@ static inline uint32_t is_flash_locked(stlink_t *sl) {
     cr_reg = STM32_FLASH_L4_CR;
     cr_lock_shift = STM32_FLASH_L4_CR_LOCK;
   } else if(sl->flash_type == STM32_FLASH_TYPE_L5_U5) {
-    cr_reg = STM32_FLASH_L5_NSCR;
+    cr_reg = get_stm32l5_flash_cr(sl);
     cr_lock_shift = STM32_FLASH_L5_NSCR_NSLOCK;
   } else if(sl->flash_type == STM32_FLASH_TYPE_H5) {
     cr_reg = STM32_FLASH_H5_NSCR;
@@ -638,7 +712,7 @@ static void unlock_flash(stlink_t *sl) {
       val &= ~mask;
       stlink_write_debug32(sl, STM32L5_PWR_CR1, val);
     }
-    key_reg = STM32_FLASH_L5_NSKEYR;
+    key_reg = get_stm32l5_flash_keyr(sl);
   } else if(sl->flash_type == STM32_FLASH_TYPE_H5) {
     key_reg = STM32_FLASH_H5_NSKEYR;
   } else if(sl->flash_type == STM32_FLASH_TYPE_WB_WL) {
@@ -932,7 +1006,7 @@ void clear_flash_cr_pg(stlink_t *sl, uint32_t bank) {
   } else if(sl->flash_type == STM32_FLASH_TYPE_L4) {
     cr_reg = STM32_FLASH_L4_CR;
   } else if(sl->flash_type == STM32_FLASH_TYPE_L5_U5) {
-    cr_reg = STM32_FLASH_L5_NSCR;
+    cr_reg = get_stm32l5_flash_cr(sl);
   } else if(sl->flash_type == STM32_FLASH_TYPE_H5) {
     cr_reg = STM32_FLASH_H5_NSCR;
     bit = STM32_FLASH_H5_NSCR_PG;
@@ -1008,7 +1082,7 @@ static void set_flash_cr_per(stlink_t *sl, uint32_t bank) {
              sl->flash_type == STM32_FLASH_TYPE_G4) {
     cr_reg = STM32_FLASH_Gx_CR;
   } else if(sl->flash_type == STM32_FLASH_TYPE_L5_U5) {
-    cr_reg = STM32_FLASH_L5_NSCR;
+    cr_reg = get_stm32l5_flash_cr(sl);
   } else if(sl->flash_type == STM32_FLASH_TYPE_WB_WL) {
     cr_reg = STM32_FLASH_WB_CR;
   } else if(sl->flash_type == STM32_FLASH_TYPE_C5) {
@@ -1033,7 +1107,7 @@ static void clear_flash_cr_per(stlink_t *sl, uint32_t bank) {
              sl->flash_type == STM32_FLASH_TYPE_G4) {
     cr_reg = STM32_FLASH_Gx_CR;
   } else if(sl->flash_type == STM32_FLASH_TYPE_L5_U5) {
-    cr_reg = STM32_FLASH_L5_NSCR;
+    cr_reg = get_stm32l5_flash_cr(sl);
   } else if(sl->flash_type == STM32_FLASH_TYPE_WB_WL) {
     cr_reg = STM32_FLASH_WB_CR;
   } else if(sl->flash_type == STM32_FLASH_TYPE_C5) {
@@ -1086,7 +1160,7 @@ static void set_flash_cr_strt(stlink_t *sl, uint32_t bank) {
     cr_reg = STM32_FLASH_L4_CR;
     cr_strt = (1 << STM32_FLASH_L4_CR_STRT);
   } else if(sl->flash_type == STM32_FLASH_TYPE_L5_U5) {
-    cr_reg = STM32_FLASH_L5_NSCR;
+    cr_reg = get_stm32l5_flash_cr(sl);
     cr_strt = (1 << STM32_FLASH_L5_NSCR_NSSTRT);
   } else if(sl->flash_type == STM32_FLASH_TYPE_H5) {
     cr_reg = STM32_FLASH_H5_NSCR;
@@ -1139,7 +1213,7 @@ static void set_flash_cr_mer(stlink_t *sl, bool v, uint32_t bank) {
     cr_mer = (1 << STM32_FLASH_L4_CR_MER1) | (1 << STM32_FLASH_L4_CR_MER2);
     cr_pg = (1 << STM32_FLASH_L4_CR_PG);
   } else if(sl->flash_type == STM32_FLASH_TYPE_L5_U5) {
-    cr_reg = STM32_FLASH_L5_NSCR;
+    cr_reg = get_stm32l5_flash_cr(sl);
     cr_mer = (1 << STM32_FLASH_L5_NSCR_NSMER1) | (1 << STM32_FLASH_L5_NSCR_NSMER2);
     cr_pg = (1 << STM32_FLASH_L5_NSCR_NSPG);
   } else if(sl->flash_type == STM32_FLASH_TYPE_H5) {
@@ -1384,14 +1458,16 @@ int32_t stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr) {
     } else if(sl->flash_type == STM32_FLASH_TYPE_L5_U5) {
       // STM32L5x2xx has two banks with 2k pages or single with 4k pages
       // STM32U535, STM32U545, STM32U575 or STM32U585 have 2 banks with 8k pages
+      // (secure pages are erased through the secure alias and FLASH_SECCR, same bit layout)
       uint32_t flash_page;
-      stlink_read_debug32(sl, STM32_FLASH_L5_NSCR, &val);
-      if((sl->flash_pgsz == 0x800 || sl->flash_pgsz == 0x2000) && (flashaddr - STM32_FLASH_BASE) >= sl->flash_size/2) {
-        flash_page = (flashaddr - STM32_FLASH_BASE - sl->flash_size/2) / sl->flash_pgsz;
+      uint32_t offset = flashaddr - sl->flash_base;
+      stlink_read_debug32(sl, get_stm32l5_flash_cr(sl), &val);
+      if((sl->flash_pgsz == 0x800 || sl->flash_pgsz == 0x2000) && offset >= sl->flash_size/2) {
+        flash_page = (offset - sl->flash_size/2) / sl->flash_pgsz;
         // set bank 2 for erasure
         val |= (1 << STM32_FLASH_L5_NSCR_NSBKER);
       } else {
-        flash_page = ((flashaddr - STM32_FLASH_BASE) / sl->flash_pgsz);
+        flash_page = (offset / sl->flash_pgsz);
         // set bank 1 for erasure
         val &= ~(1 << STM32_FLASH_L5_NSCR_NSBKER);
       }
@@ -1400,7 +1476,7 @@ int32_t stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr) {
       // Maybe the best solution is to handle each one separately.
       val &= ~(0xFF << 3);
       val |= ((flash_page & 0xFF) << 3) | (1 << FLASH_CR_PER);
-      stlink_write_debug32(sl, STM32_FLASH_L5_NSCR, val);
+      stlink_write_debug32(sl, get_stm32l5_flash_cr(sl), val);
 
     // STM32WB
     // STM32WL

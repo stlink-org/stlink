@@ -247,6 +247,11 @@ void _parse_version(stlink_t *sl, stlink_version_t *slv) {
         sl->version.flags |= STLINK_F_HAS_TRACE;
         sl->max_trace_freq = STLINK_V2_MAX_TRACE_FREQUENCY;
       }
+
+      // memory R/W commands accept the MEM-AP CSW from J32
+      if(sl->version.jtag_v >= 32) {
+        sl->version.flags |= STLINK_F_HAS_CSW;
+      }
     }
   } else {
     // V3 uses different version format, for reference see OpenOCD source
@@ -262,6 +267,11 @@ void _parse_version(stlink_t *sl, stlink_version_t *slv) {
     sl->version.flags |= STLINK_F_HAS_GETLASTRWSTATUS2;
     sl->version.flags |= STLINK_F_HAS_TRACE;
     sl->max_trace_freq = STLINK_V3_MAX_TRACE_FREQUENCY;
+
+    // memory R/W commands accept the MEM-AP CSW from V3J2
+    if(sl->version.jtag_v >= 2) {
+      sl->version.flags |= STLINK_F_HAS_CSW;
+    }
   }
 
   return;

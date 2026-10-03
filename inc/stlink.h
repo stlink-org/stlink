@@ -93,6 +93,14 @@ enum target_state {
 #define STLINK_F_HAS_AP_INIT            (1U << 7)
 #define STLINK_F_HAS_DPBANKSEL          (1U << 8)
 #define STLINK_F_HAS_RW8_512BYTES       (1U << 9)
+// Memory read/write commands accept the MEM-AP CSW value (from V2J32 / V3J2),
+// introduced together with DP bank selection
+#define STLINK_F_HAS_CSW                STLINK_F_HAS_DPBANKSEL
+
+/* MEM-AP CSW for secure memory accesses on Armv8-M targets (AHB5-AP):
+ * DbgSwEnable | MasterType = debug | SPROT = 0 (secure) | HPROT = privileged data access
+ */
+#define STLINK_CSW_SECURE               0xab000000
 
 /* Additional MCU features */
 #define CHIP_F_HAS_DUAL_BANK            (1U << 0)
@@ -247,6 +255,10 @@ struct _stlink {
 
     uint32_t otp_base;
     uint32_t otp_size;
+
+    /* TrustZone settings, set by stlink_flash_secure_enable() */
+    bool flash_secure;              // flash is programmed via the secure flash alias and the secure flash registers
+    uint32_t secure_csw;            // MEM-AP CSW for accesses to secure alias addresses, 0 = ST-LINK default (non-secure)
 };
 
 

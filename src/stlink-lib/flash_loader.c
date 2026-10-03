@@ -564,7 +564,7 @@ static void set_flash_cr_pg(stlink_t *sl, uint32_t bank) {
     x &= ~STM32_FLASH_L4_CR_OPBITS;
     x |= (1 << STM32_FLASH_L4_CR_PG);
   } else if(sl->flash_type == STM32_FLASH_TYPE_L5_U5) {
-    cr_reg = STM32_FLASH_L5_NSCR;
+    cr_reg = get_stm32l5_flash_cr(sl);
     x |= (1 << FLASH_CR_PG);
   } else if(sl->flash_type == STM32_FLASH_TYPE_H5) {
     cr_reg = STM32_FLASH_H5_NSCR;

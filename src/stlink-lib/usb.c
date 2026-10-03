@@ -182,6 +182,33 @@ static int32_t fill_command(stlink_t * sl, enum SCSI_Generic_Direction dir, uint
     return (i);
 }
 
+/*
+ * MEM-AP CSW for a memory access at 'addr': secure transfers are required for the TrustZone
+ * secure aliases (code 0x0c000000-0x0fffffff, SRAM 0x30000000-0x3fffffff, peripherals
+ * 0x50000000-0x5fffffff), once enabled by stlink_flash_secure_enable().
+ * 0 lets the ST-LINK firmware use its default CSW (non-secure).
+ */
+static uint32_t mem_ap_csw(stlink_t *sl, uint32_t addr) {
+    if(sl->secure_csw == 0) { return (0); }
+
+    if((addr & 0xfc000000) == 0x0c000000 ||
+       (addr & 0xf0000000) == 0x30000000 ||
+       (addr & 0xf0000000) == 0x50000000) {
+        return (sl->secure_csw);
+    }
+
+    return (0);
+}
+
+/* Memory R/W commands: the AP selector is followed by CSW[31:8] (from V2J32 / V3J2) */
+static void fill_mem_ap_csw(stlink_t *sl, unsigned char *cmd, uint32_t addr) {
+    uint32_t csw = mem_ap_csw(sl, addr) >> 8;
+
+    cmd[0] = (unsigned char) (csw & 0xff);
+    cmd[1] = (unsigned char) ((csw >> 8) & 0xff);
+    cmd[2] = (unsigned char) ((csw >> 16) & 0xff);
+}
+
 int32_t _stlink_usb_version(stlink_t *sl) {
     struct stlink_libusb * const slu = sl->backend_data;
     unsigned char* const data = sl->q_buf;
@@ -247,7 +274,8 @@ int32_t _stlink_usb_read_debug32(stlink_t *sl, uint32_t addr, uint32_t *data) {
     // On targets that live on a non-default AP (e.g. STM32H5 on AP1) the native
     // READDEBUGREG path does not honour the selected AP. The debug registers are
     // memory-mapped in the PPB, so route the access through the MEM-AP instead.
-    if (sl->ap) {
+    // The same applies to secure transfers, as READDEBUGREG does not take a CSW.
+    if (sl->ap || mem_ap_csw(sl, addr)) {
         if (_stlink_usb_read_mem32(sl, addr, 4) != 0) { return (-1); }
         *data = read_uint32(sl->q_buf, 0);
         return (0);
@@ -275,8 +303,9 @@ int32_t _stlink_usb_write_debug32(stlink_t *sl, uint32_t addr, uint32_t data) {
     ssize_t size;
     const int32_t rep_len = 2;
 
-    // See _stlink_usb_read_debug32: route via the MEM-AP when not on AP0.
-    if (sl->ap) {
+    // See _stlink_usb_read_debug32: route via the MEM-AP when not on AP0
+    // or when a secure transfer is required.
+    if (sl->ap || mem_ap_csw(sl, addr)) {
         write_uint32(sl->q_buf, data);
         return (_stlink_usb_write_mem32(sl, addr, 4));
     }
@@ -326,6 +355,7 @@ int32_t _stlink_usb_write_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
     write_uint32(&cmd[i], addr);
     write_uint16(&cmd[i + 4], len);
     cmd[i + 6] = sl->ap; // access port selector (0 = AP0)
+    fill_mem_ap_csw(sl, &cmd[i + 7], addr);
     ret = send_only(slu, 0, cmd, slu->cmd_len, "WRITEMEM_32BIT");
 
     if(ret == -1) { return (ret); }
@@ -355,6 +385,7 @@ int32_t _stlink_usb_write_mem8(stlink_t *sl, uint32_t addr, uint16_t len) {
     write_uint32(&cmd[i], addr);
     write_uint16(&cmd[i + 4], len);
     cmd[i + 6] = sl->ap; // access port selector (0 = AP0)
+    fill_mem_ap_csw(sl, &cmd[i + 7], addr);
     ret = send_only(slu, 0, cmd, slu->cmd_len, "WRITEMEM_8BIT");
 
     if(ret == -1) { return (ret); }
@@ -757,6 +788,7 @@ int32_t _stlink_usb_read_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
     write_uint32(&cmd[i], addr);
     write_uint16(&cmd[i + 4], len);
     cmd[i + 6] = sl->ap; // access port selector (0 = AP0)
+    fill_mem_ap_csw(sl, &cmd[i + 7], addr);
     size = send_recv(slu, 1, cmd, slu->cmd_len, data, len, CMD_CHECK_NO, "READMEM_32BIT");
 
     if(size < 0) {

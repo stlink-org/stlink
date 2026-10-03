@@ -33,6 +33,10 @@ enum erase_type_t {
 };
 
 uint32_t get_stm32l0_flash_base(stlink_t *);
+uint32_t get_stm32l5_flash_cr(stlink_t *);
+uint32_t get_stm32l5_flash_sr(stlink_t *);
+bool stlink_is_secure_flash_addr(stlink_t *, stm32_addr_t);
+int32_t stlink_flash_secure_enable(stlink_t *);
 uint32_t read_flash_cr(stlink_t *, uint32_t);
 void lock_flash(stlink_t *);
 // static inline int32_t write_flash_sr(stlink_t *sl, uint32_t bank, uint32_t val);

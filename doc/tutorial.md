@@ -24,6 +24,25 @@ Example to read and write option bytes:
 ./st-flash --debug write option_bytes_dump.bin 0x1FFF7800
 ```
 
+### st-flash: Secure flash on STM32L5/U5 with TrustZone enabled
+
+When TrustZone is enabled (`FLASH_OPTR.TZEN = 1`), the secure part of the flash is accessed through the secure alias starting at `0x0C000000`. `st-flash` detects addresses within this range and then erases, writes and reads the flash through the secure flash registers using secure transfers:
+
+```
+./st-flash --format ihex write Secure.hex                    # e.g. secure application linked to 0x0C000000
+./st-flash --format ihex write NonSecure.hex                 # e.g. non-secure application linked to 0x08100000
+./st-flash write Secure.bin 0x0C000000
+./st-flash read secure_dump.bin 0x0C000000 0x2000
+```
+
+Requirements and limitations:
+
+- RDP level 0 and an ST-LINK firmware V2J32 / V3J2 or newer.
+- Only pages in the secure area defined by the option bytes (`SECWM`) can be erased and written through the secure alias.
+  The non-secure part of the flash is still written through the non-secure address range starting at `0x08000000`.
+- A mass erase (`--mass-erase`, `erase` without an address) only uses the non-secure flash registers.
+- Not available via `st-server` and `st-util`.
+
 ### st-flash: Checksum for binary files
 
 When flashing a file, a checksum is calculated for the binary file, both in md5 and the sum algorithm.

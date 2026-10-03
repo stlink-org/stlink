@@ -192,6 +192,7 @@ enum stm32_chipids {
 /* Constant STM32 memory address */
 #define STM32_SRAM_BASE             ((uint32_t) 0x20000000)
 #define STM32_FLASH_BASE            ((uint32_t) 0x08000000)
+#define STM32_FLASH_SECURE_BASE     ((uint32_t) 0x0c000000) // TrustZone secure alias of the flash (STM32L5/U5)
 
 #define STM32_F1_FLASH_BANK2_BASE   ((uint32_t) 0x08080000)
 #define STM32_H7_FLASH_BANK2_BASE   ((uint32_t) 0x08100000)

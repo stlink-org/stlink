@@ -394,6 +394,20 @@
 #define STM32_FLASH_L5_ECCR (STM32_FLASH_L5_REGS_ADDR + 0x30)
 #define STM32_FLASH_L5_OPTR (STM32_FLASH_L5_REGS_ADDR + 0x40)
 
+// L5/U5 secure flash registers (TrustZone enabled, RM0438 sec. 6.9, RM0456 sec. 7.9):
+// accessible only with secure transfers, here through the secure peripheral alias.
+// SECCR/SECSR use the same bit positions as NSCR/NSSR (without the option byte bits).
+#define STM32_FLASH_L5_SEC_REGS_ADDR ((uint32_t) 0x50022000)
+#define STM32_FLASH_L5_SECKEYR (STM32_FLASH_L5_SEC_REGS_ADDR + 0x0c)
+#define STM32_FLASH_L5_SECSR (STM32_FLASH_L5_SEC_REGS_ADDR + 0x24)
+#define STM32_FLASH_L5_SECCR (STM32_FLASH_L5_SEC_REGS_ADDR + 0x2c)
+#define STM32_FLASH_L5_SECSR_ERROR_MASK (0x00fa)
+
+// FLASH_OPTR (RM0438, RM0456)
+#define STM32_FLASH_L5_OPTR_RDP_MASK (0xff)
+#define STM32_FLASH_L5_OPTR_RDP_LEVEL_0 (0xaa)
+#define STM32_FLASH_L5_OPTR_TZEN 31       /* Global TrustZone security enable */
+
 // FLASH_NSCR control registers (RM0438, p. 242)
 #define STM32_FLASH_L5_NSCR_NSPG 0        /* Program */
 #define STM32_FLASH_L5_NSCR_NSPER 1       /* Page erase */
