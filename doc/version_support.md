@@ -4,11 +4,12 @@
 
 Up on compiling c-make will **automatically** download and install the latest compatible version of `libusb`.
 
-- Windows 11
+- Windows 11 (GitHub-Actions CI-test environment)
+- Windows 10
 
 ### Apple macOS:
 
-- macOS 14 [Sonoma]
+- macOS 26 [Tahoe] (GitHub-Actions CI-test environment)
 
 ### Linux-/Unix-based:
 

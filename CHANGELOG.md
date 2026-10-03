@@ -1,14 +1,14 @@
 # stlink Changelog
 
-# v1.8.1
+# v1.9.0
 
-Release date: 2026-xx-xx
+Release date: 2026-10-10
 
 This release drops support for some older operating systems. Check project README for details.
 
 Updated system requirements:
 - C-Standard: C17 (ISO/IEC 9899:2018)
-- `cmake` >= 3.20.0
+- `cmake` >= 3.21.0
 - `libusb` >= 1.0.24
 - `libgtk-3-dev` >= 3.24.30
 
@@ -16,7 +16,7 @@ Features:
 
 - Show all info during full erase ([#1363](https://github.com/stlink-org/stlink/pull/1363), commit [#6a6718b](https://github.com/stlink-org/stlink/commit/6a6718b3342b6c5e282a4e33325b9f97908a0692))
 - Support for STM32H5 series (erase, read and write) ([#1384](https://github.com/stlink-org/stlink/pull/13824), [#1407](https://github.com/stlink-org/stlink/pull/1407), [#1492](https://github.com/stlink-org/stlink/pull/1492))
-- Support for STM32C5 series (erase, read and write)
+- Support for STM32C5 series (erase, read and write) ([#1505](https://github.com/stlink-org/stlink/pull/1505))
 - Added support for STLINK-V3PWR ([#1388](https://github.com/stlink-org/stlink/pull/1388), [#1389](https://github.com/stlink-org/stlink/pull/1389))
 - Dynamic SRAM size for F4 memory map ([#1390](https://github.com/stlink-org/stlink/pull/1390))
 - Modifications to allow building of toolset in OpenBSD ([#1392](https://github.com/stlink-org/stlink/pull/1392))
@@ -27,7 +27,7 @@ Features:
 - [STM32Gx]: Added erase support for multi-bank products ([#1420](https://github.com/stlink-org/stlink/pull/1420))
 - libusb-cmake as libusb provider and added support for MSVC ([#1424](https://github.com/stlink-org/stlink/pull/1424), [#1440](https://github.com/stlink-org/stlink/pull/1440))
 - Added support for STM32U073 ([#1436](https://github.com/stlink-org/stlink/pull/1436), commit [#11e357a](https://github.com/stlink-org/stlink/commit/11e357ae2a34c5f5911c0051fa513659b9bbd7fa))
-- [STM32L4Q5CG]: Added support for device ([#1438](https://github.com/stlink-org/stlink/pull/1438), [#1439](https://github.com/stlink-org/stlink/pull/1439))
+- Added support for STM32L4Q5CG ([#1438](https://github.com/stlink-org/stlink/pull/1438), [#1439](https://github.com/stlink-org/stlink/pull/1439))
 - Make SYS_OPEN in semihosting recognize ":tt" ([#1447](https://github.com/stlink-org/stlink/pull/1447))
 - Implementation of flash erase in stlink-gui ([#1452](https://github.com/stlink-org/stlink/pull/1452), [#1486](https://github.com/stlink-org/stlink/pull/1486))
 - [STM32G4]: Erase pages on flash bank 2 ([#1456](https://github.com/stlink-org/stlink/pull/1456), [#1457](https://github.com/stlink-org/stlink/pull/1457))
@@ -35,6 +35,7 @@ Features:
 - Make st-info --probe run probes in parallel ([#1483](https://github.com/stlink-org/stlink/pull/1483))
 - Added voltage printout and query for st-info ([#1487](https://github.com/stlink-org/stlink/pull/1487))
 - Added st-server (and remote backend) to support remote control of an STLINK programmer ([#1496](https://github.com/stlink-org/stlink/pull/1496))
+- Added suport for STM32H533 and trace support for H5/U5/L5 (commit [#6a1d365](https://github.com/stlink-org/stlink/commit/6a1d36530b7ec0004498fb80c947c46e6c537134)) [special credits to Piotr Wasilewski (klonyyy)]
 
 Updates & changes:
 
@@ -46,6 +47,11 @@ Updates & changes:
 - Corrected and unified GitHub-Actions C/C++ CI workflow ([#1446](https://github.com/stlink-org/stlink/pull/1446), [#1449](https://github.com/stlink-org/stlink/pull/1449))
 - [doc] Updated README.md ([#1453](https://github.com/stlink-org/stlink/pull/1453))
 - [doc] Corrected libusb package name in installation instructions ([#1455](https://github.com/stlink-org/stlink/pull/1455))
+- [st-util] Use remote backend when reconnecting to st-server ([#1498](https://github.com/stlink-org/stlink/pull/1498))
+- [stlink-lib] Separate request and response buffers for register access in remote backend ([#1499](https://github.com/stlink-org/stlink/pull/1499))
+- Explicit typing for main header files ([#1502](https://github.com/stlink-org/stlink/pull/1502))
+- Disable halting debug and disarm fault catches on detach after a reset ([#1503](https://github.com/stlink-org/stlink/pull/1503))
+- Use vcpkg with MSVC and added Windows MSVC job to CI ([#1507](https://github.com/stlink-org/stlink/pull/1507), [#1508](https://github.com/stlink-org/stlink/pull/1508))
 
 Fixes:
 
@@ -70,7 +76,14 @@ Fixes:
 - Compilation: Multiple 64 bit to 32 bit narrowing problems in source code ([#1463](https://github.com/stlink-org/stlink/pull/1463), commit [#54d6de5](https://github.com/stlink-org/stlink/commit/54d6de5ae20cbdec1da49ab97c05406612276ebb))
 - Fixed STLINK-V3 programmer lock up when no target connected ([#1467](https://github.com/stlink-org/stlink/pull/1467), commit [#1894b70](https://github.com/stlink-org/stlink/commit/1894b700dee05a031958371ff593bf53d30a93ca))
 - Fixed Win32 gettimeofday implementation ([#1468](https://github.com/stlink-org/stlink/pull/1468), commit [#db953ea](https://github.com/stlink-org/stlink/commit/db953eaf0b7b49e84ee3c556e3e4b974b3ebbb38))
+- Fixes for MinGW cross compilation on Linux to generate Windows binaries and MSVC compatibility ([#1472](https://github.com/stlink-org/stlink/pull/1472), [#1478](https://github.com/stlink-org/stlink/pull/1478), [#1497](https://github.com/stlink-org/stlink/pull/1497), [#1501](https://github.com/stlink-org/stlink/pull/1501), [#1504](https://github.com/stlink-org/stlink/pull/1504))
+- [STM32G0B1RE]: st-flash fails seemingly randomly ([#1473](https://github.com/stlink-org/stlink/pull/1473), [#1506](https://github.com/stlink-org/stlink/pull/1506))
+- [STM32L4R5ZIT6]: STM will halt unless flashed even number of times ([#1482](https://github.com/stlink-org/stlink/pull/1482), [#1503](https://github.com/stlink-org/stlink/pull/1503), commit [#eff714f](https://github.com/stlink-org/stlink/commit/eff714f235c3c361171a89a5b4b6c7602f9d406f))
+- Calling NVIC_SystemReset post flashing with st-flash causes STM32 MCU to hang ([#1489](https://github.com/stlink-org/stlink/pull/1489), [#1500](https://github.com/stlink-org/stlink/pull/1500))
+- [STM32G0B0CE]: Flashing always fails on second bank (0x08040000) ([#1491](https://github.com/stlink-org/stlink/pull/1491), [#1506](https://github.com/stlink-org/stlink/pull/1506))
 - Use bounded strlcpy/snprintf in gdb-server.c ([#1495](https://github.com/stlink-org/stlink/pull/1495))
+- `st-info --probe` intermittently misses connected adapters ([#1509](https://github.com/stlink-org/stlink/pull/1509), [#1511](https://github.com/stlink-org/stlink/pull/1511))
+- [STM32H7]: Flash errors can never be cleared ([#1512](https://github.com/stlink-org/stlink/pull/1512), commit [#62d8d55](https://github.com/stlink-org/stlink/commit/62d8d550adbe1e283ab606f41481a7231fd6dfd6))
 
 
 # v1.8.0

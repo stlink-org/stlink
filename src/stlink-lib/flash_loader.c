@@ -392,8 +392,8 @@ int32_t stlink_flash_loader_run(stlink_t *sl, flash_loader_t* fl, stm32_addr_t t
 
     DLOG("Running flash loader, write address:%#x, size: %u, padded_size: %u\n", target, size, padded_size);
 
-    if(write_buffer_to_sram(sl, fl, buf, size, padded_size) == -1) {
-        ELOG("write_buffer_to_sram() == -1\n");
+    if(stlink_write_buffer_to_sram(sl, fl, buf, size, padded_size) == -1) {
+        ELOG("stlink_write_buffer_to_sram() == -1\n");
         return (-1);
     }
 

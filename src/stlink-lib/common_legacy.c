@@ -474,10 +474,8 @@ int32_t stlink_exit_debug_mode(stlink_t *sl) {
                                     STM32_REG_CM3_DEMCR_VC_HARDERR |
                                     STM32_REG_CM3_DEMCR_VC_BUSERR;
     uint32_t demcr = 0;
-    if(!stlink_read_debug32(sl, STM32_REG_CM3_DEMCR, &demcr) &&
-        (demcr & vector_catches)) {
-      if(stlink_write_debug32(sl, STM32_REG_CM3_DEMCR,
-                              demcr & ~vector_catches)) {
+    if(!stlink_read_debug32(sl, STM32_REG_CM3_DEMCR, &demcr) && (demcr & vector_catches)) {
+      if(stlink_write_debug32(sl, STM32_REG_CM3_DEMCR, demcr & ~vector_catches)) {
         WLOG("Could not clear DEMCR vector catches; target may halt on reset or fault\n");
       }
       // clear the stale vector-catch status in DFSR
@@ -1109,7 +1107,7 @@ bool stlink_is_core_halted(stlink_t *sl) {
   return (sl->core_stat == TARGET_HALTED);
 }
 
-int32_t write_buffer_to_sram(stlink_t *sl, flash_loader_t *fl, const uint8_t *buf, uint16_t size, uint16_t padded_size) {
+int32_t stlink_write_buffer_to_sram(stlink_t *sl, flash_loader_t *fl, const uint8_t *buf, uint16_t size, uint16_t padded_size) {
   // write the buffer right after the loader, and pad the end with 0xFF if padded_size is larger than size
   int32_t ret = 0;
   uint16_t data_remaining = size;

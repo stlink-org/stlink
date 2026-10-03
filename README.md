@@ -11,9 +11,11 @@
 
 Recent new features and bugfixes can be found in the [Changelog](CHANGELOG.md) of this software project.
 
-#### License
+
+## License
 
 The stlink library and tools are licensed under the **[BSD-3 License](LICENSE.md)**.
+
 
 ## Introduction
 
@@ -23,18 +25,18 @@ It supports several so called STLINK programmer boards (and clones thereof) whic
 - **STLINK/V1** _[obsolete as of 21-11-2019, continued support by this toolset]_
   - transport layer: SCSI passthru commands over USB
   - stand-alone programmer
-  - on-board on STM32VL Discovery boards
+  - on-board on STM32VL DISCOVERY boards
 - **STLINK/V2**
   - transport layer: raw USB commands
   - stand-alone programmer
-  - on-board on STM32L Discovery and STM32 Nucleo boards
+  - on-board on STM32 DISCOVERY and some STM32 EVAL boards
 - **STLINK/V2-1**
   - transport layer: raw USB commands
-  - on-board on some STM32 Nucleo boards
+  - on-board on older STM32 Nucleo boards
 - **STLINK-V3**
   - transport layer: raw USB commands
   - stand-alone programmer (STLINK-V3SET, STLINK-V3MINI, STLINK-V3MODS)
-  - on-board on some STM32 Nucleo boards (STLINK-V3E)
+  - on-board on STM32 Nucleo boards (STLINK-V3E)
 
 On the user level there is no difference in handling or operation between these different revisions.
 
@@ -43,10 +45,11 @@ The STlink toolset includes:
 - `st-info` - a programmer and chip information tool
 - `st-flash` - a flash manipulation tool
 - `st-trace` - a logging tool to record information on execution
-- `st-util` - a GDB server (supported in Visual Studio Code / VSCodium via the [Cortex-Debug](https://github.com/Marus/cortex-debug) plugin)
 - `st-server` - serves a local ST-LINK over TCP for remote stlink tools
+- `st-util` - a GDB server (supported in Visual Studio Code / VSCodium via the [Cortex-Debug](https://github.com/Marus/cortex-debug) plugin)
 - `stlink-lib` - a communication library
 - `stlink-gui` - a GUI-Interface _[optional]_
+
 
 ## Supported operating systems and hardware combinations
 
@@ -54,18 +57,23 @@ Currently known working MCU targets are listed in [supported_devices.md](doc/sup
 
 A list of supported operating can be found in [version_support.md](doc/version_support.md).
 
+
 ## Tutorial & HOWTO
 
 Our [tutorial](doc/tutorial.md) may help you along with some advanced tasks and additional info.
+
 
 ## Installation
 
 **Windows**:
 
-As of Release v1.6.1 stand-alone Windows binaries are made available (again) on the [release page](https://github.com/stlink-org/stlink/releases) of the project.
-Please ensure to select the correct version for your system (i686 or x86_64). The archive file can be unzipped to any desired location as it does not contain any hardcoded paths. However we suggest to move the unzipped application folder to `C:\Program Files\` on 32-bit systems and to `C:\Program Files (x86)\` on 64-bit systems (the toolset is 32-bit).
+As of Release v1.6.1 stand-alone Windows binaries are made available (again).
+Please ensure to select the correct version for your system (i686 or x86_64).
+The archive file can be unzipped to any desired location as it does not contain any hardcoded paths.
+However we suggest to move the unzipped application folder to `C:\Program Files\` on 32-bit and to `C:\Program Files (x86)\` on 64-bit systems.
 
 Alternatively one may compile and install from source as described in our [compiling manual](doc/compiling.md#Windows).
+Build testing occurs via CI only.
 
 **Linux / Unix**:
 
@@ -82,12 +90,14 @@ We recommend to install `stlink-tools` from the package repository of the used d
 
 **macOS**
 
-The `stlink-tools` toolset has to be compiled from source. No binaries are provided. Build testing occurs via CI only.
+The `stlink-tools` toolset has to be compiled from source. No binaries are provided.
+Build testing occurs via CI only.
 
 
 ## Installation from source (advanced users)
 
 When there is no executable available for your platform or you need the latest (possible unstable) version you need to compile the toolset yourself. This procedure is explained in the [compiling manual](doc/compiling.md).
+
 
 ## Contributing and versioning
 
@@ -98,6 +108,7 @@ When there is no executable available for your platform or you need the latest (
 - Please start new forks from the develop branch, as pull requests will go into this branch as well.
 
 Please also refer to our [Contribution Guidelines](CONTRIBUTING.md).
+
 
 ## User Reviews
 
