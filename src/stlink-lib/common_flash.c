@@ -196,6 +196,14 @@ void lock_flash(stlink_t *sl) {
   }
 }
 
+/*
+ * Write 'val' to the register through which the status flags of the given
+ * bank are cleared. On most families this is the status register itself
+ * (flags are rc_w1), but some families have read-only status registers and a
+ * dedicated clear register with CLR_* bits at the same positions as the
+ * status flags (H5: NSCCR, H7: CCR1/CCR2, C5: CCR). Writing the status
+ * register on those parts is a no-op and leaves latched errors in place.
+ */
 static inline int32_t write_flash_sr(stlink_t *sl, uint32_t bank, uint32_t val) {
   uint32_t sr_reg;
 
@@ -212,7 +220,8 @@ static inline int32_t write_flash_sr(stlink_t *sl, uint32_t bank, uint32_t val) 
              sl->flash_type == STM32_FLASH_TYPE_G4) {
     sr_reg = STM32_FLASH_Gx_SR;
   } else if(sl->flash_type == STM32_FLASH_TYPE_H7) {
-    sr_reg = (bank == BANK_1) ? STM32_FLASH_H7_SR1 : STM32_FLASH_H7_SR2;
+    // FLASH_SR1/SR2 are read-only, flags are cleared through FLASH_CCR1/CCR2
+    sr_reg = (bank == BANK_1) ? STM32_FLASH_H7_CCR1 : STM32_FLASH_H7_CCR2;
   } else if(sl->flash_type == STM32_FLASH_TYPE_L0_L1) {
     sr_reg = get_stm32l0_flash_base(sl) + FLASH_SR_OFF;
   } else if(sl->flash_type == STM32_FLASH_TYPE_L4) {
@@ -220,12 +229,14 @@ static inline int32_t write_flash_sr(stlink_t *sl, uint32_t bank, uint32_t val) 
   } else if(sl->flash_type == STM32_FLASH_TYPE_L5_U5) {
     sr_reg = STM32_FLASH_L5_NSSR;
   } else if(sl->flash_type == STM32_FLASH_TYPE_H5) {
-    sr_reg = STM32_FLASH_H5_NSSR;
+    // FLASH_NSSR is read-only, flags are cleared through FLASH_NSCCR
+    sr_reg = STM32_FLASH_H5_NSCCR;
   } else if(sl->flash_type == STM32_FLASH_TYPE_WB_WL) {
     sr_reg = STM32_FLASH_WB_SR;
   } else if(sl->flash_type == STM32_FLASH_TYPE_WB0) {
     sr_reg = STM32_FLASH_WB0_IRQRAW;
   } else if(sl->flash_type == STM32_FLASH_TYPE_C5) {
+    // FLASH_SR is read-only, flags are cleared through FLASH_CCR
     sr_reg = STM32_FLASH_C5_CCR;
   } else {
     ELOG("method 'write_flash_sr' is unsupported\n");
@@ -243,6 +254,10 @@ void clear_flash_error(stlink_t *sl) {
   case STM32_FLASH_TYPE_F0_F1_F3:
     write_flash_sr(sl, BANK_1, FLASH_SR_ERROR_MASK);
     break;
+  case STM32_FLASH_TYPE_F1_XL:
+    write_flash_sr(sl, BANK_1, FLASH_SR_ERROR_MASK);
+    write_flash_sr(sl, BANK_2, FLASH_SR_ERROR_MASK);
+    break;
   case STM32_FLASH_TYPE_F2_F4:
     write_flash_sr(sl, BANK_1, STM32_FLASH_F4_SR_ERROR_MASK);
     break;
@@ -254,6 +269,7 @@ void clear_flash_error(stlink_t *sl) {
     write_flash_sr(sl, BANK_1, STM32_FLASH_Gx_SR_ERROR_MASK);
     break;
   case STM32_FLASH_TYPE_H7:
+    // write_flash_sr() resolves to FLASH_CCR1/CCR2 here (SR1/SR2 are read-only)
     write_flash_sr(sl, BANK_1, STM32_FLASH_H7_SR_ERROR_MASK);
     if(sl->chip_flags & CHIP_F_HAS_DUAL_BANK) {
       write_flash_sr(sl, BANK_2, STM32_FLASH_H7_SR_ERROR_MASK);
@@ -1297,8 +1313,8 @@ int32_t stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr) {
              sl->flash_type == STM32_FLASH_TYPE_G4 ||
              sl->flash_type == STM32_FLASH_TYPE_L5_U5 ||
              sl->flash_type == STM32_FLASH_TYPE_WB_WL ||
-             sl->flash_type == STM32_FLASH_TYPE_C5 ||
-             sl->flash_type == STM32_FLASH_TYPE_C0) {
+             sl->flash_type == STM32_FLASH_TYPE_C0 ||
+             sl->flash_type == STM32_FLASH_TYPE_C5) {
     uint32_t val;
     unlock_flash_if(sl);
 
