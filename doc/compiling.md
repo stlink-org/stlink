@@ -97,7 +97,7 @@ Install the following packages from your package repository:
 - `build-essential` (_recommended_, on Debian based distros, contains `gcc`, `g++`, `libc6-dev`, `make`)
 - `cmake` (Software development tool)
 - `libusb-1.0-0` and `libusb-1.0-0-dev` (libusb and related development headers)
-- `libgtk-3-dev` (_optional_, needed for `stlink-gui`)
+- `libgtk-4-dev` >= 4.6 (_optional_, needed for `stlink-gui`)
 - `rpm` (on Debian based distros, needed for package build with `make package`)
 - `pandoc` (_optional_, needed for generating manpages from markdown)
 

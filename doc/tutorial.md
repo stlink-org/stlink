@@ -50,7 +50,7 @@ The latter is also used by the official ST-LINK utility tool from STMicroelectro
 
 ### stlink-gui
 
-The `stlink` toolset also provides a GUI which is an optional feature. It is only installed if a gtk3 toolset has been detected during package installation or compilation from source. It is not available for Windows. If you prefer to have an user interface on the latter system, please use the official `ST-LINK Utility` instead.
+The `stlink` toolset also provides a GUI which is an optional feature. It is only installed if a GTK4 toolset (version 4.6 or newer) has been detected during package installation or compilation from source. It is not available for Windows. If you prefer to have an user interface on the latter system, please use the official `ST-LINK Utility` instead.
 
 The stlink-gui offers the following features:
 

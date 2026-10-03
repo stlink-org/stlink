@@ -1,5 +1,24 @@
 # stlink Changelog
 
+# v1.9.1
+
+Release date: 2026-12-xx
+
+Updated system requirements:
+- C-Standard: C17 (ISO/IEC 9899:2018)
+- `cmake` >= 3.21.0
+- `libusb` >= 1.0.24
+- `libgtk-4-dev` >= 4.6
+
+Features:
+
+- STM32U59x_U5Ax: Write to secure region flash with st-flash ([#1450](https://github.com/stlink-org/stlink/pull/1450), commit [#84fd394](https://github.com/stlink-org/stlink/commit/84fd394c500e9df8203ea7a25d23e63ebc39cb59))
+
+Updates & changes:
+
+- [stlink-gui] Migrated from GTK3 to GTK4 (>= 4.6)
+
+
 # v1.9.0
 
 Release date: 2026-10-04
