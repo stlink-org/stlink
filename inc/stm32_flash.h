@@ -192,8 +192,9 @@
 #define STM32_FLASH_Gx_CR_PER (1)         /* Page erase */
 #define STM32_FLASH_Gx_CR_MER1 (2)        /* Mass erase */
 #define STM32_FLASH_Gx_CR_PNB (3)         /* Page number */
-#define STM32_FLASH_G0_CR_PNG_LEN (5)     /* STM32G0: 5 page number bits */
-#define STM32_FLASH_G4_CR_PNG_LEN (7)     /* STM32G4: 7 page number bits */
+#define STM32_FLASH_G0_CR_PNB_LEN (10)    /* STM32G0: PNB[9:0] (RM0444) */
+#define STM32_FLASH_G4_CR_PNB_LEN (7)     /* STM32G4 Cat.2/Cat.3: PNB[6:0] (RM0440) */
+#define STM32_FLASH_G4_CAT4_CR_PNB_LEN (8) /* STM32G4 Cat.4: PNB[7:0] (RM0440) */
 #define STM32_FLASH_G0_CR_BKER (13)       /* Bank selection for erase operation on G0*/
 #define STM32_FLASH_G4_CR_BKER (11)       /* Bank selection for erase operation on G4*/
 #define STM32_FLASH_Gx_CR_MER2 (15)       /* Mass erase (2nd bank)*/
@@ -211,7 +212,9 @@
 #define STM32_FLASH_Gx_SR_PROGERR (3)
 #define STM32_FLASH_Gx_SR_WRPERR (4)
 #define STM32_FLASH_Gx_SR_PGAERR (5)
-#define STM32_FLASH_Gx_SR_BSY (16)        /* FLASH_SR Busy */
+#define STM32_FLASH_Gx_SR_BSY (16)        /* FLASH_SR Busy (BSY1 on G0) */
+#define STM32_FLASH_G0_SR_BSY2 (17)       /* STM32G0: Bank 2 busy (dual-bank devices only) */
+#define STM32_FLASH_G0_SR_CFGBSY (18)     /* STM32G0: Program/erase configuration busy */
 #define STM32_FLASH_Gx_SR_EOP (0)         /* FLASH_EOP End of Operation */
 
 // == STM32G0 == (RM0444 Table 1, sec. 3.7)
@@ -225,6 +228,9 @@
 #define STM32_FLASH_G0_PCROP1BSR (STM32_FLASH_G0_REGS_ADDR + 0x34)
 #define STM32_FLASH_G0_PCROP1BER (STM32_FLASH_G0_REGS_ADDR + 0x38)
 #define STM32_FLASH_G0_SECR (STM32_FLASH_G0_REGS_ADDR + 0x80)
+
+#define STM32_FLASH_G0_OPTR_NSWAP_BANK (20) /* FLASH_OPTR Bank swap, active low: 0 = banks swapped (G0B1/G0C1 only) */
+#define STM32_FLASH_G0_OPTR_DUAL_BANK (21) /* FLASH_OPTR Dual-Bank Mode (256 KB G0B1/G0C1 only) */
 
 // == STM32G4 == (RM0440 Table 17, sec. 3.7.19)
 
@@ -351,6 +357,10 @@
 #define STM32_FLASH_L4_SR_WRPERR 4
 #define STM32_FLASH_L4_SR_PGAERR 5
 #define STM32_FLASH_L4_SR_BSY 16
+#define STM32_FLASH_L4_SR_PEMPTY 17       /* Program empty (L41x-L46x, L4P/Q, L4R/S only) */
+// EOP, OPERR, PROGERR..FASTERR, RDERR, OPTVERR: all "write 1 to clear" flags.
+// Must never include PEMPTY: writing 1 to it toggles the bit (RM0394/RM0432).
+#define STM32_FLASH_L4_SR_CLEAR_MASK 0xc3fb
 
 // L4 Flash control register
 #define STM32_FLASH_L4_CR_LOCK 31         /* Lock control register */
@@ -497,6 +507,46 @@
 #define STM32_FLASH_WB0_KEY01_SWD_DISABLED (0xABACABAD)   /* irreversible protection level */
 #define STM32_FLASH_WB0_KEY2 (0xC7EF584D)
 #define STM32_FLASH_WB0_KEY3 (0xB3A21096)
+
+
+// == STM32C5 == (RM0522)
+// C5 Flash registers
+// Base address: AHB1PERIPH_BASE(0x40020000) + 0x2000 = 0x40022000
+#define STM32_FLASH_C5_REGS_ADDR ((uint32_t) 0x40022000)
+#define STM32_FLASH_C5_KEYR (STM32_FLASH_C5_REGS_ADDR + 0x04)
+#define STM32_FLASH_C5_OPTKEYR (STM32_FLASH_C5_REGS_ADDR + 0x0c)
+#define STM32_FLASH_C5_SR (STM32_FLASH_C5_REGS_ADDR + 0x20)
+#define STM32_FLASH_C5_CR (STM32_FLASH_C5_REGS_ADDR + 0x28)
+#define STM32_FLASH_C5_CCR (STM32_FLASH_C5_REGS_ADDR + 0x30)
+#define STM32_FLASH_C5_OPTSR_CUR (STM32_FLASH_C5_REGS_ADDR + 0x50)
+
+// C5 Flash control register (FLASH_CR)
+#define STM32_FLASH_C5_CR_LOCK 0
+#define STM32_FLASH_C5_CR_PG 1
+#define STM32_FLASH_C5_CR_PER 2
+#define STM32_FLASH_C5_CR_BER 3
+#define STM32_FLASH_C5_CR_STRT 5
+#define STM32_FLASH_C5_CR_PNB 6
+#define STM32_FLASH_C5_CR_MER 15
+#define STM32_FLASH_C5_CR_BKSEL 31
+
+// C5 Flash option status register
+#define STM32_FLASH_C5_OPTSR_CUR_SINGLE_BANK 30
+#define STM32_FLASH_C5_OPTSR_CUR_SWAP_BANK 31
+
+// C5 Flash status register (FLASH_SR)
+// SR is read-only; error flags are cleared by writing their clear bits to CCR.
+#define STM32_FLASH_C5_SR_BSY 0
+#define STM32_FLASH_C5_SR_WBNE 1
+#define STM32_FLASH_C5_SR_DBNE 3
+#define STM32_FLASH_C5_SR_EOP 16
+#define STM32_FLASH_C5_SR_WRPERR 17
+#define STM32_FLASH_C5_SR_PGSERR 18
+#define STM32_FLASH_C5_SR_STRBERR 19
+#define STM32_FLASH_C5_SR_INCERR 20
+#define STM32_FLASH_C5_SR_ERROR_MASK                                      \
+  ((1u << STM32_FLASH_C5_SR_WRPERR) | (1u << STM32_FLASH_C5_SR_PGSERR) | \
+   (1u << STM32_FLASH_C5_SR_STRBERR) | (1u << STM32_FLASH_C5_SR_INCERR))
 
 
 // == STM32WB == (RM0434)

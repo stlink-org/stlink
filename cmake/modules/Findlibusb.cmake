@@ -12,8 +12,31 @@ include(FindPackageHandleStandardArgs)
 set(LIBUSB_FOUND FALSE)  # Default: libusb not found
 
 # --- Platform-specific configurations ---
+# vcpkg installs Release and Debug libraries with the same name in separate directories.
+# A single find_library() can select the Debug library for every VS configuration.
+if(WIN32 AND VCPKG_TARGET_TRIPLET)
+    set(_LIBUSB_VCPKG_PREFIX "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}")
+    find_path(LIBUSB_INCLUDE_DIR
+        NAMES libusb.h
+        PATHS "${_LIBUSB_VCPKG_PREFIX}/include"
+        PATH_SUFFIXES libusb-1.0
+        NO_DEFAULT_PATH
+    )
+    find_library(LIBUSB_LIBRARY_RELEASE
+        NAMES usb-1.0 libusb-1.0
+        PATHS "${_LIBUSB_VCPKG_PREFIX}/lib"
+        NO_DEFAULT_PATH
+    )
+    find_library(LIBUSB_LIBRARY_DEBUG
+        NAMES usb-1.0 libusb-1.0
+        PATHS "${_LIBUSB_VCPKG_PREFIX}/debug/lib"
+        NO_DEFAULT_PATH
+    )
+    include(SelectLibraryConfigurations)
+    select_library_configurations(LIBUSB)
+
 # FreeBSD: libusb is part of the base system
-if(CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
+elseif(CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
     find_path(LIBUSB_INCLUDE_DIR NAMES libusb.h HINTS /usr/include)
     find_library(LIBUSB_LIBRARY NAMES usb HINTS /usr /usr/local /opt)
 
@@ -22,11 +45,18 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "OpenBSD")
     find_path(LIBUSB_INCLUDE_DIR NAMES libusb.h HINTS /usr/local/include PATH_SUFFIXES libusb-1.0)
     find_library(LIBUSB_LIBRARY NAMES usb-1.0 HINTS /usr/local)
 
-# Windows (native MSVC or MinGW without cross-compiling)
-elseif(MSVC OR (WIN32 AND NOT EXISTS "/etc/debian_version"))
-    # Fix for missing ssize_t on Windows (required by libusb)
-    add_compile_definitions(_SSIZE_T_DEFINED ssize_t=int64_t)
+# MSVC without the mandatory vcpkg toolchain: unsupported per project policy.
+# Fail early with a clear pointer instead of falling through to a stray
+# system libusb install, which can predate 1.0.30 and reintroduce the
+# winsock.h/winsock2.h conflict this project no longer supports.
+elseif(MSVC)
+    message(FATAL_ERROR
+        "libusb-1.0 was not found via vcpkg (VCPKG_TARGET_TRIPLET is unset).\n"
+        "MSVC builds require the vcpkg toolchain file - see doc/compiling.md."
+    )
 
+# Windows (native MinGW build on Windows itself, not cross-compiling)
+elseif(WIN32 AND NOT EXISTS "/etc/debian_version")
     # Try to locate an existing Windows installation of libusb
     find_path(LIBUSB_INCLUDE_DIR
         NAMES libusb.h
@@ -41,17 +71,7 @@ elseif(MSVC OR (WIN32 AND NOT EXISTS "/etc/debian_version"))
 
 # Windows-Build with MinGW via cross-compiling on Debian-Linux
 elseif(MINGW AND EXISTS "/etc/debian_version")
-    # Fix for ssize_t on Windows
-    add_compile_definitions(_SSIZE_T_DEFINED ssize_t=int64_t)
-
-    # Architecture: 64-bit or 32-bit?
-    if (CMAKE_SIZEOF_VOID_P EQUAL 8)
-        message(STATUS "=== Building for Windows (x86-64) ===")
-        set(ARCH 64)
-    else ()
-        message(STATUS "=== Building for Windows (i686) ===")
-        set(ARCH 32)
-    endif ()
+    message(STATUS "=== Building for Windows (${TOOLCHAIN_PREFIX}) ===")
 
     # Download and build libusb via FetchContent
     if(NOT LIBUSB_FOUND)
@@ -71,84 +91,41 @@ elseif(MINGW AND EXISTS "/etc/debian_version")
                 WORKING_DIRECTORY ${libusb_SOURCE_DIR}
                 RESULT_VARIABLE BOOTSTRAP_RESULT
             )
+            if(NOT BOOTSTRAP_RESULT EQUAL 0)
+                message(FATAL_ERROR "libusb bootstrap.sh failed with code ${BOOTSTRAP_RESULT}")
+            endif()
         endif()
 
-        # Configuration for MinGW
+        # Configure
         execute_process(
-            COMMAND test -f configure || ./bootstrap
-            COMMAND ./configure --host=i686-w64-mingw${ARCH} --prefix=${libusb_BINARY_DIR}/install 
+            COMMAND ./configure --host=${TOOLCHAIN_PREFIX} --prefix=${libusb_BINARY_DIR}/install
                                 --enable-static --disable-shared --disable-udev
             WORKING_DIRECTORY ${libusb_SOURCE_DIR}
             RESULT_VARIABLE CONFIGURE_RESULT
         )
+        if(NOT CONFIGURE_RESULT EQUAL 0)
+            message(FATAL_ERROR "libusb configure failed with code ${CONFIGURE_RESULT}")
+        endif()
 
-        # Build and install library
+        # Build library
         execute_process(
             COMMAND make
-            COMMAND make install
             WORKING_DIRECTORY ${libusb_SOURCE_DIR}
             RESULT_VARIABLE MAKE_RESULT
         )
-
-        # Get include dir and library path from the target
-        set(LIBUSB_INCLUDE_DIR "${libusb_SOURCE_DIR}/libusb")
-        set(LIBUSB_LIBRARY "${libusb_SOURCE_DIR}/../libusb-build/install/lib/libusb-1.0.a")
-
-        # Create a CMake target
-        if(NOT TARGET libusb::libusb)
-            add_library(libusb::libusb UNKNOWN IMPORTED GLOBAL)
-            set_target_properties(libusb::libusb PROPERTIES
-                INTERFACE_INCLUDE_DIRECTORIES "${LIBUSB_INCLUDE_DIR}"
-                IMPORTED_LOCATION "${LIBUSB_LIBRARY}"
-            )
-        endif()
-    endif()
-
-    # Architecture: 64-bit or 32-bit?
-    if (CMAKE_SIZEOF_VOID_P EQUAL 8)
-        message(STATUS "=== Building for Windows (x86-64) ===")
-        set(ARCH 64)
-    else ()
-        message(STATUS "=== Building for Windowsm (i686) ===")
-        set(ARCH 32)
-    endif ()
-
-    # Download and build libusb via FetchContent
-    if(NOT LIBUSB_FOUND)
-        message(STATUS "libusb-1.0 not found locally. Downloading and building from source via FetchContent...")
-
-        FetchContent_Declare(
-            libusb
-            GIT_REPOSITORY "https://github.com/libusb/libusb.git"
-            GIT_TAG "v1.0.30"
-        )
-        FetchContent_MakeAvailable(libusb)
-
-        # Run bootstrap.sh (if available)
-        if(EXISTS "${libusb_SOURCE_DIR}/bootstrap.sh")
-            execute_process(
-                COMMAND ./bootstrap.sh
-                WORKING_DIRECTORY ${libusb_SOURCE_DIR}
-                RESULT_VARIABLE BOOTSTRAP_RESULT
-            )
+        if(NOT MAKE_RESULT EQUAL 0)
+            message(FATAL_ERROR "libusb make failed with code ${MAKE_RESULT}")
         endif()
 
-        # Configuration for MinGW
+        # Install library
         execute_process(
-            COMMAND test -f configure || ./bootstrap
-            COMMAND ./configure --host=i686-w64-mingw${ARCH} --prefix=${libusb_BINARY_DIR}/install 
-                                --enable-static --disable-shared --disable-udev
-            WORKING_DIRECTORY ${libusb_SOURCE_DIR}
-            RESULT_VARIABLE CONFIGURE_RESULT
-        )
-
-        # Build and install library
-        execute_process(
-            COMMAND make
             COMMAND make install
             WORKING_DIRECTORY ${libusb_SOURCE_DIR}
-            RESULT_VARIABLE MAKE_RESULT
+            RESULT_VARIABLE INSTALL_RESULT
         )
+        if(NOT INSTALL_RESULT EQUAL 0)
+            message(FATAL_ERROR "libusb make install failed with code ${INSTALL_RESULT}")
+        endif()
 
         # Get include dir and library path from the target
         set(LIBUSB_INCLUDE_DIR "${libusb_SOURCE_DIR}/libusb")
@@ -200,8 +177,19 @@ if(LIBUSB_INCLUDE_DIR AND LIBUSB_LIBRARY)
         # - IMPORTED_LOCATION: Path to the compiled library (e.g., libusb-1.0.a/.so/.lib)
         set_target_properties(libusb::libusb PROPERTIES
             INTERFACE_INCLUDE_DIRECTORIES "${LIBUSB_INCLUDE_DIR}"
-            IMPORTED_LOCATION "${LIBUSB_LIBRARY}"
         )
+        if(LIBUSB_LIBRARY_RELEASE OR LIBUSB_LIBRARY_DEBUG)
+            foreach(_LIBUSB_CONFIG RELEASE DEBUG)
+                if(LIBUSB_LIBRARY_${_LIBUSB_CONFIG})
+                    set_property(TARGET libusb::libusb APPEND PROPERTY
+                        IMPORTED_CONFIGURATIONS ${_LIBUSB_CONFIG})
+                    set_target_properties(libusb::libusb PROPERTIES
+                        IMPORTED_LOCATION_${_LIBUSB_CONFIG} "${LIBUSB_LIBRARY_${_LIBUSB_CONFIG}}")
+                endif()
+            endforeach()
+        else()
+            set_target_properties(libusb::libusb PROPERTIES IMPORTED_LOCATION "${LIBUSB_LIBRARY}")
+        endif()
     endif()
 endif()
 

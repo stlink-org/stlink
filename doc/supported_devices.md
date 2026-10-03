@@ -38,6 +38,7 @@ More commonly these are:
 | STM32L5        | M33             | *preliminary, limited and partial support only!*           |
 | STM32H5        | M33             |                                                            |
 | STM32U5        | M33             | *preliminary, limited and partial support only!*           |
+| STM32C5        | M33             | *preliminary, limited and partial support only!*           |
 
 
 # Chinese Clone-Chips [may work, but without support!]
@@ -52,6 +53,7 @@ More commonly these are:
 | ------------- | ------- | ------------------------------------------------------------------------- |
 | CKS32F103C8T6 | 0x410   | STM32F103C8T6 clone from China Key Systems (CKS)                          |
 | CH32F103C8T6  | 0x410   | STM32F103C8T6 clone from Nanjing Qinheng Microelectronics Co., Ltd. (WCH) |
+
 
 ## STM32F3 Clone / ARM Cortex M4F (Core-ID: 0x2ba01477)
 

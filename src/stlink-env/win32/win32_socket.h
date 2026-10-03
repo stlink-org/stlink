@@ -4,9 +4,10 @@
  *
  */
 
-// TODO: CONTENT AND USE OF THIS SOURCE FILE IS TO BE VERIFIED
-
 #if defined(_WIN32)
+
+#ifndef WIN32_SOCKET_H
+#define WIN32_SOCKET_H
 
 #include <stdint.h>
 
@@ -83,5 +84,7 @@ char *win32_strsep(char **stringp, const char *delim);
 
 ssize_t win32_read_socket(SOCKET fd, void *buf, int32_t n);
 ssize_t win32_write_socket(SOCKET fd, void *buf, int32_t n);
+
+#endif // WIN32_SOCKET_H
 
 #endif // defined(_WIN32)

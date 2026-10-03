@@ -185,27 +185,55 @@ jobs:
         working-directory: ./build/release
         run: sudo cmake --build . --target uninstall
 
-  # # Windows builds with MSVC
-  # windows_build:
-  #   name: Windows MSVC
-  #   runs-on: windows-latest
-  #   steps:
-  #     - uses: actions/checkout@v4
+  # Windows builds with MSVC
+  windows_build:
+    name: Windows MSVC
+    runs-on: windows-latest
 
-  #     # Install Visual Studio 2022 Build Tools
-  #     - name: Install Visual Studio 2022 Build Tools
-  #       run: |
-  #         choco install visualstudio2022buildtools -y --package-parameters "--add Microsoft.VisualStudio.Workload.VCTools --includeRecommended"
+    steps:
+      - uses: actions/checkout@v4
 
-  #     - name: Configure project (Release)
-  #       run: cmake -S . -B build -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release
+      - name: Verify CMake version
+        run: cmake --version
 
-  #     - name: Build project (Release)
-  #       run: cmake --build build --config Release --parallel 4
+      - name: Prepare build directories
+        run: New-Item -ItemType Directory -Force -Path ./build/debug, ./build/release
 
-  #     - name: Run tests (Release)
-  #       working-directory: build
-  #       run: ctest --output-on-failure --parallel 4
+      - name: Configure project (Debug)
+        working-directory: ./build/debug
+        run: >
+          cmake ../.. -A x64 -DCMAKE_BUILD_TYPE=Debug
+          -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
+
+      - name: Build project (Debug)
+        working-directory: ./build/debug
+        run: cmake --build . --config Debug --parallel 4
+
+      - name: Run tests (Debug)
+        working-directory: ./build/debug
+        run: ctest --output-on-failure --build-config Debug --parallel 4
+
+      - name: Configure project (Release)
+        working-directory: ./build/release
+        run: >
+          cmake ../.. -A x64 -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/stage"
+          -DCMAKE_TOOLCHAIN_FILE="$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
+
+      - name: Build project (Release)
+        working-directory: ./build/release
+        run: cmake --build . --config Release --parallel 4
+
+      - name: Install project
+        working-directory: ./build/release
+        run: cmake --build . --config Release --target install
+
+      - name: Package project
+        working-directory: ./build/release
+        run: cmake --build . --config Release --target package
+
+      - name: Uninstall project
+        working-directory: ./build/release
+        run: cmake --build . --config Release --target uninstall
 
   # Cross-compilation for MinGW (Windows)
   mingw_cross_compile:

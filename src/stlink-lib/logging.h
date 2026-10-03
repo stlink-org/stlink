@@ -19,6 +19,8 @@
 #include <stdarg.h>
 #include <time.h>
 
+#include <stlink.h>
+
 #include "logging_spdlog_wr.h"
 
 #ifdef  __cplusplus

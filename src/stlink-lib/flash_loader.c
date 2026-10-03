@@ -12,8 +12,8 @@
   */
 
 #include "flash_loader.h"
-#include "common_flash.h"
 
+#include "common_flash.h"
 #include "helper.h"
 #include "logging.h"
 #include "read_write.h"
@@ -392,8 +392,8 @@ int32_t stlink_flash_loader_run(stlink_t *sl, flash_loader_t* fl, stm32_addr_t t
 
     DLOG("Running flash loader, write address:%#x, size: %u, padded_size: %u\n", target, size, padded_size);
 
-    if(write_buffer_to_sram(sl, fl, buf, size, padded_size) == -1) {
-        ELOG("write_buffer_to_sram() == -1\n");
+    if(stlink_write_buffer_to_sram(sl, fl, buf, size, padded_size) == -1) {
+        ELOG("stlink_write_buffer_to_sram() == -1\n");
         return (-1);
     }
 
@@ -572,10 +572,17 @@ static void set_flash_cr_pg(stlink_t *sl, uint32_t bank) {
   } else if(sl->flash_type == STM32_FLASH_TYPE_G0 ||
              sl->flash_type == STM32_FLASH_TYPE_G4) {
     cr_reg = STM32_FLASH_Gx_CR;
+    // RM0444/RM0440 sec. 3.3.8: PGSERR is raised if PER, MER1/MER2 or FSTPG
+    // are still set while programming (e.g. left over from a previous erase).
+    x &= ~((1u << STM32_FLASH_Gx_CR_PER) | (1u << STM32_FLASH_Gx_CR_MER1) |
+           (1u << STM32_FLASH_Gx_CR_MER2) | (1u << STM32_FLASH_Gx_CR_FSTPG));
     x |= (1 << FLASH_CR_PG);
   } else if(sl->flash_type == STM32_FLASH_TYPE_WB_WL) {
     cr_reg = STM32_FLASH_WB_CR;
     x |= (1 << FLASH_CR_PG);
+  } else if(sl->flash_type == STM32_FLASH_TYPE_C5) {
+    cr_reg = STM32_FLASH_C5_CR;
+    x |= (1 << STM32_FLASH_C5_CR_PG);
   } else if(sl->flash_type == STM32_FLASH_TYPE_H7) {
     cr_reg = (bank == BANK_1) ? STM32_FLASH_H7_CR1 : STM32_FLASH_H7_CR2;
     x |= (1 << STM32_FLASH_H7_CR_PG);
@@ -640,6 +647,10 @@ static void set_dma_state(stlink_t *sl, flash_loader_t *fl, int32_t bckpRstr) {
   case STM32_FLASH_TYPE_WB0:
     rcc = STM32WB0_RCC_AHBENR;
     rcc_dma_mask = STM32WB0_RCC_AHB_DMAEN;
+    break;
+  case STM32_FLASH_TYPE_C5:
+    rcc = STM32C5_RCC_AHB1ENR;
+    rcc_dma_mask = STM32C5_RCC_DMAEN;
     break;
   default:
     return;
@@ -725,8 +736,9 @@ int32_t stlink_flashloader_start(stlink_t *sl, flash_loader_t *fl) {
              sl->flash_type == STM32_FLASH_TYPE_G0 ||
              sl->flash_type == STM32_FLASH_TYPE_G4 ||
              sl->flash_type == STM32_FLASH_TYPE_L5_U5 ||
+             sl->flash_type == STM32_FLASH_TYPE_C5 ||
              sl->flash_type == STM32_FLASH_TYPE_C0) {
-    ILOG("Starting Flash write for WB/G0/G4/L5/U5/C0\n");
+    ILOG("Starting Flash write for WB/WL/G0/G4/L5/U5/C0/C5\n");
 
     unlock_flash_if(sl);         // unlock flash if necessary
     set_flash_cr_pg(sl, BANK_1); // set PG 'allow programming' bit
@@ -833,6 +845,44 @@ int32_t stlink_flashloader_write(stlink_t *sl, flash_loader_t *fl, stm32_addr_t 
 
       off += size;
     }
+  } else if(sl->flash_type == STM32_FLASH_TYPE_C5) {
+    // C5 programs flash in 16-byte (128-bit) rows: four 32-bit words are
+    // latched, then the controller commits one row per BSY cycle (RM0522;
+    // matches the DFP mem_loader_program). Writing a single word leaves the
+    // row incomplete and the controller stalls, so write whole rows via one
+    // MEM-AP transfer and wait for BSY only once per row.
+    const uint32_t row = 16;
+
+    const uint32_t padded_len = (len + row - 1) & ~(row - 1);
+    if(len != padded_len) WLOG("Aligning data size to 16 bytes\n");
+
+    DLOG("Starting %3u row write\n", padded_len / row);
+
+    for(off = 0; off < padded_len; off += row) {
+      uint32_t bytes_to_copy = len - off < row ? len - off : row;
+      memcpy(sl->q_buf, base + off, bytes_to_copy);
+      memset(sl->q_buf + bytes_to_copy, 0xFF, row - bytes_to_copy);
+
+      if((off % sl->flash_pgsz) > (sl->flash_pgsz - row - 1)) {
+        fprintf(stdout, "%3u/%-3u pages written\n", (off / sl->flash_pgsz + 1),
+                (padded_len / sl->flash_pgsz));
+        fflush(stdout);
+      }
+
+      if(stlink_write_mem32(sl, addr + off, (uint16_t)row)) {
+        ELOG("stlink_write_mem32(%#x) failed! == -1\n", (addr + off));
+        check_flash_error(sl);
+        return (-1);
+      }
+
+      wait_flash_busy(sl);
+
+      if(check_flash_error(sl)) {
+        return (-1);
+      }
+    }
+
+    fprintf(stdout, "\n");
   } else if(sl->flash_type == STM32_FLASH_TYPE_WB_WL ||
              sl->flash_type == STM32_FLASH_TYPE_G0 ||
              sl->flash_type == STM32_FLASH_TYPE_G4 ||
@@ -857,12 +907,17 @@ int32_t stlink_flashloader_write(stlink_t *sl, flash_loader_t *fl, stm32_addr_t 
       data = 0;
       memcpy(&data, base + off, (len - off) < 4 ? (len - off) : 4);
       stlink_write_debug32(sl, addr + off, data);
-      wait_flash_busy(sl); // wait for 'busy' bit in FLASH_SR to clear
+
+      // STM32G0: programming starts only once both words of a double-word are
+      // written; CFGBSY stays set in between, so only wait after the 2nd word.
+      if(sl->flash_type != STM32_FLASH_TYPE_G0 || ((addr + off) & 0x04)) {
+        wait_flash_busy(sl); // wait for 'busy' bit in FLASH_SR to clear
+      }
     }
     fprintf(stdout, "\n");
 
-    // flash writes happen as 2 words at a time
-    if((off / sizeof(uint32_t)) % 2 != 0) {
+    // flash writes happen as 2 words at a time: complete a pending double-word
+    if((addr + off) & 0x04) {
       stlink_write_debug32(sl, addr + off, 0); // write a single word of zeros
       wait_flash_busy(sl); // wait for 'busy' bit in FLASH_SR to clear
     }
@@ -985,8 +1040,45 @@ int32_t stlink_flashloader_write(stlink_t *sl, flash_loader_t *fl, stm32_addr_t 
   return check_flash_error(sl);
 }
 
+/*
+ * STM32L4 devices with FLASH_SR.PEMPTY boot from system memory instead of main
+ * flash while PEMPTY is set. The flag is only re-evaluated on power-on reset or
+ * option byte loading, so after programming a previously empty device it stays
+ * set and a plain system reset starts the bootloader. Clear it (by toggling,
+ * RM0394/RM0432) once the first flash word is programmed. This also recovers
+ * devices left in that state by older stlink versions.
+ */
+static void stlink_l4_sync_pempty(stlink_t *sl) {
+  uint32_t sr, first_word;
+
+  switch(sl->chip_id) {
+  case STM32_CHIPID_L41x_L42x:
+  case STM32_CHIPID_L43x_L44x:
+  case STM32_CHIPID_L45x_L46x:
+  case STM32_CHIPID_L4PX:
+  case STM32_CHIPID_L4Rx:
+    break;
+  default:
+    return; // L47x/L48x, L49x/L4Ax: no PEMPTY flag (bit 17 reserved)
+  }
+
+  if(stlink_read_debug32(sl, STM32_FLASH_L4_SR, &sr) ||
+     stlink_read_debug32(sl, STM32_FLASH_BASE, &first_word)) {
+    return;
+  }
+
+  if((sr & (1u << STM32_FLASH_L4_SR_PEMPTY)) && first_word != 0xffffffff) {
+    DLOG("Clearing FLASH_SR.PEMPTY so the device boots from main flash\n");
+    stlink_write_debug32(sl, STM32_FLASH_L4_SR, (1u << STM32_FLASH_L4_SR_PEMPTY));
+  }
+}
+
 int32_t stlink_flashloader_stop(stlink_t *sl, flash_loader_t *fl) {
   uint32_t dhcsr;
+
+  if(sl->flash_type == STM32_FLASH_TYPE_L4) {
+    stlink_l4_sync_pempty(sl);
+  }
 
   if((sl->flash_type == STM32_FLASH_TYPE_C0) ||
       (sl->flash_type == STM32_FLASH_TYPE_F0_F1_F3) ||
@@ -999,7 +1091,8 @@ int32_t stlink_flashloader_stop(stlink_t *sl, flash_loader_t *fl) {
       (sl->flash_type == STM32_FLASH_TYPE_L4) ||
       (sl->flash_type == STM32_FLASH_TYPE_L5_U5) ||
       (sl->flash_type == STM32_FLASH_TYPE_H5) ||
-      (sl->flash_type == STM32_FLASH_TYPE_WB_WL)) {
+      (sl->flash_type == STM32_FLASH_TYPE_WB_WL) ||
+      (sl->flash_type == STM32_FLASH_TYPE_C5)) {
 
     clear_flash_cr_pg(sl, BANK_1);
     if((sl->flash_type == STM32_FLASH_TYPE_H7 && sl->chip_flags & CHIP_F_HAS_DUAL_BANK) ||

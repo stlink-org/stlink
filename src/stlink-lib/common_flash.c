@@ -15,6 +15,7 @@
 
 #include "calculate.h"
 #include "flash_loader.h"
+#include "helper.h"
 #include "logging.h"
 #include "map_file.h"
 #include "md5.h"
@@ -22,6 +23,56 @@
 
 
 #define DEBUG_FLASH 0
+
+// Upper bound for a single program/erase operation to finish. Mass erases are
+// polled separately (wait_flash_busy_progress), so this only needs to cover
+// the slowest page/sector erase with some margin.
+#define FLASH_BUSY_TIMEOUT_MS 30000
+
+/*
+ * STM32G0/G4: return true if the device is currently operated as dual-bank.
+ * - G0B1/G0C1 (RM0444): 512 KB devices are always dual-bank, 256 KB devices
+ *   only when FLASH_OPTR.DUAL_BANK is set, 128 KB devices are single-bank.
+ * - G4 Cat.3 (RM0440): dual-bank only when FLASH_OPTR.DBANK is set.
+ * - G4 Cat.2 and Cat.4 are always single-bank (no BKER/MER2 bits).
+ */
+static bool stlink_gx_dual_bank(stlink_t *sl) {
+  uint32_t optr = 0;
+
+  if(sl->flash_type == STM32_FLASH_TYPE_G0) {
+    if(!(sl->chip_flags & CHIP_F_HAS_DUAL_BANK) || sl->flash_size < 256 * 1024) {
+      return false;
+    }
+    if(sl->flash_size > 256 * 1024) {
+      return true;
+    }
+    stlink_read_debug32(sl, STM32_FLASH_Gx_OPTR, &optr);
+    return (optr >> STM32_FLASH_G0_OPTR_DUAL_BANK) & 1u;
+  }
+
+  if(sl->flash_type == STM32_FLASH_TYPE_G4 && sl->chip_id == STM32_CHIPID_G4_CAT3) {
+    stlink_read_debug32(sl, STM32_FLASH_Gx_OPTR, &optr);
+    return (optr >> STM32_FLASH_G4_OPTR_DBANK) & 1u;
+  }
+
+  return false;
+}
+
+/*
+ * STM32G0B1/G0C1 (RM0444): return true if the two flash banks are swapped in
+ * the memory map, i.e. physical bank 2 is mapped at the start of the flash and
+ * physical bank 1 behind it. FLASH_OPTR.nSWAP_BANK is active low, so the banks
+ * are swapped when the bit reads 0 (the opposite polarity of SWAP_BANK on H5).
+ * Only meaningful in dual-bank mode, callers must check stlink_gx_dual_bank().
+ */
+static bool stlink_g0_bank_swapped(stlink_t *sl) {
+  uint32_t optr;
+
+  if(stlink_read_debug32(sl, STM32_FLASH_Gx_OPTR, &optr)) {
+    return false; // keep the default (unswapped) mapping if OPTR is unreadable
+  }
+  return !((optr >> STM32_FLASH_G0_OPTR_NSWAP_BANK) & 1u);
+}
 
 uint32_t get_stm32l0_flash_base(stlink_t *sl) {
   switch (sl->chip_id) {
@@ -66,6 +117,8 @@ uint32_t read_flash_cr(stlink_t *sl, uint32_t bank) {
     reg = STM32_FLASH_H5_NSCR;
   } else if(sl->flash_type == STM32_FLASH_TYPE_WB_WL) {
     reg = STM32_FLASH_WB_CR;
+  } else if(sl->flash_type == STM32_FLASH_TYPE_C5) {
+    reg = STM32_FLASH_C5_CR;
   } else {
     reg = (bank == BANK_1) ? FLASH_CR : FLASH_CR2;
   }
@@ -124,6 +177,9 @@ void lock_flash(stlink_t *sl) {
   } else if(sl->flash_type == STM32_FLASH_TYPE_WB_WL) {
     cr_reg = STM32_FLASH_WB_CR;
     cr_lock_shift = STM32_FLASH_WB_CR_LOCK;
+  } else if(sl->flash_type == STM32_FLASH_TYPE_C5) {
+    cr_reg = STM32_FLASH_C5_CR;
+    cr_lock_shift = STM32_FLASH_C5_CR_LOCK;
   } else {
     ELOG("unsupported flash method, abort\n");
     return;
@@ -140,6 +196,14 @@ void lock_flash(stlink_t *sl) {
   }
 }
 
+/*
+ * Write 'val' to the register through which the status flags of the given
+ * bank are cleared. On most families this is the status register itself
+ * (flags are rc_w1), but some families have read-only status registers and a
+ * dedicated clear register with CLR_* bits at the same positions as the
+ * status flags (H5: NSCCR, H7: CCR1/CCR2, C5: CCR). Writing the status
+ * register on those parts is a no-op and leaves latched errors in place.
+ */
 static inline int32_t write_flash_sr(stlink_t *sl, uint32_t bank, uint32_t val) {
   uint32_t sr_reg;
 
@@ -156,7 +220,8 @@ static inline int32_t write_flash_sr(stlink_t *sl, uint32_t bank, uint32_t val) 
              sl->flash_type == STM32_FLASH_TYPE_G4) {
     sr_reg = STM32_FLASH_Gx_SR;
   } else if(sl->flash_type == STM32_FLASH_TYPE_H7) {
-    sr_reg = (bank == BANK_1) ? STM32_FLASH_H7_SR1 : STM32_FLASH_H7_SR2;
+    // FLASH_SR1/SR2 are read-only, flags are cleared through FLASH_CCR1/CCR2
+    sr_reg = (bank == BANK_1) ? STM32_FLASH_H7_CCR1 : STM32_FLASH_H7_CCR2;
   } else if(sl->flash_type == STM32_FLASH_TYPE_L0_L1) {
     sr_reg = get_stm32l0_flash_base(sl) + FLASH_SR_OFF;
   } else if(sl->flash_type == STM32_FLASH_TYPE_L4) {
@@ -164,11 +229,15 @@ static inline int32_t write_flash_sr(stlink_t *sl, uint32_t bank, uint32_t val) 
   } else if(sl->flash_type == STM32_FLASH_TYPE_L5_U5) {
     sr_reg = STM32_FLASH_L5_NSSR;
   } else if(sl->flash_type == STM32_FLASH_TYPE_H5) {
-    sr_reg = STM32_FLASH_H5_NSSR;
+    // FLASH_NSSR is read-only, flags are cleared through FLASH_NSCCR
+    sr_reg = STM32_FLASH_H5_NSCCR;
   } else if(sl->flash_type == STM32_FLASH_TYPE_WB_WL) {
     sr_reg = STM32_FLASH_WB_SR;
   } else if(sl->flash_type == STM32_FLASH_TYPE_WB0) {
     sr_reg = STM32_FLASH_WB0_IRQRAW;
+  } else if(sl->flash_type == STM32_FLASH_TYPE_C5) {
+    // FLASH_SR is read-only, flags are cleared through FLASH_CCR
+    sr_reg = STM32_FLASH_C5_CCR;
   } else {
     ELOG("method 'write_flash_sr' is unsupported\n");
     return (-1);
@@ -185,6 +254,10 @@ void clear_flash_error(stlink_t *sl) {
   case STM32_FLASH_TYPE_F0_F1_F3:
     write_flash_sr(sl, BANK_1, FLASH_SR_ERROR_MASK);
     break;
+  case STM32_FLASH_TYPE_F1_XL:
+    write_flash_sr(sl, BANK_1, FLASH_SR_ERROR_MASK);
+    write_flash_sr(sl, BANK_2, FLASH_SR_ERROR_MASK);
+    break;
   case STM32_FLASH_TYPE_F2_F4:
     write_flash_sr(sl, BANK_1, STM32_FLASH_F4_SR_ERROR_MASK);
     break;
@@ -196,6 +269,7 @@ void clear_flash_error(stlink_t *sl) {
     write_flash_sr(sl, BANK_1, STM32_FLASH_Gx_SR_ERROR_MASK);
     break;
   case STM32_FLASH_TYPE_H7:
+    // write_flash_sr() resolves to FLASH_CCR1/CCR2 here (SR1/SR2 are read-only)
     write_flash_sr(sl, BANK_1, STM32_FLASH_H7_SR_ERROR_MASK);
     if(sl->chip_flags & CHIP_F_HAS_DUAL_BANK) {
       write_flash_sr(sl, BANK_2, STM32_FLASH_H7_SR_ERROR_MASK);
@@ -223,6 +297,9 @@ void clear_flash_error(stlink_t *sl) {
     break;
   case STM32_FLASH_TYPE_WB0:
     write_flash_sr(sl, BANK_1, STM32_FLASH_WB0_IRQ_ERR_MASK);
+    break;
+  case STM32_FLASH_TYPE_C5:
+    write_flash_sr(sl, BANK_1, STM32_FLASH_C5_SR_ERROR_MASK);
     break;
   default:
     break;
@@ -258,6 +335,8 @@ uint32_t read_flash_sr(stlink_t *sl, uint32_t bank) {
     sr_reg = STM32_FLASH_WB_SR;
   } else if(sl->flash_type == STM32_FLASH_TYPE_WB0) {
     sr_reg = STM32_FLASH_WB0_IRQRAW;
+  } else if(sl->flash_type == STM32_FLASH_TYPE_C5) {
+    sr_reg = STM32_FLASH_C5_SR;
   } else {
     ELOG("method 'read_flash_sr' is unsupported\n");
     return (-1);
@@ -281,8 +360,15 @@ uint32_t is_flash_busy(stlink_t *sl) {
     sr_busy_shift = STM32_FLASH_F4_SR_BSY;
   } else if(sl->flash_type == STM32_FLASH_TYPE_F7) {
     sr_busy_shift = STM32_FLASH_F7_SR_BSY;
-  } else if(sl->flash_type == STM32_FLASH_TYPE_G0 ||
-             sl->flash_type == STM32_FLASH_TYPE_G4) {
+  } else if(sl->flash_type == STM32_FLASH_TYPE_G0) {
+    // RM0444 sec. 3.3.7/3.3.8: an operation is only finished once BSY1, BSY2
+    // (bank 2 on dual-bank devices, reads as 0 otherwise) and CFGBSY are all
+    // cleared. Starting the next operation while CFGBSY is still set results
+    // in PGSERR (see #1473).
+    return read_flash_sr(sl, BANK_1) &
+           ((1u << STM32_FLASH_Gx_SR_BSY) | (1u << STM32_FLASH_G0_SR_BSY2) |
+            (1u << STM32_FLASH_G0_SR_CFGBSY));
+  } else if(sl->flash_type == STM32_FLASH_TYPE_G4) {
     sr_busy_shift = STM32_FLASH_Gx_SR_BSY;
   } else if(sl->flash_type == STM32_FLASH_TYPE_H7) {
     sr_busy_shift = STM32_FLASH_H7_SR_QW;
@@ -294,6 +380,12 @@ uint32_t is_flash_busy(stlink_t *sl) {
     sr_busy_shift = STM32_FLASH_H5_NSSR_BSY;
   } else if(sl->flash_type == STM32_FLASH_TYPE_WB_WL) {
     sr_busy_shift = STM32_FLASH_WB_SR_BSY;
+  } else if(sl->flash_type == STM32_FLASH_TYPE_C5) {
+    // a new C5 program/erase operation may only start when the controller and
+    // both internal buffers are idle (RM0522 single-write sequence).
+    return read_flash_sr(sl, BANK_1) &
+           ((1u << STM32_FLASH_C5_SR_BSY) | (1u << STM32_FLASH_C5_SR_WBNE) |
+            (1u << STM32_FLASH_C5_SR_DBNE));
   } else if(sl->flash_type == STM32_FLASH_TYPE_WB0) {
     res = read_flash_sr(sl, BANK_1);
     uint32_t has_errors = res & STM32_FLASH_WB0_IRQ_ERR_MASK;
@@ -315,9 +407,15 @@ uint32_t is_flash_busy(stlink_t *sl) {
 }
 
 void wait_flash_busy(stlink_t *sl) {
-  // TODO: add some delays here
-  while (is_flash_busy(sl))
-    ;
+  uint32_t start = time_ms();
+
+  while (is_flash_busy(sl)) {
+    if((uint32_t)(time_ms() - start) > FLASH_BUSY_TIMEOUT_MS) {
+      ELOG("Timeout while waiting for the flash controller (SR: %#010x)\n",
+           read_flash_sr(sl, BANK_1));
+      return;
+    }
+  }
 }
 
 int32_t check_flash_error(stlink_t *sl) {
@@ -404,6 +502,10 @@ int32_t check_flash_error(stlink_t *sl) {
     PROGERR = (1 << STM32_FLASH_WB_SR_PROGERR);
     PGAERR = (1 << STM32_FLASH_WB_SR_PGAERR);
     break;
+  case STM32_FLASH_TYPE_C5:
+    res = read_flash_sr(sl, BANK_1) & STM32_FLASH_C5_SR_ERROR_MASK;
+    WRPERR = (1 << STM32_FLASH_C5_SR_WRPERR);
+    break;
   case STM32_FLASH_TYPE_WB0:
     res = read_flash_sr(sl, BANK_1) & STM32_FLASH_WB0_IRQ_ERR_MASK;
     if (res) {
@@ -480,6 +582,9 @@ static inline uint32_t is_flash_locked(stlink_t *sl) {
   } else if(sl->flash_type == STM32_FLASH_TYPE_WB_WL) {
     cr_reg = STM32_FLASH_WB_CR;
     cr_lock_shift = STM32_FLASH_WB_CR_LOCK;
+  } else if(sl->flash_type == STM32_FLASH_TYPE_C5) {
+    cr_reg = STM32_FLASH_C5_CR;
+    cr_lock_shift = STM32_FLASH_C5_CR_LOCK;
   } else if(sl->flash_type == STM32_FLASH_TYPE_WB0) {
     return 0;
   } else {
@@ -538,6 +643,8 @@ static void unlock_flash(stlink_t *sl) {
     key_reg = STM32_FLASH_H5_NSKEYR;
   } else if(sl->flash_type == STM32_FLASH_TYPE_WB_WL) {
     key_reg = STM32_FLASH_WB_KEYR;
+  } else if(sl->flash_type == STM32_FLASH_TYPE_C5) {
+    key_reg = STM32_FLASH_C5_KEYR;
   } else {
     ELOG("unsupported flash method, abort\n");
     return;
@@ -831,6 +938,9 @@ void clear_flash_cr_pg(stlink_t *sl, uint32_t bank) {
     bit = STM32_FLASH_H5_NSCR_PG;
   } else if(sl->flash_type == STM32_FLASH_TYPE_WB_WL) {
     cr_reg = STM32_FLASH_WB_CR;
+  } else if(sl->flash_type == STM32_FLASH_TYPE_C5) {
+    cr_reg = STM32_FLASH_C5_CR;
+    bit = STM32_FLASH_C5_CR_PG;
   } else {
     cr_reg = FLASH_CR;
   }
@@ -890,6 +1000,7 @@ static inline void write_flash_cr_snb(stlink_t *sl, uint32_t n, uint32_t bank) {
 
 static void set_flash_cr_per(stlink_t *sl, uint32_t bank) {
   uint32_t cr_reg, val;
+  uint32_t per_shift = FLASH_CR_PER;
 
   if(sl->flash_type == STM32_FLASH_TYPE_C0) {
     cr_reg = STM32_FLASH_C0_CR;
@@ -900,17 +1011,21 @@ static void set_flash_cr_per(stlink_t *sl, uint32_t bank) {
     cr_reg = STM32_FLASH_L5_NSCR;
   } else if(sl->flash_type == STM32_FLASH_TYPE_WB_WL) {
     cr_reg = STM32_FLASH_WB_CR;
+  } else if(sl->flash_type == STM32_FLASH_TYPE_C5) {
+    cr_reg = STM32_FLASH_C5_CR;
+    per_shift = STM32_FLASH_C5_CR_PER;
   } else {
     cr_reg = (bank == BANK_1) ? FLASH_CR : FLASH_CR2;
   }
 
   stlink_read_debug32(sl, cr_reg, &val);
-  val |= (1 << FLASH_CR_PER);
+  val |= (1 << per_shift);
   stlink_write_debug32(sl, cr_reg, val);
 }
 
 static void clear_flash_cr_per(stlink_t *sl, uint32_t bank) {
   uint32_t cr_reg;
+  uint32_t per_shift = FLASH_CR_PER;
 
   if(sl->flash_type == STM32_FLASH_TYPE_C0) {
     cr_reg = STM32_FLASH_C0_CR;
@@ -921,17 +1036,20 @@ static void clear_flash_cr_per(stlink_t *sl, uint32_t bank) {
     cr_reg = STM32_FLASH_L5_NSCR;
   } else if(sl->flash_type == STM32_FLASH_TYPE_WB_WL) {
     cr_reg = STM32_FLASH_WB_CR;
+  } else if(sl->flash_type == STM32_FLASH_TYPE_C5) {
+    cr_reg = STM32_FLASH_C5_CR;
+    per_shift = STM32_FLASH_C5_CR_PER;
   } else {
     cr_reg = (bank == BANK_1) ? FLASH_CR : FLASH_CR2;
   }
 
-  const uint32_t n = read_flash_cr(sl, bank) & ~(1 << FLASH_CR_PER);
+  const uint32_t n = read_flash_cr(sl, bank) & ~(1 << per_shift);
   stlink_write_debug32(sl, cr_reg, n);
 }
 
 static inline void write_flash_cr_bker_pnb(stlink_t *sl, uint32_t n) {
-  stlink_write_debug32(sl, STM32_FLASH_L4_SR,
-                       0xFFFFFFFF & ~(1 << STM32_FLASH_L4_SR_BSY));
+  // Clear EOP and all error flags.
+  stlink_write_debug32(sl, STM32_FLASH_L4_SR, STM32_FLASH_L4_SR_CLEAR_MASK);
   uint32_t x = read_flash_cr(sl, BANK_1);
   x &= ~STM32_FLASH_L4_CR_OPBITS;
   x &= ~STM32_FLASH_L4_CR_PAGEMASK;
@@ -976,6 +1094,9 @@ static void set_flash_cr_strt(stlink_t *sl, uint32_t bank) {
   } else if(sl->flash_type == STM32_FLASH_TYPE_WB_WL) {
     cr_reg = STM32_FLASH_WB_CR;
     cr_strt = (1 << STM32_FLASH_WB_CR_STRT);
+  } else if(sl->flash_type == STM32_FLASH_TYPE_C5) {
+    cr_reg = STM32_FLASH_C5_CR;
+    cr_strt = (1 << STM32_FLASH_C5_CR_STRT);
   } else {
     cr_reg = (bank == BANK_1) ? FLASH_CR : FLASH_CR2;
     cr_strt = (1 << FLASH_CR_STRT);
@@ -1005,7 +1126,7 @@ static void set_flash_cr_mer(stlink_t *sl, bool v, uint32_t bank) {
              sl->flash_type == STM32_FLASH_TYPE_G4) {
     cr_reg = STM32_FLASH_Gx_CR;
     cr_mer = (1 << STM32_FLASH_Gx_CR_MER1);
-    if(sl->chip_flags & CHIP_F_HAS_DUAL_BANK) {
+    if(stlink_gx_dual_bank(sl)) {
       cr_mer |= (1 << STM32_FLASH_Gx_CR_MER2);
     }
     cr_pg = (1 << FLASH_CR_PG);
@@ -1029,6 +1150,10 @@ static void set_flash_cr_mer(stlink_t *sl, bool v, uint32_t bank) {
     cr_reg = STM32_FLASH_WB_CR;
     cr_mer = (1 << FLASH_CR_MER);
     cr_pg = (1 << FLASH_CR_PG);
+  } else if(sl->flash_type == STM32_FLASH_TYPE_C5) {
+    cr_reg = STM32_FLASH_C5_CR;
+    cr_mer = (1 << STM32_FLASH_C5_CR_MER);
+    cr_pg = (1 << STM32_FLASH_C5_CR_PG);
   } else {
     cr_reg = (bank == BANK_1) ? FLASH_CR : FLASH_CR2;
     cr_mer = (1 << FLASH_CR_MER);
@@ -1188,55 +1313,77 @@ int32_t stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr) {
              sl->flash_type == STM32_FLASH_TYPE_G4 ||
              sl->flash_type == STM32_FLASH_TYPE_L5_U5 ||
              sl->flash_type == STM32_FLASH_TYPE_WB_WL ||
-             sl->flash_type == STM32_FLASH_TYPE_C0) {
+             sl->flash_type == STM32_FLASH_TYPE_C0 ||
+             sl->flash_type == STM32_FLASH_TYPE_C5) {
     uint32_t val;
     unlock_flash_if(sl);
-    set_flash_cr_per(sl, BANK_1); // set the 'enable Flash erase' bit
+
+    // STM32G0/G4 set PER together with PNB/BKER in a single write below (as
+    // the ST HAL does): on G0, setting PER already sets CFGBSY (RM0444).
+    if(sl->flash_type != STM32_FLASH_TYPE_G0 && sl->flash_type != STM32_FLASH_TYPE_G4) {
+      set_flash_cr_per(sl, BANK_1); // set the 'enable Flash erase' bit
+    }
 
     // set the page to erase
 
     // STM32G0
-    if(sl->flash_type == STM32_FLASH_TYPE_G0) {
-      uint32_t flash_page = ((flashaddr - STM32_FLASH_BASE) / sl->flash_pgsz);
-      stlink_read_debug32(sl, STM32_FLASH_Gx_CR, &val);
-      // sec 3.7.5 - PNB[9:0] is offset by 3. PER is 0x2.
-      val &= ~(0x3FF << 3);
-      val |= ((flash_page & 0x3FF) << 3) | (1 << FLASH_CR_PER);
-      stlink_write_debug32(sl, STM32_FLASH_Gx_CR, val);
-
-    // wait 100 ms to ensure flash controller is ready (no parallel R/W for STM32G0)
-    #ifdef _WIN32
-        Sleep(100);
-    #else
-        usleep(100000);
-    #endif
-
     // STM32G4
-    } else if(sl->flash_type == STM32_FLASH_TYPE_G4) {
-      uint32_t flash_page = ((flashaddr - STM32_FLASH_BASE) / sl->flash_pgsz);
-      stlink_read_debug32(sl, STM32_FLASH_Gx_CR, &val);
-      // sec 3.7.5 - PNB[9:0] is offset by 3. PER is 0x2.
-      val &= ~(0x7FF << 3);
-      // sec 3.3.8 - Error PGSERR
-      // * In the page erase sequence: PG, FSTPG and MER1 are not cleared when PER is set
-      val &= ~(1 << STM32_FLASH_Gx_CR_MER1 | 1 << STM32_FLASH_Gx_CR_MER2);
-      val &= ~(1 << STM32_FLASH_Gx_CR_PG);
-      // Products of the Gx series with more than 128K of flash use 2 banks.
-      // In this case we need to specify which bank to erase (sec 3.7.5 - BKER)
-      if(sl->flash_size > (128 * 1024) &&
-          ((flashaddr - STM32_FLASH_BASE) >= sl->flash_size / 2)) {
-        val |= (1 << STM32_FLASH_G4_CR_BKER); // erase bank 2
-      } else {
-        val &= ~(1 << STM32_FLASH_G4_CR_BKER); // erase bank 1
+    if(sl->flash_type == STM32_FLASH_TYPE_G0 || sl->flash_type == STM32_FLASH_TYPE_G4) {
+      bool is_g0 = (sl->flash_type == STM32_FLASH_TYPE_G0);
+      uint32_t pnb_len = is_g0 ? STM32_FLASH_G0_CR_PNB_LEN
+                       : (sl->chip_id == STM32_CHIPID_G4_CAT4) ? STM32_FLASH_G4_CAT4_CR_PNB_LEN
+                       : STM32_FLASH_G4_CR_PNB_LEN;
+      uint32_t pnb_mask = (1u << pnb_len) - 1;
+      uint32_t bker_bit = is_g0 ? STM32_FLASH_G0_CR_BKER : STM32_FLASH_G4_CR_BKER;
+      uint32_t offset = flashaddr - STM32_FLASH_BASE;
+      bool dual_bank = stlink_gx_dual_bank(sl);
+      bool upper_half = dual_bank && (offset >= sl->flash_size / 2);
+
+      // The page number follows the logical memory mapping, whereas BKER
+      // selects the *physical* bank. On G0B1/G0C1 the banks are swapped in the
+      // memory map when FLASH_OPTR.nSWAP_BANK is cleared, so the upper half of
+      // the address range then belongs to physical bank 1 (and vice versa).
+      // Same rule as for H5/C5 below; see also ST community thread
+      // "STM32G0 erasing bank2" and apache/nuttx#20081.
+      bool swap_bank = dual_bank && is_g0 && stlink_g0_bank_swapped(sl);
+      bool bank2 = (upper_half != swap_bank);
+
+      // In dual-bank mode PNB is the page number *inside* the bank
+      // (RM0444/RM0440 sec. 3.7.5, see also HAL FLASH_PageErase()).
+      if(upper_half) {
+        offset -= sl->flash_size / 2;
       }
-      val |= ((flash_page & 0x7FF) << 3) | (1 << FLASH_CR_PER);
+      uint32_t flash_page = offset / sl->flash_pgsz;
+
+      DLOG("Page erase at %#x: physical bank %u, page %u%s\n", flashaddr,
+           bank2 ? 2u : 1u, flash_page, swap_bank ? " (banks swapped)" : "");
+
+      stlink_read_debug32(sl, STM32_FLASH_Gx_CR, &val);
+
+      // Sec. 3.3.8 - PGSERR: PG, FSTPG and MER1/MER2 are not cleared by
+      // hardware when PER is set (RM0444/RM0440, applies to both G0 and G4).
+      val &= ~(1u << STM32_FLASH_Gx_CR_MER1);
+      val &= ~(1u << STM32_FLASH_Gx_CR_MER2);
+      val &= ~(1u << STM32_FLASH_Gx_CR_FSTPG);
+      val &= ~(1u << STM32_FLASH_Gx_CR_PG);
+
+      // BKER only exists on dual-bank capable devices and must be kept
+      // cleared in single-bank mode.
+      if(bank2) {
+        val |= (1u << bker_bit);
+      } else if(is_g0 || sl->chip_id == STM32_CHIPID_G4_CAT3) {
+        val &= ~(1u << bker_bit);
+      }
+
+      val &= ~(pnb_mask << STM32_FLASH_Gx_CR_PNB);
+      val |= ((flash_page & pnb_mask) << STM32_FLASH_Gx_CR_PNB) | (1u << FLASH_CR_PER);
       stlink_write_debug32(sl, STM32_FLASH_Gx_CR, val);
 
     // STM32L5
     // STM32U5
     } else if(sl->flash_type == STM32_FLASH_TYPE_L5_U5) {
-    // STM32L5x2xx has two banks with 2k pages or single with 4k pages
-    // STM32U535, STM32U545, STM32U575 or STM32U585 have 2 banks with 8k pages
+      // STM32L5x2xx has two banks with 2k pages or single with 4k pages
+      // STM32U535, STM32U545, STM32U575 or STM32U585 have 2 banks with 8k pages
       uint32_t flash_page;
       stlink_read_debug32(sl, STM32_FLASH_L5_NSCR, &val);
       if((sl->flash_pgsz == 0x800 || sl->flash_pgsz == 0x2000) && (flashaddr - STM32_FLASH_BASE) >= sl->flash_size/2) {
@@ -1276,6 +1423,41 @@ int32_t stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr) {
       val |= ((flash_page & 0xF) << STM32_FLASH_C0_CR_PNB);
 
       stlink_write_debug32(sl, STM32_FLASH_C0_CR, val);
+
+    // STM32C5
+    } else if(sl->flash_type == STM32_FLASH_TYPE_C5) {
+      // RM0522: page erase via CR.PER@2 + CR.PNB@6, bank via CR.BKSEL@31.
+      // In dual-bank mode, bank 2 base = flash_base + flash_size/2. Half-size
+      // devices can instead use one bank, with PNB spanning the whole flash.
+      uint32_t flash_page, optsr = 0;
+      stlink_read_debug32(sl, STM32_FLASH_C5_CR, &val);
+      stlink_read_debug32(sl, STM32_FLASH_C5_OPTSR_CUR, &optsr);
+
+      bool upper_half = (flashaddr - STM32_FLASH_BASE) >= sl->flash_size / 2;
+      bool single_bank = (optsr >> STM32_FLASH_C5_OPTSR_CUR_SINGLE_BANK) & 1u;
+      bool swap_bank = (optsr >> STM32_FLASH_C5_OPTSR_CUR_SWAP_BANK) & 1u;
+
+      if(single_bank) {
+        flash_page = (flashaddr - STM32_FLASH_BASE) / sl->flash_pgsz;
+        val &= ~(1u << STM32_FLASH_C5_CR_BKSEL);
+      } else {
+        flash_page = (flashaddr - STM32_FLASH_BASE -
+                      (upper_half ? sl->flash_size / 2 : 0)) /
+                     sl->flash_pgsz;
+        if(upper_half != swap_bank) {
+          val |= (1u << STM32_FLASH_C5_CR_BKSEL);
+        } else {
+          val &= ~(1u << STM32_FLASH_C5_CR_BKSEL);
+        }
+      }
+
+      val &= ~(0x7F << STM32_FLASH_C5_CR_PNB);
+      val &= ~(1u << STM32_FLASH_C5_CR_PG);
+      val &= ~(1u << STM32_FLASH_C5_CR_BER);
+      val &= ~(1u << STM32_FLASH_C5_CR_MER);
+      val |= ((flash_page & 0x7F) << STM32_FLASH_C5_CR_PNB);
+      val |= (1u << STM32_FLASH_C5_CR_PER);
+      stlink_write_debug32(sl, STM32_FLASH_C5_CR, val);
     }
 
     set_flash_cr_strt(sl, BANK_1);  // set the 'start operation' bit
@@ -1438,14 +1620,16 @@ int32_t stlink_erase_flash_mass(stlink_t *sl) {
     }
 
     wait_flash_busy_progress(sl);
-    lock_flash(sl);
 
-    // reset the mass erase bit
+    // reset the mass erase bit (must happen before locking, as FLASH_CR is
+    // write protected once locked and a stale MERx bit causes PGSERR on the
+    // next program operation, e.g. on STM32G0/G4)
     set_flash_cr_mer(sl, 0, BANK_1);
     if(sl->flash_type == STM32_FLASH_TYPE_F1_XL ||
         (sl->flash_type == STM32_FLASH_TYPE_H7 && sl->chip_flags & CHIP_F_HAS_DUAL_BANK)) {
       set_flash_cr_mer(sl, 0, BANK_2);
     }
+    lock_flash(sl);
 
     err = check_flash_error(sl);
   }
@@ -1675,7 +1859,7 @@ int32_t stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t *base,
   // Check the address and size validity
   if(stlink_check_address_range_validity(sl, addr, len) < 0) {
     return (-1);
-  } else if(len & 1) {
+  } else if((len & 1) && sl->flash_type != STM32_FLASH_TYPE_C5) {
     WLOG("unaligned len 0x%x -- padding with zero\n", len);
     len += 1;
   } else if(stlink_check_address_alignment(sl, addr) < 0) {
@@ -1704,8 +1888,12 @@ int32_t stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t *base,
   if(ret)
     return ret;
   ret = stlink_flashloader_write(sl, &fl, addr, base, len);
-  if(ret)
+  if(ret) {
+    // leave the flash controller in a clean state (PG cleared, locked), otherwise
+    // a stale PG bit breaks the page erase of the next attempt (PGSERR)
+    stlink_flashloader_stop(sl, &fl);
     return ret;
+  }
   ret = stlink_flashloader_stop(sl, &fl);
   if(ret)
     return ret;

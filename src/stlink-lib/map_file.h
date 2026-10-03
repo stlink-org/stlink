@@ -22,12 +22,19 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <fcntl.h>
+#ifdef STLINK_HAVE_SYS_MMAN_H
+    #include <sys/mman.h>      // use system-header
+#else
+    #include <sys_mmap.h>      // implemented fallback
+#endif
+
 #include <unistd.h>
+
+#include <fcntl.h>
 #include <sys/stat.h>
 
 #include <stlink.h>
-#include <win32/mmap.h>
+
 
 /* Memory mapped file */
 typedef struct mapped_file {

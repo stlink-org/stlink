@@ -25,6 +25,7 @@
 #include <string.h>
 
 #if defined(_WIN32)
+#include <win32_socket.h>
 #include <windows.h>
 #else
 #include <arpa/inet.h>
@@ -37,6 +38,7 @@
 
 #include <logging.h>
 #include <remote.h>
+#include <usb.h>
 
 static volatile sig_atomic_t stop_requested = 0;
 
@@ -114,7 +116,7 @@ int32_t main(int32_t argc, char **argv) {
         {"freq",    required_argument, NULL, 'f'},
         {"verbose", optional_argument, NULL, 'v'},
         {"help",    no_argument,       NULL, 'h'},
-        {0, 0, 0, 0},
+        {NULL, 0, NULL, 0}
     };
 
     int32_t c, option_index = 0;

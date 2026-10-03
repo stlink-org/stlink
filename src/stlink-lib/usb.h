@@ -31,7 +31,6 @@
 #include <limits.h>
 #include <stdbool.h>
 #include <unistd.h>
-#include <pthread.h>
 
 #include <stlink.h>
 #include <stlink_backend.h>

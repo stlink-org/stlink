@@ -29,10 +29,11 @@
  * probe; the server applies the supplied ap before each operation.
  */
 
-#include "remote.h"
+#if defined(_WIN32)
+#include <win32_socket.h>
+#endif
 
-#include "read_write.h"
-#include "logging.h"
+#include "remote.h"
 
 
 #define REQ_HDR_LEN 20

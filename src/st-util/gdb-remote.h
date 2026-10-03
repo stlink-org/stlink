@@ -20,9 +20,8 @@
 #include <string.h>
 
 #if defined(_WIN32)
+#include <win32_socket.h>
 #include <windows.h>
-#include <winsock2.h>
-#include <io.h>
 #else
 #include <poll.h>
 #include <unistd.h>

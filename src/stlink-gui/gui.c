@@ -1008,7 +1008,7 @@ int32_t main(int32_t argc, char **argv) {
 
     gtk_init(&argc, &argv);
 
-    init_chipids (STLINK_CHIPS_DIR);
+    init_chipids(NULL);
 
     gui = g_object_new(STLINK_TYPE_GUI, NULL);
     stlink_gui_build_ui(gui);

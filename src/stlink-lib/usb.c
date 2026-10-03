@@ -13,6 +13,8 @@
 
 #include "usb.h"
 
+#include <stlink_threads.h>
+
 #include "logging.h"
 #include "read_write.h"
 
@@ -1129,19 +1131,23 @@ static stlink_backend_t _stlink_usb_backend = {
     _stlink_usb_init_ap
 };
 
+static stlink_t *stlink_open_usb_at(enum ugly_loglevel verbose, enum connect_type connect,
+                                    char serial[STLINK_SERIAL_BUFFER_SIZE],
+                                    int32_t bus, int32_t addr, int32_t freq);
+
 /* Argument structure for threaded probing */
 struct stlink_probe_arg {
-    char serial[STLINK_SERIAL_BUFFER_SIZE];
+    int32_t bus;
+    int32_t addr;
     enum connect_type connect;
     int32_t freq;
     stlink_t *res;
 };
 
-/* Worker invoked by each thread to open a device by serial */
-static void *stlink_probe_worker(void *varg) {
+/* Worker invoked by each thread to open one of the devices the probe found */
+static void stlink_probe_worker(void *varg) {
     struct stlink_probe_arg *arg = (struct stlink_probe_arg *)varg;
-    arg->res = stlink_open_usb(0, arg->connect, arg->serial, arg->freq);
-    return NULL;
+    arg->res = stlink_open_usb_at(0, arg->connect, NULL, arg->bus, arg->addr, arg->freq);
 }
 
 /* return the length of serial or (0) in case of errors */
@@ -1182,14 +1188,18 @@ uint32_t stlink_serial(struct libusb_device_handle *handle, struct libusb_device
 }
 
 /**
- * Open a stlink
+ * Open a stlink, by serial or by its place on the bus
  * @param verbose Verbosity loglevel
  * @param connect Type of connect to target
  * @param serial  Serial number to search for, when NULL the first stlink found is opened (binary format)
+ * @param bus     Bus of the device to open, or (-1) to search by serial
+ * @param addr    Address of the device on that bus, unused when bus is negative
  * @retval NULL   Error while opening the stlink
  * @retval !NULL  Stlink found and ready to use
  */
-stlink_t *stlink_open_usb(enum ugly_loglevel verbose, enum connect_type connect, char serial[STLINK_SERIAL_BUFFER_SIZE], int32_t freq) {
+static stlink_t *stlink_open_usb_at(enum ugly_loglevel verbose, enum connect_type connect,
+                                    char serial[STLINK_SERIAL_BUFFER_SIZE],
+                                    int32_t bus, int32_t addr, int32_t freq) {
     stlink_t* sl = NULL;
     struct stlink_libusb* slu = NULL;
     int32_t ret = -1;
@@ -1201,7 +1211,6 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, enum connect_type connect,
     slu = calloc(1, sizeof(struct stlink_libusb));
     if(slu == NULL) { goto on_malloc_error; }
 
-    ugly_init(verbose);
     sl->backend = &_stlink_usb_backend;
     sl->backend_data = slu;
 
@@ -1224,23 +1233,34 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, enum connect_type connect,
 
     while (cnt-- > 0) {
         struct libusb_device_handle *handle;
+        bool match;
 
         libusb_get_device_descriptor(list[cnt], &desc);
 
         if(desc.idVendor != STLINK_USB_VID_ST) { continue; }
 
-        ret = libusb_open(list[cnt], &handle);
+        if(bus >= 0) {
+            // Bus and address are known without reading from the device, so the
+            // caller's device is reached without opening any of the others.
+            match = (libusb_get_bus_number(list[cnt]) == bus) &&
+                    (libusb_get_device_address(list[cnt]) == addr);
+        } else {
+            ret = libusb_open(list[cnt], &handle);
 
-        if(ret) { continue; } // could not open device
+            if(ret) { continue; } // could not open device
 
-        uint64_t serial_len = stlink_serial(handle, &desc, sl->serial);
+            uint64_t serial_len = stlink_serial(handle, &desc, sl->serial);
 
-        libusb_close(handle);
+            libusb_close(handle);
 
-        if(serial_len != STLINK_SERIAL_LENGTH) { continue; } // could not read the serial
+            if(serial_len != STLINK_SERIAL_LENGTH) { continue; } // could not read the serial
 
-        // if no serial provided, or if serial match device, fixup version and protocol
-        if(((serial == NULL) || (*serial == 0)) || (memcmp(serial, &sl->serial, STLINK_SERIAL_LENGTH) == 0)) {
+            // no serial provided, or the serial matches this device
+            match = ((serial == NULL) || (*serial == 0)) || (memcmp(serial, &sl->serial, STLINK_SERIAL_LENGTH) == 0);
+        }
+
+        // fixup version and protocol
+        if(match) {
             if(STLINK_V1_USB_PID(desc.idProduct)) {
                 slu->protocol = 1;
                 sl->version.stlink_v = 1;
@@ -1273,6 +1293,13 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, enum connect_type connect,
     }
 
     libusb_free_device_list(list, 1);
+
+    // Nothing has read the serial of a device that was found by address. Same as
+    // in the search above, one that cannot be read means the device is not usable.
+    if((bus >= 0) && (stlink_serial(slu->usb_handle, &desc, sl->serial) != STLINK_SERIAL_LENGTH)) {
+        WLOG("Could not read the serial of device %03d:%03d\n", bus, addr);
+        goto on_libusb_error;
+    }
 
 // libusb_kernel_driver_active is not available on Windows.
 #if !defined(_WIN32)
@@ -1374,6 +1401,20 @@ on_malloc_error:
     return (NULL);
 }
 
+/**
+ * Open a stlink
+ * @param verbose Verbosity loglevel
+ * @param connect Type of connect to target
+ * @param serial  Serial number to search for, when NULL the first stlink found is opened (binary format)
+ * @retval NULL   Error while opening the stlink
+ * @retval !NULL  Stlink found and ready to use
+ */
+stlink_t *stlink_open_usb(enum ugly_loglevel verbose, enum connect_type connect, char serial[STLINK_SERIAL_BUFFER_SIZE], int32_t freq) {
+    // The loglevel is process wide, so only a caller that asked for one sets it.
+    ugly_init(verbose);
+    return (stlink_open_usb_at(verbose, connect, serial, -1, -1, freq));
+}
+
 static uint32_t stlink_probe_usb_devs(libusb_device **devs, stlink_t **sldevs[], enum connect_type connect, int32_t freq) {
     stlink_t **_sldevs;
     libusb_device *dev;
@@ -1410,7 +1451,7 @@ static uint32_t stlink_probe_usb_devs(libusb_device **devs, stlink_t **sldevs[],
 
     /* Collect serials for all devices to probe */
     struct stlink_probe_arg *args = calloc(slcnt, sizeof(*args));
-    pthread_t *threads = calloc(slcnt, sizeof(*threads));
+    stlink_thread_t *threads = calloc(slcnt, sizeof(*threads));
 
     if(!args || !threads) {
         free(_sldevs);
@@ -1435,37 +1476,17 @@ static uint32_t stlink_probe_usb_devs(libusb_device **devs, stlink_t **sldevs[],
         if(desc.idVendor != STLINK_USB_VID_ST) { continue; }
         if(!STLINK_SUPPORTED_USB_PID(desc.idProduct)) { continue; }
 
-        struct libusb_device_handle* handle;
-        char serial[STLINK_SERIAL_BUFFER_SIZE] = {0, };
-
-        ret = libusb_open(dev, &handle);
-
-        if(ret < 0) {
-            if(ret == LIBUSB_ERROR_ACCESS) {
-                ELOG("Could not open USB device %#06x:%#06x, access error.\n", desc.idVendor, desc.idProduct);
-            } else {
-                ELOG("Failed to open USB device %#06x:%#06x, libusb error: %d)\n", desc.idVendor, desc.idProduct, ret);
-            }
-
-            continue;
-        }
-
-        uint64_t serial_len = stlink_serial(handle, &desc, serial);
-
-        libusb_close(handle);
-
-        if(serial_len != STLINK_SERIAL_LENGTH) { continue; }
-
         /* prepare thread args */
-        snprintf(args[job_idx].serial, STLINK_SERIAL_BUFFER_SIZE, "%s", serial);
+        args[job_idx].bus = libusb_get_bus_number(dev);
+        args[job_idx].addr = libusb_get_device_address(dev);
         args[job_idx].connect = connect;
         args[job_idx].freq = freq;
         args[job_idx].res = NULL;
 
         /* spawn worker thread */
-        int rc = pthread_create(&threads[job_idx], NULL, stlink_probe_worker, &args[job_idx]);
+        int32_t rc = stlink_thread_create(&threads[job_idx], stlink_probe_worker, &args[job_idx]);
         if(rc != 0) {
-            ELOG("Failed to create probe thread: %s\n", strerror(rc));
+            ELOG("Failed to create probe thread (error %d)\n", rc);
             args[job_idx].res = NULL;
             /* do not increment job_idx in this case, but continue scanning */
             continue;
@@ -1476,11 +1497,11 @@ static uint32_t stlink_probe_usb_devs(libusb_device **devs, stlink_t **sldevs[],
 
     /* Join threads and collect successful opens */
     for(uint32_t n = 0; n < job_idx; n++) {
-        pthread_join(threads[n], NULL);
+        stlink_thread_join(threads[n]);
         if(args[n].res) {
             _sldevs[slcur++] = args[n].res;
         } else {
-            ELOG("Failed to open device %s\n", args[n].serial);
+            ELOG("Failed to open device %03d:%03d\n", args[n].bus, args[n].addr);
         }
     }
 

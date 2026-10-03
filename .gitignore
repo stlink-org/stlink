@@ -11,3 +11,4 @@ build-mingw-64
 obj-*
 *.user*
 *.swp
+build-winsock/ALL_BUILD.vcxproj
