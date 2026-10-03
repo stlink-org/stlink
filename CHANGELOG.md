@@ -2,7 +2,7 @@
 
 # v1.9.0
 
-Release date: 2026-10-10
+Release date: 2026-10-04
 
 This release drops support for some older operating systems. Check project README for details.
 
@@ -77,13 +77,13 @@ Fixes:
 - Fixed STLINK-V3 programmer lock up when no target connected ([#1467](https://github.com/stlink-org/stlink/pull/1467), commit [#1894b70](https://github.com/stlink-org/stlink/commit/1894b700dee05a031958371ff593bf53d30a93ca))
 - Fixed Win32 gettimeofday implementation ([#1468](https://github.com/stlink-org/stlink/pull/1468), commit [#db953ea](https://github.com/stlink-org/stlink/commit/db953eaf0b7b49e84ee3c556e3e4b974b3ebbb38))
 - Fixes for MinGW cross compilation on Linux to generate Windows binaries and MSVC compatibility ([#1472](https://github.com/stlink-org/stlink/pull/1472), [#1478](https://github.com/stlink-org/stlink/pull/1478), [#1497](https://github.com/stlink-org/stlink/pull/1497), [#1501](https://github.com/stlink-org/stlink/pull/1501), [#1504](https://github.com/stlink-org/stlink/pull/1504))
-- [STM32G0B1RE]: st-flash fails seemingly randomly ([#1473](https://github.com/stlink-org/stlink/pull/1473), [#1506](https://github.com/stlink-org/stlink/pull/1506))
-- [STM32L4R5ZIT6]: STM will halt unless flashed even number of times ([#1482](https://github.com/stlink-org/stlink/pull/1482), [#1503](https://github.com/stlink-org/stlink/pull/1503), commit [#eff714f](https://github.com/stlink-org/stlink/commit/eff714f235c3c361171a89a5b4b6c7602f9d406f))
+- [STM32G0]: st-flash failures ([#1473](https://github.com/stlink-org/stlink/pull/1473), [#1491](https://github.com/stlink-org/stlink/pull/1491), [#1506](https://github.com/stlink-org/stlink/pull/1506))
+- [STM32L4R5ZIT6]: STM will halt unless flashed even number of times ([#1482](https://github.com/stlink-org/stlink/pull/1482), commit [#eff714f](https://github.com/stlink-org/stlink/commit/eff714f235c3c361171a89a5b4b6c7602f9d406f))
 - Calling NVIC_SystemReset post flashing with st-flash causes STM32 MCU to hang ([#1489](https://github.com/stlink-org/stlink/pull/1489), [#1500](https://github.com/stlink-org/stlink/pull/1500))
-- [STM32G0B0CE]: Flashing always fails on second bank (0x08040000) ([#1491](https://github.com/stlink-org/stlink/pull/1491), [#1506](https://github.com/stlink-org/stlink/pull/1506))
 - Use bounded strlcpy/snprintf in gdb-server.c ([#1495](https://github.com/stlink-org/stlink/pull/1495))
 - `st-info --probe` intermittently misses connected adapters ([#1509](https://github.com/stlink-org/stlink/pull/1509), [#1511](https://github.com/stlink-org/stlink/pull/1511))
 - [STM32H7]: Flash errors can never be cleared ([#1512](https://github.com/stlink-org/stlink/pull/1512), commit [#62d8d55](https://github.com/stlink-org/stlink/commit/62d8d550adbe1e283ab606f41481a7231fd6dfd6))
+- Fix: Added missing sys/types.h include in semihosting.c ([#1514](https://github.com/stlink-org/stlink/pull/1514))
 
 
 # v1.8.0

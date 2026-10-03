@@ -72,12 +72,33 @@
 #define STM32_REG_DEMCR_TRCENA                (1U << 24)
 
 /* MCU Debug Component Registers */
+
+/*
+ * DBGMCU's address and trace-enable bit layout are family-specific.
+ * Below: classic parts (F0/F1/F3/F4/G0/G4/L4...)
+ * --> One bit does both pin routing and TPIU clocking.
+ */
 #define STM32_REG_DBGMCU_CR                   ((uint32_t) 0xe0042004)  // Debug MCU Configuration Register
 #define STM32_REG_DBGMCU_CR_DBG_SLEEP         (1U << 0)
 #define STM32_REG_DBGMCU_CR_DBG_STOP          (1U << 1)
 #define STM32_REG_DBGMCU_CR_DBG_STANDBY       (1U << 2)
 #define STM32_REG_DBGMCU_CR_TRACE_IOEN        (1U << 5)
 #define STM32_REG_DBGMCU_CR_TRACE_MODE_ASYNC  (0U << 6)
+
+/* STM32H5 (RM0481):
+ * Pin routing (TRACE_IOEN) and TPIU clocking (TRACE_CLKEN) are separate bits;
+ * both are required for SWO to output anything.
+ */
+#define STM32_REG_DBGMCU_CR_H5                ((uint32_t) 0x44024004)  // Debug MCU Configuration Register
+#define STM32_REG_DBGMCU_CR_TRACE_IOEN_H5     (1U << 4)
+#define STM32_REG_DBGMCU_CR_TRACE_CLKEN_H5    (1U << 5)
+
+/* STM32L5/U5:
+ * Same two-bit layout as H5, different DBGMCU address.
+ */
+#define STM32_REG_DBGMCU_CR_L5_U5             ((uint32_t) 0xe0044004)  // Debug MCU Configuration Register
+#define STM32_REG_DBGMCU_CR_TRACE_IOEN_L5_U5  (1U << 4)
+#define STM32_REG_DBGMCU_CR_TRACE_CLKEN_L5_U5 (1U << 5)
 
 /* Data Watchpoint and Trace (DWT) Registers */
 #define STM32_REG_DWT_CTRL                    ((uint32_t) 0xe0001000)  // DWT Control Register
@@ -108,6 +129,8 @@
 #define STM32_REG_ITM_LAR_KEY                 ((uint32_t) 0xc5acce55)
 
 /* Trace Port Interface (TPI) Registers */
+#define STM32_REG_TPI_LAR                     ((uint32_t) 0xe0040fb0)  // TPI Lock Access Register
+#define STM32_REG_TPI_LAR_KEY                 ((uint32_t) 0xc5acce55)
 #define STM32_REG_TPI_CSPSR                   ((uint32_t) 0xe0040004)  // TPI Current Parallel Port Size Reg
 #define STM32_REG_TPI_CSPSR_PORT_SIZE_1       (1U << 0)
 #define STM32_REG_TPI_ACPR                    ((uint32_t) 0xe0040010)  // TPI Async Clock Prescaler Register

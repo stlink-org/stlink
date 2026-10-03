@@ -151,6 +151,7 @@ enum stm32_chipids {
     STM32_CHIPID_L4PX             = 0x471, /* RM0432, p.2247 */
     STM32_CHIPID_L5x2xx           = 0x472, /* RM0438, p.2157 */
     STM32_CHIPID_U5Fx_U5Gx        = 0x476, /* RM0456, p.3604 */
+    STM32_CHIPID_H52_H53xx        = 0x478, /* RM0481, p.3085 */
     STM32_CHIPID_G4_CAT4          = 0x479,
     STM32_CHIPID_H7Ax             = 0x480, /* RM0455, p.2863 */
     STM32_CHIPID_U59x_U5Ax        = 0x481, /* RM0456, p.3604 */
