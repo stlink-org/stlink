@@ -1,11 +1,25 @@
-/*
- * File: option_bytes.h
- *
- * Read and write option bytes and option control registers
- */
+/**
+  ******************************************************************************
+  * @file           : option_bytes.h
+  * @brief          : Read and write option bytes and option control registers
+  * @copyright      : Copyright (c) 2026 stlink-org. All rights reserved.
+  * @date           : 2026-07-27
+  * SPDX-License-Identifier: BSD-3-Clause
+  *
+  * This file is licensed under the BSD 3-Clause License.
+  * See the LICENSE file in the project root for full license information.
+  ******************************************************************************
+  */
 
 #ifndef OPTION_BYTES_H
 #define OPTION_BYTES_H
+
+#include <stdint.h>
+#include <stdio.h>
+#include <string.h>
+
+#include <stlink.h>
+
 
 int32_t stlink_read_option_control_register_f0(stlink_t *sl, uint32_t *option_byte);
 // static int32_t stlink_write_option_bytes_f0(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uint32_t len);

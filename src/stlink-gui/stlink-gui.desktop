@@ -2,8 +2,9 @@
 Name=stlink
 GenericName=Stlink Tools
 Comment=Open source STM32 MCU programming toolset
-Exec=stlink-gui
+Exec=stlink-gui %f
 Icon=stlink-gui
 Terminal=false
 Type=Application
 Categories=Development;Electronics;
+MimeType=text/plain;

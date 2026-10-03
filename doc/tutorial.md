@@ -6,7 +6,7 @@
 | --------------------- | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------- |
 | --flash=n[k, M]       | st-flash                           | One can specify `--flash=128k` for example, to override the default value of 64k for the STM32F103C8T6 to assume 128k of flash being present. This option accepts decimal (128k), octal 0200k, or hex 0x80k values.<br />Leaving the multiplier out is equally valid, e.g.: `--flash=0x20000`. The size may be followed by an optional "k" or "M" to multiply the given value by 1k (1024) or 1M (1024 x 1024) respectively.<br />One can read arbitary addresses of memory out to a binary file with: `st-flash read out.bin 0x8000000 4096`. In this example `4096 bytes` are read and subsequently written to `out.bin`.<br />Binary files (here: `in.bin`) are written into flash memory with: `st-flash write in.bin 0x8000000` | v1.4.0               |
 | --format              | st-flash                           | Specify file image format to read or write.<br />Valid formats are `binary` and `ihex`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | v1.3.0               |
-| --freq=n[k, M]        | st-info<br />st-flash<br />st-util | The frequency of the SWD/JTAG interface can be specified, to override the default 1800 kHz configuration.<br />This option solely accepts decimal values with the unit `Hz` being left out. Valid frequencies are:<br />`5k, 15k, 25k, 50k, 100k, 125k, 240k, 480k, 950k, 1200k (1.2M), 1800k (1.8M), 4000k (4M)`.                                                                                                                                                                                                                                                                                                                                                                                                                   | v1.6.1               |
+| --freq=n[k, M]        | st-info<br />st-flash<br />st-util | The frequency of the SWD/JTAG interface can be specified, to override the default 1800 kHz configuration.<br />This option solely accepts decimal values representing kHz. The prefix "k" may be added for better understanding, but has no effect. In addition, values can be interpreted as thousands of kHz thus representing MHz. This is achieved by using the prefix "M".<br />Valid frequencies are: `5k, 15k, 25k, 50k, 100k, 125k, 240k, 480k, 950k, 1200k (1.2M), 1800k (1.8M), 4000k (4M)`.                                                                                                                                                                                                                                                                                                                                                                                                                   | v1.6.1               |
 | --opt                 | st-flash                           | Optimisation can be enabled in order to skip flashing empty (0x00 or 0xff) bytes at the end of binary file.<br />This may cause some garbage data left after a flash operation. This option was enabled by default in earlier releases.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | v1.6.1               |
 | --reset               | st-flash                           | Trigger a reset after flashing. The default uses the hardware reset through `NRST` pin.<br />A software reset (via `AIRCR`; since v1.5.1) is used, if the hardware reset failed (`NRST` pin not connected).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | v1.0.0               |
 | --connect-under-reset | st-info<br />st-flash<br />st-util | Connect under reset. Option makes it possible to connect to the device before code execution. This is useful when the target contains code that lets the device go to sleep, disables debug pins or other special code.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | v1.6.1               |
@@ -115,12 +115,12 @@ Check your hardware and try to identify what you have in front of you before ass
 
 Please let us know, if you come across any further websites or tutorials that help to identify STM32 fake chips so we can list them here to help others.
 
-### c) Appearance of the warning message `WARN src/common.c: unknown chip id!`
+### c) Appearance of the warning message `WARN src/common_legacy.c: unknown chip id!`
 
 The chip ID is the main identifier for STM32 MCU and their specific type and provides primary information on flash and SRAM architecture.
 This so called `DBGMCU_IDCODE` register is allocated either at memory address `0xE0042000` or `0x40015800`.
 
-A failure of chip identification results in the error `WARN src/common.c: unknown chip id!`.
+A failure of chip identification results in the error `WARN src/common_legacy.c: unknown chip id!`.
 There are different variants of this message that refer to different issues:
 
 - `unknown chip id! 0` --> Target chip (board) is unknown.
@@ -251,16 +251,12 @@ There are a few options:
 
 ./st-util - usage:
 
-  -h, --help		Print this help
-  -vXX, --verbose=XX	Specify a specific verbosity level (0..99)
-  -v, --verbose		Specify generally verbose logging
-  -p 4242, --listen_port=1234
-			Set the gdb server listen port. (default port: 4242)
-  -m, --multi
-			Set gdb server to extended mode.
-			st-util will continue listening for connections after disconnect.
-  -n, --no-reset, --hot-plug
-			Do not reset board on connection.
+  -h, --help                     Print this help
+  -vXX, --verbose=XX             Specify a specific verbosity level (0..99)
+  -v, --verbose                  Specify general verbose logging
+  -p 4242, --listen_port=1234    Set the listen port for the gdb server (default: 4242)-
+  -m, --multi                    Set gdb server to extended mode. st-util will continue listening for connections after disconnect.
+  -n, --no-reset, --hot-plug     Do not reset board on connection.
 ```
 
 The STLink device to use can be specified using the --serial parameter.

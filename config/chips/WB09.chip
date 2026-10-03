@@ -1,0 +1,15 @@
+# Chip-ID file for STM32WB09 device
+#
+dev_type STM32WB06_WB07
+ref_manual_id 0505
+chip_id 0x032                // STM32_CHIPID_WB09
+flash_type WB0
+flash_size_reg 0x40001014
+flash_pagesize 0x800         // 2 KB
+sram_size 0x10000            // 64 KB
+bootrom_base 0x0
+bootrom_size 0x4000          // 16 KB
+option_base 0x0              // protection via FLASH controller commands
+option_size 0x0
+otp_base 0x10001800
+otp_size 0x400               // 1 KB

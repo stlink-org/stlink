@@ -1,16 +1,45 @@
-/*
- * File: usb.h
- *
- * USB commands & interaction with ST-LINK devices
- */
+/**
+  ******************************************************************************
+  * @file           : usb.h
+  * @brief          : USB commands & interaction with ST-LINK devices
+  * @copyright      : Copyright (c) 2026 stlink-org. All rights reserved.
+  * @date           : 2026-07-27
+  * SPDX-License-Identifier: BSD-3-Clause
+  *
+  * This file is licensed under the BSD 3-Clause License.
+  * See the LICENSE file in the project root for full license information.
+  ******************************************************************************
+  */
 
 #ifndef USB_H
 #define USB_H
 
+#if !defined(_MSC_VER)
+#include <sys/time.h>
+#endif // _MSC_VER
+
+#if defined(_WIN32)
+#include <windows.h>
+#endif // _WIN32
+
 #include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include <errno.h>
+#include <limits.h>
+#include <stdbool.h>
+#include <unistd.h>
+
+#include <stlink.h>
+#include <stlink_backend.h>
+#include <stlink_cmd.h>
+#include <stm32_register.h>
 
 #include "libusb_settings.h"
 #include "logging.h"
+
 
 #define STLINK_USB_VID_ST                   0x0483
 #define STLINK_USB_PID_STLINK               0x3744
@@ -23,6 +52,7 @@
 #define STLINK_USB_PID_STLINK_V3S_PID       0x374f
 #define STLINK_USB_PID_STLINK_V3_2VCP_PID   0x3753
 #define STLINK_USB_PID_STLINK_V3_NO_MSD_PID 0x3754
+#define STLINK_USB_PID_STLINK_V3P           0x3757
 
 #define STLINK_V1_USB_PID(pid) ((pid) == STLINK_USB_PID_STLINK)
 
@@ -36,7 +66,8 @@
                                 (pid) == STLINK_USB_PID_STLINK_V3E_PID || \
                                 (pid) == STLINK_USB_PID_STLINK_V3S_PID || \
                                 (pid) == STLINK_USB_PID_STLINK_V3_2VCP_PID || \
-                                (pid) == STLINK_USB_PID_STLINK_V3_NO_MSD_PID)
+                                (pid) == STLINK_USB_PID_STLINK_V3_NO_MSD_PID || \
+                                (pid) == STLINK_USB_PID_STLINK_V3P)
 
 #define STLINK_SUPPORTED_USB_PID(pid) (STLINK_V1_USB_PID(pid) || \
                                        STLINK_V2_USB_PID(pid) || \
@@ -54,7 +85,7 @@ struct stlink_libusb {
     uint32_t ep_req;
     uint32_t ep_rep;
     uint32_t ep_trace;
-    int32_t protocoll;
+    int32_t protocol;
     uint32_t sg_transfer_idx;
     uint32_t cmd_len;
 };
@@ -80,6 +111,7 @@ int32_t _stlink_usb_status_v2(stlink_t *sl);
 int32_t _stlink_usb_status(stlink_t * sl);
 int32_t _stlink_usb_force_debug(stlink_t *sl);
 int32_t _stlink_usb_enter_swd_mode(stlink_t * sl);
+int32_t _stlink_usb_init_ap(stlink_t * sl, uint8_t ap);
 int32_t _stlink_usb_exit_dfu_mode(stlink_t* sl);
 int32_t _stlink_usb_reset(stlink_t * sl);
 int32_t _stlink_usb_jtag_reset(stlink_t * sl, int32_t value);
@@ -100,10 +132,10 @@ int32_t _stlink_usb_read_trace(stlink_t* sl, uint8_t* buf, uint32_t size);
 
 // static stlink_backend_t _stlink_usb_backend = { };
 
-size_t stlink_serial(struct libusb_device_handle *handle, struct libusb_device_descriptor *desc, char *serial);
+uint32_t stlink_serial(struct libusb_device_handle *handle, struct libusb_device_descriptor *desc, char *serial);
 stlink_t *stlink_open_usb(enum ugly_loglevel verbose, enum connect_type connect, char serial[STLINK_SERIAL_BUFFER_SIZE], int32_t freq);
 // static uint32_t stlink_probe_usb_devs(libusb_device **devs, stlink_t **sldevs[], enum connect_type connect, int32_t freq);
-size_t stlink_probe_usb(stlink_t **stdevs[], enum connect_type connect, int32_t freq);
+uint32_t stlink_probe_usb(stlink_t **stdevs[], enum connect_type connect, int32_t freq);
 void stlink_probe_usb_free(stlink_t **stdevs[], uint32_t size);
 
 #endif // USB_H

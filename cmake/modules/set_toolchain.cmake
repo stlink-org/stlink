@@ -1,5 +1,6 @@
 # set_toolchain.cmake
-# Toolchain file for cross-building on a Debian/Ubuntu Linux system
+# Toolchain file for building on Windows (native) or cross-building on a Debian/Ubuntu Linux system
+#
 
 ###
 # Set toolchain and configure target environment on the build host system
@@ -18,3 +19,6 @@ set(CMAKE_FIND_ROOT_PATH /usr/${TOOLCHAIN_PREFIX})
 set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
 set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
 set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
+
+# Set target system name
+set(CMAKE_SYSTEM_NAME Windows)

@@ -1,13 +1,19 @@
-/* == nightwalker-87: TODO: CONTENT AND USE OF THIS SOURCE FILE IS TO BE VERIFIED (07.06.2023) == */
+/*
+ * File: tests/usb.c
+ *
+ *
+ */
+
+// TODO: CONTENT AND USE OF THIS SOURCE FILE IS TO BE VERIFIED
 
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 
 #include <stlink.h>
+#include <stm32_register.h>
 
 #include <read_write.h>
-#include <register.h>
 #include <usb.h>
 
 static void usage(void) {
@@ -20,28 +26,28 @@ int32_t main(int32_t ac, char** av) {
     struct stlink_reg regs;
     int32_t reset = 0;
 
-    if (ac == 2) {
-        if (strcmp(av[1], "--reset") == 0)
+    if(ac == 2) {
+        if(strcmp(av[1], "--reset") == 0)
             reset = 2;
 
-        if (strcmp(av[1], "--no-reset") == 0)
+        if(strcmp(av[1], "--no-reset") == 0)
             reset = 1;
     }
 
-    if (reset == 0) {
+    if(reset == 0) {
         usage();
         return (0);
     }
 
     sl = stlink_open_usb(10, reset, NULL, 0);
 
-    if (sl != NULL) {
+    if(sl != NULL) {
         printf("-- version\n");
         stlink_version(sl);
 
         printf("mode before doing anything: %d\n", stlink_current_mode(sl));
 
-        if (stlink_current_mode(sl) == STLINK_DEV_DFU_MODE) {
+        if(stlink_current_mode(sl) == STLINK_DEV_DFU_MODE) {
             printf("-- exit_dfu_mode\n");
             stlink_exit_dfu_mode(sl);
         }
@@ -56,7 +62,7 @@ int32_t main(int32_t ac, char** av) {
 
         cortex_m3_cpuid_t cpuid;
 
-        if (stlink_cpu_id(sl, &cpuid)) {
+        if(stlink_cpu_id(sl, &cpuid)) {
             printf("Failed reading stlink_cpu_id\n");
         } else {
             printf("cpuid:impl_id = %0#x, variant = %#x\n", cpuid.implementer_id, cpuid.variant);
@@ -67,11 +73,11 @@ int32_t main(int32_t ac, char** av) {
         static const uint32_t sram_base = STM32_SRAM_BASE;
         uint32_t off;
 
-        for (off = 0; off < 16; off += 4)
+        for(off = 0; off < 16; off += 4)
             stlink_read_mem32(sl, sram_base + off, 4);
 
         printf("FP_CTRL\n");
-        stlink_read_mem32(sl, STLINK_REG_CM3_FP_CTRL, 4);
+        stlink_read_mem32(sl, STM32_REG_CM3_FP_CTRL, 4);
 
         // no idea what reg this is...
         // stlink_read_mem32(sl, 0xe000ed90, 4);
@@ -107,7 +113,7 @@ int32_t main(int32_t ac, char** av) {
         stlink_write_reg(sl, 0x89abcdef, 4);
         stlink_write_reg(sl, 0x12345678, 15);
 
-        for (off = 0; off < 21; off += 1) stlink_read_reg(sl, off, &regs);
+        for(off = 0; off < 21; off += 1) stlink_read_reg(sl, off, &regs);
 
         stlink_read_all_regs(sl, &regs);
 

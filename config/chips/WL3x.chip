@@ -1,0 +1,15 @@
+# Chip-ID file for STM32WL3x device
+#
+dev_type WL3x
+ref_manual_id 0491
+chip_id 0x027                // STM32_CHIPID_WL3x
+flash_type WB0
+flash_size_reg 0x40001014
+flash_pagesize 0x800         // 2 KB
+sram_size 0x8000             // 32 KB
+bootrom_base 0x0
+bootrom_size 0x4000          // 16 KB
+option_base 0x0              // protection via FLASH controller commands
+option_size 0x0
+otp_base 0x10001800
+otp_size 0x400               // 1 KB

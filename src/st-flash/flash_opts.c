@@ -1,25 +1,24 @@
-/*
- * File: flash_opts.c
- *
- * Flash Options
- */
+/**
+  ******************************************************************************
+  * @file           : flash_opts.c
+  * @brief          : Tool: st-flash - Flash Options
+  * @copyright      : Copyright (c) 2026 stlink-org. All rights reserved.
+  * @date           : 2026-07-27
+  * SPDX-License-Identifier: BSD-3-Clause
+  *
+  * This file is licensed under the BSD 3-Clause License.
+  * See the LICENSE file in the project root for full license information.
+  ******************************************************************************
+  */
 
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-#include <stm32.h>
-#include <stlink.h>
-#include "flash_opts.h"
 #include "flash.h"
+#include "flash_opts.h"
 
-#include <helper.h>
 
 static bool starts_with(const char * str, const char * prefix) {
-    uint32_t n = strlen(prefix);
+    uint64_t n = strlen(prefix);
 
-    if (strlen(str) < n) { return (false); }
+    if(strlen(str) < n) { return (false); }
 
     return (0 == strncmp(str, prefix, n));
 }
@@ -32,21 +31,21 @@ static int32_t get_long_integer_from_char_array (const char *const str, uint64_t
     uint64_t value;
     char *tail;
 
-    if (starts_with (str, "0x") || starts_with (str, "0X")) {          // hexadecimal
+    if(starts_with (str, "0x") || starts_with (str, "0X")) {          // hexadecimal
         value = strtoul (str + 2, &tail, 16);
-    } else if (starts_with (str, "0b") || starts_with (str, "0B")) {   // binary
+    } else if(starts_with (str, "0b") || starts_with (str, "0B")) {   // binary
         value = strtoul (str + 2, &tail, 2);
-    } else if (starts_with (str, "0")) {                               // octal
+    } else if(starts_with (str, "0")) {                               // octal
         value = strtoul (str + 1, &tail, 8);
     } else {                                                           // decimal
         value = strtoul (str, &tail, 10);
     }
 
-    if (((tail[0] == 'k') || (tail[0] == 'K')) && (tail[1] == '\0')) {
+    if(((tail[0] == 'k') || (tail[0] == 'K')) && (tail[1] == '\0')) {
         value = value * 1024;
-    } else if (((tail[0] == 'm') || (tail[0] == 'M')) && (tail[1] == '\0')) {
+    } else if(((tail[0] == 'm') || (tail[0] == 'M')) && (tail[1] == '\0')) {
         value = value * 1024 * 1024;
-    } else if (tail[0] == '\0') {
+    } else if(tail[0] == '\0') {
         /* value not changed */
     } else {
         return (-1);
@@ -64,13 +63,13 @@ static int32_t get_integer_from_char_array (const char *const str, uint32_t *rea
     uint64_t value;
     int32_t result = get_long_integer_from_char_array (str, &value);
 
-    if (result != 0) {
+    if(result != 0) {
         return (result);
-    } else if (value > UINT32_MAX) {
+    } else if(value > UINT32_MAX) {
         fprintf (stderr, "*** Error: Integer greater than UINT32_MAX, cannot convert to int32_t\n");
         return (-1);
     } else {
-        *read_value = value;
+        *read_value = (uint32_t) value;
         return (0);
     }
 }
@@ -95,23 +94,27 @@ int32_t flash_get_opts(struct flash_opts* o, int32_t ac, char** av) {
     int32_t result;
 
     while (ac >= 1) {
-        if (strcmp(av[0], "--version") == 0) {
+        if(strcmp(av[0], "--version") == 0) {
             printf("v%s\n", STLINK_VERSION);
             exit(EXIT_SUCCESS);
-        } else if (strcmp(av[0], "--debug") == 0) {
+        } else if(strcmp(av[0], "--help") == 0 || strcmp(av[0], "-h") == 0) {
+            return 1;
+        } else if(strcmp(av[0], "--debug") == 0) {
             o->log_level = DEBUG_LOG_LEVEL;
-        } else if (strcmp(av[0], "--opt") == 0) {
+        } else if(strcmp(av[0], "--opt") == 0) {
             o->opt = ENABLE_OPT;
-        } else if (strcmp(av[0], "--reset") == 0) {
+        } else if(strcmp(av[0], "--mass-erase") == 0) {
+            o->mass_erase = ENABLE_OPT;
+        } else if(strcmp(av[0], "--reset") == 0) {
             o->reset = 1;
-        } else if (strcmp(av[0], "--serial") == 0 || starts_with(av[0], "--serial=")) {
+        } else if(strcmp(av[0], "--serial") == 0 || starts_with(av[0], "--serial=")) {
             const char * serial;
 
-            if (strcmp(av[0], "--serial") == 0) {
+            if(strcmp(av[0], "--serial") == 0) {
                 ac--;
                 av++;
 
-                if (ac < 1) { return (-1); }
+                if(ac < 1) { return (-1); }
 
                 serial = av[0];
             } else {
@@ -120,90 +123,101 @@ int32_t flash_get_opts(struct flash_opts* o, int32_t ac, char** av) {
 
             memcpy(o->serial, serial, STLINK_SERIAL_BUFFER_SIZE);
 
-        } else if (strcmp(av[0], "--area") == 0 || starts_with(av[0], "--area=")) {
+        } else if(strcmp(av[0], "--area") == 0 || starts_with(av[0], "--area=")) {
             const char * area;
 
-            if (strcmp(av[0], "--area") == 0) {
+            if(strcmp(av[0], "--area") == 0) {
                 ac--;
                 av++;
 
-                if (ac < 1) { return (-1); }
+                if(ac < 1) { return (-1); }
 
                 area = av[0];
             } else {
                 area = av[0] + strlen("--area=");
             }
 
-            if (strcmp(area, "main") == 0) {
+            if(strcmp(area, "main") == 0) {
                 o->area = FLASH_MAIN_MEMORY;
-            } else if (strcmp(area, "system") == 0) {
+            } else if(strcmp(area, "system") == 0) {
                 o->area = FLASH_SYSTEM_MEMORY;
-            } else if (strcmp(area, "otp") == 0) {
+            } else if(strcmp(area, "otp") == 0) {
                 o->area = FLASH_OTP;
-            } else if (strcmp(area, "option") == 0) {
+            } else if(strcmp(area, "option") == 0) {
                 o->area = FLASH_OPTION_BYTES;
-            } else if (strcmp(area, "option_boot_add") == 0) {
+            } else if(strcmp(area, "option_boot_add") == 0) {
                 o->area = FLASH_OPTION_BYTES_BOOT_ADD;
-            } else if (strcmp(area, "optcr") == 0) {
+            } else if(strcmp(area, "optcr") == 0) {
                 o->area = FLASH_OPTCR;
-            } else if (strcmp(area, "optcr1") == 0) {
+            } else if(strcmp(area, "optcr1") == 0) {
                 o->area = FLASH_OPTCR1;
             } else {
                 return (-1);
             }
 
-        } else if (strcmp(av[0], "--freq") == 0) {
+        } else if(strcmp(av[0], "--freq") == 0) {
             ac--;
             av++;
 
-            if (ac < 1) {
+            if(ac < 1) {
                 return (-1);
             }
 
             o->freq = arg_parse_freq(av[0]);
-            if (o->freq < 0) {
+            if(o->freq < 0) {
                 return (-1);
             }
-        } else if (starts_with(av[0], "--freq=")) {
+        } else if(starts_with(av[0], "--freq=")) {
             o->freq = arg_parse_freq(av[0] + strlen("--freq="));
-            if (o->freq < 0) {
+            if(o->freq < 0) {
                 return (-1);
             }
-        } else if (strcmp(av[0], "--format") == 0 || starts_with(av[0], "--format=")) {
+        } else if(strcmp(av[0], "--format") == 0 || starts_with(av[0], "--format=")) {
             const char * format;
 
-            if (strcmp(av[0], "--format") == 0) {
+            if(strcmp(av[0], "--format") == 0) {
                 ac--;
                 av++;
 
-                if (ac < 1) { return (-1); }
+                if(ac < 1) { return (-1); }
 
                 format = av[0];
             } else {
                 format = av[0] + strlen("--format=");
             }
 
-            if (strcmp(format, "binary") == 0) {
+            if(strcmp(format, "binary") == 0) {
                 o->format = FLASH_FORMAT_BINARY;
-            } else if (strcmp(format, "ihex") == 0) {
+            } else if(strcmp(format, "ihex") == 0) {
                 o->format = FLASH_FORMAT_IHEX;
             } else {
                 return (bad_arg("format"));
             }
-        } else if ( starts_with(av[0], "--flash=")) {
+        } else if( starts_with(av[0], "--flash=")) {
             const char *arg = av[0] + strlen("--flash=");
 
             uint32_t flash_size;
             result = get_integer_from_char_array(arg, &flash_size);
 
-            if (result != 0) {
+            if(result != 0) {
                 return (bad_arg ("--flash"));
             } else {
-                o->flash_size = (size_t)flash_size;
+                o->flash_size = flash_size;
             }
-        } else if (strcmp(av[0], "--connect-under-reset") == 0) {
+        } else if(strcmp(av[0], "--remote") == 0 || starts_with(av[0], "--remote=")) {
+            if(strcmp(av[0], "--remote") == 0) {
+                ac--;
+                av++;
+
+                if(ac < 1) { return (-1); }
+
+                o->remote = av[0];
+            } else {
+                o->remote = av[0] + strlen("--remote=");
+            }
+        } else if(strcmp(av[0], "--connect-under-reset") == 0) {
             o->connect = CONNECT_UNDER_RESET;
-        } else if (strcmp(av[0], "--hot-plug") == 0) {
+        } else if(strcmp(av[0], "--hot-plug") == 0) {
             o->connect = CONNECT_HOT_PLUG;
         } else {
             break; // non-option found
@@ -216,19 +230,19 @@ int32_t flash_get_opts(struct flash_opts* o, int32_t ac, char** av) {
 
     // command and (optional) device name
     while (ac >= 1) {
-        if (strcmp(av[0], "erase") == 0) {
-            if (o->cmd != FLASH_CMD_NONE) { return (-1); }
+        if(strcmp(av[0], "erase") == 0) {
+            if(o->cmd != FLASH_CMD_NONE) { return (-1); }
             o->cmd = FLASH_CMD_ERASE;
-        } else if (strcmp(av[0], "read") == 0) {
-            if (o->cmd != FLASH_CMD_NONE) { return (-1); }
+        } else if(strcmp(av[0], "read") == 0) {
+            if(o->cmd != FLASH_CMD_NONE) { return (-1); }
 
             o->cmd = FLASH_CMD_READ;
-        } else if (strcmp(av[0], "write") == 0) {
-            if (o->cmd != FLASH_CMD_NONE) { return (-1); }
+        } else if(strcmp(av[0], "write") == 0) {
+            if(o->cmd != FLASH_CMD_NONE) { return (-1); }
 
             o->cmd = FLASH_CMD_WRITE;
-        } else if (strcmp(av[0], "reset") == 0) {
-            if (o->cmd != FLASH_CMD_NONE) { return (-1); }
+        } else if(strcmp(av[0], "reset") == 0) {
+            if(o->cmd != FLASH_CMD_NONE) { return (-1); }
 
             o->cmd = CMD_RESET;
         } else {
@@ -244,11 +258,11 @@ int32_t flash_get_opts(struct flash_opts* o, int32_t ac, char** av) {
         return (-1);
 
     case FLASH_CMD_ERASE:    // no more arguments expected
-        if (ac != 0 && ac != 2) { return (-1); }
-        if (ac == 2) {
+        if(ac != 0 && ac != 2) { return (-1); }
+        if(ac == 2) {
             uint32_t address;
             result = get_integer_from_char_array(av[0], &address);
-            if (result != 0) {
+            if(result != 0) {
                 return bad_arg ("addr");
             } else {
                 o->addr = (stm32_addr_t) address;
@@ -256,23 +270,23 @@ int32_t flash_get_opts(struct flash_opts* o, int32_t ac, char** av) {
 
             uint32_t size;
             result = get_integer_from_char_array(av[1], &size);
-            if (result != 0) {
+            if(result != 0) {
                 return bad_arg ("size");
             } else {
-                o->size = (size_t) size;
+                o->size = size;
             }
         }
 
         break;
 
     case FLASH_CMD_READ:     // expect filename, addr and size
-        if ((o->area == FLASH_MAIN_MEMORY) || (o->area == FLASH_SYSTEM_MEMORY)) {
-            if (ac != 3) { return invalid_args("read <path> <addr> <size>"); }
+        if((o->area == FLASH_MAIN_MEMORY) || (o->area == FLASH_SYSTEM_MEMORY)) {
+            if(ac != 3) { return invalid_args("read <path> <addr> <size>"); }
             
             o->filename = av[0];
             uint32_t address;
             result = get_integer_from_char_array(av[1], &address);
-            if (result != 0) {
+            if(result != 0) {
                 return bad_arg ("addr");
             } else {
                 o->addr = (stm32_addr_t) address;
@@ -280,38 +294,38 @@ int32_t flash_get_opts(struct flash_opts* o, int32_t ac, char** av) {
 
             uint32_t size;
             result = get_integer_from_char_array(av[2], &size);
-            if (result != 0) {
+            if(result != 0) {
                 return bad_arg ("size");
             } else {
-                o->size = (size_t) size;
+                o->size = size;
             }
 
             break;
-        } else if (o->area == FLASH_OTP) {
-            if (ac > 1 || ac ==0 ) { return invalid_args("otp read: [path]"); }
-            if (ac > 0) { o->filename = av[0]; }
+        } else if(o->area == FLASH_OTP) {
+            if(ac > 1 || ac ==0 ) { return invalid_args("otp read: [path]"); }
+            if(ac > 0) { o->filename = av[0]; }
             break;
-        } else if (o->area == FLASH_OPTION_BYTES) {
-            if (ac > 2) { return invalid_args("option bytes read: [path] [size]"); }
-            if (ac > 0) { o->filename = av[0]; }
-            if (ac > 1) {
+        } else if(o->area == FLASH_OPTION_BYTES) {
+            if(ac > 2) { return invalid_args("option bytes read: [path] [size]"); }
+            if(ac > 0) { o->filename = av[0]; }
+            if(ac > 1) {
                 uint32_t size;
                 result = get_integer_from_char_array(av[1], &size);
-                if (result != 0) {
+                if(result != 0) {
                     return bad_arg("option bytes read: invalid size");
                 } else {
-                    o->size = (size_t) size;
+                    o->size = size;
                 }
             }
             break;
-        } else if (o->area == FLASH_OPTION_BYTES_BOOT_ADD) {
-            if (ac > 0) { return invalid_args("option bytes boot_add read"); }
+        } else if(o->area == FLASH_OPTION_BYTES_BOOT_ADD) {
+            if(ac > 0) { return invalid_args("option bytes boot_add read"); }
             break;
-        } else if (o->area == FLASH_OPTCR) {
-            if (ac > 0) { return invalid_args("option control register read"); }
+        } else if(o->area == FLASH_OPTCR) {
+            if(ac > 0) { return invalid_args("option control register read"); }
             break;
-        } else if (o->area == FLASH_OPTCR1) {
-            if (ac > 0) { return invalid_args("option control register 1 read"); }
+        } else if(o->area == FLASH_OPTCR1) {
+            if(ac > 0) { return invalid_args("option control register 1 read"); }
             break;
         }
 
@@ -319,61 +333,61 @@ int32_t flash_get_opts(struct flash_opts* o, int32_t ac, char** av) {
 
     case FLASH_CMD_WRITE:
         // TODO: should be boot add 0 and boot add 1 uint32
-        if (o->area == FLASH_OPTION_BYTES) { // expect option byte value
-            if (ac != 1) { return invalid_args("option byte write <value>"); }
+        if(o->area == FLASH_OPTION_BYTES) { // expect option byte value
+            if(ac != 1) { return invalid_args("option byte write <value>"); }
             uint32_t val;
             result = get_integer_from_char_array(av[0], &val);
-            if (result != 0) {
+            if(result != 0) {
                 return bad_arg ("val");
             } else {
                 o->val = val;
             }
-        } else if (o->area == FLASH_OPTION_BYTES_BOOT_ADD) { // expect option bytes boot address
-            if (ac != 1) { return invalid_args("option bytes boot_add write <value>"); }
+        } else if(o->area == FLASH_OPTION_BYTES_BOOT_ADD) { // expect option bytes boot address
+            if(ac != 1) { return invalid_args("option bytes boot_add write <value>"); }
 
             uint32_t val;
             result = get_integer_from_char_array(av[0], &val);
 
-            if (result != 0) {
+            if(result != 0) {
                 return (bad_arg ("val"));
             } else {
                 o->val = val;
             }
-        } else if (o->area == FLASH_OPTCR) { // expect option control register value
-            if (ac != 1) { return invalid_args("option control register write <value>"); }
+        } else if(o->area == FLASH_OPTCR) { // expect option control register value
+            if(ac != 1) { return invalid_args("option control register write <value>"); }
             
             uint32_t val;
             result = get_integer_from_char_array(av[0], &val);
             
-            if (result != 0) {
+            if(result != 0) {
                 return bad_arg ("val");
             } else {
                 o->val = val;
             }
-        } else if (o->area == FLASH_OPTCR1) { // expect option control register 1 value
-            if (ac != 1) { return invalid_args("option control register 1 write <value>"); }
+        } else if(o->area == FLASH_OPTCR1) { // expect option control register 1 value
+            if(ac != 1) { return invalid_args("option control register 1 write <value>"); }
             
             uint32_t val;
             result = get_integer_from_char_array(av[0], &val);
-            if (result != 0) {
+            if(result != 0) {
                 return bad_arg ("val");
             } else {
                 o->val = val;
             }
-        } else if (o->format == FLASH_FORMAT_BINARY) {    // expect filename and addr
-            if (ac != 2) { return invalid_args("write <path> <addr>"); }
+        } else if(o->format == FLASH_FORMAT_BINARY) {    // expect filename and addr
+            if(ac != 2) { return invalid_args("write <path> <addr>"); }
             
             o->filename = av[0];
             uint32_t addr;
             result = get_integer_from_char_array(av[1], &addr);
 
-            if (result != 0) {
+            if(result != 0) {
                 return (bad_arg ("addr"));
             } else {
-                o->addr = (stm32_addr_t)addr;
+                o->addr = (stm32_addr_t) addr;
             }
-        } else if (o->format == FLASH_FORMAT_IHEX) { // expect filename
-            if (ac != 1) { return (invalid_args("write <path>")); }
+        } else if(o->format == FLASH_FORMAT_IHEX) { // expect filename
+            if(ac != 1) { return (invalid_args("write <path>")); }
 
             o->filename = av[0];
         } else {

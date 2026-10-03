@@ -1,21 +1,33 @@
-/*
- * File: logging.h
- *
- * UglyLogging: Slow, yet another wheel reinvented, but enough to make the rest of our code pretty enough.
- * Ugly, low performance, configurable level, logging "framework"
- */
+/**
+  ******************************************************************************
+  * @file           : logging.h
+  * @brief          : UglyLogging logging "framework"
+  * @copyright      : Copyright (c) 2026 stlink-org. All rights reserved.
+  * @date           : 2026-07-27
+  * SPDX-License-Identifier: BSD-3-Clause
+  *
+  * This file is licensed under the BSD 3-Clause License.
+  * See the LICENSE file in the project root for full license information.
+  ******************************************************************************
+  */
 
 #ifndef LOGGING_H
 #define LOGGING_H
 
 #include <stdint.h>
-#include "spdlog_wrapper.h"
+#include <stdio.h>
+#include <stdarg.h>
+#include <time.h>
+
+#include <stlink.h>
+
+#include "logging_spdlog_wr.h"
 
 #ifdef  __cplusplus
 extern "C" {
 #endif // __cplusplus
 
-/* Optional: Enable interface for SPDLOG to replace UglyLogging */
+/* Optional: Enable interface for spdlog to replace UglyLogging */
 // #define SPDLOG_LOGGING
 
 enum ugly_loglevel {
