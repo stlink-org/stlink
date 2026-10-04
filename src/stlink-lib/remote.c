@@ -391,7 +391,7 @@ static stlink_backend_t _stlink_remote_backend = {
 
 stlink_t *stlink_open_remote(int32_t verbose, const char *host, int32_t port,
                              enum connect_type conn, int32_t freq) {
-    ugly_init(verbose);
+    stlink_log_open_level(verbose);
 
     char portstr[16];
     snprintf(portstr, sizeof(portstr), "%d", port ? port : STLINK_REMOTE_DEFAULT_PORT);
@@ -401,18 +401,18 @@ stlink_t *stlink_open_remote(int32_t verbose, const char *host, int32_t port,
     hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_STREAM;
 
-    // Report connection failures to stderr, not ELOG: they must show even at a
+    // Report connection failures with ELOG_ALWAYS: they must show even at a
     // log level that suppresses errors (st-info opens with verbose 0).
     if (getaddrinfo(host, portstr, &hints, &res) != 0 || res == NULL) {
-        fprintf(stderr, "remote: cannot resolve host '%s'\n", host);
+        ELOG_ALWAYS("cannot resolve host '%s'\n", host);
         return (NULL);
     }
 
     int32_t fd = (int32_t)socket(res->ai_family, res->ai_socktype, res->ai_protocol);
     if (fd < 0 || remote_connect_timeout(fd, res->ai_addr, (socklen_t)res->ai_addrlen,
                                          REMOTE_CONNECT_TIMEOUT_SEC) < 0) {
-        fprintf(stderr, "remote: cannot connect to st-server at %s:%s (%s)\n",
-                host, portstr, strerror(errno));
+        ELOG_ALWAYS("cannot connect to st-server at %s:%s (%s)\n",
+                    host, portstr, strerror(errno));
         if (fd >= 0) { close(fd); }
         freeaddrinfo(res);
         return (NULL);
@@ -422,14 +422,14 @@ stlink_t *stlink_open_remote(int32_t verbose, const char *host, int32_t port,
 
     uint8_t hs[HANDSHAKE_LEN];
     if (recv_all(fd, hs, HANDSHAKE_LEN) || read_uint32(hs, 0) != STLINK_REMOTE_MAGIC) {
-        fprintf(stderr, "remote: no valid handshake from %s:%s (is st-server running there?)\n",
-                host, portstr);
+        ELOG_ALWAYS("no valid handshake from %s:%s (is st-server running there?)\n",
+                    host, portstr);
         close(fd);
         return (NULL);
     }
     if (read_uint32(hs, 4) != STLINK_REMOTE_PROTOCOL_VERSION) {
-        fprintf(stderr, "remote: server at %s:%s uses protocol version %u, client expects %u\n",
-                host, portstr, read_uint32(hs, 4), STLINK_REMOTE_PROTOCOL_VERSION);
+        ELOG_ALWAYS("server at %s:%s uses protocol version %u, client expects %u\n",
+                    host, portstr, read_uint32(hs, 4), STLINK_REMOTE_PROTOCOL_VERSION);
         close(fd);
         return (NULL);
     }
@@ -469,7 +469,7 @@ stlink_t *stlink_open_remote(int32_t verbose, const char *host, int32_t port,
     // Bail if a TCP error broke the link during the sequence above; a failed
     // target_connect (link still up) is handled downstream instead.
     if (rl->dead) {
-        fprintf(stderr, "remote: lost connection to st-server during connect\n");
+        ELOG_ALWAYS("lost connection to st-server during connect\n");
         close(rl->fd);
         free(rl);
         free(sl);
@@ -493,7 +493,7 @@ stlink_t *stlink_open_remote_str(int32_t verbose, const char *hostport,
         char *end = NULL;
         long parsed = strtol(colon + 1, &end, 0);
         if (*end != '\0' || parsed <= 0 || parsed > UINT16_MAX) {
-            fprintf(stderr, "remote: invalid port in '%s'\n", hostport);
+            ELOG_ALWAYS("invalid port in '%s'\n", hostport);
             return (NULL);
         }
         port = (int32_t)parsed;

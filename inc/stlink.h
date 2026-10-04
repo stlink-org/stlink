@@ -202,6 +202,48 @@ enum run_type {
 
 typedef struct _stlink stlink_t;
 
+/*
+ * Progress of longer operations (erase, flash write) and information about files
+ * written to the target. Without a handler (see stlink_set_progress_handler()) the
+ * progress is printed to stdout, as in previous versions.
+ */
+enum stlink_progress_event {
+    STLINK_PROGRESS_FILE,               // file to be written: path, size, md5, checksum
+    STLINK_PROGRESS_MASS_ERASE_START,   // mass erase started
+    STLINK_PROGRESS_MASS_ERASE_TICK,    // mass erase still running (about once a second)
+    STLINK_PROGRESS_MASS_ERASE_DONE,    // mass erase finished
+    STLINK_PROGRESS_PAGE_ERASED,        // flash page or sector erased: addr, size
+    STLINK_PROGRESS_ERASE_DONE,         // erase of a flash section finished
+    STLINK_PROGRESS_WRITE,              // flash write progress: done of total in unit
+    STLINK_PROGRESS_WRITE_DONE,         // flash write finished
+};
+
+enum stlink_progress_unit {
+    STLINK_PROGRESS_UNIT_PAGES,
+    STLINK_PROGRESS_UNIT_HALFPAGES,
+    STLINK_PROGRESS_UNIT_BYTES,
+};
+
+struct stlink_progress {
+    enum stlink_progress_event event;
+    enum stlink_progress_unit unit;     // STLINK_PROGRESS_WRITE
+    uint32_t done;                      // STLINK_PROGRESS_WRITE
+    uint32_t total;                     // STLINK_PROGRESS_WRITE
+    uint32_t addr;                      // STLINK_PROGRESS_PAGE_ERASED
+    uint32_t size;                      // STLINK_PROGRESS_PAGE_ERASED, STLINK_PROGRESS_FILE (file size)
+    const char *path;                   // STLINK_PROGRESS_FILE
+    uint8_t md5[16];                    // STLINK_PROGRESS_FILE
+    uint32_t checksum;                  // STLINK_PROGRESS_FILE: sum of all bytes, as shown by the ST tools
+};
+
+/**
+ * Progress handler, see stlink_set_progress_handler()
+ * @param sl       the device the progress belongs to
+ * @param user     pointer given to stlink_set_progress_handler()
+ * @param progress event and its data, only valid during the call
+ */
+typedef void (*stlink_progress_handler_t)(stlink_t *sl, void *user, const struct stlink_progress *progress);
+
 #include "stm32.h"
 #include "stlink_backend.h"
 
@@ -259,6 +301,10 @@ struct _stlink {
     /* TrustZone settings, set by stlink_flash_secure_enable() */
     bool flash_secure;              // flash is programmed via the secure flash alias and the secure flash registers
     uint32_t secure_csw;            // MEM-AP CSW for accesses to secure alias addresses, 0 = ST-LINK default (non-secure)
+
+    /* Progress reporting, set by stlink_set_progress_handler() */
+    stlink_progress_handler_t progress_handler;
+    void *progress_user;
 };
 
 
@@ -294,6 +340,16 @@ int32_t stlink_target_connect(stlink_t *sl, enum connect_type connect);
 int32_t stlink_target_voltage(stlink_t *sl);
 int32_t stlink_version(stlink_t *sl);
 int32_t stlink_write_buffer_to_sram(stlink_t *sl, flash_loader_t* fl, const uint8_t* buf, uint16_t size, uint16_t padded_size);
+
+/* === Declaration of functions defined in progress.c === */
+
+/**
+ * Report the progress of operations on this device to the application instead of stdout.
+ * @param sl      the device
+ * @param handler function receiving the progress, NULL restores the output on stdout
+ * @param user    pointer passed to every call of the handler
+ */
+void stlink_set_progress_handler(stlink_t *sl, stlink_progress_handler_t handler, void *user);
 
 #ifdef __cplusplus
 }

@@ -24,7 +24,7 @@
 #include "helper.h"
 #include "logging.h"
 #include "map_file.h"
-#include "md5.h"
+#include "progress.h"
 #include "read_write.h"
 #include "usb.h"
 
@@ -441,7 +441,7 @@ static bool stlink_fread_worker(void *arg, uint8_t *block, ssize_t len) {
   struct stlink_fread_worker_arg *the_arg = (struct stlink_fread_worker_arg *)arg;
 
   if(write(the_arg->fd, block, len) != len) {
-    fprintf(stderr, "write() != aligned_size\n");
+    ELOG("write() != aligned_size\n");
     return (false);
   } else {
     return (true);
@@ -898,16 +898,16 @@ int32_t stlink_mwrite_sram(stlink_t *sl, uint8_t *data, uint32_t length, stm32_a
 
   // check addr range is inside the sram
   if(addr < sl->sram_base) {
-    fprintf(stderr, "addr too low\n");
+    ELOG("addr too low\n");
     goto on_error;
   } else if((addr + length) < addr) {
-    fprintf(stderr, "addr overruns\n");
+    ELOG("addr overruns\n");
     goto on_error;
   } else if((addr + length) > (sl->sram_base + sl->sram_size)) {
-    fprintf(stderr, "addr too high\n");
+    ELOG("addr too high\n");
     goto on_error;
   } else if(addr & 3) {
-    fprintf(stderr, "unaligned addr\n");
+    ELOG("unaligned addr\n");
     goto on_error;
   }
 
@@ -955,26 +955,24 @@ int32_t stlink_fwrite_sram(stlink_t *sl, const char *path, stm32_addr_t addr) {
   mapped_file_t mf = MAPPED_FILE_INITIALIZER;
 
   if(map_file(&mf, path) == -1) {
-    fprintf(stderr, "map_file() == -1\n");
+    ELOG("map_file() == -1\n");
     return (-1);
   }
 
-  printf("file %s ", path);
-  md5_calculate(&mf);
-  stlink_checksum(&mf);
+  stlink_progress_file(sl, path, &mf);
 
   // check if addr range is inside the SRAM
   if(addr < sl->sram_base) {
-    fprintf(stderr, "addr too low\n");
+    ELOG("addr too low\n");
     goto on_error;
   } else if((addr + mf.len) < addr) {
-    fprintf(stderr, "addr overruns\n");
+    ELOG("addr overruns\n");
     goto on_error;
   } else if((addr + mf.len) > (sl->sram_base + sl->sram_size)) {
-    fprintf(stderr, "addr too high\n");
+    ELOG("addr too high\n");
     goto on_error;
   } else if(addr & 3) {
-    fprintf(stderr, "unaligned addr\n");
+    ELOG("unaligned addr\n");
     goto on_error;
   }
 
@@ -1008,7 +1006,7 @@ int32_t stlink_fwrite_sram(stlink_t *sl, const char *path, stm32_addr_t addr) {
 
   // check the file has been written
   if(check_file(sl, &mf, addr) == -1) {
-    fprintf(stderr, "check_file() == -1\n");
+    ELOG("check_file() == -1\n");
     goto on_error;
   }
 
@@ -1095,21 +1093,20 @@ void stlink_print_data(stlink_t *sl) {
     DLOG("data_len = %d 0x%x\n", sl->q_len, sl->q_len);
   }
 
-  for(int32_t i = 0; i < sl->q_len; i++) {
-    if(i % 16 == 0) {
-      /*
-      if(sl->q_data_dir == Q_DATA_OUT) {
-          fprintf(stdout, "\n<- 0x%08x ", sl->q_addr + i);
-      } else {
-          fprintf(stdout, "\n-> 0x%08x ", sl->q_addr + i);
-      }
-      */
-    }
-    // DLOG(" %02x", (uint32_t) sl->q_buf[i]);
-    fprintf(stderr, " %02x", (uint32_t) sl->q_buf[i]);
+  // all bytes on one line, as " %02x" each
+  char *line = malloc((size_t) sl->q_len * 3 + 2);
+
+  if(line == NULL) {
+    return;
   }
-  // DLOG("\n\n");
-  fprintf(stderr, "\n");
+
+  for(int32_t i = 0; i < sl->q_len; i++) {
+    snprintf(line + i * 3, 4, " %02x", (uint32_t) sl->q_buf[i]);
+  }
+
+  strcpy(line + sl->q_len * 3, "\n");
+  DLOG("%s", line);
+  free(line);
 }
 
 bool stlink_is_core_halted(stlink_t *sl) {
@@ -1155,7 +1152,7 @@ int32_t stlink_fread(stlink_t *sl, const char *path, bool is_ihex, stm32_addr_t 
   int32_t fd = open(path, O_RDWR | O_TRUNC | O_CREAT | O_BINARY, 00700);
 
   if(fd == -1) {
-    fprintf(stderr, "open(%s) == -1\n", path);
+    ELOG("open(%s) == -1\n", path);
     return (-1);
   }
 
@@ -1502,7 +1499,7 @@ int32_t stlink_target_connect(stlink_t *sl, enum connect_type connect) {
 
   if(stlink_current_mode(sl) != STLINK_DEV_DEBUG_MODE &&
         stlink_enter_swd_mode(sl)) {
-    printf("Failed to enter SWD mode\n");
+    ELOG("Failed to enter SWD mode\n");
     return -1;
   }
 

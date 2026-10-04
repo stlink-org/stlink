@@ -122,7 +122,7 @@ bool parse_options(int32_t argc, char **argv, st_settings_t *settings) {
   settings->force = false;
   settings->serial_number = NULL;
   settings->remote = NULL;
-  ugly_init(settings->logging_level);
+  stlink_log_set_level(settings->logging_level);
 
   while ((c = getopt_long(argc, argv, "hVv::c:ns:f", long_options, &option_index)) != -1) {
     switch (c) {
@@ -138,7 +138,7 @@ bool parse_options(int32_t argc, char **argv, st_settings_t *settings) {
       } else {
         settings->logging_level = DEBUG_LOGGING_LEVEL;
       }
-      ugly_init(settings->logging_level);
+      stlink_log_set_level(settings->logging_level);
       break;
     case 'c':
       if(!parse_frequency(optarg, &settings->core_frequency)) error = true;

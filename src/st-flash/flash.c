@@ -101,6 +101,8 @@ int32_t main(int32_t ac, char** av) {
         return 0;
     }
 
+    stlink_log_set_level(o.log_level);
+
     printf("st-flash %s\n", STLINK_VERSION);
     init_chipids(NULL);
 

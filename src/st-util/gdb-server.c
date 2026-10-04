@@ -220,6 +220,7 @@ int32_t main(int32_t argc, char** argv) {
     state.listen_port = DEFAULT_GDB_LISTEN_PORT;
     state.connect_mode = CONNECT_NORMAL; // by default, reset board
     parse_options(argc, argv, &state);
+    stlink_log_set_level(state.logging_level);
 
     printf("st-util %s\n", STLINK_VERSION);
 

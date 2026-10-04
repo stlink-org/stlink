@@ -13,6 +13,8 @@
 
 #include "chipid.h"
 
+#include <errno.h>
+
 #include <stlink_fs.h>
 
 #include "logging.h"
@@ -57,11 +59,10 @@ void process_chipfile(char *fname) {
   struct stlink_chipid_params *ts;
   int32_t nc;
 
-  // fprintf (stderr, "processing chip-id file %s.\n", fname);
   fp = fopen(fname, "r");
 
   if(!fp) {
-    perror(fname);
+    ELOG("%s: %s\n", fname, strerror(errno));
     return;
   }
 
@@ -77,7 +78,7 @@ void process_chipfile(char *fname) {
       continue; // ignore empty lines
 
     if(sscanf(buf, "%63s %63s", word, value) != 2) {
-      fprintf(stderr, "Failed to read keyword or value\n");
+      WLOG("Failed to read keyword or value in %s\n", fname);
       continue;
     }
 
@@ -93,7 +94,7 @@ void process_chipfile(char *fname) {
       buf[strlen(buf) - 1] = 0; // chomp newline
       sscanf(buf, "%*s %n", &nc);
       if(sscanf(value, "%i", &ts->chip_id) < 1) {
-        fprintf(stderr, "Failed to parse chip-id\n");
+        ELOG("Failed to parse chip-id in %s\n", fname);
       }
     } else if(strcmp(word, "flash_type") == 0) {
       buf[strlen(buf) - 1] = 0; // chomp newline
@@ -136,43 +137,43 @@ void process_chipfile(char *fname) {
       buf[strlen(buf) - 1] = 0; // chomp newline
       sscanf(buf, "%*s %n", &nc);
       if(sscanf(value, "%i", &ts->flash_size_reg) < 1) {
-        fprintf(stderr, "Failed to parse flash size reg\n");
+        ELOG("Failed to parse flash size reg in %s\n", fname);
       }
     } else if(strcmp(word, "flash_pagesize") == 0) {
       buf[strlen(buf) - 1] = 0; // chomp newline
       sscanf(buf, "%*s %n", &nc);
       if(sscanf(value, "%i", &ts->flash_pagesize) < 1) {
-        fprintf(stderr, "Failed to parse flash page size\n");
+        ELOG("Failed to parse flash page size in %s\n", fname);
       }
     } else if(strcmp(word, "sram_size") == 0) {
       buf[strlen(buf) - 1] = 0; // chomp newline
       sscanf(buf, "%*s %n", &nc);
       if(sscanf(value, "%i", &ts->sram_size) < 1) {
-        fprintf(stderr, "Failed to parse SRAM size\n");
+        ELOG("Failed to parse SRAM size in %s\n", fname);
       }
     } else if(strcmp(word, "bootrom_base") == 0) {
       buf[strlen(buf) - 1] = 0; // chomp newline
       sscanf(buf, "%*s %n", &nc);
       if(sscanf(value, "%i", &ts->bootrom_base) < 1) {
-        fprintf(stderr, "Failed to parse BootROM base\n");
+        ELOG("Failed to parse BootROM base in %s\n", fname);
       }
     } else if(strcmp(word, "bootrom_size") == 0) {
       buf[strlen(buf) - 1] = 0; // chomp newline
       sscanf(buf, "%*s %n", &nc);
       if(sscanf(value, "%i", &ts->bootrom_size) < 1) {
-        fprintf(stderr, "Failed to parse BootROM size\n");
+        ELOG("Failed to parse BootROM size in %s\n", fname);
       }
     } else if(strcmp(word, "option_base") == 0) {
       buf[strlen(buf) - 1] = 0; // chomp newline
       sscanf(buf, "%*s %n", &nc);
       if(sscanf(value, "%i", &ts->option_base) < 1) {
-        fprintf(stderr, "Failed to parse option base\n");
+        ELOG("Failed to parse option base in %s\n", fname);
       }
     } else if(strcmp(word, "option_size") == 0) {
       buf[strlen(buf) - 1] = 0; // chomp newline
       sscanf(buf, "%*s %n", &nc);
       if(sscanf(value, "%i", &ts->option_size) < 1) {
-        fprintf(stderr, "Failed to parse option size\n");
+        ELOG("Failed to parse option size in %s\n", fname);
       }
     } else if(strcmp(word, "flags") == 0) {
       buf[strlen(buf) - 1] = 0; // chomp newline
@@ -187,7 +188,7 @@ void process_chipfile(char *fname) {
         } else if(strcmp(p, "swo") == 0) {
           ts->flags |= CHIP_F_HAS_SWO_TRACING;
         } else {
-          fprintf(stderr, "Unknown flags word in %s: '%s'\n", fname, p);
+          WLOG("Unknown flags word in %s: '%s'\n", fname, p);
         }
       }
 
@@ -196,16 +197,16 @@ void process_chipfile(char *fname) {
       buf[strlen(buf) - 1] = 0; // chomp newline
       sscanf(buf, "%*s %n", &nc);
       if(sscanf(value, "%i", &ts->otp_base) < 1) {
-        fprintf(stderr, "Failed to parse option size\n");
+        ELOG("Failed to parse OTP base in %s\n", fname);
       }
     } else if(strcmp(word, "otp_size") == 0) {
       buf[strlen(buf) - 1] = 0; // chomp newline
       sscanf(buf, "%*s %n", &nc);
       if(sscanf(value, "%i", &ts->otp_size) < 1) {
-        fprintf(stderr, "Failed to parse option size\n");
+        ELOG("Failed to parse OTP size in %s\n", fname);
       }
     } else {
-      fprintf(stderr, "Unknown keyword in %s: %s\n", fname, word);
+      WLOG("Unknown keyword in %s: %s\n", fname, word);
     }
   }
   fclose(fp);

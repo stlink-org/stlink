@@ -1352,7 +1352,7 @@ static stlink_t *stlink_open_usb_at(enum ugly_loglevel verbose, enum connect_typ
     }
 
     if(config != 1) {
-        printf("setting new configuration (%d -> 1)\n", config);
+        DLOG("setting new configuration (%d -> 1)\n", config);
 
         if(libusb_set_configuration(slu->usb_handle, 1)) {
             // this may fail for a previous configured device
@@ -1442,8 +1442,9 @@ on_malloc_error:
  * @retval !NULL  Stlink found and ready to use
  */
 stlink_t *stlink_open_usb(enum ugly_loglevel verbose, enum connect_type connect, char serial[STLINK_SERIAL_BUFFER_SIZE], int32_t freq) {
-    // The loglevel is process wide, so only a caller that asked for one sets it.
-    ugly_init(verbose);
+    // The loglevel is process wide, so only a caller that asked for one sets it,
+    // and only if the application didn't set it with stlink_log_set_level().
+    stlink_log_open_level(verbose);
     return (stlink_open_usb_at(verbose, connect, serial, -1, -1, freq));
 }
 

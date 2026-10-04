@@ -13,10 +13,21 @@ Updated system requirements:
 Features:
 
 - STM32U59x_U5Ax: Write to secure region flash with st-flash ([#1450](https://github.com/stlink-org/stlink/pull/1450), commit [#84fd394](https://github.com/stlink-org/stlink/commit/84fd394c500e9df8203ea7a25d23e63ebc39cb59))
+- [stlink-lib] Programmatically managed logging: `stlink_log_set_handler()` routes all messages (including those of libusb) to the application, `stlink_log_set_level()` sets a level the open functions no longer override ([#1474](https://github.com/stlink-org/stlink/issues/1474))
+- [stlink-lib] Progress reporting per device via `stlink_set_progress_handler()`; without a handler the progress is printed to stdout as before ([#1474](https://github.com/stlink-org/stlink/issues/1474))
+- [stlink-lib] `md5_calculate_digest()` and `stlink_checksum_calculate()` return the MD5 digest and checksum of a mapped file ([#1474](https://github.com/stlink-org/stlink/issues/1474))
 
 Updates & changes:
 
 - [stlink-gui] Migrated from GTK3 to GTK4 (>= 4.6)
+- [stlink-lib] Changes to logging system ([#1474](https://github.com/stlink-org/stlink/issues/1474))
+  - Removed the unused spdlog wrapper (`logging_spdlog_wr.h`) 
+  - Errors and diagnostics go through the logging instead of direct `printf()`/`fprintf()` calls, progress through the progress handler
+  - Log messages are written in one piece, so lines of parallel probes no longer mix
+  - `stlink_read_option_bytes_f7()` logs the option words at debug level instead of printing them to stdout, like the option byte functions of the other families
+- [st-flash, st-util] The log level is set right after parsing the options, so debug messages no longer show at the standard level before the device is opened ([#1474](https://github.com/stlink-org/stlink/issues/1474))
+- [stlink-lib] `md5_calculate()` and `stlink_checksum()` are deprecated, as they print to stdout ([#1474](https://github.com/stlink-org/stlink/issues/1474))
+
 
 
 # v1.9.0

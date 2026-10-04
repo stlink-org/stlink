@@ -1071,7 +1071,7 @@ static stlink_t* stlink_open(const int32_t verbose) {
 
 
 stlink_t* stlink_v1_open_inner(const int32_t verbose) {
-    ugly_init(verbose);
+    stlink_log_open_level(verbose);
     stlink_t *sl = stlink_open(verbose);
 
     if(sl == NULL) {

@@ -88,7 +88,7 @@ int32_t stlink_read_reg(stlink_t *sl, int32_t r_idx, struct stlink_reg *regp) {
   DLOG(" (%d) ***\n", r_idx);
 
   if(r_idx > 20 || r_idx < 0) {
-    fprintf(stderr, "Error: register index must be in [0..20]\n");
+    ELOG("Register index must be in [0..20]\n");
     return (-1);
   }
 
@@ -116,7 +116,7 @@ int32_t stlink_read_unsupported_reg(stlink_t *sl, int32_t r_idx,
   } else if(r_idx >= 0x20 && r_idx < 0x40) {
     r_convert = 0x40 + (r_idx - 0x20);
   } else {
-    fprintf(stderr, "Error: register address must be in [0x1C..0x40]\n");
+    ELOG("Register address must be in [0x1C..0x40]\n");
     return (-1);
   }
 
@@ -139,7 +139,7 @@ int32_t stlink_write_unsupported_reg(stlink_t *sl, uint32_t val, int32_t r_idx,
   } else if(r_idx >= 0x20 && r_idx < 0x40) {
     r_convert = 0x40 + (r_idx - 0x20);
   } else {
-    fprintf(stderr, "Error: register address must be in [0x1C..0x40]\n");
+    ELOG("Register address must be in [0x1C..0x40]\n");
     return (-1);
   }
 

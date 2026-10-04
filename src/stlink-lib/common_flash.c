@@ -18,7 +18,7 @@
 #include "helper.h"
 #include "logging.h"
 #include "map_file.h"
-#include "md5.h"
+#include "progress.h"
 #include "read_write.h"
 
 
@@ -200,7 +200,7 @@ uint32_t read_flash_cr(stlink_t *sl, uint32_t bank) {
   stlink_read_debug32(sl, reg, &res);
 
 #if DEBUG_FLASH
-  fprintf(stdout, "CR:0x%x\n", res);
+  DLOG("CR:0x%x\n", res);
 #endif
   return (res);
 }
@@ -982,7 +982,7 @@ void write_flash_cr_psiz(stlink_t *sl, uint32_t n,
   x &= ~(0x03 << psize_shift);
   x |= (n << psize_shift);
 #if DEBUG_FLASH
-  fprintf(stdout, "PSIZ:0x%x 0x%x\n", x, n);
+  DLOG("PSIZ:0x%x 0x%x\n", x, n);
 #endif
   stlink_write_debug32(sl, cr_reg, x);
 }
@@ -1027,20 +1027,18 @@ void clear_flash_cr_pg(stlink_t *sl, uint32_t bank) {
 
 static void wait_flash_busy_progress(stlink_t *sl) {
   int32_t i = 0;
-  fprintf(stdout, "Mass erasing...");
-  fflush(stdout);
+  stlink_progress_event(sl, STLINK_PROGRESS_MASS_ERASE_START, false);
 
   while (is_flash_busy(sl)) {
     usleep(10000);
     i++;
 
     if(i % 100 == 0) {
-      fprintf(stdout, ".");
-      fflush(stdout);
+      stlink_progress_event(sl, STLINK_PROGRESS_MASS_ERASE_TICK, false);
     }
   }
 
-  fprintf(stdout, "\n");
+  stlink_progress_event(sl, STLINK_PROGRESS_MASS_ERASE_DONE, false);
 }
 
 static inline void write_flash_ar(stlink_t *sl, uint32_t n, uint32_t bank) {
@@ -1067,7 +1065,7 @@ static inline void write_flash_cr_snb(stlink_t *sl, uint32_t n, uint32_t bank) {
   x |= (n << snb_shift);
   x |= (1 << ser_shift);
 #if DEBUG_FLASH
-  fprintf(stdout, "SNB:0x%x 0x%x\n", x, n);
+  DLOG("SNB:0x%x 0x%x\n", x, n);
 #endif
   stlink_write_debug32(sl, cr_reg, x);
 }
@@ -1132,7 +1130,7 @@ static inline void write_flash_cr_bker_pnb(stlink_t *sl, uint32_t n) {
   x |= (n << STM32_FLASH_L4_CR_PNB);
   x |= (uint32_t) (1lu << STM32_FLASH_L4_CR_PER);
 #if DEBUG_FLASH
-  fprintf(stdout, "BKER:PNB:0x%x 0x%x\n", x, n);
+  DLOG("BKER:PNB:0x%x 0x%x\n", x, n);
 #endif
   stlink_write_debug32(sl, STM32_FLASH_L4_CR, x);
 }
@@ -1289,8 +1287,8 @@ int32_t stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr) {
       // calculate the actual bank+page from the address
       uint32_t page = calculate_L4_page(sl, flashaddr);
 
-      fprintf(stderr, "EraseFlash - Page:0x%x Size:0x%x ", page,
-              stlink_calculate_pagesize(sl, flashaddr));
+      DLOG("EraseFlash - Page:0x%x Size:0x%x\n", page,
+           stlink_calculate_pagesize(sl, flashaddr));
 
       write_flash_cr_bker_pnb(sl, page);
 
@@ -1300,8 +1298,8 @@ int32_t stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr) {
       // calculate the actual page from the address
       uint32_t sector = calculate_F7_sectornum(flashaddr);
 
-      fprintf(stderr, "EraseFlash - Sector:0x%x Size:0x%x ", sector,
-              stlink_calculate_pagesize(sl, flashaddr));
+      DLOG("EraseFlash - Sector:0x%x Size:0x%x\n", sector,
+           stlink_calculate_pagesize(sl, flashaddr));
       write_flash_cr_snb(sl, sector, BANK_1);
 
     // STM32F2
@@ -1310,8 +1308,8 @@ int32_t stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr) {
       // calculate the actual page from the address
       uint32_t sector = calculate_F4_sectornum(flashaddr);
 
-      fprintf(stderr, "EraseFlash - Sector:0x%x Size:0x%x ", sector,
-              stlink_calculate_pagesize(sl, flashaddr));
+      DLOG("EraseFlash - Sector:0x%x Size:0x%x\n", sector,
+           stlink_calculate_pagesize(sl, flashaddr));
 
       // the SNB values for flash sectors in the second bank do not directly
       // follow the values for the first bank on 2mb devices...
@@ -1326,7 +1324,7 @@ int32_t stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr) {
     wait_flash_busy(sl);           // wait for completion
     lock_flash(sl);                // TODO: fails to program if this is in
 #if DEBUG_FLASH
-    fprintf(stdout, "Erase Final CR:0x%x\n", read_flash_cr(sl, BANK_1));
+    DLOG("Erase Final CR:0x%x\n", read_flash_cr(sl, BANK_1));
 #endif
 
   // STM32L0
@@ -1643,14 +1641,13 @@ int32_t stlink_erase_flash_section(stlink_t *sl, stm32_addr_t base_addr, uint32_
       return (-1);
     }
 
-    fprintf(stdout, "-> Flash page at %#x erased (size: %#x)\n", addr, page_size);
-    fflush(stdout);
+    stlink_progress_page_erased(sl, addr, page_size);
 
     // check the next page is within the range to erase
     addr += page_size;
   } while (addr < (base_addr + size));
 
-  fprintf(stdout, "\n");
+  stlink_progress_event(sl, STLINK_PROGRESS_ERASE_DONE, false);
   return 0;
 }
 
@@ -1774,9 +1771,7 @@ int32_t stlink_fwrite_flash(stlink_t *sl, const char *path, stm32_addr_t addr,
     return (-1);
   }
 
-  printf("file %s ", path);
-  md5_calculate(&mf);
-  stlink_checksum(&mf);
+  stlink_progress_file(sl, path, &mf);
 
   if(sl->opt) {
     idx = (uint32_t) mf.len;

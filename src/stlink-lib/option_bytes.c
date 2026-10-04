@@ -17,7 +17,7 @@
 #include "flash_loader.h"
 #include "logging.h"
 #include "map_file.h"
-#include "md5.h"
+#include "progress.h"
 #include "read_write.h"
 
 
@@ -318,16 +318,17 @@ static int32_t stlink_write_option_bytes_f4(stlink_t *sl, stm32_addr_t addr, uin
  * @param option_byte
  * @return 0 on success, -ve on failure.
  */
-// Since multiple bytes can be read, we read and print32_t all, but one here
+// Since multiple words can be read, we read and log all, but one here
 // and then return the last one just like other devices.
 int32_t stlink_read_option_bytes_f7(stlink_t *sl, uint32_t *option_byte) {
   int32_t err = -1;
   for(uint32_t counter = 0; counter < (sl->option_size / 4 - 1); counter++) {
-    err = stlink_read_debug32(sl, sl->option_base + counter * sizeof(uint32_t), option_byte);
+    uint32_t addr = sl->option_base + counter * (uint32_t) sizeof(uint32_t);
+    err = stlink_read_debug32(sl, addr, option_byte);
     if(err == -1) {
       return err;
     } else {
-      printf("%08x\n", *option_byte);
+      DLOG("Option bytes at %#10x: %#10x\n", addr, *option_byte);
     }
   }
 
@@ -973,9 +974,7 @@ int32_t stlink_fwrite_option_bytes(stlink_t *sl, const char *path, stm32_addr_t 
     return (-1);
   }
 
-  printf("file %s ", path);
-  md5_calculate(&mf);
-  stlink_checksum(&mf);
+  stlink_progress_file(sl, path, &mf);
 
   err = stlink_write_option_bytes(sl, addr, mf.base, (uint32_t) mf.len);
   stlink_fwrite_finalize(sl, addr);

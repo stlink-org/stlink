@@ -31,6 +31,7 @@
 
 #include <chipid.h>
 #include <common_flash.h>
+#include <logging.h>
 #include <map_file.h>
 #include <option_bytes.h>
 #include <remote.h>

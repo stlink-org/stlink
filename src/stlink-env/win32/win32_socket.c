@@ -19,6 +19,8 @@
 #include <errno.h>
 #include <assert.h>
 
+#include "logging.h"
+
 int32_t win32_poll(struct pollfd *fds, uint32_t nfds, int32_t timo) {
     struct timeval timeout, *toptr;
     fd_set ifds, ofds, efds, *ip, *op;
@@ -64,14 +66,14 @@ int32_t win32_poll(struct pollfd *fds, uint32_t nfds, int32_t timo) {
     }
 
 #ifdef DEBUG_POLL
-    printf("Entering select() sec=%ld usec=%ld ip=%lx op=%lx\n",
-           (long)timeout.tv_sec, (long)timeout.tv_usec, (long)ip, (long)op);
+    DLOG("Entering select() sec=%ld usec=%ld ip=%lx op=%lx\n",
+         (long)timeout.tv_sec, (long)timeout.tv_usec, (long)ip, (long)op);
 #endif
 
     rc = select(0, ip, op, &efds, toptr);
 
 #ifdef DEBUG_POLL
-    printf("Exiting select rc=%d\n", rc);
+    DLOG("Exiting select rc=%d\n", rc);
 #endif
 
     if(rc <= 0) { return (rc); }
@@ -94,11 +96,11 @@ int32_t win32_poll(struct pollfd *fds, uint32_t nfds, int32_t timo) {
             }
 
 #ifdef DEBUG_POLL
-    printf("%d %d %d revent = %x\n",
-           FD_ISSET(fd, &ifds),
-           FD_ISSET(fd, &ofds),
-           FD_ISSET(fd, &efds),
-           fds[i].revents);
+    DLOG("%d %d %d revent = %x\n",
+         FD_ISSET(fd, &ifds),
+         FD_ISSET(fd, &ofds),
+         FD_ISSET(fd, &efds),
+         fds[i].revents);
 #endif
 
         }

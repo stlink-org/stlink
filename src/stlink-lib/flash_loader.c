@@ -16,6 +16,7 @@
 #include "common_flash.h"
 #include "helper.h"
 #include "logging.h"
+#include "progress.h"
 #include "read_write.h"
 
 
@@ -253,7 +254,7 @@ static int32_t loader_v_dependent_assignment(stlink_t *sl,
     int32_t retval = 0;
 
     if( sl->version.stlink_v == 1) {
-        printf("STLINK V1 cannot read voltage, defaulting to 32-bit writes\n");
+        WLOG("STLINK V1 cannot read voltage, defaulting to 32-bit writes\n");
         *loader_code = high_v_loader;
         *loader_size = high_v_loader_size;
     } else {
@@ -261,7 +262,7 @@ static int32_t loader_v_dependent_assignment(stlink_t *sl,
 
         if(voltage == -1) {
             retval = -1;
-            printf("Failed to read Target voltage\n");
+            ELOG("Failed to read Target voltage\n");
         } else   {
             if(voltage > 2700) {
                 *loader_code = high_v_loader;
@@ -528,11 +529,8 @@ int32_t stm32l1_write_half_pages(stlink_t *sl, flash_loader_t *fl, stm32_addr_t 
       break;
     }
 
-    if(sl->verbose >= 1) {
-      // show progress; writing procedure is slow and previous errors are misleading
-      fprintf(stdout, "%3u/%3u halfpages written\n", count + 1, num_half_pages);
-      fflush(stdout);
-    }
+    // show progress; writing procedure is slow and previous errors are misleading
+    stlink_progress_write(sl, STLINK_PROGRESS_UNIT_HALFPAGES, count + 1, num_half_pages, true);
 
     // wait for sr.busy to be cleared
     wait_flash_busy(sl);
@@ -864,9 +862,8 @@ int32_t stlink_flashloader_write(stlink_t *sl, flash_loader_t *fl, stm32_addr_t 
       memset(sl->q_buf + bytes_to_copy, 0xFF, row - bytes_to_copy);
 
       if((off % sl->flash_pgsz) > (sl->flash_pgsz - row - 1)) {
-        fprintf(stdout, "%3u/%-3u pages written\n", (off / sl->flash_pgsz + 1),
-                (padded_len / sl->flash_pgsz));
-        fflush(stdout);
+        stlink_progress_write(sl, STLINK_PROGRESS_UNIT_PAGES, (off / sl->flash_pgsz + 1),
+                              (padded_len / sl->flash_pgsz), false);
       }
 
       if(stlink_write_mem32(sl, addr + off, (uint16_t)row)) {
@@ -882,7 +879,7 @@ int32_t stlink_flashloader_write(stlink_t *sl, flash_loader_t *fl, stm32_addr_t 
       }
     }
 
-    fprintf(stdout, "\n");
+    stlink_progress_event(sl, STLINK_PROGRESS_WRITE_DONE, false);
   } else if(sl->flash_type == STM32_FLASH_TYPE_WB_WL ||
              sl->flash_type == STM32_FLASH_TYPE_G0 ||
              sl->flash_type == STM32_FLASH_TYPE_G4 ||
@@ -899,8 +896,7 @@ int32_t stlink_flashloader_write(stlink_t *sl, flash_loader_t *fl, stm32_addr_t 
       uint32_t data;
 
       if((off % sl->flash_pgsz) > (sl->flash_pgsz - 5)) {
-        fprintf(stdout, "%3u/%-3u pages written\n", (off / sl->flash_pgsz + 1), (len / sl->flash_pgsz));
-        fflush(stdout);
+        stlink_progress_write(sl, STLINK_PROGRESS_UNIT_PAGES, (off / sl->flash_pgsz + 1), (len / sl->flash_pgsz), false);
       }
 
       // write_uint32((unsigned char *)&data, *(uint32_t *)(base + off));
@@ -914,7 +910,7 @@ int32_t stlink_flashloader_write(stlink_t *sl, flash_loader_t *fl, stm32_addr_t 
         wait_flash_busy(sl); // wait for 'busy' bit in FLASH_SR to clear
       }
     }
-    fprintf(stdout, "\n");
+    stlink_progress_event(sl, STLINK_PROGRESS_WRITE_DONE, false);
 
     // flash writes happen as 2 words at a time: complete a pending double-word
     if((addr + off) & 0x04) {
@@ -943,8 +939,7 @@ int32_t stlink_flashloader_write(stlink_t *sl, flash_loader_t *fl, stm32_addr_t 
       uint32_t data;
 
       if((off % sl->flash_pgsz) > (sl->flash_pgsz - 5)) {
-        fprintf(stdout, "%3u/%-3u pages written\n", (off / sl->flash_pgsz + 1), (len / sl->flash_pgsz));
-        fflush(stdout);
+        stlink_progress_write(sl, STLINK_PROGRESS_UNIT_PAGES, (off / sl->flash_pgsz + 1), (len / sl->flash_pgsz), false);
       }
 
       write_uint32((unsigned char *)&data, *(uint32_t *)(base + off));
@@ -957,7 +952,7 @@ int32_t stlink_flashloader_write(stlink_t *sl, flash_loader_t *fl, stm32_addr_t 
 
       // TODO: check redo write operation
     }
-    fprintf(stdout, "\n");
+    stlink_progress_event(sl, STLINK_PROGRESS_WRITE_DONE, false);
   } else if((sl->flash_type == STM32_FLASH_TYPE_F0_F1_F3) || (sl->flash_type == STM32_FLASH_TYPE_F1_XL)) {
     int32_t write_block_count = 0;
     for(off = 0; off < len; off += sl->flash_pgsz) {
@@ -977,17 +972,12 @@ int32_t stlink_flashloader_write(stlink_t *sl, flash_loader_t *fl, stm32_addr_t 
 
       lock_flash(sl);
 
-      if(sl->verbose >= 1) {
-        // show progress; writing procedure is slow and previous errors are
-        // misleading
-        fprintf(stdout, "%3u/%-3u pages written\n", ++write_block_count,
-                (len + sl->flash_pgsz - 1) / sl->flash_pgsz);
-        fflush(stdout);
-      }
+      // show progress; writing procedure is slow and previous errors are
+      // misleading
+      stlink_progress_write(sl, STLINK_PROGRESS_UNIT_PAGES, ++write_block_count,
+                            (len + sl->flash_pgsz - 1) / sl->flash_pgsz, true);
     }
-    if(sl->verbose >= 1) {
-      fprintf(stdout, "\n");
-    }
+    stlink_progress_event(sl, STLINK_PROGRESS_WRITE_DONE, true);
   } else if(sl->flash_type == STM32_FLASH_TYPE_H7) {
     for(off = 0; off < len;) {
       // Program STM32H7x with 64-byte Flash words
@@ -998,15 +988,10 @@ int32_t stlink_flashloader_write(stlink_t *sl, flash_loader_t *fl, stm32_addr_t 
 
       off += chunk;
 
-      if(sl->verbose >= 1) {
-        // show progress
-        fprintf(stdout, "%u/%u bytes written\n", off, len);
-        fflush(stdout);
-      }
+      // show progress
+      stlink_progress_write(sl, STLINK_PROGRESS_UNIT_BYTES, off, len, true);
     }
-    if(sl->verbose >= 1) {
-      fprintf(stdout, "\n");
-    }
+    stlink_progress_event(sl, STLINK_PROGRESS_WRITE_DONE, true);
   } else if((sl->flash_type == STM32_FLASH_TYPE_WB0) && is_exclusively_otp) {
     // WB0 OTP area can not be written with BURSTWRITE as implemented in flashloader
     // Writes are done as 32bit words, out of bounds bytes are written as 0xFF (no change to flash)

@@ -12,6 +12,7 @@
   */
 
 #include "map_file.h"
+#include "logging.h"
 #include "read_write.h"
 
 
@@ -67,12 +68,12 @@ int32_t map_file(mapped_file_t *mf, const char *path) {
   const int32_t fd = open(path, O_RDONLY | O_BINARY);
 
   if(fd == -1) {
-    fprintf(stderr, "open(%s) == -1\n", path);
+    ELOG("open(%s) == -1\n", path);
     return (-1);
   }
 
   if(fstat(fd, &st) == -1) {
-    fprintf(stderr, "fstat(%s) == -1\n", path);
+    ELOG("fstat(%s) == -1\n", path);
     goto on_error;
   }
 
@@ -80,7 +81,7 @@ int32_t map_file(mapped_file_t *mf, const char *path) {
     // on 32 bit systems, check if there is an overflow
     if(st.st_size > (off_t) MAX_FILE_SIZE  /*1 GB*/ ) {
       // limit file size to 1 GB
-      fprintf(stderr, "mmap() uint32_t overflow for file %s\n", path);
+      ELOG("mmap() uint32_t overflow for file %s\n", path);
       goto on_error;
     }
   }
@@ -89,7 +90,7 @@ int32_t map_file(mapped_file_t *mf, const char *path) {
       (uint8_t *)mmap(NULL, (size_t) (st.st_size), PROT_READ, MAP_SHARED, fd, 0);
 
   if(mf->base == MAP_FAILED) {
-    fprintf(stderr, "mmap() == MAP_FAILED for file %s\n", path);
+    ELOG("mmap() == MAP_FAILED for file %s\n", path);
     goto on_error;
   }
 
