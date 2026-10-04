@@ -1,0 +1,6 @@
+{
+  "name": "stlink",
+  "dependencies": [
+    "libusb"
+  ]
+}

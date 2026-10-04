@@ -1,3 +1,16 @@
+/**
+  ******************************************************************************
+  * @file           : memory-map.h
+  * @brief          : Tool: st-util
+  * @copyright      : Copyright (c) 2026 stlink-org. All rights reserved.
+  * @date           : 2026-07-27
+  * SPDX-License-Identifier: BSD-3-Clause
+  *
+  * This file is licensed under the BSD 3-Clause License.
+  * See the LICENSE file in the project root for full license information.
+  ******************************************************************************
+  */
+
 #ifndef MEMORY_MAP_H
 #define MEMORY_MAP_H
 
@@ -8,7 +21,7 @@ static const char* const memory_map_template_F4 =
     "<memory-map>"
     "  <memory type=\"rom\" start=\"0x00000000\" length=\"0x100000\"/>"     // code = sram, bootrom or flash; flash is bigger
     "  <memory type=\"ram\" start=\"0x10000000\" length=\"0x10000\"/>"      // ccm ram
-    "  <memory type=\"ram\" start=\"0x20000000\" length=\"0x20000\"/>"      // sram
+    "  <memory type=\"ram\" start=\"0x20000000\" length=\"0x%x\"/>"         // sram
     "  <memory type=\"flash\" start=\"0x08000000\" length=\"0x10000\">"     // Sectors 0...3
     "    <property name=\"blocksize\">0x4000</property>"                    // 16 kB
     "  </memory>"

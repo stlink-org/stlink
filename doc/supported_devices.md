@@ -9,6 +9,7 @@ More commonly these are:
 | STM32C0        | M0+             |                                                            |
 | STM32G0        | M0+             |                                                            |
 | STM32L0        | M0+             |                                                            |
+| STM32U0        | M0+             | *preliminary, limited and partial support only!*           |
 | STM32F10**0**  | M3              | Value line                                                 |
 | STM32F10**1**  | M3              | Access line                                                |
 | STM32F10**2**  | M3              | USB Access line                                            |
@@ -34,9 +35,10 @@ More commonly these are:
 | STM32H7        | M7F             |                                                            |
 | STM32WB        | M4F             |                                                            |
 | STM32WL        | M4              |                                                            |
-| STM32L5        | M33             |                                                            |
+| STM32L5        | M33             | *preliminary, limited and partial support only!*           |
 | STM32H5        | M33             |                                                            |
-| STM32U5        | M33             |                                                            |
+| STM32U5        | M33             | *preliminary, limited and partial support only!*           |
+| STM32C5        | M33             | *preliminary, limited and partial support only!*           |
 
 
 # Chinese Clone-Chips [may work, but without support!]
@@ -51,6 +53,7 @@ More commonly these are:
 | ------------- | ------- | ------------------------------------------------------------------------- |
 | CKS32F103C8T6 | 0x410   | STM32F103C8T6 clone from China Key Systems (CKS)                          |
 | CH32F103C8T6  | 0x410   | STM32F103C8T6 clone from Nanjing Qinheng Microelectronics Co., Ltd. (WCH) |
+
 
 ## STM32F3 Clone / ARM Cortex M4F (Core-ID: 0x2ba01477)
 

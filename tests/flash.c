@@ -1,4 +1,10 @@
-/* == nightwalker-87: TODO: CONTENT AND USE OF THIS SOURCE FILE IS TO BE VERIFIED (07.06.2023) == */
+/*
+ * File: tests/flash.c
+ *
+ *
+ */
+
+// TODO: CONTENT AND USE OF THIS SOURCE FILE IS TO BE VERIFIED
 
 #include <stdint.h>
 #include <stdio.h>
@@ -20,7 +26,7 @@ struct Test {
 };
 
 static bool cmp_strings(const char * s1, const char * s2) {
-    if (s1 == NULL || s2 == NULL) {
+    if(s1 == NULL || s2 == NULL) {
         return (s1 == s2);
     } else {
         return (0 == strcmp(s1, s2));
@@ -28,7 +34,7 @@ static bool cmp_strings(const char * s1, const char * s2) {
 }
 
 static bool cmp_mem(const uint8_t * s1, const uint8_t * s2, uint32_t size) {
-    if (s1 == NULL || s2 == NULL) {
+    if(s1 == NULL || s2 == NULL) {
         return (s1 == s2);
     } else {
         return (0 == memcmp(s1, s2, size));
@@ -48,8 +54,8 @@ static bool execute_test(const struct Test * test) {
 
     strcpy(cmd_line, test->cmd_line);
 
-    for (char * tok = strtok(cmd_line, " "); tok; tok = strtok(NULL, " ")) {
-        if ((size_t)ac >= sizeof(av) / sizeof(av[0])) return (false);
+    for(char * tok = strtok(cmd_line, " "); tok; tok = strtok(NULL, " ")) {
+        if((size_t) ac >= sizeof(av) / sizeof(av[0])) return (false);
 
         av[ac] = tok;
         ++ac;
@@ -62,7 +68,7 @@ static bool execute_test(const struct Test * test) {
     /* Compare results */
     bool ret = (res == test->res);
 
-    if (ret && (res == 0)) {
+    if(ret && (res == 0)) {
         ret &= (opts.cmd == test->opts.cmd);
         ret &= cmp_mem(opts.serial, test->opts.serial, sizeof(opts.serial));
         ret &= cmp_strings(opts.filename, test->opts.filename);
@@ -91,7 +97,7 @@ static struct Test tests[] = {
         .freq = 0,
         .format = FLASH_FORMAT_BINARY }
     },
-    { "--debug --reset write test.bin 0x80000000", 0,
+    { "--debug --mass-erase --reset write test.bin 0x80000000", 0,
       { .cmd = FLASH_CMD_WRITE,
         .serial = { 0 },
         .filename = "test.bin",
@@ -99,6 +105,7 @@ static struct Test tests[] = {
         .size = 0,
         .reset = 1,
         .log_level = DEBUG_LOG_LEVEL,
+        .mass_erase = 1,
         .freq = 0,
         .format = FLASH_FORMAT_BINARY }
     },
@@ -187,6 +194,19 @@ static struct Test tests[] = {
         .size = 0,
         .reset = 0,
         .log_level = STND_LOG_LEVEL,
+        .mass_erase = 1,
+        .freq = 0,
+        .format = FLASH_FORMAT_BINARY }
+    },
+    { "--mass-erase erase", 0,
+      { .cmd = FLASH_CMD_ERASE,
+        .serial = { 0 },
+        .filename = NULL,
+        .addr = 0,
+        .size = 0,
+        .reset = 0,
+        .log_level = STND_LOG_LEVEL,
+        .mass_erase = 1,
         .freq = 0,
         .format = FLASH_FORMAT_BINARY }
     },
@@ -232,8 +252,8 @@ static struct Test tests[] = {
 int32_t main() {
     bool allOk = true;
 
-    for (uint32_t i = 0; i < sizeof(tests) / sizeof(tests[0]); ++i)
-        if (!execute_test(&tests[i]))
+    for(uint32_t i = 0; i < sizeof(tests) / sizeof(tests[0]); ++i)
+        if(!execute_test(&tests[i]))
             allOk = false;
 
     return (allOk ? 0 : 1);

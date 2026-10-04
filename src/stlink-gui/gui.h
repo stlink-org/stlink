@@ -1,3 +1,16 @@
+/**
+  ******************************************************************************
+  * @file           : gui.h
+  * @brief          : stlink-gui
+  * @copyright      : Copyright (c) 2026 stlink-org. All rights reserved.
+  * @date           : 2026-07-27
+  * SPDX-License-Identifier: BSD-3-Clause
+  *
+  * This file is licensed under the BSD 3-Clause License.
+  * See the LICENSE file in the project root for full license information.
+  ******************************************************************************
+  */
+
 #ifndef GUI_H
 #define GUI_H
 
@@ -60,17 +73,24 @@ struct _STlinkGUI {
     GtkEntry       *devmem_jmp_entry;
     GtkBox         *filemem_box;
     GtkEntry       *filemem_jmp_entry;
+    GtkToolButton  *open_button;
     GtkToolButton  *connect_button;
     GtkToolButton  *disconnect_button;
     GtkToolButton  *flash_button;
+    GtkToolButton  *reset_button;
     GtkToolButton  *export_button;
-    GtkToolButton  *open_button;
+    GtkToolButton  *erase_button;
 
-    /* flash dialog */
+    /* Flash dialog */
     GtkDialog  *flash_dialog;
     GtkButton  *flash_dialog_ok;
     GtkButton  *flash_dialog_cancel;
     GtkEntry   *flash_dialog_entry;
+
+    /* Erase dialog */
+    GtkDialog  *erase_dialog;
+    GtkButton  *erase_dialog_ok;
+    GtkButton  *erase_dialog_cancel;
 
     struct progress_t progress;
     struct mem_t flash_mem;

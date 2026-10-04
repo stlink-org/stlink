@@ -13,4 +13,4 @@ option_base 0x0
 option_size 0x0
 flags swo
 otp_base 0x1fff7000
-otp_size 0x400         // 1 KB
+otp_size 0x400               // 1 KB

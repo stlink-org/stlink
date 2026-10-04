@@ -1,18 +1,20 @@
-/*
- * File: logging.c
- *
- * UglyLogging: Slow, yet another wheel reinvented, but enough to make the rest of our code pretty enough.
- */
+/**
+  ******************************************************************************
+  * @file           : logging.c
+  * @brief          : UglyLogging logging "framework"
+  * @copyright      : Copyright (c) 2026 stlink-org. All rights reserved.
+  * @date           : 2026-07-27
+  * SPDX-License-Identifier: BSD-3-Clause
+  *
+  * This file is licensed under the BSD 3-Clause License.
+  * See the LICENSE file in the project root for full license information.
+  ******************************************************************************
+  */
 
 #define __STDC_WANT_LIB_EXT1__ 1
 
-#include <stdint.h>
-#include <stdio.h>
-
-#include <stdarg.h>
-#include <time.h>
-
 #include "logging.h"
+
 
 static int32_t max_level = UDEBUG;
 
@@ -22,7 +24,7 @@ int32_t ugly_init(int32_t maximum_threshold) {
 }
 
 int32_t ugly_log(int32_t level, const char *tag, const char *format, ...) {
-  if (level > max_level) {
+  if(level > max_level) {
     return (0);
   }
 

@@ -1,14 +1,16 @@
-/*
- * File: option_bytes.c
- *
- * Read and write option bytes and option control registers
- */
+/**
+  ******************************************************************************
+  * @file           : option_bytes.c
+  * @brief          : Read and write option bytes and option control registers
+  * @copyright      : Copyright (c) 2026 stlink-org. All rights reserved.
+  * @date           : 2026-07-27
+  * SPDX-License-Identifier: BSD-3-Clause
+  *
+  * This file is licensed under the BSD 3-Clause License.
+  * See the LICENSE file in the project root for full license information.
+  ******************************************************************************
+  */
 
-#include <stdint.h>
-#include <stdio.h>
-#include <string.h>
-
-#include <stlink.h>
 #include "option_bytes.h"
 
 #include "common_flash.h"
@@ -18,6 +20,7 @@
 #include "md5.h"
 #include "read_write.h"
 
+
 /**
  * Read option control register C0
  * @param sl
@@ -25,7 +28,7 @@
  * @return 0 on success, -ve on failure.
  */
 static int32_t stlink_read_option_control_register_c0(stlink_t *sl, uint32_t *option_byte) {
-  return stlink_read_debug32(sl, FLASH_C0_OPTR, option_byte);
+  return stlink_read_debug32(sl, STM32_FLASH_C0_OPTR, option_byte);
 }
 
 /**
@@ -49,23 +52,23 @@ static int32_t stlink_write_option_control_register_c0(stlink_t *sl, uint32_t op
 
   clear_flash_error(sl);
 
-  if ((ret = stlink_write_debug32(sl, FLASH_C0_OPTR, option_cr)))
+  if((ret = stlink_write_debug32(sl, STM32_FLASH_C0_OPTR, option_cr)))
     return ret;
 
   wait_flash_busy(sl);
 
-  uint32_t cr_reg = (1 << FLASH_C0_CR_OPTSTRT);
-  if ((ret = stlink_write_debug32(sl, FLASH_C0_CR, cr_reg)))
+  uint32_t cr_reg = (1 << STM32_FLASH_C0_CR_OPTSTRT);
+  if((ret = stlink_write_debug32(sl, STM32_FLASH_C0_CR, cr_reg)))
     return ret;
 
   wait_flash_busy(sl);
 
-  if ((ret = check_flash_error(sl)))
+  if((ret = check_flash_error(sl)))
     return ret;
 
   // trigger the load of option bytes into option registers
-  cr_reg = (1 << FLASH_C0_CR_OBL_LAUNCH);
-  stlink_write_debug32(sl, FLASH_C0_CR, cr_reg);
+  cr_reg = (1 << STM32_FLASH_C0_CR_OBL_LAUNCH);
+  stlink_write_debug32(sl, STM32_FLASH_C0_CR, cr_reg);
 
   return ret;
 }
@@ -107,8 +110,8 @@ int32_t stlink_read_option_control_register_f0(stlink_t *sl, uint32_t *option_by
 static int32_t stlink_write_option_bytes_f0(stlink_t *sl, stm32_addr_t addr, uint8_t* base, uint32_t len) {
   int32_t ret = 0;
 
-  if (len < 12 || addr != STM32_F0_OPTION_BYTES_BASE) {
-	WLOG("Only full write of option bytes area is supported\n");
+  if(len < 12 || addr != STM32_OPTION_BYTES_BASE_F0) {
+    WLOG("Only full write of option bytes area is supported\n");
     return -1;
   }
 
@@ -119,14 +122,14 @@ static int32_t stlink_write_option_bytes_f0(stlink_t *sl, stm32_addr_t addr, uin
   /* erase option bytes */
   stlink_write_debug32(sl, FLASH_CR, (1 << FLASH_CR_OPTER) | (1 << FLASH_CR_OPTWRE));
   ret = stlink_write_debug32(sl, FLASH_CR, (1 << FLASH_CR_OPTER) | (1 << FLASH_CR_STRT) | (1 << FLASH_CR_OPTWRE));
-  if (ret) {
+  if(ret) {
     return ret;
   }
 
   wait_flash_busy(sl);
 
   ret = check_flash_error(sl);
-  if (ret) {
+  if(ret) {
     return ret;
   }
 
@@ -139,11 +142,11 @@ static int32_t stlink_write_option_bytes_f0(stlink_t *sl, stm32_addr_t addr, uin
    * because flash memory writable by half word */
   flash_loader_t fl;
   ret = stlink_flash_loader_init(sl, &fl);
-  if (ret) {
+  if(ret) {
     return ret;
   }
   ret = stlink_flash_loader_run(sl, &fl, addr, base, len);
-  if (ret) {
+  if(ret) {
     return ret;
   }
 
@@ -173,11 +176,11 @@ static int32_t stlink_write_option_control_register_f0(stlink_t *sl, uint32_t op
 
   /* Retrieve current values */
   ret = stlink_read_debug32(sl, FLASH_OBR, &optiondata);
-  if (ret) {
+  if(ret) {
     return ret;
   }
   ret = stlink_read_debug32(sl, FLASH_WRPR, &protection);
-  if (ret) {
+  if(ret) {
     return ret;
   }
 
@@ -211,7 +214,7 @@ static int32_t stlink_write_option_control_register_f0(stlink_t *sl, uint32_t op
   user_options = (option_cr >> option_offset >> 2) & 0xFFFF;
   user_data = (option_cr >> user_data_offset) & 0xFFFF;
 
-#define VAL_WITH_COMPLEMENT(v) (uint16_t)(((v)&0xFF) | (((~(v))<<8)&0xFF00))
+#define VAL_WITH_COMPLEMENT(v) (uint16_t) (((v)&0xFF) | (((~(v))<<8)&0xFF00))
 
   opt_val[0] = (option_cr & (1 << 1/*OPT_READOUT*/)) ? 0xFFFF : rdp;
   opt_val[1] = VAL_WITH_COMPLEMENT(user_options);
@@ -225,12 +228,12 @@ static int32_t stlink_write_option_control_register_f0(stlink_t *sl, uint32_t op
 #undef VAL_WITH_COMPLEMENT
 
   /* Write bytes and check errors */
-  ret = stlink_write_option_bytes_f0(sl, STM32_F0_OPTION_BYTES_BASE, (uint8_t*)opt_val, sizeof(opt_val));
-  if (ret)
+  ret = stlink_write_option_bytes_f0(sl, STM32_OPTION_BYTES_BASE_F0, (uint8_t*)opt_val, sizeof(opt_val));
+  if(ret)
     return ret;
 
   ret = check_flash_error(sl);
-  if (!ret) {
+  if(!ret) {
     ILOG("Wrote option bytes %#010x to %#010x!\n", option_cr,
          FLASH_OBR);
   }
@@ -245,7 +248,7 @@ static int32_t stlink_write_option_control_register_f0(stlink_t *sl, uint32_t op
  * @return 0 on success, -ve on failure.
  */
 int32_t stlink_read_option_control_register_f2(stlink_t *sl, uint32_t *option_byte) {
-  return stlink_read_debug32(sl, FLASH_F2_OPT_CR, option_byte);
+  return stlink_read_debug32(sl, STM32_FLASH_F2_OPT_CR, option_byte);
 }
 
 /**
@@ -265,7 +268,7 @@ int32_t stlink_read_option_bytes_f2(stlink_t *sl, uint32_t *option_byte) {
  * @return 0 on success, -ve on failure.
  */
 int32_t stlink_read_option_control_register_f4(stlink_t *sl, uint32_t *option_byte) {
-  return stlink_read_debug32(sl, FLASH_F4_OPTCR, option_byte);
+  return stlink_read_debug32(sl, STM32_FLASH_F4_OPTCR, option_byte);
 }
 
 /**
@@ -298,9 +301,9 @@ static int32_t stlink_write_option_bytes_f4(stlink_t *sl, stm32_addr_t addr, uin
   write_uint32((unsigned char *)&option_byte, *(uint32_t *)(base));
 
   // write option byte, ensuring we dont lock opt, and set strt bit
-  stlink_write_debug32(sl, FLASH_F4_OPTCR,
-                       (option_byte & ~(1 << FLASH_F4_OPTCR_LOCK)) |
-                           (1 << FLASH_F4_OPTCR_START));
+  stlink_write_debug32(sl, STM32_FLASH_F4_OPTCR,
+                       (option_byte & ~(1 << STM32_FLASH_F4_OPTCR_LOCK)) |
+                           (1 << STM32_FLASH_F4_OPTCR_START));
 
   wait_flash_busy(sl);
   ret = check_flash_error(sl);
@@ -319,9 +322,9 @@ static int32_t stlink_write_option_bytes_f4(stlink_t *sl, stm32_addr_t addr, uin
 // and then return the last one just like other devices.
 int32_t stlink_read_option_bytes_f7(stlink_t *sl, uint32_t *option_byte) {
   int32_t err = -1;
-  for (uint32_t counter = 0; counter < (sl->option_size / 4 - 1); counter++) {
+  for(uint32_t counter = 0; counter < (sl->option_size / 4 - 1); counter++) {
     err = stlink_read_debug32(sl, sl->option_base + counter * sizeof(uint32_t), option_byte);
-    if (err == -1) {
+    if(err == -1) {
       return err;
     } else {
       printf("%08x\n", *option_byte);
@@ -330,7 +333,7 @@ int32_t stlink_read_option_bytes_f7(stlink_t *sl, uint32_t *option_byte) {
 
   return stlink_read_debug32(
       sl,
-      sl->option_base + (uint32_t)(sl->option_size / 4 - 1) * sizeof(uint32_t),
+      sl->option_base + (uint32_t) (sl->option_size / 4 - 1) * sizeof(uint32_t),
       option_byte);
 }
 
@@ -353,26 +356,26 @@ static int32_t stlink_write_option_bytes_f7(stlink_t *sl, stm32_addr_t addr, uin
   write_uint32((unsigned char *)&option_byte, *(uint32_t *)(base));
   ILOG("Write %d option bytes %#010x to %#010x!\n", len, option_byte, addr);
 
-  if (addr == 0) {
-    addr = FLASH_F7_OPTCR;
+  if(addr == 0) {
+    addr = STM32_FLASH_F7_OPTCR;
     ILOG("No address provided, using %#10x\n", addr);
   }
 
-  if (addr == FLASH_F7_OPTCR) {
+  if(addr == STM32_FLASH_F7_OPTCR) {
     /* write option byte, ensuring we dont lock opt, and set strt bit */
-    stlink_write_debug32(sl, FLASH_F7_OPTCR,
-                         (option_byte & ~(1 << FLASH_F7_OPTCR_LOCK)) |
-                             (1 << FLASH_F7_OPTCR_START));
-  } else if (addr == FLASH_F7_OPTCR1) {
-    // Read FLASH_F7_OPTCR
+    stlink_write_debug32(sl, STM32_FLASH_F7_OPTCR,
+                         (option_byte & ~(1 << STM32_FLASH_F7_OPTCR_LOCK)) |
+                             (1 << STM32_FLASH_F7_OPTCR_START));
+  } else if(addr == STM32_FLASH_F7_OPTCR1) {
+    // Read STM32_FLASH_F7_OPTCR
     uint32_t oldvalue;
-    stlink_read_debug32(sl, FLASH_F7_OPTCR, &oldvalue);
+    stlink_read_debug32(sl, STM32_FLASH_F7_OPTCR, &oldvalue);
     /* write option byte */
-    stlink_write_debug32(sl, FLASH_F7_OPTCR1, option_byte);
-    // Write FLASH_F7_OPTCR lock and start address
-    stlink_write_debug32(sl, FLASH_F7_OPTCR,
-                         (oldvalue & ~(1 << FLASH_F7_OPTCR_LOCK)) |
-                             (1 << FLASH_F7_OPTCR_START));
+    stlink_write_debug32(sl, STM32_FLASH_F7_OPTCR1, option_byte);
+    // Write STM32_FLASH_F7_OPTCR lock and start address
+    stlink_write_debug32(sl, STM32_FLASH_F7_OPTCR,
+                         (oldvalue & ~(1 << STM32_FLASH_F7_OPTCR_LOCK)) |
+                             (1 << STM32_FLASH_F7_OPTCR_START));
   } else {
     WLOG("WIP: write %#010x to address %#010x\n", option_byte, addr);
     stlink_write_debug32(sl, addr, option_byte);
@@ -381,7 +384,7 @@ static int32_t stlink_write_option_bytes_f7(stlink_t *sl, stm32_addr_t addr, uin
   wait_flash_busy(sl);
 
   ret = check_flash_error(sl);
-  if (!ret)
+  if(!ret)
     ILOG("Wrote %d option bytes %#010x to %#010x!\n", len, *(uint32_t *)base, addr);
 
   /* option bytes are reloaded at reset only, no obl. */
@@ -396,8 +399,8 @@ static int32_t stlink_write_option_bytes_f7(stlink_t *sl, stm32_addr_t addr, uin
  * @return 0 on success, -ve on failure.
  */
 int32_t stlink_read_option_control_register_f7(stlink_t *sl, uint32_t *option_byte) {
-  DLOG("@@@@ Read option control register byte from %#10x\n", FLASH_F7_OPTCR);
-  return stlink_read_debug32(sl, FLASH_F7_OPTCR, option_byte);
+  DLOG("@@@@ Read option control register byte from %#10x\n", STM32_FLASH_F7_OPTCR);
+  return stlink_read_debug32(sl, STM32_FLASH_F7_OPTCR, option_byte);
 }
 
 /**
@@ -413,19 +416,19 @@ static int32_t stlink_write_option_control_register_f7(stlink_t *sl, uint32_t op
   clear_flash_error(sl);
 
   ILOG("Asked to write option control register 1 %#10x to %#010x.\n",
-       option_cr, FLASH_F7_OPTCR);
+       option_cr, STM32_FLASH_F7_OPTCR);
 
   /* write option byte, ensuring we dont lock opt, and set strt bit */
-  stlink_write_debug32(sl, FLASH_F7_OPTCR,
-                       (option_cr & ~(1 << FLASH_F7_OPTCR_LOCK)) |
-                           (1 << FLASH_F7_OPTCR_START));
+  stlink_write_debug32(sl, STM32_FLASH_F7_OPTCR,
+                       (option_cr & ~(1 << STM32_FLASH_F7_OPTCR_LOCK)) |
+                           (1 << STM32_FLASH_F7_OPTCR_START));
 
   wait_flash_busy(sl);
 
   ret = check_flash_error(sl);
-  if (!ret)
+  if(!ret)
     ILOG("Wrote option bytes %#010x to %#010x!\n", option_cr,
-         FLASH_F7_OPTCR);
+         STM32_FLASH_F7_OPTCR);
 
   return ret;
 }
@@ -438,8 +441,8 @@ static int32_t stlink_write_option_control_register_f7(stlink_t *sl, uint32_t op
  */
 int32_t stlink_read_option_control_register1_f7(stlink_t *sl, uint32_t *option_byte) {
   DLOG("@@@@ Read option control register 1 byte from %#10x\n",
-       FLASH_F7_OPTCR1);
-  return stlink_read_debug32(sl, FLASH_F7_OPTCR1, option_byte);
+       STM32_FLASH_F7_OPTCR1);
+  return stlink_read_debug32(sl, STM32_FLASH_F7_OPTCR1, option_byte);
 }
 
 /**
@@ -455,24 +458,24 @@ static int32_t stlink_write_option_control_register1_f7(stlink_t *sl, uint32_t o
   clear_flash_error(sl);
 
   ILOG("Asked to write option control register 1 %#010x to %#010x.\n",
-       option_cr1, FLASH_F7_OPTCR1);
+       option_cr1, STM32_FLASH_F7_OPTCR1);
 
   /* write option byte, ensuring we dont lock opt, and set strt bit */
   uint32_t current_control_register_value;
-  stlink_read_debug32(sl, FLASH_F7_OPTCR, &current_control_register_value);
+  stlink_read_debug32(sl, STM32_FLASH_F7_OPTCR, &current_control_register_value);
 
   /* write option byte */
-  stlink_write_debug32(sl, FLASH_F7_OPTCR1, option_cr1);
+  stlink_write_debug32(sl, STM32_FLASH_F7_OPTCR1, option_cr1);
   stlink_write_debug32(
-      sl, FLASH_F7_OPTCR,
-      (current_control_register_value & ~(1 << FLASH_F7_OPTCR_LOCK)) |
-          (1 << FLASH_F7_OPTCR_START));
+      sl, STM32_FLASH_F7_OPTCR,
+      (current_control_register_value & ~(1 << STM32_FLASH_F7_OPTCR_LOCK)) |
+          (1 << STM32_FLASH_F7_OPTCR_START));
 
   wait_flash_busy(sl);
 
   ret = check_flash_error(sl);
-  if (!ret)
-    ILOG("Wrote option bytes %#010x to %#010x!\n", option_cr1, FLASH_F7_OPTCR1);
+  if(!ret)
+    ILOG("Wrote option bytes %#010x to %#010x!\n", option_cr1, STM32_FLASH_F7_OPTCR1);
 
   return ret;
 }
@@ -506,7 +509,7 @@ static int32_t stlink_write_option_bytes_boot_add_f7(stlink_t *sl, uint32_t opti
  * @return 0 on success, -ve on failure.
  */
 int32_t stlink_read_option_control_register_gx(stlink_t *sl, uint32_t *option_byte) {
-  return stlink_read_debug32(sl, FLASH_Gx_OPTR, option_byte);
+  return stlink_read_debug32(sl, STM32_FLASH_Gx_OPTR, option_byte);
 }
 
 /**
@@ -538,21 +541,21 @@ static int32_t stlink_write_option_bytes_gx(stlink_t *sl, stm32_addr_t addr, uin
 
   write_uint32((unsigned char *)&data, *(uint32_t *)(base));
   WLOG("Writing option bytes %#10x to %#10x\n", data, addr);
-  stlink_write_debug32(sl, FLASH_Gx_OPTR, data);
+  stlink_write_debug32(sl, STM32_FLASH_Gx_OPTR, data);
 
   // Set Options Start bit
-  stlink_read_debug32(sl, FLASH_Gx_CR, &val);
-  val |= (1 << FLASH_Gx_CR_OPTSTRT);
-  stlink_write_debug32(sl, FLASH_Gx_CR, val);
+  stlink_read_debug32(sl, STM32_FLASH_Gx_CR, &val);
+  val |= (1 << STM32_FLASH_Gx_CR_OPTSTRT);
+  stlink_write_debug32(sl, STM32_FLASH_Gx_CR, val);
 
   wait_flash_busy(sl);
 
   ret = check_flash_error(sl);
 
   // Reload options
-  stlink_read_debug32(sl, FLASH_Gx_CR, &val);
-  val |= (1 << FLASH_Gx_CR_OBL_LAUNCH);
-  stlink_write_debug32(sl, FLASH_Gx_CR, val);
+  stlink_read_debug32(sl, STM32_FLASH_Gx_CR, &val);
+  val |= (1 << STM32_FLASH_Gx_CR_OBL_LAUNCH);
+  stlink_write_debug32(sl, STM32_FLASH_Gx_CR, val);
 
   return (ret);
 }
@@ -573,16 +576,16 @@ static int32_t stlink_write_option_bytes_h7(stlink_t *sl, stm32_addr_t addr, uin
   wait_flash_busy(sl);
 
   // Clear previous error
-  stlink_write_debug32(sl, FLASH_H7_OPTCCR,
-                       1 << FLASH_H7_OPTCCR_CLR_OPTCHANGEERR);
+  stlink_write_debug32(sl, STM32_FLASH_H7_OPTCCR,
+                       1 << STM32_FLASH_H7_OPTCCR_CLR_OPTCHANGEERR);
 
   while (len != 0) {
     switch (addr) {
-    case FLASH_H7_REGS_ADDR + 0x20: // FLASH_OPTSR_PRG
-    case FLASH_H7_REGS_ADDR + 0x2c: // FLASH_PRAR_PRG1
-    case FLASH_H7_REGS_ADDR + 0x34: // FLASH_SCAR_PRG1
-    case FLASH_H7_REGS_ADDR + 0x3c: // FLASH_WPSN_PRG1
-    case FLASH_H7_REGS_ADDR + 0x44: // FLASH_BOOT_PRG
+    case STM32_FLASH_H7_REGS_ADDR + 0x20: // FLASH_OPTSR_PRG
+    case STM32_FLASH_H7_REGS_ADDR + 0x2c: // FLASH_PRAR_PRG1
+    case STM32_FLASH_H7_REGS_ADDR + 0x34: // FLASH_SCAR_PRG1
+    case STM32_FLASH_H7_REGS_ADDR + 0x3c: // FLASH_WPSN_PRG1
+    case STM32_FLASH_H7_REGS_ADDR + 0x44: // FLASH_BOOT_PRG
       /* Write to FLASH_xxx_PRG registers */
       write_uint32((unsigned char *)&data, *(uint32_t *)(base)); // write options bytes
 
@@ -590,24 +593,24 @@ static int32_t stlink_write_option_bytes_h7(stlink_t *sl, stm32_addr_t addr, uin
 
       /* Skip if the value in the CUR register is identical */
       stlink_read_debug32(sl, addr - 4, &val);
-      if (val == data) {
+      if(val == data) {
         break;
       }
 
       /* Write new option byte values and start modification */
       stlink_write_debug32(sl, addr, data);
-      stlink_read_debug32(sl, FLASH_H7_OPTCR, &val);
-      val |= (1 << FLASH_H7_OPTCR_OPTSTART);
-      stlink_write_debug32(sl, FLASH_H7_OPTCR, val);
+      stlink_read_debug32(sl, STM32_FLASH_H7_OPTCR, &val);
+      val |= (1 << STM32_FLASH_H7_OPTCR_OPTSTART);
+      stlink_write_debug32(sl, STM32_FLASH_H7_OPTCR, val);
 
       /* Wait for the option bytes modification to complete */
       do {
-        stlink_read_debug32(sl, FLASH_H7_OPTSR_CUR, &val);
-      } while ((val & (1 << FLASH_H7_OPTSR_OPT_BUSY)) != 0);
+        stlink_read_debug32(sl, STM32_FLASH_H7_OPTSR_CUR, &val);
+      } while ((val & (1 << STM32_FLASH_H7_OPTSR_OPT_BUSY)) != 0);
 
       /* Check for errors */
-      if ((val & (1 << FLASH_H7_OPTSR_OPTCHANGEERR)) != 0) {
-        stlink_write_debug32(sl, FLASH_H7_OPTCCR, 1 << FLASH_H7_OPTCCR_CLR_OPTCHANGEERR);
+      if((val & (1 << STM32_FLASH_H7_OPTSR_OPTCHANGEERR)) != 0) {
+        stlink_write_debug32(sl, STM32_FLASH_H7_OPTCCR, 1 << STM32_FLASH_H7_OPTCCR_CLR_OPTCHANGEERR);
         return -1;
       }
       break;
@@ -650,7 +653,7 @@ static int32_t stlink_write_option_bytes_l0(stlink_t *sl, stm32_addr_t addr, uin
     stlink_write_debug32(sl, addr, data);
     wait_flash_busy(sl);
 
-    if ((ret = check_flash_error(sl))) {
+    if((ret = check_flash_error(sl))) {
       break;
     }
 
@@ -661,7 +664,7 @@ static int32_t stlink_write_option_bytes_l0(stlink_t *sl, stm32_addr_t addr, uin
 
   // Reload options
   stlink_read_debug32(sl, flash_base + FLASH_PECR_OFF, &val);
-  val |= (1 << FLASH_L0_OBL_LAUNCH);
+  val |= (1 << STM32_FLASH_L0_OBL_LAUNCH);
   stlink_write_debug32(sl, flash_base + FLASH_PECR_OFF, val);
 
   return (ret);
@@ -689,20 +692,20 @@ static int32_t stlink_write_option_bytes_l4(stlink_t *sl, stm32_addr_t addr, uin
   uint32_t data;
   write_uint32((unsigned char *)&data, *(uint32_t *)(base));
   WLOG("Writing option bytes 0x%04x\n", data);
-  stlink_write_debug32(sl, FLASH_L4_OPTR, data);
+  stlink_write_debug32(sl, STM32_FLASH_L4_OPTR, data);
 
   // set options start bit
-  stlink_read_debug32(sl, FLASH_L4_CR, &val);
-  val |= (1 << FLASH_L4_CR_OPTSTRT);
-  stlink_write_debug32(sl, FLASH_L4_CR, val);
+  stlink_read_debug32(sl, STM32_FLASH_L4_CR, &val);
+  val |= (1 << STM32_FLASH_L4_CR_OPTSTRT);
+  stlink_write_debug32(sl, STM32_FLASH_L4_CR, val);
 
   wait_flash_busy(sl);
   ret = check_flash_error(sl);
 
   // apply options bytes immediate
-  stlink_read_debug32(sl, FLASH_L4_CR, &val);
-  val |= (1 << FLASH_L4_CR_OBL_LAUNCH);
-  stlink_write_debug32(sl, FLASH_L4_CR, val);
+  stlink_read_debug32(sl, STM32_FLASH_L4_CR, &val);
+  val |= (1 << STM32_FLASH_L4_CR_OBL_LAUNCH);
+  stlink_write_debug32(sl, STM32_FLASH_L4_CR, val);
 
   return (ret);
 }
@@ -731,6 +734,58 @@ static int32_t stlink_write_option_bytes_wb(stlink_t *sl, stm32_addr_t addr, uin
     stlink_write_debug32(sl, addr, data);
     wait_flash_busy(sl);
 
+    if((ret = check_flash_error(sl))) {
+      break;
+    }
+
+    len -= 4;
+    addr += 4;
+    base += 4;
+  }
+
+  // Set Options Start bit
+  stlink_read_debug32(sl, STM32_FLASH_WB_CR, &val);
+  val |= (1 << STM32_FLASH_WB_CR_OPTSTRT);
+  stlink_write_debug32(sl, STM32_FLASH_WB_CR, val);
+
+  wait_flash_busy(sl);
+
+  ret = check_flash_error(sl);
+
+  // Reload options
+  stlink_read_debug32(sl, STM32_FLASH_WB_CR, &val);
+  val |= (1 << STM32_FLASH_WB_CR_OBL_LAUNCH);
+  stlink_write_debug32(sl, STM32_FLASH_WB_CR, val);
+
+  return (ret);
+}
+
+/**
+ * Write option bytes L5
+ * @param sl
+ * @param addr of the memory mapped option bytes
+ * @param base option bytes
+ * @param len of option bytes
+ * @return 0 on success, -ve on failure.
+ */
+static int32_t stlink_write_option_bytes_l5(stlink_t *sl, stm32_addr_t addr,
+                                            uint8_t *base, uint32_t len) {
+  /* Write options bytes */
+  uint32_t val;
+  int32_t ret = 0;
+  (void)len;
+  uint32_t data;
+
+  clear_flash_error(sl);
+
+  while (len != 0) {
+    write_uint32((unsigned char *)&data,
+                 *(uint32_t *)(base)); // write options bytes
+
+    WLOG("Writing option bytes %#10x to %#10x\n", data, addr);
+    stlink_write_debug32(sl, addr, data);
+    wait_flash_busy(sl);
+
     if ((ret = check_flash_error(sl))) {
       break;
     }
@@ -741,18 +796,18 @@ static int32_t stlink_write_option_bytes_wb(stlink_t *sl, stm32_addr_t addr, uin
   }
 
   // Set Options Start bit
-  stlink_read_debug32(sl, FLASH_WB_CR, &val);
-  val |= (1 << FLASH_WB_CR_OPTSTRT);
-  stlink_write_debug32(sl, FLASH_WB_CR, val);
+  stlink_read_debug32(sl, STM32_FLASH_L5_NSCR, &val);
+  val |= (1 << STM32_FLASH_L5_NSCR_NSOPTSTRT);
+  stlink_write_debug32(sl, STM32_FLASH_L5_NSCR, val);
 
   wait_flash_busy(sl);
 
   ret = check_flash_error(sl);
 
   // Reload options
-  stlink_read_debug32(sl, FLASH_WB_CR, &val);
-  val |= (1 << FLASH_WB_CR_OBL_LAUNCH);
-  stlink_write_debug32(sl, FLASH_WB_CR, val);
+  stlink_read_debug32(sl, STM32_FLASH_L5_NSCR, &val);
+  val |= (1 << STM32_FLASH_L5_NSCR_OBL_LAUNCH);
+  stlink_write_debug32(sl, STM32_FLASH_L5_NSCR, val);
 
   return (ret);
 }
@@ -764,8 +819,8 @@ static int32_t stlink_write_option_bytes_wb(stlink_t *sl, stm32_addr_t addr, uin
  * @return 0 on success, -ve on failure.
  */
 int32_t stlink_read_option_control_register_wb(stlink_t *sl, uint32_t *option_byte) {
-  DLOG("@@@@ Read option control register byte from %#10x\n", FLASH_WB_OPTR);
-  return stlink_read_debug32(sl, FLASH_WB_OPTR, option_byte);
+  DLOG("@@@@ Read option control register byte from %#10x\n", STM32_FLASH_WB_OPTR);
+  return stlink_read_debug32(sl, STM32_FLASH_WB_OPTR, option_byte);
 }
 
 /**
@@ -781,22 +836,22 @@ static int32_t stlink_write_option_control_register_wb(stlink_t *sl, uint32_t op
   clear_flash_error(sl);
 
   ILOG("Asked to write option control register 1 %#10x to %#010x.\n",
-       option_cr, FLASH_WB_OPTR);
+       option_cr, STM32_FLASH_WB_OPTR);
 
   /* write option byte, ensuring we dont lock opt, and set strt bit */
-  stlink_write_debug32(sl, FLASH_WB_OPTR, option_cr);
+  stlink_write_debug32(sl, STM32_FLASH_WB_OPTR, option_cr);
 
   wait_flash_busy(sl);
 
   // Set Options Start bit
-  uint32_t val = (1 << FLASH_WB_CR_OPTSTRT);
-  stlink_write_debug32(sl, FLASH_WB_CR, val);
+  uint32_t val = (1 << STM32_FLASH_WB_CR_OPTSTRT);
+  stlink_write_debug32(sl, STM32_FLASH_WB_CR, val);
 
   wait_flash_busy(sl);
 
   ret = check_flash_error(sl);
-  if (!ret)
-    ILOG("Wrote option bytes %#010x to %#010x!\n", option_cr, FLASH_WB_OPTR);
+  if(!ret)
+    ILOG("Wrote option bytes %#010x to %#010x!\n", option_cr, STM32_FLASH_WB_OPTR);
 
   return ret;
 }
@@ -823,29 +878,29 @@ int32_t stlink_read_option_bytes_generic(stlink_t *sl, uint32_t *option_byte) {
 int32_t stlink_write_option_bytes(stlink_t *sl, stm32_addr_t addr, uint8_t *base, uint32_t len) {
   int32_t ret = -1;
 
-  if (sl->option_base == 0) {
+  if(sl->option_base == 0) {
     ELOG("Option bytes writing is currently not supported for connected chip\n");
     return (-1);
   }
 
-  if ((addr < sl->option_base) || addr > sl->option_base + sl->option_size) {
+  if((addr < sl->option_base) || addr > sl->option_base + sl->option_size) {
     ELOG("Option bytes start address out of Option bytes range\n");
     return (-1);
   }
 
-  if (addr + len > sl->option_base + sl->option_size) {
+  if(addr + len > sl->option_base + sl->option_size) {
     ELOG("Option bytes data too long\n");
     return (-1);
   }
 
   wait_flash_busy(sl);
 
-  if (unlock_flash_if(sl)) {
+  if(unlock_flash_if(sl)) {
     ELOG("Flash unlock failed! System reset required to be able to unlock it again!\n");
     return (-1);
   }
 
-  if (unlock_flash_option_if(sl)) {
+  if(unlock_flash_option_if(sl)) {
     ELOG("Flash option unlock failed!\n");
     return (-1);
   }
@@ -880,12 +935,15 @@ int32_t stlink_write_option_bytes(stlink_t *sl, stm32_addr_t addr, uint8_t *base
   case STM32_FLASH_TYPE_WB_WL:
     ret = stlink_write_option_bytes_wb(sl, addr, base, len);
     break;
+  case STM32_FLASH_TYPE_L5_U5:
+    ret = stlink_write_option_bytes_l5(sl, addr, base, len);
+    break;
   default:
     ELOG("Option bytes writing is currently not implemented for connected chip\n");
     break;
   }
 
-  if (ret) {
+  if(ret) {
     ELOG("Flash option write failed!\n");
   } else {
     ILOG("Wrote %d option bytes to %#010x!\n", len, addr);
@@ -910,7 +968,7 @@ int32_t stlink_fwrite_option_bytes(stlink_t *sl, const char *path, stm32_addr_t 
   int32_t err;
   mapped_file_t mf = MAPPED_FILE_INITIALIZER;
 
-  if (map_file(&mf, path) == -1) {
+  if(map_file(&mf, path) == -1) {
     ELOG("map_file() == -1\n");
     return (-1);
   }
@@ -919,7 +977,7 @@ int32_t stlink_fwrite_option_bytes(stlink_t *sl, const char *path, stm32_addr_t 
   md5_calculate(&mf);
   stlink_checksum(&mf);
 
-  err = stlink_write_option_bytes(sl, addr, mf.base, (uint32_t)mf.len);
+  err = stlink_write_option_bytes(sl, addr, mf.base, (uint32_t) mf.len);
   stlink_fwrite_finalize(sl, addr);
   unmap_file(&mf);
 
@@ -933,7 +991,7 @@ int32_t stlink_fwrite_option_bytes(stlink_t *sl, const char *path, stm32_addr_t 
  * @return 0 on success, -ve on failure.
  */
 int32_t stlink_read_option_control_register32(stlink_t *sl, uint32_t *option_byte) {
-  if (sl->option_base == 0) {
+  if(sl->option_base == 0) {
     ELOG("Option bytes read is currently not supported for connected chip\n");
     return -1;
   }
@@ -964,12 +1022,12 @@ int32_t stlink_write_option_control_register32(stlink_t *sl, uint32_t option_cr)
 
   wait_flash_busy(sl);
 
-  if (unlock_flash_if(sl)) {
+  if(unlock_flash_if(sl)) {
     ELOG("Flash unlock failed! System reset required to be able to unlock it again!\n");
     return -1;
   }
 
-  if (unlock_flash_option_if(sl)) {
+  if(unlock_flash_option_if(sl)) {
     ELOG("Flash option unlock failed!\n");
     return -1;
   }
@@ -994,7 +1052,7 @@ int32_t stlink_write_option_control_register32(stlink_t *sl, uint32_t option_cr)
     break;
   }
 
-  if (ret)
+  if(ret)
     ELOG("Flash option write failed!\n");
   else
     ILOG("Wrote option control register %#010x!\n", option_cr);
@@ -1013,7 +1071,7 @@ int32_t stlink_write_option_control_register32(stlink_t *sl, uint32_t option_cr)
  * @return 0 on success, -ve on failure.
  */
 int32_t stlink_read_option_control_register1_32(stlink_t *sl, uint32_t *option_byte) {
-  if (sl->option_base == 0) {
+  if(sl->option_base == 0) {
     ELOG("Option bytes read is currently not supported for connected chip\n");
     return -1;
   }
@@ -1038,12 +1096,12 @@ int32_t stlink_write_option_control_register1_32(stlink_t *sl, uint32_t option_c
 
   wait_flash_busy(sl);
 
-  if (unlock_flash_if(sl)) {
+  if(unlock_flash_if(sl)) {
     ELOG("Flash unlock failed! System reset required to be able to unlock it again!\n");
     return -1;
   }
 
-  if (unlock_flash_option_if(sl)) {
+  if(unlock_flash_option_if(sl)) {
     ELOG("Flash option unlock failed!\n");
     return -1;
   }
@@ -1059,7 +1117,7 @@ int32_t stlink_write_option_control_register1_32(stlink_t *sl, uint32_t option_c
     break;
   }
 
-  if (ret)
+  if(ret)
     ELOG("Flash option write failed!\n");
   else
     ILOG("Wrote option control register 1 %#010x!\n", option_cr1);
@@ -1077,7 +1135,7 @@ int32_t stlink_write_option_control_register1_32(stlink_t *sl, uint32_t option_c
  * @return 0 on success, -ve on failure.
  */
 int32_t stlink_read_option_bytes32(stlink_t *sl, uint32_t *option_byte) {
-  if (sl->option_base == 0) {
+  if(sl->option_base == 0) {
     ELOG("Option bytes read is currently not supported for connected chip\n");
     return (-1);
   }
@@ -1085,6 +1143,9 @@ int32_t stlink_read_option_bytes32(stlink_t *sl, uint32_t *option_byte) {
   switch (sl->chip_id) {
   case STM32_CHIPID_C011xx:
   case STM32_CHIPID_C031xx:
+  case STM32_CHIPID_C051xx:
+  case STM32_CHIPID_C071xx:
+  case STM32_CHIPID_C091xx_C92xx:
     return stlink_read_option_bytes_c0(sl, option_byte);
   case STM32_CHIPID_F2:
     return stlink_read_option_bytes_f2(sl, option_byte);
@@ -1123,7 +1184,7 @@ int32_t stlink_write_option_bytes32(stlink_t *sl, uint32_t option_byte) {
  * @return 0 on success, -ve on failure.
  */
 int32_t stlink_read_option_bytes_boot_add32(stlink_t *sl, uint32_t *option_byte) {
-  if (sl->option_base == 0) {
+  if(sl->option_base == 0) {
     ELOG("Option bytes boot address read is currently not supported for connected chip\n");
     return -1;
   }
@@ -1148,12 +1209,12 @@ int32_t stlink_write_option_bytes_boot_add32(stlink_t *sl, uint32_t option_bytes
 
   wait_flash_busy(sl);
 
-  if (unlock_flash_if(sl)) {
+  if(unlock_flash_if(sl)) {
     ELOG("Flash unlock failed! System reset required to be able to unlock it again!\n");
     return -1;
   }
 
-  if (unlock_flash_option_if(sl)) {
+  if(unlock_flash_option_if(sl)) {
     ELOG("Flash option unlock failed!\n");
     return -1;
   }
@@ -1167,7 +1228,7 @@ int32_t stlink_write_option_bytes_boot_add32(stlink_t *sl, uint32_t option_bytes
     break;
   }
 
-  if (ret)
+  if(ret)
     ELOG("Flash option write failed!\n");
   else
     ILOG("Wrote option bytes boot address %#010x!\n", option_bytes_boot_add);

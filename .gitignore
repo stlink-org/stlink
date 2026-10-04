@@ -1,6 +1,8 @@
 build
+build-mingw
 build-mingw-32
 build-mingw-64
+3rdparty
 
 .project
 .cmake/
@@ -9,3 +11,4 @@ build-mingw-64
 obj-*
 *.user*
 *.swp
+build-winsock/ALL_BUILD.vcxproj

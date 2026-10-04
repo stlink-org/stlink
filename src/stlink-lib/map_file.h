@@ -1,8 +1,15 @@
-/*
- * File: map_file.h
- *
- * File mapping
- */
+/**
+  ******************************************************************************
+  * @file           : map_file.h
+  * @brief          : File mapping
+  * @copyright      : Copyright (c) 2026 stlink-org. All rights reserved.
+  * @date           : 2026-07-27
+  * SPDX-License-Identifier: BSD-3-Clause
+  *
+  * This file is licensed under the BSD 3-Clause License.
+  * See the LICENSE file in the project root for full license information.
+  ******************************************************************************
+  */
 
 #ifndef MAP_FILE_H
 #define MAP_FILE_H
@@ -11,11 +18,23 @@
 #define O_BINARY 0
 #endif // O_BINARY
 
+#include <stdint.h>
+#include <stdio.h>
+#include <string.h>
+
 #ifdef STLINK_HAVE_SYS_MMAN_H
-#include <sys/mman.h>
+    #include <sys/mman.h>      // use system-header
 #else
-#include <mmap.h>
-#endif // STLINK_HAVE_SYS_MMAN_H
+    #include <sys_mmap.h>      // implemented fallback
+#endif
+
+#include <unistd.h>
+
+#include <fcntl.h>
+#include <sys/stat.h>
+
+#include <stlink.h>
+
 
 /* Memory mapped file */
 typedef struct mapped_file {

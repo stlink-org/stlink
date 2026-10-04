@@ -1,5 +1,6 @@
 # c_flags.cmake
 # Configure C compiler flags
+#
 
 include(CheckCCompilerFlag)
 
@@ -20,29 +21,36 @@ endfunction()
 add_cflag_if_supported("-Wall")
 add_cflag_if_supported("-Wextra")
 add_cflag_if_supported("-Wshadow")
-add_cflag_if_supported("-O")
-add_cflag_if_supported("-D_FORTIFY_SOURCE=2")
-add_cflag_if_supported("-fstrict-aliasing")
 add_cflag_if_supported("-Wundef")
 add_cflag_if_supported("-Wformat")
 add_cflag_if_supported("-Wformat-security")
 add_cflag_if_supported("-Wmaybe-uninitialized")
 add_cflag_if_supported("-Wmissing-variable-declarations")
-add_cflag_if_supported("-Wshorten-64-to-32")
 add_cflag_if_supported("-Wimplicit-function-declaration")
+add_cflag_if_supported("-Wshorten-64-to-32")
+add_cflag_if_supported("-O")
+add_cflag_if_supported("-D_FORTIFY_SOURCE=2")
+add_cflag_if_supported("-fstrict-aliasing")
 
-##
-# On OpenBSD the system headers suck so we need to disable redundant declaration check
+
+# OpenBSD:
+# The system headers suck, so we need to disable redundant declaration check.
 # /usr/include/unistd.h:429: warning: redundant redeclaration of 'truncate'
 # /usr/include/sys/types.h:218: warning: previous declaration of 'truncate' was here
-##
+
 if (NOT CMAKE_SYSTEM_NAME STREQUAL "OpenBSD")
     add_cflag_if_supported("-Wredundant-decls")
 endif()
 
-if (NOT (WIN32 OR (EXISTS "/etc/debian_version" AND MINGW)))
-    add_cflag_if_supported("-fPIC")
+
+# UNIX-based systems:
+
+if (NOT (WIN32 OR MSVC OR (MINGW AND EXISTS "/etc/debian_version")))
+    add_cflag_if_supported("-fPIC") # Generate Position Independent Code
 endif()
+
+
+# Debugging mode:
 
 if (${CMAKE_BUILD_TYPE} MATCHES "Debug")
     add_cflag_if_supported("-ggdb")

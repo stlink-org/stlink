@@ -1,0 +1,14 @@
+# Chip-ID file for STM32H52xx/H53xx devices (e.g. STM32H533RET6)
+#
+dev_type STM32H52_H53xx
+ref_manual_id 0481
+chip_id 0x478                // STM32_CHIPID_H52_H53xx
+flash_type H5
+flash_size_reg 0x08fff80c
+flash_pagesize 0x2000        // 8 KB
+sram_size 0x44000            // 272 KB
+bootrom_base 0x0bf80000
+bootrom_size 0x8000          // 32 KB
+option_base 0x0
+option_size 0x0
+flags dualbank

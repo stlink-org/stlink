@@ -8,6 +8,11 @@
 #ifndef LIB_MD5_H
 #define LIB_MD5_H
 
+#include <stdint.h>
+#include <stdio.h>
+#include <memory.h>
+
+
 #pragma once
 
 /* TYPES */

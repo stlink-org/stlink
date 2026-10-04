@@ -1,0 +1,14 @@
+# Chip-ID file for STM32C55x / STM32C56x device
+#
+dev_type STM32C55x_C56x
+ref_manual_id 0522
+chip_id 0x44e                // STM32_CHIPID_C55x_C56x
+flash_type C5
+flash_size_reg 0x08fff80c
+flash_pagesize 0x2000        // 8 KB
+sram_size 0x20000            // 128 KB
+bootrom_base 0x0bf80080
+bootrom_size 0x8400          // 33 KB
+option_base 0
+option_size 0
+flags swo dualbank

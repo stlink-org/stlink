@@ -9,7 +9,7 @@ As SRAM is usually less in size than FLASH, `stlink` only flashes one page (may 
 ## The flashing process
 
 1. `st-flash` loads compiled binary of corresponding flashloader to SRAM by calling `stlink_flash_loader_init` in `src/flash_loader.c`
-2. `st-flash` erases corresponding flash page by calling `stlink_erase_flash_page` in `common.c`.
+2. `st-flash` erases corresponding flash page by calling `stlink_erase_flash_page` in `common_legacy.c`.
 3. `st-flash` calls `stlink_flash_loader_run` in `flash_loader.c`. In this function
    + buffer of one flash page is written to SRAM following the flashloader
    + the buffer start address (in SRAM) is written to register `r0`
