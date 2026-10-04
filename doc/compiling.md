@@ -1,58 +1,89 @@
 # Compiling from sources
 
-## Microsoft Windows (10, 11)
+## Microsoft Windows - MSVC
 
 ### Common Requirements
 
-On Windows users should ensure that the following software is installed:
+Install the following tools:
 
-- `git` (_optional, but recommended_)
-- `cmake`
-- `7-zip`
-- `MinGW-w64`
+- `git`, available on `PATH`.
+- [CMake](https://cmake.org/download/), available on `PATH`: 4.2 or newer for the [Visual Studio 2026 generator](https://cmake.org/cmake/help/latest/generator/Visual%20Studio%2018%202026.html), or 3.21 or newer for the [Visual Studio 2022 generator](https://cmake.org/cmake/help/latest/generator/Visual%20Studio%2017%202022.html).
+- Visual Studio 2026 (VS 18) or Visual Studio 2022 (VS 17), including their Build Tools editions, with the **Desktop development with C++** workload, MSVC x64/x86 tools and a Windows SDK.
+- [vcpkg](https://learn.microsoft.com/en-us/vcpkg/get_started/get-started-vs), to install the dependencies listed in the project's `vcpkg.json`.
 
 ### Installation
 
-1. Install `git` from <https://git-scm.com/download/win>
-2. Install `cmake` from <https://cmake.org/download><br />
-   Ensure that you add cmake to the $PATH system variable when following the instructions by the setup assistant.
-3. Install MinGW-w64<br />
-   Download **MinGW-w64** from <https://github.com/niXman/mingw-builds-binaries/releases/download/13.2.0-rt_v11-rev1/x86_64-13.2.0-release-win32-seh-msvcrt-rt_v11-rev1.7z>. Extract content to `C:\mingw-w64\` and add `C:\mingw-w64\bin\` to PATH-Variable.<br />
+The following commands use PowerShell. Use directories you can write to; building does not require an administrator terminal.
 
-4. Create a new destination folder at a place of your choice
-5. Open the command-line (cmd.exe) and execute `cd C:\$Path-to-your-destination-folder$\`
-6. Fetch the project sourcefiles by running `git clone https://github.com/stlink-org/stlink.git`from the command-line (cmd.exe)<br />
-   or download and extract the stlink zip-sourcefolder from the Release page on GitHub.
+If vcpkg is not installed, clone and bootstrap it:
+
+```powershell
+$env:VCPKG_ROOT = "$env:USERPROFILE\vcpkg"
+git clone https://github.com/microsoft/vcpkg.git "$env:VCPKG_ROOT"
+& "$env:VCPKG_ROOT\bootstrap-vcpkg.bat"
+```
+
+If you already have vcpkg, set `VCPKG_ROOT` to that installation instead, for example:
+
+```powershell
+$env:VCPKG_ROOT = "D:\vcpkg"
+```
+
+Set `VCPKG_ROOT` in each new terminal session, or save it as a user environment variable.
+
+Fetch the project source files and enter the repository root:
+
+```powershell
+git clone https://github.com/stlink-org/stlink.git
+cd stlink
+```
 
 ### Building
 
-#### MinGW-w64
+From the repository root, run:
 
-1. Open command-line with administrator privileges
-2. Move to the `stlink` directory
-3. Execute `mingw64-build.bat`
+```powershell
+.\gen_binaries_msvc.bat
+```
 
-NOTE:<br />
-Per default the build script (currently) uses `C:\mingw-w64\x86_64-8.1.0-release-win32-sjlj-rt_v6-rev0\mingw64\bin`.<br />
-When installing different toolchains make sure to update the path in the `mingw64-build.bat`.<br />
-This can be achieved by opening the .bat file with a common text editor.
+The script uses `vswhere`, supplied by the Visual Studio Installer, to detect VS 18 with the C++ tools installed. It prefers VS 18; if none is found, it tries VS 17. It configures x64 and builds Release.
+Each version uses a separate build directory so that switching versions does not conflict with a cached CMake generator:
 
-Options:
+| Visual Studio | Build directory         |
+| ---           | ---                     |
+| VS 18 (2026)  | `build/msvc-vcpkg-vs18` |
+| VS 17 (2022)  | `build/msvc-vcpkg-vs17` |
 
-- `/m` - compilation runs in parallel utilizing multiple cores
-- `/p:Configuration=Release` - generates _Release_, optimized build.
+During configuration, vcpkg installs `libusb` and `pthreads` from `vcpkg.json` into the selected build directory's `vcpkg_installed` subdirectory.
+CMake selects PThreads4W for MSVC and links the matching Release or Debug dependency libraries. The Windows compatibility headers supply the required POSIX types.
 
-Directory `<project_root>\build\Release` contains final executables.
-(`st-util.exe` is located in `<project_root>\build\src\gdbserver\Release`).
+The equivalent manual commands for VS 18 are below. For VS 17, replace the generator with `Visual Studio 17 2022` and use `build/msvc-vcpkg-vs17` in the commands below.
 
-**NOTE 1:**
+```powershell
+cmake -S . -B build/msvc-vcpkg-vs18 -G "Visual Studio 18 2026" -A x64 "-DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"
+cmake --build build/msvc-vcpkg-vs18 --config Release
+```
 
-Executables link against libusb.dll library. It has to be placed in the same directory as binaries or in PATH.
-It can be copied from: `<project_root>\build\3rdparty\libusb-{version}\MS{arch}\dll\libusb-1.0.dll`.
+Visual Studio uses `--config` to select the build configuration. To build Debug using the same configured tree:
 
-**NOTE 2:**
+```powershell
+cmake --build build/msvc-vcpkg-vs18 --config Debug
+```
 
-[ST-LINK drivers](https://www.st.com/en/development-tools/stsw-link009.html) are required for `stlink` to work.
+The executables are in the selected build directory's `bin/Release` or `bin/Debug` subdirectory.
+With vcpkg's default settings, the required dependency DLLs are copied beside them during the build.
+For example, check the Release build with:
+
+```powershell
+.\build\msvc-vcpkg-vs18\bin\Release\st-info.exe --version
+```
+
+If an existing build directory was configured with a different generator, architecture or toolchain, use a new build directory for the manual commands.
+
+**NOTE:**
+
+1. [ST-LINK drivers](https://www.st.com/en/development-tools/stsw-link009.html) are required for programmers to work with `stlink`.
+2. Package generation for MSVC is not yet implemented/tested.
 
 ## Linux
 
@@ -61,18 +92,14 @@ It can be copied from: `<project_root>\build\3rdparty\libusb-{version}\MS{arch}\
 Install the following packages from your package repository:
 
 - `git`
-- `gcc` or `clang` or `mingw32-gcc` or `mingw64-gcc` (C-compiler; very likely gcc is already present)
-- `build-essential` (on Debian based distros (Debian, Ubuntu))
-- `cmake`
-- `rpm` (on Debian based distros (Debian, Ubuntu), needed for package build with `make package`)
-- `libusb-1.0`
-- `libusb-1.0-0-dev` (development headers for building)
+- `gcc` and `g++` or `clang` (C-compiler)
+- `make` (Build tool)
+- `build-essential` (_recommended_, on Debian based distros, contains `gcc`, `g++`, `libc6-dev`, `make`)
+- `cmake` (Software development tool)
+- `libusb-1.0-0` and `libusb-1.0-0-dev` (libusb and related development headers)
 - `libgtk-3-dev` (_optional_, needed for `stlink-gui`)
+- `rpm` (on Debian based distros, needed for package build with `make package`)
 - `pandoc` (_optional_, needed for generating manpages from markdown)
-
-or execute (Debian-based systems only): `apt-get install gcc build-essential cmake libusb-1.0 libusb-1.0-0-dev libgtk-3-dev pandoc`
-
-(Replace gcc with the intended C-compiler if necessary or leave out any optional package not needed.)
 
 ### Installation
 
@@ -92,12 +119,9 @@ or execute (Debian-based systems only): `apt-get install gcc build-essential cma
 5. Run `make debug` to create the _Debug_ target (_optional_)<br />
    The debug target is only necessary in order to modify the sources and to run under a debugger.
 6. Run `make package`to build a Debian Package. The generated packages can be found in the subdirectory `./build/Release/dist`.
+7. Installing system-wide (`sudo make install`) requires the dynamic library cache to be updated with `sudo ldconfig` afterwards.
 
 As an option you may also install to an individual user-defined folder e.g `$HOME` with `make install DESTDIR=$HOME`.
-
-### How to avoid the error message: "Can not open shared object file"
-
-When installing system-wide (`sudo make install`) the dynamic library cache needs to be updated with the command `ldconfig`.
 
 #### Removal:
 
@@ -108,15 +132,12 @@ When installing system-wide (`sudo make install`) the dynamic library cache need
 
 Install the following packages from your package repository:
 
-- `mingw-w64`
-- `mingw-w64-common`
-- `mingw-w64-i686-dev`
-- `mingw-w64-x86-64-dev`
+- `mingw-w64`, `autotools-dev` and `libtool`
 
 After following the steps for installation above, proceed with from the build dircetory itself:
 
 ```sh
-$ sudo sh ./cmake/packaging/windows/generate_binaries.sh
+$ sudo sh ./gen_binaries_win.sh
 ```
 
 The generated zip-packages can be found in the subdirectory `./build/dist`.

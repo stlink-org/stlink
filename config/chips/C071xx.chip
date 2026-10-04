@@ -1,0 +1,14 @@
+# Chip-ID file for STM32C071xx device
+#
+dev_type STM32C071xx
+ref_manual_id 0490
+chip_id 0x493                // STM32_CHIPID_C071xx
+flash_type C0
+flash_size_reg 0x1fff75a0
+flash_pagesize 0x800         // 2 KB
+sram_size 0x6000             // 24 KB
+bootrom_base 0x1fff0000
+bootrom_size 0x1800          // 6 KB
+option_base 0x1fff7800       // STM32_OPTION_BYTES_BASE_C0
+option_size 0x80             // 128 B
+flags none

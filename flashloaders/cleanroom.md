@@ -40,6 +40,23 @@ How to wait for the write process: Read a word from FLASH_SR, loop until the bus
 
 Exit: After the copying process and before triggering the breakpoint, clear the PG bit in FLASH_CR.
 
+## stm32wb0.s
+
+`flash_origin`: 0x10040000 (start of flash in memory map)
+
+`flash_base`: 0x40001000 (base address of the `FLASH` controller peripheral)
+
+**Reference**:
+[STM32WB05 RM0491](https://www.st.com/resource/en/reference_manual/rm0491-the-bluenrglps-arm-cortex-m0based-stmicroelectronics.pdf)
+[STM32WB06/07 RM0530](https://www.st.com/resource/en/reference_manual/rm0530--stm32wb07xc-and-stm32wb06xc-ultralow-power-wireless-32bit-mcus-armbased-cortexm0-with-bluetooth-low-energy-and-24-ghz-radio-solution-stmicroelectronics.pdf)
+[STM32WB09 RM0505](https://www.st.com/resource/en/reference_manual/rm0505-stm32wb09xe-ultralow-power-wireless-32bit-mcu-armbased-cortexm0-with-bluetooth-low-energy-and-24-ghz-radio-solution-stmicroelectronics.pdf)
+[STM32WL3x RM0511](https://www.st.com/resource/en/reference_manual/rm0511-stm32wl33xx-armbased-wireless-mcus-with-subghz-radio-solution-stmicroelectronics.pdf)
+
+
+**Special requirements**:
+
+Data is flashed in blocks of 16 bytes, so the destination address must be aligned to 16, and the length must be a multiple of 16 bytes. In contrast to other STM32 devices, writing happens through registers of the `FLASH` peripheral. The loader exits early if an error is encountered - `r2` holds the number that didn't get written.
+
 ## stm32f4.s
 
 `flash_base`: 0x40023c00

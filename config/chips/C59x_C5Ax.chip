@@ -1,0 +1,14 @@
+# Chip-ID file for STM32C59x / STM32C5Ax device
+#
+dev_type STM32C59x_C5Ax
+ref_manual_id 0522
+chip_id 0x45a                // STM32_CHIPID_C59x_C5Ax
+flash_type C5
+flash_size_reg 0x08fff80c
+flash_pagesize 0x2000        // 8 KB
+sram_size 0x40000            // 256 KB
+bootrom_base 0x0bf80080
+bootrom_size 0x8400          // 33 KB
+option_base 0
+option_size 0
+flags swo dualbank

@@ -1,14 +1,36 @@
-/*
- * File: common_flash.h
- *
- * Flash operations
- */
+/**
+  ******************************************************************************
+  * @file           : common_flash.h
+  * @brief          : Flash operations
+  * @copyright      : Copyright (c) 2026 stlink-org. All rights reserved.
+  * @date           : 2026-07-27
+  * SPDX-License-Identifier: BSD-3-Clause
+  *
+  * This file is licensed under the BSD 3-Clause License.
+  * See the LICENSE file in the project root for full license information.
+  ******************************************************************************
+  */
 
 #ifndef COMMON_FLASH_H
 #define COMMON_FLASH_H
 
+#include <stdint.h>
+#include <stdio.h>
+#include <string.h>
+
+#include <unistd.h>
+
+#include <stlink.h>
+
+
 #define BANK_1 0
 #define BANK_2 1
+
+enum erase_type_t {
+    NO_ERASE = 0,
+    SECTION_ERASE = 1,
+    MASS_ERASE = 2,
+};
 
 uint32_t get_stm32l0_flash_base(stlink_t *);
 uint32_t read_flash_cr(stlink_t *, uint32_t);
@@ -39,15 +61,20 @@ void clear_flash_cr_pg(stlink_t *, uint32_t);
 int32_t stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr);
 int32_t stlink_erase_flash_section(stlink_t *sl, stm32_addr_t base_addr, uint32_t size, bool align_size);
 int32_t stlink_erase_flash_mass(stlink_t *sl);
-int32_t stlink_mwrite_flash(stlink_t *sl, uint8_t *data, uint32_t length, stm32_addr_t addr);
-int32_t stlink_fwrite_flash(stlink_t *sl, const char *path, stm32_addr_t addr);
+int32_t stlink_mwrite_flash(stlink_t *sl, uint8_t *data, uint32_t length,
+                            stm32_addr_t addr, const enum erase_type_t erase);
+int32_t stlink_fwrite_flash(stlink_t *sl, const char *path, stm32_addr_t addr,
+                            const enum erase_type_t erase);
 int32_t stlink_fcheck_flash(stlink_t *sl, const char *path, stm32_addr_t addr);
 int32_t stlink_verify_write_flash(stlink_t *sl, stm32_addr_t address, uint8_t *data, uint32_t length);
 int32_t stlink_check_address_range_validity(stlink_t *sl, stm32_addr_t addr, uint32_t size);
 int32_t stlink_check_address_range_validity_otp(stlink_t *sl, stm32_addr_t addr, uint32_t size);
 int32_t stlink_check_address_alignment(stlink_t *sl, stm32_addr_t addr);
-int32_t stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t *base, uint32_t len, uint8_t eraseonly);
-int32_t stlink_write_otp(stlink_t *sl, stm32_addr_t addr, uint8_t *base, uint32_t len);
+int32_t stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t *base,
+                           uint32_t len, uint8_t erase_only,
+                           const enum erase_type_t erase);
+int32_t stlink_write_otp(stlink_t *sl, stm32_addr_t addr, uint8_t *base,
+                         uint32_t len);
 void stlink_fwrite_finalize(stlink_t *, stm32_addr_t);
 
 #endif // COMMON_FLASH_H

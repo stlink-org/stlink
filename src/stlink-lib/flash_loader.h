@@ -1,11 +1,28 @@
-/*
- * File: flash_loader.h
- *
- * Flash loaders
- */
+/**
+  ******************************************************************************
+  * @file           : flash_loader.h
+  * @brief          : Flash loaders
+  * @copyright      : Copyright (c) 2026 stlink-org. All rights reserved.
+  * @date           : 2026-07-27
+  * SPDX-License-Identifier: BSD-3-Clause
+  *
+  * This file is licensed under the BSD 3-Clause License.
+  * See the LICENSE file in the project root for full license information.
+  ******************************************************************************
+  */
  
 #ifndef FLASH_LOADER_H
 #define FLASH_LOADER_H
+
+#include <stdint.h>
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
+
+#include <stm32.h>
+#include <stm32_register.h>
+#include <stlink.h>
+
 
 int32_t stlink_flash_loader_init(stlink_t *sl, flash_loader_t* fl);
 // static int32_t loader_v_dependent_assignment(stlink_t *sl,

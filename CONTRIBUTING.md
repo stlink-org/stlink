@@ -17,7 +17,7 @@ Report a bug by [opening a new issue]() with one of the available templates. It'
 1) If using a ST-Link-v2 programmer: Convince yourself that it is recognised as an USB device by your computer, thus reporting device and manufacturer ID. Use a diagnostic tool to probe for enumerated USB devices, e.g [`lsusb -v`](https://linux.die.net/man/8/lsusb) on unix-based systems.
 2) **Use the [ST-Link firmware upgrade tool](https://www.st.com/en/development-tools/stsw-link007.html) based on Java to read out the current firmware version and update to the latest available version. This also works for _non-genuine_ ST programmers and boards.**
 3) Try to make sure you have a working toolchain before starting to build.
-4) **Update to the _latest_ release version or maybe even use the `develop` branch.**
+4) **Update to the _latest_ release version or maybe even use the `testing` branch.**
 5) Search for your problem in the available open issues, _before_ opening a new ticket.
 6) Make sure to **use the available issue templates** to submit a bug-report or a feature-request. **Do not replace the prepared text, edit the placeholders instead. _Describe_ your problem.**
 7) Avoid to add new comments to closed issues unless they confirm a solution already available.

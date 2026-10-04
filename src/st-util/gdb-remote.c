@@ -1,26 +1,24 @@
-/*
- * Copyright (c) 2011 Peter Zotov <whitequark@whitequark.org>
- * Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
- */
-
-#include <stdio.h>
-#include <string.h>
-#include <stdint.h>
-#include <stdlib.h>
-
-#if defined(_WIN32)
-#include <win32_socket.h>
-#else
-#include <unistd.h>
-#include <sys/poll.h>
-#endif
+/**
+  ******************************************************************************
+  * @file           : gdb-remote.c
+  * @brief          : Tool: st-util
+  * @copyright      : Copyright (c) 2026 stlink-org. All rights reserved.
+  * @author         : Peter Zotov (whitequark)
+  * @date           : 2026-07-27
+  * SPDX-License-Identifier: BSD-3-Clause
+  *
+  * This file is licensed under the BSD 3-Clause License.
+  * See the LICENSE file in the project root for full license information.
+  ******************************************************************************
+  */
 
 #include "gdb-remote.h"
+
 
 static const char hex[] = "0123456789abcdef";
 
 int32_t gdb_send_packet(int32_t fd, char* data) {
-    uint32_t data_length = (uint32_t)strlen(data);
+    uint32_t data_length = (uint32_t) strlen(data);
     int32_t length = data_length + 4;
     char* packet = malloc(length); // '$' data (hex) '#' cksum (hex)
 
@@ -30,7 +28,7 @@ int32_t gdb_send_packet(int32_t fd, char* data) {
 
     uint8_t cksum = 0;
 
-    for (uint32_t i = 0; i < data_length; i++) {
+    for(uint32_t i = 0; i < data_length; i++) {
         packet[i + 1] = data[i];
         cksum += data[i];
     }
@@ -40,19 +38,19 @@ int32_t gdb_send_packet(int32_t fd, char* data) {
     packet[length - 1] = hex[cksum & 0xf];
 
     while (1) {
-        if (write(fd, packet, length) != length) {
+        if(write(fd, packet, length) != length) {
             free(packet);
             return (-2);
         }
 
         char ack;
 
-        if (read(fd, &ack, 1) != 1) {
+        if(read(fd, &ack, 1) != 1) {
             free(packet);
             return (-2);
         }
 
-        if (ack == '+') {
+        if(ack == '+') {
             free(packet);
             return (0);
         }
@@ -68,7 +66,7 @@ int32_t gdb_recv_packet(int32_t fd, char** buffer) {
     char* packet_buffer = malloc(packet_size);
     uint32_t state;
 
-    if (packet_buffer == NULL) {
+    if(packet_buffer == NULL) {
         return (-2);
     }
 
@@ -86,7 +84,7 @@ start:
     char c;
 
     while (state != 4) {
-        if (read(fd, &c, 1) != 1) {
+        if(read(fd, &c, 1) != 1) {
             free(packet_buffer);
             return (-2);
         }
@@ -94,7 +92,7 @@ start:
         switch (state) {
         case 0:
 
-            if (c != '$') { /* ignore */
+            if(c != '$') { /* ignore */
             } else {
                 state = 1;
             }
@@ -103,17 +101,17 @@ start:
 
         case 1:
 
-            if (c == '#') {
+            if(c == '#') {
                 state = 2;
             } else {
                 packet_buffer[packet_idx++] = c;
                 cksum += c;
 
-                if (packet_idx == packet_size) {
+                if(packet_idx == packet_size) {
                     packet_size += ALLOC_STEP;
                     void* p = realloc(packet_buffer, packet_size);
 
-                    if (p != NULL) {
+                    if(p != NULL) {
                         packet_buffer = p;
                     } else {
                         free(packet_buffer);
@@ -138,10 +136,10 @@ start:
 
     uint8_t recv_cksum_int = strtoul(recv_cksum, NULL, 16);
 
-    if (recv_cksum_int != cksum) {
+    if(recv_cksum_int != cksum) {
         char nack = '-';
 
-        if (write(fd, &nack, 1) != 1) {
+        if(write(fd, &nack, 1) != 1) {
             free(packet_buffer);
             return (-2);
         }
@@ -150,7 +148,7 @@ start:
     } else {
         char ack = '+';
 
-        if (write(fd, &ack, 1) != 1) {
+        if(write(fd, &ack, 1) != 1) {
             free(packet_buffer);
             return (-2);
         }
@@ -172,14 +170,14 @@ int32_t gdb_check_for_interrupt(int32_t fd) {
     pfd.fd = fd;
     pfd.events = POLLIN;
 
-    if (poll(&pfd, 1, 0) != 0) {
+    if(poll(&pfd, 1, 0) != 0) {
         char c;
 
-        if (read(fd, &c, 1) != 1) {
+        if(read(fd, &c, 1) != 1) {
             return (-2);
         }
 
-        if (c == '\x03') {
+        if(c == '\x03') {
             return (1); // ^C
         }
     }

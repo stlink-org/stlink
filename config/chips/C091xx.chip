@@ -1,0 +1,14 @@
+# Chip-ID file for STM32_C091xx_C92xx device
+#
+dev_type STM32_C091xx_C92xx
+ref_manual_id 0490
+chip_id 0x44D                // STM32_CHIPID_C091xx_C92xx
+flash_type C0
+flash_size_reg 0x1fff75a0
+flash_pagesize 0x800         // 2 KB
+sram_size 0x9000             // 36 KB: C92xx: 30 KB + 6KB FDCAN RAM (RM490 rev. 5 2.4 FDCAN RAM)
+bootrom_base 0x1fff0000
+bootrom_size 0x1800          // 6 KB
+option_base 0x1fff7800       // STM32_OPTION_BYTES_BASE_C0
+option_size 0x80             // 128 B
+flags none
