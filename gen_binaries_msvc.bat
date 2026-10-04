@@ -36,6 +36,7 @@ echo Using %STLINK_GENERATOR%
 cmake -S . -B "%STLINK_BUILD_DIR%" -G "%STLINK_GENERATOR%" -A x64 ^
     "-DCMAKE_TOOLCHAIN_FILE=%VCPKG_ROOT%\scripts\buildsystems\vcpkg.cmake" || goto :error
 cmake --build "%STLINK_BUILD_DIR%" --config Release || goto :error
+cmake --build "%STLINK_BUILD_DIR%" --config Release --target package || goto :error
 
 :ok
 exit /b 0
