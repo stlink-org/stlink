@@ -209,9 +209,25 @@ static bool enable_trace(stlink_t *stlink, const st_settings_t *settings, uint32
   stlink_write_debug32(stlink, STM32_REG_DWT_FUNCTION2, 0);
   stlink_write_debug32(stlink, STM32_REG_DWT_FUNCTION3, 0);
   stlink_write_debug32(stlink, STM32_REG_DWT_CTRL, 0);
-  stlink_write_debug32(stlink, STM32_REG_DBGMCU_CR,
-      STM32_REG_DBGMCU_CR_DBG_SLEEP | STM32_REG_DBGMCU_CR_DBG_STOP |
-          STM32_REG_DBGMCU_CR_DBG_STANDBY | STM32_REG_DBGMCU_CR_TRACE_IOEN |
+
+  uint32_t dbg_cr_reg = STM32_REG_DBGMCU_CR;
+  uint32_t dbg_cr_val = STM32_REG_DBGMCU_CR_TRACE_IOEN;
+
+  if (stlink->chip_id == STM32_CHIPID_H5xx ||
+      stlink->chip_id == STM32_CHIPID_H52_H53xx) {
+    dbg_cr_reg = STM32_REG_DBGMCU_CR_H5;
+    dbg_cr_val = STM32_REG_DBGMCU_CR_TRACE_IOEN_H5 | STM32_REG_DBGMCU_CR_TRACE_CLKEN_H5;
+  } else if (stlink->chip_id == STM32_CHIPID_U535_U545 ||
+             stlink->chip_id == STM32_CHIPID_U575_U585 ||
+             stlink->chip_id == STM32_CHIPID_U5Fx_U5Gx ||
+             stlink->chip_id == STM32_CHIPID_L5x2xx) {
+    dbg_cr_reg = STM32_REG_DBGMCU_CR_L5_U5;
+    dbg_cr_val = STM32_REG_DBGMCU_CR_TRACE_CLKEN_L5_U5 | STM32_REG_DBGMCU_CR_TRACE_IOEN_L5_U5;
+  }
+
+  stlink_write_debug32(stlink, dbg_cr_reg,
+      dbg_cr_val | STM32_REG_DBGMCU_CR_DBG_SLEEP | STM32_REG_DBGMCU_CR_DBG_STOP |
+          STM32_REG_DBGMCU_CR_DBG_STANDBY |
           STM32_REG_DBGMCU_CR_TRACE_MODE_ASYNC);
 
   if(stlink_trace_enable(stlink, trace_frequency)) {
