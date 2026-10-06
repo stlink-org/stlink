@@ -351,6 +351,11 @@ install(FILES ${CHIP_FILES} DESTINATION ${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME}
 option(STLINK_GENERATE_MANPAGES "Generate manpages with pandoc" OFF)
 add_subdirectory(doc/man)         # contains subordinate CMakeLists to generate manpages
 
+# Documentation / API (doc-api target)
+option(STLINK_GENERATE_API_DOCS "Generate the stlink-lib API documentation with Doxygen" OFF)
+option(STLINK_API_DOCS_INTERNAL "Include the internal functions in the API documentation" OFF)
+add_subdirectory(doc/api)         # contains subordinate CMakeLists to generate the API documentation
+
 # Optional build components
 add_subdirectory(src/stlink-gui)  # contains subordinate CMakeLists to build GUI
 add_subdirectory(cmake/packaging) # contains subordinate CMakeLists to build packages
