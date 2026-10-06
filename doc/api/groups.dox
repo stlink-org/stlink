@@ -80,7 +80,7 @@
  *
  * They are only exported because they are not declared static or live in an
  * installed header. Applications must not use them; they are expected to
- * become static or move to internal headers (see @ref api_exposure).
+ * become static or move to internal headers.
  * Only shown when the documentation is generated with STLINK_API_DOCS_INTERNAL=ON.
  */
 /** @endcond */

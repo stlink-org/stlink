@@ -39,7 +39,6 @@ set(DOXYGEN_WARN_NO_PARAMDOC YES)
 set(STLINK_API_DOC_INPUTS
     ${CMAKE_CURRENT_SOURCE_DIR}/mainpage.md
     ${CMAKE_CURRENT_SOURCE_DIR}/groups.dox
-    ${CMAKE_CURRENT_SOURCE_DIR}/api_exposure.md
     ${CMAKE_SOURCE_DIR}/inc/stlink.h
     ${CMAKE_SOURCE_DIR}/inc/stlink_backend.h
     ${CMAKE_SOURCE_DIR}/src/stlink-lib/chipid.h

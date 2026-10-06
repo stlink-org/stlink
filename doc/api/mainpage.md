@@ -7,8 +7,7 @@ STM32 targets through them.
 
 > **Status:** the library interface is being prepared for use by other applications.
 > It is not stable yet: functions, types and headers may change between
-> releases. See @ref api_exposure for which of the exported functions are
-> meant to be public and what is planned.
+> releases.
 
 ## Modules
 
