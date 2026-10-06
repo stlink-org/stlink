@@ -25,7 +25,22 @@
 #include <stdlib.h>
 
 
+/** @cond STLINK_INTERNAL */
+/**
+ * Milliseconds of the wall clock, for timeouts (wraps around).
+ * @ingroup api_internal
+ * @return the time in ms
+ */
 uint32_t time_ms();
+/** @endcond */
+
+/**
+ * Parse a frequency given on the command line.
+ * @ingroup api_util
+ * @param str decimal number in kHz, optionally followed by "k"/"K" (kHz) or "M" (MHz), e.g. "1800", "4M"
+ * @return the frequency in kHz, or -1 for NULL or an invalid suffix (an empty
+ *         string gives 0, negative numbers are passed through)
+ */
 int32_t arg_parse_freq(const char *str);
 
 #endif // HELPER_H

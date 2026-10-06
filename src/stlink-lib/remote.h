@@ -50,7 +50,10 @@
 #include "logging.h"
 
 
+/** Default TCP port of st-server, see stlink_open_remote() @ingroup api_device */
 #define STLINK_REMOTE_DEFAULT_PORT 4500
+
+/** @cond STLINK_INTERNAL */
 #define STLINK_REMOTE_MAGIC        0x4b4c5453 /* "STLK" */
 #define STLINK_REMOTE_PROTOCOL_VERSION 1
 
@@ -108,23 +111,64 @@ enum stlink_remote_op {
     RPC_CLOSE,
 };
 
-/*
- * Client: open a remote ST-LINK over TCP and run the same open/connect
- * sequence as stlink_open_usb (version is taken from the server handshake).
- * Returns NULL on failure.
+/** @endcond */
+
+/**
+ * @addtogroup api_device
+ * @{
+ */
+
+/**
+ * Open an ST-LINK attached to another machine running st-server.
+ *
+ * Connects via TCP, checks the handshake of the server and runs the same open
+ * and connect sequence as stlink_open_usb(); the ST-LINK version is taken from
+ * the handshake. All high-level logic (chip identification, flash loaders,
+ * erase and programming) runs on this side, only the backend operations
+ * (stlink_backend_t) are sent over the network. The connection is not
+ * encrypted or authenticated.
+ *
+ * @param verbose log level, see stlink_open_usb()
+ * @param host    host name or IPv4 address of the server
+ * @param port    TCP port, 0 for STLINK_REMOTE_DEFAULT_PORT
+ * @param connect how to connect to the target, see stlink_target_connect()
+ * @param freq    SWD frequency in kHz, 0 for the default
+ * @return the device handle, to be released with stlink_close(), or NULL if the
+ *         server cannot be reached, the handshake fails or the connection is
+ *         lost while connecting
  */
 stlink_t *stlink_open_remote(int32_t verbose, const char *host, int32_t port,
                              enum connect_type connect, int32_t freq);
 
-/* As stlink_open_remote, but parses a "host" or "host:port" string. */
+/**
+ * Open a remote ST-LINK given as "host" or "host:port".
+ * As stlink_open_remote(); without a port STLINK_REMOTE_DEFAULT_PORT is used.
+ * @param verbose  log level, see stlink_open_usb()
+ * @param hostport "host" or "host:port"
+ * @param connect  how to connect to the target, see stlink_target_connect()
+ * @param freq     SWD frequency in kHz, 0 for the default
+ * @return the device handle, or NULL on error (also for an invalid port)
+ */
 stlink_t *stlink_open_remote_str(int32_t verbose, const char *hostport,
                                  enum connect_type connect, int32_t freq);
 
-/*
- * Server: send the handshake then serve backend requests for one connected
- * client against an already-open local stlink, until the client disconnects.
- * Returns 0 on a clean disconnect, -1 on a transport error.
+/**
+ * Serve one client of st-server.
+ *
+ * Sends the handshake, then executes the backend requests of the client on the
+ * local device @p sl until the client disconnects. Used by st-server.
+ *
+ * @bug A request for stlink_backend_t::enter_jtag_mode calls a NULL pointer
+ *      with the libusb backend, so any client can crash the server.
+ *
+ * @param sl        local device, opened with stlink_open_usb()
+ * @param client_fd connected socket of the client; not closed by this function
+ * @return 0 when the client disconnects or the connection breaks while waiting
+ *         for a request, -1 if a reply cannot be sent or a request is too
+ *         large; other protocol errors are answered and serving continues
  */
 int32_t stlink_remote_serve(stlink_t *sl, int32_t client_fd);
+
+/** @} */
 
 #endif // REMOTE_H

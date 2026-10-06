@@ -44,12 +44,18 @@ typedef void (*stlink_thread_fn)(void *arg);
 
 /**
  * @brief Start a thread running fn(arg).
+ * @ingroup api_internal
+ * @param thread receives the thread
+ * @param fn     entry point
+ * @param arg    argument passed to @p fn
  * @return 0 on success, otherwise the platform error code
  */
 int32_t stlink_thread_create(stlink_thread_t *thread, stlink_thread_fn fn, void *arg);
 
 /**
  * @brief Wait for a thread to finish, then release it.
+ * @ingroup api_internal
+ * @param thread the thread from stlink_thread_create()
  * @return 0 on success, otherwise the platform error code
  */
 int32_t stlink_thread_join(stlink_thread_t thread);

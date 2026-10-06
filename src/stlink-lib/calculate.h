@@ -19,9 +19,45 @@
 #include <stlink.h>
 
 
-uint32_t calculate_F4_sectornum(uint32_t);
-uint32_t calculate_F7_sectornum(uint32_t);
-uint32_t calculate_H7_sectornum(stlink_t *, uint32_t, uint32_t);
-uint32_t calculate_L4_page(stlink_t *, uint32_t);
+/** @cond STLINK_INTERNAL */
+/**
+ * @addtogroup api_internal
+ * @{
+ */
+
+/**
+ * Sector number of a flash address on STM32F2/F4 (sectors of 16, 64 and 128 KiB).
+ * @param flashaddr address in flash
+ * @return the sector number; sectors in the second MiB (second bank) are numbered from 12
+ */
+uint32_t calculate_F4_sectornum(uint32_t flashaddr);
+
+/**
+ * Sector number of a flash address on STM32F7 (sectors of 32, 128 and 256 KiB).
+ * @param flashaddr address in flash
+ * @return the sector number
+ */
+uint32_t calculate_F7_sectornum(uint32_t flashaddr);
+
+/**
+ * Sector number of a flash address within its bank on STM32H7.
+ * @param sl        device handle
+ * @param flashaddr address in flash
+ * @param bank      BANK_1 or BANK_2
+ * @return the sector number within the bank
+ */
+uint32_t calculate_H7_sectornum(stlink_t *sl, uint32_t flashaddr, uint32_t bank);
+
+/**
+ * Page number of a flash address on STM32L4 and similar devices, taking the
+ * dual bank configuration (FLASH_OPTR) into account.
+ * @param sl        device handle
+ * @param flashaddr address in flash
+ * @return the page number as expected by FLASH_CR.PNB (incl. the bank bit)
+ */
+uint32_t calculate_L4_page(stlink_t *sl, uint32_t flashaddr);
+
+/** @} */
+/** @endcond */
 
 #endif // CALCULATE_H
