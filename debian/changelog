@@ -1,3 +1,16 @@
+stlink (1.9.0-1) unstable; urgency=medium
+
+  * Update upstream source from tag 'upstream/1.9.0'
+  * Drop priority: optional, now it's default
+  * Drop Rules-Requires-Root: no, now it's default
+  * Switch to dh-compat 14
+  * Bump Standards-Version to 4.7.4
+  * Update configs install path
+  * fixup! Update configs install path
+  * Update symbols file
+
+ -- Luca Boccassi <bluca@debian.org>  Tue, 06 Oct 2026 23:12:25 +0200
+
 stlink (1.8.0-1) unstable; urgency=medium
 
   * Switch to gbp workflow, binary OSX blobs no longer included upstream
