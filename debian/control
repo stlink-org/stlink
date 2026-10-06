@@ -1,6 +1,6 @@
 Source: stlink
 Maintainer: Luca Boccassi <bluca@debian.org>
-Build-Depends: debhelper-compat (= 13), cmake, libusb-1.0-0-dev, libgtk-3-dev, pkgconf, systemd-dev
+Build-Depends: debhelper-compat (= 14), cmake, libusb-1.0-0-dev, libgtk-3-dev, pkgconf, systemd-dev
 Standards-Version: 4.6.2
 Section: electronics
 Homepage: https://github.com/stlink-org/stlink
@@ -11,7 +11,7 @@ Package: libstlink-dev
 Section: libdevel
 Architecture: linux-any
 Multi-Arch: same
-Depends: libstlink1 (= ${binary:Version}), ${misc:Depends}
+Depends: libstlink1 (= ${binary:Version}),
 Description: OpenSource ST-Link tools replacement.
  Flashing tools for STMicroelectronics STM32VL and STM32L. The transport layers
  STLINKv1 and STLINKv2 are supported.
@@ -22,7 +22,6 @@ Package: libstlink1
 Section: libs
 Architecture: linux-any
 Multi-Arch: same
-Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: OpenSource ST-Link tools replacement.
  Flashing tools for STMicroelectronics STM32VL and STM32L. The transport layers
  STLINKv1 and STLINKv2 are supported.
@@ -31,7 +30,7 @@ Description: OpenSource ST-Link tools replacement.
 
 Package: stlink-tools
 Architecture: linux-any
-Depends: libstlink1 (= ${binary:Version}), ${shlibs:Depends}, ${misc:Depends}
+Depends: libstlink1 (= ${binary:Version}),
 Description: OpenSource ST-Link tools replacement.
  Flashing tools for STMicroelectronics STM32VL and STM32L. The transport layers
  STLINKv1 and STLINKv2 are supported.
@@ -42,7 +41,6 @@ Description: OpenSource ST-Link tools replacement.
 Package: stlink-gui
 Architecture: linux-any
 Depends: libstlink1 (= ${binary:Version}), stlink-tools (= ${binary:Version}),
- ${shlibs:Depends}, ${misc:Depends}
 Description: OpenSource ST-Link tools replacement.
  Flashing tools for STMicroelectronics STM32VL and STM32L. The transport layers
  STLINKv1 and STLINKv2 are supported.
