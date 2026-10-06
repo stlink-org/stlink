@@ -1,9 +1,9 @@
 /**
   ******************************************************************************
-  * @file           : progress.h
-  * @brief          : Progress reporting of longer operations
-  * @copyright      : Copyright (c) 2026 stlink-org. All rights reserved.
-  * @date           : 2026-10-04
+  * @file             progress.h
+  * @brief            Progress reporting of longer operations
+  * @copyright        Copyright (c) 2026 stlink-org. All rights reserved.
+  * @date             2026-10-04
   * SPDX-License-Identifier: BSD-3-Clause
   *
   * This file is licensed under the BSD 3-Clause License.

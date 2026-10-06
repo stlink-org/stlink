@@ -1,10 +1,10 @@
 /**
   ******************************************************************************
-  * @file           : stlink_threads_posix.c
-  * @brief          : pthreads wrapper for POSIX
-  * @copyright      : Copyright (c) 2026 stlink-org. All rights reserved.
-  * @author         : Andreas Michelis (a-michelis)
-  * @date           : 2026-09-15
+  * @file             stlink_threads_posix.c
+  * @brief            pthreads wrapper for POSIX
+  * @copyright        Copyright (c) 2026 stlink-org. All rights reserved.
+  * @author           Andreas Michelis (a-michelis)
+  * @date             2026-09-15
   * SPDX-License-Identifier: BSD-3-Clause
   *
   * This file is licensed under the BSD 3-Clause License.

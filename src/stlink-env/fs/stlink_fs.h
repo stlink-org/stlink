@@ -1,9 +1,9 @@
 /**
   ******************************************************************************
-  * @file           : stlink_fs.h
-  * @brief          : Filesystem lookups that differ per platform
-  * @copyright      : Copyright (c) 2026 stlink-org. All rights reserved.
-  * @date           : 2026-09-17
+  * @file             stlink_fs.h
+  * @brief            Filesystem lookups that differ per platform
+  * @copyright        Copyright (c) 2026 stlink-org. All rights reserved.
+  * @date             2026-09-17
   * SPDX-License-Identifier: BSD-3-Clause
   *
   * This file is licensed under the BSD 3-Clause License.

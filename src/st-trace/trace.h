@@ -1,10 +1,10 @@
 /**
   ******************************************************************************
-  * @file           : trace.h
-  * @brief          : Tool: st-trace
-  * @copyright      : Copyright (c) 2026 stlink-org. All rights reserved.
-  * @author         : John Hall (simplerobot)
-  * @date           : 2026-07-27
+  * @file             trace.h
+  * @brief            Tool: st-trace
+  * @copyright        Copyright (c) 2026 stlink-org. All rights reserved.
+  * @author           John Hall (simplerobot)
+  * @date             2026-07-27
   * SPDX-License-Identifier: BSD-3-Clause
   *
   * This file is licensed under the BSD 3-Clause License.

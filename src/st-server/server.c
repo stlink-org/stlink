@@ -1,14 +1,14 @@
 /**
   ******************************************************************************
-  * @file           : server.c
-  * @brief          : Tool: st-server
+  * @file             server.c
+  * @brief            Tool: st-server
   *                   Serves a locally-attached ST-LINK over TCP so that
   *                   st-flash / st-info on another machine can drive it via
   *                   --remote. The server forwards backend operations;
   *                   target-specific logic runs on the client.
-  * @copyright      : Copyright (c) 2026 stlink-org. All rights reserved.
-  * @author         : James Walmsley (jameswalmsley)
-  * @date           : 2026-07-27
+  * @copyright        Copyright (c) 2026 stlink-org. All rights reserved.
+  * @author           James Walmsley (jameswalmsley)
+  * @date             2026-07-27
   * SPDX-License-Identifier: BSD-3-Clause
   *
   * This file is licensed under the BSD 3-Clause License.

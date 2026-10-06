@@ -1,10 +1,10 @@
 /**
   ******************************************************************************
-  * @file           : remote.c
-  * @brief          : Remote backend and server dispatch
-  * @copyright      : Copyright (c) 2026 stlink-org. All rights reserved.
-  * @author         : James Walmsley (jameswalmsley)
-  * @date           : 2026-07-27
+  * @file             remote.c
+  * @brief            Remote backend and server dispatch
+  * @copyright        Copyright (c) 2026 stlink-org. All rights reserved.
+  * @author           James Walmsley (jameswalmsley)
+  * @date             2026-07-27
   * SPDX-License-Identifier: BSD-3-Clause
   *
   * This file is licensed under the BSD 3-Clause License.
