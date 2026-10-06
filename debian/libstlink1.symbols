@@ -36,6 +36,7 @@ libstlink.so.1 libstlink1 #MINVER#
  _stlink_usb_exit_dfu_mode@Base 1.5.0
  _stlink_usb_force_debug@Base 1.5.0
  _stlink_usb_get_rw_status@Base 1.6.1
+ _stlink_usb_init_ap@Base 1.9.0
  _stlink_usb_jtag_reset@Base 1.5.0
  _stlink_usb_read_all_regs@Base 1.5.0
  _stlink_usb_read_all_unsupported_regs@Base 1.5.0
@@ -80,6 +81,7 @@ libstlink.so.1 libstlink1 #MINVER#
  read_flash_sr@Base 1.8.0
  read_uint16@Base 1.5.0
  read_uint32@Base 1.5.0
+ search_for_chips@Base 1.9.0
  send_recv@Base 1.5.0
  send_usb_data_only@Base 1.5.0
  send_usb_mass_storage_command@Base 1.5.0
@@ -100,6 +102,7 @@ libstlink.so.1 libstlink1 #MINVER#
  stlink_erase_flash_mass@Base 1.5.0
  stlink_erase_flash_page@Base 1.5.0
  stlink_erase_flash_section@Base 1.8.0
+ stlink_exe_dir@Base 1.9.0
  stlink_exit_debug_mode@Base 1.5.0
  stlink_exit_dfu_mode@Base 1.5.0
  stlink_fcheck_flash@Base 1.5.0
@@ -122,6 +125,8 @@ libstlink.so.1 libstlink1 #MINVER#
  stlink_load_device_params@Base 1.5.0
  stlink_mwrite_flash@Base 1.5.0
  stlink_mwrite_sram@Base 1.5.0
+ stlink_open_remote@Base 1.9.0
+ stlink_open_remote_str@Base 1.9.0
  stlink_open_usb@Base 1.5.0
  stlink_parse_ihex@Base 1.5.0
  stlink_print_data@Base 1.5.0
@@ -153,6 +158,7 @@ libstlink.so.1 libstlink1 #MINVER#
  stlink_read_option_control_register_wb@Base 1.8.0
  stlink_read_reg@Base 1.5.0
  stlink_read_unsupported_reg@Base 1.5.0
+ stlink_remote_serve@Base 1.9.0
  stlink_reset@Base 1.5.0
  stlink_run@Base 1.5.0
  stlink_run_at@Base 1.5.0
@@ -165,6 +171,8 @@ libstlink.so.1 libstlink1 #MINVER#
  stlink_step@Base 1.5.0
  stlink_target_connect@Base 1.7.0
  stlink_target_voltage@Base 1.5.0
+ stlink_thread_create@Base 1.9.0
+ stlink_thread_join@Base 1.9.0
 #MISSING: 1.8.0# stlink_trace_disable@Base 1.7.0
 #MISSING: 1.8.0# stlink_trace_enable@Base 1.7.0
 #MISSING: 1.8.0# stlink_trace_read@Base 1.7.0
@@ -172,6 +180,7 @@ libstlink.so.1 libstlink1 #MINVER#
  stlink_v1_open_inner@Base 1.5.0
  stlink_verify_write_flash@Base 1.5.0
  stlink_version@Base 1.5.0
+ stlink_write_buffer_to_sram@Base 1.9.0
  stlink_write_debug32@Base 1.5.0
  stlink_write_dreg@Base 1.5.0
  stlink_write_flash@Base 1.5.0
@@ -194,7 +203,7 @@ libstlink.so.1 libstlink1 #MINVER#
  unlock_flash_option_if@Base 1.8.0
  unmap_file@Base 1.8.0
  wait_flash_busy@Base 1.8.0
- write_buffer_to_sram@Base 1.5.0
+#MISSING: 1.9.0# write_buffer_to_sram@Base 1.5.0
  write_flash_cr_psiz@Base 1.8.0
  write_uint16@Base 1.5.0
  write_uint32@Base 1.5.0
