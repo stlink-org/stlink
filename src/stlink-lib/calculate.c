@@ -17,13 +17,28 @@
 #include "read_write.h"
 
 
-uint32_t calculate_F4_sectornum(uint32_t flashaddr) {
+uint32_t calculate_F4_sectornum(stlink_t *sl, uint32_t flashaddr) {
   uint32_t offset = 0;
   flashaddr &= ~STM32_FLASH_BASE; // page now holding the actual flash address
 
-  if(flashaddr >= 0x100000) {
-    offset = 12;
-    flashaddr -= 0x100000;
+  /* The F413 and F423 chips have a single bank flash */
+  if (sl->chip_id != STM32_CHIPID_F413) {
+    /* Dual bank flash of 1MB have a discontinuity in their sector 
+       numbering. Sector 7 is the last from the first bank and sector 12 is
+       the first from the second bank. */
+    if (sl->flash_size <= 1024*1024) {
+      if (flashaddr >= 0x080000) {
+        offset = 12;
+        flashaddr -= 0x080000;
+      } 
+    }
+    /* Dual bank flash of 2MB */
+    else {
+      if (flashaddr >= 0x100000) {
+        offset = 12;
+        flashaddr -= 0x100000;
+      }
+    }
   }
 
   if(flashaddr < 0x4000) {

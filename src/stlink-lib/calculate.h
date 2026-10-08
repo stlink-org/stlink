@@ -19,7 +19,7 @@
 #include <stlink.h>
 
 
-uint32_t calculate_F4_sectornum(uint32_t);
+uint32_t calculate_F4_sectornum(stlink_t *, uint32_t);
 uint32_t calculate_F7_sectornum(uint32_t);
 uint32_t calculate_H7_sectornum(stlink_t *, uint32_t, uint32_t);
 uint32_t calculate_L4_page(stlink_t *, uint32_t);

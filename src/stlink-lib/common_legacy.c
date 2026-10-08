@@ -1047,10 +1047,13 @@ uint32_t stlink_calculate_pagesize(stlink_t *sl, uint32_t flashaddr) {
       (sl->chip_id == STM32_CHIPID_F412) ||
       (sl->chip_id == STM32_CHIPID_F410) ||
       (sl->chip_id == STM32_CHIPID_F413)) {
-    uint32_t sector = calculate_F4_sectornum(flashaddr);
+    uint32_t sector = calculate_F4_sectornum(sl, flashaddr);
 
-    if(sector >= 12) {
-      sector -= 12;
+    /* Correct sector for dual bank flash memories only */
+    if (sl->chip_id != STM32_CHIPID_F413) {
+      if(sector >= 12) {
+        sector -= 12;
+      }
     }
 
     if(sector < 4) {
