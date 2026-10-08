@@ -31,10 +31,12 @@ static void stlink_print_version(stlink_t *sl) {
     // Implementation of version printing is minimalistic
     // but contains all available information from sl->version
     printf("V%u", sl->version.stlink_v);
-    if(sl->version.jtag_v > 0)
+    if(sl->version.jtag_v > 0) {
         printf("J%u", sl->version.jtag_v);
-    if(sl->version.swim_v > 0)
+    }
+    if(sl->version.swim_v > 0) {
         printf("S%u", sl->version.swim_v);
+    }
     printf("\n");
 }
 
@@ -72,7 +74,7 @@ static void stlink_probe(enum connect_type connect, int32_t freq) {
     printf("Found %u stlink programmers\n", size);
 
     for(uint32_t n = 0; n < size; n++) {
-        if(size > 1) printf("%u.\n", n+1);
+        if(size > 1) { printf("%u.\n", n+1); }
         stlink_print_info(stdevs[n]);
     }
 

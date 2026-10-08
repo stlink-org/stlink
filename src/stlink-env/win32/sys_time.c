@@ -1,8 +1,15 @@
-/*
- * File: sys_time.c
- *
- *
- */
+/**
+  ******************************************************************************
+  * @file             sys_time.c
+  * @brief            gettimeofday() for Windows
+  * @copyright        Copyright (c) 2026 stlink-org. All rights reserved.
+  * @date             2026-10-08
+  * SPDX-License-Identifier: BSD-3-Clause
+  *
+  * This file is licensed under the BSD 3-Clause License.
+  * See the LICENSE file in the project root for full license information.
+  ******************************************************************************
+  */
 
 
 #include <stdint.h>

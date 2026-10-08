@@ -1,8 +1,15 @@
-/*
- * File: tests/usb.c
- *
- *
- */
+/**
+  ******************************************************************************
+  * @file             usb.c
+  * @brief            Manual test of the USB backend (needs an ST-LINK)
+  * @copyright        Copyright (c) 2026 stlink-org. All rights reserved.
+  * @date             2026-10-08
+  * SPDX-License-Identifier: BSD-3-Clause
+  *
+  * This file is licensed under the BSD 3-Clause License.
+  * See the LICENSE file in the project root for full license information.
+  ******************************************************************************
+  */
 
 
 // TODO: CONTENT AND USE OF THIS SOURCE FILE IS TO BE VERIFIED
@@ -29,11 +36,13 @@ int32_t main(int32_t ac, char** av) {
     int32_t reset = 0;
 
     if(ac == 2) {
-        if(strcmp(av[1], "--reset") == 0)
+        if(strcmp(av[1], "--reset") == 0) {
             reset = 2;
+        }
 
-        if(strcmp(av[1], "--no-reset") == 0)
+        if(strcmp(av[1], "--no-reset") == 0) {
             reset = 1;
+        }
     }
 
     if(reset == 0) {
@@ -75,8 +84,9 @@ int32_t main(int32_t ac, char** av) {
         static const uint32_t sram_base = STM32_SRAM_BASE;
         uint32_t off;
 
-        for(off = 0; off < 16; off += 4)
+        for(off = 0; off < 16; off += 4) {
             stlink_read_mem32(sl, sram_base + off, 4);
+        }
 
         printf("FP_CTRL\n");
         stlink_read_mem32(sl, STM32_REG_CM3_FP_CTRL, 4);
@@ -115,7 +125,7 @@ int32_t main(int32_t ac, char** av) {
         stlink_write_reg(sl, 0x89abcdef, 4);
         stlink_write_reg(sl, 0x12345678, 15);
 
-        for(off = 0; off < 21; off += 1) stlink_read_reg(sl, off, &regs);
+        for(off = 0; off < 21; off += 1) { stlink_read_reg(sl, off, &regs); }
 
         stlink_read_all_regs(sl, &regs);
 

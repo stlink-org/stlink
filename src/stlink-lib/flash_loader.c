@@ -853,7 +853,7 @@ int32_t stlink_flashloader_write(stlink_t *sl, flash_loader_t *fl, stm32_addr_t 
         const uint32_t row = 16;
 
         const uint32_t padded_len = (len + row - 1) & ~(row - 1);
-        if(len != padded_len) WLOG("Aligning data size to 16 bytes\n");
+        if(len != padded_len) { WLOG("Aligning data size to 16 bytes\n"); }
 
         DLOG("Starting %3u row write\n", padded_len / row);
 

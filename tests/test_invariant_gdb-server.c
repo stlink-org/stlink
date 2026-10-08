@@ -1,8 +1,15 @@
-/*
- * File: tests/test_invariant_gdb-server.c
- *
- *
- */
+/**
+  ******************************************************************************
+  * @file             test_invariant_gdb-server.c
+  * @brief            Test of the serial number buffer boundary of st-util
+  * @copyright        Copyright (c) 2026 stlink-org. All rights reserved.
+  * @date             2026-10-08
+  * SPDX-License-Identifier: BSD-3-Clause
+  *
+  * This file is licensed under the BSD 3-Clause License.
+  * See the LICENSE file in the project root for full license information.
+  ******************************************************************************
+  */
 
 
 // TODO: CONTENT AND USE OF THIS SOURCE FILE IS TO BE VERIFIED
@@ -17,8 +24,7 @@
 #define STLINK_SERIAL_BUFFER_SIZE 16
 
 // This test simulates the security property: buffer boundaries must never be exceeded
-START_TEST(test_serial_buffer_boundary)
-{
+START_TEST(test_serial_buffer_boundary) {
     // Invariant: memcpy must never write beyond st->serialnumber buffer boundaries
     const char *payloads[] = {
         "EXACT_EXPLOIT_PAYLOAD_OVERFLOW", // Exact exploit case: longer than buffer
@@ -57,8 +63,7 @@ START_TEST(test_serial_buffer_boundary)
 }
 END_TEST
 
-Suite *security_suite(void)
-{
+Suite *security_suite(void) {
     Suite *s;
     TCase *tc_core;
 
@@ -71,8 +76,7 @@ Suite *security_suite(void)
     return s;
 }
 
-int main(void)
-{
+int main(void) {
     int number_failed;
     Suite *s;
     SRunner *sr;

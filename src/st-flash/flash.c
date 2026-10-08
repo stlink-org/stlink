@@ -294,8 +294,7 @@ int32_t main(int32_t ac, char** av) {
 
             if((o.size == 0) && (o.addr >= sl->flash_base) && (o.addr < sl->flash_base + sl->flash_size)) {
                 o.size = sl->flash_size;
-            }
-            else if((o.size == 0) && (o.addr >= sl->sram_base) && (o.addr < sl->sram_base + sl->sram_size)) {
+            } else if((o.size == 0) && (o.addr >= sl->sram_base) && (o.addr < sl->sram_base + sl->sram_size)) {
                 o.size = sl->sram_size;
             }
             err = stlink_fread(sl, o.filename, o.format == FLASH_FORMAT_IHEX, o.addr, o.size);
@@ -372,7 +371,7 @@ int32_t main(int32_t ac, char** av) {
         }
     }
 
-    if(o.reset) stlink_reset(sl, RESET_AUTO);
+    if(o.reset) { stlink_reset(sl, RESET_AUTO); }
 
     stlink_run(sl, RUN_NORMAL);
 

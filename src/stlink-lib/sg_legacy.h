@@ -1,8 +1,15 @@
-/*
- * File: sg_legacy.h
- *
- *
- */
+/**
+  ******************************************************************************
+  * @file             sg_legacy.h
+  * @brief            Legacy ST-LINK/V1 backend (SCSI commands over USB mass storage)
+  * @copyright        Copyright (c) 2026 stlink-org. All rights reserved.
+  * @date             2026-10-08
+  * SPDX-License-Identifier: BSD-3-Clause
+  *
+  * This file is licensed under the BSD 3-Clause License.
+  * See the LICENSE file in the project root for full license information.
+  ******************************************************************************
+  */
 
 
 // TODO: CONTENT AND USE OF THIS SOURCE FILE IS TO BE VERIFIED

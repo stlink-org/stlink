@@ -609,7 +609,7 @@ int32_t check_flash_error(stlink_t *sl) {
             res &= ~PGAERR;
         }
 
-        if(res) ELOG("Flash programming error: %#010x\n", res);
+        if(res) { ELOG("Flash programming error: %#010x\n", res); }
         return (-1);
     }
 
@@ -780,8 +780,9 @@ int32_t lock_flash_option(stlink_t *sl) {
     case STM32_FLASH_TYPE_H7:
         optcr_reg = STM32_FLASH_H7_OPTCR;
         optlock_shift = STM32_FLASH_H7_OPTCR_OPTLOCK;
-        if(sl->chip_flags & CHIP_F_HAS_DUAL_BANK)
+        if(sl->chip_flags & CHIP_F_HAS_DUAL_BANK) {
             optcr2_reg = STM32_FLASH_H7_OPTCR2;
+        }
         break;
     case STM32_FLASH_TYPE_L0_L1:
         optcr_reg = get_stm32l0_flash_base(sl) + FLASH_PECR_OFF;
@@ -1726,10 +1727,11 @@ int32_t stlink_mwrite_flash(stlink_t *sl, uint8_t *data, uint32_t length,
     if(sl->opt) {
         idx = length;
 
-        for(num_empty = 0; num_empty != length; ++num_empty)
+        for(num_empty = 0; num_empty != length; ++num_empty) {
             if(data[--idx] != erased_pattern) {
                 break;
             }
+        }
 
         num_empty -= (num_empty & 3); // Round down to words
 
@@ -1957,8 +1959,9 @@ int32_t stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t *base,
     }
 
     ret = stlink_flashloader_start(sl, &fl);
-    if(ret)
+    if(ret) {
         return ret;
+    }
     ret = stlink_flashloader_write(sl, &fl, addr, base, len);
     if(ret) {
         // leave the flash controller in a clean state (PG cleared, locked), otherwise
@@ -1967,8 +1970,9 @@ int32_t stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t *base,
         return ret;
     }
     ret = stlink_flashloader_stop(sl, &fl);
-    if(ret)
+    if(ret) {
         return ret;
+    }
 
     return (stlink_verify_write_flash(sl, addr, base, len));
 }
@@ -1987,14 +1991,17 @@ int32_t stlink_write_otp(stlink_t *sl, stm32_addr_t addr, uint8_t *base, uint32_
     stlink_core_id(sl);
 
     ret = stlink_flashloader_start(sl, &fl);
-    if(ret)
+    if(ret) {
         return ret;
+    }
     ret = stlink_flashloader_write(sl, &fl, addr, base, len);
-    if(ret)
+    if(ret) {
         return ret;
+    }
     ret = stlink_flashloader_stop(sl, &fl);
-    if(ret)
+    if(ret) {
         return ret;
+    }
 
     return (stlink_verify_write_flash(sl, addr, base, len));
 }

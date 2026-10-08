@@ -1,8 +1,15 @@
-/*
- * File: common_legacy.c
- *
- *
- */
+/**
+  ******************************************************************************
+  * @file             common_legacy.c
+  * @brief            Device parameters, core control, SRAM and file transfer
+  * @copyright        Copyright (c) 2026 stlink-org. All rights reserved.
+  * @date             2026-10-08
+  * SPDX-License-Identifier: BSD-3-Clause
+  *
+  * This file is licensed under the BSD 3-Clause License.
+  * See the LICENSE file in the project root for full license information.
+  ******************************************************************************
+  */
 
 
 // TODO: CONTENT AND USE OF THIS SOURCE FILE IS TO BE VERIFIED
@@ -1158,7 +1165,7 @@ int32_t stlink_chip_id(stlink_t *sl, uint32_t *chip_id) {
             // 0x44024000 (RM0481, DEV_ID 0x484).
             ret = stlink_read_debug32(sl, 0x44024000, chip_id);
         }
-    } else /* СM3, СM4, CM7 */ {
+    } else { /* СM3, СM4, CM7 */
         // default chipid address
 
         // STM32F1 (RM0008, pg1087; RM0041, pg681)
@@ -1319,16 +1326,14 @@ int32_t stlink_load_device_params(stlink_t *sl) {
         sl->flash_size = ((flash_size & 0x1ffff) + 1) * 4;
         if(sl->chip_id == STM32_CHIPID_WL3x) {
             // RM0511, p211
-            switch((flash_size >> STM32_FLASH_WB0_RAM_SIZE) & 0x01)
-            {
+            switch((flash_size >> STM32_FLASH_WB0_RAM_SIZE) & 0x01) {
             case 0: sl->sram_size = 16*1024; break;
             case 1: sl->sram_size = 32*1024; break;
             }
         } else if(sl->chip_id != STM32_CHIPID_WB05) {
             // WB06/WB07 RM0530, p149
             // WB09      RM0505, p183
-            switch((flash_size >> STM32_FLASH_WB0_RAM_SIZE) & 0x03)
-            {
+            switch((flash_size >> STM32_FLASH_WB0_RAM_SIZE) & 0x03) {
             case 0: // also 32kB
             case 1: sl->sram_size = 32*1024; break;
             case 2: sl->sram_size = 48*1024; break;
@@ -1379,8 +1384,9 @@ int32_t stlink_load_device_params(stlink_t *sl) {
     // H7 devices with small flash has one bank
     if(sl->chip_flags & CHIP_F_HAS_DUAL_BANK &&
         sl->flash_type == STM32_FLASH_TYPE_H7) {
-        if((sl->flash_size / sl->flash_pgsz) <= 1)
+        if((sl->flash_size / sl->flash_pgsz) <= 1) {
             sl->chip_flags &= ~CHIP_F_HAS_DUAL_BANK;
+        }
     }
 
     ILOG("%s: %u KiB SRAM, %u KiB flash in at least %u %s pages.\n",

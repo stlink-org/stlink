@@ -1,8 +1,15 @@
-/*
- * File: tests/flash.c
- *
- *
- */
+/**
+  ******************************************************************************
+  * @file             flash.c
+  * @brief            Tests of the st-flash command line parsing
+  * @copyright        Copyright (c) 2026 stlink-org. All rights reserved.
+  * @date             2026-10-08
+  * SPDX-License-Identifier: BSD-3-Clause
+  *
+  * This file is licensed under the BSD 3-Clause License.
+  * See the LICENSE file in the project root for full license information.
+  ******************************************************************************
+  */
 
 
 // TODO: CONTENT AND USE OF THIS SOURCE FILE IS TO BE VERIFIED
@@ -57,7 +64,7 @@ static bool execute_test(const struct Test * test) {
     strcpy(cmd_line, test->cmd_line);
 
     for(char * tok = strtok(cmd_line, " "); tok; tok = strtok(NULL, " ")) {
-        if((size_t) ac >= sizeof(av) / sizeof(av[0])) return (false);
+        if((size_t) ac >= sizeof(av) / sizeof(av[0])) { return (false); }
 
         av[ac] = tok;
         ++ac;
@@ -254,9 +261,11 @@ static struct Test tests[] = {
 int32_t main() {
     bool allOk = true;
 
-    for(uint32_t i = 0; i < sizeof(tests) / sizeof(tests[0]); ++i)
-        if(!execute_test(&tests[i]))
+    for(uint32_t i = 0; i < sizeof(tests) / sizeof(tests[0]); ++i) {
+        if(!execute_test(&tests[i])) {
             allOk = false;
+        }
+    }
 
     return (allOk ? 0 : 1);
 }

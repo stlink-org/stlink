@@ -41,6 +41,7 @@ Updates & changes:
   - [udev] Removed 0x3752 (ST-LINK/V2-1) from `49-stlinkv3.rules` and named the variant of every product id in the rules
 - [st-server] Remote protocol version 1.9.1, as the feature flags sent in the handshake changed: st-server and the tools must be of the same release ([#1474](https://github.com/stlink-org/stlink/issues/1474))
 - [debian] Removed `_parse_version` from `libstlink1.symbols` ([#1474](https://github.com/stlink-org/stlink/issues/1474))
+- [general] Coding conventions applied to the whole code base: indentation with 4 spaces, 1TBS brace style, 2 empty lines after the file header and after the includes, minimal distance before trailing comments and in doc comments, unified file header, LF line endings ([#1474](https://github.com/stlink-org/stlink/issues/1474))
 
 
 # v1.9.0

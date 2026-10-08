@@ -43,12 +43,13 @@ void dump_a_chip(struct stlink_chipid_params *dev) {
 
 struct stlink_chipid_params *stlink_chipid_get_params(uint32_t chip_id) {
     struct stlink_chipid_params *params = NULL;
-    for(params = devicelist; params != NULL; params = params->next)
+    for(params = devicelist; params != NULL; params = params->next) {
         if(params->chip_id == chip_id) {
             DLOG("detected chip_id parameters\n\n");
             dump_a_chip(params);
             break;
         }
+    }
 
     return (params);
 }
@@ -71,12 +72,14 @@ void process_chipfile(char *fname) {
 
     while (fgets(buf, sizeof(buf), fp) != NULL) {
 
-        if(strncmp(buf, "#", strlen("#")) == 0)
+        if(strncmp(buf, "#", strlen("#")) == 0) {
             continue; // ignore comments
+        }
 
         if((strncmp(buf, "\n", strlen("\n")) == 0) ||
-            (strncmp(buf, " ", strlen(" ")) == 0))
+            (strncmp(buf, " ", strlen(" ")) == 0)) {
             continue; // ignore empty lines
+        }
 
         if(sscanf(buf, "%63s %63s", word, value) != 2) {
             WLOG("Failed to read keyword or value in %s\n", fname);

@@ -140,7 +140,7 @@ int32_t parse_options(int32_t argc, char** argv, st_state_t *st) {
     int32_t c;
     int32_t q;
 
-    while ((c = getopt_long(argc, argv, "hv::p:mnuF:V", long_options, &option_index)) != -1)
+    while ((c = getopt_long(argc, argv, "hv::p:mnuF:V", long_options, &option_index)) != -1) {
         switch (c) {
         case 0:
             break;
@@ -198,6 +198,7 @@ int32_t parse_options(int32_t argc, char** argv, st_state_t *st) {
             st->remote = optarg;
             break;
         }
+    }
 
 
     if(optind < argc) {
@@ -444,7 +445,7 @@ static int32_t add_data_watchpoint(stlink_t *sl, enum watchfun wf, stm32_addr_t 
     }
 
     if((mask != (uint32_t)-1) && (mask < 16)) {
-        for(i = 0; i < DATA_WATCH_NUM; i++)
+        for(i = 0; i < DATA_WATCH_NUM; i++) {
             // is this an empty slot ?
             if(data_watches[i].fun == WATCHDISABLED) {
                 DLOG("insert watchpoint %d addr %x wf %u mask %u len %d\n", i, addr, wf, mask, len);
@@ -466,6 +467,7 @@ static int32_t add_data_watchpoint(stlink_t *sl, enum watchfun wf, stm32_addr_t 
                 stlink_read_debug32(sl,  STM32_REG_CM3_DWT_FUNn(i), &dummy);
                 return (0);
             }
+        }
     }
 
     DLOG("failure: add watchpoints addr %x wf %u len %u\n", addr, wf, len);
@@ -533,8 +535,9 @@ static void init_code_breakpoints(stlink_t *sl) {
 }
 
 static int32_t has_breakpoint(stm32_addr_t addr) {
-    for(int32_t i = 0; i < code_break_num; i++)
+    for(int32_t i = 0; i < code_break_num; i++) {
         if(code_breaks[i].addr == addr) { return (1); }
+    }
 
     return (0);
 }
@@ -558,25 +561,28 @@ static int32_t update_code_breakpoint(stlink_t *sl, stm32_addr_t addr, int32_t s
     }
 
     int32_t id = -1;
-    for(int32_t i = 0; i < code_break_num; i++)
+    for(int32_t i = 0; i < code_break_num; i++) {
         if(fpb_addr == code_breaks[i].addr || (set && code_breaks[i].type == 0)) {
             id = i;
             break;
         }
+    }
 
     if(id == -1) {
-        if(set)
+        if(set) {
             return (-1); // free slot not found
-        else
+        } else {
             return (0); // breakpoint is already removed
+        }
     }
 
     struct code_hw_breakpoint* bp = &code_breaks[id];
     bp->addr = fpb_addr;
-    if(set)
+    if(set) {
         bp->type |= type;
-    else
+    } else {
         bp->type &= ~type;
+    }
 
     // DDI0403E, p. 759, FP_COMPn register description
     mask = ((bp->type&0x03) << 30) | bp->addr | 1;
@@ -753,7 +759,7 @@ static struct cache_desc_t cache_desc;
 static uint32_t ceil_log2(uint32_t v) {
     uint32_t res;
 
-    for(res = 0; (1U << res) < v; res++);
+    for(res = 0; (1U << res) < v; res++) {}
 
     return (res);
 }
@@ -783,8 +789,9 @@ static void init_cache (stlink_t *sl) {
     if((ctr >> 29) != 0x04) {
         cache_desc.used = 0;
         return;
-    } else
+    } else {
         cache_desc.used = 1;
+    }
     cache_desc.dminline = 4 << ((ctr >> 16) & 0x0f);
     cache_desc.iminline = 4 << (ctr & 0x0f);
 

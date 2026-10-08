@@ -1,8 +1,15 @@
-/*
- * File: tests/sg_legacy.c
- *
- *
- */
+/**
+  ******************************************************************************
+  * @file             sg_legacy.c
+  * @brief            Manual test of the legacy ST-LINK/V1 backend (needs an ST-LINK/V1)
+  * @copyright        Copyright (c) 2026 stlink-org. All rights reserved.
+  * @date             2026-10-08
+  * SPDX-License-Identifier: BSD-3-Clause
+  *
+  * This file is licensed under the BSD 3-Clause License.
+  * See the LICENSE file in the project root for full license information.
+  ******************************************************************************
+  */
 
 
 // TODO: CONTENT AND USE OF THIS SOURCE FILE IS TO BE VERIFIED
@@ -53,7 +60,7 @@ int32_t main(void) { // main() ripped out of old stlink-hw.c
 
     stlink_t *sl = stlink_v1_open(99, 1);
 
-    if(sl == NULL) return (0);
+    if(sl == NULL) { return (0); }
 
     // we are in mass mode, go to swd
     stlink_enter_swd_mode(sl);

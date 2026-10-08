@@ -69,8 +69,7 @@ static void stlink_gui_init(STlinkGUI *self) {
     self->file_mem.base   = 0;
 }
 
-static void help(void)
-{
+static void help(void) {
     puts("usage: stlink-gui [options] file\n");
     puts("options:");
     puts("  --version/-v           Print version information.");
@@ -750,8 +749,9 @@ int32_t export_to_file(const char*filename, const struct mem_t flash_mem) {
 
     if(f == NULL) { return (-1); }
 
-    for(gsize i = 0; i < flash_mem.size; i++)
+    for(gsize i = 0; i < flash_mem.size; i++) {
         if(fputc(flash_mem.memory[i], f) == EOF) { return (-1); }
+    }
 
     fclose(f);
     return (0);

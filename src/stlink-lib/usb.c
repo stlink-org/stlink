@@ -744,12 +744,12 @@ int32_t _stlink_usb_set_swdclk(stlink_t* sl, int32_t clk_freq) {
             speeds_size = STLINK_V3_MAX_FREQ_NB;
         }
 
-        for(i = 0; i < speeds_size; i++) map[i] = le_to_h_u32(&data[12 + 4 * i]);
+        for(i = 0; i < speeds_size; i++) { map[i] = le_to_h_u32(&data[12 + 4 * i]); }
 
         // Set to zero all the next entries
-        for(i = speeds_size; i < STLINK_V3_MAX_FREQ_NB; i++) map[i] = 0;
+        for(i = speeds_size; i < STLINK_V3_MAX_FREQ_NB; i++) { map[i] = 0; }
 
-        if(!clk_freq) clk_freq = 1000; // set default frequency
+        if(!clk_freq) { clk_freq = 1000; } // set default frequency
         speed_index = _stlink_match_speed_map(map, STLINK_ARRAY_SIZE(map), clk_freq);
 
         i = fill_command(sl, SG_DXFER_FROM_DEV, 16);
@@ -840,7 +840,7 @@ int32_t _stlink_usb_read_all_regs(stlink_t *sl, struct stlink_reg *regp) {
     sl->q_len = (int32_t) size;
     stlink_print_data(sl);
 
-    for(i = 0; i < 16; i++) regp->r[i] = read_uint32(sl->q_buf, reg_offset + i * 4);
+    for(i = 0; i < 16; i++) { regp->r[i] = read_uint32(sl->q_buf, reg_offset + i * 4); }
 
     regp->xpsr       = read_uint32(sl->q_buf, reg_offset + 64);
     regp->main_sp    = read_uint32(sl->q_buf, reg_offset + 68);
@@ -923,7 +923,7 @@ int32_t _stlink_usb_read_unsupported_reg(stlink_t *sl, int32_t r_idx, struct stl
 
     sl->q_buf[0] = (unsigned char)r_idx;
 
-    for(int32_t i = 1; i < 4; i++) sl->q_buf[i] = 0;
+    for(int32_t i = 1; i < 4; i++) { sl->q_buf[i] = 0; }
 
     ret = _stlink_usb_write_mem32(sl, STM32_REG_DCRSR, 4);
 
@@ -1193,14 +1193,14 @@ uint32_t stlink_serial(struct libusb_device_handle *handle, struct libusb_device
 
     /* get the LANGID from String Descriptor Zero */
     int32_t ret = libusb_get_string_descriptor(handle, 0, 0, desc_serial, sizeof(desc_serial));
-    if(ret < 4) return 0;
+    if(ret < 4) { return 0; }
 
     uint32_t langid = desc_serial[2] | (desc_serial[3] << 8);
 
     /* get the serial */
     ret = libusb_get_string_descriptor(handle, desc->iSerialNumber, langid, desc_serial,
         sizeof(desc_serial));
-    if(ret < 0) return 0; // could not read serial
+    if(ret < 0) { return 0; } // could not read serial
 
     unsigned char len = desc_serial[0];
 
@@ -1208,11 +1208,12 @@ uint32_t stlink_serial(struct libusb_device_handle *handle, struct libusb_device
         /* good ST-Link adapter */
         ret = libusb_get_string_descriptor_ascii(
             handle, desc->iSerialNumber, (unsigned char *)serial, STLINK_SERIAL_BUFFER_SIZE);
-        if(ret < 0) return 0;
+        if(ret < 0) { return 0; }
     } else if(len == ((STLINK_SERIAL_LENGTH / 2 + 1) * 2)) { /* len == 26 */
         /* fix-up the buggy serial */
-        for(uint32_t i = 0; i < STLINK_SERIAL_LENGTH; i += 2)
+        for(uint32_t i = 0; i < STLINK_SERIAL_LENGTH; i += 2) {
             sprintf(serial + i, "%02X", desc_serial[i + 2]);
+        }
         serial[STLINK_SERIAL_LENGTH] = '\0';
     } else {
         return 0;

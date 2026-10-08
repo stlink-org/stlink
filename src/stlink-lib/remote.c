@@ -314,8 +314,11 @@ static int32_t rb_read_reg_payload(stlink_t *sl, uint8_t op, uint32_t arg, struc
     uint8_t p[REG_WIRE_LEN];
     uint32_t pl;
     int32_t ret = remote_rpc(sl, op, arg, 0, NULL, 0, p, sizeof(p), &pl);
-    if (ret == 0 && pl == REG_WIRE_LEN) { reg_from_wire(regp, p); }
-    else if (ret == 0) { ret = -1; }
+    if (ret == 0 && pl == REG_WIRE_LEN) {
+        reg_from_wire(regp, p);
+    } else if (ret == 0) {
+        ret = -1;
+    }
     return (ret);
 }
 
@@ -342,8 +345,11 @@ static int32_t rb_write_unsupported_reg(stlink_t *sl, uint32_t value, int32_t r_
     reg_to_wire(p, regp);
     int32_t ret = remote_rpc(sl, RPC_WRITE_UNSUPPORTED_REG, value, (uint32_t)r_idx,
                              p, sizeof(p), rp, sizeof(rp), &pl);
-    if (ret == 0 && pl == REG_WIRE_LEN) { reg_from_wire(regp, rp); }
-    else if (ret == 0) { ret = -1; }
+    if (ret == 0 && pl == REG_WIRE_LEN) {
+        reg_from_wire(regp, rp);
+    } else if (ret == 0) {
+        ret = -1;
+    }
     return (ret);
 }
 

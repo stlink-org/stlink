@@ -1,6 +1,6 @@
 /**
   ******************************************************************************
-  * @file             gdb-remote.ch
+  * @file             gdb-remote.h
   * @brief            Tool: st-util
   * @copyright        Copyright (c) 2026 stlink-org. All rights reserved.
   * @author           Peter Zotov (whitequark)
