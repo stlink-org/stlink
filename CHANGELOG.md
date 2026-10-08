@@ -17,6 +17,7 @@ Features:
 - [stlink-lib] Progress reporting per device via `stlink_set_progress_handler()`; without a handler the progress is printed to stdout as before ([#1474](https://github.com/stlink-org/stlink/issues/1474))
 - [stlink-lib] `md5_calculate_digest()` and `stlink_checksum_calculate()` return the MD5 digest and checksum of a mapped file ([#1474](https://github.com/stlink-org/stlink/issues/1474))
 - [stlink-lib] New feature flags `STLINK_F_HAS_TARGET_VOLTAGE` and `STLINK_F_HAS_NRST`; all `STLINK_F_*` flags are now set according to the hardware generation and firmware version of the ST-LINK ([#1474](https://github.com/stlink-org/stlink/issues/1474))
+- [doc] API documentation of stlink-lib, generated with Doxygen by the new `doc-api` target (`-DSTLINK_GENERATE_API_DOCS=ON`): HTML pages in `doc/api/html` of the build directory, installed into the doc directory; `doc/api/mainpage.md` gives an overview, an example and the conventions of the library (return values, handles, data buffer, side effects, threads, output). `-DSTLINK_API_DOCS_INTERNAL=ON` adds the internal functions ([#1474](https://github.com/stlink-org/stlink/issues/1474), commit [#6d4d4b3](https://github.com/stlink-org/stlink/commit/6d4d4b3cad7375ee52f01d427993128e618c1289))
 
 Updates & changes:
 
@@ -28,6 +29,9 @@ Updates & changes:
   - `stlink_read_option_bytes_f7()` logs the option words at debug level instead of printing them to stdout, like the option byte functions of the other families
 - [st-flash, st-util] The log level is set right after parsing the options, so debug messages no longer show at the standard level before the device is opened ([#1474](https://github.com/stlink-org/stlink/issues/1474))
 - [stlink-lib] `md5_calculate()` and `stlink_checksum()` are deprecated, as they print to stdout ([#1474](https://github.com/stlink-org/stlink/issues/1474))
+- [stlink-lib] Documented the exported functions in the headers: parameters, return values, side effects and preconditions, sorted into Doxygen groups; the internal functions are documented briefly and only appear in the internal documentation, defects found while documenting are marked with `@bug` ([#1474](https://github.com/stlink-org/stlink/issues/1474), commit [#b7a27bd](https://github.com/stlink-org/stlink/commit/b7a27bda980d7ace513d6fcef70c6060bb82f9cb))
+  - Removed the declaration of `stlink_enter_jtag_mode()`, which was never implemented
+  - `stlink_t::freq` holds the SWD frequency in kHz (the comment called it a divisor)
 - [stlink-lib] Hardware consolidation: the knowledge about the ST-LINK variants is collected in `stlink_hw.c` (internal): one table of the variants by USB product id (generation, endpoints, trace buffer), the version decoding (formerly `_parse_version()`) and one function deriving the feature flags with all firmware thresholds. The code tests these flags instead of version numbers and product ids ([#1474](https://github.com/stlink-org/stlink/issues/1474))
   - 8 bit memory writes of up to 512 bytes need STLINK-V3 firmware J6 or later (64 bytes before)
   - The target voltage is no longer read from ST-LINK/V2 firmware before J13, which cannot measure it (the flash loader assumes 3.2 V, as for the ST-LINK/V1)
