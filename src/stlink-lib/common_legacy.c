@@ -26,6 +26,7 @@
 #include "map_file.h"
 #include "progress.h"
 #include "read_write.h"
+#include "stlink_hw.h"
 #include "usb.h"
 
 
@@ -56,7 +57,6 @@ typedef bool (*save_block_fn)(void *arg, uint8_t *block, ssize_t len);
 static void stop_wdg_in_debug(stlink_t *);
 int32_t stlink_jtag_reset(stlink_t *, int32_t);
 int32_t stlink_soft_reset(stlink_t *, int32_t);
-void _parse_version(stlink_t *, stlink_version_t *);
 static uint8_t stlink_parse_hex(const char *);
 static int32_t stlink_read(stlink_t *, stm32_addr_t, uint32_t, save_block_fn, void *);
 static bool stlink_fread_ihex_init(struct stlink_fread_ihex_worker_arg *, int32_t, stm32_addr_t);
@@ -203,78 +203,6 @@ int32_t stlink_soft_reset(stlink_t *sl, int32_t halt_on_reset) {
   }
 
   return (0);
-}
-
-/**
- * Decode the version bits, originally from -sg, verified with usb
- * @param sl stlink context, assumed to contain valid data in the buffer
- * @param slv output parsed version object
- */
-void _parse_version(stlink_t *sl, stlink_version_t *slv) {
-  sl->version.flags = 0;
-
-  if(sl->version.stlink_v < 3) {
-    uint32_t b0 = sl->q_buf[0]; // lsb
-    uint32_t b1 = sl->q_buf[1];
-    uint32_t b2 = sl->q_buf[2];
-    uint32_t b3 = sl->q_buf[3];
-    uint32_t b4 = sl->q_buf[4];
-    uint32_t b5 = sl->q_buf[5]; // msb
-
-    // b0 b1                       || b2 b3  | b4 b5
-    // 4b        | 6b     | 6b     || 2B     | 2B
-    // stlink_v  | jtag_v | swim_v || st_vid | stlink_pid
-
-    slv->stlink_v = (b0 & 0xf0) >> 4;
-    slv->jtag_v = ((b0 & 0x0f) << 2) | ((b1 & 0xc0) >> 6);
-    slv->swim_v = b1 & 0x3f;
-    slv->st_vid = (b3 << 8) | b2;
-    slv->stlink_pid = (b5 << 8) | b4;
-
-    // ST-LINK/V1 from J11 switch to api-v2 (and support SWD)
-    if(slv->stlink_v == 1) {
-      slv->jtag_api =
-          slv->jtag_v > 11 ? STLINK_JTAG_API_V2 : STLINK_JTAG_API_V1;
-    } else {
-      slv->jtag_api = STLINK_JTAG_API_V2;
-
-      // preferred API to get last R/W status from J15
-      if(sl->version.jtag_v >= 15) {
-        sl->version.flags |= STLINK_F_HAS_GETLASTRWSTATUS2;
-      }
-
-      if(sl->version.jtag_v >= 13) {
-        sl->version.flags |= STLINK_F_HAS_TRACE;
-        sl->max_trace_freq = STLINK_V2_MAX_TRACE_FREQUENCY;
-      }
-
-      // memory R/W commands accept the MEM-AP CSW from J32
-      if(sl->version.jtag_v >= 32) {
-        sl->version.flags |= STLINK_F_HAS_CSW;
-      }
-    }
-  } else {
-    // V3 uses different version format, for reference see OpenOCD source
-    // (that was written from docs available from ST under NDA):
-    // https://github.com/ntfreak/openocd/blob/a6dacdff58ef36fcdac00c53ec27f19de1fbce0d/src/jtag/drivers/stlink_usb.c#L965
-    slv->stlink_v = sl->q_buf[0];
-    slv->swim_v = sl->q_buf[1];
-    slv->jtag_v = sl->q_buf[2];
-    slv->st_vid = (uint32_t) ((sl->q_buf[9] << 8) | sl->q_buf[8]);
-    slv->stlink_pid = (uint32_t) ((sl->q_buf[11] << 8) | sl->q_buf[10]);
-    slv->jtag_api = STLINK_JTAG_API_V3;
-    /* preferred API to get last R/W status */
-    sl->version.flags |= STLINK_F_HAS_GETLASTRWSTATUS2;
-    sl->version.flags |= STLINK_F_HAS_TRACE;
-    sl->max_trace_freq = STLINK_V3_MAX_TRACE_FREQUENCY;
-
-    // memory R/W commands accept the MEM-AP CSW from V3J2
-    if(sl->version.jtag_v >= 2) {
-      sl->version.flags |= STLINK_F_HAS_CSW;
-    }
-  }
-
-  return;
 }
 
 // TODO: length not checked
@@ -546,7 +474,7 @@ int32_t stlink_reset(stlink_t *sl, enum reset_type type) {
 
   if(type == RESET_HARD || type == RESET_AUTO) {
     // hardware target reset
-    if(sl->version.stlink_v > 1) {
+    if(sl->version.flags & STLINK_F_HAS_NRST) {
       stlink_jtag_reset(sl, STLINK_DEBUG_APIV2_DRIVE_NRST_LOW);
       // minimum reset pulse duration of 20 us (RM0008, 8.1.2 Power reset)
       usleep(100);
@@ -644,7 +572,10 @@ int32_t stlink_version(stlink_t *sl) {
     return (-1);
   }
 
-  _parse_version(sl, &sl->version);
+  // decode the reply and derive the feature flags from the ST-LINK variant
+  if(stlink_hw_parse_version(sl)) {
+    return (-1);
+  }
 
   DLOG("st vid         = 0x%04x (expect 0x%04x)\n", sl->version.st_vid,
        STLINK_USB_VID_ST);
@@ -700,7 +631,9 @@ int32_t stlink_target_voltage(stlink_t *sl) {
   int32_t voltage = -1;
   DLOG("*** reading target voltage\n");
 
-  if(sl->backend->target_voltage != NULL) {
+  if(!(sl->version.flags & STLINK_F_HAS_TARGET_VOLTAGE)) {
+    DLOG("reading voltage not supported by this ST-LINK\n");
+  } else if(sl->backend->target_voltage != NULL) {
     voltage = sl->backend->target_voltage(sl);
 
     if(voltage != -1) {

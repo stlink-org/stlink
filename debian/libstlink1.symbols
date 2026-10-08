@@ -3,7 +3,6 @@ libstlink.so.1 libstlink1 #MINVER#
  Md5Finalise@Base 1.6.1
  Md5Initialise@Base 1.6.1
  Md5Update@Base 1.6.1
- _parse_version@Base 1.5.0
  _stlink_sg_close@Base 1.5.0
  _stlink_sg_core_id@Base 1.5.0
  _stlink_sg_current_mode@Base 1.5.0

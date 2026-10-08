@@ -55,7 +55,18 @@
 
 /** @cond STLINK_INTERNAL */
 #define STLINK_REMOTE_MAGIC        0x4b4c5453 /* "STLK" */
-#define STLINK_REMOTE_PROTOCOL_VERSION 1
+
+/*
+ * Version of the remote protocol: the stlink release that last changed it,
+ * encoded as (major << 16) | (minor << 8) | patch. Client and server must use
+ * the same version. History:
+ *   1      first version
+ *   1.9.1  STLINK_F_* flags in the handshake derived from the ST-LINK hardware
+ *          table (stlink_hw.c): new flags, more flags set
+ */
+#define STLINK_REMOTE_PROTOCOL_VERSION_ENCODE(major, minor, patch) \
+    (((uint32_t) (major) << 16) | ((uint32_t) (minor) << 8) | (uint32_t) (patch))
+#define STLINK_REMOTE_PROTOCOL_VERSION STLINK_REMOTE_PROTOCOL_VERSION_ENCODE(1, 9, 1)
 
 /*
  * Fixed on-wire size of the handshake serial field. Deliberately decoupled

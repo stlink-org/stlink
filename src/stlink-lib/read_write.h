@@ -130,8 +130,8 @@ int32_t stlink_write_mem32(stlink_t *sl, uint32_t addr, uint16_t len);
  *
  * @param sl   device handle
  * @param addr address
- * @param len  number of bytes: at most 64 (ST-LINK/V1, V2) or 512 (ST-LINK/V3);
- *             not checked by the legacy ST-LINK/V1 backend
+ * @param len  number of bytes: at most 64, or 512 with STLINK_F_HAS_RW8_512BYTES
+ *             (STLINK-V3 from firmware J6); not checked by the legacy ST-LINK/V1 backend
  * @return 0 on success, -1 on a transport error or if @p len exceeds the limit
  */
 int32_t stlink_write_mem8(stlink_t *sl, uint32_t addr, uint16_t len);

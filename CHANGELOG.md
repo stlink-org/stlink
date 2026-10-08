@@ -16,6 +16,7 @@ Features:
 - [stlink-lib] Programmatically managed logging: `stlink_log_set_handler()` routes all messages (including those of libusb) to the application, `stlink_log_set_level()` sets a level the open functions no longer override ([#1474](https://github.com/stlink-org/stlink/issues/1474))
 - [stlink-lib] Progress reporting per device via `stlink_set_progress_handler()`; without a handler the progress is printed to stdout as before ([#1474](https://github.com/stlink-org/stlink/issues/1474))
 - [stlink-lib] `md5_calculate_digest()` and `stlink_checksum_calculate()` return the MD5 digest and checksum of a mapped file ([#1474](https://github.com/stlink-org/stlink/issues/1474))
+- [stlink-lib] New feature flags `STLINK_F_HAS_TARGET_VOLTAGE` and `STLINK_F_HAS_NRST`; all `STLINK_F_*` flags are now set according to the hardware generation and firmware version of the ST-LINK ([#1474](https://github.com/stlink-org/stlink/issues/1474))
 
 Updates & changes:
 
@@ -27,7 +28,15 @@ Updates & changes:
   - `stlink_read_option_bytes_f7()` logs the option words at debug level instead of printing them to stdout, like the option byte functions of the other families
 - [st-flash, st-util] The log level is set right after parsing the options, so debug messages no longer show at the standard level before the device is opened ([#1474](https://github.com/stlink-org/stlink/issues/1474))
 - [stlink-lib] `md5_calculate()` and `stlink_checksum()` are deprecated, as they print to stdout ([#1474](https://github.com/stlink-org/stlink/issues/1474))
-
+- [stlink-lib] Hardware consolidation: the knowledge about the ST-LINK variants is collected in `stlink_hw.c` (internal): one table of the variants by USB product id (generation, endpoints, trace buffer), the version decoding (formerly `_parse_version()`) and one function deriving the feature flags with all firmware thresholds. The code tests these flags instead of version numbers and product ids ([#1474](https://github.com/stlink-org/stlink/issues/1474))
+  - 8 bit memory writes of up to 512 bytes need STLINK-V3 firmware J6 or later (64 bytes before)
+  - The target voltage is no longer read from ST-LINK/V2 firmware before J13, which cannot measure it (the flash loader assumes 3.2 V, as for the ST-LINK/V1)
+  - The access port initialisation is only sent to firmware supporting it (ST-LINK/V2 from J28, STLINK-V3)
+  - `stlink_hw.h` is not installed
+  - Consistent classification of the USB product ids: 0x374a and 0x374b are ST-LINK/V2-1 in `STLINK_V2_1_USB_PID()` (formerly `STLINK_V2_USB_PID()`); 0x3752 is ST-LINK/V2-1 without mass storage (ST TN1235)
+  - [udev] Removed 0x3752 (ST-LINK/V2-1) from `49-stlinkv3.rules` and named the variant of every product id in the rules
+- [st-server] Remote protocol version 1.9.1, as the feature flags sent in the handshake changed: st-server and the tools must be of the same release ([#1474](https://github.com/stlink-org/stlink/issues/1474))
+- [debian] Removed `_parse_version` from `libstlink1.symbols` ([#1474](https://github.com/stlink-org/stlink/issues/1474))
 
 
 # v1.9.0

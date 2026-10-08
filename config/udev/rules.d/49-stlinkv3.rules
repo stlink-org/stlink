@@ -1,34 +1,33 @@
-# STLink V3SET in Dual CDC mode
-SUBSYSTEMS=="usb", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="3752", \
-    MODE:="0666", \
-    SYMLINK+="stlinkv3_%n"
+# STLINK-V3 probes (STLINK-V3SET, -V3MODS, -V3MINI, -V3MINIE, -V3E, -V3EC, -V3PWR)
+# The product id depends on the bridge functions and on the USB configuration
+# of the firmware (ST TN1235), see the table in src/stlink-lib/stlink_hw.c.
 
-# STLink V3SET in Dual CDC mode
-SUBSYSTEMS=="usb", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="3753", \
-    MODE:="0666", \
-    SYMLINK+="stlinkv3_%n"
-
-# STLink V3SET MINIE
-SUBSYSTEMS=="usb", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="3754", \
-    MODE:="0666", \
-    SYMLINK+="stlinkv3_%n"
-
-# STLink V3SET 
+# STLINK-V3 USB loader (firmware update mode)
 SUBSYSTEMS=="usb", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="374d", \
     MODE:="0666", \
     SYMLINK+="stlinkv3_%n"
 
-# STLink V3SET 
+# STLINK-V3 without bridge functions
 SUBSYSTEMS=="usb", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="374e", \
     MODE:="0666", \
     SYMLINK+="stlinkv3_%n"
-    
-# STLink V3SET in normal mode
+
+# STLINK-V3 without bridge functions, without mass storage
+SUBSYSTEMS=="usb", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="3754", \
+    MODE:="0666", \
+    SYMLINK+="stlinkv3_%n"
+
+# STLINK-V3 with bridge functions
 SUBSYSTEMS=="usb", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="374f", \
     MODE:="0666", \
     SYMLINK+="stlinkv3_%n"
 
-# STLink V3PWR 
+# STLINK-V3 with bridge functions, second virtual COM port instead of mass storage
+SUBSYSTEMS=="usb", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="3753", \
+    MODE:="0666", \
+    SYMLINK+="stlinkv3_%n"
+
+# STLINK-V3PWR
 SUBSYSTEMS=="usb", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="3757", \
     MODE:="0666", \
     SYMLINK+="stlinkv3_%n"

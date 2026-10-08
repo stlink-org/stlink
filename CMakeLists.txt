@@ -114,8 +114,12 @@ file(GLOB STLINK_LIB_SOURCES
     "${CMAKE_SOURCE_DIR}/src/stlink-lib/*.c")
 list(APPEND STLINK_SOURCES ${STLINK_LIB_SOURCES})
 
-# Install library header files
-install(FILES ${STLINK_HEADERS} DESTINATION ${STLINK_INCLUDE_PATH})
+# Install library header files, except the internal ones
+set(STLINK_LIB_PRIVATE_HEADERS
+    "${CMAKE_SOURCE_DIR}/src/stlink-lib/stlink_hw.h")
+set(STLINK_INSTALL_HEADERS ${STLINK_HEADERS})
+list(REMOVE_ITEM STLINK_INSTALL_HEADERS ${STLINK_LIB_PRIVATE_HEADERS})
+install(FILES ${STLINK_INSTALL_HEADERS} DESTINATION ${STLINK_INCLUDE_PATH})
 
 if (MSVC)
     # libusb_settings.h and unistd.h (both installed above) include these,

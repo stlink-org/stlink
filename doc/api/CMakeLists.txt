@@ -64,6 +64,7 @@ if (STLINK_API_DOCS_INTERNAL)
         ${CMAKE_SOURCE_DIR}/src/stlink-lib/calculate.h
         ${CMAKE_SOURCE_DIR}/src/stlink-lib/lib_md5.h
         ${CMAKE_SOURCE_DIR}/src/stlink-lib/progress.h
+        ${CMAKE_SOURCE_DIR}/src/stlink-lib/stlink_hw.h
         ${CMAKE_SOURCE_DIR}/src/stlink-env/fs/stlink_fs.h
         ${CMAKE_SOURCE_DIR}/src/stlink-env/pthreads/stlink_threads.h
         )

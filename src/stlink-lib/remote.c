@@ -21,8 +21,9 @@
  *            [magic][protocol_version][capabilities][stlink_v][jtag_v][swim_v]
  *            [st_vid][stlink_pid][jtag_api][flags][max_trace_freq]
  *
- * Capabilities is reserved for future optional protocol features. Version 1
- * servers send 0 and clients must ignore unknown future capability bits.
+ * Capabilities is reserved for future optional protocol features. Servers up to
+ * protocol version 1.9.1 send 0 and clients must ignore unknown future capability bits.
+ * protocol_version: see STLINK_REMOTE_PROTOCOL_VERSION in remote.h.
  *
  * The client carries sl->ap in every request because the USB command bytes
  * are built on the server, but the access port is selected by the client's
@@ -122,6 +123,15 @@ static int32_t recv_all(int32_t fd, void *buf, uint32_t len) {
         len -= (uint32_t)n;
     }
     return (0);
+}
+
+// Protocol version as text: "1" for the first version, "x.y.z" from 1.9.1 on.
+static void format_protocol_version(char *buf, size_t len, uint32_t version) {
+    if (version < 0x10000) {
+        snprintf(buf, len, "%u", version);
+    } else {
+        snprintf(buf, len, "%u.%u.%u", version >> 16, (version >> 8) & 0xff, version & 0xff);
+    }
 }
 
 // Disable Nagle; the request/reply pattern stalls on delayed-ACK otherwise.
@@ -428,8 +438,12 @@ stlink_t *stlink_open_remote(int32_t verbose, const char *host, int32_t port,
         return (NULL);
     }
     if (read_uint32(hs, 4) != STLINK_REMOTE_PROTOCOL_VERSION) {
-        ELOG_ALWAYS("server at %s:%s uses protocol version %u, client expects %u\n",
-                    host, portstr, read_uint32(hs, 4), STLINK_REMOTE_PROTOCOL_VERSION);
+        char server_version[16], client_version[16];
+        format_protocol_version(server_version, sizeof(server_version), read_uint32(hs, 4));
+        format_protocol_version(client_version, sizeof(client_version), STLINK_REMOTE_PROTOCOL_VERSION);
+        ELOG_ALWAYS("server at %s:%s uses protocol version %s, client expects %s "
+                    "(use st-server and the tools of the same release)\n",
+                    host, portstr, server_version, client_version);
         close(fd);
         return (NULL);
     }

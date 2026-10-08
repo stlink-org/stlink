@@ -43,14 +43,18 @@
 
 /** @cond STLINK_INTERNAL */
 
-/** @name USB vendor and product ids of the ST-LINK versions */
+/**
+ * @name USB vendor and product ids of the ST-LINK versions
+ * Kept for compatibility. The library itself uses the table of ST-LINK variants
+ * in stlink_hw.c, which these macros follow (checked by tests/hw.c).
+ */
 /** @{ */
 #define STLINK_USB_VID_ST                   0x0483
 #define STLINK_USB_PID_STLINK               0x3744
 #define STLINK_USB_PID_STLINK_32L           0x3748
-#define STLINK_USB_PID_STLINK_32L_AUDIO     0x374a
-#define STLINK_USB_PID_STLINK_NUCLEO        0x374b
-#define STLINK_USB_PID_STLINK_V2_1          0x3752
+#define STLINK_USB_PID_STLINK_32L_AUDIO     0x374a  // ST-LINK/V2-1 with the "STM32+Audio" firmware
+#define STLINK_USB_PID_STLINK_NUCLEO        0x374b  // ST-LINK/V2-1
+#define STLINK_USB_PID_STLINK_V2_1          0x3752  // ST-LINK/V2-1 without mass storage
 #define STLINK_USB_PID_STLINK_V3_USBLOADER  0x374d
 #define STLINK_USB_PID_STLINK_V3E_PID       0x374e
 #define STLINK_USB_PID_STLINK_V3S_PID       0x374f
@@ -60,11 +64,11 @@
 
 #define STLINK_V1_USB_PID(pid) ((pid) == STLINK_USB_PID_STLINK)
 
-#define STLINK_V2_USB_PID(pid) ((pid) == STLINK_USB_PID_STLINK_32L || \
-                                (pid) == STLINK_USB_PID_STLINK_32L_AUDIO || \
-                                (pid) == STLINK_USB_PID_STLINK_NUCLEO)
+#define STLINK_V2_USB_PID(pid) ((pid) == STLINK_USB_PID_STLINK_32L)
 
-#define STLINK_V2_1_USB_PID(pid) ((pid) == STLINK_USB_PID_STLINK_V2_1)
+#define STLINK_V2_1_USB_PID(pid) ((pid) == STLINK_USB_PID_STLINK_32L_AUDIO || \
+                                  (pid) == STLINK_USB_PID_STLINK_NUCLEO || \
+                                  (pid) == STLINK_USB_PID_STLINK_V2_1)
 
 #define STLINK_V3_USB_PID(pid) ((pid) == STLINK_USB_PID_STLINK_V3_USBLOADER || \
                                 (pid) == STLINK_USB_PID_STLINK_V3E_PID || \

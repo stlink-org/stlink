@@ -106,20 +106,22 @@ enum target_state {
 /**
  * @name Features of the ST-LINK firmware (stlink_version_t::flags)
  * Map the relevant features, quirks and workaround for specific firmware version of stlink.
- * Set by stlink_version(); currently only STLINK_F_HAS_TRACE,
- * STLINK_F_HAS_GETLASTRWSTATUS2 and STLINK_F_HAS_CSW are detected.
+ * Set by stlink_version() from the hardware generation and the firmware version
+ * of the ST-LINK; the code tests these flags instead of version numbers.
  */
 /** @{ */
-#define STLINK_F_HAS_TRACE              (1U << 0)   ///< SWO trace capture
-#define STLINK_F_HAS_SWD_SET_FREQ       (1U << 1)   ///< SWD frequency can be set (not detected)
-#define STLINK_F_HAS_JTAG_SET_FREQ      (1U << 2)   ///< JTAG frequency can be set (not detected)
-#define STLINK_F_HAS_MEM_16BIT          (1U << 3)   ///< 16 bit memory accesses (not detected)
-#define STLINK_F_HAS_GETLASTRWSTATUS2   (1U << 4)   ///< extended status of the last read/write command
-#define STLINK_F_HAS_DAP_REG            (1U << 5)   ///< DAP register access (not detected)
-#define STLINK_F_QUIRK_JTAG_DP_READ     (1U << 6)   ///< quirk of DP reads in JTAG mode (not detected)
-#define STLINK_F_HAS_AP_INIT            (1U << 7)   ///< access port initialisation (not detected)
-#define STLINK_F_HAS_DPBANKSEL          (1U << 8)   ///< DP bank selection
-#define STLINK_F_HAS_RW8_512BYTES       (1U << 9)   ///< 8 bit transfers of up to 512 bytes (not detected)
+#define STLINK_F_HAS_TRACE              (1U << 0)   ///< SWO trace capture (V2 from J13, V3)
+#define STLINK_F_HAS_SWD_SET_FREQ       (1U << 1)   ///< SWD frequency can be set (V2 from J22, V3)
+#define STLINK_F_HAS_JTAG_SET_FREQ      (1U << 2)   ///< JTAG frequency can be set (V2 from J24, V3)
+#define STLINK_F_HAS_MEM_16BIT          (1U << 3)   ///< 16 bit memory accesses (V2 from J26, V3)
+#define STLINK_F_HAS_GETLASTRWSTATUS2   (1U << 4)   ///< extended status of the last read/write command (V2 from J15, V3)
+#define STLINK_F_HAS_DAP_REG            (1U << 5)   ///< DAP register access (V2 from J24, V3)
+#define STLINK_F_QUIRK_JTAG_DP_READ     (1U << 6)   ///< quirk of DP reads in JTAG mode (V2 J24 to J31)
+#define STLINK_F_HAS_AP_INIT            (1U << 7)   ///< access port initialisation (V2 from J28, V3)
+#define STLINK_F_HAS_DPBANKSEL          (1U << 8)   ///< DP bank selection (V2 from J32, V3 from J2)
+#define STLINK_F_HAS_RW8_512BYTES       (1U << 9)   ///< 8 bit transfers of up to 512 bytes (V3 from J6)
+#define STLINK_F_HAS_TARGET_VOLTAGE     (1U << 10)  ///< target voltage measurement (V2 from J13, V3)
+#define STLINK_F_HAS_NRST               (1U << 11)  ///< NRST pin can be driven (V2, V3)
 // Memory read/write commands accept the MEM-AP CSW value (from V2J32 / V3J2),
 // introduced together with DP bank selection
 #define STLINK_F_HAS_CSW                STLINK_F_HAS_DPBANKSEL  ///< memory commands accept the MEM-AP CSW (V2J32 / V3J2 and later)
@@ -240,8 +242,8 @@ enum connect_type {
 
 /** Kind of reset, see stlink_reset() */
 enum reset_type {
-    RESET_AUTO = 0,             ///< NRST (ST-LINK/V2 and later) and the system reset command of the ST-LINK, software reset if no reset is detected
-    RESET_HARD = 1,             ///< NRST (ST-LINK/V2 and later) and the system reset command of the ST-LINK
+    RESET_AUTO = 0,             ///< NRST (with STLINK_F_HAS_NRST) and the system reset command of the ST-LINK, software reset if no reset is detected
+    RESET_HARD = 1,             ///< NRST (with STLINK_F_HAS_NRST) and the system reset command of the ST-LINK
     RESET_SOFT = 2,             ///< software reset via AIRCR.SYSRESETREQ
     RESET_SOFT_AND_HALT = 3,    ///< software reset, core halted at the reset vector
 };
@@ -408,8 +410,9 @@ void stlink_close(stlink_t *sl);
  * Read the firmware version of the ST-LINK.
  *
  * Fills stlink_t::version, including the supported debug API and the feature
- * flags (STLINK_F_*), and stlink_t::max_trace_freq (ST-LINK/V2 from firmware
- * J13 and V3). Called by stlink_open_usb(), so applications rarely need it.
+ * flags (STLINK_F_*, derived from the hardware generation and the firmware
+ * version), and stlink_t::max_trace_freq (0 without STLINK_F_HAS_TRACE).
+ * Called by stlink_open_usb(), so applications rarely need it.
  *
  * @warning Do not call it on a handle from stlink_open_remote(): the version
  *          comes from the handshake there, and the remote backend returns no
@@ -461,8 +464,8 @@ int32_t stlink_exit_dfu_mode(stlink_t *sl);
  * Set the SWD clock frequency.
  *
  * The frequency supported by the ST-LINK closest to @p freq_khz is selected.
- * Only supported by ST-LINK/V2 with firmware J22 or later and by ST-LINK/V3.
- * The open functions set the frequency given to them.
+ * Only supported if the ST-LINK has STLINK_F_HAS_SWD_SET_FREQ (ST-LINK/V2 from
+ * firmware J22, STLINK-V3). The open functions set the frequency given to them.
  *
  * @warning The legacy ST-LINK/V1 backend (stlink_v1_open()) does not implement
  *          it; the call then dereferences a NULL pointer.
@@ -475,9 +478,13 @@ int32_t stlink_set_swdclk(stlink_t *sl, int32_t freq_khz);
 
 /**
  * Read the target voltage measured by the ST-LINK.
+ *
+ * Only supported if the ST-LINK has STLINK_F_HAS_TARGET_VOLTAGE (ST-LINK/V2 from
+ * firmware J13, STLINK-V3); test the flag to tell "not supported" from an error.
+ *
  * @param sl device handle
  * @return the voltage in mV (0 if the ST-LINK reports an invalid reading), or -1
- *         on error or if the backend cannot measure it
+ *         on error or if the ST-LINK cannot measure it
  */
 int32_t stlink_target_voltage(stlink_t *sl);
 
@@ -594,11 +601,11 @@ int32_t stlink_step(stlink_t *sl);
  * Sets stlink_t::core_stat to TARGET_RESET.
  *
  * @param sl   device handle
- * @param type RESET_AUTO: pulse NRST (ST-LINK/V2 and later) and send the system
+ * @param type RESET_AUTO: pulse NRST (if STLINK_F_HAS_NRST) and send the system
  *             reset command of the ST-LINK; if no reset is detected (DHCSR.S_RESET_ST,
  *             e.g. NRST not connected) fall back to a software reset, otherwise
  *             wait up to 500 ms for the core to leave reset;
- *             RESET_HARD: pulse NRST (ST-LINK/V2 and later) and send the system
+ *             RESET_HARD: pulse NRST (if STLINK_F_HAS_NRST) and send the system
  *             reset command of the ST-LINK, without any check;
  *             RESET_SOFT: software reset via AIRCR.SYSRESETREQ;
  *             RESET_SOFT_AND_HALT: software reset with the core halted at the

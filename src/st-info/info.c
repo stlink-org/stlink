@@ -52,7 +52,7 @@ static void stlink_print_info(stlink_t *sl) {
 
     // Print target voltage if supported
     int32_t voltage_mv = -1;
-    if(sl->version.stlink_v != 1) {
+    if(sl->version.flags & STLINK_F_HAS_TARGET_VOLTAGE) {
         voltage_mv = stlink_target_voltage(sl);
     }
     if(voltage_mv >= 0) {
@@ -163,7 +163,7 @@ static int32_t print_data(int32_t ac, char **av) {
         printf("%s\n", params->dev_type);
     } else if(strcmp(cmd, "--voltage") == 0) {
         int32_t voltage_mv = -1;
-        if(sl->version.stlink_v != 1) {
+        if(sl->version.flags & STLINK_F_HAS_TARGET_VOLTAGE) {
             voltage_mv = stlink_target_voltage(sl);
         }
         if(voltage_mv >= 0) {

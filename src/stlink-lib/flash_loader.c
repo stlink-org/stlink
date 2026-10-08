@@ -253,8 +253,8 @@ static int32_t loader_v_dependent_assignment(stlink_t *sl,
                                             const uint8_t *low_v_loader, uint32_t low_v_loader_size) {
     int32_t retval = 0;
 
-    if( sl->version.stlink_v == 1) {
-        WLOG("STLINK V1 cannot read voltage, defaulting to 32-bit writes\n");
+    if(!(sl->version.flags & STLINK_F_HAS_TARGET_VOLTAGE)) {
+        WLOG("ST-LINK cannot read the target voltage, defaulting to 32-bit writes\n");
         *loader_code = high_v_loader;
         *loader_size = high_v_loader_size;
     } else {
@@ -688,8 +688,8 @@ int32_t stlink_flashloader_start(stlink_t *sl, flash_loader_t *fl) {
     unlock_flash_if(sl); // first unlock the cr
 
     int32_t voltage;
-    if(sl->version.stlink_v == 1) {
-      WLOG("STLINK V1 cannot read voltage, use default voltage 3.2 V\n");
+    if(!(sl->version.flags & STLINK_F_HAS_TARGET_VOLTAGE)) {
+      WLOG("ST-LINK cannot read the target voltage, use default voltage 3.2 V\n");
       voltage = 3200;
     } else {
       voltage = stlink_target_voltage(sl);

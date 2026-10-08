@@ -2,7 +2,7 @@
 # Build test executables
 ###
 
-set(TESTEXEC usb sg_legacy logging progress)
+set(TESTEXEC usb sg_legacy logging progress hw)
 
 if (WIN32)
     set(TEST_DEPENDENCY ${STLINK_LIB_STATIC})
