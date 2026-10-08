@@ -27,16 +27,16 @@
  * Collected here, so that no other code has to know them: everything else tests
  * the STLINK_F_* flags derived from them by stlink_hw_capabilities().
  */
-#define STLINK_HW_V1_J_API_V2           12  // ST-LINK/V1: debug API V2 (also SWD); OpenOCD switches from J11
-#define STLINK_HW_V2_J_TRACE            13  // ST-LINK/V2: SWO trace, target voltage
-#define STLINK_HW_V2_J_RW_STATUS2       15  // ST-LINK/V2: extended status of the last read/write
-#define STLINK_HW_V2_J_SWD_FREQ         22  // ST-LINK/V2: SWD frequency
-#define STLINK_HW_V2_J_JTAG_FREQ        24  // ST-LINK/V2: JTAG frequency, DAP registers, start of the JTAG DP read quirk
-#define STLINK_HW_V2_J_MEM_16BIT        26  // ST-LINK/V2: 16 bit memory accesses
-#define STLINK_HW_V2_J_AP_INIT          28  // ST-LINK/V2: access port initialisation
-#define STLINK_HW_V2_J_DPBANKSEL        32  // ST-LINK/V2: DP bank selection, CSW in memory commands, end of the quirk
-#define STLINK_HW_V3_J_DPBANKSEL         2  // STLINK-V3: DP bank selection, CSW in memory commands
-#define STLINK_HW_V3_J_RW8_512           6  // STLINK-V3: 8 bit transfers of up to 512 bytes
+#define STLINK_HW_V1_J_API_V2           12 // ST-LINK/V1: debug API V2 (also SWD); OpenOCD switches from J11
+#define STLINK_HW_V2_J_TRACE            13 // ST-LINK/V2: SWO trace, target voltage
+#define STLINK_HW_V2_J_RW_STATUS2       15 // ST-LINK/V2: extended status of the last read/write
+#define STLINK_HW_V2_J_SWD_FREQ         22 // ST-LINK/V2: SWD frequency
+#define STLINK_HW_V2_J_JTAG_FREQ        24 // ST-LINK/V2: JTAG frequency, DAP registers, start of the JTAG DP read quirk
+#define STLINK_HW_V2_J_MEM_16BIT        26 // ST-LINK/V2: 16 bit memory accesses
+#define STLINK_HW_V2_J_AP_INIT          28 // ST-LINK/V2: access port initialisation
+#define STLINK_HW_V2_J_DPBANKSEL        32 // ST-LINK/V2: DP bank selection, CSW in memory commands, end of the quirk
+#define STLINK_HW_V3_J_DPBANKSEL         2 // STLINK-V3: DP bank selection, CSW in memory commands
+#define STLINK_HW_V3_J_RW8_512           6 // STLINK-V3: 8 bit transfers of up to 512 bytes
 
 /* Fields shared by all variants of a generation */
 #define HW_V1   .gen = STLINK_HW_V1, .msc_framing = true, .ep_req = 2, .ep_rep = 1, .ep_trace = 0, \

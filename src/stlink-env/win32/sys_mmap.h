@@ -4,6 +4,7 @@
  *
  */
 
+
 #ifndef SYS_MMAP_H
 #define SYS_MMAP_H
 
@@ -14,6 +15,7 @@
 #include <unistd.h>
 
 #include <sys/types.h>
+
 
 #ifdef STLINK_HAVE_SYS_MMAN_H
 #include <sys/mman.h>

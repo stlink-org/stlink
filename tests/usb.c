@@ -4,6 +4,7 @@
  *
  */
 
+
 // TODO: CONTENT AND USE OF THIS SOURCE FILE IS TO BE VERIFIED
 
 #include <stdint.h>
@@ -15,6 +16,7 @@
 
 #include <read_write.h>
 #include <usb.h>
+
 
 static void usage(void) {
     puts("test-usb --reset");

@@ -4,6 +4,7 @@
  *
  */
 
+
 // TODO: CONTENT AND USE OF THIS SOURCE FILE IS TO BE VERIFIED
 
 #include <stdint.h>
@@ -16,6 +17,7 @@
 #include <logging.h>
 #include <read_write.h>
 #include <sg_legacy.h>
+
 
 #if defined(_MSC_VER)
 #define __attribute__(x)

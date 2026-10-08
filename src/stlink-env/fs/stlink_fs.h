@@ -11,11 +11,13 @@
   ******************************************************************************
   */
 
+
 #ifndef STLINK_FS_H
 #define STLINK_FS_H
 
 #include <stdbool.h>
 #include <stddef.h>
+
 
 #define CHIP_FILE_EXT ".chip"
 
@@ -24,7 +26,7 @@
  * @ingroup api_internal
  * @param buf receives the directory
  * @param len size of @p buf
- * @return false where the platform will not say (or @p buf is too small)
+ * @return    false where the platform will not say (or @p buf is too small)
  */
 bool stlink_exe_dir(char *buf, size_t len);
 
@@ -32,7 +34,7 @@ bool stlink_exe_dir(char *buf, size_t len);
  * Read every chip description file (*.chip) in a directory, see init_chipids().
  * @ingroup api_internal
  * @param dir the directory
- * @return false if it held none, including when @p dir cannot be read at all
+ * @return    false if it held none, including when @p dir cannot be read at all
  */
 bool search_for_chips(const char *dir);
 

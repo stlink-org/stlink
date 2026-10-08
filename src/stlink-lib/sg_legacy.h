@@ -4,6 +4,7 @@
  *
  */
 
+
 // TODO: CONTENT AND USE OF THIS SOURCE FILE IS TO BE VERIFIED
 // This file should be split up into new or existing modules
 
@@ -154,7 +155,7 @@ int32_t _stlink_sg_exit_debug_mode(stlink_t *stl);
  * Does not enter the debug mode, see stlink_v1_open().
  * @ingroup api_internal
  * @param verbose log level, see stlink_open_usb()
- * @return the device handle, or NULL on error
+ * @return        the device handle, or NULL on error
  */
 stlink_t* stlink_v1_open_inner(const int32_t verbose);
 /** @endcond */
@@ -169,8 +170,8 @@ stlink_t* stlink_v1_open_inner(const int32_t verbose);
  * @ingroup api_legacy
  * @param verbose log level, see stlink_open_usb(); also stored in stlink_t::verbose
  * @param reset   non-zero to reset the target before loading its parameters
- * @return the device handle, to be released with stlink_close(), or NULL if no
- *         ST-LINK/V1 was found or it could not be opened
+ * @return        the device handle, to be released with stlink_close(), or NULL if no
+ *                ST-LINK/V1 was found or it could not be opened
  */
 stlink_t* stlink_v1_open(const int32_t verbose, int32_t reset);
 

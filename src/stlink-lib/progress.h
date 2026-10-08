@@ -11,6 +11,7 @@
   ******************************************************************************
   */
 
+
 #ifndef PROGRESS_H
 #define PROGRESS_H
 
@@ -21,7 +22,8 @@
 
 #include "map_file.h"
 
-#ifdef  __cplusplus
+
+#ifdef __cplusplus
 extern "C" {
 #endif // __cplusplus
 
@@ -70,7 +72,7 @@ void stlink_progress_file(stlink_t *sl, const char *path, const mapped_file_t *m
 /** @} */
 /** @endcond */
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 }
 #endif // __cplusplus
 

@@ -20,6 +20,7 @@
  * low-level backend primitives cross the wire.
  */
 
+
 #ifndef REMOTE_H
 #define REMOTE_H
 
@@ -144,9 +145,9 @@ enum stlink_remote_op {
  * @param port    TCP port, 0 for STLINK_REMOTE_DEFAULT_PORT
  * @param connect how to connect to the target, see stlink_target_connect()
  * @param freq    SWD frequency in kHz, 0 for the default
- * @return the device handle, to be released with stlink_close(), or NULL if the
- *         server cannot be reached, the handshake fails or the connection is
- *         lost while connecting
+ * @return        the device handle, to be released with stlink_close(), or NULL if the
+ *                server cannot be reached, the handshake fails or the connection is
+ *                lost while connecting
  */
 stlink_t *stlink_open_remote(int32_t verbose, const char *host, int32_t port,
                              enum connect_type connect, int32_t freq);
@@ -158,7 +159,7 @@ stlink_t *stlink_open_remote(int32_t verbose, const char *host, int32_t port,
  * @param hostport "host" or "host:port"
  * @param connect  how to connect to the target, see stlink_target_connect()
  * @param freq     SWD frequency in kHz, 0 for the default
- * @return the device handle, or NULL on error (also for an invalid port)
+ * @return         the device handle, or NULL on error (also for an invalid port)
  */
 stlink_t *stlink_open_remote_str(int32_t verbose, const char *hostport,
                                  enum connect_type connect, int32_t freq);
@@ -174,9 +175,9 @@ stlink_t *stlink_open_remote_str(int32_t verbose, const char *hostport,
  *
  * @param sl        local device, opened with stlink_open_usb()
  * @param client_fd connected socket of the client; not closed by this function
- * @return 0 when the client disconnects or the connection breaks while waiting
- *         for a request, -1 if a reply cannot be sent or a request is too
- *         large; other protocol errors are answered and serving continues
+ * @return          0 when the client disconnects or the connection breaks while waiting
+ *                  for a request, -1 if a reply cannot be sent or a request is too
+ *                  large; other protocol errors are answered and serving continues
  */
 int32_t stlink_remote_serve(stlink_t *sl, int32_t client_fd);
 

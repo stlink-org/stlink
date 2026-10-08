@@ -11,6 +11,7 @@
   ******************************************************************************
   */
 
+
 #ifndef MD5_H
 #define MD5_H
 
@@ -22,7 +23,7 @@
 #include "map_file.h"
 
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif // __cplusplus
 
@@ -38,7 +39,7 @@ void md5_calculate_digest(const mapped_file_t *mf, uint8_t digest[16]);
  * Checksum of a mapped file (sum of all bytes), compatible with the official ST tools
  * @ingroup api_sram_file
  * @param mf the file
- * @return the checksum
+ * @return   the checksum
  */
 uint32_t stlink_checksum_calculate(const mapped_file_t *mf);
 
@@ -58,7 +59,7 @@ void md5_calculate(mapped_file_t *mf);
  */
 void stlink_checksum(mapped_file_t *mf);
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 }
 #endif // __cplusplus
 

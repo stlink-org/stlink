@@ -11,6 +11,7 @@
   ******************************************************************************
   */
 
+
 #include <errno.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -26,6 +27,7 @@
 #include <usb.h>
 
 #include "gui.h"
+
 
 #define MEM_READ_SIZE 1024
 
@@ -363,8 +365,8 @@ static gpointer stlink_gui_populate_filemem_view(gpointer data) {
             gui->progress.fraction = (gdouble)(off + n_read) / gui->file_mem.size;
         }
 
-        out_input: g_object_unref(input_stream);
-        out:       g_object_unref(file);
+out_input: g_object_unref(input_stream);
+out:       g_object_unref(file);
     }
 
     g_idle_add((GSourceFunc)stlink_gui_update_filemem_view, gui);

@@ -4,9 +4,11 @@
  *
  */
 
+
 #include <stdint.h>
 
 #include "sys_time.h"
+
 
 #ifndef STLINK_HAVE_SYS_TIME_H
 

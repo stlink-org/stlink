@@ -4,6 +4,7 @@
  *
  */
 
+
 #if defined(_WIN32)
 
 #include <stdint.h>
@@ -96,11 +97,11 @@ int32_t win32_poll(struct pollfd *fds, uint32_t nfds, int32_t timo) {
             }
 
 #ifdef DEBUG_POLL
-    DLOG("%d %d %d revent = %x\n",
-         FD_ISSET(fd, &ifds),
-         FD_ISSET(fd, &ofds),
-         FD_ISSET(fd, &efds),
-         fds[i].revents);
+            DLOG("%d %d %d revent = %x\n",
+                 FD_ISSET(fd, &ifds),
+                 FD_ISSET(fd, &ofds),
+                 FD_ISSET(fd, &efds),
+                 fds[i].revents);
 #endif
 
         }
@@ -146,7 +147,7 @@ SOCKET win32_socket(int32_t domain, int32_t type, int32_t protocol) {
     return (fd);
 }
 
-/* 
+/*
  * A wrapper around the connect() function.
  * The purpose of this wrapper is to ensure that the global errno symbol is set if an error occurs,
  * even if we are using winsock.

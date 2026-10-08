@@ -11,6 +11,7 @@
   ******************************************************************************
   */
 
+
 #ifndef COMMON_FLASH_H
 #define COMMON_FLASH_H
 
@@ -30,15 +31,15 @@
 
 /** @name Flash bank selectors */
 /** @{ */
-#define BANK_1 0    ///< first flash bank
-#define BANK_2 1    ///< second flash bank (dual bank devices)
+#define BANK_1 0 ///< first flash bank
+#define BANK_2 1 ///< second flash bank (dual bank devices)
 /** @} */
 
 /** Erase step of the flash write functions */
 enum erase_type_t {
-    NO_ERASE = 0,       ///< do not erase, the area must be erased already
-    SECTION_ERASE = 1,  ///< erase the pages covered by the data before writing
-    MASS_ERASE = 2,     ///< the caller erases the whole flash (stlink_erase_flash_mass()), no erase in the write functions
+    NO_ERASE = 0,      ///< do not erase, the area must be erased already
+    SECTION_ERASE = 1, ///< erase the pages covered by the data before writing
+    MASS_ERASE = 2,    ///< the caller erases the whole flash (stlink_erase_flash_mass()), no erase in the write functions
 };
 
 /** @} */
@@ -52,7 +53,7 @@ enum erase_type_t {
 /**
  * Base address of the flash registers of an STM32L0 or L1.
  * @param sl device handle
- * @return the register base for the chip id; the L0 base for unknown chips
+ * @return   the register base for the chip id; the L0 base for unknown chips
  */
 uint32_t get_stm32l0_flash_base(stlink_t *sl);
 
@@ -60,7 +61,7 @@ uint32_t get_stm32l0_flash_base(stlink_t *sl);
  * Address of the flash control register (NSCR or SECCR) of an STM32L5/U5.
  * Depends on stlink_t::flash_secure, see stlink_flash_secure_enable().
  * @param sl device handle
- * @return the register address
+ * @return   the register address
  */
 uint32_t get_stm32l5_flash_cr(stlink_t *sl);
 
@@ -68,7 +69,7 @@ uint32_t get_stm32l5_flash_cr(stlink_t *sl);
  * Address of the flash status register (NSSR or SECSR) of an STM32L5/U5.
  * Depends on stlink_t::flash_secure, see stlink_flash_secure_enable().
  * @param sl device handle
- * @return the register address
+ * @return   the register address
  */
 uint32_t get_stm32l5_flash_sr(stlink_t *sl);
 
@@ -84,7 +85,7 @@ uint32_t get_stm32l5_flash_sr(stlink_t *sl);
  * Check whether an address is in the secure flash alias of an STM32L5/U5.
  * @param sl   device handle
  * @param addr address
- * @return true for an STM32L5/U5 and an address in the secure flash alias (0x0c000000 + flash size)
+ * @return     true for an STM32L5/U5 and an address in the secure flash alias (0x0c000000 + flash size)
  */
 bool stlink_is_secure_flash_addr(stlink_t *sl, stm32_addr_t addr);
 
@@ -100,7 +101,7 @@ bool stlink_is_secure_flash_addr(stlink_t *sl, stm32_addr_t addr);
  * Requires ST-LINK firmware V2J32 / V3J2 or later (STLINK_F_HAS_CSW) and RDP level 0.
  *
  * @param sl device handle
- * @return 0 on success, -1 if the device, the ST-LINK firmware, TrustZone or the RDP level does not allow it
+ * @return   0 on success, -1 if the device, the ST-LINK firmware, TrustZone or the RDP level does not allow it
  */
 int32_t stlink_flash_secure_enable(stlink_t *sl);
 
@@ -116,7 +117,7 @@ int32_t stlink_flash_secure_enable(stlink_t *sl);
  * Read the flash control register.
  * @param sl   device handle
  * @param bank BANK_1 or BANK_2
- * @return the register value
+ * @return     the register value
  */
 uint32_t read_flash_cr(stlink_t *sl, uint32_t bank);
 
@@ -137,14 +138,14 @@ void clear_flash_error(stlink_t *sl);
  * Read the flash status register.
  * @param sl   device handle
  * @param bank BANK_1 or BANK_2
- * @return the register value
+ * @return     the register value
  */
 uint32_t read_flash_sr(stlink_t *sl, uint32_t bank);
 
 /**
  * Check whether the flash controller is busy.
  * @param sl device handle
- * @return the busy bit(s), 0 if idle
+ * @return   the busy bit(s), 0 if idle
  */
 uint32_t is_flash_busy(stlink_t *sl);
 
@@ -157,7 +158,7 @@ void wait_flash_busy(stlink_t *sl);
 /**
  * Check the flash status register(s) for errors and log them.
  * @param sl device handle
- * @return 0 if no error flag is set, -1 otherwise
+ * @return   0 if no error flag is set, -1 otherwise
  */
 int32_t check_flash_error(stlink_t *sl);
 // static inline uint32_t is_flash_locked(stlink_t *sl);
@@ -166,14 +167,14 @@ int32_t check_flash_error(stlink_t *sl);
 /**
  * Unlock the flash control register if it is locked.
  * @param sl device handle
- * @return 0 on success, -1 if it is still locked (requires a reset to unlock again)
+ * @return   0 on success, -1 if it is still locked (requires a reset to unlock again)
  */
 int32_t unlock_flash_if(stlink_t *sl);
 
 /**
  * Lock the option byte control register.
  * @param sl device handle
- * @return 0 on success, -1 for an unsupported flash type
+ * @return   0 on success, -1 for an unsupported flash type
  */
 int32_t lock_flash_option(stlink_t *sl);
 // static bool is_flash_option_locked(stlink_t *sl);
@@ -182,7 +183,7 @@ int32_t lock_flash_option(stlink_t *sl);
 /**
  * Unlock the option byte control register if it is locked.
  * @param sl device handle
- * @return 0 on success, -1 on error
+ * @return   0 on success, -1 on error
  */
 int32_t unlock_flash_option_if(stlink_t *sl);
 
@@ -225,7 +226,7 @@ void clear_flash_cr_pg(stlink_t *sl, uint32_t bank);
  *
  * @param sl        device handle
  * @param flashaddr an address in the page or sector to erase
- * @return 0 on success, -1 on error or for an unsupported flash type
+ * @return          0 on success, -1 on error or for an unsupported flash type
  */
 int32_t stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr);
 
@@ -242,7 +243,7 @@ int32_t stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr);
  *                   inside it; false: fail if the range does not end on a page
  *                   boundary (checked at the last page, when the pages before
  *                   it have been erased already)
- * @return 0 on success, -1 on error (range outside the flash, misaligned, erase failed)
+ * @return           0 on success, -1 on error (range outside the flash, misaligned, erase failed)
  */
 int32_t stlink_erase_flash_section(stlink_t *sl, stm32_addr_t base_addr, uint32_t size, bool align_size);
 
@@ -254,8 +255,8 @@ int32_t stlink_erase_flash_section(stlink_t *sl, stm32_addr_t base_addr, uint32_
  * WB05, WL3x). Progress is reported to the progress handler.
  *
  * @param sl device handle
- * @return 0 on success, -1 on error (errors of the mass erase command of
- *         STM32WB06/WB07/WB09 are not checked)
+ * @return   0 on success, -1 on error (errors of the mass erase command of
+ *           STM32WB06/WB07/WB09 are not checked)
  */
 int32_t stlink_erase_flash_mass(stlink_t *sl);
 
@@ -275,7 +276,7 @@ int32_t stlink_erase_flash_mass(stlink_t *sl);
  * @param addr   destination, the start of a flash page
  * @param erase  SECTION_ERASE to erase the pages first, NO_ERASE or MASS_ERASE
  *               if the flash was erased before
- * @return 0 on success, -1 on error
+ * @return       0 on success, -1 on error
  */
 int32_t stlink_mwrite_flash(stlink_t *sl, uint8_t *data, uint32_t length,
                             stm32_addr_t addr, const enum erase_type_t erase);
@@ -295,7 +296,7 @@ int32_t stlink_mwrite_flash(stlink_t *sl, uint8_t *data, uint32_t length,
  * @param addr  destination, the start of a flash page or inside the OTP area
  * @param erase SECTION_ERASE to erase the pages first, NO_ERASE or MASS_ERASE
  *              if the flash was erased before
- * @return 0 on success, -1 on error
+ * @return      0 on success, -1 on error
  */
 int32_t stlink_fwrite_flash(stlink_t *sl, const char *path, stm32_addr_t addr,
                             const enum erase_type_t erase);
@@ -305,7 +306,7 @@ int32_t stlink_fwrite_flash(stlink_t *sl, const char *path, stm32_addr_t addr,
  * @param sl   device handle
  * @param path binary file
  * @param addr address of the first byte to compare
- * @return 0 if the memory matches the file, -1 if it differs or the file cannot be read
+ * @return     0 if the memory matches the file, -1 if it differs or the file cannot be read
  */
 int32_t stlink_fcheck_flash(stlink_t *sl, const char *path, stm32_addr_t addr);
 
@@ -315,7 +316,7 @@ int32_t stlink_fcheck_flash(stlink_t *sl, const char *path, stm32_addr_t addr);
  * @param address address of the first byte to compare
  * @param data    expected data
  * @param length  number of bytes
- * @return 0 if the memory matches, -1 at the first difference
+ * @return        0 if the memory matches, -1 at the first difference
  */
 int32_t stlink_verify_write_flash(stlink_t *sl, stm32_addr_t address, uint8_t *data, uint32_t length);
 
@@ -324,7 +325,7 @@ int32_t stlink_verify_write_flash(stlink_t *sl, stm32_addr_t address, uint8_t *d
  * @param sl   device handle
  * @param addr start address
  * @param size number of bytes
- * @return 0 if the range is inside the flash, -1 otherwise (logged)
+ * @return     0 if the range is inside the flash, -1 otherwise (logged)
  */
 int32_t stlink_check_address_range_validity(stlink_t *sl, stm32_addr_t addr, uint32_t size);
 
@@ -333,7 +334,7 @@ int32_t stlink_check_address_range_validity(stlink_t *sl, stm32_addr_t addr, uin
  * @param sl   device handle
  * @param addr start address
  * @param size number of bytes
- * @return 0 if the range is inside the OTP area, -1 otherwise (logged)
+ * @return     0 if the range is inside the OTP area, -1 otherwise (logged)
  * @bug A range ending exactly at the end of the OTP area is rejected.
  */
 int32_t stlink_check_address_range_validity_otp(stlink_t *sl, stm32_addr_t addr, uint32_t size);
@@ -342,7 +343,7 @@ int32_t stlink_check_address_range_validity_otp(stlink_t *sl, stm32_addr_t addr,
  * Check that an address is the start of a flash page or sector.
  * @param sl   device handle
  * @param addr address in flash
- * @return 0 if @p addr starts a page, -1 otherwise
+ * @return     0 if @p addr starts a page, -1 otherwise
  */
 int32_t stlink_check_address_alignment(stlink_t *sl, stm32_addr_t addr);
 
@@ -364,7 +365,7 @@ int32_t stlink_check_address_alignment(stlink_t *sl, stm32_addr_t addr);
  * @param erase_only only erase the pages (with SECTION_ERASE), do not program
  * @param erase      SECTION_ERASE to erase the pages first, NO_ERASE or MASS_ERASE
  *                   if the flash was erased before
- * @return 0 on success, -1 on error
+ * @return           0 on success, -1 on error
  *
  * @bug For an odd @p len the check that @p addr starts a page is skipped, and
  *      the padding byte is read from @p base[len] (zero only for a file mapped
@@ -384,7 +385,7 @@ int32_t stlink_write_flash(stlink_t *sl, stm32_addr_t addr, uint8_t *base,
  * @param addr destination inside the OTP area
  * @param base data to write
  * @param len  number of bytes
- * @return 0 on success, -1 on error
+ * @return     0 on success, -1 on error
  */
 int32_t stlink_write_otp(stlink_t *sl, stm32_addr_t addr, uint8_t *base,
                          uint32_t len);

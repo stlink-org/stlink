@@ -11,6 +11,7 @@
   ******************************************************************************
   */
 
+
 #include "usb.h"
 
 #include <stlink_threads.h>
@@ -105,7 +106,7 @@ ssize_t send_recv(struct stlink_libusb* handle, int32_t terminate, unsigned char
             }
 
             /* Checking the command execution status stored in the first byte of the response */
-            if(handle->protocol != 1 && check_error >= CMD_CHECK_STATUS && 
+            if(handle->protocol != 1 && check_error >= CMD_CHECK_STATUS &&
                         rxbuf[0] != STLINK_DEBUG_ERR_OK) {
                 switch(rxbuf[0]) {
                 case STLINK_DEBUG_ERR_AP_WAIT:
@@ -219,7 +220,7 @@ int32_t _stlink_usb_version(stlink_t *sl) {
     int32_t i;
 
     if(sl->version.stlink_v == 3) {
-        // STLINK-V3 version is determined by another command 
+        // STLINK-V3 version is determined by another command
         rep_len = 12;
         i = fill_command(sl, SG_DXFER_FROM_DEV, 16);
         cmd[i++] = STLINK_GET_VERSION_APIV3;

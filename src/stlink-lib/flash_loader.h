@@ -11,6 +11,7 @@
   ******************************************************************************
   */
 
+
 #ifndef FLASH_LOADER_H
 #define FLASH_LOADER_H
 
@@ -35,7 +36,7 @@
  * into SRAM and clear the fault status registers.
  * @param sl device handle
  * @param fl receives the loader and buffer addresses
- * @return 0 on success, -1 on error
+ * @return   0 on success, -1 on error
  */
 int32_t stlink_flash_loader_init(stlink_t *sl, flash_loader_t* fl);
 // static int32_t loader_v_dependent_assignment(stlink_t *sl,
@@ -48,7 +49,7 @@ int32_t stlink_flash_loader_init(stlink_t *sl, flash_loader_t* fl);
  * @param sl   device handle
  * @param addr receives the address of the loader
  * @param size receives the size of the loader in bytes
- * @return 0 on success, non-zero on error (e.g. no loader for the device)
+ * @return     0 on success, non-zero on error (e.g. no loader for the device)
  */
 int32_t stlink_flash_loader_write_to_sram(stlink_t *sl, stm32_addr_t* addr, uint32_t* size);
 
@@ -59,7 +60,7 @@ int32_t stlink_flash_loader_write_to_sram(stlink_t *sl, stm32_addr_t* addr, uint
  * @param target destination address in flash
  * @param buf    data
  * @param size   number of bytes, at most the size of the loader buffer
- * @return 0 on success, -1 on error or timeout
+ * @return       0 on success, -1 on error or timeout
  */
 int32_t stlink_flash_loader_run(stlink_t *sl, flash_loader_t* fl, stm32_addr_t target, const uint8_t* buf, uint32_t size);
 
@@ -76,7 +77,7 @@ int32_t stlink_flash_loader_run(stlink_t *sl, flash_loader_t* fl, stm32_addr_t t
  * @param base     data
  * @param len      number of bytes; len / pagesize half pages are written
  * @param pagesize size of a half page
- * @return 0 on success, -1 on error
+ * @return         0 on success, -1 on error
  */
 int32_t stm32l1_write_half_pages(stlink_t *sl, flash_loader_t *fl, stm32_addr_t addr, uint8_t *base, uint32_t len, uint32_t pagesize);
 // static void set_flash_cr_pg(stlink_t *sl, uint32_t bank);
@@ -106,7 +107,7 @@ int32_t stm32l1_write_half_pages(stlink_t *sl, flash_loader_t *fl, stm32_addr_t 
  *
  * @param sl device handle
  * @param fl storage for the state of the flash loader, used by the next calls
- * @return 0 on success, -1 on error (e.g. target voltage too low, unknown device)
+ * @return   0 on success, -1 on error (e.g. target voltage too low, unknown device)
  */
 int32_t stlink_flashloader_start(stlink_t *sl, flash_loader_t *fl);
 
@@ -121,7 +122,7 @@ int32_t stlink_flashloader_start(stlink_t *sl, flash_loader_t *fl);
  * @param addr destination address, aligned to the programming unit of the device
  * @param base data
  * @param len  number of bytes
- * @return 0 on success, -1 on error
+ * @return     0 on success, -1 on error
  *
  * @bug Reads past the end of @p base: up to 15 bytes on STM32L5/U5 (the length
  *      is rounded up to 16 bytes) and up to 3 bytes on STM32L0/L1 (word reads).
@@ -140,7 +141,7 @@ int32_t stlink_flashloader_write(stlink_t *sl, flash_loader_t *fl, stm32_addr_t 
  *
  * @param sl device handle
  * @param fl state from stlink_flashloader_start()
- * @return 0
+ * @return   0
  */
 int32_t stlink_flashloader_stop(stlink_t *sl, flash_loader_t *fl);
 

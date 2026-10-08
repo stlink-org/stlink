@@ -11,6 +11,7 @@
   ******************************************************************************
   */
 
+
 #ifndef READ_WRITE_H
 #define READ_WRITE_H
 
@@ -31,7 +32,7 @@
  * Decode a little endian 16 bit value.
  * @param c  buffer
  * @param pt offset of the value in @p c
- * @return the value
+ * @return   the value
  */
 uint16_t read_uint16(const unsigned char *c, const int32_t pt);
 
@@ -46,7 +47,7 @@ void write_uint16(unsigned char *buf, uint16_t ui);
  * Decode a little endian 32 bit value, e.g. from stlink_t::q_buf after stlink_read_mem32().
  * @param c  buffer
  * @param pt offset of the value in @p c
- * @return the value
+ * @return   the value
  */
 uint32_t read_uint32(const unsigned char *c, const int32_t pt);
 
@@ -77,7 +78,7 @@ void write_uint32(unsigned char *buf, uint32_t ui);
  * @param sl   device handle
  * @param addr address, word aligned
  * @param data receives the word
- * @return 0 on success, -1 on error
+ * @return     0 on success, -1 on error
  */
 int32_t stlink_read_debug32(stlink_t *sl, uint32_t addr, uint32_t *data);
 
@@ -86,7 +87,7 @@ int32_t stlink_read_debug32(stlink_t *sl, uint32_t addr, uint32_t *data);
  * @param sl   device handle
  * @param addr address, word aligned
  * @param data the word
- * @return 0 on success, -1 on error
+ * @return     0 on success, -1 on error
  */
 int32_t stlink_write_debug32(stlink_t *sl, uint32_t addr, uint32_t data);
 
@@ -104,7 +105,7 @@ int32_t stlink_write_debug32(stlink_t *sl, uint32_t addr, uint32_t data);
  * @param addr address, word aligned
  * @param len  number of bytes, a multiple of 4. Keep blocks at 6 KiB or below:
  *             larger reads can stall an ST-LINK/V2. Never above Q_BUF_LEN.
- * @return 0 on success, -1 on a transport error or if @p len is not a multiple of 4
+ * @return     0 on success, -1 on a transport error or if @p len is not a multiple of 4
  */
 int32_t stlink_read_mem32(stlink_t *sl, uint32_t addr, uint16_t len);
 
@@ -117,7 +118,7 @@ int32_t stlink_read_mem32(stlink_t *sl, uint32_t addr, uint16_t len);
  * @param sl   device handle
  * @param addr address, word aligned
  * @param len  number of bytes, a multiple of 4, at most Q_BUF_LEN
- * @return 0 on success, -1 on error or if @p len is not a multiple of 4
+ * @return     0 on success, -1 on error or if @p len is not a multiple of 4
  */
 int32_t stlink_write_mem32(stlink_t *sl, uint32_t addr, uint16_t len);
 
@@ -132,7 +133,7 @@ int32_t stlink_write_mem32(stlink_t *sl, uint32_t addr, uint16_t len);
  * @param addr address
  * @param len  number of bytes: at most 64, or 512 with STLINK_F_HAS_RW8_512BYTES
  *             (STLINK-V3 from firmware J6); not checked by the legacy ST-LINK/V1 backend
- * @return 0 on success, -1 on a transport error or if @p len exceeds the limit
+ * @return     0 on success, -1 on a transport error or if @p len exceeds the limit
  */
 int32_t stlink_write_mem8(stlink_t *sl, uint32_t addr, uint16_t len);
 
@@ -141,7 +142,7 @@ int32_t stlink_write_mem8(stlink_t *sl, uint32_t addr, uint16_t len);
  * @param sl    device handle
  * @param r_idx 0..15: R0..R15, 16: xPSR, 17: MSP, 18: PSP, 19, 20: see stlink_reg::rw
  * @param regp  receives the value in the field matching @p r_idx; other fields are not changed
- * @return 0 on success, -1 on error or if @p r_idx is out of range
+ * @return      0 on success, -1 on error or if @p r_idx is out of range
  */
 int32_t stlink_read_reg(stlink_t *sl, int32_t r_idx, struct stlink_reg *regp);
 
@@ -150,7 +151,7 @@ int32_t stlink_read_reg(stlink_t *sl, int32_t r_idx, struct stlink_reg *regp);
  * @param sl  device handle
  * @param reg new value
  * @param idx register index, as for stlink_read_reg() (15 = PC)
- * @return 0 on success, -1 on error
+ * @return    0 on success, -1 on error
  */
 int32_t stlink_write_reg(stlink_t *sl, uint32_t reg, int32_t idx);
 
@@ -165,7 +166,7 @@ int32_t stlink_write_reg(stlink_t *sl, uint32_t reg, int32_t idx);
  * @param r_idx 0x1c: CONTROL, 0x1d: FAULTMASK, 0x1e: BASEPRI, 0x1f: PRIMASK
  *              (all four are read together), 0x20..0x3f: S0..S31, 0x40: FPSCR
  * @param regp  receives the value(s) in the matching field(s) of struct stlink_reg
- * @return 0 on success, -1 on error or if @p r_idx is out of range
+ * @return      0 on success, -1 on error or if @p r_idx is out of range
  */
 int32_t stlink_read_unsupported_reg(stlink_t *sl, int32_t r_idx, struct stlink_reg *regp);
 
@@ -184,7 +185,7 @@ int32_t stlink_read_unsupported_reg(stlink_t *sl, int32_t r_idx, struct stlink_r
  * @param value new value; for 0x1c..0x1f the 8 bit value is taken from bits 31..24
  * @param r_idx register index, as for stlink_read_unsupported_reg()
  * @param regp  scratch, receives the values read for 0x1c..0x1f
- * @return 0 on success, -1 on error or if @p r_idx is out of range
+ * @return      0 on success, -1 on error or if @p r_idx is out of range
  */
 int32_t stlink_write_unsupported_reg(stlink_t *sl, uint32_t value, int32_t r_idx, struct stlink_reg *regp);
 
@@ -192,7 +193,7 @@ int32_t stlink_write_unsupported_reg(stlink_t *sl, uint32_t value, int32_t r_idx
  * Read R0..R15, xPSR, MSP, PSP and the registers 19 and 20 of the halted core.
  * @param sl   device handle
  * @param regp receives the registers
- * @return 0 on success, -1 on error
+ * @return     0 on success, -1 on error
  */
 int32_t stlink_read_all_regs(stlink_t *sl, struct stlink_reg *regp);
 
@@ -200,7 +201,7 @@ int32_t stlink_read_all_regs(stlink_t *sl, struct stlink_reg *regp);
  * Read CONTROL, FAULTMASK, BASEPRI, PRIMASK, FPSCR and S0..S31 of the halted core.
  * @param sl   device handle
  * @param regp receives the registers
- * @return 0 on success, -1 on error
+ * @return     0 on success, -1 on error
  */
 int32_t stlink_read_all_unsupported_regs(stlink_t *sl, struct stlink_reg *regp);
 

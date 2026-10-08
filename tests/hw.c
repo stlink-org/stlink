@@ -7,6 +7,7 @@
  * firmware thresholds of the capabilities.
  */
 
+
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -33,7 +34,7 @@ static void check_table(void) {
 
     for(uint32_t i = 0; i < count; i++) {
         CHECK(table[i].name != NULL);
-        CHECK(stlink_hw_lookup(table[i].pid) == &table[i]);   // unique product ids
+        CHECK(stlink_hw_lookup(table[i].pid) == &table[i]); // unique product ids
 
         for(uint32_t j = i + 1; j < count; j++) { CHECK(table[i].pid != table[j].pid); }
 

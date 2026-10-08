@@ -11,6 +11,7 @@
   ******************************************************************************
   */
 
+
 #ifndef LOGGING_H
 #define LOGGING_H
 
@@ -21,7 +22,8 @@
 
 #include <stlink.h>
 
-#ifdef  __cplusplus
+
+#ifdef __cplusplus
 extern "C" {
 #endif // __cplusplus
 
@@ -32,18 +34,18 @@ extern "C" {
 
 /** Log levels; a message is logged if its level is at most the current log level */
 enum ugly_loglevel {
-    UDEBUG = 90,    ///< debug messages, including data dumps
-    UINFO  = 50,    ///< informational messages (default of the tools)
-    UWARN  = 30,    ///< warnings
-    UERROR = 20     ///< errors
+    UDEBUG = 90, ///< debug messages, including data dumps
+    UINFO  = 50, ///< informational messages (default of the tools)
+    UWARN  = 30, ///< warnings
+    UERROR = 20  ///< errors
 };
 
 /** @name Log levels of the stlink_log_* interface (same values as enum ugly_loglevel) */
 /** @{ */
-#define STLINK_LOG_DEBUG UDEBUG     ///< debug messages
-#define STLINK_LOG_INFO  UINFO      ///< informational messages
-#define STLINK_LOG_WARN  UWARN      ///< warnings
-#define STLINK_LOG_ERROR UERROR     ///< errors
+#define STLINK_LOG_DEBUG UDEBUG ///< debug messages
+#define STLINK_LOG_INFO  UINFO  ///< informational messages
+#define STLINK_LOG_WARN  UWARN  ///< warnings
+#define STLINK_LOG_ERROR UERROR ///< errors
 /** @} */
 
 /**
@@ -97,7 +99,7 @@ int32_t stlink_log_get_level(void);
  *             here is overridden by the verbose argument of the open functions.
  * @ingroup api_legacy
  * @param maximum_threshold the log level
- * @return 0
+ * @return                  0
  */
 int32_t ugly_init(int32_t maximum_threshold);
 
@@ -109,7 +111,7 @@ int32_t ugly_init(int32_t maximum_threshold);
  * @param level  UERROR, UWARN, UINFO or UDEBUG
  * @param tag    origin of the message, usually the source file name
  * @param format printf() style format, followed by its arguments
- * @return 1 if the message was logged, 0 if it was dropped
+ * @return       1 if the message was logged, 0 if it was dropped
  */
 int32_t ugly_log(int32_t level, const char *tag, const char *format, ...) PRINTF_ARRT;
 
@@ -122,7 +124,7 @@ int32_t ugly_log(int32_t level, const char *tag, const char *format, ...) PRINTF
 /**
  * Map a log level to the log level of libusb.
  * @param v log level
- * @return the matching libusb log level (on FreeBSD: debug level of its libusb)
+ * @return  the matching libusb log level (on FreeBSD: debug level of its libusb)
  */
 int32_t ugly_libusb_log_level(enum ugly_loglevel v);
 
@@ -132,7 +134,7 @@ int32_t ugly_libusb_log_level(enum ugly_loglevel v);
  * @param level  log level passed to the handler
  * @param tag    origin of the message
  * @param format printf() style format, followed by its arguments
- * @return 1
+ * @return       1
  */
 int32_t stlink_log_unfiltered(int32_t level, const char *tag, const char *format, ...) PRINTF_ARRT;
 
@@ -162,7 +164,7 @@ void stlink_log_open_level(int32_t level);
 #define ELOG_ALWAYS(...) stlink_log_unfiltered(UERROR, UGLY_LOG_FILE, __VA_ARGS__)
 /** @endcond */
 
-#ifdef  __cplusplus
+#ifdef __cplusplus
 }
 #endif // __cplusplus
 

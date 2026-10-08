@@ -4,10 +4,12 @@
  *
  */
 
+
 #ifndef SYS_TIME_H
 #define SYS_TIME_H
 
 #include <stdint.h>
+
 
 #ifdef STLINK_HAVE_SYS_TIME_H
 

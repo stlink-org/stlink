@@ -11,6 +11,7 @@
   ******************************************************************************
   */
 
+
 #ifndef MAP_FILE_H
 #define MAP_FILE_H
 
@@ -25,9 +26,9 @@
 #include <string.h>
 
 #ifdef STLINK_HAVE_SYS_MMAN_H
-    #include <sys/mman.h>      // use system-header
+    #include <sys/mman.h> // use system-header
 #else
-    #include <sys_mmap.h>      // implemented fallback
+    #include <sys_mmap.h> // implemented fallback
 #endif
 
 #include <unistd.h>
@@ -45,8 +46,8 @@
 
 /** A file mapped into memory (read only), see map_file() */
 typedef struct mapped_file {
-  uint8_t *base;    ///< start of the file contents
-  uint32_t len;     ///< size of the file in bytes
+    uint8_t *base; ///< start of the file contents
+    uint32_t len;  ///< size of the file in bytes
 } mapped_file_t;
 
 /** Initializer for an unmapped mapped_file_t */
@@ -63,7 +64,7 @@ typedef struct mapped_file {
  * @param sl   device handle
  * @param mf   the file
  * @param addr address of the first byte to compare
- * @return 0 if the memory matches, -1 at the first difference
+ * @return     0 if the memory matches, -1 at the first difference
  */
 int32_t check_file(stlink_t *sl, mapped_file_t *mf, stm32_addr_t addr);
 /** @endcond */
@@ -77,7 +78,7 @@ int32_t check_file(stlink_t *sl, mapped_file_t *mf, stm32_addr_t addr);
  * Map a file into memory for reading.
  * @param mf   receives the mapping; release it with unmap_file()
  * @param path the file, at most 1 GiB on 32 bit systems
- * @return 0 on success, -1 on error (logged)
+ * @return     0 on success, -1 on error (logged)
  */
 int32_t map_file(mapped_file_t *mf, const char *path);
 

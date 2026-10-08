@@ -5,6 +5,7 @@
  * This is free and unencumbered software released into the public domain - June 2013 - waterjuice.org
  */
 
+
 #ifndef LIB_MD5_H
 #define LIB_MD5_H
 
@@ -14,6 +15,7 @@
 
 
 #pragma once
+
 
 /* TYPES */
 

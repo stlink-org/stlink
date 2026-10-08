@@ -16,6 +16,7 @@
   ******************************************************************************
   */
 
+
 #include <errno.h>
 #include <getopt.h>
 #include <signal.h>
@@ -39,6 +40,7 @@
 #include <logging.h>
 #include <remote.h>
 #include <usb.h>
+
 
 static volatile sig_atomic_t stop_requested = 0;
 

@@ -11,6 +11,7 @@
   ******************************************************************************
   */
 
+
 #include <windows.h>
 #include <fileapi.h>
 #include <strsafe.h>
@@ -20,58 +21,59 @@
 #include "chipid.h"
 #include "logging.h"
 
+
 bool stlink_exe_dir(char *buf, size_t len) {
-  DWORD n = GetModuleFileNameA(NULL, buf, (DWORD)len);
-  char *cut;
+    DWORD n = GetModuleFileNameA(NULL, buf, (DWORD)len);
+    char *cut;
 
-  if((n == 0) || (n >= len)) { return (false); }
+    if((n == 0) || (n >= len)) { return (false); }
 
-  /* Win32 takes either separator but not a mixture, and the caller appends
-   * with '/'. Settle on that here rather than leave it to chance. */
-  for(char *p = buf; *p != '\0'; p++) {
-    if(*p == '\\') { *p = '/'; }
-  }
+    /* Win32 takes either separator but not a mixture, and the caller appends
+     * with '/'. Settle on that here rather than leave it to chance. */
+    for(char *p = buf; *p != '\0'; p++) {
+        if(*p == '\\') { *p = '/'; }
+    }
 
-  cut = strrchr(buf, '/');
+    cut = strrchr(buf, '/');
 
-  if(cut == NULL) { return (false); }
+    if(cut == NULL) { return (false); }
 
-  *cut = '\0';
+    *cut = '\0';
 
-  return (true);
+    return (true);
 }
 
 bool search_for_chips(const char *dir) {
-  WIN32_FIND_DATAA ffd;
-  char path[MAX_PATH] = {0};
-  HANDLE hFind;
-  bool found = false;
+    WIN32_FIND_DATAA ffd;
+    char path[MAX_PATH] = {0};
+    HANDLE hFind;
+    bool found = false;
 
-  DLOG("Looking for chip description files in %s\n", dir);
+    DLOG("Looking for chip description files in %s\n", dir);
 
-  if(FAILED(StringCchCopyA(path, sizeof(path), dir)) ||
-      FAILED(StringCchCatA(path, sizeof(path), "/*" CHIP_FILE_EXT))) {
-    ELOG("Path too long: %s\n", dir);
-    return (false);
-  }
-
-  hFind = FindFirstFileA(path, &ffd);
-
-  if(INVALID_HANDLE_VALUE == hFind) { return (false); }
-
-  do {
     if(FAILED(StringCchCopyA(path, sizeof(path), dir)) ||
-        FAILED(StringCchCatA(path, sizeof(path), "/")) ||
-        FAILED(StringCchCatA(path, sizeof(path), ffd.cFileName))) {
-      ELOG("Path too long: %s/%s\n", dir, ffd.cFileName);
-      continue;
+        FAILED(StringCchCatA(path, sizeof(path), "/*" CHIP_FILE_EXT))) {
+        ELOG("Path too long: %s\n", dir);
+        return (false);
     }
 
-    process_chipfile(path);
-    found = true;
-  } while (FindNextFileA(hFind, &ffd) != 0);
+    hFind = FindFirstFileA(path, &ffd);
 
-  FindClose(hFind);
+    if(INVALID_HANDLE_VALUE == hFind) { return (false); }
 
-  return (found);
+    do {
+        if(FAILED(StringCchCopyA(path, sizeof(path), dir)) ||
+            FAILED(StringCchCatA(path, sizeof(path), "/")) ||
+            FAILED(StringCchCatA(path, sizeof(path), ffd.cFileName))) {
+            ELOG("Path too long: %s/%s\n", dir, ffd.cFileName);
+            continue;
+        }
+
+        process_chipfile(path);
+        found = true;
+    } while (FindNextFileA(hFind, &ffd) != 0);
+
+    FindClose(hFind);
+
+    return (found);
 }

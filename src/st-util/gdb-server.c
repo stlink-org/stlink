@@ -12,6 +12,7 @@
   ******************************************************************************
   */
 
+
 #include "gdb-server.h"
 #include "gdb-remote.h"
 #include "memory-map.h"
@@ -257,7 +258,7 @@ int32_t main(int32_t argc, char** argv) {
     if(WSAStartup(MAKEWORD(2, 2), &wsadata) != 0) { goto winsock_error; }
 #endif
 
-    do {                            // don't go beserk if serve() returns with error
+    do { // don't go beserk if serve() returns with error
         if(serve(sl, &state)) { usleep (1 * 1000); }
 
         sl = connected_stlink;      // in case serve() changed the connection
@@ -1054,7 +1055,7 @@ int32_t serve(stlink_t *sl, st_state_t *st) {
 
                 DLOG("unhexified Rcmd: '%s'\n", cmd);
 
-                if(!strncmp(cmd, "resume", 6)) {                               // resume
+                if(!strncmp(cmd, "resume", 6)) { // resume
                     DLOG("Rcmd: resume\n");
                     cache_sync(sl);
                     ret = stlink_run(sl, RUN_NORMAL);
@@ -1066,7 +1067,7 @@ int32_t serve(stlink_t *sl, st_state_t *st) {
                         reply = strdup("OK");
                     }
 
-                } else if(!strncmp(cmd, "halt", 4)) {                          // halt
+                } else if(!strncmp(cmd, "halt", 4)) { // halt
                     ret = stlink_force_debug(sl);
 
                     if(ret) {
@@ -1077,7 +1078,7 @@ int32_t serve(stlink_t *sl, st_state_t *st) {
                         DLOG("Rcmd: halt\n");
                     }
 
-                } else if(!strncmp(cmd, "jtag_reset", 10)) {                   // jtag_reset
+                } else if(!strncmp(cmd, "jtag_reset", 10)) { // jtag_reset
                     reply = strdup("OK");
 
                     ret = stlink_reset(sl, RESET_HARD);
@@ -1096,7 +1097,7 @@ int32_t serve(stlink_t *sl, st_state_t *st) {
                         // no errors have been found
                         DLOG("Rcmd: jtag_reset\n");
                     }
-                } else if(!strncmp(cmd, "reset", 5)) {     // reset
+                } else if(!strncmp(cmd, "reset", 5)) { // reset
 
                     ret = stlink_force_debug(sl);
                     if(ret) {
@@ -1554,9 +1555,9 @@ int32_t serve(stlink_t *sl, st_state_t *st) {
 
                 break;
 
-            case '2':           // insert write watchpoint
-            case '3':           // insert read  watchpoint
-            case '4': {         // insert access watchpoint
+            case '2':   // insert write watchpoint
+            case '3':   // insert read  watchpoint
+            case '4': { // insert access watchpoint
                 enum watchfun wf;
 
                 if(packet[1] == '2') {
@@ -1587,14 +1588,14 @@ int32_t serve(stlink_t *sl, st_state_t *st) {
             // stm32_addr_t len  = strtoul(&endptr[1], NULL, 16);
 
             switch (packet[1]) {
-            case '1':          // remove breakpoint
+            case '1': // remove breakpoint
                 update_code_breakpoint(sl, addr, 0);
                 reply = strdup("OK");
                 break;
 
-            case '2':          // remove write watchpoint
-            case '3':          // remove read watchpoint
-            case '4':          // remove access watchpoint
+            case '2': // remove write watchpoint
+            case '3': // remove read watchpoint
+            case '4': // remove access watchpoint
 
                 if(delete_data_watchpoint(sl, addr) < 0) {
                     reply = strdup("E00");

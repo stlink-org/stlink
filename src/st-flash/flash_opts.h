@@ -11,6 +11,7 @@
   ******************************************************************************
   */
 
+
 #ifndef FLASH_OPTS_H
 #define FLASH_OPTS_H
 
@@ -56,12 +57,12 @@ struct flash_opts {
     enum flash_format format;
     enum flash_area area;
     uint32_t val;
-    uint32_t flash_size;  // --flash=n[k, M]
-    int32_t opt;          // enable empty tail data drop optimization
-    int32_t mass_erase;   // Use mass-erase when programming flash instead of sector-erase
-    int32_t freq;         // --freq=n[k, M] frequency of JTAG/SWD
+    uint32_t flash_size; // --flash=n[k, M]
+    int32_t opt;         // enable empty tail data drop optimization
+    int32_t mass_erase;  // Use mass-erase when programming flash instead of sector-erase
+    int32_t freq;        // --freq=n[k, M] frequency of JTAG/SWD
     enum connect_type connect;
-    const char *remote;   // --remote=host[:port] drive an ST-LINK on another machine
+    const char *remote;  // --remote=host[:port] drive an ST-LINK on another machine
 };
 
 // static bool starts_with(const char * str, const char * prefix);

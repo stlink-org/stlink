@@ -11,10 +11,12 @@
   ******************************************************************************
   */
 
+
 #ifndef STM32_FLASH_H
 #define STM32_FLASH_H
 
 #include <stdint.h>
+
 
 /* STM32Fx FPEC flash controller interface, PM0063 manual */
 // STM32F05x is identical, based on RM0091 (DM00031936, Doc ID 018940 Rev.2, Aug 2012)
@@ -165,12 +167,12 @@
 
 // F7 Flash status register
 #define STM32_FLASH_F7_SR_BSY 16
-#define STM32_FLASH_F7_SR_ERS_ERR 7       /* Erase Sequence Error */
-#define STM32_FLASH_F7_SR_PGP_ERR 6       /* Programming parallelism error */
-#define STM32_FLASH_F7_SR_PGA_ERR 5       /* Programming alignment error */
-#define STM32_FLASH_F7_SR_WRP_ERR 4       /* Write protection error */
-#define STM32_FLASH_F7_SR_OP_ERR 1        /* Operation error */
-#define STM32_FLASH_F7_SR_EOP 0           /* End of operation */
+#define STM32_FLASH_F7_SR_ERS_ERR 7 /* Erase Sequence Error */
+#define STM32_FLASH_F7_SR_PGP_ERR 6 /* Programming parallelism error */
+#define STM32_FLASH_F7_SR_PGA_ERR 5 /* Programming alignment error */
+#define STM32_FLASH_F7_SR_WRP_ERR 4 /* Write protection error */
+#define STM32_FLASH_F7_SR_OP_ERR 1  /* Operation error */
+#define STM32_FLASH_F7_SR_EOP 0     /* End of operation */
 #define STM32_FLASH_F7_SR_ERROR_MASK                               \
   ((1 << STM32_FLASH_F7_SR_ERS_ERR) | (1 << STM32_FLASH_F7_SR_PGP_ERR) | \
    (1 << STM32_FLASH_F7_SR_PGA_ERR) | (1 << STM32_FLASH_F7_SR_WRP_ERR) | \
@@ -212,10 +214,10 @@
 #define STM32_FLASH_Gx_SR_PROGERR (3)
 #define STM32_FLASH_Gx_SR_WRPERR (4)
 #define STM32_FLASH_Gx_SR_PGAERR (5)
-#define STM32_FLASH_Gx_SR_BSY (16)        /* FLASH_SR Busy (BSY1 on G0) */
-#define STM32_FLASH_G0_SR_BSY2 (17)       /* STM32G0: Bank 2 busy (dual-bank devices only) */
-#define STM32_FLASH_G0_SR_CFGBSY (18)     /* STM32G0: Program/erase configuration busy */
-#define STM32_FLASH_Gx_SR_EOP (0)         /* FLASH_EOP End of Operation */
+#define STM32_FLASH_Gx_SR_BSY (16)    /* FLASH_SR Busy (BSY1 on G0) */
+#define STM32_FLASH_G0_SR_BSY2 (17)   /* STM32G0: Bank 2 busy (dual-bank devices only) */
+#define STM32_FLASH_G0_SR_CFGBSY (18) /* STM32G0: Program/erase configuration busy */
+#define STM32_FLASH_Gx_SR_EOP (0)     /* FLASH_EOP End of Operation */
 
 // == STM32G0 == (RM0444 Table 1, sec. 3.7)
 // Mostly the same as G4 chips, but the notation
@@ -357,23 +359,23 @@
 #define STM32_FLASH_L4_SR_WRPERR 4
 #define STM32_FLASH_L4_SR_PGAERR 5
 #define STM32_FLASH_L4_SR_BSY 16
-#define STM32_FLASH_L4_SR_PEMPTY 17       /* Program empty (L41x-L46x, L4P/Q, L4R/S only) */
+#define STM32_FLASH_L4_SR_PEMPTY 17 /* Program empty (L41x-L46x, L4P/Q, L4R/S only) */
 // EOP, OPERR, PROGERR..FASTERR, RDERR, OPTVERR: all "write 1 to clear" flags.
 // Must never include PEMPTY: writing 1 to it toggles the bit (RM0394/RM0432).
 #define STM32_FLASH_L4_SR_CLEAR_MASK 0xc3fb
 
 // L4 Flash control register
-#define STM32_FLASH_L4_CR_LOCK 31         /* Lock control register */
-#define STM32_FLASH_L4_CR_OPTLOCK 30      /* Lock option bytes */
-#define STM32_FLASH_L4_CR_PG 0            /* Program */
-#define STM32_FLASH_L4_CR_PER 1           /* Page erase */
-#define STM32_FLASH_L4_CR_MER1 2          /* Bank 1 erase */
-#define STM32_FLASH_L4_CR_MER2 15         /* Bank 2 erase */
-#define STM32_FLASH_L4_CR_STRT 16         /* Start command */
-#define STM32_FLASH_L4_CR_OPTSTRT 17      /* Start writing option bytes */
-#define STM32_FLASH_L4_CR_BKER 11         /* Bank select for page erase */
-#define STM32_FLASH_L4_CR_PNB 3           /* Page number (8 bits) */
-#define STM32_FLASH_L4_CR_OBL_LAUNCH 27   /* Option bytes reload */
+#define STM32_FLASH_L4_CR_LOCK 31       /* Lock control register */
+#define STM32_FLASH_L4_CR_OPTLOCK 30    /* Lock option bytes */
+#define STM32_FLASH_L4_CR_PG 0          /* Program */
+#define STM32_FLASH_L4_CR_PER 1         /* Page erase */
+#define STM32_FLASH_L4_CR_MER1 2        /* Bank 1 erase */
+#define STM32_FLASH_L4_CR_MER2 15       /* Bank 2 erase */
+#define STM32_FLASH_L4_CR_STRT 16       /* Start command */
+#define STM32_FLASH_L4_CR_OPTSTRT 17    /* Start writing option bytes */
+#define STM32_FLASH_L4_CR_BKER 11       /* Bank select for page erase */
+#define STM32_FLASH_L4_CR_PNB 3         /* Page number (8 bits) */
+#define STM32_FLASH_L4_CR_OBL_LAUNCH 27 /* Option bytes reload */
 // Bits requesting flash operations (useful when we want to clear them)
 #define STM32_FLASH_L4_CR_OPBITS                                        \
   (uint32_t) ((1lu << STM32_FLASH_L4_CR_PG) | (1lu << STM32_FLASH_L4_CR_PER) | \
@@ -406,7 +408,7 @@
 // FLASH_OPTR (RM0438, RM0456)
 #define STM32_FLASH_L5_OPTR_RDP_MASK (0xff)
 #define STM32_FLASH_L5_OPTR_RDP_LEVEL_0 (0xaa)
-#define STM32_FLASH_L5_OPTR_TZEN 31       /* Global TrustZone security enable */
+#define STM32_FLASH_L5_OPTR_TZEN 31 /* Global TrustZone security enable */
 
 // FLASH_NSCR control registers (RM0438, p. 242)
 #define STM32_FLASH_L5_NSCR_NSPG 0        /* Program */
@@ -424,7 +426,7 @@
 #define STM32_FLASH_L5_NSCR_NSLOCK 31     /* Lock control register */
 
 // FLASH_NSSR status register (RM0438, p. 241)
-#define STM32_FLASH_L5_NSSR_NSEOP 0       /* End of Operation */
+#define STM32_FLASH_L5_NSSR_NSEOP 0 /* End of Operation */
 #define STM32_FLASH_L5_NSSR_NSOPERR 1
 #define STM32_FLASH_L5_NSSR_NSPROGERR 3
 #define STM32_FLASH_L5_NSSR_NSWRPERR 4
@@ -432,7 +434,7 @@
 #define STM32_FLASH_L5_NSSR_NSSIZERR 6
 #define STM32_FLASH_L5_NSSR_NSPGSERR 7
 #define STM32_FLASH_L5_NSSR_OPTWERR 12
-#define STM32_FLASH_L5_NSSR_BSY 16        /* Busy */
+#define STM32_FLASH_L5_NSSR_BSY 16  /* Busy */
 #define STM32_FLASH_L5_NSSR_ERROR_MASK (0x20fa)
 
 // == STM32H5 == (RM0481)
@@ -463,8 +465,8 @@
 #define STM32_FLASH_H5_NSCR_BKSEL 31 /* Bank selector */
 
 // FLASH_NSSR status bits (RM0481)
-#define STM32_FLASH_H5_NSSR_BSY  0   /* Busy */
-#define STM32_FLASH_H5_NSSR_EOP  16  /* End of operation */
+#define STM32_FLASH_H5_NSSR_BSY  0  /* Busy */
+#define STM32_FLASH_H5_NSSR_EOP  16 /* End of operation */
 #define STM32_FLASH_H5_NSSR_WRPERR 17
 #define STM32_FLASH_H5_NSSR_PGSERR 18
 #define STM32_FLASH_H5_NSSR_STRBERR 19
@@ -518,7 +520,7 @@
 // key values, to be written into DATA0-3
 #define STM32_FLASH_WB0_KEY01_UNLOCK (0xFFFFFFFF)
 #define STM32_FLASH_WB0_KEY01_READOUT_PROT (0xAAAAAAAA)
-#define STM32_FLASH_WB0_KEY01_SWD_DISABLED (0xABACABAD)   /* irreversible protection level */
+#define STM32_FLASH_WB0_KEY01_SWD_DISABLED (0xABACABAD) /* irreversible protection level */
 #define STM32_FLASH_WB0_KEY2 (0xC7EF584D)
 #define STM32_FLASH_WB0_KEY3 (0xB3A21096)
 
@@ -595,9 +597,9 @@
 
 // WB Flash status register
 #define STM32_FLASH_WB_SR_ERROR_MASK (0x3f8) // SR [9:3]
-#define STM32_FLASH_WB_SR_PROGERR (3)     /* Programming alignment error */
-#define STM32_FLASH_WB_SR_WRPERR (4)      /* Write protection error */
-#define STM32_FLASH_WB_SR_PGAERR (5)      /* Programming error */
-#define STM32_FLASH_WB_SR_BSY (16)        /* Busy */
+#define STM32_FLASH_WB_SR_PROGERR (3) /* Programming alignment error */
+#define STM32_FLASH_WB_SR_WRPERR (4)  /* Write protection error */
+#define STM32_FLASH_WB_SR_PGAERR (5)  /* Programming error */
+#define STM32_FLASH_WB_SR_BSY (16)    /* Busy */
 
 #endif // STM32_FLASH_H

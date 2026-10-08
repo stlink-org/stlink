@@ -11,6 +11,7 @@
   ******************************************************************************
   */
 
+
 #ifndef USB_H
 #define USB_H
 
@@ -52,9 +53,9 @@
 #define STLINK_USB_VID_ST                   0x0483
 #define STLINK_USB_PID_STLINK               0x3744
 #define STLINK_USB_PID_STLINK_32L           0x3748
-#define STLINK_USB_PID_STLINK_32L_AUDIO     0x374a  // ST-LINK/V2-1 with the "STM32+Audio" firmware
-#define STLINK_USB_PID_STLINK_NUCLEO        0x374b  // ST-LINK/V2-1
-#define STLINK_USB_PID_STLINK_V2_1          0x3752  // ST-LINK/V2-1 without mass storage
+#define STLINK_USB_PID_STLINK_32L_AUDIO     0x374a // ST-LINK/V2-1 with the "STM32+Audio" firmware
+#define STLINK_USB_PID_STLINK_NUCLEO        0x374b // ST-LINK/V2-1
+#define STLINK_USB_PID_STLINK_V2_1          0x3752 // ST-LINK/V2-1 without mass storage
 #define STLINK_USB_PID_STLINK_V3_USBLOADER  0x374d
 #define STLINK_USB_PID_STLINK_V3E_PID       0x374e
 #define STLINK_USB_PID_STLINK_V3S_PID       0x374f
@@ -193,7 +194,7 @@ int32_t _stlink_usb_read_trace(stlink_t* sl, uint8_t* buf, uint32_t size);
  * @param handle open libusb device
  * @param desc   its device descriptor
  * @param serial receives the serial, at least STLINK_SERIAL_BUFFER_SIZE bytes; empty on error
- * @return the length of the serial (STLINK_SERIAL_LENGTH for a valid serial), 0 on error
+ * @return       the length of the serial (STLINK_SERIAL_LENGTH for a valid serial), 0 on error
  */
 uint32_t stlink_serial(struct libusb_device_handle *handle, struct libusb_device_descriptor *desc, char *serial);
 
@@ -225,8 +226,8 @@ uint32_t stlink_serial(struct libusb_device_handle *handle, struct libusb_device
  * @param serial  serial number of the ST-LINK to open (hex string, as
  *                stlink_t::serial), or NULL or "" for the first ST-LINK found
  * @param freq    SWD frequency in kHz, 0 for the default (see stlink_set_swdclk())
- * @return the device handle, to be released with stlink_close(), or NULL if no
- *         matching ST-LINK was found or it could not be opened (e.g. in use)
+ * @return        the device handle, to be released with stlink_close(), or NULL if no
+ *                matching ST-LINK was found or it could not be opened (e.g. in use)
  */
 stlink_t *stlink_open_usb(enum ugly_loglevel verbose, enum connect_type connect, char serial[STLINK_SERIAL_BUFFER_SIZE], int32_t freq);
 // static uint32_t stlink_probe_usb_devs(libusb_device **devs, stlink_t **sldevs[], enum connect_type connect, int32_t freq);
@@ -242,7 +243,7 @@ stlink_t *stlink_open_usb(enum ugly_loglevel verbose, enum connect_type connect,
  *                if libusb fails: initialise it to NULL before the call.
  * @param connect how to connect to the targets, see stlink_target_connect()
  * @param freq    SWD frequency in kHz, 0 for the default
- * @return the number of handles in @p stdevs
+ * @return        the number of handles in @p stdevs
  */
 uint32_t stlink_probe_usb(stlink_t **stdevs[], enum connect_type connect, int32_t freq);
 

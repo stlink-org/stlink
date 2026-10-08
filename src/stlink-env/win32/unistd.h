@@ -4,6 +4,7 @@
  *
  */
 
+
 #ifndef UNISTD_H
 #define UNISTD_H
 
@@ -15,6 +16,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+
 
 #if defined(_MSC_VER) && !defined(_SSIZE_T_DEFINED)
 #include <basetsd.h>
@@ -41,10 +43,10 @@ typedef SSIZE_T ssize_t;
 #define random rand
 
 /* Values for the second argument to access. These may be OR'd together. */
-#define R_OK    4       // Test for read permission
-#define W_OK    2       // Test for write permission
+#define R_OK    4 // Test for read permission
+#define W_OK    2 // Test for write permission
 // #define X_OK    1    // execute permission - unsupported in windows
-#define F_OK    0       // Test for existence
+#define F_OK    0 // Test for existence
 
 #define access _access
 #define dup2 _dup2

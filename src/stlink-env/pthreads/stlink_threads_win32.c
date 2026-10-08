@@ -12,6 +12,7 @@
   ******************************************************************************
   */
 
+
 #include <errno.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -21,6 +22,7 @@
 #include <process.h>
 
 #include "stlink_threads.h"
+
 
 /*
  * Win32 wants an entry point of unsigned __stdcall (*)(void *), which is not

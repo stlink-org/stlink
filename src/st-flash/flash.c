@@ -11,6 +11,7 @@
   ******************************************************************************
   */
 
+
 #include "flash.h"
 #include "flash_opts.h"
 
@@ -231,7 +232,7 @@ int32_t main(int32_t ac, char** av) {
                 goto on_error;
             }
             err = stlink_fwrite_flash(sl, o.filename,  o.addr, NO_ERASE);
-        
+
             if(err == -1) {
                 printf("stlink_fwrite_flash() == -1\n");
                 goto on_error;
@@ -241,7 +242,7 @@ int32_t main(int32_t ac, char** av) {
             printf("Unknown memory region\n");
             goto on_error;
         }
-    
+
     } else if(o.cmd == FLASH_CMD_ERASE) {
 
         // erase
@@ -271,7 +272,7 @@ int32_t main(int32_t ac, char** av) {
             printf("Failed to reset device\n");
             goto on_error;
         }
-    
+
     } else if(o.cmd == CMD_RESET) {
 
         // reset
@@ -281,7 +282,7 @@ int32_t main(int32_t ac, char** av) {
         } else {
             stlink_run(sl, RUN_NORMAL);
         }
-    
+
     } else {
 
         // read

@@ -11,6 +11,7 @@
   ******************************************************************************
   */
 
+
 #ifndef HELPER_H
 #define HELPER_H
 
@@ -38,8 +39,8 @@ uint32_t time_ms();
  * Parse a frequency given on the command line.
  * @ingroup api_util
  * @param str decimal number in kHz, optionally followed by "k"/"K" (kHz) or "M" (MHz), e.g. "1800", "4M"
- * @return the frequency in kHz, or -1 for NULL or an invalid suffix (an empty
- *         string gives 0, negative numbers are passed through)
+ * @return    the frequency in kHz, or -1 for NULL or an invalid suffix (an empty
+ *            string gives 0, negative numbers are passed through)
  */
 int32_t arg_parse_freq(const char *str);
 

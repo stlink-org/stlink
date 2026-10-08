@@ -11,6 +11,7 @@
   ******************************************************************************
   */
 
+
 #ifndef OPTION_BYTES_H
 #define OPTION_BYTES_H
 
@@ -107,7 +108,7 @@ int32_t stlink_read_option_bytes_generic(stlink_t *sl, uint32_t *option_byte);
  *             (stlink_t::option_base, stlink_t::option_size)
  * @param base option byte values, in the layout of the memory mapped option bytes
  * @param len  number of bytes
- * @return 0 on success, -1 on error or for an unsupported device
+ * @return     0 on success, -1 on error or for an unsupported device
  */
 int32_t stlink_write_option_bytes(stlink_t *sl, stm32_addr_t addr, uint8_t *base, uint32_t len);
 
@@ -124,7 +125,7 @@ int32_t stlink_write_option_bytes(stlink_t *sl, stm32_addr_t addr, uint8_t *base
  * @param sl   device handle
  * @param path binary file
  * @param addr address of the first option byte to write
- * @return 0 on success, -1 on error
+ * @return     0 on success, -1 on error
  */
 int32_t stlink_fwrite_option_bytes(stlink_t *sl, const char *path, stm32_addr_t addr);
 
@@ -133,7 +134,7 @@ int32_t stlink_fwrite_option_bytes(stlink_t *sl, const char *path, stm32_addr_t 
  * Supported families: STM32C0, F0, F1, F3, F7, WB, WL.
  * @param sl          device handle
  * @param option_byte receives the register value
- * @return 0 on success, -1 on error or for an unsupported device
+ * @return            0 on success, -1 on error or for an unsupported device
  */
 int32_t stlink_read_option_control_register32(stlink_t *sl, uint32_t *option_byte);
 
@@ -142,7 +143,7 @@ int32_t stlink_read_option_control_register32(stlink_t *sl, uint32_t *option_byt
  * Supported families: STM32C0, F0, F1, F3, F7, WB, WL. Unlocks and locks the flash and the option bytes.
  * @param sl        device handle
  * @param option_cr new register value
- * @return 0 on success, -1 on error or for an unsupported device
+ * @return          0 on success, -1 on error or for an unsupported device
  */
 int32_t stlink_write_option_control_register32(stlink_t *sl, uint32_t option_cr);
 
@@ -150,7 +151,7 @@ int32_t stlink_write_option_control_register32(stlink_t *sl, uint32_t option_cr)
  * Read the option control register 1 (STM32F7 only).
  * @param sl          device handle
  * @param option_byte receives the register value
- * @return 0 on success, -1 on error or for an unsupported device
+ * @return            0 on success, -1 on error or for an unsupported device
  */
 int32_t stlink_read_option_control_register1_32(stlink_t *sl, uint32_t *option_byte);
 
@@ -159,7 +160,7 @@ int32_t stlink_read_option_control_register1_32(stlink_t *sl, uint32_t *option_b
  * Unlocks and locks the flash and the option bytes.
  * @param sl         device handle
  * @param option_cr1 new register value
- * @return 0 on success, -1 on error or for an unsupported device
+ * @return           0 on success, -1 on error or for an unsupported device
  */
 int32_t stlink_write_option_control_register1_32(stlink_t *sl, uint32_t option_cr1);
 
@@ -172,7 +173,7 @@ int32_t stlink_write_option_control_register1_32(stlink_t *sl, uint32_t option_c
  *
  * @param sl          device handle
  * @param option_byte receives the value
- * @return 0 on success, -1 on error or if the device has no option bytes
+ * @return            0 on success, -1 on error or if the device has no option bytes
  */
 int32_t stlink_read_option_bytes32(stlink_t *sl, uint32_t* option_byte);
 
@@ -182,7 +183,7 @@ int32_t stlink_read_option_bytes32(stlink_t *sl, uint32_t* option_byte);
  * STM32F0/F1/F3, which require at least 12 bytes.
  * @param sl          device handle
  * @param option_byte new value
- * @return 0 on success, -1 on error or for an unsupported device
+ * @return            0 on success, -1 on error or for an unsupported device
  */
 int32_t stlink_write_option_bytes32(stlink_t *sl, uint32_t option_byte);
 
@@ -190,7 +191,7 @@ int32_t stlink_write_option_bytes32(stlink_t *sl, uint32_t option_byte);
  * Read the boot address option bytes (STM32F7 only).
  * @param sl          device handle
  * @param option_byte receives the value
- * @return 0 on success, -1 on error or for an unsupported device
+ * @return            0 on success, -1 on error or for an unsupported device
  */
 int32_t stlink_read_option_bytes_boot_add32(stlink_t *sl, uint32_t* option_byte);
 
@@ -199,7 +200,7 @@ int32_t stlink_read_option_bytes_boot_add32(stlink_t *sl, uint32_t* option_byte)
  * Unlocks and locks the flash and the option bytes.
  * @param sl                    device handle
  * @param option_bytes_boot_add new value
- * @return 0 on success, -1 on error or for an unsupported device
+ * @return                      0 on success, -1 on error or for an unsupported device
  */
 int32_t stlink_write_option_bytes_boot_add32(stlink_t *sl, uint32_t option_bytes_boot_add);
 

@@ -11,11 +11,13 @@
   ******************************************************************************
   */
 
+
 #ifndef GUI_H
 #define GUI_H
 
 #include <stdint.h>
 #include <glib-object.h>
+
 
 #define STLINK_TYPE_GUI             (stlink_gui_get_type())
 #define STLINK_GUI(obj)             (G_TYPE_CHECK_INSTANCE_CAST((obj), STLINK_TYPE_GUI, STlinkGUI))

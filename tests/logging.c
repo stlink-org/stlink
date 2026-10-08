@@ -4,6 +4,7 @@
  * Checks the log handler interface without any hardware.
  */
 
+
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -13,6 +14,7 @@
 #include <logging.h>
 
 #include "libusb_settings.h"
+
 
 #define MAX_ENTRIES 16
 

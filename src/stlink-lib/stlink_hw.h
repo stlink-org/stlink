@@ -39,29 +39,29 @@ extern "C" {
  * (1, 2 or 3, i.e. ST-LINK/V2-1 reports 2), see stlink_hw_major().
  */
 enum stlink_hw_gen {
-    STLINK_HW_V1,       ///< ST-LINK/V1: commands wrapped in USB mass storage command blocks
-    STLINK_HW_V2,       ///< ST-LINK/V2: full speed USB
-    STLINK_HW_V2_1,     ///< ST-LINK/V2-1: like ST-LINK/V2, other endpoint layout, mass storage and virtual COM port
-    STLINK_HW_V3,       ///< STLINK-V3: high speed USB, debug API V3
+    STLINK_HW_V1,   ///< ST-LINK/V1: commands wrapped in USB mass storage command blocks
+    STLINK_HW_V2,   ///< ST-LINK/V2: full speed USB
+    STLINK_HW_V2_1, ///< ST-LINK/V2-1: like ST-LINK/V2, other endpoint layout, mass storage and virtual COM port
+    STLINK_HW_V3,   ///< STLINK-V3: high speed USB, debug API V3
 };
 
 /** Description of an ST-LINK variant, selected by its USB product id */
 struct stlink_hw_desc {
-    uint16_t pid;               ///< USB product id (vendor id 0x0483), 0 for the generic descriptors
-    enum stlink_hw_gen gen;     ///< hardware generation
-    const char *name;           ///< name of the variant, e.g. "ST-LINK/V2-1 (no mass storage)"
-    bool msc_framing;           ///< commands are wrapped in USB mass storage command blocks (ST-LINK/V1)
-    uint8_t ep_req;             ///< endpoint number for commands (OUT)
-    uint8_t ep_rep;             ///< endpoint number for replies (IN)
-    uint8_t ep_trace;           ///< endpoint number for SWO trace data (IN), 0 if none
-    uint32_t trace_buf_len;     ///< size of the SWO trace buffer in bytes, 0 if none
-    uint32_t max_trace_freq;    ///< maximum SWO frequency in Hz, 0 if none
+    uint16_t pid;            ///< USB product id (vendor id 0x0483), 0 for the generic descriptors
+    enum stlink_hw_gen gen;  ///< hardware generation
+    const char *name;        ///< name of the variant, e.g. "ST-LINK/V2-1 (no mass storage)"
+    bool msc_framing;        ///< commands are wrapped in USB mass storage command blocks (ST-LINK/V1)
+    uint8_t ep_req;          ///< endpoint number for commands (OUT)
+    uint8_t ep_rep;          ///< endpoint number for replies (IN)
+    uint8_t ep_trace;        ///< endpoint number for SWO trace data (IN), 0 if none
+    uint32_t trace_buf_len;  ///< size of the SWO trace buffer in bytes, 0 if none
+    uint32_t max_trace_freq; ///< maximum SWO frequency in Hz, 0 if none
 };
 
 /**
  * Look up an ST-LINK variant by its USB product id.
  * @param pid USB product id (vendor id 0x0483)
- * @return the descriptor, or NULL if the product id is not a supported ST-LINK
+ * @return    the descriptor, or NULL if the product id is not a supported ST-LINK
  */
 const struct stlink_hw_desc *stlink_hw_lookup(uint16_t pid);
 
@@ -72,21 +72,21 @@ const struct stlink_hw_desc *stlink_hw_lookup(uint16_t pid);
  * descriptor of the generation in stlink_version_t::stlink_v is returned.
  *
  * @param version version of the ST-LINK, see stlink_version()
- * @return the descriptor, or NULL if neither the product id nor the generation is known
+ * @return        the descriptor, or NULL if neither the product id nor the generation is known
  */
 const struct stlink_hw_desc *stlink_hw_of(const stlink_version_t *version);
 
 /**
  * All supported ST-LINK variants.
  * @param count receives the number of entries
- * @return the table, sorted by generation
+ * @return      the table, sorted by generation
  */
 const struct stlink_hw_desc *stlink_hw_table(uint32_t *count);
 
 /**
  * Generation number as reported by the ST-LINK firmware (stlink_version_t::stlink_v).
  * @param hw descriptor
- * @return 1, 2 (ST-LINK/V2 and V2-1) or 3
+ * @return   1, 2 (ST-LINK/V2 and V2-1) or 3
  */
 uint32_t stlink_hw_major(const struct stlink_hw_desc *hw);
 
@@ -100,7 +100,7 @@ uint32_t stlink_hw_major(const struct stlink_hw_desc *hw);
  * @param len       length of the reply in bytes: at least 6, or 12 for the V3 format
  * @param v3_format the reply is the one of STLINK_GET_VERSION_APIV3 (STLINK-V3)
  * @param version   receives the decoded version
- * @return 0 on success, -1 if the reply is too short
+ * @return          0 on success, -1 if the reply is too short
  */
 int32_t stlink_hw_decode_version(const uint8_t *reply, uint32_t len, bool v3_format,
                                  stlink_version_t *version);
@@ -113,7 +113,7 @@ int32_t stlink_hw_decode_version(const uint8_t *reply, uint32_t len, bool v3_for
  *
  * @param hw     descriptor of the ST-LINK, NULL gives no flags
  * @param jtag_v firmware version of the JTAG/SWD part (stlink_version_t::jtag_v)
- * @return the STLINK_F_* flags
+ * @return       the STLINK_F_* flags
  */
 uint32_t stlink_hw_capabilities(const struct stlink_hw_desc *hw, uint32_t jtag_v);
 
@@ -125,7 +125,7 @@ uint32_t stlink_hw_capabilities(const struct stlink_hw_desc *hw, uint32_t jtag_v
  * backend sets before reading the version (3 for an STLINK-V3).
  *
  * @param sl device handle, the reply of the version command in stlink_t::q_buf
- * @return 0 on success, -1 if the reply cannot be decoded
+ * @return   0 on success, -1 if the reply cannot be decoded
  */
 int32_t stlink_hw_parse_version(stlink_t *sl);
 

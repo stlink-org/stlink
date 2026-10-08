@@ -11,6 +11,7 @@
   ******************************************************************************
   */
 
+
 #include "chipid.h"
 
 #include <errno.h>
@@ -23,238 +24,238 @@
 static struct stlink_chipid_params *devicelist;
 
 void dump_a_chip(struct stlink_chipid_params *dev) {
-  DLOG("# Device Type: %s\n", dev->dev_type);
-  DLOG("# Reference Manual: RM%s\n", dev->ref_manual_id);
-  DLOG("#\n");
-  DLOG("chip_id 0x%x\n", dev->chip_id);
-  DLOG("flash_type %d\n", dev->flash_type);
-  DLOG("flash_size_reg 0x%x\n", dev->flash_size_reg);
-  DLOG("flash_pagesize 0x%x\n", dev->flash_pagesize);
-  DLOG("sram_size 0x%x\n", dev->sram_size);
-  DLOG("bootrom_base 0x%x\n", dev->bootrom_base);
-  DLOG("bootrom_size 0x%x\n", dev->bootrom_size);
-  DLOG("option_base 0x%x\n", dev->option_base);
-  DLOG("option_size 0x%x\n", dev->option_size);
-  DLOG("flags %d\n\n", dev->flags);
-  DLOG("otp_base %d\n\n", dev->otp_base);
-  DLOG("otp_size %d\n\n", dev->otp_size);
+    DLOG("# Device Type: %s\n", dev->dev_type);
+    DLOG("# Reference Manual: RM%s\n", dev->ref_manual_id);
+    DLOG("#\n");
+    DLOG("chip_id 0x%x\n", dev->chip_id);
+    DLOG("flash_type %d\n", dev->flash_type);
+    DLOG("flash_size_reg 0x%x\n", dev->flash_size_reg);
+    DLOG("flash_pagesize 0x%x\n", dev->flash_pagesize);
+    DLOG("sram_size 0x%x\n", dev->sram_size);
+    DLOG("bootrom_base 0x%x\n", dev->bootrom_base);
+    DLOG("bootrom_size 0x%x\n", dev->bootrom_size);
+    DLOG("option_base 0x%x\n", dev->option_base);
+    DLOG("option_size 0x%x\n", dev->option_size);
+    DLOG("flags %d\n\n", dev->flags);
+    DLOG("otp_base %d\n\n", dev->otp_base);
+    DLOG("otp_size %d\n\n", dev->otp_size);
 }
 
 struct stlink_chipid_params *stlink_chipid_get_params(uint32_t chip_id) {
-  struct stlink_chipid_params *params = NULL;
-  for(params = devicelist; params != NULL; params = params->next)
-    if(params->chip_id == chip_id) {
-      DLOG("detected chip_id parameters\n\n");
-      dump_a_chip(params);
-      break;
-    }
+    struct stlink_chipid_params *params = NULL;
+    for(params = devicelist; params != NULL; params = params->next)
+        if(params->chip_id == chip_id) {
+            DLOG("detected chip_id parameters\n\n");
+            dump_a_chip(params);
+            break;
+        }
 
-  return (params);
+    return (params);
 }
 
 void process_chipfile(char *fname) {
-  FILE *fp;
-  char *p, buf[256];
-  char word[64], value[64];
-  struct stlink_chipid_params *ts;
-  int32_t nc;
+    FILE *fp;
+    char *p, buf[256];
+    char word[64], value[64];
+    struct stlink_chipid_params *ts;
+    int32_t nc;
 
-  fp = fopen(fname, "r");
+    fp = fopen(fname, "r");
 
-  if(!fp) {
-    ELOG("%s: %s\n", fname, strerror(errno));
-    return;
-  }
-
-  ts = calloc(1, sizeof(struct stlink_chipid_params));
-
-  while (fgets(buf, sizeof(buf), fp) != NULL) {
-
-    if(strncmp(buf, "#", strlen("#")) == 0)
-      continue; // ignore comments
-
-    if((strncmp(buf, "\n", strlen("\n")) == 0) ||
-        (strncmp(buf, " ", strlen(" ")) == 0))
-      continue; // ignore empty lines
-
-    if(sscanf(buf, "%63s %63s", word, value) != 2) {
-      WLOG("Failed to read keyword or value in %s\n", fname);
-      continue;
+    if(!fp) {
+        ELOG("%s: %s\n", fname, strerror(errno));
+        return;
     }
 
-    if(strcmp(word, "dev_type") == 0) {
-      buf[strlen(buf) - 1] = 0; // chomp newline
-      sscanf(buf, "%*s %n", &nc);
-      ts->dev_type = strdup(buf + nc);
-    } else if(strcmp(word, "ref_manual_id") == 0) {
-      buf[strlen(buf) - 1] = 0; // chomp newline
-      sscanf(buf, "%*s %n", &nc);
-      ts->ref_manual_id = strdup(buf + nc);
-    } else if(strcmp(word, "chip_id") == 0) {
-      buf[strlen(buf) - 1] = 0; // chomp newline
-      sscanf(buf, "%*s %n", &nc);
-      if(sscanf(value, "%i", &ts->chip_id) < 1) {
-        ELOG("Failed to parse chip-id in %s\n", fname);
-      }
-    } else if(strcmp(word, "flash_type") == 0) {
-      buf[strlen(buf) - 1] = 0; // chomp newline
-      sscanf(buf, "%*s %n", &nc);
-      // Match human readable flash_type with enum stm32_flash_type { }.
-      if(strcmp(value, "C0") == 0) {
-        ts->flash_type = STM32_FLASH_TYPE_C0;
-      } else if(strcmp(value, "F0_F1_F3") == 0) {
-        ts->flash_type = STM32_FLASH_TYPE_F0_F1_F3;
-      } else if(strcmp(value, "F1_XL") == 0) {
-        ts->flash_type = STM32_FLASH_TYPE_F1_XL;
-      } else if(strcmp(value, "F2_F4") == 0) {
-        ts->flash_type = STM32_FLASH_TYPE_F2_F4;
-      } else if(strcmp(value, "F7") == 0) {
-        ts->flash_type = STM32_FLASH_TYPE_F7;
-      } else if(strcmp(value, "G0") == 0) {
-        ts->flash_type = STM32_FLASH_TYPE_G0;
-      } else if(strcmp(value, "G4") == 0) {
-        ts->flash_type = STM32_FLASH_TYPE_G4;
-      } else if(strcmp(value, "H7") == 0) {
-        ts->flash_type = STM32_FLASH_TYPE_H7;
-      } else if(strcmp(value, "L0_L1") == 0) {
-        ts->flash_type = STM32_FLASH_TYPE_L0_L1;
-      } else if(strcmp(value, "L4") == 0) {
-        ts->flash_type = STM32_FLASH_TYPE_L4;
-      } else if(strcmp(value, "L5_U5") == 0) {
-        ts->flash_type = STM32_FLASH_TYPE_L5_U5;
-      } else if(strcmp(value, "WB_WL") == 0) {
-        ts->flash_type = STM32_FLASH_TYPE_WB_WL;
-      } else if(strcmp(value, "WB0") == 0) {
-        ts->flash_type = STM32_FLASH_TYPE_WB0;
-      } else if(strcmp(value, "H5") == 0) {
-        ts->flash_type = STM32_FLASH_TYPE_H5;
-      } else if(strcmp(value, "C5") == 0) {
-        ts->flash_type = STM32_FLASH_TYPE_C5;
-      } else {
-        ts->flash_type = STM32_FLASH_TYPE_UNKNOWN;
-      }
-    } else if(strcmp(word, "flash_size_reg") == 0) {
-      buf[strlen(buf) - 1] = 0; // chomp newline
-      sscanf(buf, "%*s %n", &nc);
-      if(sscanf(value, "%i", &ts->flash_size_reg) < 1) {
-        ELOG("Failed to parse flash size reg in %s\n", fname);
-      }
-    } else if(strcmp(word, "flash_pagesize") == 0) {
-      buf[strlen(buf) - 1] = 0; // chomp newline
-      sscanf(buf, "%*s %n", &nc);
-      if(sscanf(value, "%i", &ts->flash_pagesize) < 1) {
-        ELOG("Failed to parse flash page size in %s\n", fname);
-      }
-    } else if(strcmp(word, "sram_size") == 0) {
-      buf[strlen(buf) - 1] = 0; // chomp newline
-      sscanf(buf, "%*s %n", &nc);
-      if(sscanf(value, "%i", &ts->sram_size) < 1) {
-        ELOG("Failed to parse SRAM size in %s\n", fname);
-      }
-    } else if(strcmp(word, "bootrom_base") == 0) {
-      buf[strlen(buf) - 1] = 0; // chomp newline
-      sscanf(buf, "%*s %n", &nc);
-      if(sscanf(value, "%i", &ts->bootrom_base) < 1) {
-        ELOG("Failed to parse BootROM base in %s\n", fname);
-      }
-    } else if(strcmp(word, "bootrom_size") == 0) {
-      buf[strlen(buf) - 1] = 0; // chomp newline
-      sscanf(buf, "%*s %n", &nc);
-      if(sscanf(value, "%i", &ts->bootrom_size) < 1) {
-        ELOG("Failed to parse BootROM size in %s\n", fname);
-      }
-    } else if(strcmp(word, "option_base") == 0) {
-      buf[strlen(buf) - 1] = 0; // chomp newline
-      sscanf(buf, "%*s %n", &nc);
-      if(sscanf(value, "%i", &ts->option_base) < 1) {
-        ELOG("Failed to parse option base in %s\n", fname);
-      }
-    } else if(strcmp(word, "option_size") == 0) {
-      buf[strlen(buf) - 1] = 0; // chomp newline
-      sscanf(buf, "%*s %n", &nc);
-      if(sscanf(value, "%i", &ts->option_size) < 1) {
-        ELOG("Failed to parse option size in %s\n", fname);
-      }
-    } else if(strcmp(word, "flags") == 0) {
-      buf[strlen(buf) - 1] = 0; // chomp newline
-      sscanf(buf, "%*s %n", &nc);
-      p = strtok(buf, " \t\n");
+    ts = calloc(1, sizeof(struct stlink_chipid_params));
 
-      while ((p = strtok(NULL, " \t\n"))) {
-        if(strcmp(p, "none") == 0) {
-          // NOP
-        } else if(strcmp(p, "dualbank") == 0) {
-          ts->flags |= CHIP_F_HAS_DUAL_BANK;
-        } else if(strcmp(p, "swo") == 0) {
-          ts->flags |= CHIP_F_HAS_SWO_TRACING;
-        } else {
-          WLOG("Unknown flags word in %s: '%s'\n", fname, p);
+    while (fgets(buf, sizeof(buf), fp) != NULL) {
+
+        if(strncmp(buf, "#", strlen("#")) == 0)
+            continue; // ignore comments
+
+        if((strncmp(buf, "\n", strlen("\n")) == 0) ||
+            (strncmp(buf, " ", strlen(" ")) == 0))
+            continue; // ignore empty lines
+
+        if(sscanf(buf, "%63s %63s", word, value) != 2) {
+            WLOG("Failed to read keyword or value in %s\n", fname);
+            continue;
         }
-      }
 
-      sscanf(value, "%x", &ts->flags);
-    } else if(strcmp(word, "otp_base") == 0) {
-      buf[strlen(buf) - 1] = 0; // chomp newline
-      sscanf(buf, "%*s %n", &nc);
-      if(sscanf(value, "%i", &ts->otp_base) < 1) {
-        ELOG("Failed to parse OTP base in %s\n", fname);
-      }
-    } else if(strcmp(word, "otp_size") == 0) {
-      buf[strlen(buf) - 1] = 0; // chomp newline
-      sscanf(buf, "%*s %n", &nc);
-      if(sscanf(value, "%i", &ts->otp_size) < 1) {
-        ELOG("Failed to parse OTP size in %s\n", fname);
-      }
-    } else {
-      WLOG("Unknown keyword in %s: %s\n", fname, word);
+        if(strcmp(word, "dev_type") == 0) {
+            buf[strlen(buf) - 1] = 0; // chomp newline
+            sscanf(buf, "%*s %n", &nc);
+            ts->dev_type = strdup(buf + nc);
+        } else if(strcmp(word, "ref_manual_id") == 0) {
+            buf[strlen(buf) - 1] = 0; // chomp newline
+            sscanf(buf, "%*s %n", &nc);
+            ts->ref_manual_id = strdup(buf + nc);
+        } else if(strcmp(word, "chip_id") == 0) {
+            buf[strlen(buf) - 1] = 0; // chomp newline
+            sscanf(buf, "%*s %n", &nc);
+            if(sscanf(value, "%i", &ts->chip_id) < 1) {
+                ELOG("Failed to parse chip-id in %s\n", fname);
+            }
+        } else if(strcmp(word, "flash_type") == 0) {
+            buf[strlen(buf) - 1] = 0; // chomp newline
+            sscanf(buf, "%*s %n", &nc);
+            // Match human readable flash_type with enum stm32_flash_type { }.
+            if(strcmp(value, "C0") == 0) {
+                ts->flash_type = STM32_FLASH_TYPE_C0;
+            } else if(strcmp(value, "F0_F1_F3") == 0) {
+                ts->flash_type = STM32_FLASH_TYPE_F0_F1_F3;
+            } else if(strcmp(value, "F1_XL") == 0) {
+                ts->flash_type = STM32_FLASH_TYPE_F1_XL;
+            } else if(strcmp(value, "F2_F4") == 0) {
+                ts->flash_type = STM32_FLASH_TYPE_F2_F4;
+            } else if(strcmp(value, "F7") == 0) {
+                ts->flash_type = STM32_FLASH_TYPE_F7;
+            } else if(strcmp(value, "G0") == 0) {
+                ts->flash_type = STM32_FLASH_TYPE_G0;
+            } else if(strcmp(value, "G4") == 0) {
+                ts->flash_type = STM32_FLASH_TYPE_G4;
+            } else if(strcmp(value, "H7") == 0) {
+                ts->flash_type = STM32_FLASH_TYPE_H7;
+            } else if(strcmp(value, "L0_L1") == 0) {
+                ts->flash_type = STM32_FLASH_TYPE_L0_L1;
+            } else if(strcmp(value, "L4") == 0) {
+                ts->flash_type = STM32_FLASH_TYPE_L4;
+            } else if(strcmp(value, "L5_U5") == 0) {
+                ts->flash_type = STM32_FLASH_TYPE_L5_U5;
+            } else if(strcmp(value, "WB_WL") == 0) {
+                ts->flash_type = STM32_FLASH_TYPE_WB_WL;
+            } else if(strcmp(value, "WB0") == 0) {
+                ts->flash_type = STM32_FLASH_TYPE_WB0;
+            } else if(strcmp(value, "H5") == 0) {
+                ts->flash_type = STM32_FLASH_TYPE_H5;
+            } else if(strcmp(value, "C5") == 0) {
+                ts->flash_type = STM32_FLASH_TYPE_C5;
+            } else {
+                ts->flash_type = STM32_FLASH_TYPE_UNKNOWN;
+            }
+        } else if(strcmp(word, "flash_size_reg") == 0) {
+            buf[strlen(buf) - 1] = 0; // chomp newline
+            sscanf(buf, "%*s %n", &nc);
+            if(sscanf(value, "%i", &ts->flash_size_reg) < 1) {
+                ELOG("Failed to parse flash size reg in %s\n", fname);
+            }
+        } else if(strcmp(word, "flash_pagesize") == 0) {
+            buf[strlen(buf) - 1] = 0; // chomp newline
+            sscanf(buf, "%*s %n", &nc);
+            if(sscanf(value, "%i", &ts->flash_pagesize) < 1) {
+                ELOG("Failed to parse flash page size in %s\n", fname);
+            }
+        } else if(strcmp(word, "sram_size") == 0) {
+            buf[strlen(buf) - 1] = 0; // chomp newline
+            sscanf(buf, "%*s %n", &nc);
+            if(sscanf(value, "%i", &ts->sram_size) < 1) {
+                ELOG("Failed to parse SRAM size in %s\n", fname);
+            }
+        } else if(strcmp(word, "bootrom_base") == 0) {
+            buf[strlen(buf) - 1] = 0; // chomp newline
+            sscanf(buf, "%*s %n", &nc);
+            if(sscanf(value, "%i", &ts->bootrom_base) < 1) {
+                ELOG("Failed to parse BootROM base in %s\n", fname);
+            }
+        } else if(strcmp(word, "bootrom_size") == 0) {
+            buf[strlen(buf) - 1] = 0; // chomp newline
+            sscanf(buf, "%*s %n", &nc);
+            if(sscanf(value, "%i", &ts->bootrom_size) < 1) {
+                ELOG("Failed to parse BootROM size in %s\n", fname);
+            }
+        } else if(strcmp(word, "option_base") == 0) {
+            buf[strlen(buf) - 1] = 0; // chomp newline
+            sscanf(buf, "%*s %n", &nc);
+            if(sscanf(value, "%i", &ts->option_base) < 1) {
+                ELOG("Failed to parse option base in %s\n", fname);
+            }
+        } else if(strcmp(word, "option_size") == 0) {
+            buf[strlen(buf) - 1] = 0; // chomp newline
+            sscanf(buf, "%*s %n", &nc);
+            if(sscanf(value, "%i", &ts->option_size) < 1) {
+                ELOG("Failed to parse option size in %s\n", fname);
+            }
+        } else if(strcmp(word, "flags") == 0) {
+            buf[strlen(buf) - 1] = 0; // chomp newline
+            sscanf(buf, "%*s %n", &nc);
+            p = strtok(buf, " \t\n");
+
+            while ((p = strtok(NULL, " \t\n"))) {
+                if(strcmp(p, "none") == 0) {
+                    // NOP
+                } else if(strcmp(p, "dualbank") == 0) {
+                    ts->flags |= CHIP_F_HAS_DUAL_BANK;
+                } else if(strcmp(p, "swo") == 0) {
+                    ts->flags |= CHIP_F_HAS_SWO_TRACING;
+                } else {
+                    WLOG("Unknown flags word in %s: '%s'\n", fname, p);
+                }
+            }
+
+            sscanf(value, "%x", &ts->flags);
+        } else if(strcmp(word, "otp_base") == 0) {
+            buf[strlen(buf) - 1] = 0; // chomp newline
+            sscanf(buf, "%*s %n", &nc);
+            if(sscanf(value, "%i", &ts->otp_base) < 1) {
+                ELOG("Failed to parse OTP base in %s\n", fname);
+            }
+        } else if(strcmp(word, "otp_size") == 0) {
+            buf[strlen(buf) - 1] = 0; // chomp newline
+            sscanf(buf, "%*s %n", &nc);
+            if(sscanf(value, "%i", &ts->otp_size) < 1) {
+                ELOG("Failed to parse OTP size in %s\n", fname);
+            }
+        } else {
+            WLOG("Unknown keyword in %s: %s\n", fname, word);
+        }
     }
-  }
-  fclose(fp);
-  ts->next = devicelist;
-  devicelist = ts;
+    fclose(fp);
+    ts->next = devicelist;
+    devicelist = ts;
 }
 
 
 /* Where to look beside the executable, in order. */
 static const char *const chips_rel_dirs[] = {
-  "../share/stlink/config/chips",
-  "chips",
+    "../share/stlink/config/chips",
+    "chips",
 };
 
 void init_chipids(char *dir_to_scan) {
-  char exe[1024];
-  const char *from_env;
+    char exe[1024];
+    const char *from_env;
 
-  devicelist = NULL;
+    devicelist = NULL;
 
-  /* The caller named a directory, very likely to test it. Falling back to the
-   * usual places would hide their mistake, so nothing else is tried. */
-  if((dir_to_scan != NULL) && (*dir_to_scan != '\0')) {
-    if(!search_for_chips(dir_to_scan)) { ELOG("No chip description file in %s\n", dir_to_scan); }
+    /* The caller named a directory, very likely to test it. Falling back to the
+     * usual places would hide their mistake, so nothing else is tried. */
+    if((dir_to_scan != NULL) && (*dir_to_scan != '\0')) {
+        if(!search_for_chips(dir_to_scan)) { ELOG("No chip description file in %s\n", dir_to_scan); }
 
-    return;
-  }
+        return;
+    }
 
 #ifdef STLINK_CHIPS_SRC_DIR
-  /* A debug build is for working on the code, not for installing, so it reads
-   * the checkout. The macro is only defined for that configuration. */
-  if(search_for_chips(STLINK_CHIPS_SRC_DIR)) { return; }
+    /* A debug build is for working on the code, not for installing, so it reads
+     * the checkout. The macro is only defined for that configuration. */
+    if(search_for_chips(STLINK_CHIPS_SRC_DIR)) { return; }
 #endif
 
-  from_env = getenv("STLINK_CHIPS_DIR");
+    from_env = getenv("STLINK_CHIPS_DIR");
 
-  if((from_env != NULL) && (*from_env != '\0') && search_for_chips(from_env)) { return; }
+    if((from_env != NULL) && (*from_env != '\0') && search_for_chips(from_env)) { return; }
 
-  if(stlink_exe_dir(exe, sizeof(exe))) {
-    for(size_t i = 0; i < STLINK_ARRAY_SIZE(chips_rel_dirs); i++) {
-      char path[1024];
+    if(stlink_exe_dir(exe, sizeof(exe))) {
+        for(size_t i = 0; i < STLINK_ARRAY_SIZE(chips_rel_dirs); i++) {
+            char path[1024];
 
-      if(snprintf(path, sizeof(path), "%s/%s", exe, chips_rel_dirs[i]) >= (int)sizeof(path)) { continue; }
+            if(snprintf(path, sizeof(path), "%s/%s", exe, chips_rel_dirs[i]) >= (int)sizeof(path)) { continue; }
 
-      if(search_for_chips(path)) { return; }
+            if(search_for_chips(path)) { return; }
+        }
     }
-  }
 
-  ELOG("Can't find any chip description file. Set STLINK_CHIPS_DIR, or run "
-       "with -v to see every path that was tried.\n");
+    ELOG("Can't find any chip description file. Set STLINK_CHIPS_DIR, or run "
+         "with -v to see every path that was tried.\n");
 }

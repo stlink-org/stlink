@@ -11,6 +11,7 @@
   ******************************************************************************
   */
 
+
 #ifndef STLINK_CMD_H
 #define STLINK_CMD_H
 
@@ -69,7 +70,7 @@ enum stlink_debug_commands {
     STLINK_DEBUG_APIV2_INIT_AP           = 0x4b,
     STLINK_DEBUG_APIV3_SET_COM_FREQ      = 0x61,
     STLINK_DEBUG_APIV3_GET_COM_FREQ      = 0x62,
-    
+
     STLINK_DEBUG_ENTER_SWD               = 0xa3,
     STLINK_DEBUG_ENTER_JTAG_NO_RESET     = 0xa4,
 };

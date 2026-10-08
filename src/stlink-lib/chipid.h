@@ -11,6 +11,7 @@
   ******************************************************************************
   */
 
+
 #ifndef CHIPID_H
 #define CHIPID_H
 
@@ -33,28 +34,28 @@
  * See stlink_chipid_get_params() and the files in config/chips.
  */
 struct stlink_chipid_params {
-    char *dev_type;                     ///< name of the device, e.g. "F4xx"
-    char *ref_manual_id;                ///< number of the reference manual (RMxxxx)
-    uint32_t chip_id;                   ///< device id (DBGMCU_IDCODE.DEV_ID)
-    enum stm32_flash_type flash_type;   ///< kind of flash controller
-    uint32_t flash_size_reg;            ///< address of the flash size register (in KiB); bit 1 set: size in the upper 16 bits
-    uint32_t flash_pagesize;            ///< (smallest) flash page or sector size in bytes
-    uint32_t sram_size;                 ///< SRAM size in bytes
-    uint32_t bootrom_base;              ///< address of the system memory (bootloader)
-    uint32_t bootrom_size;              ///< size of the system memory
-    uint32_t option_base;               ///< address of the option bytes, 0 if not supported
-    uint32_t option_size;               ///< size of the option bytes
-    uint32_t flags;                     ///< CHIP_F_* bits
-    uint32_t otp_base;                  ///< address of the OTP area, 0 if none
-    uint32_t otp_size;                  ///< size of the OTP area
-  struct stlink_chipid_params *next;    ///< next entry of the chip database (internal)
+    char *dev_type;                   ///< name of the device, e.g. "F4xx"
+    char *ref_manual_id;              ///< number of the reference manual (RMxxxx)
+    uint32_t chip_id;                 ///< device id (DBGMCU_IDCODE.DEV_ID)
+    enum stm32_flash_type flash_type; ///< kind of flash controller
+    uint32_t flash_size_reg;          ///< address of the flash size register (in KiB); bit 1 set: size in the upper 16 bits
+    uint32_t flash_pagesize;          ///< (smallest) flash page or sector size in bytes
+    uint32_t sram_size;               ///< SRAM size in bytes
+    uint32_t bootrom_base;            ///< address of the system memory (bootloader)
+    uint32_t bootrom_size;            ///< size of the system memory
+    uint32_t option_base;             ///< address of the option bytes, 0 if not supported
+    uint32_t option_size;             ///< size of the option bytes
+    uint32_t flags;                   ///< CHIP_F_* bits
+    uint32_t otp_base;                ///< address of the OTP area, 0 if none
+    uint32_t otp_size;                ///< size of the OTP area
+    struct stlink_chipid_params *next; ///< next entry of the chip database (internal)
 };
 
 /**
  * Look up a device in the chip database.
  * @param chipid device id (stlink_t::chip_id)
- * @return the parameters of the device, owned by the library, or NULL if the
- *         id is unknown or no chip description file was loaded
+ * @return       the parameters of the device, owned by the library, or NULL if the
+ *               id is unknown or no chip description file was loaded
  */
 struct stlink_chipid_params *stlink_chipid_get_params(uint32_t chipid);
 

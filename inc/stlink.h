@@ -11,6 +11,7 @@
   ******************************************************************************
   */
 
+
 #ifndef STLINK_H
 #define STLINK_H
 
@@ -23,6 +24,7 @@
 #include <stm32_flash.h>
 
 #include <version.h>
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -42,11 +44,11 @@ extern "C" {
 
 /** State of the target core, as last read by stlink_status() (stlink_t::core_stat) */
 enum target_state {
-    TARGET_UNKNOWN = 0,         ///< not read yet, or the read failed
-    TARGET_RUNNING = 1,         ///< core is running
-    TARGET_HALTED = 2,          ///< core is halted (debug state)
-    TARGET_RESET = 3,           ///< core is held in or just left reset
-    TARGET_DEBUG_RUNNING = 4,   ///< running under debugger control (not reported by the current backends)
+    TARGET_UNKNOWN = 0,       ///< not read yet, or the read failed
+    TARGET_RUNNING = 1,       ///< core is running
+    TARGET_HALTED = 2,        ///< core is halted (debug state)
+    TARGET_RESET = 3,         ///< core is held in or just left reset
+    TARGET_DEBUG_RUNNING = 4, ///< running under debugger control (not reported by the current backends)
 };
 
 /** @cond STLINK_INTERNAL */
@@ -57,16 +59,16 @@ enum target_state {
 
 /** @name ST-LINK adapter modes, as returned by stlink_current_mode() */
 /** @{ */
-#define STLINK_DEV_DFU_MODE                   0     ///< DFU (firmware update) mode
-#define STLINK_DEV_MASS_MODE                  1     ///< USB mass storage mode (idle)
-#define STLINK_DEV_DEBUG_MODE                 2     ///< debug mode (SWD or JTAG)
-#define STLINK_DEV_UNKNOWN_MODE              -1     ///< mode could not be determined
+#define STLINK_DEV_DFU_MODE                   0 ///< DFU (firmware update) mode
+#define STLINK_DEV_MASS_MODE                  1 ///< USB mass storage mode (idle)
+#define STLINK_DEV_DEBUG_MODE                 2 ///< debug mode (SWD or JTAG)
+#define STLINK_DEV_UNKNOWN_MODE              -1 ///< mode could not be determined
 /** @} */
 
 /** @name NRST pin states for stlink_backend_t::jtag_reset */
 /** @{ */
-#define STLINK_DEBUG_APIV2_DRIVE_NRST_LOW  0x00     ///< drive NRST low (assert reset)
-#define STLINK_DEBUG_APIV2_DRIVE_NRST_HIGH 0x01     ///< release NRST
+#define STLINK_DEBUG_APIV2_DRIVE_NRST_LOW  0x00 ///< drive NRST low (assert reset)
+#define STLINK_DEBUG_APIV2_DRIVE_NRST_HIGH 0x01 ///< release NRST
 /** @} */
 
 /** @cond STLINK_INTERNAL */
@@ -87,8 +89,8 @@ enum target_state {
 
 /** @name Serial number of the ST-LINK adapter (hex string, see stlink_t::serial) */
 /** @{ */
-#define STLINK_SERIAL_LENGTH                 24     ///< characters of the serial number
-#define STLINK_SERIAL_BUFFER_SIZE   (STLINK_SERIAL_LENGTH + 1)  ///< buffer size including the terminating NUL
+#define STLINK_SERIAL_LENGTH                 24 ///< characters of the serial number
+#define STLINK_SERIAL_BUFFER_SIZE   (STLINK_SERIAL_LENGTH + 1) ///< buffer size including the terminating NUL
 /** @} */
 
 /** Maximum number of SWD frequencies an ST-LINK/V3 reports (internal) */
@@ -96,11 +98,11 @@ enum target_state {
 
 /** @name SWO trace buffer sizes and frequencies */
 /** @{ */
-#define STLINK_V2_TRACE_BUF_LEN            2048     ///< trace buffer of the ST-LINK/V2 in bytes
-#define STLINK_V3_TRACE_BUF_LEN            8192     ///< trace buffer of the ST-LINK/V3 in bytes
-#define STLINK_V2_MAX_TRACE_FREQUENCY   2000000     ///< maximum SWO frequency of the ST-LINK/V2 in Hz
-#define STLINK_V3_MAX_TRACE_FREQUENCY  24000000     ///< maximum SWO frequency of the ST-LINK/V3 in Hz
-#define STLINK_DEFAULT_TRACE_FREQUENCY  2000000     ///< default SWO frequency in Hz
+#define STLINK_V2_TRACE_BUF_LEN            2048 ///< trace buffer of the ST-LINK/V2 in bytes
+#define STLINK_V3_TRACE_BUF_LEN            8192 ///< trace buffer of the ST-LINK/V3 in bytes
+#define STLINK_V2_MAX_TRACE_FREQUENCY   2000000 ///< maximum SWO frequency of the ST-LINK/V2 in Hz
+#define STLINK_V3_MAX_TRACE_FREQUENCY  24000000 ///< maximum SWO frequency of the ST-LINK/V3 in Hz
+#define STLINK_DEFAULT_TRACE_FREQUENCY  2000000 ///< default SWO frequency in Hz
 /** @} */
 
 /**
@@ -110,21 +112,21 @@ enum target_state {
  * of the ST-LINK; the code tests these flags instead of version numbers.
  */
 /** @{ */
-#define STLINK_F_HAS_TRACE              (1U << 0)   ///< SWO trace capture (V2 from J13, V3)
-#define STLINK_F_HAS_SWD_SET_FREQ       (1U << 1)   ///< SWD frequency can be set (V2 from J22, V3)
-#define STLINK_F_HAS_JTAG_SET_FREQ      (1U << 2)   ///< JTAG frequency can be set (V2 from J24, V3)
-#define STLINK_F_HAS_MEM_16BIT          (1U << 3)   ///< 16 bit memory accesses (V2 from J26, V3)
-#define STLINK_F_HAS_GETLASTRWSTATUS2   (1U << 4)   ///< extended status of the last read/write command (V2 from J15, V3)
-#define STLINK_F_HAS_DAP_REG            (1U << 5)   ///< DAP register access (V2 from J24, V3)
-#define STLINK_F_QUIRK_JTAG_DP_READ     (1U << 6)   ///< quirk of DP reads in JTAG mode (V2 J24 to J31)
-#define STLINK_F_HAS_AP_INIT            (1U << 7)   ///< access port initialisation (V2 from J28, V3)
-#define STLINK_F_HAS_DPBANKSEL          (1U << 8)   ///< DP bank selection (V2 from J32, V3 from J2)
-#define STLINK_F_HAS_RW8_512BYTES       (1U << 9)   ///< 8 bit transfers of up to 512 bytes (V3 from J6)
-#define STLINK_F_HAS_TARGET_VOLTAGE     (1U << 10)  ///< target voltage measurement (V2 from J13, V3)
-#define STLINK_F_HAS_NRST               (1U << 11)  ///< NRST pin can be driven (V2, V3)
+#define STLINK_F_HAS_TRACE              (1U << 0)  ///< SWO trace capture (V2 from J13, V3)
+#define STLINK_F_HAS_SWD_SET_FREQ       (1U << 1)  ///< SWD frequency can be set (V2 from J22, V3)
+#define STLINK_F_HAS_JTAG_SET_FREQ      (1U << 2)  ///< JTAG frequency can be set (V2 from J24, V3)
+#define STLINK_F_HAS_MEM_16BIT          (1U << 3)  ///< 16 bit memory accesses (V2 from J26, V3)
+#define STLINK_F_HAS_GETLASTRWSTATUS2   (1U << 4)  ///< extended status of the last read/write command (V2 from J15, V3)
+#define STLINK_F_HAS_DAP_REG            (1U << 5)  ///< DAP register access (V2 from J24, V3)
+#define STLINK_F_QUIRK_JTAG_DP_READ     (1U << 6)  ///< quirk of DP reads in JTAG mode (V2 J24 to J31)
+#define STLINK_F_HAS_AP_INIT            (1U << 7)  ///< access port initialisation (V2 from J28, V3)
+#define STLINK_F_HAS_DPBANKSEL          (1U << 8)  ///< DP bank selection (V2 from J32, V3 from J2)
+#define STLINK_F_HAS_RW8_512BYTES       (1U << 9)  ///< 8 bit transfers of up to 512 bytes (V3 from J6)
+#define STLINK_F_HAS_TARGET_VOLTAGE     (1U << 10) ///< target voltage measurement (V2 from J13, V3)
+#define STLINK_F_HAS_NRST               (1U << 11) ///< NRST pin can be driven (V2, V3)
 // Memory read/write commands accept the MEM-AP CSW value (from V2J32 / V3J2),
 // introduced together with DP bank selection
-#define STLINK_F_HAS_CSW                STLINK_F_HAS_DPBANKSEL  ///< memory commands accept the MEM-AP CSW (V2J32 / V3J2 and later)
+#define STLINK_F_HAS_CSW                STLINK_F_HAS_DPBANKSEL ///< memory commands accept the MEM-AP CSW (V2J32 / V3J2 and later)
 /** @} */
 
 /**
@@ -135,8 +137,8 @@ enum target_state {
 
 /** @name Additional MCU features (stlink_t::chip_flags, from the chip description file) */
 /** @{ */
-#define CHIP_F_HAS_DUAL_BANK            (1U << 0)   ///< flash has two banks
-#define CHIP_F_HAS_SWO_TRACING          (1U << 1)   ///< SWO trace is supported
+#define CHIP_F_HAS_DUAL_BANK            (1U << 0) ///< flash has two banks
+#define CHIP_F_HAS_SWO_TRACING          (1U << 1) ///< SWO trace is supported
 /** @} */
 
 /** @cond STLINK_INTERNAL */
@@ -156,7 +158,7 @@ enum target_state {
 #define CMD_CHECK_NO                           0
 #define CMD_CHECK_REP_LEN                      1
 #define CMD_CHECK_STATUS                       2
-#define CMD_CHECK_RETRY                        3    // check status and retry if wait error
+#define CMD_CHECK_RETRY                        3 // check status and retry if wait error
 /** @endcond */
 
 /** Size of the command buffer stlink_t::c_buf (internal) */
@@ -168,18 +170,18 @@ enum target_state {
  * and stlink_read_all_unsupported_regs().
  */
 struct stlink_reg {
-    uint32_t r[16];         ///< R0..R15 (R13 = SP, R14 = LR, R15 = PC), register index 0..15
-    uint32_t s[32];         ///< FPU registers S0..S31, register index 0x20..0x3f of stlink_read_unsupported_reg()
-    uint32_t xpsr;          ///< xPSR, register index 16
-    uint32_t main_sp;       ///< MSP, register index 17
-    uint32_t process_sp;    ///< PSP, register index 18
-    uint32_t rw;            ///< register index 19 (meaning depends on the ST-LINK firmware)
-    uint32_t rw2;           ///< register index 20 (meaning depends on the ST-LINK firmware)
-    uint8_t control;        ///< CONTROL, register index 0x1c of stlink_read_unsupported_reg()
-    uint8_t faultmask;      ///< FAULTMASK, register index 0x1d
-    uint8_t basepri;        ///< BASEPRI, register index 0x1e
-    uint8_t primask;        ///< PRIMASK, register index 0x1f
-    uint32_t fpscr;         ///< FPSCR, register index 0x40
+    uint32_t r[16];      ///< R0..R15 (R13 = SP, R14 = LR, R15 = PC), register index 0..15
+    uint32_t s[32];      ///< FPU registers S0..S31, register index 0x20..0x3f of stlink_read_unsupported_reg()
+    uint32_t xpsr;       ///< xPSR, register index 16
+    uint32_t main_sp;    ///< MSP, register index 17
+    uint32_t process_sp; ///< PSP, register index 18
+    uint32_t rw;         ///< register index 19 (meaning depends on the ST-LINK firmware)
+    uint32_t rw2;        ///< register index 20 (meaning depends on the ST-LINK firmware)
+    uint8_t control;     ///< CONTROL, register index 0x1c of stlink_read_unsupported_reg()
+    uint8_t faultmask;   ///< FAULTMASK, register index 0x1d
+    uint8_t basepri;     ///< BASEPRI, register index 0x1e
+    uint8_t primask;     ///< PRIMASK, register index 0x1f
+    uint32_t fpscr;      ///< FPSCR, register index 0x40
 };
 
 /** Address in the memory space of the target */
@@ -191,38 +193,38 @@ typedef uint32_t stm32_addr_t;
  * stlink_flashloader_stop(). The caller only provides the storage.
  */
 typedef struct flash_loader {
-    stm32_addr_t loader_addr;       ///< loader sram addr
-    stm32_addr_t buf_addr;          ///< buffer sram address
-    uint32_t rcc_dma_bkp;           ///< backup RCC DMA enable state
-    uint32_t iwdg_kr;               ///< IWDG key register address
+    stm32_addr_t loader_addr; ///< loader sram addr
+    stm32_addr_t buf_addr;    ///< buffer sram address
+    uint32_t rcc_dma_bkp;     ///< backup RCC DMA enable state
+    uint32_t iwdg_kr;         ///< IWDG key register address
 } flash_loader_t;
 
 /** Decoded CPUID register of the Cortex-M core, see stlink_cpu_id() */
 typedef struct _cortex_m3_cpuid_ {
-    uint16_t implementer_id;    ///< implementer code, 0x41 = ARM
-    uint16_t variant;           ///< variant (major revision)
-    uint16_t part;              ///< part number, e.g. 0xc24 = Cortex-M4
-    uint8_t revision;           ///< revision (minor revision)
+    uint16_t implementer_id; ///< implementer code, 0x41 = ARM
+    uint16_t variant;        ///< variant (major revision)
+    uint16_t part;           ///< part number, e.g. 0xc24 = Cortex-M4
+    uint8_t revision;        ///< revision (minor revision)
 } cortex_m3_cpuid_t;
 
 /** Version of the debug API of the ST-LINK firmware */
 enum stlink_jtag_api_version {
-    STLINK_JTAG_API_V1 = 1,     ///< ST-LINK/V1 up to firmware J11
-    STLINK_JTAG_API_V2,         ///< ST-LINK/V1 from firmware J12, ST-LINK/V2 and V2-1
-    STLINK_JTAG_API_V3,         ///< ST-LINK/V3
+    STLINK_JTAG_API_V1 = 1, ///< ST-LINK/V1 up to firmware J11
+    STLINK_JTAG_API_V2,     ///< ST-LINK/V1 from firmware J12, ST-LINK/V2 and V2-1
+    STLINK_JTAG_API_V3,     ///< ST-LINK/V3
 };
 
 /** Version and features of the ST-LINK adapter, read by stlink_version() (stlink_t::version) */
 typedef struct stlink_version_ {
-    uint32_t stlink_v;          ///< hardware generation: 1, 2 or 3
-    uint32_t jtag_v;            ///< firmware version of the JTAG/SWD part (the "J" in V2J45)
-    uint32_t swim_v;            ///< firmware version of the SWIM part
-    uint32_t st_vid;            ///< USB vendor id
-    uint32_t stlink_pid;        ///< USB product id
+    uint32_t stlink_v;   ///< hardware generation: 1, 2 or 3
+    uint32_t jtag_v;     ///< firmware version of the JTAG/SWD part (the "J" in V2J45)
+    uint32_t swim_v;     ///< firmware version of the SWIM part
+    uint32_t st_vid;     ///< USB vendor id
+    uint32_t stlink_pid; ///< USB product id
     // jtag api version supported
-    enum stlink_jtag_api_version jtag_api;  ///< debug API supported by the firmware
+    enum stlink_jtag_api_version jtag_api; ///< debug API supported by the firmware
     // one bit for each feature supported. See macros STLINK_F_*
-    uint32_t flags;             ///< supported features, STLINK_F_* bits
+    uint32_t flags;      ///< supported features, STLINK_F_* bits
 } stlink_version_t;
 
 /** Transport of a device (not used by the current backends) */
@@ -235,23 +237,23 @@ enum transport_type {
 
 /** How to connect to the target, see stlink_target_connect() */
 enum connect_type {
-    CONNECT_HOT_PLUG = 0,       ///< attach without halting or resetting the running target (exception: see stlink_load_device_params())
-    CONNECT_NORMAL = 1,         ///< attach and reset the target (RESET_AUTO)
-    CONNECT_UNDER_RESET = 2,    ///< hold NRST while attaching, then halt the core at the reset vector
+    CONNECT_HOT_PLUG = 0,    ///< attach without halting or resetting the running target (exception: see stlink_load_device_params())
+    CONNECT_NORMAL = 1,      ///< attach and reset the target (RESET_AUTO)
+    CONNECT_UNDER_RESET = 2, ///< hold NRST while attaching, then halt the core at the reset vector
 };
 
 /** Kind of reset, see stlink_reset() */
 enum reset_type {
-    RESET_AUTO = 0,             ///< NRST (with STLINK_F_HAS_NRST) and the system reset command of the ST-LINK, software reset if no reset is detected
-    RESET_HARD = 1,             ///< NRST (with STLINK_F_HAS_NRST) and the system reset command of the ST-LINK
-    RESET_SOFT = 2,             ///< software reset via AIRCR.SYSRESETREQ
-    RESET_SOFT_AND_HALT = 3,    ///< software reset, core halted at the reset vector
+    RESET_AUTO = 0,          ///< NRST (with STLINK_F_HAS_NRST) and the system reset command of the ST-LINK, software reset if no reset is detected
+    RESET_HARD = 1,          ///< NRST (with STLINK_F_HAS_NRST) and the system reset command of the ST-LINK
+    RESET_SOFT = 2,          ///< software reset via AIRCR.SYSRESETREQ
+    RESET_SOFT_AND_HALT = 3, ///< software reset, core halted at the reset vector
 };
 
 /** How to run the core, see stlink_run() */
 enum run_type {
-    RUN_NORMAL = 0,             ///< run with interrupts enabled
-    RUN_FLASH_LOADER = 1,       ///< run with interrupts masked (C_MASKINTS), used for the flash loader
+    RUN_NORMAL = 0,       ///< run with interrupts enabled
+    RUN_FLASH_LOADER = 1, ///< run with interrupts masked (C_MASKINTS), used for the flash loader
 };
 
 
@@ -269,34 +271,34 @@ typedef struct _stlink stlink_t;
  * progress is printed to stdout, as in previous versions.
  */
 enum stlink_progress_event {
-    STLINK_PROGRESS_FILE,               ///< file to be written: path, size, md5, checksum
-    STLINK_PROGRESS_MASS_ERASE_START,   ///< mass erase started
-    STLINK_PROGRESS_MASS_ERASE_TICK,    ///< mass erase still running (about once a second)
-    STLINK_PROGRESS_MASS_ERASE_DONE,    ///< mass erase finished
-    STLINK_PROGRESS_PAGE_ERASED,        ///< flash page or sector erased: addr, size
-    STLINK_PROGRESS_ERASE_DONE,         ///< erase of a flash section finished
-    STLINK_PROGRESS_WRITE,              ///< flash write progress: done of total in unit
-    STLINK_PROGRESS_WRITE_DONE,         ///< flash write finished
+    STLINK_PROGRESS_FILE,             ///< file to be written: path, size, md5, checksum
+    STLINK_PROGRESS_MASS_ERASE_START, ///< mass erase started
+    STLINK_PROGRESS_MASS_ERASE_TICK,  ///< mass erase still running (about once a second)
+    STLINK_PROGRESS_MASS_ERASE_DONE,  ///< mass erase finished
+    STLINK_PROGRESS_PAGE_ERASED,      ///< flash page or sector erased: addr, size
+    STLINK_PROGRESS_ERASE_DONE,       ///< erase of a flash section finished
+    STLINK_PROGRESS_WRITE,            ///< flash write progress: done of total in unit
+    STLINK_PROGRESS_WRITE_DONE,       ///< flash write finished
 };
 
 /** Unit of stlink_progress::done and stlink_progress::total */
 enum stlink_progress_unit {
-    STLINK_PROGRESS_UNIT_PAGES,         ///< flash pages
-    STLINK_PROGRESS_UNIT_HALFPAGES,     ///< half pages (STM32L0/L1)
-    STLINK_PROGRESS_UNIT_BYTES,         ///< bytes
+    STLINK_PROGRESS_UNIT_PAGES,     ///< flash pages
+    STLINK_PROGRESS_UNIT_HALFPAGES, ///< half pages (STM32L0/L1)
+    STLINK_PROGRESS_UNIT_BYTES,     ///< bytes
 };
 
 /** A progress event and its data, passed to a stlink_progress_handler_t */
 struct stlink_progress {
-    enum stlink_progress_event event;   ///< the event
-    enum stlink_progress_unit unit;     ///< STLINK_PROGRESS_WRITE
-    uint32_t done;                      ///< STLINK_PROGRESS_WRITE
-    uint32_t total;                     ///< STLINK_PROGRESS_WRITE
-    uint32_t addr;                      ///< STLINK_PROGRESS_PAGE_ERASED
-    uint32_t size;                      ///< STLINK_PROGRESS_PAGE_ERASED, STLINK_PROGRESS_FILE (file size)
-    const char *path;                   ///< STLINK_PROGRESS_FILE
-    uint8_t md5[16];                    ///< STLINK_PROGRESS_FILE
-    uint32_t checksum;                  ///< STLINK_PROGRESS_FILE: sum of all bytes, as shown by the ST tools
+    enum stlink_progress_event event; ///< the event
+    enum stlink_progress_unit unit;   ///< STLINK_PROGRESS_WRITE
+    uint32_t done;                    ///< STLINK_PROGRESS_WRITE
+    uint32_t total;                   ///< STLINK_PROGRESS_WRITE
+    uint32_t addr;                    ///< STLINK_PROGRESS_PAGE_ERASED
+    uint32_t size;                    ///< STLINK_PROGRESS_PAGE_ERASED, STLINK_PROGRESS_FILE (file size)
+    const char *path;                 ///< STLINK_PROGRESS_FILE
+    uint8_t md5[16];                  ///< STLINK_PROGRESS_FILE
+    uint32_t checksum;                ///< STLINK_PROGRESS_FILE: sum of all bytes, as shown by the ST tools
 };
 
 /**
@@ -320,60 +322,60 @@ typedef void (*stlink_progress_handler_t)(stlink_t *sl, void *user, const struct
  * they must not modify the other fields.
  */
 struct _stlink {
-    struct _stlink_backend *backend;    ///< backend implementing the device access (internal)
-    void *backend_data;                 ///< private data of the backend (internal)
+    struct _stlink_backend *backend; ///< backend implementing the device access (internal)
+    void *backend_data;              ///< private data of the backend (internal)
 
     // room for the command header
-    unsigned char c_buf[C_BUF_LEN];     ///< command buffer (internal)
+    unsigned char c_buf[C_BUF_LEN]; ///< command buffer (internal)
     // data transferred from or to device
-    unsigned char q_buf[Q_BUF_LEN];     ///< data buffer of stlink_read_mem32(), stlink_write_mem32() and stlink_write_mem8()
-    int32_t q_len;                      ///< number of valid bytes in q_buf after a read (internal)
+    unsigned char q_buf[Q_BUF_LEN]; ///< data buffer of stlink_read_mem32(), stlink_write_mem32() and stlink_write_mem8()
+    int32_t q_len;                  ///< number of valid bytes in q_buf after a read (internal)
 
     // transport layer verboseness: 0 for no debug info, 10 for lots
-    int32_t verbose;                    ///< verbosity of the debug output for this device (UDEBUG adds data dumps);
-                                        ///< set by stlink_v1_open(), after stlink_open_usb() set by the application
-    int32_t opt;                        ///< skip trailing erased bytes when writing flash (st-flash --opt)
-    uint32_t core_id;               ///< set by stlink_core_id(), result from STLINK_DEBUGREADCOREID
-    uint32_t chip_id;               ///< set by stlink_load_device_params(), used to identify flash and sram
-    uint8_t ap;                     ///< set by stlink_probe_ap(), access port for debug/memory access (0 = AP0)
-    enum target_state core_stat;    ///< set by stlink_status()
+    int32_t verbose; ///< verbosity of the debug output for this device (UDEBUG adds data dumps);
+                     ///< set by stlink_v1_open(), after stlink_open_usb() set by the application
+    int32_t opt;     ///< skip trailing erased bytes when writing flash (st-flash --opt)
+    uint32_t core_id;            ///< set by stlink_core_id(), result from STLINK_DEBUGREADCOREID
+    uint32_t chip_id;            ///< set by stlink_load_device_params(), used to identify flash and sram
+    uint8_t ap;                  ///< set by stlink_probe_ap(), access port for debug/memory access (0 = AP0)
+    enum target_state core_stat; ///< set by stlink_status()
 
     char serial[STLINK_SERIAL_BUFFER_SIZE]; ///< serial number of the ST-LINK as hex string
-    int32_t freq;                   ///< set by stlink_open_usb(), SWD frequency in kHz as requested (0 = default)
+    int32_t freq; ///< set by stlink_open_usb(), SWD frequency in kHz as requested (0 = default)
 
     enum stm32_flash_type flash_type;
     ///< stlink_chipid_params.flash_type, set by stlink_load_device_params(), values: STM32_FLASH_TYPE_xx
 
-    stm32_addr_t flash_base;        ///< STM32_FLASH_BASE (STM32WB0: STM32WB0_FLASH_BASE), set by stlink_load_device_params(); the secure alias after stlink_flash_secure_enable()
-    uint32_t flash_size;            ///< calculated by stlink_load_device_params()
-    uint32_t flash_pgsz;            ///< stlink_chipid_params.flash_pagesize, set by stlink_load_device_params()
+    stm32_addr_t flash_base; ///< STM32_FLASH_BASE (STM32WB0: STM32WB0_FLASH_BASE), set by stlink_load_device_params(); the secure alias after stlink_flash_secure_enable()
+    uint32_t flash_size;     ///< calculated by stlink_load_device_params()
+    uint32_t flash_pgsz;     ///< stlink_chipid_params.flash_pagesize, set by stlink_load_device_params()
 
     /* sram settings */
-    stm32_addr_t sram_base;         ///< STM32_SRAM_BASE, set by stlink_load_device_params()
-    uint32_t sram_size;             ///< stlink_chipid_params.sram_size, set by stlink_load_device_params()
+    stm32_addr_t sram_base; ///< STM32_SRAM_BASE, set by stlink_load_device_params()
+    uint32_t sram_size;     ///< stlink_chipid_params.sram_size, set by stlink_load_device_params()
 
     /* option settings */
-    stm32_addr_t option_base;       ///< address of the option bytes, set by stlink_load_device_params()
-    uint32_t option_size;           ///< size of the option bytes, set by stlink_load_device_params()
+    stm32_addr_t option_base; ///< address of the option bytes, set by stlink_load_device_params()
+    uint32_t option_size;     ///< size of the option bytes, set by stlink_load_device_params()
 
     // bootloader
     // sys_base and sys_size are not used by the tools, but are only there to download the bootloader code
     // (see tests/sg_legacy.c)
-    stm32_addr_t sys_base;          ///< stlink_chipid_params.bootrom_base, set by stlink_load_device_params()
-    uint32_t sys_size;              ///< stlink_chipid_params.bootrom_size, set by stlink_load_device_params()
+    stm32_addr_t sys_base; ///< stlink_chipid_params.bootrom_base, set by stlink_load_device_params()
+    uint32_t sys_size;     ///< stlink_chipid_params.bootrom_size, set by stlink_load_device_params()
 
     struct stlink_version_ version; ///< version and features of the ST-LINK, set by stlink_version()
 
-    uint32_t chip_flags;            ///< stlink_chipid_params.flags, set by stlink_load_device_params(), values: CHIP_F_xxx
+    uint32_t chip_flags; ///< stlink_chipid_params.flags, set by stlink_load_device_params(), values: CHIP_F_xxx
 
-    uint32_t max_trace_freq;        ///< set by stlink_open_usb()
+    uint32_t max_trace_freq; ///< set by stlink_open_usb()
 
-    uint32_t otp_base;              ///< address of the OTP area, set by stlink_load_device_params()
-    uint32_t otp_size;              ///< size of the OTP area, set by stlink_load_device_params()
+    uint32_t otp_base; ///< address of the OTP area, set by stlink_load_device_params()
+    uint32_t otp_size; ///< size of the OTP area, set by stlink_load_device_params()
 
     /* TrustZone settings, set by stlink_flash_secure_enable() */
-    bool flash_secure;              ///< flash is programmed via the secure flash alias and the secure flash registers
-    uint32_t secure_csw;            ///< MEM-AP CSW for accesses to secure alias addresses, 0 = ST-LINK default (non-secure)
+    bool flash_secure;   ///< flash is programmed via the secure flash alias and the secure flash registers
+    uint32_t secure_csw; ///< MEM-AP CSW for accesses to secure alias addresses, 0 = ST-LINK default (non-secure)
 
     /* Progress reporting, set by stlink_set_progress_handler() */
     stlink_progress_handler_t progress_handler; ///< see stlink_set_progress_handler()
@@ -419,22 +421,22 @@ void stlink_close(stlink_t *sl);
  *          version data, so stlink_t::version would be decoded from stale data.
  *
  * @param sl device handle
- * @return 0 on success, -1 if the version could not be read
+ * @return   0 on success, -1 if the version could not be read
  */
 int32_t stlink_version(stlink_t *sl);
 
 /**
  * Query the mode of the ST-LINK.
  * @param sl device handle
- * @return STLINK_DEV_DFU_MODE, STLINK_DEV_MASS_MODE, STLINK_DEV_DEBUG_MODE, or
- *         STLINK_DEV_UNKNOWN_MODE if the mode is unknown or could not be read
+ * @return   STLINK_DEV_DFU_MODE, STLINK_DEV_MASS_MODE, STLINK_DEV_DEBUG_MODE, or
+ *           STLINK_DEV_UNKNOWN_MODE if the mode is unknown or could not be read
  */
 int32_t stlink_current_mode(stlink_t *sl);
 
 /**
  * Switch the ST-LINK to SWD debug mode.
  * @param sl device handle
- * @return 0 on success, -1 on error
+ * @return   0 on success, -1 on error
  */
 int32_t stlink_enter_swd_mode(stlink_t *sl);
 
@@ -448,7 +450,7 @@ int32_t stlink_enter_swd_mode(stlink_t *sl);
  * A halted core resumes execution. Call this before stlink_close().
  *
  * @param sl device handle
- * @return 0 on success or if the ST-LINK was not in debug mode, -1 on error
+ * @return   0 on success or if the ST-LINK was not in debug mode, -1 on error
  */
 int32_t stlink_exit_debug_mode(stlink_t *sl);
 
@@ -456,7 +458,7 @@ int32_t stlink_exit_debug_mode(stlink_t *sl);
  * Leave the DFU mode of the ST-LINK.
  * Called by the open functions if the ST-LINK is found in DFU mode.
  * @param sl device handle
- * @return 0 on success, -1 on error
+ * @return   0 on success, -1 on error
  */
 int32_t stlink_exit_dfu_mode(stlink_t *sl);
 
@@ -472,7 +474,7 @@ int32_t stlink_exit_dfu_mode(stlink_t *sl);
  *
  * @param sl       device handle
  * @param freq_khz frequency in kHz, 0 selects the default (1800 kHz on V2, 1000 kHz on V3)
- * @return 0 on success, -1 on error or if the ST-LINK does not support it
+ * @return         0 on success, -1 on error or if the ST-LINK does not support it
  */
 int32_t stlink_set_swdclk(stlink_t *sl, int32_t freq_khz);
 
@@ -483,8 +485,8 @@ int32_t stlink_set_swdclk(stlink_t *sl, int32_t freq_khz);
  * firmware J13, STLINK-V3); test the flag to tell "not supported" from an error.
  *
  * @param sl device handle
- * @return the voltage in mV (0 if the ST-LINK reports an invalid reading), or -1
- *         on error or if the ST-LINK cannot measure it
+ * @return   the voltage in mV (0 if the ST-LINK reports an invalid reading), or -1
+ *           on error or if the ST-LINK cannot measure it
  */
 int32_t stlink_target_voltage(stlink_t *sl);
 
@@ -507,8 +509,8 @@ int32_t stlink_target_voltage(stlink_t *sl);
  *                CONNECT_NORMAL: attach and reset the target (RESET_AUTO);
  *                CONNECT_UNDER_RESET: hold NRST low while attaching, then halt
  *                the core before its first instruction
- * @return 0 on success, -1 if SWD mode could not be entered or the target could
- *         not be identified (see stlink_load_device_params())
+ * @return        0 on success, -1 if SWD mode could not be entered or the target could
+ *                not be identified (see stlink_load_device_params())
  */
 int32_t stlink_target_connect(stlink_t *sl, enum connect_type connect);
 
@@ -526,16 +528,16 @@ int32_t stlink_target_connect(stlink_t *sl, enum connect_type connect);
  * when connecting with CONNECT_HOT_PLUG.
  *
  * @param sl device handle
- * @return 0 on success (also for a chip with unknown flash type, then
- *         stlink_t::flash_size is 0), -1 if the chip id could not be read or is
- *         not in the chip database
+ * @return   0 on success (also for a chip with unknown flash type, then
+ *           stlink_t::flash_size is 0), -1 if the chip id could not be read or is
+ *           not in the chip database
  */
 int32_t stlink_load_device_params(stlink_t *sl);
 
 /**
  * Read the id of the debug port (CPUTAPID) into stlink_t::core_id.
  * @param sl device handle
- * @return 0 on success, -1 on error
+ * @return   0 on success, -1 on error
  */
 int32_t stlink_core_id(stlink_t *sl);
 
@@ -543,14 +545,14 @@ int32_t stlink_core_id(stlink_t *sl);
  * Read and decode the CPUID register of the Cortex-M core.
  * @param sl    device handle
  * @param cpuid receives the decoded register, all fields 0 on error
- * @return 0 on success, -1 on error
+ * @return      0 on success, -1 on error
  */
 int32_t stlink_cpu_id(stlink_t *sl, cortex_m3_cpuid_t *cpuid);
 
 /**
  * Read the state of the core into stlink_t::core_stat.
  * @param sl device handle
- * @return 0 on success, -1 on error (with the USB backend stlink_t::core_stat is then TARGET_UNKNOWN)
+ * @return   0 on success, -1 on error (with the USB backend stlink_t::core_stat is then TARGET_UNKNOWN)
  */
 int32_t stlink_status(stlink_t *sl);
 
@@ -558,7 +560,7 @@ int32_t stlink_status(stlink_t *sl);
  * Check whether the core is halted.
  * Reads the state with stlink_status().
  * @param sl device handle
- * @return true if the core is halted, false if it runs or the state could not be read
+ * @return   true if the core is halted, false if it runs or the state could not be read
  */
 bool stlink_is_core_halted(stlink_t *sl);
 
@@ -572,7 +574,7 @@ bool stlink_is_core_halted(stlink_t *sl);
  * the watchdog is disabled instead. Other families are left unchanged.
  *
  * @param sl device handle
- * @return 0 on success, -1 on error
+ * @return   0 on success, -1 on error
  */
 int32_t stlink_force_debug(stlink_t *sl);
 
@@ -584,14 +586,14 @@ int32_t stlink_force_debug(stlink_t *sl);
  *
  * @param sl   device handle
  * @param type RUN_NORMAL, or RUN_FLASH_LOADER to keep interrupts masked
- * @return 0 on success, -1 on error
+ * @return     0 on success, -1 on error
  */
 int32_t stlink_run(stlink_t *sl, enum run_type type);
 
 /**
  * Execute a single instruction on the halted core.
  * @param sl device handle
- * @return 0 on success, -1 on error
+ * @return   0 on success, -1 on error
  */
 int32_t stlink_step(stlink_t *sl);
 
@@ -610,8 +612,8 @@ int32_t stlink_step(stlink_t *sl);
  *             RESET_SOFT: software reset via AIRCR.SYSRESETREQ;
  *             RESET_SOFT_AND_HALT: software reset with the core halted at the
  *             reset vector
- * @return 0 on success (always for RESET_HARD), -1 if the core is still in
- *         reset after 500 ms (RESET_AUTO) or the software reset failed
+ * @return     0 on success (always for RESET_HARD), -1 if the core is still in
+ *             reset after 500 ms (RESET_AUTO) or the software reset failed
  */
 int32_t stlink_reset(stlink_t *sl, enum reset_type type);
 
@@ -641,14 +643,14 @@ void stlink_run_at(stlink_t *sl, stm32_addr_t addr);
  *
  * @param sl        device handle
  * @param flashaddr address in flash
- * @return the page or sector size in bytes
+ * @return          the page or sector size in bytes
  */
 uint32_t stlink_calculate_pagesize(stlink_t *sl, uint32_t flashaddr);
 
 /**
  * Value of an erased flash byte of the target.
  * @param sl device handle
- * @return 0x00 for STM32L0/L1, 0xff for all other devices
+ * @return   0x00 for STM32L0/L1, 0xff for all other devices
  */
 uint8_t stlink_get_erased_pattern(stlink_t *sl);
 
@@ -675,7 +677,7 @@ uint8_t stlink_get_erased_pattern(stlink_t *sl);
  * @param is_ihex write Intel HEX instead of raw binary
  * @param addr    first address to read, should be word aligned
  * @param size    number of bytes, 0 reads the whole flash size
- * @return 0 on success, -1 on a file error (failed reads on the target are not detected)
+ * @return        0 on success, -1 on a file error (failed reads on the target are not detected)
  */
 int32_t stlink_fread(stlink_t* sl, const char* path, bool is_ihex, stm32_addr_t addr, uint32_t size);
 
@@ -690,7 +692,7 @@ int32_t stlink_fread(stlink_t* sl, const char* path, bool is_ihex, stm32_addr_t 
  * @param sl   device handle
  * @param path binary file to write
  * @param addr destination address in SRAM, word aligned
- * @return 0 on success, -1 on error (range, mapping, verification)
+ * @return     0 on success, -1 on error (range, mapping, verification)
  */
 int32_t stlink_fwrite_sram(stlink_t *sl, const char* path, stm32_addr_t addr);
 
@@ -705,7 +707,7 @@ int32_t stlink_fwrite_sram(stlink_t *sl, const char* path, stm32_addr_t addr);
  * @param data   data to write
  * @param length number of bytes
  * @param addr   destination address in SRAM, word aligned
- * @return 0 on success, -1 if the range is not inside the SRAM or @p addr is unaligned
+ * @return       0 on success, -1 if the range is not inside the SRAM or @p addr is unaligned
  */
 int32_t stlink_mwrite_sram(stlink_t *sl, uint8_t* data, uint32_t length, stm32_addr_t addr);
 
@@ -725,7 +727,7 @@ int32_t stlink_mwrite_sram(stlink_t *sl, uint8_t* data, uint32_t length, stm32_a
  *                       frees it. Unchanged on error.
  * @param size           receives the size of the image in bytes
  * @param begin          receives the address of the first byte of the image
- * @return 0 on success, -1 on error (file, format, checksum, memory)
+ * @return               0 on success, -1 on error (file, format, checksum, memory)
  */
 int32_t stlink_parse_ihex(const char* path, uint8_t erased_pattern, uint8_t* *mem, uint32_t* size, uint32_t* begin);
 
@@ -742,7 +744,7 @@ int32_t stlink_parse_ihex(const char* path, uint8_t erased_pattern, uint8_t* *me
  * Called by stlink_load_device_params(), do not call it directly.
  * @param sl      device handle
  * @param chip_id receives the 12 bit device id; 0 on most errors (unchanged if the CPUID cannot be read)
- * @return 0 on success, non-zero on error
+ * @return        0 on success, non-zero on error
  */
 int32_t stlink_chip_id(stlink_t *sl, uint32_t *chip_id);
 
@@ -767,7 +769,7 @@ void stlink_print_data(stlink_t *sl);
  * @param buf         data
  * @param size        number of bytes in @p buf
  * @param padded_size number of bytes to write, at least @p size
- * @return 0 on success, -1 on error
+ * @return            0 on success, -1 on error
  */
 int32_t stlink_write_buffer_to_sram(stlink_t *sl, flash_loader_t* fl, const uint8_t* buf, uint16_t size, uint16_t padded_size);
 
