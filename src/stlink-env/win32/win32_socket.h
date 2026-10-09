@@ -1,8 +1,16 @@
-/*
- * File: win32_socket.h
- *
- *
- */
+/**
+  ******************************************************************************
+  * @file             win32_socket.h
+  * @brief            Socket functions and poll() for Windows (Winsock)
+  * @copyright        Copyright (c) 2026 stlink-org. All rights reserved.
+  * @date             2026-10-08
+  * SPDX-License-Identifier: BSD-3-Clause
+  *
+  * This file is licensed under the BSD 3-Clause License.
+  * See the LICENSE file in the project root for full license information.
+  ******************************************************************************
+  */
+
 
 #if defined(_WIN32)
 
@@ -32,6 +40,7 @@
 #pragma warning(pop)
 #endif
 
+
 /*
  * winsock doesn't feature poll(), so there is a version implemented in terms of select() in win32_socket.c.
  * The following definitions are copied from linux man pages.
@@ -39,21 +48,21 @@
  */
 #if !defined(_WIN32_WINNT) || (_WIN32_WINNT < 0x0600)
 
-#define POLLIN      0x0001    /* There is data to read */
-#define POLLPRI     0x0002    /* There is urgent data to read */
-#define POLLOUT     0x0004    /* Writing now will not block */
-#define POLLERR     0x0008    /* Error condition */
-#define POLLHUP     0x0010    /* Hung up */
-#define POLLNVAL    0x0020    /* Invalid request: fd not open */
+#define POLLIN      0x0001 /* There is data to read */
+#define POLLPRI     0x0002 /* There is urgent data to read */
+#define POLLOUT     0x0004 /* Writing now will not block */
+#define POLLERR     0x0008 /* Error condition */
+#define POLLHUP     0x0010 /* Hung up */
+#define POLLNVAL    0x0020 /* Invalid request: fd not open */
 struct pollfd {
-    SOCKET fd;        /* file descriptor */
-    int16_t events;     /* requested events */
-    int16_t revents;    /* returned events */
+    SOCKET fd; /* file descriptor */
+    int16_t events;  /* requested events */
+    int16_t revents; /* returned events */
 };
 #endif
 #define poll(x, y, z)     win32_poll(x, y, z)
 
-/* 
+/*
  * These wrappers do nothing special except set the global errno variable if an error occurs
  * (winsock doesn't do this by default).
  * They set errno to unix-like values (i.e. WSAEWOULDBLOCK is mapped to EAGAIN),

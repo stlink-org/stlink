@@ -4,6 +4,7 @@
  *
  */
 
+
 #include "getopt.h"
 
 
@@ -148,11 +149,12 @@ int32_t getopt_long(int32_t argc,
     current_argument = argv[optind] + 2;
     argument_name_length = strcspn(current_argument, "=");
 
-    for( ; o->name; ++o)
+    for( ; o->name; ++o) {
         if(strncmp(o->name, current_argument, argument_name_length) == 0) {
             match = o;
             ++num_matches;
         }
+    }
 
 
     if(num_matches == 1) {

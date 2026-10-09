@@ -1,9 +1,9 @@
 /**
   ******************************************************************************
-  * @file           : stlink_fs.h
-  * @brief          : Filesystem lookups that differ per platform
-  * @copyright      : Copyright (c) 2026 stlink-org. All rights reserved.
-  * @date           : 2026-09-17
+  * @file             stlink_fs.h
+  * @brief            Filesystem lookups that differ per platform
+  * @copyright        Copyright (c) 2026 stlink-org. All rights reserved.
+  * @date             2026-09-17
   * SPDX-License-Identifier: BSD-3-Clause
   *
   * This file is licensed under the BSD 3-Clause License.
@@ -11,20 +11,31 @@
   ******************************************************************************
   */
 
+
 #ifndef STLINK_FS_H
 #define STLINK_FS_H
 
 #include <stdbool.h>
 #include <stddef.h>
 
+
 #define CHIP_FILE_EXT ".chip"
 
-/* Directory holding the running executable, without a trailing separator.
- * False where the platform will not say. */
+/**
+ * Directory holding the running executable, without a trailing separator.
+ * @ingroup api_internal
+ * @param buf receives the directory
+ * @param len size of @p buf
+ * @return    false where the platform will not say (or @p buf is too small)
+ */
 bool stlink_exe_dir(char *buf, size_t len);
 
-/* Read every chip description file in dir. False if it held none, including
- * when dir cannot be read at all. */
+/**
+ * Read every chip description file (*.chip) in a directory, see init_chipids().
+ * @ingroup api_internal
+ * @param dir the directory
+ * @return    false if it held none, including when @p dir cannot be read at all
+ */
 bool search_for_chips(const char *dir);
 
 #endif // STLINK_FS_H

@@ -114,8 +114,12 @@ file(GLOB STLINK_LIB_SOURCES
     "${CMAKE_SOURCE_DIR}/src/stlink-lib/*.c")
 list(APPEND STLINK_SOURCES ${STLINK_LIB_SOURCES})
 
-# Install library header files
-install(FILES ${STLINK_HEADERS} DESTINATION ${STLINK_INCLUDE_PATH})
+# Install library header files, except the internal ones
+set(STLINK_LIB_PRIVATE_HEADERS
+    "${CMAKE_SOURCE_DIR}/src/stlink-lib/stlink_hw.h")
+set(STLINK_INSTALL_HEADERS ${STLINK_HEADERS})
+list(REMOVE_ITEM STLINK_INSTALL_HEADERS ${STLINK_LIB_PRIVATE_HEADERS})
+install(FILES ${STLINK_INSTALL_HEADERS} DESTINATION ${STLINK_INCLUDE_PATH})
 
 if (MSVC)
     # libusb_settings.h and unistd.h (both installed above) include these,
@@ -350,6 +354,11 @@ install(FILES ${CHIP_FILES} DESTINATION ${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME}
 # Documentation / manpages
 option(STLINK_GENERATE_MANPAGES "Generate manpages with pandoc" OFF)
 add_subdirectory(doc/man)         # contains subordinate CMakeLists to generate manpages
+
+# Documentation / API (doc-api target)
+option(STLINK_GENERATE_API_DOCS "Generate the stlink-lib API documentation with Doxygen" OFF)
+option(STLINK_API_DOCS_INTERNAL "Include the internal functions in the API documentation" OFF)
+add_subdirectory(doc/api)         # contains subordinate CMakeLists to generate the API documentation
 
 # Optional build components
 add_subdirectory(src/stlink-gui)  # contains subordinate CMakeLists to build GUI

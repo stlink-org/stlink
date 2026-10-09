@@ -1,16 +1,17 @@
 /**
   ******************************************************************************
-  * @file           : stlink_threads_win32.c
-  * @brief          : pthreads wrapper for WIN32
-  * @copyright      : Copyright (c) 2026 stlink-org. All rights reserved.
-  * @author         : Andreas Michelis (a-michelis)
-  * @date           : 2026-09-15
+  * @file             stlink_threads_win32.c
+  * @brief            pthreads wrapper for WIN32
+  * @copyright        Copyright (c) 2026 stlink-org. All rights reserved.
+  * @author           Andreas Michelis (a-michelis)
+  * @date             2026-09-15
   * SPDX-License-Identifier: BSD-3-Clause
   *
   * This file is licensed under the BSD 3-Clause License.
   * See the LICENSE file in the project root for full license information.
   ******************************************************************************
   */
+
 
 #include <errno.h>
 #include <stdint.h>
@@ -21,6 +22,7 @@
 #include <process.h>
 
 #include "stlink_threads.h"
+
 
 /*
  * Win32 wants an entry point of unsigned __stdcall (*)(void *), which is not

@@ -1,15 +1,16 @@
 /**
   ******************************************************************************
-  * @file           : helper.c
-  * @brief          : General helper functions
-  * @copyright      : Copyright (c) 2026 stlink-org. All rights reserved.
-  * @date           : 2026-07-27
+  * @file             helper.c
+  * @brief            General helper functions
+  * @copyright        Copyright (c) 2026 stlink-org. All rights reserved.
+  * @date             2026-07-27
   * SPDX-License-Identifier: BSD-3-Clause
   *
   * This file is licensed under the BSD 3-Clause License.
   * See the LICENSE file in the project root for full license information.
   ******************************************************************************
   */
+
 
 #include "helper.h"
 
@@ -22,9 +23,9 @@ uint32_t time_ms() {
 
 int32_t arg_parse_freq(const char *str) {
     if(str == NULL) {
-        return -1;                    // faulty input
+        return -1; // faulty input
     }
-    
+
     char* tail = NULL;
     int32_t value = (uint32_t) strtol(str, &tail, 10);
 
@@ -37,13 +38,13 @@ int32_t arg_parse_freq(const char *str) {
      */
 
     if(tail == NULL) {
-        return -1;                    // faulty integer conversion
+        return -1;             // faulty integer conversion
     } else if(tail[0] == '\0') {
-        return value;                 // no prefix: kHz
+        return value;          // no prefix: kHz
     } else if((tail[0] == 'k' || tail[0] == 'K') && tail[1] == '\0') {
-        return value;                 // k prefix: kHz
+        return value;          // k prefix: kHz
     } else if(tail[0] == 'M' && tail[1] == '\0') {
-        return (value * 1000);        // M prefix: MHz
+        return (value * 1000); // M prefix: MHz
     }
-    return -1;                        // invalid prefix
+    return -1;                 // invalid prefix
 }

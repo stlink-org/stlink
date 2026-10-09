@@ -1,15 +1,16 @@
 /**
   ******************************************************************************
-  * @file           : stlink_cmd.h
-  * @brief          : stlink commands
-  * @copyright      : Copyright (c) 2026 stlink-org. All rights reserved.
-  * @date           : 2026-07-27
+  * @file             stlink_cmd.h
+  * @brief            stlink commands
+  * @copyright        Copyright (c) 2026 stlink-org. All rights reserved.
+  * @date             2026-07-27
   * SPDX-License-Identifier: BSD-3-Clause
   *
   * This file is licensed under the BSD 3-Clause License.
   * See the LICENSE file in the project root for full license information.
   ******************************************************************************
   */
+
 
 #ifndef STLINK_CMD_H
 #define STLINK_CMD_H
@@ -69,7 +70,7 @@ enum stlink_debug_commands {
     STLINK_DEBUG_APIV2_INIT_AP           = 0x4b,
     STLINK_DEBUG_APIV3_SET_COM_FREQ      = 0x61,
     STLINK_DEBUG_APIV3_GET_COM_FREQ      = 0x62,
-    
+
     STLINK_DEBUG_ENTER_SWD               = 0xa3,
     STLINK_DEBUG_ENTER_JTAG_NO_RESET     = 0xa4,
 };

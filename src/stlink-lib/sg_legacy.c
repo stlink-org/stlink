@@ -1,8 +1,16 @@
-/*
- * File: sg_legacy.c
- *
- *
- */
+/**
+  ******************************************************************************
+  * @file             sg_legacy.c
+  * @brief            Legacy ST-LINK/V1 backend (SCSI commands over USB mass storage)
+  * @copyright        Copyright (c) 2026 stlink-org. All rights reserved.
+  * @date             2026-10-08
+  * SPDX-License-Identifier: BSD-3-Clause
+  *
+  * This file is licensed under the BSD 3-Clause License.
+  * See the LICENSE file in the project root for full license information.
+  ******************************************************************************
+  */
+
 
 // TODO: CONTENT AND USE OF THIS SOURCE FILE IS TO BE VERIFIED
 // This file should be split up into new or existing modules
@@ -146,7 +154,7 @@ static int32_t get_usb_mass_storage_status(libusb_device_handle *handle, uint8_t
     uint32_t rtag = read_uint32(csw, 4);
     /* uint32_t residue = read_uint32(csw, 8); */
 
-#define USB_CSW_SIGNATURE 0x53425355  // 'U' 'S' 'B' 'S' (reversed)
+#define USB_CSW_SIGNATURE 0x53425355 // 'U' 'S' 'B' 'S' (reversed)
 
     if(rsig != USB_CSW_SIGNATURE) {
         WLOG("status signature was invalid: %#x\n", rsig);
@@ -301,12 +309,12 @@ static void get_sense(libusb_device_handle *handle, uint8_t endpoint_in, uint8_t
 /**
  * Just send a buffer on an endpoint, no questions asked.
  * Handles repeats, and time outs.  Also handles reading status reports and sense
- * @param handle libusb device *
+ * @param handle       libusb device *
  * @param endpoint_out sends
- * @param endpoint_in used to read status reports back in
- * @param cbuf  what to send
- * @param length how much to send
- * @return number of bytes actually sent, or -1 for failures.
+ * @param endpoint_in  used to read status reports back in
+ * @param cbuf         what to send
+ * @param length       how much to send
+ * @return             number of bytes actually sent, or -1 for failures.
  */
 int32_t send_usb_data_only(libusb_device_handle *handle, unsigned char endpoint_out,
                        unsigned char endpoint_in, unsigned char *cbuf, uint32_t length) {
@@ -353,8 +361,8 @@ int32_t send_usb_data_only(libusb_device_handle *handle, unsigned char endpoint_
 int32_t stlink_q(stlink_t *sl) {
     struct stlink_libsg* sg = sl->backend_data;
     // uint8_t cdb_len = 6;  // FIXME varies!!!
-    uint8_t cdb_len = 10;  // FIXME varies!!!
-    uint8_t lun = 0;  // always zero...
+    uint8_t cdb_len = 10; // FIXME varies!!!
+    uint8_t lun = 0; // always zero...
     uint32_t tag = send_usb_mass_storage_command(sg->usb_handle, sg->ep_req,
                                                  sg->cdb_cmd_blk, cdb_len, lun,
                                                  LIBUSB_ENDPOINT_IN, sl->q_len);
@@ -943,19 +951,19 @@ static stlink_backend_t _stlink_sg_backend = {
     _stlink_sg_write_mem8,
     _stlink_sg_read_all_regs,
     _stlink_sg_read_reg,
-    NULL,                   // read_all_unsupported_regs
-    NULL,                   // read_unsupported_regs
-    NULL,                   // write_unsupported_regs
+    NULL, // read_all_unsupported_regs
+    NULL, // read_unsupported_regs
+    NULL, // write_unsupported_regs
     _stlink_sg_write_reg,
     _stlink_sg_step,
     _stlink_sg_current_mode,
     _stlink_sg_force_debug,
-    NULL,                   // target_voltage
-    NULL,                   // set_swdclk
-    NULL,                   // trace_enable
-    NULL,                   // trace_disable
-    NULL,                   // trace_read
-    NULL,                   // init_ap (unsupported on legacy SCSI backend)
+    NULL, // target_voltage
+    NULL, // set_swdclk
+    NULL, // trace_enable
+    NULL, // trace_disable
+    NULL, // trace_read
+    NULL, // init_ap (unsupported on legacy SCSI backend)
 };
 
 static stlink_t* stlink_open(const int32_t verbose) {
@@ -1071,7 +1079,7 @@ static stlink_t* stlink_open(const int32_t verbose) {
 
 
 stlink_t* stlink_v1_open_inner(const int32_t verbose) {
-    ugly_init(verbose);
+    stlink_log_open_level(verbose);
     stlink_t *sl = stlink_open(verbose);
 
     if(sl == NULL) {

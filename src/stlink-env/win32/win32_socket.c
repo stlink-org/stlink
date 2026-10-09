@@ -1,8 +1,16 @@
-/*
- * File: win32_socket.c
- *
- *
- */
+/**
+  ******************************************************************************
+  * @file             win32_socket.c
+  * @brief            Socket functions and poll() for Windows (Winsock)
+  * @copyright        Copyright (c) 2026 stlink-org. All rights reserved.
+  * @date             2026-10-08
+  * SPDX-License-Identifier: BSD-3-Clause
+  *
+  * This file is licensed under the BSD 3-Clause License.
+  * See the LICENSE file in the project root for full license information.
+  ******************************************************************************
+  */
+
 
 #if defined(_WIN32)
 
@@ -18,6 +26,8 @@
 #include <string.h>
 #include <errno.h>
 #include <assert.h>
+
+#include "logging.h"
 
 int32_t win32_poll(struct pollfd *fds, uint32_t nfds, int32_t timo) {
     struct timeval timeout, *toptr;
@@ -64,14 +74,14 @@ int32_t win32_poll(struct pollfd *fds, uint32_t nfds, int32_t timo) {
     }
 
 #ifdef DEBUG_POLL
-    printf("Entering select() sec=%ld usec=%ld ip=%lx op=%lx\n",
-           (long)timeout.tv_sec, (long)timeout.tv_usec, (long)ip, (long)op);
+    DLOG("Entering select() sec=%ld usec=%ld ip=%lx op=%lx\n",
+         (long)timeout.tv_sec, (long)timeout.tv_usec, (long)ip, (long)op);
 #endif
 
     rc = select(0, ip, op, &efds, toptr);
 
 #ifdef DEBUG_POLL
-    printf("Exiting select rc=%d\n", rc);
+    DLOG("Exiting select rc=%d\n", rc);
 #endif
 
     if(rc <= 0) { return (rc); }
@@ -94,11 +104,11 @@ int32_t win32_poll(struct pollfd *fds, uint32_t nfds, int32_t timo) {
             }
 
 #ifdef DEBUG_POLL
-    printf("%d %d %d revent = %x\n",
-           FD_ISSET(fd, &ifds),
-           FD_ISSET(fd, &ofds),
-           FD_ISSET(fd, &efds),
-           fds[i].revents);
+            DLOG("%d %d %d revent = %x\n",
+                 FD_ISSET(fd, &ifds),
+                 FD_ISSET(fd, &ofds),
+                 FD_ISSET(fd, &efds),
+                 fds[i].revents);
 #endif
 
         }
@@ -144,7 +154,7 @@ SOCKET win32_socket(int32_t domain, int32_t type, int32_t protocol) {
     return (fd);
 }
 
-/* 
+/*
  * A wrapper around the connect() function.
  * The purpose of this wrapper is to ensure that the global errno symbol is set if an error occurs,
  * even if we are using winsock.
@@ -223,8 +233,9 @@ char * win32_strtok_r(char *s, const char *delim, char **lasts) {
 cont:
     c = *s++;
 
-    for(spanp = (char *)delim; (sc = *spanp++) != 0;)
+    for(spanp = (char *)delim; (sc = *spanp++) != 0;) {
         if(c == sc) { goto cont; }
+    }
 
 
     if(c == 0) { // no non-delimiter characters

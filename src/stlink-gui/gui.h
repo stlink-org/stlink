@@ -1,9 +1,9 @@
 /**
   ******************************************************************************
-  * @file           : gui.h
-  * @brief          : stlink-gui
-  * @copyright      : Copyright (c) 2026 stlink-org. All rights reserved.
-  * @date           : 2026-07-27
+  * @file             gui.h
+  * @brief            stlink-gui
+  * @copyright        Copyright (c) 2026 stlink-org. All rights reserved.
+  * @date             2026-07-27
   * SPDX-License-Identifier: BSD-3-Clause
   *
   * This file is licensed under the BSD 3-Clause License.
@@ -11,32 +11,27 @@
   ******************************************************************************
   */
 
+
 #ifndef GUI_H
 #define GUI_H
 
 #include <stdint.h>
 #include <glib-object.h>
 
+
 #define STLINK_TYPE_GUI             (stlink_gui_get_type())
 #define STLINK_GUI(obj)             (G_TYPE_CHECK_INSTANCE_CAST((obj), STLINK_TYPE_GUI, STlinkGUI))
 #define STLINK_IS_GUI(obj)          (G_TYPE_CHECK_INSTANCE_TYPE((obj), STLINK_TYPE_GUI))
 #define STLINK_GUI_CLASS(klass)     (G_TYPE_CHECK_CLASS_CAST((klass), STLINK_TYPE_GUI, STlinkGUIClass))
 #define STLINK_IS_GUI_CLASS(klass)  (G_TYPE_CHECK_CLASS_TYPE((klass), STLINK_TYPE_GUI))
-#define STLINK_GUI_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS((obj), STLINK_TYPE_GUI, STlinkGUIlass))
-#define STLINK_GUI_GET_PRIVATE(obj) (G_TYPE_INSTANCE_GET_PRIVATE((obj), STLINK_TYPE_GUI, STlinkGUIPrivate))
+#define STLINK_GUI_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS((obj), STLINK_TYPE_GUI, STlinkGUIClass))
 
 typedef struct _STlinkGUI STlinkGUI;
 typedef struct _STlinkGUIClass STlinkGUIClass;
-typedef struct _STlinkGUIPrivate STlinkGUIPrivate;
 
 enum stlink_gui_pages_t {
     PAGE_DEVMEM,
     PAGE_FILEMEM
-};
-
-enum stlink_gui_dnd_targets_t {
-    TARGET_FILENAME,
-    TARGET_ROOTWIN
 };
 
 struct progress_t {
@@ -73,13 +68,13 @@ struct _STlinkGUI {
     GtkEntry       *devmem_jmp_entry;
     GtkBox         *filemem_box;
     GtkEntry       *filemem_jmp_entry;
-    GtkToolButton  *open_button;
-    GtkToolButton  *connect_button;
-    GtkToolButton  *disconnect_button;
-    GtkToolButton  *flash_button;
-    GtkToolButton  *reset_button;
-    GtkToolButton  *export_button;
-    GtkToolButton  *erase_button;
+    GtkButton      *open_button;
+    GtkButton      *connect_button;
+    GtkButton      *disconnect_button;
+    GtkButton      *flash_button;
+    GtkButton      *reset_button;
+    GtkButton      *export_button;
+    GtkButton      *erase_button;
 
     /* Flash dialog */
     GtkDialog  *flash_dialog;

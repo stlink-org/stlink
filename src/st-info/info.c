@@ -1,15 +1,16 @@
 /**
   ******************************************************************************
-  * @file           : info.c
-  * @brief          : Tool: st-info
-  * @copyright      : Copyright (c) 2026 stlink-org. All rights reserved.
-  * @date           : 2026-07-27
+  * @file             info.c
+  * @brief            Tool: st-info
+  * @copyright        Copyright (c) 2026 stlink-org. All rights reserved.
+  * @date             2026-07-27
   * SPDX-License-Identifier: BSD-3-Clause
   *
   * This file is licensed under the BSD 3-Clause License.
   * See the LICENSE file in the project root for full license information.
   ******************************************************************************
   */
+
 
 #include "info.h"
 
@@ -30,10 +31,12 @@ static void stlink_print_version(stlink_t *sl) {
     // Implementation of version printing is minimalistic
     // but contains all available information from sl->version
     printf("V%u", sl->version.stlink_v);
-    if(sl->version.jtag_v > 0)
+    if(sl->version.jtag_v > 0) {
         printf("J%u", sl->version.jtag_v);
-    if(sl->version.swim_v > 0)
+    }
+    if(sl->version.swim_v > 0) {
         printf("S%u", sl->version.swim_v);
+    }
     printf("\n");
 }
 
@@ -52,7 +55,7 @@ static void stlink_print_info(stlink_t *sl) {
 
     // Print target voltage if supported
     int32_t voltage_mv = -1;
-    if(sl->version.stlink_v != 1) {
+    if(sl->version.flags & STLINK_F_HAS_TARGET_VOLTAGE) {
         voltage_mv = stlink_target_voltage(sl);
     }
     if(voltage_mv >= 0) {
@@ -71,7 +74,7 @@ static void stlink_probe(enum connect_type connect, int32_t freq) {
     printf("Found %u stlink programmers\n", size);
 
     for(uint32_t n = 0; n < size; n++) {
-        if(size > 1) printf("%u.\n", n+1);
+        if(size > 1) { printf("%u.\n", n+1); }
         stlink_print_info(stdevs[n]);
     }
 
@@ -163,7 +166,7 @@ static int32_t print_data(int32_t ac, char **av) {
         printf("%s\n", params->dev_type);
     } else if(strcmp(cmd, "--voltage") == 0) {
         int32_t voltage_mv = -1;
-        if(sl->version.stlink_v != 1) {
+        if(sl->version.flags & STLINK_F_HAS_TARGET_VOLTAGE) {
             voltage_mv = stlink_target_voltage(sl);
         }
         if(voltage_mv >= 0) {

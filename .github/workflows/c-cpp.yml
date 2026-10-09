@@ -83,7 +83,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install dependencies
-        run: sudo apt update && sudo apt-get install ${{ matrix.config.packages }} cmake libusb-1.0.0-dev libgtk-3-dev
+        run: sudo apt update && sudo apt-get install ${{ matrix.config.packages }} cmake libusb-1.0.0-dev libgtk-4-dev
 
       - name: Verify CMake version
         run: cmake --version

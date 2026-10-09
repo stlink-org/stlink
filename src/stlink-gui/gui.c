@@ -1,15 +1,16 @@
 /**
   ******************************************************************************
-  * @file           : gui.c
-  * @brief          : stlink-gui
-  * @copyright      : Copyright (c) 2026 stlink-org. All rights reserved.
-  * @date           : 2026-07-27
+  * @file             gui.c
+  * @brief            stlink-gui
+  * @copyright        Copyright (c) 2026 stlink-org. All rights reserved.
+  * @date             2026-07-27
   * SPDX-License-Identifier: BSD-3-Clause
   *
   * This file is licensed under the BSD 3-Clause License.
   * See the LICENSE file in the project root for full license information.
   ******************************************************************************
   */
+
 
 #include <errno.h>
 #include <stdint.h>
@@ -26,6 +27,7 @@
 #include <usb.h>
 
 #include "gui.h"
+
 
 #define MEM_READ_SIZE 1024
 
@@ -50,8 +52,10 @@ static void stlink_gui_class_init(STlinkGUIClass *klass) {
 }
 
 static void stlink_gui_init(STlinkGUI *self) {
-    self->sl       = NULL;
-    self->filename = NULL;
+    self->window        = NULL;
+    self->error_message = NULL;
+    self->sl            = NULL;
+    self->filename      = NULL;
 
     self->progress.activity_mode = FALSE;
     self->progress.fraction      = 0;
@@ -65,8 +69,7 @@ static void stlink_gui_init(STlinkGUI *self) {
     self->file_mem.base   = 0;
 }
 
-static void help(void)
-{
+static void help(void) {
     puts("usage: stlink-gui [options] file\n");
     puts("options:");
     puts("  --version/-v           Print version information.");
@@ -83,7 +86,7 @@ static gboolean set_info_error_message_idle(STlinkGUI *gui) {
         markup = g_markup_printf_escaped("<b>%s</b>", gui->error_message);
         gtk_label_set_markup(gui->infolabel, markup);
         gtk_info_bar_set_message_type(gui->infobar, GTK_MESSAGE_ERROR);
-        gtk_widget_show(GTK_WIDGET(gui->infobar));
+        gtk_widget_set_visible(GTK_WIDGET(gui->infobar), TRUE);
 
         g_free(markup);
         g_free(gui->error_message);
@@ -206,7 +209,7 @@ static void stlink_gui_update_mem_view(STlinkGUI *gui, struct mem_t *mem, GtkTre
 
     mem_view_add_buffer(store, &iter, mem->base, mem->memory, (gint)mem->size);
 
-    gtk_widget_hide(GTK_WIDGET(gui->progress.bar));
+    gtk_widget_set_visible(GTK_WIDGET(gui->progress.bar), FALSE);
     gtk_progress_bar_set_fraction(gui->progress.bar, 0);
     stlink_gui_set_sensitivity(gui, TRUE);
 }
@@ -361,8 +364,8 @@ static gpointer stlink_gui_populate_filemem_view(gpointer data) {
             gui->progress.fraction = (gdouble)(off + n_read) / gui->file_mem.size;
         }
 
-        out_input: g_object_unref(input_stream);
-        out:       g_object_unref(file);
+out_input: g_object_unref(input_stream);
+out:       g_object_unref(file);
     }
 
     g_idle_add((GSourceFunc)stlink_gui_update_filemem_view, gui);
@@ -378,7 +381,7 @@ static void mem_jmp(GtkTreeView *view,
     guint32 jmp_addr;
     GtkTreeIter iter;
 
-    jmp_addr = hexstr_to_guint32(gtk_entry_get_text(entry), err);
+    jmp_addr = hexstr_to_guint32(gtk_editable_get_text(GTK_EDITABLE(entry)), err);
 
     if(err && *err) { return; }
 
@@ -508,7 +511,7 @@ static void stlink_gui_set_connected(STlinkGUI *gui) {
     g_free(tmp_str);
 
     tmp_str = g_strdup_printf("0x%08X", gui->sl->flash_base);
-    gtk_entry_set_text(gui->devmem_jmp_entry, tmp_str);
+    gtk_editable_set_text(GTK_EDITABLE(gui->devmem_jmp_entry), tmp_str);
     gtk_editable_set_editable(GTK_EDITABLE(gui->devmem_jmp_entry), TRUE);
     g_free(tmp_str);
 
@@ -520,7 +523,7 @@ static void stlink_gui_set_connected(STlinkGUI *gui) {
 
     stlink_gui_set_sensitivity(gui, FALSE);
     gtk_notebook_set_current_page(gui->notebook, PAGE_DEVMEM);
-    gtk_widget_show(GTK_WIDGET(gui->progress.bar));
+    gtk_widget_set_visible(GTK_WIDGET(gui->progress.bar), TRUE);
     gtk_progress_bar_set_text(gui->progress.bar, "Reading memory");
 
     g_thread_new("devmem", (GThreadFunc)stlink_gui_populate_devmem_view, gui);
@@ -572,56 +575,79 @@ static void disconnect_button_cb(GtkWidget *widget, gpointer data) {
 }
 
 
-static void stlink_gui_open_file(STlinkGUI *gui) {
-    GtkWidget *dialog;
+/* Load a file into the file memory view (takes ownership of 'filename') */
+static void stlink_gui_load_file(STlinkGUI *gui, gchar *filename) {
     GtkListStore *store;
     GtkTreeIter iter;
 
-    dialog = gtk_file_chooser_dialog_new("Open file",
-                                         gui->window,
-                                         GTK_FILE_CHOOSER_ACTION_OPEN,
-                                         "_Cancel", GTK_RESPONSE_CANCEL,
-                                         "_Open", GTK_RESPONSE_ACCEPT,
-                                         NULL);
+    g_free(gui->filename);
+    gui->filename = filename;
 
-    /* Start file chooser from last used directory */
-    if(gui->filename != NULL){
-        gchar *last_dir = g_path_get_dirname(gui->filename);
-        if(last_dir){
-            gtk_file_chooser_set_current_folder(
-                GTK_FILE_CHOOSER(dialog), last_dir);
-            g_free(last_dir);
-        }
+    store = GTK_LIST_STORE(gtk_tree_view_get_model(gui->filemem_treeview));
+
+    if(gtk_tree_model_get_iter_first(GTK_TREE_MODEL(store), &iter)) {
+        gtk_list_store_clear(store);
     }
 
-    if(gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT) {
-        gui->filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
-
-        store = GTK_LIST_STORE(gtk_tree_view_get_model(gui->filemem_treeview));
-
-        if(gtk_tree_model_get_iter_first(GTK_TREE_MODEL(store), &iter)) {
-            gtk_list_store_clear(store);
-        }
-
-        stlink_gui_set_sensitivity(gui, FALSE);
-        gtk_notebook_set_current_page(gui->notebook, PAGE_FILEMEM);
-        gtk_widget_show(GTK_WIDGET(gui->progress.bar));
-        gtk_progress_bar_set_text(gui->progress.bar, "Reading file");
-        g_thread_new("file", (GThreadFunc)stlink_gui_populate_filemem_view, gui);
-    }
-
-    gtk_widget_destroy(dialog);
+    stlink_gui_set_sensitivity(gui, FALSE);
+    gtk_notebook_set_current_page(gui->notebook, PAGE_FILEMEM);
+    gtk_widget_set_visible(GTK_WIDGET(gui->progress.bar), TRUE);
+    gtk_progress_bar_set_text(gui->progress.bar, "Reading file");
+    g_thread_new("file", (GThreadFunc)stlink_gui_populate_filemem_view, gui);
 }
 
-static gboolean open_file_from_args(STlinkGUI *gui) {
-    if(gui->filename != NULL) {
-        stlink_gui_set_sensitivity(gui, FALSE);
-        gtk_notebook_set_current_page(gui->notebook, PAGE_FILEMEM);
-        gtk_widget_show(GTK_WIDGET(gui->progress.bar));
-        gtk_progress_bar_set_text(gui->progress.bar, "Reading file");
-        g_thread_new("file", (GThreadFunc)stlink_gui_populate_filemem_view, gui);
+/* Returns the local path of the file selected in a file chooser (NULL if none) */
+static gchar *file_chooser_get_path(GtkFileChooser *chooser) {
+    GFile *file = gtk_file_chooser_get_file(chooser);
+    gchar *path = NULL;
+
+    if(file != NULL) {
+        path = g_file_get_path(file);
+        g_object_unref(file);
     }
-    return (FALSE);
+
+    return (path);
+}
+
+static void open_file_response_cb(GtkNativeDialog *dialog, gint response, gpointer data) {
+    STlinkGUI *gui = STLINK_GUI(data);
+
+    if(response == GTK_RESPONSE_ACCEPT) {
+        gchar *path = file_chooser_get_path(GTK_FILE_CHOOSER(dialog));
+
+        if(path != NULL) {
+            stlink_gui_load_file(gui, path);
+        }
+    }
+
+    g_object_unref(dialog);
+}
+
+static void stlink_gui_open_file(STlinkGUI *gui) {
+    GtkFileChooserNative *dialog;
+
+    dialog = gtk_file_chooser_native_new("Open file",
+                                         gui->window,
+                                         GTK_FILE_CHOOSER_ACTION_OPEN,
+                                         "_Open",
+                                         "_Cancel");
+
+    /* Start file chooser from last used directory */
+    if(gui->filename != NULL) {
+        GFile *file = g_file_new_for_path(gui->filename);
+        GFile *last_dir = g_file_get_parent(file);
+
+        if(last_dir != NULL) {
+            gtk_file_chooser_set_current_folder(GTK_FILE_CHOOSER(dialog), last_dir, NULL);
+            g_object_unref(last_dir);
+        }
+
+        g_object_unref(file);
+    }
+
+    g_signal_connect(dialog, "response", G_CALLBACK(open_file_response_cb), gui);
+    gtk_native_dialog_set_modal(GTK_NATIVE_DIALOG(dialog), TRUE);
+    gtk_native_dialog_show(GTK_NATIVE_DIALOG(dialog));
 }
 
 static void open_button_cb(GtkWidget *widget, gpointer data) {
@@ -635,7 +661,7 @@ static void open_button_cb(GtkWidget *widget, gpointer data) {
 static gboolean stlink_gui_restore_after_background_thread(STlinkGUI *gui) {
     stlink_gui_set_sensitivity(gui, TRUE);
     gui->progress.activity_mode = FALSE;
-    gtk_widget_hide(GTK_WIDGET(gui->progress.bar));
+    gtk_widget_set_visible(GTK_WIDGET(gui->progress.bar), FALSE);
     return (FALSE);
 }
 
@@ -656,44 +682,51 @@ static gpointer stlink_gui_write_flash(gpointer data) {
     return (NULL);
 }
 
+static void flash_dialog_response_cb(GtkDialog *dialog, gint response, gpointer data) {
+    STlinkGUI *gui = STLINK_GUI(data);
+    guint32 address;
+    GError *err = NULL;
+
+    gtk_widget_set_visible(GTK_WIDGET(dialog), FALSE);
+
+    if(response != GTK_RESPONSE_OK || gui->sl == NULL) { return; }
+
+    address = hexstr_to_guint32(gtk_editable_get_text(GTK_EDITABLE(gui->flash_dialog_entry)), &err);
+
+    if(err) {
+        stlink_gui_set_info_error_message(gui, err->message);
+        g_error_free(err);
+    } else {
+        if(address > gui->sl->flash_base + gui->sl->flash_size || address < gui->sl->flash_base) {
+            stlink_gui_set_info_error_message(gui, "Invalid address");
+        } else if(address + gui->file_mem.size > gui->sl->flash_base + gui->sl->flash_size) {
+            stlink_gui_set_info_error_message(gui, "Binary overwrites flash");
+        } else {
+            stlink_gui_set_sensitivity(gui, FALSE);
+            gtk_progress_bar_set_text(gui->progress.bar, "Writing to flash");
+            gui->progress.activity_mode = TRUE;
+            gtk_widget_set_visible(GTK_WIDGET(gui->progress.bar), TRUE);
+            g_thread_new("flash", (GThreadFunc)stlink_gui_write_flash, gui);
+        }
+    }
+}
+
 static void flash_button_cb(GtkWidget *widget, gpointer data) {
     STlinkGUI *gui;
     gchar *tmp_str;
-    guint32 address;
-    gint result;
-    GError *err = NULL;
     (void)widget;
 
     gui = STLINK_GUI(data);
     g_return_if_fail(gui->sl != NULL);
 
-    if(!g_strcmp0(gtk_entry_get_text(gui->flash_dialog_entry), "")) {
+    if(!g_strcmp0(gtk_editable_get_text(GTK_EDITABLE(gui->flash_dialog_entry)), "")) {
         tmp_str = g_strdup_printf("0x%08X", gui->sl->flash_base);
-        gtk_entry_set_text(gui->flash_dialog_entry, tmp_str);
+        gtk_editable_set_text(GTK_EDITABLE(gui->flash_dialog_entry), tmp_str);
         g_free(tmp_str);
     }
 
-    result = gtk_dialog_run(gui->flash_dialog);
-
-    if(result == GTK_RESPONSE_OK) {
-        address = hexstr_to_guint32(gtk_entry_get_text(gui->flash_dialog_entry), &err);
-
-        if(err) {
-            stlink_gui_set_info_error_message(gui, err->message);
-        } else {
-            if(address > gui->sl->flash_base + gui->sl->flash_size || address < gui->sl->flash_base) {
-                stlink_gui_set_info_error_message(gui, "Invalid address");
-            } else if(address + gui->file_mem.size > gui->sl->flash_base + gui->sl->flash_size) {
-                stlink_gui_set_info_error_message(gui, "Binary overwrites flash");
-            } else {
-                stlink_gui_set_sensitivity(gui, FALSE);
-                gtk_progress_bar_set_text(gui->progress.bar, "Writing to flash");
-                gui->progress.activity_mode = TRUE;
-                gtk_widget_show(GTK_WIDGET(gui->progress.bar));
-                g_thread_new("flash", (GThreadFunc)stlink_gui_write_flash, gui);
-            }
-        }
-    }
+    // the result is handled in flash_dialog_response_cb()
+    gtk_window_present(GTK_WINDOW(gui->flash_dialog));
 }
 
 
@@ -716,35 +749,21 @@ int32_t export_to_file(const char*filename, const struct mem_t flash_mem) {
 
     if(f == NULL) { return (-1); }
 
-    for(gsize i = 0; i < flash_mem.size; i++)
+    for(gsize i = 0; i < flash_mem.size; i++) {
         if(fputc(flash_mem.memory[i], f) == EOF) { return (-1); }
+    }
 
     fclose(f);
     return (0);
 }
 
-static void export_button_cb(GtkWidget *widget, gpointer data) {
-    (void)widget;
-    STlinkGUI * gui = STLINK_GUI(data);
-    GtkWidget *dialog;
-    dialog = gtk_file_chooser_dialog_new("Save as",
-                                         gui->window,
-                                         GTK_FILE_CHOOSER_ACTION_SAVE,
-                                         "_Cancel",
-                                         GTK_RESPONSE_CANCEL,
-                                         "_Open",
-                                         GTK_RESPONSE_ACCEPT,
-                                         NULL);
-    GtkFileChooser *chooser = GTK_FILE_CHOOSER(dialog);
-    gtk_file_chooser_set_do_overwrite_confirmation(chooser, TRUE);
-    gint res = gtk_dialog_run(GTK_DIALOG(dialog));
+static void export_response_cb(GtkNativeDialog *dialog, gint response, gpointer data) {
+    STlinkGUI *gui = STLINK_GUI(data);
 
-    if(res == GTK_RESPONSE_ACCEPT) {
-        char *filename;
+    if(response == GTK_RESPONSE_ACCEPT) {
+        gchar *filename = file_chooser_get_path(GTK_FILE_CHOOSER(dialog));
 
-        filename = gtk_file_chooser_get_filename(chooser);
-
-        if(export_to_file(filename, gui->flash_mem) != 0) {
+        if(filename == NULL || export_to_file(filename, gui->flash_mem) != 0) {
             stlink_gui_set_info_error_message(gui, "Failed to export flash");
         } else {
             stlink_gui_set_info_error_message(gui, "Export successful");
@@ -753,7 +772,24 @@ static void export_button_cb(GtkWidget *widget, gpointer data) {
         g_free(filename);
     }
 
-    gtk_widget_destroy(dialog);
+    g_object_unref(dialog);
+}
+
+static void export_button_cb(GtkWidget *widget, gpointer data) {
+    (void)widget;
+    STlinkGUI * gui = STLINK_GUI(data);
+    GtkFileChooserNative *dialog;
+
+    // GTK4 file choosers always ask before overwriting an existing file
+    dialog = gtk_file_chooser_native_new("Save as",
+                                         gui->window,
+                                         GTK_FILE_CHOOSER_ACTION_SAVE,
+                                         "_Save",
+                                         "_Cancel");
+
+    g_signal_connect(dialog, "response", G_CALLBACK(export_response_cb), gui);
+    gtk_native_dialog_set_modal(GTK_NATIVE_DIALOG(dialog), TRUE);
+    gtk_native_dialog_show(GTK_NATIVE_DIALOG(dialog));
 }
 
 static gpointer stlink_gui_erase_flash(gpointer data) {
@@ -772,24 +808,30 @@ static gpointer stlink_gui_erase_flash(gpointer data) {
     return (NULL);
 }
 
+static void erase_dialog_response_cb(GtkDialog *dialog, gint response, gpointer data) {
+    STlinkGUI *gui = STLINK_GUI(data);
+
+    gtk_widget_set_visible(GTK_WIDGET(dialog), FALSE);
+
+    if(response != GTK_RESPONSE_OK || gui->sl == NULL) { return; }
+
+    stlink_gui_set_sensitivity(gui, FALSE);
+    gtk_progress_bar_set_text(gui->progress.bar, "Mass erasing flash");
+    gui->progress.activity_mode = TRUE;
+    gtk_widget_set_visible(GTK_WIDGET(gui->progress.bar), TRUE);
+
+    g_thread_new("erase_flash", (GThreadFunc)stlink_gui_erase_flash, gui);
+}
+
 static void erase_button_cb(GtkWidget *widget, gpointer data) {
     (void)widget;
     STlinkGUI *gui;
-    gint result;
 
     gui = STLINK_GUI(data);
     g_return_if_fail(gui->sl != NULL);
 
-    result = gtk_dialog_run(gui->erase_dialog);
-
-    if(result == GTK_RESPONSE_OK) {
-        stlink_gui_set_sensitivity(gui, FALSE);
-        gtk_progress_bar_set_text(gui->progress.bar, "Mass erasing flash");
-        gui->progress.activity_mode = TRUE;
-        gtk_widget_show(GTK_WIDGET(gui->progress.bar));
-
-        g_thread_new("erase_flash", (GThreadFunc)stlink_gui_erase_flash, gui);
-    }
+    // the result is handled in erase_dialog_response_cb()
+    gtk_window_present(GTK_WINDOW(gui->erase_dialog));
 }
 
 static gboolean progress_pulse_timeout(STlinkGUI *gui) {
@@ -817,79 +859,42 @@ static void notebook_switch_page_cb(GtkNotebook *notebook,
     }
 }
 
-static void dnd_received_cb(GtkWidget *widget,
-                            GdkDragContext *context,
-                            gint x,
-                            gint y,
-                            GtkSelectionData *selection_data,
-                            guint target_type,
-                            guint timestamp,
+static gboolean dnd_drop_cb(GtkDropTarget *target,
+                            const GValue *value,
+                            gdouble x,
+                            gdouble y,
                             gpointer data) {
-    GFile *file_uri;
-    gchar **file_list;
-    const guchar *file_data;
     STlinkGUI *gui = STLINK_GUI(data);
-    GtkListStore *store;
-    GtkTreeIter iter;
-    (void)widget;
+    gchar *path;
+    (void)target;
     (void)x;
     (void)y;
 
-    if(selection_data != NULL && gtk_selection_data_get_length(selection_data) > 0) {
-        switch (target_type) {
-        case TARGET_FILENAME:
+    if(!G_VALUE_HOLDS(value, G_TYPE_FILE)) { return (FALSE); }
 
-            if(gui->filename) {
-                g_free(gui->filename);
-            }
+    path = g_file_get_path(G_FILE(g_value_get_object(value)));
 
-            file_data = gtk_selection_data_get_data(selection_data);
-            file_list = g_strsplit((gchar *)file_data, "\r\n", 0);
+    if(path == NULL) { return (FALSE); } // not a local file
 
-            file_uri = g_file_new_for_uri(file_list[0]);
-            gui->filename = g_file_get_path(file_uri);
-
-            g_strfreev(file_list);
-            g_object_unref(file_uri);
-
-            store = GTK_LIST_STORE(gtk_tree_view_get_model(gui->devmem_treeview));
-
-            if(gtk_tree_model_get_iter_first(GTK_TREE_MODEL(store), &iter)) {
-                gtk_list_store_clear(store);
-            }
-
-            stlink_gui_set_sensitivity(gui, FALSE);
-            gtk_notebook_set_current_page(gui->notebook, PAGE_FILEMEM);
-            gtk_widget_show(GTK_WIDGET(gui->progress.bar));
-            gtk_progress_bar_set_text(gui->progress.bar, "Reading file");
-            g_thread_new("file", (GThreadFunc)stlink_gui_populate_filemem_view, gui);
-            break;
-        }
-    }
-
-    gtk_drag_finish(
-        context,
-        TRUE,
-        gdk_drag_context_get_suggested_action(context) == GDK_ACTION_MOVE,
-        timestamp);
+    stlink_gui_load_file(gui, path);
+    return (TRUE);
 }
 
-void stlink_gui_init_dnd(STlinkGUI *gui) {
-    GtkTargetEntry target_list[] = {
-        { "text/uri-list", 0, TARGET_FILENAME },
-    };
+static void stlink_gui_init_dnd(STlinkGUI *gui) {
+    GtkDropTarget *target = gtk_drop_target_new(G_TYPE_FILE, GDK_ACTION_COPY);
 
-    gtk_drag_dest_set(
-        GTK_WIDGET(gui->window),
-        GTK_DEST_DEFAULT_ALL,
-        target_list,
-        G_N_ELEMENTS(target_list),
-        GDK_ACTION_COPY);
-
-    g_signal_connect(gui->window, "drag-data-received", G_CALLBACK(dnd_received_cb), gui);
+    g_signal_connect(target, "drop", G_CALLBACK(dnd_drop_cb), gui);
+    gtk_widget_add_controller(GTK_WIDGET(gui->window), GTK_EVENT_CONTROLLER(target));
 }
 
-static void stlink_gui_build_ui(STlinkGUI *gui) {
+static void infobar_response_cb(GtkInfoBar *infobar, gint response, gpointer data) {
+    (void)response;
+    (void)data;
+
+    gtk_widget_set_visible(GTK_WIDGET(infobar), FALSE);
+}
+
+static void stlink_gui_build_ui(STlinkGUI *gui, GtkApplication *app) {
     GtkBuilder *builder;
     GtkListStore *devmem_store;
     GtkListStore *filemem_store;
@@ -905,28 +910,28 @@ static void stlink_gui_build_ui(STlinkGUI *gui) {
     }
 
     gui->window = GTK_WINDOW(gtk_builder_get_object(builder, "window"));
-    g_signal_connect(G_OBJECT(gui->window), "destroy", G_CALLBACK(gtk_main_quit), NULL);
+    gtk_window_set_application(gui->window, app); // the application quits when the window is closed
 
-    /* Setup for toolbutton clicked callbacks */
-    gui->open_button = GTK_TOOL_BUTTON(gtk_builder_get_object(builder, "open_button"));
+    /* Setup for toolbar button clicked callbacks */
+    gui->open_button = GTK_BUTTON(gtk_builder_get_object(builder, "open_button"));
     g_signal_connect(G_OBJECT(gui->open_button), "clicked", G_CALLBACK(open_button_cb), gui);
 
-    gui->connect_button = GTK_TOOL_BUTTON(gtk_builder_get_object(builder, "connect_button"));
+    gui->connect_button = GTK_BUTTON(gtk_builder_get_object(builder, "connect_button"));
     g_signal_connect(G_OBJECT(gui->connect_button), "clicked", G_CALLBACK(connect_button_cb), gui);
 
-    gui->disconnect_button = GTK_TOOL_BUTTON(gtk_builder_get_object(builder, "disconnect_button"));
+    gui->disconnect_button = GTK_BUTTON(gtk_builder_get_object(builder, "disconnect_button"));
     g_signal_connect(G_OBJECT(gui->disconnect_button), "clicked", G_CALLBACK(disconnect_button_cb), gui);
 
-    gui->flash_button = GTK_TOOL_BUTTON(gtk_builder_get_object(builder, "flash_button"));
+    gui->flash_button = GTK_BUTTON(gtk_builder_get_object(builder, "flash_button"));
     g_signal_connect(G_OBJECT(gui->flash_button), "clicked", G_CALLBACK(flash_button_cb), gui);
 
-    gui->reset_button = GTK_TOOL_BUTTON(gtk_builder_get_object(builder, "reset_button"));
+    gui->reset_button = GTK_BUTTON(gtk_builder_get_object(builder, "reset_button"));
     g_signal_connect(G_OBJECT(gui->reset_button), "clicked", G_CALLBACK(reset_button_cb), gui);
 
-    gui->export_button = GTK_TOOL_BUTTON(gtk_builder_get_object(builder, "export_button"));
+    gui->export_button = GTK_BUTTON(gtk_builder_get_object(builder, "export_button"));
     g_signal_connect(G_OBJECT(gui->export_button), "clicked", G_CALLBACK(export_button_cb), gui);
 
-    gui->erase_button = GTK_TOOL_BUTTON(gtk_builder_get_object(builder, "erase_button"));
+    gui->erase_button = GTK_BUTTON(gtk_builder_get_object(builder, "erase_button"));
     g_signal_connect(G_OBJECT(gui->erase_button), "clicked", G_CALLBACK(erase_button_cb), gui);
 
     gui->devmem_treeview = GTK_TREE_VIEW(gtk_builder_get_object(builder, "devmem_treeview"));
@@ -979,61 +984,87 @@ static void stlink_gui_build_ui(STlinkGUI *gui) {
     gui->infobar = GTK_INFO_BAR(gtk_builder_get_object(builder, "infobar"));
     gtk_info_bar_add_button(gui->infobar, "_OK", GTK_RESPONSE_OK);
     gui->infolabel = GTK_LABEL(gtk_label_new(""));
-    gtk_container_add(GTK_CONTAINER(gtk_info_bar_get_content_area(gui->infobar)), GTK_WIDGET(gui->infolabel));
-    g_signal_connect(gui->infobar, "response", G_CALLBACK(gtk_widget_hide), NULL);
+    gtk_info_bar_add_child(gui->infobar, GTK_WIDGET(gui->infolabel));
+    g_signal_connect(gui->infobar, "response", G_CALLBACK(infobar_response_cb), NULL);
 
-    /* Flash dialog */
+    /* Flash dialog (modal, the response is handled asynchronously) */
     gui->flash_dialog = GTK_DIALOG(gtk_builder_get_object(builder, "flash_dialog"));
-    g_signal_connect_swapped(gui->flash_dialog, "response", G_CALLBACK(gtk_widget_hide), gui->flash_dialog);
+    gtk_window_set_transient_for(GTK_WINDOW(gui->flash_dialog), gui->window);
+    g_signal_connect(gui->flash_dialog, "response", G_CALLBACK(flash_dialog_response_cb), gui);
     gui->flash_dialog_ok = GTK_BUTTON(gtk_builder_get_object(builder, "flash_dialog_ok_button"));
     gui->flash_dialog_cancel = GTK_BUTTON(gtk_builder_get_object(builder, "flash_dialog_cancel_button"));
     gui->flash_dialog_entry = GTK_ENTRY(gtk_builder_get_object(builder, "flash_dialog_entry"));
 
-    /* Erase dialog */
+    /* Erase dialog (modal, the response is handled asynchronously) */
     gui->erase_dialog = GTK_DIALOG(gtk_builder_get_object(builder, "erase_dialog"));
-    g_signal_connect_swapped(gui->erase_dialog, "response", G_CALLBACK(gtk_widget_hide), gui->erase_dialog);
+    gtk_window_set_transient_for(GTK_WINDOW(gui->erase_dialog), gui->window);
+    g_signal_connect(gui->erase_dialog, "response", G_CALLBACK(erase_dialog_response_cb), gui);
     gui->erase_dialog_ok = GTK_BUTTON(gtk_builder_get_object(builder, "erase_dialog_ok_button"));
     gui->erase_dialog_cancel = GTK_BUTTON(gtk_builder_get_object(builder, "erase_dialog_cancel_button"));
 
-    // make it so
-    gtk_widget_show_all(GTK_WIDGET(gui->window));
-    gtk_widget_hide(GTK_WIDGET(gui->infobar));
-    gtk_widget_hide(GTK_WIDGET(gui->progress.bar));
-
+    // widgets are visible by default in GTK4, the infobar and the progress bar are hidden in the UI file
     stlink_gui_set_disconnected(gui);
+}
+
+static void app_activate_cb(GtkApplication *app, gpointer data) {
+    STlinkGUI *gui = STLINK_GUI(data);
+
+    if(gui->window == NULL) {
+        stlink_gui_build_ui(gui, app);
+        stlink_gui_init_dnd(gui);
+    }
+
+    gtk_window_present(gui->window);
+}
+
+/* stlink-gui <file>: open the (last) file given on the command line at startup */
+static void app_open_cb(GApplication *app, GFile **files, gint n_files, const gchar *hint, gpointer data) {
+    STlinkGUI *gui = STLINK_GUI(data);
+    gchar *path;
+    (void)hint;
+
+    app_activate_cb(GTK_APPLICATION(app), gui);
+
+    if(n_files < 1) { return; }
+
+    path = g_file_get_path(files[n_files - 1]);
+
+    if(path != NULL && g_file_test(path, G_FILE_TEST_IS_REGULAR)) {
+        stlink_gui_load_file(gui, path);
+    } else {
+        g_free(path);
+    }
 }
 
 int32_t main(int32_t argc, char **argv) {
     STlinkGUI *gui;
+    GtkApplication *app;
+    int32_t status;
 
-    gtk_init(&argc, &argv);
+    /* Options handled before GTK takes over the command line */
+    for(int32_t i = 1; i < argc; i++) {
+        if(strcmp(argv[i], "--version") == 0 || strcmp(argv[i], "-v") == 0) {
+            printf("v%s\n", STLINK_VERSION);
+            return (EXIT_SUCCESS);
+        } else if(strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0) {
+            help();
+            return (1);
+        }
+    }
 
     init_chipids(NULL);
 
     gui = g_object_new(STLINK_TYPE_GUI, NULL);
-    stlink_gui_build_ui(gui);
-    stlink_gui_init_dnd(gui);
 
-    /* Parse remaining cli arguments */
-    argc--;
-    argv++;
-    while (argc > 0){
-        if(strcmp(argv[0], "--version") == 0 || strcmp(argv[0], "-v") == 0) {
-            printf("v%s\n", STLINK_VERSION);
-            exit(EXIT_SUCCESS);
-        } else if(strcmp(argv[0], "--help") == 0 || strcmp(argv[0], "-h") == 0) {
-            help();
-            return 1;
-        }
-        if(argc == 1 && g_file_test(*argv, G_FILE_TEST_IS_REGULAR)){
-            /* Open hex file at app startup */
-            gui->filename = g_strdup(*argv);
-            g_idle_add((GSourceFunc)open_file_from_args, gui);
-        }
-        argc--;
-        argv++;
-    }
+    // NON_UNIQUE: every invocation is an independent instance (as before with GTK3)
+    app = gtk_application_new("org.stlink_org.stlink_gui",
+                              G_APPLICATION_HANDLES_OPEN | G_APPLICATION_NON_UNIQUE);
+    g_signal_connect(app, "activate", G_CALLBACK(app_activate_cb), gui);
+    g_signal_connect(app, "open", G_CALLBACK(app_open_cb), gui);
 
-    gtk_main();
-    return (0);
+    status = g_application_run(G_APPLICATION(app), argc, argv);
+
+    g_object_unref(app);
+    g_object_unref(gui);
+    return (status);
 }

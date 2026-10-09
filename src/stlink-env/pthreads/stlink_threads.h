@@ -1,10 +1,10 @@
 /**
   ******************************************************************************
-  * @file           : stlink_threads.h
-  * @brief          : pthreads wrapper
-  * @copyright      : Copyright (c) 2026 stlink-org. All rights reserved.
-  * @author         : Andreas Michelis (a-michelis)
-  * @date           : 2026-09-15
+  * @file             stlink_threads.h
+  * @brief            pthreads wrapper
+  * @copyright        Copyright (c) 2026 stlink-org. All rights reserved.
+  * @author           Andreas Michelis (a-michelis)
+  * @date             2026-09-15
   * SPDX-License-Identifier: BSD-3-Clause
   *
   * This file is licensed under the BSD 3-Clause License.
@@ -12,10 +12,12 @@
   ******************************************************************************
   */
 
+
 #ifndef STLINK_THREADS_H
 #define STLINK_THREADS_H
 
 #include <stdint.h>
+
 
 /*
  * Minimal thread wrapper.
@@ -44,13 +46,19 @@ typedef void (*stlink_thread_fn)(void *arg);
 
 /**
  * @brief Start a thread running fn(arg).
- * @return 0 on success, otherwise the platform error code
+ * @ingroup api_internal
+ * @param thread receives the thread
+ * @param fn     entry point
+ * @param arg    argument passed to @p fn
+ * @return       0 on success, otherwise the platform error code
  */
 int32_t stlink_thread_create(stlink_thread_t *thread, stlink_thread_fn fn, void *arg);
 
 /**
  * @brief Wait for a thread to finish, then release it.
- * @return 0 on success, otherwise the platform error code
+ * @ingroup api_internal
+ * @param thread the thread from stlink_thread_create()
+ * @return       0 on success, otherwise the platform error code
  */
 int32_t stlink_thread_join(stlink_thread_t thread);
 

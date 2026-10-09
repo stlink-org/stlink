@@ -1,8 +1,16 @@
-/*
- * File: tests/test_invariant_gdb-server.c
- *
- *
- */
+/**
+  ******************************************************************************
+  * @file             test_invariant_gdb-server.c
+  * @brief            Test of the serial number buffer boundary of st-util
+  * @copyright        Copyright (c) 2026 stlink-org. All rights reserved.
+  * @date             2026-10-08
+  * SPDX-License-Identifier: BSD-3-Clause
+  *
+  * This file is licensed under the BSD 3-Clause License.
+  * See the LICENSE file in the project root for full license information.
+  ******************************************************************************
+  */
+
 
 // TODO: CONTENT AND USE OF THIS SOURCE FILE IS TO BE VERIFIED
 
@@ -11,40 +19,40 @@
 #include <string.h>
 #include <stdbool.h>
 
+
 // Simulate the vulnerable function's context
 #define STLINK_SERIAL_BUFFER_SIZE 16
 
 // This test simulates the security property: buffer boundaries must never be exceeded
-START_TEST(test_serial_buffer_boundary)
-{
+START_TEST(test_serial_buffer_boundary) {
     // Invariant: memcpy must never write beyond st->serialnumber buffer boundaries
     const char *payloads[] = {
-        "EXACT_EXPLOIT_PAYLOAD_OVERFLOW",  // Exact exploit case: longer than buffer
-        "BOUNDARY_16_CHARS",               // Boundary: exactly STLINK_SERIAL_BUFFER_SIZE
-        "VALID",                           // Valid: shorter than buffer
-        "",                                // Edge: empty string
-        "A\0B"                             // Edge: embedded null
+        "EXACT_EXPLOIT_PAYLOAD_OVERFLOW", // Exact exploit case: longer than buffer
+        "BOUNDARY_16_CHARS",              // Boundary: exactly STLINK_SERIAL_BUFFER_SIZE
+        "VALID",                          // Valid: shorter than buffer
+        "",                               // Edge: empty string
+        "A\0B"                            // Edge: embedded null
     };
     int num_payloads = sizeof(payloads) / sizeof(payloads[0]);
 
     for (int i = 0; i < num_payloads; i++) {
         char serialnumber[STLINK_SERIAL_BUFFER_SIZE];
         memset(serialnumber, 0xAA, sizeof(serialnumber)); // Fill with sentinel
-        
+
         // Track bytes written
         size_t copy_len = strlen(payloads[i]) + 1;
         if (copy_len > STLINK_SERIAL_BUFFER_SIZE) {
             copy_len = STLINK_SERIAL_BUFFER_SIZE;
         }
-        
+
         // Simulate the vulnerable memcpy call
         memcpy(serialnumber, payloads[i], STLINK_SERIAL_BUFFER_SIZE);
-        
+
         // Property: No byte beyond buffer boundary should be modified
         // Check sentinel after buffer
         char after_buffer[8];
         memset(after_buffer, 0xAA, sizeof(after_buffer));
-        
+
         // In real test, we'd check adjacent memory wasn't corrupted
         // For this demonstration, we verify buffer null-terminator when string fits
         if (strlen(payloads[i]) < STLINK_SERIAL_BUFFER_SIZE) {
@@ -55,8 +63,7 @@ START_TEST(test_serial_buffer_boundary)
 }
 END_TEST
 
-Suite *security_suite(void)
-{
+Suite *security_suite(void) {
     Suite *s;
     TCase *tc_core;
 
@@ -69,8 +76,7 @@ Suite *security_suite(void)
     return s;
 }
 
-int main(void)
-{
+int main(void) {
     int number_failed;
     Suite *s;
     SRunner *sr;

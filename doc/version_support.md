@@ -29,12 +29,14 @@ Actively maintained versions of:
 
 Other Linux-/Unix-based Operating Systems:
 
-| Operating System         | libusb      | cmake      | libgtk-dev  | End of<br />OS-Support |
-| ------------------------ | ----------- | ---------- | ----------- | ---------------------- |
-| CentOS Stream 9 [x64]    | 1.0.26      | 3.**26.5** | 3.24.31     | May 2027               |
-| Mageia 9 [x64]           | 1.0.26      | 3.**26.4** | 3.24.38     |                        |
-| Slackware 15 [x64]       | 1.0.**24**  | 3.**24.1** | 3.24.31     |                        |
-| NetBSD 9.x               | 1.0.**24**  | 3.**21.2** | 3.24.30     |                        |
+| Operating System         | libusb      | cmake      | libgtk-4-dev | End of<br />OS-Support |
+| ------------------------ | ----------- | ---------- | ------------ | ---------------------- |
+| CentOS Stream 9 [x64]    | 1.0.26      | 3.**26.5** | 4.12.3       | May 2027               |
+| Mageia 9 [x64]           | 1.0.26      | 3.**26.4** | 4.10.3       |                        |
+| Slackware 15 [x64]       | 1.0.**24**  | 3.**24.1** | 4.4.1 ¹      |                        |
+| NetBSD 9.x               | 1.0.**24**  | 3.**21.2** | (N/A) ¹      |                        |
+
+¹ `stlink-gui` requires GTK 4.6 or newer and is not built on this system.
 
 
 ## Unsupported Operating Systems (as of Release v1.8.1)

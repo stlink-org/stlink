@@ -1,796 +1,549 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <!-- interface-requires gtk+ 3.0 -->
+  <requires lib="gtk" version="4.6"/>
   <object class="GtkDialog" id="flash_dialog">
-    <property name="can_focus">False</property>
-    <property name="border_width">5</property>
     <property name="title" translatable="yes">Flash device</property>
-    <property name="type_hint">dialog</property>
-    <child internal-child="vbox">
+    <property name="modal">True</property>
+    <property name="hide-on-close">True</property>
+    <property name="destroy-with-parent">True</property>
+    <child internal-child="content_area">
       <object class="GtkBox" id="flash_dialog-vbox">
-        <property name="can_focus">False</property>
         <property name="orientation">vertical</property>
         <property name="spacing">2</property>
-        <child internal-child="action_area">
-          <object class="GtkButtonBox" id="dialog-action_area1">
-            <property name="can_focus">False</property>
-            <property name="layout_style">end</property>
-            <child>
-              <object class="GtkButton" id="flash_dialog_cancel_button">
-                <property name="label">gtk-cancel</property>
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="receives_default">True</property>
-                <property name="use_stock">True</property>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">0</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkButton" id="flash_dialog_ok_button">
-                <property name="label">gtk-ok</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="has_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="use_stock">True</property>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">1</property>
-              </packing>
-            </child>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="pack_type">end</property>
-            <property name="position">0</property>
-          </packing>
-        </child>
         <child>
           <object class="GtkGrid" id="flash_dialog_grid">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="margin_left">5</property>
-            <property name="margin_right">5</property>
-            <property name="margin_top">5</property>
-            <property name="margin_bottom">5</property>
-            <property name="column_spacing">5</property>
-            <property name="column_homogeneous">True</property>
+            <property name="margin-start">10</property>
+            <property name="margin-end">10</property>
+            <property name="margin-top">10</property>
+            <property name="margin-bottom">10</property>
+            <property name="column-spacing">5</property>
+            <property name="column-homogeneous">True</property>
             <child>
               <object class="GtkLabel" id="flash_dialog_label">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
                 <property name="label" translatable="yes">Address to write at:</property>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">0</property>
+                </layout>
               </object>
-              <packing>
-                <property name="left_attach">0</property>
-                <property name="top_attach">0</property>
-                <property name="width">1</property>
-                <property name="height">1</property>
-              </packing>
             </child>
             <child>
               <object class="GtkEntry" id="flash_dialog_entry">
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="invisible_char">•</property>
-                <property name="width_chars">12</property>
+                <property name="width-chars">12</property>
+                <property name="activates-default">True</property>
+                <layout>
+                  <property name="column">1</property>
+                  <property name="row">0</property>
+                </layout>
               </object>
-              <packing>
-                <property name="left_attach">1</property>
-                <property name="top_attach">0</property>
-                <property name="width">1</property>
-                <property name="height">1</property>
-              </packing>
             </child>
           </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">2</property>
-          </packing>
         </child>
       </object>
     </child>
+    <child type="action">
+      <object class="GtkButton" id="flash_dialog_cancel_button">
+        <property name="label" translatable="yes">_Cancel</property>
+        <property name="use-underline">True</property>
+      </object>
+    </child>
+    <child type="action">
+      <object class="GtkButton" id="flash_dialog_ok_button">
+        <property name="label" translatable="yes">_OK</property>
+        <property name="use-underline">True</property>
+      </object>
+    </child>
     <action-widgets>
-      <action-widget response="0">flash_dialog_cancel_button</action-widget>
-      <action-widget response="-5">flash_dialog_ok_button</action-widget>
+      <action-widget response="cancel">flash_dialog_cancel_button</action-widget>
+      <action-widget response="ok" default="true">flash_dialog_ok_button</action-widget>
     </action-widgets>
   </object>
   <object class="GtkDialog" id="erase_dialog">
-    <property name="can_focus">False</property>
-    <property name="border_width">5</property>
     <property name="title" translatable="yes">Mass erase flash</property>
-    <property name="type_hint">dialog</property>
-    <child internal-child="vbox">
+    <property name="modal">True</property>
+    <property name="hide-on-close">True</property>
+    <property name="destroy-with-parent">True</property>
+    <child internal-child="content_area">
       <object class="GtkBox" id="erase_dialog-vbox">
-        <property name="can_focus">False</property>
         <property name="orientation">vertical</property>
         <property name="spacing">2</property>
-        <child internal-child="action_area">
-          <object class="GtkButtonBox" id="erase_dialog-action_area1">
-            <property name="can_focus">False</property>
-            <property name="layout_style">end</property>
-            <child>
-              <object class="GtkButton" id="erase_dialog_cancel_button">
-                <property name="label">gtk-cancel</property>
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="receives_default">True</property>
-                <property name="use_stock">True</property>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">0</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkButton" id="erase_dialog_ok_button">
-                <property name="label">gtk-ok</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="has_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="use_stock">True</property>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">1</property>
-              </packing>
-            </child>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="pack_type">end</property>
-            <property name="position">0</property>
-          </packing>
-        </child>
         <child>
           <object class="GtkGrid" id="erase_dialog_grid">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="margin_left">5</property>
-            <property name="margin_right">5</property>
-            <property name="margin_top">5</property>
-            <property name="margin_bottom">5</property>
-            <property name="column_spacing">5</property>
-            <property name="column_homogeneous">True</property>
+            <property name="margin-start">10</property>
+            <property name="margin-end">10</property>
+            <property name="margin-top">10</property>
+            <property name="margin-bottom">10</property>
+            <property name="column-spacing">5</property>
+            <property name="column-homogeneous">True</property>
             <child>
               <object class="GtkLabel" id="erase_dialog_label">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
                 <property name="label" translatable="yes">This will permanently delete all code and data on the chip. This action cannot be undone.</property>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">0</property>
+                </layout>
               </object>
-              <packing>
-                <property name="left_attach">0</property>
-                <property name="top_attach">0</property>
-                <property name="width">1</property>
-                <property name="height">1</property>
-              </packing>
             </child>
           </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">2</property>
-          </packing>
         </child>
       </object>
     </child>
+    <child type="action">
+      <object class="GtkButton" id="erase_dialog_cancel_button">
+        <property name="label" translatable="yes">_Cancel</property>
+        <property name="use-underline">True</property>
+      </object>
+    </child>
+    <child type="action">
+      <object class="GtkButton" id="erase_dialog_ok_button">
+        <property name="label" translatable="yes">_OK</property>
+        <property name="use-underline">True</property>
+      </object>
+    </child>
     <action-widgets>
-      <action-widget response="0">erase_dialog_cancel_button</action-widget>
-      <action-widget response="-5">erase_dialog_ok_button</action-widget>
+      <action-widget response="cancel" default="true">erase_dialog_cancel_button</action-widget>
+      <action-widget response="ok">erase_dialog_ok_button</action-widget>
     </action-widgets>
   </object>
   <object class="GtkWindow" id="window">
-    <property name="can_focus">False</property>
     <property name="title" translatable="yes">STlink GUI</property>
-    <property name="default_width">550</property>
-    <property name="default_height">480</property>
-    <property name="icon_name">stlink-gui</property>
+    <property name="default-width">550</property>
+    <property name="default-height">480</property>
+    <property name="icon-name">stlink-gui</property>
     <child>
-      <object class="GtkGrid" id="maingrid">
-        <property name="visible">True</property>
-        <property name="can_focus">False</property>
+      <object class="GtkBox" id="mainbox">
         <property name="orientation">vertical</property>
         <child>
-          <object class="GtkToolbar" id="toolbar">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
+          <object class="GtkBox" id="toolbar">
             <property name="hexpand">True</property>
-            <child>
-              <object class="GtkToolButton" id="open_button">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="tooltip_text" translatable="yes">Open</property>
-                <property name="label" translatable="yes">Open</property>
-                <property name="use_underline">True</property>
-                <property name="stock_id">gtk-open</property>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="homogeneous">True</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkToolButton" id="connect_button">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="tooltip_text" translatable="yes">Connect</property>
-                <property name="label" translatable="yes">Connect</property>
-                <property name="use_underline">True</property>
-                <property name="stock_id">gtk-connect</property>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="homogeneous">True</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkToolButton" id="disconnect_button">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="tooltip_text" translatable="yes">Disconnect</property>
-                <property name="label" translatable="yes">Disconnect</property>
-                <property name="use_underline">True</property>
-                <property name="stock_id">gtk-disconnect</property>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="homogeneous">True</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkToolButton" id="flash_button">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="tooltip_text" translatable="yes">Flash</property>
-                <property name="label" translatable="yes">Flash</property>
-                <property name="use_underline">True</property>
-                <property name="stock_id">gtk-media-record</property>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="homogeneous">True</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkToolButton" id="reset_button">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="tooltip_text" translatable="yes">Reset</property>
-                <property name="label" translatable="yes">Reset</property>
-                <property name="use_underline">True</property>
-                <property name="stock_id">gtk-refresh</property>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="homogeneous">True</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkToolButton" id="export_button">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="tooltip_text" translatable="yes">Export device memory</property>
-                <property name="label" translatable="yes">__glade_unnamed_9</property>
-                <property name="use_underline">True</property>
-                <property name="stock_id">gtk-save</property>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="homogeneous">True</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkToolButton" id="erase_button">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="tooltip_text" translatable="yes">Erase device memory</property>
-                <property name="label" translatable="yes">Erase device memory</property>
-                <property name="use_underline">True</property>
-                <property name="stock_id">gtk-delete</property>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="homogeneous">True</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkToolItem" id="toolProgressbar">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <child>
-                  <object class="GtkProgressBar" id="progressbar">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="halign">start</property>
-                    <property name="margin_top">5</property>
-                    <property name="margin_bottom">5</property>
-                  </object>
-                </child>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="homogeneous">True</property>
-              </packing>
-            </child>
-          </object>
-          <packing>
-            <property name="left_attach">0</property>
-            <property name="top_attach">0</property>
-            <property name="width">1</property>
-            <property name="height">1</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkGrid" id="device_grid">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="margin_left">5</property>
-            <property name="margin_top">5</property>
-            <property name="margin_bottom">5</property>
-            <child>
-              <object class="GtkFrame" id="device_frame">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="opacity">0.98999999999999999</property>
-                <property name="margin_left">4</property>
-                <property name="margin_right">4</property>
-                <property name="border_width">1</property>
-                <property name="label_xalign">0</property>
-                <child>
-                  <object class="GtkAlignment" id="alignment1">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="left_padding">12</property>
-                    <property name="right_padding">12</property>
-                    <child>
-                      <object class="GtkGrid" id="devstatus_grid">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="row_spacing">2</property>
-                        <property name="column_spacing">6</property>
-                        <property name="row_homogeneous">True</property>
-                        <child>
-                          <object class="GtkLabel" id="chip_label">
-                            <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="margin_right">1</property>
-                            <property name="margin_top">1</property>
-                            <property name="xalign">0</property>
-                            <property name="yalign">0</property>
-                            <property name="label" translatable="yes">Chip:</property>
-                          </object>
-                          <packing>
-                            <property name="left_attach">0</property>
-                            <property name="top_attach">0</property>
-                            <property name="width">1</property>
-                            <property name="height">1</property>
-                          </packing>
-                        </child>
-                        <child>
-                          <object class="GtkLabel" id="core_label">
-                            <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="xalign">0</property>
-                            <property name="yalign">0</property>
-                            <property name="label" translatable="yes">Core:</property>
-                          </object>
-                          <packing>
-                            <property name="left_attach">0</property>
-                            <property name="top_attach">1</property>
-                            <property name="width">1</property>
-                            <property name="height">1</property>
-                          </packing>
-                        </child>
-                        <child>
-                          <object class="GtkLabel" id="flash_label">
-                            <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="xalign">0</property>
-                            <property name="yalign">0</property>
-                            <property name="label" translatable="yes">Flash size:</property>
-                          </object>
-                          <packing>
-                            <property name="left_attach">0</property>
-                            <property name="top_attach">2</property>
-                            <property name="width">1</property>
-                            <property name="height">1</property>
-                          </packing>
-                        </child>
-                        <child>
-                          <object class="GtkLabel" id="core_id_value">
-                            <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="xalign">0</property>
-                            <property name="yalign">0</property>
-                            <property name="single_line_mode">True</property>
-                          </object>
-                          <packing>
-                            <property name="left_attach">1</property>
-                            <property name="top_attach">1</property>
-                            <property name="width">1</property>
-                            <property name="height">1</property>
-                          </packing>
-                        </child>
-                        <child>
-                          <object class="GtkLabel" id="chip_id_value">
-                            <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="xalign">0</property>
-                            <property name="yalign">0</property>
-                            <property name="width_chars">20</property>
-                          </object>
-                          <packing>
-                            <property name="left_attach">1</property>
-                            <property name="top_attach">0</property>
-                            <property name="width">1</property>
-                            <property name="height">1</property>
-                          </packing>
-                        </child>
-                        <child>
-                          <object class="GtkLabel" id="flash_size_value">
-                            <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="xalign">0</property>
-                            <property name="yalign">0</property>
-                          </object>
-                          <packing>
-                            <property name="left_attach">1</property>
-                            <property name="top_attach">2</property>
-                            <property name="width">1</property>
-                            <property name="height">1</property>
-                          </packing>
-                        </child>
-                        <child>
-                          <object class="GtkLabel" id="ram_size_label">
-                            <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="xalign">0</property>
-                            <property name="yalign">0</property>
-                            <property name="label" translatable="yes">Ram size:</property>
-                          </object>
-                          <packing>
-                            <property name="left_attach">0</property>
-                            <property name="top_attach">3</property>
-                            <property name="width">1</property>
-                            <property name="height">1</property>
-                          </packing>
-                        </child>
-                        <child>
-                          <object class="GtkLabel" id="ram_size_value">
-                            <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="xalign">0</property>
-                            <property name="yalign">0</property>
-                          </object>
-                          <packing>
-                            <property name="left_attach">1</property>
-                            <property name="top_attach">3</property>
-                            <property name="width">1</property>
-                            <property name="height">1</property>
-                          </packing>
-                        </child>
-                      </object>
-                    </child>
-                  </object>
-                </child>
-                <child type="label">
-                  <object class="GtkLabel" id="device_frame_label">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="yalign">0.49000000953674316</property>
-                    <property name="xpad">2</property>
-                    <property name="label" translatable="yes">&lt;b&gt;Device&lt;/b&gt;</property>
-                    <property name="use_markup">True</property>
-                  </object>
-                </child>
-              </object>
-              <packing>
-                <property name="left_attach">0</property>
-                <property name="top_attach">0</property>
-                <property name="width">1</property>
-                <property name="height">1</property>
-              </packing>
-            </child>
-          </object>
-          <packing>
-            <property name="left_attach">0</property>
-            <property name="top_attach">2</property>
-            <property name="width">1</property>
-            <property name="height">1</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkStatusbar" id="statusbar">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="margin_left">5</property>
-            <property name="margin_right">5</property>
-            <property name="margin_bottom">5</property>
-            <property name="orientation">vertical</property>
             <property name="spacing">2</property>
-          </object>
-          <packing>
-            <property name="left_attach">0</property>
-            <property name="top_attach">4</property>
-            <property name="width">1</property>
-            <property name="height">1</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkNotebook" id="mem_notebook">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="margin_left">5</property>
-            <property name="margin_right">5</property>
-            <property name="margin_top">5</property>
-            <property name="margin_bottom">5</property>
+            <property name="margin-start">2</property>
+            <property name="margin-end">2</property>
+            <property name="margin-top">2</property>
+            <property name="margin-bottom">2</property>
+            <style>
+              <class name="toolbar"/>
+            </style>
             <child>
-              <object class="GtkBox" id="devmem_box">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="orientation">vertical</property>
-                <child>
-                  <object class="GtkGrid" id="devmem_jmp_grid">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
+              <object class="GtkButton" id="open_button">
+                <property name="has-frame">False</property>
+                <property name="focus-on-click">False</property>
+                <property name="tooltip-text" translatable="yes">Open</property>
+                <property name="child">
+                  <object class="GtkBox">
+                    <property name="spacing">4</property>
                     <child>
-                      <object class="GtkLabel" id="devmem_jmp">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="halign">start</property>
-                        <property name="margin_left">5</property>
-                        <property name="margin_right">5</property>
-                        <property name="margin_top">5</property>
-                        <property name="margin_bottom">5</property>
-                        <property name="label" translatable="yes">Goto address:</property>
+                      <object class="GtkImage">
+                        <property name="icon-name">document-open-symbolic</property>
                       </object>
-                      <packing>
-                        <property name="left_attach">0</property>
-                        <property name="top_attach">0</property>
-                        <property name="width">1</property>
-                        <property name="height">1</property>
-                      </packing>
                     </child>
                     <child>
-                      <object class="GtkEntry" id="devmem_jmp_entry">
-                        <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="margin_left">5</property>
-                        <property name="margin_right">5</property>
-                        <property name="margin_top">5</property>
-                        <property name="margin_bottom">5</property>
-                        <property name="max_length">15</property>
-                        <property name="invisible_char">•</property>
-                        <property name="width_chars">12</property>
-                      </object>
-                      <packing>
-                        <property name="left_attach">1</property>
-                        <property name="top_attach">0</property>
-                        <property name="width">1</property>
-                        <property name="height">1</property>
-                      </packing>
-                    </child>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">True</property>
-                    <property name="position">0</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkScrolledWindow" id="devmem_scrolledwindow">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="vexpand">True</property>
-                    <property name="shadow_type">in</property>
-                    <child>
-                      <object class="GtkTreeView" id="devmem_treeview">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="rules_hint">True</property>
-                        <property name="enable_grid_lines">both</property>
-                        <child internal-child="selection">
-                          <object class="GtkTreeSelection" id="treeview-selection1"/>
-                        </child>
+                      <object class="GtkLabel">
+                        <property name="label" translatable="yes">Open</property>
                       </object>
                     </child>
                   </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">True</property>
-                    <property name="position">1</property>
-                  </packing>
-                </child>
+                </property>
               </object>
-              <packing>
-                <property name="menu_label">Device memory</property>
-              </packing>
-            </child>
-            <child type="tab">
-              <object class="GtkLabel" id="devmem_label">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="label" translatable="yes">Device memory</property>
-              </object>
-              <packing>
-                <property name="tab_fill">False</property>
-              </packing>
             </child>
             <child>
-              <object class="GtkBox" id="filemem_box">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="orientation">vertical</property>
-                <child>
-                  <object class="GtkGrid" id="filemem_jmp_grid">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
+              <object class="GtkButton" id="connect_button">
+                <property name="has-frame">False</property>
+                <property name="focus-on-click">False</property>
+                <property name="tooltip-text" translatable="yes">Connect</property>
+                <property name="child">
+                  <object class="GtkBox">
+                    <property name="spacing">4</property>
                     <child>
-                      <object class="GtkLabel" id="filemem_jmp">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="margin_left">5</property>
-                        <property name="margin_right">5</property>
-                        <property name="margin_top">5</property>
-                        <property name="margin_bottom">5</property>
-                        <property name="label" translatable="yes">Goto address:</property>
+                      <object class="GtkImage">
+                        <property name="icon-name">network-transmit-receive-symbolic</property>
                       </object>
-                      <packing>
-                        <property name="left_attach">0</property>
-                        <property name="top_attach">0</property>
-                        <property name="width">1</property>
-                        <property name="height">1</property>
-                      </packing>
                     </child>
                     <child>
-                      <object class="GtkEntry" id="filemem_jmp_entry">
-                        <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="margin_left">5</property>
-                        <property name="margin_right">5</property>
-                        <property name="margin_top">5</property>
-                        <property name="margin_bottom">5</property>
-                        <property name="max_length">15</property>
-                        <property name="invisible_char">•</property>
-                        <property name="width_chars">12</property>
-                      </object>
-                      <packing>
-                        <property name="left_attach">1</property>
-                        <property name="top_attach">0</property>
-                        <property name="width">1</property>
-                        <property name="height">1</property>
-                      </packing>
-                    </child>
-                  </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">True</property>
-                    <property name="position">0</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkScrolledWindow" id="filemem_scrolledwindow">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="vexpand">True</property>
-                    <property name="shadow_type">in</property>
-                    <child>
-                      <object class="GtkTreeView" id="filemem_treeview">
-                        <property name="visible">True</property>
-                        <property name="can_focus">False</property>
-                        <property name="rules_hint">True</property>
-                        <property name="enable_grid_lines">both</property>
-                        <child internal-child="selection">
-                          <object class="GtkTreeSelection" id="treeview-selection2"/>
-                        </child>
+                      <object class="GtkLabel">
+                        <property name="label" translatable="yes">Connect</property>
                       </object>
                     </child>
                   </object>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="fill">True</property>
-                    <property name="position">1</property>
-                  </packing>
-                </child>
+                </property>
               </object>
-              <packing>
-                <property name="position">1</property>
-              </packing>
-            </child>
-            <child type="tab">
-              <object class="GtkLabel" id="filemem_label">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="label" translatable="yes">No file</property>
-              </object>
-              <packing>
-                <property name="position">1</property>
-                <property name="tab_fill">False</property>
-              </packing>
             </child>
             <child>
-              <placeholder/>
-            </child>
-            <child type="tab">
-              <placeholder/>
+              <object class="GtkButton" id="disconnect_button">
+                <property name="has-frame">False</property>
+                <property name="focus-on-click">False</property>
+                <property name="tooltip-text" translatable="yes">Disconnect</property>
+                <property name="child">
+                  <object class="GtkBox">
+                    <property name="spacing">4</property>
+                    <child>
+                      <object class="GtkImage">
+                        <property name="icon-name">network-offline-symbolic</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="label" translatable="yes">Disconnect</property>
+                      </object>
+                    </child>
+                  </object>
+                </property>
+              </object>
             </child>
             <child>
-              <placeholder/>
+              <object class="GtkButton" id="flash_button">
+                <property name="has-frame">False</property>
+                <property name="focus-on-click">False</property>
+                <property name="tooltip-text" translatable="yes">Flash</property>
+                <property name="child">
+                  <object class="GtkBox">
+                    <property name="spacing">4</property>
+                    <child>
+                      <object class="GtkImage">
+                        <property name="icon-name">media-record-symbolic</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="label" translatable="yes">Flash</property>
+                      </object>
+                    </child>
+                  </object>
+                </property>
+              </object>
             </child>
-            <child type="tab">
-              <placeholder/>
+            <child>
+              <object class="GtkButton" id="reset_button">
+                <property name="has-frame">False</property>
+                <property name="focus-on-click">False</property>
+                <property name="tooltip-text" translatable="yes">Reset</property>
+                <property name="child">
+                  <object class="GtkBox">
+                    <property name="spacing">4</property>
+                    <child>
+                      <object class="GtkImage">
+                        <property name="icon-name">view-refresh-symbolic</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="label" translatable="yes">Reset</property>
+                      </object>
+                    </child>
+                  </object>
+                </property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton" id="export_button">
+                <property name="has-frame">False</property>
+                <property name="focus-on-click">False</property>
+                <property name="tooltip-text" translatable="yes">Export device memory</property>
+                <property name="child">
+                  <object class="GtkBox">
+                    <property name="spacing">4</property>
+                    <child>
+                      <object class="GtkImage">
+                        <property name="icon-name">document-save-symbolic</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="label" translatable="yes">Export</property>
+                      </object>
+                    </child>
+                  </object>
+                </property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton" id="erase_button">
+                <property name="has-frame">False</property>
+                <property name="focus-on-click">False</property>
+                <property name="tooltip-text" translatable="yes">Erase device memory</property>
+                <property name="child">
+                  <object class="GtkBox">
+                    <property name="spacing">4</property>
+                    <child>
+                      <object class="GtkImage">
+                        <property name="icon-name">edit-delete-symbolic</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="label" translatable="yes">Erase</property>
+                      </object>
+                    </child>
+                  </object>
+                </property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkProgressBar" id="progressbar">
+                <property name="visible">False</property>
+                <property name="halign">start</property>
+                <property name="valign">center</property>
+                <property name="margin-start">5</property>
+                <property name="show-text">True</property>
+              </object>
             </child>
           </object>
-          <packing>
-            <property name="left_attach">0</property>
-            <property name="top_attach">3</property>
-            <property name="width">1</property>
-            <property name="height">1</property>
-          </packing>
         </child>
         <child>
           <object class="GtkInfoBar" id="infobar">
-            <property name="visible">True</property>
-            <property name="app_paintable">True</property>
-            <property name="can_focus">False</property>
-            <property name="message_type">error</property>
-            <child internal-child="content_area">
-              <object class="GtkBox" id="infobar-content_area1">
-                <property name="can_focus">False</property>
-                <property name="border_width">8</property>
-                <property name="spacing">5</property>
+            <property name="visible">False</property>
+            <property name="message-type">error</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkFrame" id="device_frame">
+            <property name="opacity">0.99</property>
+            <property name="margin-start">9</property>
+            <property name="margin-end">4</property>
+            <property name="margin-top">5</property>
+            <property name="margin-bottom">5</property>
+            <property name="halign">start</property>
+            <property name="label-xalign">0</property>
+            <property name="label-widget">
+              <object class="GtkLabel" id="device_frame_label">
+                <property name="margin-start">2</property>
+                <property name="margin-end">2</property>
+                <property name="label" translatable="yes">&lt;b&gt;Device&lt;/b&gt;</property>
+                <property name="use-markup">True</property>
+              </object>
+            </property>
+            <property name="child">
+              <object class="GtkGrid" id="devstatus_grid">
+                <property name="margin-start">12</property>
+                <property name="margin-end">12</property>
+                <property name="margin-top">2</property>
+                <property name="margin-bottom">2</property>
+                <property name="row-spacing">2</property>
+                <property name="column-spacing">6</property>
+                <property name="row-homogeneous">True</property>
                 <child>
-                  <placeholder/>
+                  <object class="GtkLabel" id="chip_label">
+                    <property name="margin-end">1</property>
+                    <property name="margin-top">1</property>
+                    <property name="xalign">0</property>
+                    <property name="yalign">0</property>
+                    <property name="label" translatable="yes">Chip:</property>
+                    <layout>
+                      <property name="column">0</property>
+                      <property name="row">0</property>
+                    </layout>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="core_label">
+                    <property name="xalign">0</property>
+                    <property name="yalign">0</property>
+                    <property name="label" translatable="yes">Core:</property>
+                    <layout>
+                      <property name="column">0</property>
+                      <property name="row">1</property>
+                    </layout>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="flash_label">
+                    <property name="xalign">0</property>
+                    <property name="yalign">0</property>
+                    <property name="label" translatable="yes">Flash size:</property>
+                    <layout>
+                      <property name="column">0</property>
+                      <property name="row">2</property>
+                    </layout>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="ram_size_label">
+                    <property name="xalign">0</property>
+                    <property name="yalign">0</property>
+                    <property name="label" translatable="yes">Ram size:</property>
+                    <layout>
+                      <property name="column">0</property>
+                      <property name="row">3</property>
+                    </layout>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="chip_id_value">
+                    <property name="xalign">0</property>
+                    <property name="yalign">0</property>
+                    <property name="width-chars">20</property>
+                    <layout>
+                      <property name="column">1</property>
+                      <property name="row">0</property>
+                    </layout>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="core_id_value">
+                    <property name="xalign">0</property>
+                    <property name="yalign">0</property>
+                    <property name="single-line-mode">True</property>
+                    <layout>
+                      <property name="column">1</property>
+                      <property name="row">1</property>
+                    </layout>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="flash_size_value">
+                    <property name="xalign">0</property>
+                    <property name="yalign">0</property>
+                    <layout>
+                      <property name="column">1</property>
+                      <property name="row">2</property>
+                    </layout>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="ram_size_value">
+                    <property name="xalign">0</property>
+                    <property name="yalign">0</property>
+                    <layout>
+                      <property name="column">1</property>
+                      <property name="row">3</property>
+                    </layout>
+                  </object>
                 </child>
               </object>
-              <packing>
-                <property name="expand">True</property>
-                <property name="fill">True</property>
-                <property name="position">0</property>
-              </packing>
+            </property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkNotebook" id="mem_notebook">
+            <property name="vexpand">True</property>
+            <property name="margin-start">5</property>
+            <property name="margin-end">5</property>
+            <property name="margin-top">5</property>
+            <property name="margin-bottom">5</property>
+            <child>
+              <object class="GtkNotebookPage">
+                <property name="menu-label">Device memory</property>
+                <property name="tab-fill">False</property>
+                <property name="tab">
+                  <object class="GtkLabel" id="devmem_label">
+                    <property name="label" translatable="yes">Device memory</property>
+                  </object>
+                </property>
+                <property name="child">
+                  <object class="GtkBox" id="devmem_box">
+                    <property name="orientation">vertical</property>
+                    <child>
+                      <object class="GtkGrid" id="devmem_jmp_grid">
+                        <child>
+                          <object class="GtkLabel" id="devmem_jmp">
+                            <property name="halign">start</property>
+                            <property name="margin-start">5</property>
+                            <property name="margin-end">5</property>
+                            <property name="margin-top">5</property>
+                            <property name="margin-bottom">5</property>
+                            <property name="label" translatable="yes">Goto address:</property>
+                            <layout>
+                              <property name="column">0</property>
+                              <property name="row">0</property>
+                            </layout>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkEntry" id="devmem_jmp_entry">
+                            <property name="margin-start">5</property>
+                            <property name="margin-end">5</property>
+                            <property name="margin-top">5</property>
+                            <property name="margin-bottom">5</property>
+                            <property name="max-length">15</property>
+                            <property name="width-chars">12</property>
+                            <layout>
+                              <property name="column">1</property>
+                              <property name="row">0</property>
+                            </layout>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkScrolledWindow" id="devmem_scrolledwindow">
+                        <property name="vexpand">True</property>
+                        <property name="has-frame">True</property>
+                        <property name="child">
+                          <object class="GtkTreeView" id="devmem_treeview">
+                            <property name="enable-grid-lines">both</property>
+                          </object>
+                        </property>
+                      </object>
+                    </child>
+                  </object>
+                </property>
+              </object>
             </child>
-            <child internal-child="action_area">
-              <object class="GtkButtonBox" id="infobar-action_area1">
-                <property name="can_focus">False</property>
-                <property name="border_width">5</property>
-                <property name="orientation">vertical</property>
-                <property name="spacing">6</property>
-                <property name="layout_style">end</property>
-                <child>
-                  <placeholder/>
-                </child>
-                <child>
-                  <placeholder/>
-                </child>
-                <child>
-                  <placeholder/>
-                </child>
+            <child>
+              <object class="GtkNotebookPage">
+                <property name="tab-fill">False</property>
+                <property name="tab">
+                  <object class="GtkLabel" id="filemem_label">
+                    <property name="label" translatable="yes">No file</property>
+                  </object>
+                </property>
+                <property name="child">
+                  <object class="GtkBox" id="filemem_box">
+                    <property name="orientation">vertical</property>
+                    <child>
+                      <object class="GtkGrid" id="filemem_jmp_grid">
+                        <child>
+                          <object class="GtkLabel" id="filemem_jmp">
+                            <property name="margin-start">5</property>
+                            <property name="margin-end">5</property>
+                            <property name="margin-top">5</property>
+                            <property name="margin-bottom">5</property>
+                            <property name="label" translatable="yes">Goto address:</property>
+                            <layout>
+                              <property name="column">0</property>
+                              <property name="row">0</property>
+                            </layout>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkEntry" id="filemem_jmp_entry">
+                            <property name="margin-start">5</property>
+                            <property name="margin-end">5</property>
+                            <property name="margin-top">5</property>
+                            <property name="margin-bottom">5</property>
+                            <property name="max-length">15</property>
+                            <property name="width-chars">12</property>
+                            <layout>
+                              <property name="column">1</property>
+                              <property name="row">0</property>
+                            </layout>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkScrolledWindow" id="filemem_scrolledwindow">
+                        <property name="vexpand">True</property>
+                        <property name="has-frame">True</property>
+                        <property name="child">
+                          <object class="GtkTreeView" id="filemem_treeview">
+                            <property name="enable-grid-lines">both</property>
+                          </object>
+                        </property>
+                      </object>
+                    </child>
+                  </object>
+                </property>
               </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">1</property>
-              </packing>
             </child>
           </object>
-          <packing>
-            <property name="left_attach">0</property>
-            <property name="top_attach">1</property>
-            <property name="width">1</property>
-            <property name="height">1</property>
-          </packing>
+        </child>
+        <child>
+          <object class="GtkStatusbar" id="statusbar">
+            <property name="margin-start">5</property>
+            <property name="margin-end">5</property>
+            <property name="margin-bottom">5</property>
+          </object>
         </child>
       </object>
     </child>

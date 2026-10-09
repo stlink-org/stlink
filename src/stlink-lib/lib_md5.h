@@ -5,6 +5,7 @@
  * This is free and unencumbered software released into the public domain - June 2013 - waterjuice.org
  */
 
+
 #ifndef LIB_MD5_H
 #define LIB_MD5_H
 
@@ -14,6 +15,7 @@
 
 
 #pragma once
+
 
 /* TYPES */
 
@@ -40,13 +42,15 @@ typedef struct {
 
 /* PUBLIC FUNCTIONS */
 
-/* Md5Initialise
+/**
+ * @ingroup api_internal
  * Initialises an MD5 Context.
  * Use this to initialise/reset a context.
  */
 void Md5Initialise(Md5Context* Context /* [out] */);
 
-/* Md5Update
+/**
+ * @ingroup api_internal
  * Adds data to the MD5 context.
  * This will process the data and update the internal state of the context.
  * Keep on calling this function until all the data has been added.
@@ -54,14 +58,16 @@ void Md5Initialise(Md5Context* Context /* [out] */);
  */
 void Md5Update(Md5Context* Context /* [in out] */, void const* Buffer /* [in] */, uint32_t BufferSize /* [in] */);
 
-/* Md5Finalise
+/**
+ * @ingroup api_internal
  * Performs the final calculation of the hash and returns the digest
  * (16 byte buffer containing 128bit hash).
  * After calling this, Md5Initialised must be used to reuse the context.
  */
 void Md5Finalise(Md5Context* Context /* [in out] */, MD5_HASH* Digest /* [in] */);
 
-/* Md5Calculate
+/**
+ * @ingroup api_internal
  * Combines Md5Initialise, Md5Update, and Md5Finalise into one function.
  * Calculates the MD5 hash of the buffer.
  */

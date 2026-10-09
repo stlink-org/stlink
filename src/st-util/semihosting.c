@@ -1,16 +1,17 @@
 /**
   ******************************************************************************
-  * @file           : semihosting.c
-  * @brief          : Tool: st-util
-  * @copyright      : Copyright (c) 2026 stlink-org. All rights reserved.
-  * @author         : Fabien-Chouteau (Fabien-Chouteau)
-  * @date           : 2026-07-27
+  * @file             semihosting.c
+  * @brief            Tool: st-util
+  * @copyright        Copyright (c) 2026 stlink-org. All rights reserved.
+  * @author           Fabien-Chouteau (Fabien-Chouteau)
+  * @date             2026-07-27
   * SPDX-License-Identifier: BSD-3-Clause
   *
   * This file is licensed under the BSD 3-Clause License.
   * See the LICENSE file in the project root for full license information.
   ******************************************************************************
   */
+
 
 #include <sys/types.h>
 #include "semihosting.h"
@@ -141,8 +142,7 @@ int32_t do_semihosting (stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret) {
     DLOG("Do semihosting R0=0x%08x R1=0x%08x\n", r0, r1);
 
     switch (r0) {
-    case SEMIHOST_SYS_OPEN:
-    {
+    case SEMIHOST_SYS_OPEN: {
         uint32_t args[3];
         uint32_t name_address;
         uint32_t mode;
@@ -220,8 +220,7 @@ int32_t do_semihosting (stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret) {
         free(name);
         break;
     }
-    case SEMIHOST_SYS_CLOSE:
-    {
+    case SEMIHOST_SYS_CLOSE: {
         uint32_t args[1];
         int32_t fd;
 
@@ -241,8 +240,7 @@ int32_t do_semihosting (stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret) {
         DLOG("Semihosting: return %d\n", *ret);
         break;
     }
-    case SEMIHOST_SYS_WRITE:
-    {
+    case SEMIHOST_SYS_WRITE: {
         uint32_t args[3];
         uint32_t buffer_address;
         int32_t fd;
@@ -296,8 +294,7 @@ int32_t do_semihosting (stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret) {
         free(buffer);
         break;
     }
-    case SEMIHOST_SYS_READ:
-    {
+    case SEMIHOST_SYS_READ: {
         uint32_t args[3];
         uint32_t buffer_address;
         int32_t fd;
@@ -352,14 +349,12 @@ int32_t do_semihosting (stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret) {
         free(buffer);
         break;
     }
-    case SEMIHOST_SYS_ERRNO:
-    {
+    case SEMIHOST_SYS_ERRNO: {
         *ret = (uint32_t) saved_errno;
         DLOG("Semihosting: Errno return %d\n", *ret);
         break;
     }
-    case SEMIHOST_SYS_REMOVE:
-    {
+    case SEMIHOST_SYS_REMOVE: {
         uint32_t args[2];
         uint32_t name_address;
         uint32_t name_len;
@@ -408,8 +403,7 @@ int32_t do_semihosting (stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret) {
         free(name);
         break;
     }
-    case SEMIHOST_SYS_SEEK:
-    {
+    case SEMIHOST_SYS_SEEK: {
         uint32_t args[2];
         int32_t fd;
         off_t offset;
@@ -432,8 +426,7 @@ int32_t do_semihosting (stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret) {
         DLOG("Semihosting: return %d\n", *ret);
         break;
     }
-    case SEMIHOST_SYS_WRITEC:
-    {
+    case SEMIHOST_SYS_WRITEC: {
         uint8_t c;
 
         if(mem_read_u8(sl, r1, &c) == 0) {
@@ -444,14 +437,12 @@ int32_t do_semihosting (stlink_t *sl, uint32_t r0, uint32_t r1, uint32_t *ret) {
 
         break;
     }
-    case SEMIHOST_SYS_READC:
-    {
+    case SEMIHOST_SYS_READC: {
         uint8_t c = getchar();
         *ret = c;
         break;
     }
-    case SEMIHOST_SYS_WRITE0:
-    {
+    case SEMIHOST_SYS_WRITE0: {
         uint8_t buf[WRITE0_BUFFER_SIZE];
 
         while (true) {

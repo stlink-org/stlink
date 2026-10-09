@@ -56,7 +56,7 @@ elseif (EXISTS "/etc/debian_version" AND (NOT EXISTS WIN32))                # Pa
     # CPACK_DEBIAN_COMPRESSION_TYPE      --> Default: “gzip”
     # CPACK_DEBIAN_PACKAGE_PRIORITY      --> Default: “optional”
     # CPACK_DEBIAN_PACKAGE_HOMEPAGE      --> Default: CMAKE_PROJECT_HOMEPAGE_URL
-    set(CPACK_DEBIAN_PACKAGE_SUGGESTS "libgtk-3-dev, pandoc")
+    set(CPACK_DEBIAN_PACKAGE_SUGGESTS "libgtk-4-dev, pandoc")
 
     ## Additional package files in Debian-specific format:
     # * changelog (package changelog)

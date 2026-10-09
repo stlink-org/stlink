@@ -1,5 +1,34 @@
 # stlink Changelog
 
+# v1.9.1
+
+Release date: 2026-12-xx
+
+Updated system requirements:
+- C-Standard: C17 (ISO/IEC 9899:2018)
+- `cmake` >= 3.21.0
+- `libusb` >= 1.0.24
+- `libgtk-4-dev` >= 4.6
+
+Features:
+
+- STM32U59x_U5Ax: Write to secure region flash with st-flash ([#1450](https://github.com/stlink-org/stlink/pull/1450), commit [#84fd394](https://github.com/stlink-org/stlink/commit/84fd394c500e9df8203ea7a25d23e63ebc39cb59))
+- [stlink-lib] Programmatically managed logging and progress reporting: log handler and log level for the application (including libusb messages), progress handler per device ([#1474](https://github.com/stlink-org/stlink/issues/1474))
+- [stlink-lib] `md5_calculate_digest()` and `stlink_checksum_calculate()` return the MD5 digest and checksum of a mapped file instead of printing them ([#1474](https://github.com/stlink-org/stlink/issues/1474))
+- [stlink-lib] The `STLINK_F_*` feature flags are set according to the hardware generation and firmware version of the ST-LINK; new flags `STLINK_F_HAS_TARGET_VOLTAGE` and `STLINK_F_HAS_NRST` ([#1474](https://github.com/stlink-org/stlink/issues/1474))
+- [doc] API documentation of stlink-lib, generated with Doxygen (`-DSTLINK_GENERATE_API_DOCS=ON`) ([#1474](https://github.com/stlink-org/stlink/issues/1474), commits [#b7a27bd](https://github.com/stlink-org/stlink/commit/b7a27bda980d7ace513d6fcef70c6060bb82f9cb), [#6d4d4b3](https://github.com/stlink-org/stlink/commit/6d4d4b3cad7375ee52f01d427993128e618c1289))
+
+Updates & changes:
+
+- [stlink-gui] Migrated from GTK3 to GTK4 (>= 4.6)
+- [stlink-lib] Logging: no direct output of the library to stdout/stderr, the open functions no longer override the log level, lines of parallel probes no longer mix, spdlog wrapper removed; the tools set their log level right after parsing the options ([#1474](https://github.com/stlink-org/stlink/issues/1474))
+- [stlink-lib] `md5_calculate()` and `stlink_checksum()` are deprecated ([#1474](https://github.com/stlink-org/stlink/issues/1474))
+- [stlink-lib] ST-LINK hardware variants consolidated in `stlink_hw.c` (internal), with a consistent classification of the USB product ids; udev rules aligned; `_parse_version()` is no longer exported and was removed from the Debian symbols file ([#1474](https://github.com/stlink-org/stlink/issues/1474))
+  - Firmware dependent functions are only used where supported: 512 byte 8 bit writes from STLINK-V3 J6, target voltage from ST-LINK/V2 J13, access port initialisation from ST-LINK/V2 J28
+- [st-server] Remote protocol version 1.9.1: st-server and the tools must be of the same release ([#1474](https://github.com/stlink-org/stlink/issues/1474))
+- [general] Coding conventions applied to the whole code base ([#1474](https://github.com/stlink-org/stlink/issues/1474))
+
+
 # v1.9.0
 
 Release date: 2026-10-04

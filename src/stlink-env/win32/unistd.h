@@ -1,8 +1,16 @@
-/*
- * File: unistd.h
- *
- *
- */
+/**
+  ******************************************************************************
+  * @file             unistd.h
+  * @brief            Replacement of unistd.h for Windows
+  * @copyright        Copyright (c) 2026 stlink-org. All rights reserved.
+  * @date             2026-10-08
+  * SPDX-License-Identifier: BSD-3-Clause
+  *
+  * This file is licensed under the BSD 3-Clause License.
+  * See the LICENSE file in the project root for full license information.
+  ******************************************************************************
+  */
+
 
 #ifndef UNISTD_H
 #define UNISTD_H
@@ -15,6 +23,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+
 
 #if defined(_MSC_VER) && !defined(_SSIZE_T_DEFINED)
 #include <basetsd.h>
@@ -41,10 +50,10 @@ typedef SSIZE_T ssize_t;
 #define random rand
 
 /* Values for the second argument to access. These may be OR'd together. */
-#define R_OK    4       // Test for read permission
-#define W_OK    2       // Test for write permission
+#define R_OK    4 // Test for read permission
+#define W_OK    2 // Test for write permission
 // #define X_OK    1    // execute permission - unsupported in windows
-#define F_OK    0       // Test for existence
+#define F_OK    0 // Test for existence
 
 #define access _access
 #define dup2 _dup2

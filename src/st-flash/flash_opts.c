@@ -1,15 +1,16 @@
 /**
   ******************************************************************************
-  * @file           : flash_opts.c
-  * @brief          : Tool: st-flash - Flash Options
-  * @copyright      : Copyright (c) 2026 stlink-org. All rights reserved.
-  * @date           : 2026-07-27
+  * @file             flash_opts.c
+  * @brief            Tool: st-flash - Flash Options
+  * @copyright        Copyright (c) 2026 stlink-org. All rights reserved.
+  * @date             2026-07-27
   * SPDX-License-Identifier: BSD-3-Clause
   *
   * This file is licensed under the BSD 3-Clause License.
   * See the LICENSE file in the project root for full license information.
   ******************************************************************************
   */
+
 
 #include "flash.h"
 #include "flash_opts.h"
@@ -31,13 +32,13 @@ static int32_t get_long_integer_from_char_array (const char *const str, uint64_t
     uint64_t value;
     char *tail;
 
-    if(starts_with (str, "0x") || starts_with (str, "0X")) {          // hexadecimal
+    if(starts_with (str, "0x") || starts_with (str, "0X")) {        // hexadecimal
         value = strtoul (str + 2, &tail, 16);
-    } else if(starts_with (str, "0b") || starts_with (str, "0B")) {   // binary
+    } else if(starts_with (str, "0b") || starts_with (str, "0B")) { // binary
         value = strtoul (str + 2, &tail, 2);
-    } else if(starts_with (str, "0")) {                               // octal
+    } else if(starts_with (str, "0")) {                             // octal
         value = strtoul (str + 1, &tail, 8);
-    } else {                                                           // decimal
+    } else { // decimal
         value = strtoul (str, &tail, 10);
     }
 
@@ -254,10 +255,10 @@ int32_t flash_get_opts(struct flash_opts* o, int32_t ac, char** av) {
     }
 
     switch (o->cmd) {
-    case FLASH_CMD_NONE:     // no command found
+    case FLASH_CMD_NONE: // no command found
         return (-1);
 
-    case FLASH_CMD_ERASE:    // no more arguments expected
+    case FLASH_CMD_ERASE: // no more arguments expected
         if(ac != 0 && ac != 2) { return (-1); }
         if(ac == 2) {
             uint32_t address;
@@ -279,10 +280,10 @@ int32_t flash_get_opts(struct flash_opts* o, int32_t ac, char** av) {
 
         break;
 
-    case FLASH_CMD_READ:     // expect filename, addr and size
+    case FLASH_CMD_READ: // expect filename, addr and size
         if((o->area == FLASH_MAIN_MEMORY) || (o->area == FLASH_SYSTEM_MEMORY)) {
             if(ac != 3) { return invalid_args("read <path> <addr> <size>"); }
-            
+
             o->filename = av[0];
             uint32_t address;
             result = get_integer_from_char_array(av[1], &address);
@@ -355,10 +356,10 @@ int32_t flash_get_opts(struct flash_opts* o, int32_t ac, char** av) {
             }
         } else if(o->area == FLASH_OPTCR) { // expect option control register value
             if(ac != 1) { return invalid_args("option control register write <value>"); }
-            
+
             uint32_t val;
             result = get_integer_from_char_array(av[0], &val);
-            
+
             if(result != 0) {
                 return bad_arg ("val");
             } else {
@@ -366,7 +367,7 @@ int32_t flash_get_opts(struct flash_opts* o, int32_t ac, char** av) {
             }
         } else if(o->area == FLASH_OPTCR1) { // expect option control register 1 value
             if(ac != 1) { return invalid_args("option control register 1 write <value>"); }
-            
+
             uint32_t val;
             result = get_integer_from_char_array(av[0], &val);
             if(result != 0) {
@@ -374,9 +375,9 @@ int32_t flash_get_opts(struct flash_opts* o, int32_t ac, char** av) {
             } else {
                 o->val = val;
             }
-        } else if(o->format == FLASH_FORMAT_BINARY) {    // expect filename and addr
+        } else if(o->format == FLASH_FORMAT_BINARY) { // expect filename and addr
             if(ac != 2) { return invalid_args("write <path> <addr>"); }
-            
+
             o->filename = av[0];
             uint32_t addr;
             result = get_integer_from_char_array(av[1], &addr);

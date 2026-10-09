@@ -1,10 +1,10 @@
 /**
   ******************************************************************************
-  * @file           : remote.c
-  * @brief          : Remote backend and server dispatch
-  * @copyright      : Copyright (c) 2026 stlink-org. All rights reserved.
-  * @author         : James Walmsley (jameswalmsley)
-  * @date           : 2026-07-27
+  * @file             remote.c
+  * @brief            Remote backend and server dispatch
+  * @copyright        Copyright (c) 2026 stlink-org. All rights reserved.
+  * @author           James Walmsley (jameswalmsley)
+  * @date             2026-07-27
   * SPDX-License-Identifier: BSD-3-Clause
   *
   * This file is licensed under the BSD 3-Clause License.
@@ -21,13 +21,15 @@
  *            [magic][protocol_version][capabilities][stlink_v][jtag_v][swim_v]
  *            [st_vid][stlink_pid][jtag_api][flags][max_trace_freq]
  *
- * Capabilities is reserved for future optional protocol features. Version 1
- * servers send 0 and clients must ignore unknown future capability bits.
+ * Capabilities is reserved for future optional protocol features. Servers up to
+ * protocol version 1.9.1 send 0 and clients must ignore unknown future capability bits.
+ * protocol_version: see STLINK_REMOTE_PROTOCOL_VERSION in remote.h.
  *
  * The client carries sl->ap in every request because the USB command bytes
  * are built on the server, but the access port is selected by the client's
  * probe; the server applies the supplied ap before each operation.
  */
+
 
 #if defined(_WIN32)
 #include <win32_socket.h>
@@ -122,6 +124,15 @@ static int32_t recv_all(int32_t fd, void *buf, uint32_t len) {
         len -= (uint32_t)n;
     }
     return (0);
+}
+
+// Protocol version as text: "1" for the first version, "x.y.z" from 1.9.1 on.
+static void format_protocol_version(char *buf, size_t len, uint32_t version) {
+    if (version < 0x10000) {
+        snprintf(buf, len, "%u", version);
+    } else {
+        snprintf(buf, len, "%u.%u.%u", version >> 16, (version >> 8) & 0xff, version & 0xff);
+    }
 }
 
 // Disable Nagle; the request/reply pattern stalls on delayed-ACK otherwise.
@@ -303,8 +314,11 @@ static int32_t rb_read_reg_payload(stlink_t *sl, uint8_t op, uint32_t arg, struc
     uint8_t p[REG_WIRE_LEN];
     uint32_t pl;
     int32_t ret = remote_rpc(sl, op, arg, 0, NULL, 0, p, sizeof(p), &pl);
-    if (ret == 0 && pl == REG_WIRE_LEN) { reg_from_wire(regp, p); }
-    else if (ret == 0) { ret = -1; }
+    if (ret == 0 && pl == REG_WIRE_LEN) {
+        reg_from_wire(regp, p);
+    } else if (ret == 0) {
+        ret = -1;
+    }
     return (ret);
 }
 
@@ -331,8 +345,11 @@ static int32_t rb_write_unsupported_reg(stlink_t *sl, uint32_t value, int32_t r_
     reg_to_wire(p, regp);
     int32_t ret = remote_rpc(sl, RPC_WRITE_UNSUPPORTED_REG, value, (uint32_t)r_idx,
                              p, sizeof(p), rp, sizeof(rp), &pl);
-    if (ret == 0 && pl == REG_WIRE_LEN) { reg_from_wire(regp, rp); }
-    else if (ret == 0) { ret = -1; }
+    if (ret == 0 && pl == REG_WIRE_LEN) {
+        reg_from_wire(regp, rp);
+    } else if (ret == 0) {
+        ret = -1;
+    }
     return (ret);
 }
 
@@ -391,7 +408,7 @@ static stlink_backend_t _stlink_remote_backend = {
 
 stlink_t *stlink_open_remote(int32_t verbose, const char *host, int32_t port,
                              enum connect_type conn, int32_t freq) {
-    ugly_init(verbose);
+    stlink_log_open_level(verbose);
 
     char portstr[16];
     snprintf(portstr, sizeof(portstr), "%d", port ? port : STLINK_REMOTE_DEFAULT_PORT);
@@ -401,18 +418,18 @@ stlink_t *stlink_open_remote(int32_t verbose, const char *host, int32_t port,
     hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_STREAM;
 
-    // Report connection failures to stderr, not ELOG: they must show even at a
+    // Report connection failures with ELOG_ALWAYS: they must show even at a
     // log level that suppresses errors (st-info opens with verbose 0).
     if (getaddrinfo(host, portstr, &hints, &res) != 0 || res == NULL) {
-        fprintf(stderr, "remote: cannot resolve host '%s'\n", host);
+        ELOG_ALWAYS("cannot resolve host '%s'\n", host);
         return (NULL);
     }
 
     int32_t fd = (int32_t)socket(res->ai_family, res->ai_socktype, res->ai_protocol);
     if (fd < 0 || remote_connect_timeout(fd, res->ai_addr, (socklen_t)res->ai_addrlen,
                                          REMOTE_CONNECT_TIMEOUT_SEC) < 0) {
-        fprintf(stderr, "remote: cannot connect to st-server at %s:%s (%s)\n",
-                host, portstr, strerror(errno));
+        ELOG_ALWAYS("cannot connect to st-server at %s:%s (%s)\n",
+                    host, portstr, strerror(errno));
         if (fd >= 0) { close(fd); }
         freeaddrinfo(res);
         return (NULL);
@@ -422,14 +439,18 @@ stlink_t *stlink_open_remote(int32_t verbose, const char *host, int32_t port,
 
     uint8_t hs[HANDSHAKE_LEN];
     if (recv_all(fd, hs, HANDSHAKE_LEN) || read_uint32(hs, 0) != STLINK_REMOTE_MAGIC) {
-        fprintf(stderr, "remote: no valid handshake from %s:%s (is st-server running there?)\n",
-                host, portstr);
+        ELOG_ALWAYS("no valid handshake from %s:%s (is st-server running there?)\n",
+                    host, portstr);
         close(fd);
         return (NULL);
     }
     if (read_uint32(hs, 4) != STLINK_REMOTE_PROTOCOL_VERSION) {
-        fprintf(stderr, "remote: server at %s:%s uses protocol version %u, client expects %u\n",
-                host, portstr, read_uint32(hs, 4), STLINK_REMOTE_PROTOCOL_VERSION);
+        char server_version[16], client_version[16];
+        format_protocol_version(server_version, sizeof(server_version), read_uint32(hs, 4));
+        format_protocol_version(client_version, sizeof(client_version), STLINK_REMOTE_PROTOCOL_VERSION);
+        ELOG_ALWAYS("server at %s:%s uses protocol version %s, client expects %s "
+                    "(use st-server and the tools of the same release)\n",
+                    host, portstr, server_version, client_version);
         close(fd);
         return (NULL);
     }
@@ -469,7 +490,7 @@ stlink_t *stlink_open_remote(int32_t verbose, const char *host, int32_t port,
     // Bail if a TCP error broke the link during the sequence above; a failed
     // target_connect (link still up) is handled downstream instead.
     if (rl->dead) {
-        fprintf(stderr, "remote: lost connection to st-server during connect\n");
+        ELOG_ALWAYS("lost connection to st-server during connect\n");
         close(rl->fd);
         free(rl);
         free(sl);
@@ -493,7 +514,7 @@ stlink_t *stlink_open_remote_str(int32_t verbose, const char *hostport,
         char *end = NULL;
         long parsed = strtol(colon + 1, &end, 0);
         if (*end != '\0' || parsed <= 0 || parsed > UINT16_MAX) {
-            fprintf(stderr, "remote: invalid port in '%s'\n", hostport);
+            ELOG_ALWAYS("invalid port in '%s'\n", hostport);
             return (NULL);
         }
         port = (int32_t)parsed;

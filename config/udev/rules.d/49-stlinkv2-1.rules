@@ -2,14 +2,17 @@
 # ie, STM32F0, STM32F4.
 # STM32VL has st/linkv1, which is quite different
 
+# ST-LINK/V2-1 with the "STM32+Audio" firmware
 SUBSYSTEMS=="usb", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="374a", \
     MODE:="0666", \
     SYMLINK+="stlinkv2-1_%n"
 
+# ST-LINK/V2-1
 SUBSYSTEMS=="usb", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="374b", \
     MODE:="0666", \
     SYMLINK+="stlinkv2-1_%n"
 
+# ST-LINK/V2-1 without mass storage
 SUBSYSTEMS=="usb", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="3752", \
     MODE:="0666", \
     SYMLINK+="stlinkv2-1_%n"

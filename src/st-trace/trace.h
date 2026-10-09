@@ -1,16 +1,18 @@
 /**
   ******************************************************************************
-  * @file           : trace.h
-  * @brief          : Tool: st-trace
-  * @copyright      : Copyright (c) 2026 stlink-org. All rights reserved.
-  * @author         : John Hall (simplerobot)
-  * @date           : 2026-07-27
+  * @file             trace.h
+  * @brief            Tool: st-trace
+  * @copyright        Copyright (c) 2026 stlink-org. All rights reserved.
+  * @author           John Hall (simplerobot)
+  * @date             2026-07-27
   * SPDX-License-Identifier: BSD-3-Clause
   *
   * This file is licensed under the BSD 3-Clause License.
   * See the LICENSE file in the project root for full license information.
   ******************************************************************************
   */
+
+
 #ifndef TRACE_H
 #define TRACE_H
 
@@ -65,44 +67,44 @@
 #define TRACE_OP_GET_SW_SOURCE_ADDR(c) ((c) >> 3)
 
 typedef struct {
-  bool show_help;
-  bool show_version;
-  int32_t logging_level;
-  uint32_t core_frequency;
-  uint32_t trace_frequency;
-  bool reset_board;
-  bool force;
-  char *serial_number;
-  char *remote;
+    bool show_help;
+    bool show_version;
+    int32_t logging_level;
+    uint32_t core_frequency;
+    uint32_t trace_frequency;
+    bool reset_board;
+    bool force;
+    char *serial_number;
+    char *remote;
 } st_settings_t;
 
 // We use a simple state machine to parse the trace data.
 typedef enum {
-  TRACE_STATE_UNKNOWN,
-  TRACE_STATE_IDLE,
-  TRACE_STATE_TARGET_SOURCE,
-  TRACE_STATE_SKIP_FRAME,
-  TRACE_STATE_SKIP_4,
-  TRACE_STATE_SKIP_3,
-  TRACE_STATE_SKIP_2,
-  TRACE_STATE_SKIP_1,
+    TRACE_STATE_UNKNOWN,
+    TRACE_STATE_IDLE,
+    TRACE_STATE_TARGET_SOURCE,
+    TRACE_STATE_SKIP_FRAME,
+    TRACE_STATE_SKIP_4,
+    TRACE_STATE_SKIP_3,
+    TRACE_STATE_SKIP_2,
+    TRACE_STATE_SKIP_1,
 } trace_state;
 
 typedef struct {
-  time_t start_time;
-  bool configuration_checked;
+    time_t start_time;
+    bool configuration_checked;
 
-  trace_state state;
+    trace_state state;
 
-  uint32_t count_raw_bytes;
-  uint32_t count_target_data;
-  uint32_t count_time_packets;
-  uint32_t count_hw_overflow;
-  uint32_t count_sw_overflow;
-  uint32_t count_error;
+    uint32_t count_raw_bytes;
+    uint32_t count_target_data;
+    uint32_t count_time_packets;
+    uint32_t count_hw_overflow;
+    uint32_t count_sw_overflow;
+    uint32_t count_error;
 
-  uint8_t unknown_opcodes[256 / 8];
-  uint32_t unknown_sources;
+    uint8_t unknown_opcodes[256 / 8];
+    uint32_t unknown_sources;
 } st_trace_t;
 
 

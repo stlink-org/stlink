@@ -1,20 +1,21 @@
 /**
   ******************************************************************************
-  * @file           : server.c
-  * @brief          : Tool: st-server
+  * @file             server.c
+  * @brief            Tool: st-server
   *                   Serves a locally-attached ST-LINK over TCP so that
   *                   st-flash / st-info on another machine can drive it via
   *                   --remote. The server forwards backend operations;
   *                   target-specific logic runs on the client.
-  * @copyright      : Copyright (c) 2026 stlink-org. All rights reserved.
-  * @author         : James Walmsley (jameswalmsley)
-  * @date           : 2026-07-27
+  * @copyright        Copyright (c) 2026 stlink-org. All rights reserved.
+  * @author           James Walmsley (jameswalmsley)
+  * @date             2026-07-27
   * SPDX-License-Identifier: BSD-3-Clause
   *
   * This file is licensed under the BSD 3-Clause License.
   * See the LICENSE file in the project root for full license information.
   ******************************************************************************
   */
+
 
 #include <errno.h>
 #include <getopt.h>
@@ -39,6 +40,7 @@
 #include <logging.h>
 #include <remote.h>
 #include <usb.h>
+
 
 static volatile sig_atomic_t stop_requested = 0;
 
@@ -148,7 +150,7 @@ int32_t main(int32_t argc, char **argv) {
         }
     }
 
-    ugly_init(verbose);
+    stlink_log_set_level(verbose);
     setup_signal_handlers();
 
     // Open the one probe up front, so a running server means it was claimed.
@@ -156,8 +158,9 @@ int32_t main(int32_t argc, char **argv) {
     // for parts that need the client's connect mode (e.g. STM32H5 on AP1); the
     // server never uses the chip id, so quiet the open unless -v was given.
     int32_t open_verbose = (verbose > UINFO) ? verbose : (UERROR - 1);
+    stlink_log_set_level(open_verbose);
     stlink_t *sl = stlink_open_usb(open_verbose, CONNECT_HOT_PLUG, serial, freq);
-    ugly_init(verbose); // restore the requested level for the serve loop
+    stlink_log_set_level(verbose); // restore the requested level for the serve loop
 
     if (sl == NULL) {
         ELOG("Failed to open an ST-LINK device\n");

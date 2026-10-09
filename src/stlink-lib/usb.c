@@ -1,9 +1,9 @@
 /**
   ******************************************************************************
-  * @file           : usb.c
-  * @brief          : USB commands & interaction with ST-LINK devices
-  * @copyright      : Copyright (c) 2026 stlink-org. All rights reserved.
-  * @date           : 2026-07-27
+  * @file             usb.c
+  * @brief            USB commands & interaction with ST-LINK devices
+  * @copyright        Copyright (c) 2026 stlink-org. All rights reserved.
+  * @date             2026-07-27
   * SPDX-License-Identifier: BSD-3-Clause
   *
   * This file is licensed under the BSD 3-Clause License.
@@ -11,12 +11,14 @@
   ******************************************************************************
   */
 
+
 #include "usb.h"
 
 #include <stlink_threads.h>
 
 #include "logging.h"
 #include "read_write.h"
+#include "stlink_hw.h"
 
 
 static inline uint32_t le_to_h_u32(const uint8_t* buf) {
@@ -104,7 +106,7 @@ ssize_t send_recv(struct stlink_libusb* handle, int32_t terminate, unsigned char
             }
 
             /* Checking the command execution status stored in the first byte of the response */
-            if(handle->protocol != 1 && check_error >= CMD_CHECK_STATUS && 
+            if(handle->protocol != 1 && check_error >= CMD_CHECK_STATUS &&
                         rxbuf[0] != STLINK_DEBUG_ERR_OK) {
                 switch(rxbuf[0]) {
                 case STLINK_DEBUG_ERR_AP_WAIT:
@@ -182,6 +184,33 @@ static int32_t fill_command(stlink_t * sl, enum SCSI_Generic_Direction dir, uint
     return (i);
 }
 
+/*
+ * MEM-AP CSW for a memory access at 'addr': secure transfers are required for the TrustZone
+ * secure aliases (code 0x0c000000-0x0fffffff, SRAM 0x30000000-0x3fffffff, peripherals
+ * 0x50000000-0x5fffffff), once enabled by stlink_flash_secure_enable().
+ * 0 lets the ST-LINK firmware use its default CSW (non-secure).
+ */
+static uint32_t mem_ap_csw(stlink_t *sl, uint32_t addr) {
+    if(sl->secure_csw == 0) { return (0); }
+
+    if((addr & 0xfc000000) == 0x0c000000 ||
+       (addr & 0xf0000000) == 0x30000000 ||
+       (addr & 0xf0000000) == 0x50000000) {
+        return (sl->secure_csw);
+    }
+
+    return (0);
+}
+
+/* Memory R/W commands: the AP selector is followed by CSW[31:8] (from V2J32 / V3J2) */
+static void fill_mem_ap_csw(stlink_t *sl, unsigned char *cmd, uint32_t addr) {
+    uint32_t csw = mem_ap_csw(sl, addr) >> 8;
+
+    cmd[0] = (unsigned char) (csw & 0xff);
+    cmd[1] = (unsigned char) ((csw >> 8) & 0xff);
+    cmd[2] = (unsigned char) ((csw >> 16) & 0xff);
+}
+
 int32_t _stlink_usb_version(stlink_t *sl) {
     struct stlink_libusb * const slu = sl->backend_data;
     unsigned char* const data = sl->q_buf;
@@ -191,7 +220,7 @@ int32_t _stlink_usb_version(stlink_t *sl) {
     int32_t i;
 
     if(sl->version.stlink_v == 3) {
-        // STLINK-V3 version is determined by another command 
+        // STLINK-V3 version is determined by another command
         rep_len = 12;
         i = fill_command(sl, SG_DXFER_FROM_DEV, 16);
         cmd[i++] = STLINK_GET_VERSION_APIV3;
@@ -247,7 +276,8 @@ int32_t _stlink_usb_read_debug32(stlink_t *sl, uint32_t addr, uint32_t *data) {
     // On targets that live on a non-default AP (e.g. STM32H5 on AP1) the native
     // READDEBUGREG path does not honour the selected AP. The debug registers are
     // memory-mapped in the PPB, so route the access through the MEM-AP instead.
-    if (sl->ap) {
+    // The same applies to secure transfers, as READDEBUGREG does not take a CSW.
+    if (sl->ap || mem_ap_csw(sl, addr)) {
         if (_stlink_usb_read_mem32(sl, addr, 4) != 0) { return (-1); }
         *data = read_uint32(sl->q_buf, 0);
         return (0);
@@ -275,8 +305,9 @@ int32_t _stlink_usb_write_debug32(stlink_t *sl, uint32_t addr, uint32_t data) {
     ssize_t size;
     const int32_t rep_len = 2;
 
-    // See _stlink_usb_read_debug32: route via the MEM-AP when not on AP0.
-    if (sl->ap) {
+    // See _stlink_usb_read_debug32: route via the MEM-AP when not on AP0
+    // or when a secure transfer is required.
+    if (sl->ap || mem_ap_csw(sl, addr)) {
         write_uint32(sl->q_buf, data);
         return (_stlink_usb_write_mem32(sl, addr, 4));
     }
@@ -326,6 +357,7 @@ int32_t _stlink_usb_write_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
     write_uint32(&cmd[i], addr);
     write_uint16(&cmd[i + 4], len);
     cmd[i + 6] = sl->ap; // access port selector (0 = AP0)
+    fill_mem_ap_csw(sl, &cmd[i + 7], addr);
     ret = send_only(slu, 0, cmd, slu->cmd_len, "WRITEMEM_32BIT");
 
     if(ret == -1) { return (ret); }
@@ -343,8 +375,7 @@ int32_t _stlink_usb_write_mem8(stlink_t *sl, uint32_t addr, uint16_t len) {
     unsigned char* const cmd  = sl->c_buf;
     int32_t i, ret;
 
-    if((sl->version.jtag_api < STLINK_JTAG_API_V3 && len > 64) ||
-        (sl->version.jtag_api >= STLINK_JTAG_API_V3 && len > 512)) {
+    if(len > ((sl->version.flags & STLINK_F_HAS_RW8_512BYTES) ? 512 : 64)) {
         ELOG("WRITEMEM_8BIT: bulk packet limits exceeded (data len %d byte)\n", len);
         return (-1);
     }
@@ -355,6 +386,7 @@ int32_t _stlink_usb_write_mem8(stlink_t *sl, uint32_t addr, uint16_t len) {
     write_uint32(&cmd[i], addr);
     write_uint16(&cmd[i + 4], len);
     cmd[i + 6] = sl->ap; // access port selector (0 = AP0)
+    fill_mem_ap_csw(sl, &cmd[i + 7], addr);
     ret = send_only(slu, 0, cmd, slu->cmd_len, "WRITEMEM_8BIT");
 
     if(ret == -1) { return (ret); }
@@ -521,6 +553,12 @@ int32_t _stlink_usb_init_ap(stlink_t * sl, uint8_t ap) {
     unsigned char* const data = sl->q_buf;
     ssize_t size;
     const uint32_t rep_len = 2;
+
+    if(!(sl->version.flags & STLINK_F_HAS_AP_INIT)) {
+        DLOG("ST-LINK firmware cannot initialise an access port\n");
+        return (-1);
+    }
+
     int32_t i = fill_command(sl, SG_DXFER_FROM_DEV, rep_len);
 
     cmd[i++] = STLINK_DEBUG_COMMAND;
@@ -651,8 +689,13 @@ int32_t _stlink_usb_set_swdclk(stlink_t* sl, int32_t clk_freq) {
     int32_t rep_len = 2;
     int32_t i;
 
-    // clock speed only supported by stlink/v2 and for firmware >= 22
-    if(sl->version.stlink_v == 2 && sl->version.jtag_v >= 22) {
+    if(!(sl->version.flags & STLINK_F_HAS_SWD_SET_FREQ)) {
+        if(clk_freq) { WLOG("ST-Link firmware does not support frequency setup\n"); }
+        return (-1);
+    }
+
+    // the command set differs between ST-LINK/V2 and STLINK-V3
+    if(sl->version.jtag_api != STLINK_JTAG_API_V3) {
         uint16_t clk_divisor;
         if(clk_freq) {
             const uint32_t map[] = {5, 15, 25, 50, 100, 125, 240, 480, 950, 1200, 1800, 4000};
@@ -684,7 +727,7 @@ int32_t _stlink_usb_set_swdclk(stlink_t* sl, int32_t clk_freq) {
 
         return (size < 0 ? -1 : 0);
 
-    } else if(sl->version.stlink_v == 3) {
+    } else {
         int32_t speed_index;
         uint32_t map[STLINK_V3_MAX_FREQ_NB];
         i = fill_command(sl, SG_DXFER_FROM_DEV, 16);
@@ -701,12 +744,12 @@ int32_t _stlink_usb_set_swdclk(stlink_t* sl, int32_t clk_freq) {
             speeds_size = STLINK_V3_MAX_FREQ_NB;
         }
 
-        for(i = 0; i < speeds_size; i++) map[i] = le_to_h_u32(&data[12 + 4 * i]);
+        for(i = 0; i < speeds_size; i++) { map[i] = le_to_h_u32(&data[12 + 4 * i]); }
 
         // Set to zero all the next entries
-        for(i = speeds_size; i < STLINK_V3_MAX_FREQ_NB; i++) map[i] = 0;
+        for(i = speeds_size; i < STLINK_V3_MAX_FREQ_NB; i++) { map[i] = 0; }
 
-        if(!clk_freq) clk_freq = 1000; // set default frequency
+        if(!clk_freq) { clk_freq = 1000; } // set default frequency
         speed_index = _stlink_match_speed_map(map, STLINK_ARRAY_SIZE(map), clk_freq);
 
         i = fill_command(sl, SG_DXFER_FROM_DEV, 16);
@@ -723,12 +766,7 @@ int32_t _stlink_usb_set_swdclk(stlink_t* sl, int32_t clk_freq) {
         size = send_recv(slu, 1, cmd, slu->cmd_len, data, 8, CMD_CHECK_STATUS, "SET_COM_FREQ");
 
         return (size < 0 ? -1 : 0);
-
-    } else if(clk_freq) {
-        WLOG("ST-Link firmware does not support frequency setup\n");
     }
-
-    return (-1);
 }
 
 int32_t _stlink_usb_exit_debug_mode(stlink_t *sl) {
@@ -757,6 +795,7 @@ int32_t _stlink_usb_read_mem32(stlink_t *sl, uint32_t addr, uint16_t len) {
     write_uint32(&cmd[i], addr);
     write_uint16(&cmd[i + 4], len);
     cmd[i + 6] = sl->ap; // access port selector (0 = AP0)
+    fill_mem_ap_csw(sl, &cmd[i + 7], addr);
     size = send_recv(slu, 1, cmd, slu->cmd_len, data, len, CMD_CHECK_NO, "READMEM_32BIT");
 
     if(size < 0) {
@@ -801,7 +840,7 @@ int32_t _stlink_usb_read_all_regs(stlink_t *sl, struct stlink_reg *regp) {
     sl->q_len = (int32_t) size;
     stlink_print_data(sl);
 
-    for(i = 0; i < 16; i++) regp->r[i] = read_uint32(sl->q_buf, reg_offset + i * 4);
+    for(i = 0; i < 16; i++) { regp->r[i] = read_uint32(sl->q_buf, reg_offset + i * 4); }
 
     regp->xpsr       = read_uint32(sl->q_buf, reg_offset + 64);
     regp->main_sp    = read_uint32(sl->q_buf, reg_offset + 68);
@@ -884,7 +923,7 @@ int32_t _stlink_usb_read_unsupported_reg(stlink_t *sl, int32_t r_idx, struct stl
 
     sl->q_buf[0] = (unsigned char)r_idx;
 
-    for(int32_t i = 1; i < 4; i++) sl->q_buf[i] = 0;
+    for(int32_t i = 1; i < 4; i++) { sl->q_buf[i] = 0; }
 
     ret = _stlink_usb_write_mem32(sl, STM32_REG_DCRSR, 4);
 
@@ -1024,13 +1063,8 @@ int32_t _stlink_usb_enable_trace(stlink_t* sl, uint32_t frequency) {
     unsigned char* const cmd  = sl->c_buf;
     ssize_t size;
     uint32_t rep_len = 2;
-    uint32_t max_trace_buf_len = 0;
-    
-    if(sl->version.stlink_v == 2) {
-        max_trace_buf_len = STLINK_V2_TRACE_BUF_LEN;
-    } else if(sl->version.stlink_v == 3) {
-        max_trace_buf_len = STLINK_V3_TRACE_BUF_LEN;
-    };
+    const struct stlink_hw_desc *hw = stlink_hw_of(&sl->version);
+    uint32_t max_trace_buf_len = (hw != NULL) ? hw->trace_buf_len : 0;
 
     int32_t i = fill_command(sl, SG_DXFER_TO_DEV, rep_len);
     cmd[i++] = STLINK_DEBUG_COMMAND;
@@ -1159,14 +1193,14 @@ uint32_t stlink_serial(struct libusb_device_handle *handle, struct libusb_device
 
     /* get the LANGID from String Descriptor Zero */
     int32_t ret = libusb_get_string_descriptor(handle, 0, 0, desc_serial, sizeof(desc_serial));
-    if(ret < 4) return 0;
+    if(ret < 4) { return 0; }
 
     uint32_t langid = desc_serial[2] | (desc_serial[3] << 8);
 
     /* get the serial */
     ret = libusb_get_string_descriptor(handle, desc->iSerialNumber, langid, desc_serial,
         sizeof(desc_serial));
-    if(ret < 0) return 0; // could not read serial
+    if(ret < 0) { return 0; } // could not read serial
 
     unsigned char len = desc_serial[0];
 
@@ -1174,11 +1208,12 @@ uint32_t stlink_serial(struct libusb_device_handle *handle, struct libusb_device
         /* good ST-Link adapter */
         ret = libusb_get_string_descriptor_ascii(
             handle, desc->iSerialNumber, (unsigned char *)serial, STLINK_SERIAL_BUFFER_SIZE);
-        if(ret < 0) return 0;
+        if(ret < 0) { return 0; }
     } else if(len == ((STLINK_SERIAL_LENGTH / 2 + 1) * 2)) { /* len == 26 */
         /* fix-up the buggy serial */
-        for(uint32_t i = 0; i < STLINK_SERIAL_LENGTH; i += 2)
+        for(uint32_t i = 0; i < STLINK_SERIAL_LENGTH; i += 2) {
             sprintf(serial + i, "%02X", desc_serial[i + 2]);
+        }
         serial[STLINK_SERIAL_LENGTH] = '\0';
     } else {
         return 0;
@@ -1204,6 +1239,7 @@ static stlink_t *stlink_open_usb_at(enum ugly_loglevel verbose, enum connect_typ
     struct stlink_libusb* slu = NULL;
     int32_t ret = -1;
     int32_t config;
+    const struct stlink_hw_desc *hw = NULL;
 
     sl = calloc(1, sizeof(stlink_t));
     if(sl == NULL) { goto on_malloc_error; }
@@ -1259,15 +1295,13 @@ static stlink_t *stlink_open_usb_at(enum ugly_loglevel verbose, enum connect_typ
             match = ((serial == NULL) || (*serial == 0)) || (memcmp(serial, &sl->serial, STLINK_SERIAL_LENGTH) == 0);
         }
 
-        // fixup version and protocol
+        // fixup version and protocol from the ST-LINK variant
         if(match) {
-            if(STLINK_V1_USB_PID(desc.idProduct)) {
-                slu->protocol = 1;
-                sl->version.stlink_v = 1;
-            } else if(STLINK_V2_USB_PID(desc.idProduct) || STLINK_V2_1_USB_PID(desc.idProduct)) {
-                sl->version.stlink_v = 2;
-            } else if(STLINK_V3_USB_PID(desc.idProduct)) {
-                sl->version.stlink_v = 3;
+            hw = stlink_hw_lookup(desc.idProduct);
+
+            if(hw != NULL) {
+                slu->protocol = hw->msc_framing ? 1 : 0;
+                sl->version.stlink_v = stlink_hw_major(hw);
             }
 
             break;
@@ -1320,7 +1354,7 @@ static stlink_t *stlink_open_usb_at(enum ugly_loglevel verbose, enum connect_typ
     }
 
     if(config != 1) {
-        printf("setting new configuration (%d -> 1)\n", config);
+        DLOG("setting new configuration (%d -> 1)\n", config);
 
         if(libusb_set_configuration(slu->usb_handle, 1)) {
             // this may fail for a previous configured device
@@ -1335,23 +1369,10 @@ static stlink_t *stlink_open_usb_at(enum ugly_loglevel verbose, enum connect_typ
     }
 
     // TODO: Could use the scanning technique from STM8 code here...
-    slu->ep_rep = 1 /* ep rep */ | LIBUSB_ENDPOINT_IN;
-
-    if(desc.idProduct == STLINK_USB_PID_STLINK_NUCLEO ||
-        desc.idProduct == STLINK_USB_PID_STLINK_32L_AUDIO ||
-        desc.idProduct == STLINK_USB_PID_STLINK_V2_1 ||
-        desc.idProduct == STLINK_USB_PID_STLINK_V3_USBLOADER ||
-        desc.idProduct == STLINK_USB_PID_STLINK_V3E_PID ||
-        desc.idProduct == STLINK_USB_PID_STLINK_V3S_PID ||
-        desc.idProduct == STLINK_USB_PID_STLINK_V3_2VCP_PID ||
-        desc.idProduct == STLINK_USB_PID_STLINK_V3_NO_MSD_PID ||
-        desc.idProduct == STLINK_USB_PID_STLINK_V3P) {
-        slu->ep_req = 1 /* ep req */ | LIBUSB_ENDPOINT_OUT;
-        slu->ep_trace = 2 | LIBUSB_ENDPOINT_IN;
-    } else {
-        slu->ep_req = 2 /* ep req */ | LIBUSB_ENDPOINT_OUT;
-        slu->ep_trace = 3 | LIBUSB_ENDPOINT_IN;
-    }
+    // Endpoints of the ST-LINK variant; an unknown product id gets the ST-LINK/V2 layout
+    slu->ep_rep = ((hw != NULL) ? hw->ep_rep : 1) | LIBUSB_ENDPOINT_IN;
+    slu->ep_req = ((hw != NULL) ? hw->ep_req : 2) | LIBUSB_ENDPOINT_OUT;
+    slu->ep_trace = ((hw != NULL) ? hw->ep_trace : 3) | LIBUSB_ENDPOINT_IN;
 
     slu->sg_transfer_idx = 0;
     slu->cmd_len = (slu->protocol == 1) ? STLINK_SG_SIZE : STLINK_CMD_SIZE;
@@ -1410,8 +1431,9 @@ on_malloc_error:
  * @retval !NULL  Stlink found and ready to use
  */
 stlink_t *stlink_open_usb(enum ugly_loglevel verbose, enum connect_type connect, char serial[STLINK_SERIAL_BUFFER_SIZE], int32_t freq) {
-    // The loglevel is process wide, so only a caller that asked for one sets it.
-    ugly_init(verbose);
+    // The loglevel is process wide, so only a caller that asked for one sets it,
+    // and only if the application didn't set it with stlink_log_set_level().
+    stlink_log_open_level(verbose);
     return (stlink_open_usb_at(verbose, connect, serial, -1, -1, freq));
 }
 
@@ -1434,7 +1456,7 @@ static uint32_t stlink_probe_usb_devs(libusb_device **devs, stlink_t **sldevs[],
 
         if(desc.idVendor != STLINK_USB_VID_ST) { continue; }
 
-        if(!STLINK_SUPPORTED_USB_PID(desc.idProduct)) {
+        if(stlink_hw_lookup(desc.idProduct) == NULL) {
             WLOG("skipping ST device : %#04x:%#04x)\n", desc.idVendor, desc.idProduct);
             continue;
         }
@@ -1474,7 +1496,7 @@ static uint32_t stlink_probe_usb_devs(libusb_device **devs, stlink_t **sldevs[],
         }
 
         if(desc.idVendor != STLINK_USB_VID_ST) { continue; }
-        if(!STLINK_SUPPORTED_USB_PID(desc.idProduct)) { continue; }
+        if(stlink_hw_lookup(desc.idProduct) == NULL) { continue; }
 
         /* prepare thread args */
         args[job_idx].bus = libusb_get_bus_number(dev);

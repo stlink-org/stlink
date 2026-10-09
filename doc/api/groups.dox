@@ -1,0 +1,86 @@
+/**
+ * @defgroup api_device Device handling
+ * @brief Open ST-LINK devices via USB or st-server, probe all devices, close them.
+ *
+ * Every other function works on the handle (stlink_t) returned here.
+ */
+
+/**
+ * @defgroup api_adapter ST-LINK adapter
+ * @brief Version, mode and settings of the ST-LINK itself.
+ */
+
+/**
+ * @defgroup api_target Target connection and core control
+ * @brief Connect to and identify the target, halt, run, step and reset the core.
+ */
+
+/**
+ * @defgroup api_memory Memory and register access
+ * @brief Read and write target memory and core registers.
+ *
+ * The block functions transfer their data through stlink_t::q_buf: copy the
+ * data there before a write, take it from there after a read.
+ */
+
+/**
+ * @defgroup api_flash Flash programming
+ * @brief Erase, program and verify the flash and OTP memory.
+ *
+ * High level: stlink_mwrite_flash(), stlink_fwrite_flash(), stlink_erase_flash_mass().
+ * Building blocks: stlink_erase_flash_page(), stlink_erase_flash_section(),
+ * stlink_flashloader_start(), stlink_flashloader_write(), stlink_flashloader_stop(),
+ * stlink_verify_write_flash().
+ */
+
+/**
+ * @defgroup api_sram_file SRAM and file transfer
+ * @brief Read target memory into files, write files and buffers into SRAM, Intel HEX and mapped files.
+ */
+
+/**
+ * @defgroup api_option_bytes Option bytes
+ * @brief Read and write option bytes and option control registers.
+ */
+
+/**
+ * @defgroup api_chipid Chip database
+ * @brief Device parameters from the chip description files in config/chips.
+ */
+
+/**
+ * @defgroup api_logging Logging
+ * @brief Route log messages to the application and set the log level.
+ */
+
+/**
+ * @defgroup api_progress Progress reporting
+ * @brief Receive the progress of long operations instead of output on stdout.
+ */
+
+/**
+ * @defgroup api_util Utilities
+ * @brief Helpers for applications using the library.
+ */
+
+/**
+ * @defgroup api_backend Backend interface
+ * @brief Operations a backend implements, see stlink_backend_t.
+ */
+
+/**
+ * @defgroup api_legacy Legacy and deprecated
+ * @brief Kept for compatibility, do not use in new code.
+ */
+
+/** @cond STLINK_INTERNAL */
+/**
+ * @defgroup api_internal Internal functions
+ * @brief Functions exported by the library that are not part of the public API.
+ *
+ * They are only exported because they are not declared static or live in an
+ * installed header. Applications must not use them; they are expected to
+ * become static or move to internal headers.
+ * Only shown when the documentation is generated with STLINK_API_DOCS_INTERNAL=ON.
+ */
+/** @endcond */
