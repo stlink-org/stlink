@@ -142,6 +142,22 @@
 #define STM32_REG_TPI_FFCR                    ((uint32_t) 0xe0040304) // TPI Formatter and Flush Control Register
 #define STM32_REG_TPI_FFCR_TRIG_IN            (1U << 8)
 
+// == STM32H7 == (RM0433). There is no TPIU at 0xE0040000 on an H7; trace
+// components live in the D1 domain. Addresses verified on H753
+#define STM32_REG_H7_DBGMCU_CR        ((uint32_t) 0x5c001004)  // DBGMCU at 0x5C001000
+#define STM32_REG_H7_DBGMCU_CR_TRACECLKEN (1U << 20)           // no TRACE_IOEN on H7
+#define STM32_REG_H7_DBGMCU_CR_D1DBGCKEN  (1U << 21)
+#define STM32_REG_H7_DBGMCU_CR_D3DBGCKEN  (1U << 22)
+
+#define STM32_REG_H7_SWO              ((uint32_t) 0x5c003000)  // SWO (D1 domain)
+#define STM32_REG_H7_SWO_LAR          (STM32_REG_H7_SWO + 0xfb0)
+#define STM32_REG_H7_SWO_CODR        (STM32_REG_H7_SWO + 0x010) // clock prescaler
+#define STM32_REG_H7_SWO_SPPR        (STM32_REG_H7_SWO + 0x0f0)
+
+#define STM32_REG_H7_SWTF            ((uint32_t) 0x5c004000)  // SWTF funnel (D1 domain)
+#define STM32_REG_H7_SWTF_LAR        (STM32_REG_H7_SWTF + 0xfb0)
+#define STM32_REG_H7_SWTF_CTRL       (STM32_REG_H7_SWTF)
+
 /* Application Interrupt and Reset Control Register */
 #define STM32_REG_AIRCR                       ((uint32_t) 0xe000ed0c)
 #define STM32_REG_AIRCR_VECTKEY               ((uint32_t) 0x05fa0000)

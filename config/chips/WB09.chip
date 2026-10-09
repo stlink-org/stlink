@@ -1,6 +1,6 @@
 # Chip-ID file for STM32WB09 device
 #
-dev_type STM32WB06_WB07
+dev_type STM32WB09
 ref_manual_id 0505
 chip_id 0x032                // STM32_CHIPID_WB09
 flash_type WB0

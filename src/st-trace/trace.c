@@ -16,6 +16,96 @@
 #include "trace.h"
 
 
+/**
+  * @brief  Enable the trace pins in the family-specific DBGMCU_CR.
+  * @param  stlink Pointer to the connected stlink context
+  * @retval true  The DBGMCU_CR write succeeded
+  * @retval false The DBGMCU_CR write failed
+  * @note   The register moved and its layout changed across families:
+  *           F/G4/L4/WB: DBGMCU at 0xE0042000, TRACE_IOEN at bit 5
+  *           C5/H5:      DBGMCU at 0x44024000, TRACE_IOEN at bit 4, TRACE_EN at 5
+  *           L5/U5:      DBGMCU at 0xE0044000, same layout as C5/H5
+  *           H7:         DBGMCU at 0x5C001000, no TRACE_IOEN at all; needs
+  *                       TRACECLKEN, D1DBGCKEN and D3DBGCKEN (verified on H753)
+  */
+static bool stlink_trace_configure_dbgmcu(stlink_t *stlink) {
+    uint32_t common = STM32_REG_DBGMCU_CR_DBG_SLEEP | STM32_REG_DBGMCU_CR_DBG_STOP |
+                      STM32_REG_DBGMCU_CR_DBG_STANDBY;
+
+    switch (stlink->flash_type) {
+    case STM32_FLASH_TYPE_H7:
+        return (stlink_write_debug32(stlink, STM32_REG_H7_DBGMCU_CR,
+                                     common | STM32_REG_H7_DBGMCU_CR_TRACECLKEN |
+                                         STM32_REG_H7_DBGMCU_CR_D1DBGCKEN |
+                                         STM32_REG_H7_DBGMCU_CR_D3DBGCKEN) == 0);
+    case STM32_FLASH_TYPE_C5:
+    case STM32_FLASH_TYPE_H5:
+        return (stlink_write_debug32(stlink, STM32_REG_DBGMCU_CR_H5,
+                                     common | STM32_REG_DBGMCU_CR_TRACE_IOEN_H5 |
+                                         STM32_REG_DBGMCU_CR_TRACE_CLKEN_H5) == 0);
+    case STM32_FLASH_TYPE_L5_U5:
+        return (stlink_write_debug32(stlink, STM32_REG_DBGMCU_CR_L5_U5,
+                                     common | STM32_REG_DBGMCU_CR_TRACE_IOEN_L5_U5 |
+                                         STM32_REG_DBGMCU_CR_TRACE_CLKEN_L5_U5) == 0);
+    default:
+        return (stlink_write_debug32(stlink, STM32_REG_DBGMCU_CR,
+                                     common | STM32_REG_DBGMCU_CR_TRACE_IOEN |
+                                         STM32_REG_DBGMCU_CR_TRACE_MODE_ASYNC) == 0);
+    }
+}
+
+/**
+  * @brief  Configure the trace port (TPIU, or SWO and SWTF on H7) for
+  *         asynchronous NRZ output.
+  * @param  stlink          Pointer to the connected stlink context
+  * @param  force           Continue even if the prescaler is out of range
+  * @param  core_frequency  Core clock in Hz; 0 leaves the prescaler untouched
+  * @param  trace_frequency Requested SWO frequency in Hz
+  * @retval true  The trace port was configured
+  * @retval false The prescaler is out of range and force is not set
+  * @note   On most families this is the Cortex-M TPIU at 0xE0040000. There is
+  *         no TPIU there on an H7: the CoreSight component ID registers read 0
+  *         and every TPI_* write lands in nothing. The H7 keeps SWO at
+  *         0x5C003000 and the SWTF funnel at 0x5C004000; both are
+  *         lock-protected. Sequence verified on STM32H753.
+  */
+static bool stlink_trace_configure_trace_port(stlink_t *stlink, bool force,
+                                              uint32_t core_frequency,
+                                              uint32_t trace_frequency) {
+    if(stlink->flash_type == STM32_FLASH_TYPE_H7) {
+        stlink_write_debug32(stlink, STM32_REG_H7_SWO_LAR, STM32_REG_TPI_LAR_KEY);
+        if(core_frequency) {
+            uint32_t prescaler = core_frequency / trace_frequency - 1;
+            if(prescaler > STM32_REG_TPI_ACPR_MAX) {
+                ELOG("Trace frequency prescaler %d out of range. Try setting a faster "
+                     "trace frequency.\n", prescaler);
+                if(!force) { return false; }
+            }
+            stlink_write_debug32(stlink, STM32_REG_H7_SWO_CODR, prescaler);
+        }
+        stlink_write_debug32(stlink, STM32_REG_H7_SWO_SPPR,
+                             STM32_REG_TPI_SPPR_SWO_NRZ);
+        stlink_write_debug32(stlink, STM32_REG_H7_SWTF_LAR, STM32_REG_TPI_LAR_KEY);
+        stlink_write_debug32(stlink, STM32_REG_H7_SWTF_CTRL, 1); // enable slave port 0
+        return true;
+    }
+
+    stlink_write_debug32(stlink, STM32_REG_TPI_CSPSR, STM32_REG_TPI_CSPSR_PORT_SIZE_1);
+    if(core_frequency) {
+        uint32_t prescaler = core_frequency / trace_frequency - 1;
+        if(prescaler > STM32_REG_TPI_ACPR_MAX) {
+            ELOG("Trace frequency prescaler %d out of range. Try setting a faster "
+                 "trace frequency.\n", prescaler);
+            if(!force) { return false; }
+        }
+        stlink_write_debug32(stlink, STM32_REG_TPI_ACPR, prescaler);
+    }
+    stlink_write_debug32(stlink, STM32_REG_TPI_FFCR, STM32_REG_TPI_FFCR_TRIG_IN);
+    stlink_write_debug32(stlink, STM32_REG_TPI_SPPR, STM32_REG_TPI_SPPR_SWO_NRZ);
+    return true;
+}
+
+
 // We use a global flag to allow communicating to the main thread from the
 // signal handler.
 static bool g_abort_trace = false;
@@ -211,47 +301,22 @@ static bool enable_trace(stlink_t *stlink, const st_settings_t *settings, uint32
     stlink_write_debug32(stlink, STM32_REG_DWT_FUNCTION3, 0);
     stlink_write_debug32(stlink, STM32_REG_DWT_CTRL, 0);
 
-    uint32_t dbg_cr_reg = STM32_REG_DBGMCU_CR;
-    uint32_t dbg_cr_val = STM32_REG_DBGMCU_CR_TRACE_IOEN;
-
-    if (stlink->chip_id == STM32_CHIPID_H5xx ||
-        stlink->chip_id == STM32_CHIPID_H52_H53xx) {
-        dbg_cr_reg = STM32_REG_DBGMCU_CR_H5;
-        dbg_cr_val = STM32_REG_DBGMCU_CR_TRACE_IOEN_H5 | STM32_REG_DBGMCU_CR_TRACE_CLKEN_H5;
-    } else if (stlink->chip_id == STM32_CHIPID_U535_U545 ||
-               stlink->chip_id == STM32_CHIPID_U575_U585 ||
-               stlink->chip_id == STM32_CHIPID_U5Fx_U5Gx ||
-               stlink->chip_id == STM32_CHIPID_L5x2xx) {
-        dbg_cr_reg = STM32_REG_DBGMCU_CR_L5_U5;
-        dbg_cr_val = STM32_REG_DBGMCU_CR_TRACE_CLKEN_L5_U5 | STM32_REG_DBGMCU_CR_TRACE_IOEN_L5_U5;
+    if(!stlink_trace_configure_dbgmcu(stlink)) {
+        ELOG("Unable to enable trace pins in DBGMCU\n");
+        if(!settings->force) { return false; }
     }
-
-    stlink_write_debug32(stlink, dbg_cr_reg,
-        dbg_cr_val | STM32_REG_DBGMCU_CR_DBG_SLEEP | STM32_REG_DBGMCU_CR_DBG_STOP |
-            STM32_REG_DBGMCU_CR_DBG_STANDBY |
-            STM32_REG_DBGMCU_CR_TRACE_MODE_ASYNC);
 
     if(stlink_trace_enable(stlink, trace_frequency)) {
         ELOG("Unable to turn on tracing in stlink\n");
         if(!settings->force) { return false; }
     }
 
-    stlink_write_debug32(stlink, STM32_REG_TPI_CSPSR, STM32_REG_TPI_CSPSR_PORT_SIZE_1);
-
-    if(settings->core_frequency) {
-        uint32_t prescaler = settings->core_frequency / trace_frequency - 1;
-        if(prescaler > STM32_REG_TPI_ACPR_MAX) {
-            ELOG("Trace frequency prescaler %d out of range. Try setting a faster "
-                 "trace frequency.\n", prescaler);
-            if(!settings->force) { return false; }
-        }
-        stlink_write_debug32(stlink, STM32_REG_TPI_ACPR,
-                             prescaler); // Set TPIU_ACPR clock divisor
+    if(!stlink_trace_configure_trace_port(stlink, settings->force,
+                                          settings->core_frequency,
+                                          trace_frequency)) {
+        ELOG("Unable to configure trace port\n");
+        if(!settings->force) { return false; }
     }
-    stlink_write_debug32(stlink, STM32_REG_TPI_FFCR,
-                         STM32_REG_TPI_FFCR_TRIG_IN);
-    stlink_write_debug32(stlink, STM32_REG_TPI_SPPR,
-                         STM32_REG_TPI_SPPR_SWO_NRZ);
     stlink_write_debug32(stlink, STM32_REG_ITM_LAR, STM32_REG_ITM_LAR_KEY);
     stlink_write_debug32(stlink, STM32_REG_ITM_TCC, 0x00000400); // Set sync counter
     stlink_write_debug32(stlink, STM32_REG_ITM_TCR,

@@ -1,7 +1,7 @@
 # Chip-ID file for STM32WLEx device
 #
 dev_type STM32WLEx
-ref_manual_id 0033
+ref_manual_id 0453
 chip_id 0x497                // STM32_CHIPID_WLE
 flash_type WB_WL
 flash_size_reg 0x1fff75e0

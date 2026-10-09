@@ -86,10 +86,35 @@ static void stop_wdg_in_debug(stlink_t *sl) {
     switch (sl->flash_type) {
     case STM32_FLASH_TYPE_F0_F1_F3:
     case STM32_FLASH_TYPE_F1_XL:
+        // DBGMCU layout differs inside this family: F0 keeps its
+        // DBGMCU at 0x40015800, F3 freezes through DBG_APB1FZ1 at 0xE0042008,
+        // and only F1/F1_XL use DBGMCU_CR at 0xE0042004 bits 8/9.
+        if(sl->chip_id == STM32_CHIPID_F0 || sl->chip_id == STM32_CHIPID_F09x ||
+           sl->chip_id == STM32_CHIPID_F0xx_SMALL ||
+           sl->chip_id == STM32_CHIPID_F04 || sl->chip_id == STM32_CHIPID_F0_CAN) {
+            dbgmcu_cr = STM32F0_C0_DBGMCU_APB1_FZ;
+            set = (1 << STM32L0_DBGMCU_APB1_FZ_IWDG_STOP) |
+                  (1 << STM32L0_DBGMCU_APB1_FZ_WWDG_STOP);
+        } else if(sl->chip_id == STM32_CHIPID_F3 ||
+                  sl->chip_id == STM32_CHIPID_F37x ||
+                  sl->chip_id == STM32_CHIPID_F334 ||
+                  sl->chip_id == STM32_CHIPID_F3xx_SMALL ||
+                  sl->chip_id == STM32_CHIPID_F303_HD) {
+            dbgmcu_cr = STM32F4_DBGMCU_APB1FZR1;
+            set = (1 << STM32F4_DBGMCU_APB1FZR1_IWDG_STOP) |
+                  (1 << STM32F4_DBGMCU_APB1FZR1_WWDG_STOP);
+        } else { // F1, F1_XL (RM0008)
+            dbgmcu_cr = STM32F0_DBGMCU_CR;
+            set = (1 << STM32F0_DBGMCU_CR_IWDG_STOP) |
+                  (1 << STM32F0_DBGMCU_CR_WWDG_STOP);
+        }
+        break;
     case STM32_FLASH_TYPE_G4:
-        dbgmcu_cr = STM32F0_DBGMCU_CR;
-        set = (1 << STM32F0_DBGMCU_CR_IWDG_STOP) |
-              (1 << STM32F0_DBGMCU_CR_WWDG_STOP);
+        // G4 freezes through DBG_APB1FZ1 at 0xE0042008, bits 11 and 12
+        // (RM0440); DBGMCU_CR bits 8/9 do not exist on G4
+        dbgmcu_cr = STM32F4_DBGMCU_APB1FZR1;
+        set = (1 << STM32F4_DBGMCU_APB1FZR1_IWDG_STOP) |
+              (1 << STM32F4_DBGMCU_APB1FZR1_WWDG_STOP);
         break;
     case STM32_FLASH_TYPE_F2_F4:
     case STM32_FLASH_TYPE_F7:
@@ -114,12 +139,39 @@ static void stop_wdg_in_debug(stlink_t *sl) {
         dbgmcu_cr = STM32H7_DBGMCU_APB1HFZ;
         set = (1 << STM32H7_DBGMCU_APB1HFZ_IWDG_STOP);
         break;
+    case STM32_FLASH_TYPE_C0:
+        // C0 shares the F0 DBGMCU at 0x40015800 (RM0490); previously no case
+        // existed and neither watchdog was frozen
+        dbgmcu_cr = STM32F0_C0_DBGMCU_APB1_FZ;
+        set = (1 << STM32L0_DBGMCU_APB1_FZ_IWDG_STOP) |
+              (1 << STM32L0_DBGMCU_APB1_FZ_WWDG_STOP);
+        break;
+    case STM32_FLASH_TYPE_C5:
+    case STM32_FLASH_TYPE_H5:
+        // C5/H5 keep DBGMCU at 0x44024000
+        dbgmcu_cr = STM32C5_H5_DBGMCU_APB1_FZ;
+        set = (1 << STM32C5_H5_DBGMCU_APB1_FZ_IWDG_STOP) |
+              (1 << STM32C5_H5_DBGMCU_APB1_FZ_WWDG_STOP);
+        break;
+    case STM32_FLASH_TYPE_L5_U5:
+        // L5/U5 keep DBGMCU at 0xE0044000
+        dbgmcu_cr = STM32L5_U5_DBGMCU_APB1_FZ;
+        set = (1 << STM32L5_U5_DBGMCU_APB1_FZ_IWDG_STOP) |
+              (1 << STM32L5_U5_DBGMCU_APB1_FZ_WWDG_STOP);
+        break;
     case STM32_FLASH_TYPE_WB_WL:
         dbgmcu_cr = STM32WB_DBGMCU_APB1FZR1;
         set = (1 << STM32WB_DBGMCU_APB1FZR1_IWDG_STOP) |
               (1 << STM32WB_DBGMCU_APB1FZR1_WWDG_STOP);
         break;
     case STM32_FLASH_TYPE_WB0:
+        if(sl->chip_id == STM32_CHIPID_WL3x) {
+            // WL3x has a DBGMCU (RM0511); freeze instead of gating the clock
+            //
+            dbgmcu_cr = STM32WL3_DBGMCU_APB0_FZ;
+            set = (1 << STM32WL3_DBGMCU_APB0_FZ_IWDG_STOP);
+            break;
+        }
         // WB0 has no DBGMCU, watchdog can only be turned off
         if(!stlink_read_debug32(sl, STM32WB0_RCC_APB0ENR, &value)) {
             stlink_write_debug32(sl, STM32WB0_RCC_APB0ENR, value & (~STM32WB0_RCC_APB0_WDGEN));
@@ -131,6 +183,23 @@ static void stop_wdg_in_debug(stlink_t *sl) {
 
     if(!stlink_read_debug32(sl, dbgmcu_cr, &value)) {
         stlink_write_debug32(sl, dbgmcu_cr, value | set);
+    }
+
+    if(sl->flash_type == STM32_FLASH_TYPE_H7) {
+        // WWDG1 lives in DBG_APB3FZ1 and was never frozen; without this the
+        // window watchdog can reset the chip at a breakpoint
+        if(!stlink_read_debug32(sl, STM32H7_DBGMCU_APB3FZ1, &value)) {
+            stlink_write_debug32(sl, STM32H7_DBGMCU_APB3FZ1,
+                                 value | (1 << STM32H7_DBGMCU_APB3FZ1_WWDG1_STOP));
+        }
+    }
+
+    if(sl->flash_type == STM32_FLASH_TYPE_WB_WL) {
+        // Also freeze the radio core's IWDG on dual-core WB parts
+        if(!stlink_read_debug32(sl, STM32WB_DBGMCU_C2APB1FZR1, &value)) {
+            stlink_write_debug32(sl, STM32WB_DBGMCU_C2APB1FZR1,
+                                 value | (1 << STM32WB_DBGMCU_C2APB1FZR1_IWDG_STOP));
+        }
     }
 }
 

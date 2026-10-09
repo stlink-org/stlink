@@ -289,6 +289,11 @@
 #define STM32_FLASH_H7_CR_SNB 8
 #define STM32_FLASH_H7_CR_SNB_MASK 0x700
 
+// H7A3/H7B0/H7B3 (chip id 0x480): sector number SSN1 at bit 6, 7 bits wide
+// (RM0455); SNB above only matches the other H7 parts
+#define STM32_FLASH_H7Ax_CR_SSN1 6
+#define STM32_FLASH_H7Ax_CR_SSN1_MASK ((uint32_t) 0x7f << STM32_FLASH_H7Ax_CR_SSN1)
+
 // H7 Flash status register
 #define STM32_FLASH_H7_SR_QW 2
 #define STM32_FLASH_H7_SR_WRPERR 17
@@ -379,11 +384,14 @@
 // Bits requesting flash operations (useful when we want to clear them)
 #define STM32_FLASH_L4_CR_OPBITS                                        \
   (uint32_t) ((1lu << STM32_FLASH_L4_CR_PG) | (1lu << STM32_FLASH_L4_CR_PER) | \
-             (1lu << STM32_FLASH_L4_CR_MER1) | (1lu << STM32_FLASH_L4_CR_MER1))
+             (1lu << STM32_FLASH_L4_CR_MER1) | (1lu << STM32_FLASH_L4_CR_MER2))
 // Page is fully specified by BKER and PNB
 #define STM32_FLASH_L4_CR_PAGEMASK (uint32_t) (0x1fflu << STM32_FLASH_L4_CR_PNB)
 
+// RM0432: OPTR bit 21 is DB1M, bit 22 is DBANK, the bank-mode bit the
+// page calculation means to read
 #define STM32_FLASH_L4_OPTR_DUALBANK 21
+#define STM32_FLASH_L4_OPTR_DBANK 22
 
 // == STM32L5 == (RM0438, p.241)
 // L5 Flash registers
@@ -433,7 +441,9 @@
 #define STM32_FLASH_L5_NSSR_NSPGAERR 5
 #define STM32_FLASH_L5_NSSR_NSSIZERR 6
 #define STM32_FLASH_L5_NSSR_NSPGSERR 7
-#define STM32_FLASH_L5_NSSR_OPTWERR 12
+// All 14 L5/U5 SVDs put OPTWERR at bit 13; the family error mask already
+// uses 13
+#define STM32_FLASH_L5_NSSR_OPTWERR 13
 #define STM32_FLASH_L5_NSSR_BSY 16  /* Busy */
 #define STM32_FLASH_L5_NSSR_ERROR_MASK (0x20fa)
 
@@ -443,7 +453,8 @@
 #define STM32_FLASH_H5_REGS_ADDR ((uint32_t) 0x40022000)
 #define STM32_FLASH_H5_ACR    (STM32_FLASH_H5_REGS_ADDR + 0x00)
 #define STM32_FLASH_H5_NSKEYR (STM32_FLASH_H5_REGS_ADDR + 0x04)
-#define STM32_FLASH_H5_OPTKEYR (STM32_FLASH_H5_REGS_ADDR + 0x10)
+// OPTKEYR is at 0x0C; 0x10 is NSOBKKEYR (RM0481)
+#define STM32_FLASH_H5_OPTKEYR (STM32_FLASH_H5_REGS_ADDR + 0x0C)
 #define STM32_FLASH_H5_NSSR   (STM32_FLASH_H5_REGS_ADDR + 0x20)
 #define STM32_FLASH_H5_NSCR   (STM32_FLASH_H5_REGS_ADDR + 0x28)
 #define STM32_FLASH_H5_NSCCR  (STM32_FLASH_H5_REGS_ADDR + 0x30)
@@ -545,6 +556,10 @@
 #define STM32_FLASH_C5_CR_PNB 6
 #define STM32_FLASH_C5_CR_MER 15
 #define STM32_FLASH_C5_CR_BKSEL 31
+
+// ST names bit 2 SER and bit 6 SNB on C5; there is no page erase
+#define STM32_FLASH_C5_CR_SER STM32_FLASH_C5_CR_PER
+#define STM32_FLASH_C5_CR_SNB STM32_FLASH_C5_CR_PNB
 
 // C5 Flash option status register
 #define STM32_FLASH_C5_OPTSR_CUR_SINGLE_BANK 30

@@ -200,6 +200,7 @@ enum stm32_chipids {
 #define STM32_F1_FLASH_BANK2_BASE   ((uint32_t) 0x08080000)
 #define STM32_H7_FLASH_BANK2_BASE   ((uint32_t) 0x08100000)
 
+// watchdog freeze + RCC constants fixes
 #define STM32F0_DBGMCU_CR           ((uint32_t) 0xe0042004)
 #define STM32F0_DBGMCU_CR_IWDG_STOP             8
 #define STM32F0_DBGMCU_CR_WWDG_STOP             9
@@ -223,6 +224,31 @@ enum stm32_chipids {
 #define STM32WB_DBGMCU_APB1FZR1_WWDG_STOP       11
 #define STM32WB_DBGMCU_APB1FZR1_IWDG_STOP       12
 
+// H7: WWDG1 lives in DBG_APB3FZ1 and was never frozen (RM0433)
+#define STM32H7_DBGMCU_APB3FZ1      ((uint32_t) 0x5c001034)
+#define STM32H7_DBGMCU_APB3FZ1_WWDG1_STOP      6
+
+// F0/C0 keep DBGMCU at 0x40015800 (RM0091, RM0490); layout as L0
+#define STM32F0_C0_DBGMCU_APB1_FZ   ((uint32_t) 0x40015808)
+
+// C5/H5 keep DBGMCU at 0x44024000 (RM0522, RM0481)
+#define STM32C5_H5_DBGMCU_APB1_FZ   ((uint32_t) 0x44024008)
+#define STM32C5_H5_DBGMCU_APB1_FZ_WWDG_STOP  11
+#define STM32C5_H5_DBGMCU_APB1_FZ_IWDG_STOP  12
+
+// L5/U5 keep DBGMCU at 0xE0044000 (RM0438, RM0456)
+#define STM32L5_U5_DBGMCU_APB1_FZ   ((uint32_t) 0xe0044008)
+#define STM32L5_U5_DBGMCU_APB1_FZ_WWDG_STOP  11
+#define STM32L5_U5_DBGMCU_APB1_FZ_IWDG_STOP  12
+
+// Dual-core WB: radio core IWDG freeze (RM0434)
+#define STM32WB_DBGMCU_C2APB1FZR1   ((uint32_t) 0xe0042040)
+#define STM32WB_DBGMCU_C2APB1FZR1_IWDG_STOP   12
+
+// WL3x has a DBGMCU (RM0511, DBG_APB0_FZ)
+#define STM32WL3_DBGMCU_APB0_FZ     ((uint32_t) 0x40008008)
+#define STM32WL3_DBGMCU_APB0_FZ_IWDG_STOP     14
+
 #define STM32C0_RCC_AHBENR          ((uint32_t) 0x40021038) // RM0490 (Rev. 5), section 6.4.24 "RCC register map"
 #define STM32C0_RCC_DMAEN           ((uint32_t) 0x00000001) // DMAEN // RM0490 (Rev. 5), section 6.4.24 "RCC register map"
 
@@ -242,7 +268,8 @@ enum stm32_chipids {
 #define STM32L0_RCC_DMAEN           ((uint32_t) 0x00000001) // DMAEN
 
 #define STM32L1_RCC_AHBENR          ((uint32_t) 0x4002381c)
-#define STM32L1_RCC_DMAEN           ((uint32_t) 0x30000000) // DMA2EN | DMA1EN
+// L1: DMA1EN@24, DMA2EN@25 (RM0038, AHBENR); old value enabled GPIOE/F
+#define STM32L1_RCC_DMAEN           ((uint32_t) 0x03000000) // DMA2EN | DMA1EN
 
 #define STM32L5_RCC_AHB1ENR         ((uint32_t) 0x40021048) // RM0438, p.91,377
 #define STM32L5_RCC_DMAEN           ((uint32_t) 0x00000003) // DMA2EN | DMA1EN // RM0438, p.378
@@ -251,7 +278,10 @@ enum stm32_chipids {
 #define STM32H7_RCC_DMAEN           ((uint32_t) 0x00000003) // DMA2EN | DMA1EN
 
 #define STM32WB_RCC_AHB1ENR         ((uint32_t) 0x58000048)
-#define STM32WB_RCC_DMAEN           ((uint32_t) 0x00000003) // DMA2EN | DMA1EN
+// Split per family half: WB has DMA1EN@0 | DMAMUX1EN@2 (bit 1
+// reserved); WL additionally has DMA2EN@1.
+#define STM32WB_RCC_DMAEN           ((uint32_t) 0x00000005) // DMAMUX1EN | DMA1EN
+#define STM32WL_RCC_DMAEN           ((uint32_t) 0x00000007) // DMAMUX1EN | DMA2EN | DMA1EN
 
 #define STM32WB0_FLASH_BASE         ((uint32_t) 0x10040000)
 #define STM32WB0_JTAG_ID            ((uint32_t) 0x40000004)
@@ -267,6 +297,12 @@ enum stm32_chipids {
 // DMA clocks: LPDMA1EN@0 | LPDMA2EN@1.
 #define STM32C5_RCC_AHB1ENR 0x44020C88 // RM0522, RCC AHB1 peripheral clock enable register
 #define STM32C5_RCC_DMAEN 0x00000003   // LPDMA2EN | LPDMA1EN
+
+// U5 moves RCC to 0x46020C00 and PWR to 0x46020800 (RM0456); the L5
+// constants do not apply to the U5 half of the L5_U5 family
+#define STM32U5_RCC_AHB1ENR         ((uint32_t) 0x46020C88) // RM0456
+#define STM32U5_RCC_DMAEN            ((uint32_t) 0x00040001) // DMA2DEN | GPDMA1EN
+#define STM32U5_PWR_CR1              ((uint32_t) 0x46020800) // RM0456
 
 #define STM32L5_PWR_CR1             ((uint32_t) 0x40007000) // RM0438, p.93,324
 #define STM32L5_PWR_CR1_VOS                     9
