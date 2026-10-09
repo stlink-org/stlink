@@ -31,7 +31,7 @@
  * @param flashaddr address in flash
  * @return          the sector number; sectors in the second MiB (second bank) are numbered from 12
  */
-uint32_t calculate_F4_sectornum(uint32_t flashaddr);
+uint32_t calculate_F4_sectornum(stlink_t *sl, uint32_t flashaddr);
 
 /**
  * Sector number of a flash address on STM32F7 (sectors of 32, 128 and 256 KiB).

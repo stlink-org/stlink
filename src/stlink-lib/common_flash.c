@@ -1304,23 +1304,17 @@ int32_t stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr) {
                  stlink_calculate_pagesize(sl, flashaddr));
             write_flash_cr_snb(sl, sector, BANK_1);
 
-            // STM32F2
-            // STM32F4
-        } else {
-            // calculate the actual page from the address
-            uint32_t sector = calculate_F4_sectornum(flashaddr);
+    // STM32F2
+    // STM32F4
+    } else {
+      // calculate the actual page from the address
+      uint32_t sector = calculate_F4_sectornum(sl, flashaddr);
 
             DLOG("EraseFlash - Sector:0x%x Size:0x%x\n", sector,
                  stlink_calculate_pagesize(sl, flashaddr));
 
-            // the SNB values for flash sectors in the second bank do not directly
-            // follow the values for the first bank on 2mb devices...
-            if(sector >= 12) {
-                sector += 4;
-            }
-
-            write_flash_cr_snb(sl, sector, BANK_1);
-        }
+      write_flash_cr_snb(sl, sector, BANK_1);
+    }
 
         set_flash_cr_strt(sl, BANK_1); // start erase operation
         wait_flash_busy(sl);           // wait for completion
