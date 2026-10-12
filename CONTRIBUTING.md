@@ -45,11 +45,11 @@ We Use [Github Flow](https://guides.github.com/introduction/flow/index.html) whi
 They are the best way to propose changes to the codebase and we actively welcome your own ones:
 
 1. PRs should focus on _one_ single topic.
-2. Fork the repo and create your branch from `develop`.
+2. Fork the repo and create your branch from `testing`.
 3. Begin to implement your changes on a local or personal branch.
 4. Take a look at existing PR and check if these target the same part of the codebase.
    Should this be the case, you are encouraged to get in touch with the respective author and discuss on how to proceed.
-5. Keep your personal feature-branch up to date with the current development branch, by merging in recent changes regularly.
+5. Keep your personal feature-branch up to date with the current testing branch, by merging in recent changes regularly.
 6. Don't open a PR unless your contribution has evolved to a somehow completed set of changes.
 7. If you've changed major features, update the documentation.
 8. Ensure your PR passes our travis CI tests.
