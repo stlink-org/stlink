@@ -127,6 +127,9 @@ ssize_t send_recv(struct stlink_libusb* handle, int32_t terminate, unsigned char
                 case STLINK_DEBUG_ERR_DP_ERROR: DLOG("%s debug port error\n", cmd); break;
                 case STLINK_DEBUG_ERR_WRITE_VERIFY:  DLOG("%s verification error\n", cmd); break;
                 case STLINK_DEBUG_ERR_WRITE:  DLOG("%s write error\n", cmd); break;
+                case STLINK_DEBUG_ERR_GET_IDCODE: DLOG("%s no target answered (IDCODE read failed)\n", cmd); break;
+                case STLINK_DEBUG_ERR_JTAG_NOT_ACTIVE: DLOG("%s needs JTAG mode\n", cmd); break;
+                case STLINK_DEBUG_ERR_UNKNOWN_CMD: DLOG("%s not supported by the probe firmware\n", cmd); break;
                 default: DLOG("%s error (0x%02X)\n", cmd, rxbuf[0]); break;
                 }
 
@@ -540,7 +543,14 @@ int32_t _stlink_usb_enter_swd_mode(stlink_t * sl) {
     }
 
     cmd[i++] = STLINK_DEBUG_ENTER_SWD;
+    data[0] = 0; // status byte of the reply, checked below
     size = send_recv(slu, 1, cmd, slu->cmd_len, data, rep_len, CMD_CHECK_RETRY, "ENTER_SWD");
+
+    // the probe could not read the DP IDCODE: tell the user why entering SWD mode failed
+    if(size < 0 && rep_len > 0 && data[0] == STLINK_DEBUG_ERR_GET_IDCODE) {
+        ELOG("No target answered on SWD: check target power, the target voltage connection (VCC sense) "
+             "and the SWDIO, SWCLK and GND wiring\n");
+    }
 
     return (size < 0 ? -1 : 0);
 }
