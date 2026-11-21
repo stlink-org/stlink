@@ -145,6 +145,8 @@ enum target_state {
 /* Error codes of the ST-LINK protocol */
 #define STLINK_DEBUG_ERR_OK                 0x80
 #define STLINK_DEBUG_ERR_FAULT              0x81
+#define STLINK_DEBUG_ERR_JTAG_NOT_ACTIVE    0x08 // JTAG-only command while the probe is not in JTAG mode
+#define STLINK_DEBUG_ERR_GET_IDCODE         0x09 // no target answered: reading the DP IDCODE failed
 #define STLINK_DEBUG_ERR_WRITE              0x0c
 #define STLINK_DEBUG_ERR_WRITE_VERIFY       0x0d
 #define STLINK_DEBUG_ERR_AP_WAIT            0x10
@@ -153,6 +155,7 @@ enum target_state {
 #define STLINK_DEBUG_ERR_DP_WAIT            0x14
 #define STLINK_DEBUG_ERR_DP_FAULT           0x15
 #define STLINK_DEBUG_ERR_DP_ERROR           0x16
+#define STLINK_DEBUG_ERR_UNKNOWN_CMD        0x42 // command not supported by the probe firmware
 
 /* Reply checks of the USB backend */
 #define CMD_CHECK_NO                           0
