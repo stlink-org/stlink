@@ -443,8 +443,12 @@
 #define STM32_FLASH_H5_NSCR_SER  2   /* Sector erase */
 #define STM32_FLASH_H5_NSCR_BER  3   /* Bank erase */
 #define STM32_FLASH_H5_NSCR_STRT 5   /* Start */
-#define STM32_FLASH_H5_NSCR_SNB  6   /* Sector number [12:6] (7 bits) */
-#define STM32_FLASH_H5_NSCR_SNB_MASK (0x7Fu << STM32_FLASH_H5_NSCR_SNB)
+// Sector number within the bank: [12:6] (7 bits, up to 128 sectors per bank)
+// on H56x/H57x/H52x/H53x (RM0481), [13:6] (8 bits, up to 256 sectors per bank)
+// on H5Ex/H5Fx. Bit 13 is reserved on the 7-bit parts and is never set there,
+// since their banks never hold more than 128 sectors.
+#define STM32_FLASH_H5_NSCR_SNB  6
+#define STM32_FLASH_H5_NSCR_SNB_MASK (0xFFu << STM32_FLASH_H5_NSCR_SNB)
 #define STM32_FLASH_H5_NSCR_MER  15  /* Mass erase */
 #define STM32_FLASH_H5_NSCR_BKSEL 31 /* Bank selector */
 

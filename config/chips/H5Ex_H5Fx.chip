@@ -1,0 +1,17 @@
+# Chip-ID file for STM32H5E4 / STM32H5E5 / STM32H5F4 / STM32H5F5 devices
+#
+# 3 or 4 MB dual-bank flash (bank 2 at flash_size / 2), 8 KB sectors, up to
+# 256 sectors per bank (8-bit FLASH_NSCR.SNB), 1.5 MB SRAM at 0x20000000.
+# Flash registers otherwise identical to STM32H56x (flash_type H5).
+#
+dev_type STM32H5Ex_H5Fx
+chip_id 0x47a                // STM32_CHIPID_H5Ex_H5Fx
+flash_type H5
+flash_size_reg 0x08fff80c
+flash_pagesize 0x2000        // 8 KB
+sram_size 0x180000           // 1.5 MB
+bootrom_base 0x0bf80000
+bootrom_size 0x8000          // 32 KB
+option_base 0x0
+option_size 0x0
+flags dualbank

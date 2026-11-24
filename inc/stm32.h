@@ -153,6 +153,7 @@ enum stm32_chipids {
     STM32_CHIPID_U5Fx_U5Gx        = 0x476, /* RM0456, p.3604 */
     STM32_CHIPID_H52_H53xx        = 0x478, /* RM0481, p.3085 */
     STM32_CHIPID_G4_CAT4          = 0x479,
+    STM32_CHIPID_H5Ex_H5Fx        = 0x47A, /* STM32H5E4/H5E5/H5F4/H5F5, DBGMCU_IDCODE DEV_ID */
     STM32_CHIPID_H7Ax             = 0x480, /* RM0455, p.2863 */
     STM32_CHIPID_U59x_U5Ax        = 0x481, /* RM0456, p.3604 */
     STM32_CHIPID_U575_U585        = 0x482, /* RM0456, p.3604 */

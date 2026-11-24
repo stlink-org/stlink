@@ -1468,20 +1468,32 @@ int32_t stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr) {
   // STM32H5
   } else if(sl->flash_type == STM32_FLASH_TYPE_H5) {
     // STM32H5: sector erase via NSCR. SNB selects the 8 KiB sector within the
-    // bank, BKSEL the bank (RM0481). 256 sectors total, 128 per bank.
+    // bank, BKSEL the bank. Each bank holds half of the flash: up to 128
+    // sectors on H56x/H57x (RM0481), up to 256 on the 4 MB H5Ex/H5Fx parts.
     uint32_t val, flash_page;
+    uint32_t bank_size = sl->flash_size / 2;
+    uint32_t sectors_per_bank = bank_size / sl->flash_pgsz;
+    bool upper_half = (flashaddr - STM32_FLASH_BASE) >= bank_size;
+    if(upper_half) {
+      flash_page = (flashaddr - STM32_FLASH_BASE - bank_size) / sl->flash_pgsz;
+    } else {
+      flash_page = (flashaddr - STM32_FLASH_BASE) / sl->flash_pgsz;
+    }
+
+    // Refuse instead of truncating: a truncated SNB erases another sector.
+    if(flash_page >= sectors_per_bank ||
+       flash_page > (STM32_FLASH_H5_NSCR_SNB_MASK >> STM32_FLASH_H5_NSCR_SNB)) {
+      ELOG("H5 sector erase: address %#x out of range (sector %u, %u sectors per bank)\n",
+           flashaddr, flash_page, sectors_per_bank);
+      return (-1);
+    }
+
     unlock_flash_if(sl);
     clear_flash_error(sl); // clear stale NSSR flags through NSCCR
 
     // BKSEL selects the physical bank and ignores the SWAP_BANK option, so
     // invert it against the logical address when the banks are swapped (RM0481).
     bool swap_bank = stlink_h5_bank_swapped(sl);
-    bool upper_half = (flashaddr - STM32_FLASH_BASE) >= sl->flash_size / 2;
-    if(upper_half) {
-      flash_page = (flashaddr - STM32_FLASH_BASE - sl->flash_size / 2) / sl->flash_pgsz;
-    } else {
-      flash_page = (flashaddr - STM32_FLASH_BASE) / sl->flash_pgsz;
-    }
 
     stlink_read_debug32(sl, STM32_FLASH_H5_NSCR, &val);
     val &= ~(STM32_FLASH_H5_NSCR_SNB_MASK | (1u << STM32_FLASH_H5_NSCR_BKSEL) |
@@ -1489,7 +1501,7 @@ int32_t stlink_erase_flash_page(stlink_t *sl, stm32_addr_t flashaddr) {
     if(upper_half != swap_bank) {
       val |= (1u << STM32_FLASH_H5_NSCR_BKSEL);
     }
-    val |= (1u << STM32_FLASH_H5_NSCR_SER) | ((flash_page & 0x7F) << STM32_FLASH_H5_NSCR_SNB);
+    val |= (1u << STM32_FLASH_H5_NSCR_SER) | (flash_page << STM32_FLASH_H5_NSCR_SNB);
     stlink_write_debug32(sl, STM32_FLASH_H5_NSCR, val);
 
     set_flash_cr_strt(sl, BANK_1); // start the sector erase
